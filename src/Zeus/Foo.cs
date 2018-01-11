@@ -44,7 +44,7 @@ namespace Zeus
     public interface IResolver<TResult>
         : IResolver
     {
-        Task<TResult> ResolveAsync(IResolverContext context, CancellationToken cancellationToken);
+        new Task<TResult> ResolveAsync(IResolverContext context, CancellationToken cancellationToken);
     }
 
     public interface IFieldResolver
