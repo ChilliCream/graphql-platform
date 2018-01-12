@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="GraphQL-Parser" Version="3.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
 
 </Project>

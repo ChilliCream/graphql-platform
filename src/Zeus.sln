@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zeus", "Zeus\Zeus.csproj", "{4F4957BA-C932-44E1-8293-8C19A63D6ADC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zeus.Tests", "Zeus.Tests\Zeus.Tests.csproj", "{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,17 @@ Global
 		{4F4957BA-C932-44E1-8293-8C19A63D6ADC}.Release|x64.Build.0 = Release|x64
 		{4F4957BA-C932-44E1-8293-8C19A63D6ADC}.Release|x86.ActiveCfg = Release|x86
 		{4F4957BA-C932-44E1-8293-8C19A63D6ADC}.Release|x86.Build.0 = Release|x86
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|x64.Build.0 = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Debug|x86.Build.0 = Debug|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|x64.ActiveCfg = Release|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|x64.Build.0 = Release|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|x86.ActiveCfg = Release|Any CPU
+		{F483962D-AD0C-47A7-ADB4-0D94A94CB47D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

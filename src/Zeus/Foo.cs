@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq.Expressions;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +32,10 @@ namespace Zeus
 
     public interface IResolverContext
     {
+        IImmutableStack<object> Path { get; }
+
+        T Parent<T>();
+
         T Argument<T>(string name);
 
     }
@@ -54,16 +58,62 @@ namespace Zeus
         string FieldName { get; }
     }
 
-     public interface IFieldResolver<TResult>
+    public interface IFieldResolver<TResult>
         : IFieldResolver
         , IResolver<TResult>
     {
     }
 
+    public interface INodeResolver
+    {
+        int Depth { get; }
+
+        IResolver Resolver();
+    }
+
     public interface IResolverCollection
+    {
+        bool TryGetResolver(string typeName, string fieldName, out IResolver resolver);
+    }
+
+    public interface ISchema
+    {
+
+
+    }
+
+    public interface IRequest
+    {
+        // inital value 
+        // query
+        // variable values
+        // initial value
+
+        string Query { get; }
+    }
+
+    public interface IRequestProcessor
+    {
+        Task ExecuteAsync(ISchema schema, IRequest request);
+    }
+
+    public class Schema
+        : ISchema
+    {
+
+
+        public static Schema Create(string schema, IResolverCollection resolvers)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class ResolverGraphBuilder
     {
 
     }
+
+
 
     public class Foo
     {
@@ -81,4 +131,6 @@ namespace Zeus
             return default(string);
         }
     }
+
+
 }
