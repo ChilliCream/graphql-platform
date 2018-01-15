@@ -7,7 +7,6 @@ using Zeus.Types;
 namespace Zeus
 {
     public class Schema
-        : ISchema
     {
         private readonly Dictionary<string, ObjectDeclaration> _objectTypes;
         private readonly Dictionary<string, InputDeclaration> _inputTypes;

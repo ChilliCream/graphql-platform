@@ -73,26 +73,11 @@ namespace Zeus
 
         Task HandleAsync(SyntaxHandlerContext context);
     }
-
-
-
+    
     public class SyntaxHandlerContext
     {
         public ImmutableStack<ASTNode> SyntaxPath { get; }
         public ImmutableStack<object> GraphPath { get; }
-
-    }
-
-    public static class ASTNodeExtensions
-    {
-
-
-
-        public static void Accept(this ASTNode node, SyntaxNodeVisitor visitor)
-        {
-            visitor.Visit(node);
-        }
-
 
     }
 }

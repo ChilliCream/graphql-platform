@@ -3,15 +3,21 @@ using System.Collections.Immutable;
 
 namespace Zeus.Types
 {
-    internal static class BuiltInTypes
+    internal static class ScalarTypes
     {
-        internal static readonly string String = "String";
         internal static readonly string Integer = "Int";
+        internal static readonly string Float = "Float";
+        internal static readonly string String = "String";
+        internal static readonly string Boolean = "Boolean";
+        internal static readonly string ID = "ID";
 
         private static readonly HashSet<string> _builtInTypes = new HashSet<string>
         {
+            Integer,
+            Float,
             String,
-            Integer
+            Boolean,
+            ID
         };
 
         public static bool Contains(string name)
