@@ -7,17 +7,24 @@ namespace Zeus.Types
     internal class SchemaSyntaxVisitor
         : SyntaxNodeWalker
     {
-        private List<ObjectDeclaration> _typeDefinitions = new List<ObjectDeclaration>();
-        private ObjectDeclaration _currentObject;
-        private FieldDeclaration _currentField;
+        private List<ObjectDeclaration> _objectTypes = new List<ObjectDeclaration>();
+        private List<InputDeclaration> _inputTypes = new List<InputDeclaration>();
 
-        public IReadOnlyCollection<ObjectDeclaration> ObjectTypes => _typeDefinitions;
+        public IReadOnlyCollection<ObjectDeclaration> ObjectTypes => _objectTypes;
+        public IReadOnlyCollection<InputDeclaration> InputTypes => _inputTypes;
 
         protected override void VisitObjectTypeDefinition(GraphQLObjectTypeDefinition objectTypeDefinition)
         {
-            _typeDefinitions.Add(new ObjectDeclaration(
+            _objectTypes.Add(new ObjectDeclaration(
                 objectTypeDefinition.Name.Value,
                 DeserializeFieldDefinitions(objectTypeDefinition.Fields)));
+        }
+
+        protected override void VisitInputObjectTypeDefinition(GraphQLInputObjectTypeDefinition inputObjectTypeDefinition)
+        {
+             _inputTypes.Add(new InputDeclaration(
+                 inputObjectTypeDefinition.Name.Value,
+                 DeserializeInputFields(inputObjectTypeDefinition.Fields)));
         }
 
         private IEnumerable<FieldDeclaration> DeserializeFieldDefinitions(IEnumerable<GraphQLFieldDefinition> fieldDefinitions)
@@ -26,15 +33,15 @@ namespace Zeus.Types
             {
                 yield return new FieldDeclaration(fieldDefinition.Name.Value,
                     DeserializeType(fieldDefinition.Type),
-                    DeserializeArguments(fieldDefinition.Arguments));
+                    DeserializeInputFields(fieldDefinition.Arguments));
             }
         }
 
-        private IEnumerable<ArgumentDeclaration> DeserializeArguments(IEnumerable<GraphQLInputValueDefinition> inputValueDefinitions)
+        private IEnumerable<InputFieldDeclaration> DeserializeInputFields(IEnumerable<GraphQLInputValueDefinition> inputValueDefinitions)
         {
             foreach (GraphQLInputValueDefinition inputValueDefinition in inputValueDefinitions)
             {
-                yield return new ArgumentDeclaration(inputValueDefinition.Name.Value,
+                yield return new InputFieldDeclaration(inputValueDefinition.Name.Value,
                     DeserializeType(inputValueDefinition.Type));
             }
         }

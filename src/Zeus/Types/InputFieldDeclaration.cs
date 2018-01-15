@@ -2,9 +2,9 @@ using System;
 
 namespace Zeus.Types
 {
-    public class ArgumentDeclaration
+    public class InputFieldDeclaration
     {
-        public ArgumentDeclaration(string name, TypeDeclaration type)
+        public InputFieldDeclaration(string name, TypeDeclaration type)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));

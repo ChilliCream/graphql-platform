@@ -6,7 +6,7 @@ namespace Zeus.Types
 {
     public class FieldDeclaration
     {
-        public FieldDeclaration(string name, TypeDeclaration type, IEnumerable<ArgumentDeclaration> arguments)
+        public FieldDeclaration(string name, TypeDeclaration type, IEnumerable<InputFieldDeclaration> arguments)
         {
             if (name == null)
             {
@@ -30,6 +30,6 @@ namespace Zeus.Types
 
         public string Name { get; }
         public TypeDeclaration Type { get; }
-        public IReadOnlyDictionary<string, ArgumentDeclaration> Arguments { get; }
+        public IReadOnlyDictionary<string, InputFieldDeclaration> Arguments { get; }
     }
 }
