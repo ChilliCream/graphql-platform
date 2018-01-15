@@ -13,18 +13,25 @@ namespace Zeus.Types
         public IReadOnlyCollection<ObjectDeclaration> ObjectTypes => _objectTypes;
         public IReadOnlyCollection<InputDeclaration> InputTypes => _inputTypes;
 
+        public bool HasQueryType { get; private set; }
+
         protected override void VisitObjectTypeDefinition(GraphQLObjectTypeDefinition objectTypeDefinition)
         {
             _objectTypes.Add(new ObjectDeclaration(
                 objectTypeDefinition.Name.Value,
                 DeserializeFieldDefinitions(objectTypeDefinition.Fields)));
+            
+            if (!HasQueryType)
+            {
+                HasQueryType = WellKnownTypes.IsQuery(objectTypeDefinition.Name.Value);
+            }
         }
 
         protected override void VisitInputObjectTypeDefinition(GraphQLInputObjectTypeDefinition inputObjectTypeDefinition)
         {
-             _inputTypes.Add(new InputDeclaration(
-                 inputObjectTypeDefinition.Name.Value,
-                 DeserializeInputFields(inputObjectTypeDefinition.Fields)));
+            _inputTypes.Add(new InputDeclaration(
+                inputObjectTypeDefinition.Name.Value,
+                DeserializeInputFields(inputObjectTypeDefinition.Fields)));
         }
 
         private IEnumerable<FieldDeclaration> DeserializeFieldDefinitions(IEnumerable<GraphQLFieldDefinition> fieldDefinitions)
