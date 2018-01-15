@@ -90,7 +90,7 @@ namespace Zeus
 
         public static void Accept(this ASTNode node, SyntaxNodeVisitor visitor)
         {
-
+            visitor.Visit(node);
         }
 
 
