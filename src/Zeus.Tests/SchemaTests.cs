@@ -142,5 +142,35 @@ namespace Zeus.Tests
             Assert.True(field.Type.IsNullable);
             Assert.Null(field.Type.ElementType);
         }
+
+        [Fact]
+        public void DeserializeSchemaWithInputs()
+        {
+            // arrange
+            Source source = new Source("type Foo { bar: String }\r\ninput Bar { bar: String }");
+            Lexer lexer = new Lexer();
+            Parser parser = new Parser(lexer);
+
+            // act
+            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor();
+            parser.Parse(source).Accept(visitor);
+
+            // assert
+            Assert.Equal(1, visitor.InputTypes.Count);
+
+            InputDeclaration inputType = visitor.InputTypes.First();
+            Assert.Equal("Bar", inputType.Name);
+            Assert.Equal(1, inputType.Fields.Count);
+            Assert.True(inputType.Fields.ContainsKey("bar"));
+
+            InputFieldDeclaration field = inputType.Fields["bar"];
+            Assert.Equal("bar", field.Name);
+
+            Assert.NotNull(field.Type);
+            Assert.Equal("String", field.Type.Name);
+            Assert.Equal(TypeKind.Scalar, field.Type.Kind);
+            Assert.True(field.Type.IsNullable);
+            Assert.Null(field.Type.ElementType);
+        }
     }
 }
