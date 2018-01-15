@@ -25,21 +25,10 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
-        }
-        /*,
-        {
-            "label": "test->data",
-            "command": "dotnet test src/Data.Tests",
-            "type": "shell",
-            "group": "test",
-            "presentation": {
-                "reveal": "silent"
-            },
-            "problemMatcher": "$msCompile"
         },
         {
-            "label": "test->components",
-            "command": "dotnet test src/Components.Tests",
+            "label": "tests",
+            "command": "dotnet test src/Zeus.Tests",
             "type": "shell",
             "group": "test",
             "presentation": {
@@ -47,6 +36,5 @@
             },
             "problemMatcher": "$msCompile"
         }
-        */
     ]
 }
