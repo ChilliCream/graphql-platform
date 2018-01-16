@@ -3,7 +3,7 @@ using GraphQLParser.AST;
 
 namespace Zeus
 {
-    public partial class SyntaxNodeWalker
+    public class SyntaxNodeWalker
         : SyntaxNodeVisitor
     {
         protected SyntaxNodeWalker()

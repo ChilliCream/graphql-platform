@@ -120,7 +120,7 @@ namespace Zeus.Types
 
         private static TypeKind ResolveTypeKind(string name)
         {
-            return BuiltInTypes.Contains(name) ? TypeKind.Scalar : TypeKind.Object;
+            return ScalarTypes.Contains(name) ? TypeKind.Scalar : TypeKind.Object;
         }
     }
 }

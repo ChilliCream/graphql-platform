@@ -50,4 +50,51 @@ namespace Zeus
                 { ASTNodeKind.StringValue, (v, n) => v.VisitScalarValue((GraphQLScalarValue)n) },
          };
     }
+
+    public partial class SyntaxNodeVisitor<TContext>
+    {
+        private static readonly Dictionary<ASTNodeKind, Action<SyntaxNodeVisitor<TContext>, ASTNode, TContext>> _visitationMap
+         = new Dictionary<ASTNodeKind, Action<SyntaxNodeVisitor<TContext>, ASTNode, TContext>>
+         {
+                { ASTNodeKind.Argument, (v, n, c) => v.VisitArgument((GraphQLArgument)n, c) },
+                { ASTNodeKind.Directive, (v, n, c) => v.VisitDirective((GraphQLDirective)n, c) },
+                { ASTNodeKind.DirectiveDefinition, (v, n, c) => v.VisitDirectiveDefinition((GraphQLDirectiveDefinition)n, c) },
+                { ASTNodeKind.Document, (v, n, c) => v.VisitDocument((GraphQLDocument)n, c) },
+                { ASTNodeKind.EnumTypeDefinition, (v, n, c) => v.VisitEnumTypeDefinition((GraphQLEnumTypeDefinition)n, c) },
+                { ASTNodeKind.EnumValueDefinition, (v, n, c) => v.VisitEnumValueDefinition((GraphQLEnumValueDefinition)n, c) },
+                { ASTNodeKind.Field, (v, n, c) => v.VisitField((GraphQLFieldSelection)n, c) },
+                { ASTNodeKind.FieldDefinition, (v, n, c) => v.VisitFieldDefinition((GraphQLFieldDefinition)n, c) },
+                { ASTNodeKind.FragmentDefinition, (v, n, c) => v.VisitFragmentDefinition((GraphQLFragmentDefinition)n, c) },
+                { ASTNodeKind.FragmentSpread, (v, n, c) => v.VisitFragmentSpread((GraphQLFragmentSpread)n, c) },
+                { ASTNodeKind.InlineFragment, (v, n, c) => v.VisitInlineFragment((GraphQLInlineFragment)n, c) },
+                { ASTNodeKind.InputObjectTypeDefinition, (v, n, c) => v.VisitInputObjectTypeDefinition((GraphQLInputObjectTypeDefinition)n, c) },
+                { ASTNodeKind.InputValueDefinition, (v, n, c) => v.VisitInputValueDefinition((GraphQLInputValueDefinition)n, c) },
+                { ASTNodeKind.InterfaceTypeDefinition, (v, n, c) => v.VisitInterfaceTypeDefinition((GraphQLInterfaceTypeDefinition)n, c) },
+                { ASTNodeKind.ListType, (v, n, c) => v.VisitListType((GraphQLListType)n, c) },
+                { ASTNodeKind.ListValue, (v, n, c) => v.VisitListValue((GraphQLListValue)n, c) },
+                { ASTNodeKind.Name, (v, n, c) => v.VisitName((GraphQLName)n, c) },
+                { ASTNodeKind.NamedType, (v, n, c) => v.VisitNamedType((GraphQLNamedType)n, c) },
+                { ASTNodeKind.NonNullType, (v, n, c) => v.VisitNonNullType((GraphQLNonNullType)n, c) },
+                { ASTNodeKind.ObjectField, (v, n, c) => v.VisitObjectField((GraphQLObjectField)n, c) },
+                { ASTNodeKind.ObjectTypeDefinition, (v, n, c) => v.VisitObjectTypeDefinition((GraphQLObjectTypeDefinition)n, c) },
+                { ASTNodeKind.ObjectValue, (v, n, c) => v.VisitObjectValue((GraphQLObjectValue)n, c) },
+                { ASTNodeKind.OperationDefinition, (v, n, c) => v.VisitOperationDefinition((GraphQLOperationDefinition)n, c) },
+                { ASTNodeKind.OperationTypeDefinition, (v, n, c) => v.VisitOperationTypeDefinition((GraphQLOperationTypeDefinition)n, c) },
+                { ASTNodeKind.ScalarTypeDefinition, (v, n, c) => v.VisitScalarTypeDefinition((GraphQLScalarTypeDefinition)n, c) },
+                { ASTNodeKind.SchemaDefinition, (v, n, c) => v.VisitSchemaDefinition((GraphQLSchemaDefinition)n, c) },
+                { ASTNodeKind.SelectionSet, (v, n, c) => v.VisitSelectionSet((GraphQLSelectionSet)n, c) },
+                { ASTNodeKind.TypeExtensionDefinition, (v, n, c) => v.VisitTypeExtensionDefinition((GraphQLTypeExtensionDefinition)n, c) },
+                { ASTNodeKind.UnionTypeDefinition, (v, n, c) => v.VisitUnionTypeDefinition((GraphQLUnionTypeDefinition)n, c) },
+                { ASTNodeKind.Variable, (v, n, c) => v.VisitVariable((GraphQLVariable)n, c) },
+                { ASTNodeKind.VariableDefinition, (v, n, c) => v.VisitVariableDefinition((GraphQLVariableDefinition)n, c) },
+
+                // scalar values
+                { ASTNodeKind.EnumValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+                { ASTNodeKind.BooleanValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+                { ASTNodeKind.FloatValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+                { ASTNodeKind.IntValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+                { ASTNodeKind.NullValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+                { ASTNodeKind.StringValue, (v, n, c) => v.VisitScalarValue((GraphQLScalarValue)n, c) },
+         };
+    }
 }

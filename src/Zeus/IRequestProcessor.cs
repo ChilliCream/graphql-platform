@@ -4,7 +4,7 @@ namespace Zeus
 {
     public interface IRequestProcessor
     {
-        Task ExecuteAsync(ISchema schema, IRequest request);
+        // Task ExecuteAsync(ISchema schema, IRequest request);
     }
 
 
