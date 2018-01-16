@@ -21,11 +21,29 @@ namespace Zeus
             _objectTypes = objectTypes.ToDictionary(t => t.Name);
             _inputTypes = inputTypes.ToDictionary(t => t.Name);
             _resolvers = resolvers;
-    
-            _objectTypes.TryGetValue(WellKnownTypes.Query, 
+
+            _objectTypes.TryGetValue(WellKnownTypes.Query,
                 out ObjectDeclaration _queryType);
-            _objectTypes.TryGetValue(WellKnownTypes.Mutation, 
+            _objectTypes.TryGetValue(WellKnownTypes.Mutation,
                 out ObjectDeclaration _mutationType);
+        }
+
+        public ObjectDeclaration Query => _queryType;
+        public ObjectDeclaration Mutation => _mutationType;
+
+        public bool TryGetObjectType(string typeName, out ObjectDeclaration objectType)
+        {
+            return _objectTypes.TryGetValue(typeName, out objectType);
+        }
+
+        public bool TryGetInputType(string typeName, out InputDeclaration inputType)
+        {
+            return _inputTypes.TryGetValue(typeName, out inputType);
+        }
+
+        public bool TryGetResolver(string typeName, string fieldName, out IResolver resolver)
+        {
+            return _resolvers.TryGetResolver(typeName, fieldName, out resolver);
         }
 
         public static Schema Create(string schema, IResolverCollection resolvers)

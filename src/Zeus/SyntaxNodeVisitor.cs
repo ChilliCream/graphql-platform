@@ -30,7 +30,7 @@ namespace Zeus
         {
             if (node != null && _visitationMap.TryGetValue(node.Kind, out var visitMethod))
             {
-                visitMethod(this, node);
+                visitMethod(this, node, context);
             }
         }
     }

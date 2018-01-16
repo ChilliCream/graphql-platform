@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using GraphQLParser;
 using Xunit;
 using Zeus.Execution;
@@ -10,13 +12,34 @@ namespace Zeus.Tests
         public void Foo()
         {
             // arrange
-            Source source = new Source("query a($b: String) { c(b: $b) { d } } query x($b: String) { c(b: $b) { d } }");
-            Lexer lexer = new Lexer();
-            Parser parser = new Parser(lexer);
+            Schema schema = Schema.Create("type Foo { c : Bar } type Bar { d : String } type Query { b : Foo }", new ResolverCollectionMock());
+            Document document = Document.Parse("query a { b { c { d } } }");
 
             // act
-            DocumentSyntaxVisitor visitor = new DocumentSyntaxVisitor();
-            parser.Parse(source).Accept(visitor);
+            RequestExecuter executer = new RequestExecuter();
+            executer.ExecuteAsync(schema, document, null, null, null, CancellationToken.None).Wait();
+
+            // act
+        }
+    }
+
+    public class ResolverCollectionMock
+        : IResolverCollection
+    {
+        public bool TryGetResolver(string typeName, string fieldName, out IResolver resolver)
+        {
+            resolver = new Resolver();
+            return true;
+        }
+    }
+
+    public class Resolver
+        : IResolver
+    {
+        static int i = 0;
+        public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<object>(i++);
         }
     }
 }
