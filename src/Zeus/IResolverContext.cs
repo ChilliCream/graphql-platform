@@ -9,8 +9,5 @@ namespace Zeus
         T Parent<T>();
 
         T Argument<T>(string name);
-
     }
-
-
 }

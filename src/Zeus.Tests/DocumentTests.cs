@@ -12,7 +12,7 @@ namespace Zeus.Tests
         public void Foo()
         {
             // arrange
-            Schema schema = Schema.Create("type Foo { c : Bar } type Bar { d : String } type Query { b : Foo }", new ResolverCollectionMock());
+            Schema schema = Schema.Create("type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }", new ResolverCollectionMock());
             Document document = Document.Parse("query a { b { c { d } } }");
 
             // act

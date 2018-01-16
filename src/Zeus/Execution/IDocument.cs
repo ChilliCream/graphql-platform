@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace Zeus.Execution
     public class RequestExecuter
     {
         //schema, document, operationName, variableValues, initialValue
-        public async Task ExecuteAsync(Schema schema, Document document,
+        public async Task<IDictionary<string, object>> ExecuteAsync(Schema schema, Document document,
             string operationName, IDictionary<string, object> variables,
             object initialValue, CancellationToken cancellationToken)
         {
@@ -40,6 +41,103 @@ namespace Zeus.Execution
                     }
                 }
             }
+
+            return null;
+        }
+
+        private async Task ExecuteLevelAsync(Schema schema, IDictionary<string, object> variables,
+            IEnumerable<QueueItem> items, CancellationToken cancellationToken)
+        {
+            List<QueueItem> nextLevel = new List<QueueItem>();
+
+            // resolve => this could be done in parallel
+            foreach (QueueItem item in items)
+            {
+                item.Result = await ResolveAsync(schema,
+                    item.TypeName, item.FieldSelection,
+                    variables, cancellationToken);
+            }
+
+            // execute batches => this could  be done in parallel
+            // ExecuteBatches
+
+            // invoke func results and queue next level => sync
+            foreach (QueueItem item in items)
+            {
+                item.Result.FinalizeResult();
+                // validate result against schema
+
+
+                if (item.Result.Field.Type.Kind == TypeKind.List)
+                {
+                    List<Dictionary<string, object>> list = new List<Dictionary<string, object>>();
+                    item.Map[item.FieldSelection.Alias.Value] = list;
+
+                    foreach (object o in (IEnumerable)item.Result)
+                    {
+                        Dictionary<string, object> map = new Dictionary<string, object>();
+                        list.Add(map);
+
+                        foreach (GraphQLFieldSelection f in item.FieldSelection.SelectionSet.Selections)
+                        {
+                            nextLevel.Add(new QueueItem
+                            {
+                                Context = new ResolverContext(item.Context.Path.Push(o)),
+                                FieldSelection = f,
+                                TypeName = item.Result.Field.Type.ElementType.Name,
+                                Map = map
+                            });
+                        }
+                    }
+                }
+                else if (item.Result.Field.Type.Kind == TypeKind.Object)
+                {
+                    Dictionary<string, object> map = new Dictionary<string, object>();
+                    item.Map[item.FieldSelection.Alias.Value] = map;
+                    foreach (GraphQLFieldSelection f in item.FieldSelection.SelectionSet.Selections)
+                    {
+                        nextLevel.Add(new QueueItem
+                        {
+                            Context = new ResolverContext(item.Context.Path.Push(item.Result.Result)),
+                            FieldSelection = f,
+                            TypeName = item.Result.Field.Type.ElementType.Name,
+                            Map = map
+                        });
+                    }
+                }
+                else if (item.Result.Field.Type.Kind == TypeKind.Scalar)
+                {
+                    item.Map[item.FieldSelection.Alias.Value] = item.Result.Result;
+                }
+            }
+        }
+
+        private class QueueItem
+        {
+            public ResolverContext Context { get; set; }
+            public GraphQLFieldSelection FieldSelection { get; set; }
+            public string TypeName { get; set; }
+            public ResolverResult Result { get; set; }
+            public Dictionary<string, object> Map { get; set; }
+        }
+
+        private async Task<ResolverResult> ResolveAsync(Schema schema, string typeName,
+            GraphQLFieldSelection fieldSelection, IDictionary<string, object> variables,
+            CancellationToken cancellationToken)
+        {
+            if (schema.TryGetObjectType(typeName, out ObjectDeclaration type))
+            {
+                if (type.Fields.TryGetValue(fieldSelection.Name.Value, out FieldDeclaration field))
+                {
+                    if (schema.TryGetResolver(typeName, fieldSelection.Name.Value, out var resolver))
+                    {
+                        object result = await resolver.ResolveAsync(null, cancellationToken);
+                        return new ResolverResult(typeName, field, result);
+                    }
+                }
+            }
+
+            throw new Exception("TODO: Error Handling");
         }
 
         private void EnqueueSelectionSet(Queue<DocumentContext> queue, TypeDeclaration type, GraphQLSelectionSet selectionSet)
@@ -51,49 +149,56 @@ namespace Zeus.Execution
         }
     }
 
-    public class DocumentContext
+    public class ResolverResult
+    {
+        public ResolverResult(string typeName, FieldDeclaration field, object result)
+        {
+            TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
+            Field = field ?? throw new ArgumentNullException(nameof(field));
+        }
+
+        public string TypeName { get; }
+        public FieldDeclaration Field { get; }
+        public object Result { get; private set; }
+
+
+        public void FinalizeResult()
+        {
+            if (Result is Func<object>)
+            {
+                Result = ((Func<object>)Result)();
+            }
+        }
+    }
+
+    public class ResolverResultNode
+    {
+        public ResolverResultNode(ResolverResult result)
+        {
+            Result = result;
+        }
+
+        public ResolverResult Result { get; }
+        public ICollection<ResolverResultNode> Nodes { get; } = new List<ResolverResultNode>();
+    }
+
+    public class ResolverContext
         : IResolverContext
     {
-        public DocumentContext(ASTNode node, TypeDeclaration type)
-            : this(node, type, ImmutableStack<object>.Empty)
+        public ResolverContext(IImmutableStack<object> path)
         {
-
-        }
-        private DocumentContext(ASTNode node, TypeDeclaration type, IImmutableStack<object> path)
-        {
-            Node = node;
             Path = path;
-            Type = type;
         }
 
         public IImmutableStack<object> Path { get; }
-        public ASTNode Node { get; }
-        public TypeDeclaration Type { get; }
+        internal IDictionary<string, object> Values { get; set; }
 
         public T Argument<T>(string name)
         {
             throw new NotImplementedException();
         }
 
-        public T Parent<T>()
-        {
-            return (T)Path.Peek();
-        }
-
-        public DocumentContext AddResult(object result)
-        {
-            return new DocumentContext(Node, Type, Path.Push(result));
-        }
-
-        public DocumentContext SetTypeName(TypeDeclaration type)
-        {
-            return new DocumentContext(Node, type, Path);
-        }
-
-        public DocumentContext SetNode(ASTNode node)
-        {
-            return new DocumentContext(node, Type, Path);
-        }
+        public T Parent<T>() => (T)Path.Peek();
     }
 
     public class Document
