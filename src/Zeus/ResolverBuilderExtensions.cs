@@ -17,6 +17,4 @@ namespace Zeus
             return resolverBuilder.Add(typeName, fieldName, (context, cancellationToken) => resolver(context));
         }
     }
-
-
 }

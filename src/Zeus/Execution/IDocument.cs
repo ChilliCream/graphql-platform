@@ -11,7 +11,9 @@ using Zeus.Types;
 
 namespace Zeus.Execution
 {
-    public class RequestExecuter
+    
+
+    public class DocumentExecuter
     {
         //schema, document, operationName, variableValues, initialValue
         public async Task<IDictionary<string, object>> ExecuteAsync(Schema schema, Document document,
@@ -19,107 +21,172 @@ namespace Zeus.Execution
             object initialValue, CancellationToken cancellationToken)
         {
             GraphQLOperationDefinition operation = document.GetOperation(operationName);
-            Queue<DocumentContext> queue = new Queue<DocumentContext>();
-            EnqueueSelectionSet(queue, new TypeDeclaration("Query", false, TypeKind.Object), operation.SelectionSet);
+            List<QueryContext> level = new List<QueryContext>();
 
-            while (queue.Any())
+            foreach (GraphQLFieldSelection fieldSelection in operation.SelectionSet.Selections)
             {
-                DocumentContext current = queue.Dequeue();
-                if (current.Node is GraphQLFieldSelection f)
-                {
-                    if (schema.TryGetObjectType(current.Type.Name, out var type)
-                        && type.Fields.TryGetValue(f.Name.Value, out var field)
-                        && schema.TryGetResolver(current.Type.Name, f.Name.Value, out var resolver))
-                    {
-                        current = current.SetTypeName(field.Type)
-                            .AddResult(await resolver.ResolveAsync(current, cancellationToken));
-
-                        foreach (ASTNode selection in f.SelectionSet.Selections)
-                        {
-                            queue.Enqueue(current.SetNode(selection));
-                        }
-                    }
-                }
+                level.Add(new QueryContext("Query", fieldSelection, new ResolverContext(ImmutableStack<object>.Empty)));
             }
+
+            List<QueryContext> nextLevel = level;
+            do
+            {
+                nextLevel = new List<QueryContext>(await ExecuteLevelAsync(schema, variables, nextLevel, cancellationToken));
+            }
+            while (nextLevel.Any());
 
             return null;
         }
 
-        private async Task ExecuteLevelAsync(Schema schema, IDictionary<string, object> variables,
-            IEnumerable<QueueItem> items, CancellationToken cancellationToken)
+        private async Task<IEnumerable<QueryContext>> ExecuteLevelAsync(Schema schema, IDictionary<string, object> variables,
+            IEnumerable<QueryContext> items, CancellationToken cancellationToken)
         {
-            List<QueueItem> nextLevel = new List<QueueItem>();
 
             // resolve => this could be done in parallel
-            foreach (QueueItem item in items)
+            foreach (QueryContext queryContext in items)
             {
-                item.Result = await ResolveAsync(schema,
-                    item.TypeName, item.FieldSelection,
+                queryContext.ResolverResult = await ResolveAsync(schema,
+                    queryContext.TypeName, queryContext.FieldSelection,
                     variables, cancellationToken);
             }
 
             // execute batches => this could  be done in parallel
             // ExecuteBatches
 
-            // invoke func results and queue next level => sync
-            foreach (QueueItem item in items)
+            return ProcessResolverResults(items);
+        }
+
+        private IEnumerable<QueryContext> ProcessResolverResults(IEnumerable<QueryContext> queryContexts)
+        {
+            List<QueryContext> nextLevel = new List<QueryContext>();
+
+            foreach (QueryContext queryContext in queryContexts)
             {
-                item.Result.FinalizeResult();
-                // validate result against schema
+                string fieldName = queryContext.FieldSelection.Alias == null
+                    ? queryContext.FieldSelection.Name.Value
+                    : queryContext.FieldSelection.Alias.Value;
+                TypeDeclaration type = queryContext.ResolverResult.Field.Type;
+                object result = queryContext.ResolverResult.Result;
 
+                queryContext.ResolverResult.FinalizeResult();
 
-                if (item.Result.Field.Type.Kind == TypeKind.List)
+                if (result == null)
                 {
-                    List<Dictionary<string, object>> list = new List<Dictionary<string, object>>();
-                    item.Map[item.FieldSelection.Alias.Value] = list;
-
-                    foreach (object o in (IEnumerable)item.Result)
-                    {
-                        Dictionary<string, object> map = new Dictionary<string, object>();
-                        list.Add(map);
-
-                        foreach (GraphQLFieldSelection f in item.FieldSelection.SelectionSet.Selections)
-                        {
-                            nextLevel.Add(new QueueItem
-                            {
-                                Context = new ResolverContext(item.Context.Path.Push(o)),
-                                FieldSelection = f,
-                                TypeName = item.Result.Field.Type.ElementType.Name,
-                                Map = map
-                            });
-                        }
-                    }
+                    queryContext.Response[fieldName] = null;
                 }
-                else if (item.Result.Field.Type.Kind == TypeKind.Object)
+                else if (type.Kind == TypeKind.Scalar)
                 {
-                    Dictionary<string, object> map = new Dictionary<string, object>();
-                    item.Map[item.FieldSelection.Alias.Value] = map;
-                    foreach (GraphQLFieldSelection f in item.FieldSelection.SelectionSet.Selections)
-                    {
-                        nextLevel.Add(new QueueItem
-                        {
-                            Context = new ResolverContext(item.Context.Path.Push(item.Result.Result)),
-                            FieldSelection = f,
-                            TypeName = item.Result.Field.Type.ElementType.Name,
-                            Map = map
-                        });
-                    }
+                    nextLevel.AddRange(HandleScalarResults(queryContext, fieldName));
                 }
-                else if (item.Result.Field.Type.Kind == TypeKind.Scalar)
+                else if (type.Kind == TypeKind.Object)
                 {
-                    item.Map[item.FieldSelection.Alias.Value] = item.Result.Result;
+                    nextLevel.AddRange(HandleObjectResults(queryContext, fieldName));
+                }
+                else
+                {
+                    nextLevel.AddRange(HandleListResult(queryContext, fieldName));
+                }
+            }
+
+            return nextLevel;
+        }
+
+        private IEnumerable<QueryContext> HandleListResult(QueryContext queryContext, string fieldName)
+        {
+            TypeDeclaration type = queryContext.ResolverResult.Field.Type;
+            object result = queryContext.ResolverResult.Result;
+
+            if (type.ElementType.Kind == TypeKind.Object && result is IEnumerable)
+            {
+                return HandleObjectListResults(queryContext, fieldName);
+            }
+
+            if (type.ElementType.Kind == TypeKind.Scalar && result is IEnumerable)
+            {
+                return HandleScalarListResults(queryContext, fieldName);
+            }
+
+            if (type.ElementType.Kind == TypeKind.Object)
+            {
+                return HandleSingleObjectListResults(queryContext, fieldName);
+            }
+
+            return HandleSingleScalarListResults(queryContext, fieldName);
+        }
+
+        private IEnumerable<QueryContext> HandleObjectListResults(QueryContext queryContext, string fieldName)
+        {
+            List<Dictionary<string, object>> list = new List<Dictionary<string, object>>();
+            queryContext.Response[fieldName] = list;
+
+            foreach (object element in (IEnumerable)queryContext.ResolverResult.Result)
+            {
+                Dictionary<string, object> map = new Dictionary<string, object>();
+                list.Add(map);
+
+                foreach (QueryContext nextContext in CreateChildContexts(
+                    queryContext.FieldSelection.SelectionSet.Selections.OfType<GraphQLFieldSelection>(),
+                    queryContext.ResolverResult.Field.Type.ElementType.Name,
+                    queryContext.ResolverContext, map, element))
+                {
+                    yield return nextContext;
                 }
             }
         }
 
-        private class QueueItem
+        private IEnumerable<QueryContext> HandleSingleObjectListResults(QueryContext queryContext, string fieldName)
         {
-            public ResolverContext Context { get; set; }
-            public GraphQLFieldSelection FieldSelection { get; set; }
-            public string TypeName { get; set; }
-            public ResolverResult Result { get; set; }
-            public Dictionary<string, object> Map { get; set; }
+            Dictionary<string, object>[] list = new Dictionary<string, object>[] { new Dictionary<string, object>() };
+            queryContext.Response[fieldName] = list;
+            object element = queryContext.ResolverResult.Result;
+
+            return CreateChildContexts(
+                queryContext.FieldSelection.SelectionSet.Selections.OfType<GraphQLFieldSelection>(),
+                queryContext.ResolverResult.Field.Type.ElementType.Name,
+                queryContext.ResolverContext, list.First(), element);
         }
+
+        private IEnumerable<QueryContext> HandleScalarListResults(QueryContext queryContext, string fieldName)
+        {
+            queryContext.Response[fieldName] = ((IEnumerable)queryContext.ResolverResult.Result).Cast<object>().ToArray();
+            yield break;
+        }
+
+        private IEnumerable<QueryContext> HandleSingleScalarListResults(QueryContext queryContext, string fieldName)
+        {
+            queryContext.Response[fieldName] = new[] { queryContext.ResolverResult.Result };
+            yield break;
+        }
+
+        private IEnumerable<QueryContext> HandleObjectResults(QueryContext queryContext, string fieldName)
+        {
+            Dictionary<string, object> map = new Dictionary<string, object>();
+            queryContext.Response[fieldName] = map;
+
+            return CreateChildContexts(
+                queryContext.FieldSelection.SelectionSet.Selections.OfType<GraphQLFieldSelection>(),
+                queryContext.ResolverResult.Field.Type.Name,
+                queryContext.ResolverContext, map,
+                queryContext.ResolverResult.Result);
+        }
+
+        private IEnumerable<QueryContext> HandleScalarResults(QueryContext queryContext, string fieldName)
+        {
+            queryContext.Response[fieldName] = queryContext.ResolverResult.Result;
+            yield break;
+        }
+
+        private IEnumerable<QueryContext> CreateChildContexts(IEnumerable<GraphQLFieldSelection> selections,
+            string typeName, IResolverContext parentContext, IDictionary<string, object> map, object obj)
+        {
+            foreach (GraphQLFieldSelection fieldSelection in selections)
+            {
+                yield return new QueryContext(typeName, fieldSelection,
+                    new ResolverContext(parentContext.Path.Push(obj)),
+                    map);
+            }
+        }
+
 
         private async Task<ResolverResult> ResolveAsync(Schema schema, string typeName,
             GraphQLFieldSelection fieldSelection, IDictionary<string, object> variables,
@@ -138,36 +205,6 @@ namespace Zeus.Execution
             }
 
             throw new Exception("TODO: Error Handling");
-        }
-
-        private void EnqueueSelectionSet(Queue<DocumentContext> queue, TypeDeclaration type, GraphQLSelectionSet selectionSet)
-        {
-            foreach (ASTNode selection in selectionSet.Selections)
-            {
-                queue.Enqueue(new DocumentContext(selection, type));
-            }
-        }
-    }
-
-    public class ResolverResult
-    {
-        public ResolverResult(string typeName, FieldDeclaration field, object result)
-        {
-            TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
-            Field = field ?? throw new ArgumentNullException(nameof(field));
-        }
-
-        public string TypeName { get; }
-        public FieldDeclaration Field { get; }
-        public object Result { get; private set; }
-
-
-        public void FinalizeResult()
-        {
-            if (Result is Func<object>)
-            {
-                Result = ((Func<object>)Result)();
-            }
         }
     }
 
