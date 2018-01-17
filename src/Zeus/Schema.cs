@@ -6,7 +6,6 @@ using Zeus.Types;
 
 namespace Zeus
 {
-
     public class Schema
         : ISchema
     {

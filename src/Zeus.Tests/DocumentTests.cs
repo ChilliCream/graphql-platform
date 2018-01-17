@@ -12,11 +12,19 @@ namespace Zeus.Tests
         public void Foo()
         {
             // arrange
-            Schema schema = Schema.Create("type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }", new ResolverCollectionMock());
+            int i = 0;
+
+            IResolverCollection resolverCollection = ResolverBuilder.Create()
+                .Add("Query", "b", () => i++)
+                .Add("Bar", "d", () => i++)
+                .Add("Foo", "c", () => i++)
+                .Build();
+            ISchema schema = Schema.Create("type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }", resolverCollection);
             Document document = Document.Parse("query a { b { c { d } } }");
 
+
             // act
-            RequestExecuter executer = new RequestExecuter();
+            DocumentExecuter documentExecuter = new DocumentExecuter();
             executer.ExecuteAsync(schema, document, null, null, null, CancellationToken.None).Wait();
 
             // act
