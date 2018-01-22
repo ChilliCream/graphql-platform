@@ -1,4 +1,6 @@
+using System;
 using Zeus.Types;
+using Zeus.Resolvers;
 
 namespace Zeus
 {
@@ -6,10 +8,10 @@ namespace Zeus
     {
         ObjectDeclaration Query { get; }
         ObjectDeclaration Mutation { get; }
+        IResolverCollection Resolvers { get; }
 
         bool TryGetObjectType(string typeName, out ObjectDeclaration objectType);
         bool TryGetInputType(string typeName, out InputDeclaration inputType);
-        bool TryGetResolver(string typeName, string fieldName, out IResolver resolver);
     }
 }
 

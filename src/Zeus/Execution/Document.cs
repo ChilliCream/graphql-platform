@@ -8,6 +8,7 @@ using Zeus.Types;
 namespace Zeus.Execution
 {
     public class Document
+        : IDocument
     {
         private GraphQLDocument _document;
 

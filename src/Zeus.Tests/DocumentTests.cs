@@ -1,53 +1,67 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GraphQLParser;
+using Newtonsoft.Json;
 using Xunit;
 using Zeus.Execution;
+using Zeus.Resolvers;
 
 namespace Zeus.Tests
 {
     public class DocumentTests
     {
         [Fact]
-        public void Foo()
+        public async Task ExecuteSimpleQuery()
         {
             // arrange
-            int i = 0;
+            string schemaDefinition = "type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }";
+            string queryDefinition = "query a { b { c { d } } }";
 
-            IResolverCollection resolverCollection = ResolverBuilder.Create()
-                .Add("Query", "b", () => i++)
-                .Add("Bar", "d", () => i++)
-                .Add("Foo", "c", () => i++)
-                .Build();
-            ISchema schema = Schema.Create("type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }", resolverCollection);
-            Document document = Document.Parse("query a { b { c { d } } }");
-
+            ISchema schema = Schema.Create(schemaDefinition,
+                b => b.Add("Query", "b", () => "b")
+                    .Add("Foo", "c", () => "c")
+                    .Add("Bar", "d", () => "d"));
+            Document document = Document.Parse(queryDefinition);
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
-            executer.ExecuteAsync(schema, document, null, null, null, CancellationToken.None).Wait();
+            IDictionary<string, object> response = await documentExecuter.ExecuteAsync(schema, document, null, null, null, CancellationToken.None);
+            string serializedResponse = JsonConvert.SerializeObject(response);
+
+            // assert
+            Assert.Equal("{\"b\":{\"c\":[{\"d\":\"d\"}]}}", serializedResponse);
+        }
+
+        [Fact]
+        public async Task ExecuteSimpleQueryWithDefaultFieldResolver()
+        {
+            // arrange
+            string schemaDefinition = "type Foo { c : [Bar] } type Bar { d : String } type Query { b : Foo }";
+            string queryDefinition = "query a { b { c { d } } }";
+
+            ISchema schema = Schema.Create(schemaDefinition,
+                b => b.Add("Query", "b", () => "b")
+                    .Add<Foo>(t => t.C, c => new Bar()));
+            Document document = Document.Parse(queryDefinition);
 
             // act
+            DocumentExecuter documentExecuter = new DocumentExecuter();
+            IDictionary<string, object> response = await documentExecuter.ExecuteAsync(schema, document, null, null, null, CancellationToken.None);
+            string serializedResponse = JsonConvert.SerializeObject(response);
+
+            // assert
+            Assert.Equal("{\"b\":{\"c\":[{\"d\":\"Hello World\"}]}}", serializedResponse);
         }
     }
 
-    public class ResolverCollectionMock
-        : IResolverCollection
+    public class Foo
     {
-        public bool TryGetResolver(string typeName, string fieldName, out IResolver resolver)
-        {
-            resolver = new Resolver();
-            return true;
-        }
+        public Bar[] C { get; set; }
     }
 
-    public class Resolver
-        : IResolver
+    public class Bar
     {
-        static int i = 0;
-        public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<object>(i++);
-        }
+        public string D { get; set; } = "Hello World";
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GraphQLParser;
 using Zeus.Types;
+using Zeus.Resolvers;
 
 namespace Zeus
 {
@@ -31,6 +32,7 @@ namespace Zeus
 
         public ObjectDeclaration Query => _queryType;
         public ObjectDeclaration Mutation => _mutationType;
+        public IResolverCollection Resolvers => _resolvers;
 
         public bool TryGetObjectType(string typeName, out ObjectDeclaration objectType)
         {
@@ -42,9 +44,21 @@ namespace Zeus
             return _inputTypes.TryGetValue(typeName, out inputType);
         }
 
-        public bool TryGetResolver(string typeName, string fieldName, out IResolver resolver)
+        public static Schema Create(string schema, Action<IResolverBuilder> configure)
         {
-            return _resolvers.TryGetResolver(typeName, fieldName, out resolver);
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            IResolverBuilder resolverBuilder = ResolverBuilder.Create();
+            configure(resolverBuilder);
+            return Create(schema, resolverBuilder.Build());
         }
 
         public static Schema Create(string schema, IResolverCollection resolvers)

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Zeus
+namespace Zeus.Resolvers
 {
     internal class FieldReference
         : IEquatable<FieldReference>
