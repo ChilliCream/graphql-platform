@@ -1,6 +1,6 @@
 using System;
 
-namespace Zeus.Types
+namespace Zeus.Definitions
 {
     public static class WellKnownTypes
     {

@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Zeus.Types
+namespace Zeus.Definitions
 {
-    public class FieldDeclaration
+    public class FieldDefinition
     {
-        public FieldDeclaration(string name, TypeDeclaration type, IEnumerable<InputFieldDeclaration> arguments)
+        public FieldDefinition(string name, TypeDefinition type, IEnumerable<InputFieldDefinition> arguments)
         {
             if (name == null)
             {
@@ -29,7 +29,7 @@ namespace Zeus.Types
         }
 
         public string Name { get; }
-        public TypeDeclaration Type { get; }
-        public IReadOnlyDictionary<string, InputFieldDeclaration> Arguments { get; }
+        public TypeDefinition Type { get; }
+        public IReadOnlyDictionary<string, InputFieldDefinition> Arguments { get; }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using GraphQLParser.AST;
 using Zeus.Resolvers;
-using Zeus.Types;
+using Zeus.Definitions;
 
 namespace Zeus.Execution
 {
@@ -105,7 +105,7 @@ namespace Zeus.Execution
                 string fieldName = queryContext.FieldSelection.Alias == null
                     ? queryContext.FieldSelection.Name.Value
                     : queryContext.FieldSelection.Alias.Value;
-                TypeDeclaration type = queryContext.ResolverResult.Field.Type;
+                TypeDefinition type = queryContext.ResolverResult.Field.Type;
                 object result = queryContext.ResolverResult.Result;
 
                 queryContext.ResolverResult.FinalizeResult();
@@ -135,7 +135,7 @@ namespace Zeus.Execution
             QueryContext queryContext, string fieldName,
             IDictionary<string, object> variables)
         {
-            TypeDeclaration type = queryContext.ResolverResult.Field.Type;
+            TypeDefinition type = queryContext.ResolverResult.Field.Type;
             object result = queryContext.ResolverResult.Result;
 
             if (type.ElementType.Kind == TypeKind.Object && result is IEnumerable)
@@ -243,10 +243,10 @@ namespace Zeus.Execution
             GraphQLFieldSelection fieldSelection, IResolverContext context,
             IDictionary<string, object> variables, CancellationToken cancellationToken)
         {
-            if (schema.TryGetObjectType(typeName, out ObjectDeclaration type))
+            if (schema.TryGetObjectType(typeName, out ObjectTypeDefinition type))
             {
                 if (type.Fields.TryGetValue(fieldSelection.Name.Value,
-                    out FieldDeclaration field))
+                    out FieldDefinition field))
                 {
                     IResolver resolver = GetResolver(schema, typeName,
                         fieldSelection.Name.Value, () => context.Parent<object>());

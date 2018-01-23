@@ -1,11 +1,11 @@
 using System;
-using Zeus.Types;
+using Zeus.Definitions;
 
 namespace Zeus.Execution
 {
     public class ResolverResult
     {
-        public ResolverResult(string typeName, FieldDeclaration field, object result)
+        public ResolverResult(string typeName, FieldDefinition field, object result)
         {
             TypeName = typeName ?? throw new ArgumentNullException(nameof(typeName));
             Field = field ?? throw new ArgumentNullException(nameof(field));
@@ -13,7 +13,7 @@ namespace Zeus.Execution
         }
 
         public string TypeName { get; }
-        public FieldDeclaration Field { get; }
+        public FieldDefinition Field { get; }
         public object Result { get; private set; }
 
         public void FinalizeResult()

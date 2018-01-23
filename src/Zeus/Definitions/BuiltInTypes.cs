@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Zeus.Types
+namespace Zeus.Definitions
 {
     internal static class ScalarTypes
     {

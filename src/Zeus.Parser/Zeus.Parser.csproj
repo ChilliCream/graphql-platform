@@ -6,12 +6,10 @@
 
   <ItemGroup>
     <PackageReference Include="GraphQL-Parser" Version="3.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Zeus.Abstractions\Zeus.Abstractions.csproj" />
   </ItemGroup>
+  
 </Project>

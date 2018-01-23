@@ -1,15 +1,15 @@
 using System;
 
-namespace Zeus.Types
+namespace Zeus.Definitions
 {
-    public class TypeDeclaration
+    public class TypeDefinition
     {
-        public TypeDeclaration(string name, bool isNullable, TypeKind kind)
+        public TypeDefinition(string name, bool isNullable, TypeKind kind)
             : this(name, isNullable, kind, null)
         {
         }
 
-        public TypeDeclaration(string name, bool isNullable, TypeKind kind, TypeDeclaration elementType)
+        public TypeDefinition(string name, bool isNullable, TypeKind kind, TypeDefinition elementType)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             IsNullable = isNullable;
@@ -20,7 +20,7 @@ namespace Zeus.Types
         public string Name { get; }
         public bool IsNullable { get; }
         public TypeKind Kind { get; }
-        public TypeDeclaration ElementType { get; }
+        public TypeDefinition ElementType { get; }
 
         public override string ToString()
         {

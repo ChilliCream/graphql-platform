@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GraphQLParser;
-using Zeus.Types;
+using Zeus.Definitions;
 using Zeus.Resolvers;
 
 namespace Zeus
@@ -10,14 +10,14 @@ namespace Zeus
     public class Schema
         : ISchema
     {
-        private readonly Dictionary<string, ObjectDeclaration> _objectTypes;
-        private readonly Dictionary<string, InputDeclaration> _inputTypes;
-        private readonly ObjectDeclaration _queryType;
-        private readonly ObjectDeclaration _mutationType;
+        private readonly Dictionary<string, ObjectTypeDefinition> _objectTypes;
+        private readonly Dictionary<string, InputObjectTypeDefinition> _inputTypes;
+        private readonly ObjectTypeDefinition _queryType;
+        private readonly ObjectTypeDefinition _mutationType;
         private readonly IResolverCollection _resolvers;
 
-        private Schema(IEnumerable<ObjectDeclaration> objectTypes,
-            IEnumerable<InputDeclaration> inputTypes,
+        private Schema(IEnumerable<ObjectTypeDefinition> objectTypes,
+            IEnumerable<InputObjectTypeDefinition> inputTypes,
             IResolverCollection resolvers)
         {
             _objectTypes = objectTypes.ToDictionary(t => t.Name);
@@ -25,21 +25,21 @@ namespace Zeus
             _resolvers = resolvers;
 
             _objectTypes.TryGetValue(WellKnownTypes.Query,
-                out ObjectDeclaration _queryType);
+                out ObjectTypeDefinition _queryType);
             _objectTypes.TryGetValue(WellKnownTypes.Mutation,
-                out ObjectDeclaration _mutationType);
+                out ObjectTypeDefinition _mutationType);
         }
 
-        public ObjectDeclaration Query => _queryType;
-        public ObjectDeclaration Mutation => _mutationType;
+        public ObjectTypeDefinition Query => _queryType;
+        public ObjectTypeDefinition Mutation => _mutationType;
         public IResolverCollection Resolvers => _resolvers;
 
-        public bool TryGetObjectType(string typeName, out ObjectDeclaration objectType)
+        public bool TryGetObjectType(string typeName, out ObjectTypeDefinition objectType)
         {
             return _objectTypes.TryGetValue(typeName, out objectType);
         }
 
-        public bool TryGetInputType(string typeName, out InputDeclaration inputType)
+        public bool TryGetInputType(string typeName, out InputObjectTypeDefinition inputType)
         {
             return _inputTypes.TryGetValue(typeName, out inputType);
         }
@@ -73,24 +73,40 @@ namespace Zeus
                 throw new ArgumentNullException(nameof(resolvers));
             }
 
+            SchemaSyntaxVisitor userSchemaDefinitions = LoadSchema(schema);
+
+            /* 
+                if (userSchemaDefinitions.ObjectTypes.Count == 0)
+                {
+                    throw new ArgumentException("The specified schema contains no type declarations.", nameof(schema));
+                }
+
+                if (!userSchemaDefinitions.HasQueryType)
+                {
+                    throw new ArgumentException("The specified schema does not contain the required 'Query' type.", nameof(schema));
+                }
+
+                SchemaSyntaxVisitor introspectionSchemaDefinitions = LoadSchema(Introspection.Introspection.Schema);
+
+
+                return new Schema(userSchemaDefinitions.ObjectTypes, userSchemaDefinitions.InputTypes, resolvers);
+
+            */
+            throw new NotImplementedException();
+        }
+
+        private static SchemaSyntaxVisitor LoadSchema(string schema)
+        {
             Source source = new Source(schema);
             Parser parser = new Parser(new Lexer());
 
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor();
             parser.Parse(source).Accept(visitor);
 
-            if (visitor.ObjectTypes.Count == 0)
-            {
-                throw new ArgumentException("The specified schema contains no type declarations.", nameof(schema));
-            }
-
-            if (!visitor.HasQueryType)
-            {
-                throw new ArgumentException("The specified schema does not contain the required 'Query' type.", nameof(schema));
-            }
-
-            return new Schema(visitor.ObjectTypes, visitor.InputTypes, resolvers);
+            return visitor;
         }
+
+
     }
 }
 

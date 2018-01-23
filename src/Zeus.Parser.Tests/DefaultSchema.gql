@@ -1,0 +1,35 @@
+interface Animal
+{
+    name: String!
+}
+
+type Dog implements Animal
+{
+    name: String!
+    flees(max: int = 10) : [Flee!]
+    barks(visit: VisitingAnimalInput) : Boolean!
+}
+
+type Flee implements Animal
+{
+    name: String!
+}
+
+input VisitingAnimalInput
+{
+    name: AnimalType!
+}
+
+enum AnimalType 
+{
+  CAT
+  FLEE
+}
+
+union AnimalResult = Flee | Dog
+
+type Query
+{
+    animals: [AnimalResult!]
+    dog: Dog!
+}

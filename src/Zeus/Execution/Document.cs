@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GraphQLParser;
 using GraphQLParser.AST;
-using Zeus.Types;
+using Zeus.Definitions;
 
 namespace Zeus.Execution
 {

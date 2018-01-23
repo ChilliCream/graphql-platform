@@ -1,17 +1,17 @@
 using System;
-using Zeus.Types;
+using Zeus.Definitions;
 using Zeus.Resolvers;
 
 namespace Zeus
 {
     public interface ISchema
     {
-        ObjectDeclaration Query { get; }
-        ObjectDeclaration Mutation { get; }
+        ObjectTypeDefinition Query { get; }
+        ObjectTypeDefinition Mutation { get; }
         IResolverCollection Resolvers { get; }
 
-        bool TryGetObjectType(string typeName, out ObjectDeclaration objectType);
-        bool TryGetInputType(string typeName, out InputDeclaration inputType);
+        bool TryGetObjectType(string typeName, out ObjectTypeDefinition objectType);
+        bool TryGetInputType(string typeName, out InputObjectTypeDefinition inputType);
     }
 }
 

@@ -1,6 +1,6 @@
 using GraphQLParser.AST;
 
-namespace Zeus
+namespace Zeus.Parser
 {
     public static class ASTNodeExtensions
     {

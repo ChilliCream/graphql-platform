@@ -4,7 +4,7 @@ using System.Linq;
 using GraphQLParser;
 using GraphQLParser.AST;
 using Xunit;
-using Zeus.Types;
+using Zeus.Definitions;
 
 namespace Zeus.Tests
 {
@@ -25,12 +25,12 @@ namespace Zeus.Tests
             // assert
             Assert.Equal(1, visitor.ObjectTypes.Count);
 
-            ObjectDeclaration objectType = visitor.ObjectTypes.First();
+            ObjectTypeDefinition objectType = visitor.ObjectTypes.First();
             Assert.Equal("Foo", objectType.Name);
             Assert.Equal(1, objectType.Fields.Count);
             Assert.True(objectType.Fields.ContainsKey("bar"));
 
-            FieldDeclaration field = objectType.Fields["bar"];
+            FieldDefinition field = objectType.Fields["bar"];
             Assert.Equal("bar", field.Name);
             Assert.Empty(field.Arguments);
 
@@ -57,12 +57,12 @@ namespace Zeus.Tests
             // assert
             Assert.Equal(1, visitor.ObjectTypes.Count);
 
-            ObjectDeclaration objectType = visitor.ObjectTypes.First();
+            ObjectTypeDefinition objectType = visitor.ObjectTypes.First();
             Assert.Equal("Foo", objectType.Name);
             Assert.Equal(1, objectType.Fields.Count);
             Assert.True(objectType.Fields.ContainsKey("bar"));
 
-            FieldDeclaration field = objectType.Fields["bar"];
+            FieldDefinition field = objectType.Fields["bar"];
             Assert.Equal("bar", field.Name);
             Assert.Empty(field.Arguments);
 
@@ -89,12 +89,12 @@ namespace Zeus.Tests
             // assert
             Assert.Equal(1, visitor.ObjectTypes.Count);
 
-            ObjectDeclaration objectType = visitor.ObjectTypes.First();
+            ObjectTypeDefinition objectType = visitor.ObjectTypes.First();
             Assert.Equal("Foo", objectType.Name);
             Assert.Equal(1, objectType.Fields.Count);
             Assert.True(objectType.Fields.ContainsKey("bar"));
 
-            FieldDeclaration field = objectType.Fields["bar"];
+            FieldDefinition field = objectType.Fields["bar"];
             Assert.Equal("bar", field.Name);
             Assert.Empty(field.Arguments);
 
@@ -127,12 +127,12 @@ namespace Zeus.Tests
             // assert
             Assert.Equal(2, visitor.ObjectTypes.Count);
 
-            ObjectDeclaration objectType = visitor.ObjectTypes.First();
+            ObjectTypeDefinition objectType = visitor.ObjectTypes.First();
             Assert.Equal("Foo", objectType.Name);
             Assert.Equal(1, objectType.Fields.Count);
             Assert.True(objectType.Fields.ContainsKey("bar"));
 
-            FieldDeclaration field = objectType.Fields["bar"];
+            FieldDefinition field = objectType.Fields["bar"];
             Assert.Equal("bar", field.Name);
             Assert.Empty(field.Arguments);
 
@@ -158,12 +158,12 @@ namespace Zeus.Tests
             // assert
             Assert.Equal(1, visitor.InputTypes.Count);
 
-            InputDeclaration inputType = visitor.InputTypes.First();
+            InputObjectTypeDefinition inputType = visitor.InputTypes.First();
             Assert.Equal("Bar", inputType.Name);
             Assert.Equal(1, inputType.Fields.Count);
             Assert.True(inputType.Fields.ContainsKey("bar"));
 
-            InputFieldDeclaration field = inputType.Fields["bar"];
+            InputFieldDefinition field = inputType.Fields["bar"];
             Assert.Equal("bar", field.Name);
 
             Assert.NotNull(field.Type);

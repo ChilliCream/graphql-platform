@@ -1,16 +1,16 @@
 using System;
 
-namespace Zeus.Types
+namespace Zeus.Definitions
 {
-    public class InputFieldDeclaration
+    public class InputFieldDefinition
     {
-        public InputFieldDeclaration(string name, TypeDeclaration type)
+        public InputFieldDefinition(string name, TypeDefinition type)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public string Name { get; }
-        public TypeDeclaration Type { get; }
+        public TypeDefinition Type { get; }
     }
 }
