@@ -13,5 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zeus.Abstractions\Zeus.Abstractions.csproj" />
+    <ProjectReference Include="..\Zeus.Parser\Zeus.Parser.csproj" />
   </ItemGroup>
 </Project>

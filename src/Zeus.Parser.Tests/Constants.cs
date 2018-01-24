@@ -11,7 +11,7 @@ interface Pet
 type Dog implements Pet
 {
     name: String!
-    flees(max: int = 10) : [Flee!]
+    flees(max: Int = 10) : [Flee!]
     barks(visit: VisitingPetInput) : Boolean!
 }
 

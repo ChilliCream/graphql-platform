@@ -6,6 +6,8 @@ namespace Zeus.Resolvers
 {
     public interface IResolverContext
     {
+        ISchema Schema { get; }
+
         IImmutableStack<object> Path { get; }
 
         T Parent<T>();
@@ -16,5 +18,5 @@ namespace Zeus.Resolvers
 
         IResolverContext Copy(object newParent);
         IResolverContext Copy(IDictionary<string, object> arguments, object newParent);
-    }   
+    }
 }

@@ -35,6 +35,7 @@ namespace Zeus.Abstractions
         }
 
         public string Name { get; }
+        
         public IReadOnlyDictionary<string, FieldDefinition> Fields { get; }
 
         public InterfaceTypeDefinition Merge(InterfaceTypeDefinition other)
@@ -89,7 +90,7 @@ namespace Zeus.Abstractions
                     sb.AppendLine($"  {field}");
                 }
 
-                sb.AppendLine("}");
+                sb.Append("}");
 
                 _stringRepresentation = sb.ToString();
             }

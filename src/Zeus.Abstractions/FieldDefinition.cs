@@ -10,6 +10,11 @@ namespace Zeus.Abstractions
     {
         private string _stringRepresentation;
 
+        public FieldDefinition(string name, IType type)
+            : this(name, type, null)
+        {
+        }
+
         public FieldDefinition(string name, IType type, IEnumerable<InputValueDefinition> arguments)
         {
             if (string.IsNullOrEmpty(name))
@@ -30,7 +35,9 @@ namespace Zeus.Abstractions
         }
 
         public string Name { get; }
+
         public IType Type { get; }
+
         public IReadOnlyDictionary<string, InputValueDefinition> Arguments { get; }
 
         public override string ToString()
@@ -47,7 +54,7 @@ namespace Zeus.Abstractions
                     sb.Append(string.Join(", ", Arguments.Select(t => t.Value.ToString())));
                     sb.Append(")");
                 }
-                
+
                 sb.Append($": {Type}");
 
                 _stringRepresentation = sb.ToString();

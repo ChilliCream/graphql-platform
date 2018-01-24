@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Zeus.Definitions;
+using Zeus.Abstractions;
 
 namespace Zeus.Introspection
 {
@@ -8,7 +8,7 @@ namespace Zeus.Introspection
     {
         private readonly __Field[] _fields;
 
-        private __Type(__TypeKind kind, string name, string description, IEnumerable<__Field> fields, IEnumerable<TypeDefinition> interfaces)
+        private __Type(__TypeKind kind, string name, string description, IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
         {
             Kind = kind;
             Name = name;
@@ -39,12 +39,12 @@ namespace Zeus.Introspection
         }
 
         // object only
-        public IReadOnlyCollection<TypeDefinition> Interfaces { get; } // => add resolver that looks up the __Types ...
+        public IReadOnlyCollection<NamedType> Interfaces { get; } // => add resolver that looks up the __Types ...
 
         // interface and Union only
-        public IReadOnlyCollection<TypeDefinition> PossibleTypes { get; } // => add resolver that looks up the __Types ...
+        public IReadOnlyCollection<NamedType> PossibleTypes { get; } // => add resolver that looks up the __Types ...
 
-        public static __Type CreateObjectType(string name, string description, IEnumerable<__Field> fields, IEnumerable<TypeDefinition> interfaces)
+        public static __Type CreateObjectType(string name, string description, IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
         {
             if (name == null)
             {
@@ -83,7 +83,7 @@ namespace Zeus.Introspection
     internal class __Field
     {
         private __Field(string name, string description, IEnumerable<__InputValue> arguments, 
-            TypeDefinition type, bool isDepricated, string depricationReason)
+            IType type, bool isDepricated, string depricationReason)
         {
             Name = name;
             Description = description;
@@ -99,7 +99,7 @@ namespace Zeus.Introspection
         [GraphQLName("args")]
         public IReadOnlyCollection<__InputValue> Arguments { get; }
 
-        public TypeDefinition Type { get; }
+        public IType Type { get; }
 
         public bool IsDepricated { get; }
 
@@ -108,7 +108,7 @@ namespace Zeus.Introspection
 
     internal class __InputValue
     {
-        private __InputValue(string name, string description, TypeDefinition type, string defaultValue)
+        private __InputValue(string name, string description, IType type, string defaultValue)
         {
             Name = name;
             Description = description;
@@ -118,10 +118,10 @@ namespace Zeus.Introspection
 
         public string Name { get; }
         public string Description { get; }
-        public TypeDefinition Type { get; }
+        public IType Type { get; }
         public string DefaultValue { get; }
 
-        public static __InputValue Create(string name, string description, TypeDefinition type, string defaultValue)
+        public static __InputValue Create(string name, string description, IType type, string defaultValue)
         {
             if (name == null)
             {

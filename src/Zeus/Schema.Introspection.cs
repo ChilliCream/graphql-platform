@@ -1,8 +1,8 @@
-namespace Zeus.Introspection
+namespace Zeus
 {
-    internal static class Introspection
+    public partial class Schema
     {
-        public const string Schema = @"type __Schema
+          private const string _intospectionSchema = @"type __Schema
 {
     types: [__Type!]!
     queryType: __Type!

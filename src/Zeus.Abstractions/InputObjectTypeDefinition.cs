@@ -91,7 +91,7 @@ namespace Zeus.Abstractions
                     sb.AppendLine($"  {field}");
                 }
 
-                sb.AppendLine("}");
+                sb.Append("}");
 
                 _stringRepresentation = sb.ToString();
             }

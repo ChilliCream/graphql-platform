@@ -8,6 +8,11 @@ namespace Zeus.Abstractions
     {
         private string _stringRepresentation;
 
+        public UnionTypeDefinition(string name, params NamedType[] types)
+            : this(name, (IEnumerable<NamedType>)types)
+        {
+        }
+
         public UnionTypeDefinition(string name, IEnumerable<NamedType> types)
         {
             if (string.IsNullOrEmpty(name))
@@ -36,6 +41,7 @@ namespace Zeus.Abstractions
         }
 
         public string Name { get; }
+
         public IReadOnlySet<NamedType> Types { get; }
 
         public UnionTypeDefinition Merge(UnionTypeDefinition other)
@@ -82,7 +88,7 @@ namespace Zeus.Abstractions
         {
             if (_stringRepresentation == null)
             {
-                _stringRepresentation = $"union {Name} = {string.Join("|", Types)}";
+                _stringRepresentation = $"union {Name} = {string.Join(" | ", Types)}";
             }
 
             return _stringRepresentation;

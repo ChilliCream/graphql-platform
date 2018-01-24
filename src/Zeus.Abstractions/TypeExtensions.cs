@@ -42,7 +42,7 @@ namespace Zeus.Abstractions
             return false;
         }
 
-        public static IType InnerType<T>(this IType type)
+        public static IType InnerType(this IType type)
         {
             if (type is NonNullType n)
             {
@@ -65,8 +65,8 @@ namespace Zeus.Abstractions
                 {
                     return l.ElementType;
                 }
-                else if (type is NonNullType n 
-                    && type is ListType nl)
+                else if (type is NonNullType n
+                    && n.Type is ListType nl)
                 {
                     return nl.ElementType;
                 }
@@ -75,6 +75,21 @@ namespace Zeus.Abstractions
             }
 
             throw new ArgumentException("The specified type is not a list type.", nameof(type));
+        }
+
+        public static bool IsScalarType(this IType type)
+        {
+            if (type is NamedType nt && ScalarTypes.Contains(nt.Name))
+            {
+                return true;
+            }
+            else if (type is NonNullType nnt
+                && nnt.Type is NamedType nnnt
+                && ScalarTypes.Contains(nnnt.Name))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

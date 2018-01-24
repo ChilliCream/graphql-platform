@@ -2,47 +2,48 @@
 using System.Collections.Generic;
 using System.Linq;
 using GraphQLParser;
-using Zeus.Definitions;
+using Zeus.Abstractions;
 using Zeus.Resolvers;
+using Zeus.Parser;
 
 namespace Zeus
 {
-    public class Schema
+    public partial class Schema
         : ISchema
     {
-        private readonly Dictionary<string, ObjectTypeDefinition> _objectTypes;
-        private readonly Dictionary<string, InputObjectTypeDefinition> _inputTypes;
-        private readonly ObjectTypeDefinition _queryType;
-        private readonly ObjectTypeDefinition _mutationType;
+        private readonly SchemaDocument _schemaDocument;
         private readonly IResolverCollection _resolvers;
 
-        private Schema(IEnumerable<ObjectTypeDefinition> objectTypes,
-            IEnumerable<InputObjectTypeDefinition> inputTypes,
+        private Schema(SchemaDocument schemaDocument,
             IResolverCollection resolvers)
         {
-            _objectTypes = objectTypes.ToDictionary(t => t.Name);
-            _inputTypes = inputTypes.ToDictionary(t => t.Name);
+            _schemaDocument = schemaDocument;
             _resolvers = resolvers;
-
-            _objectTypes.TryGetValue(WellKnownTypes.Query,
-                out ObjectTypeDefinition _queryType);
-            _objectTypes.TryGetValue(WellKnownTypes.Mutation,
-                out ObjectTypeDefinition _mutationType);
         }
 
-        public ObjectTypeDefinition Query => _queryType;
-        public ObjectTypeDefinition Mutation => _mutationType;
+
+        public IReadOnlyDictionary<string, InterfaceTypeDefinition> InterfaceTypes
+            => _schemaDocument.InterfaceTypes;
+
+        public IReadOnlyDictionary<string, EnumTypeDefinition> EnumTypes
+            => _schemaDocument.EnumTypes;
+
+        public IReadOnlyDictionary<string, ObjectTypeDefinition> ObjectTypes
+            => _schemaDocument.ObjectTypes;
+
+        public IReadOnlyDictionary<string, UnionTypeDefinition> UnionTypes
+            => _schemaDocument.UnionTypes;
+
+        public IReadOnlyDictionary<string, InputObjectTypeDefinition> InputObjectTypes
+            => _schemaDocument.InputObjectTypes;
+
+        public ObjectTypeDefinition QueryType
+            => _schemaDocument.QueryType;
+
+        public ObjectTypeDefinition MutationType
+            => _schemaDocument.MutationType;
+
         public IResolverCollection Resolvers => _resolvers;
-
-        public bool TryGetObjectType(string typeName, out ObjectTypeDefinition objectType)
-        {
-            return _objectTypes.TryGetValue(typeName, out objectType);
-        }
-
-        public bool TryGetInputType(string typeName, out InputObjectTypeDefinition inputType)
-        {
-            return _inputTypes.TryGetValue(typeName, out inputType);
-        }
 
         public static Schema Create(string schema, Action<IResolverBuilder> configure)
         {
@@ -73,38 +74,14 @@ namespace Zeus
                 throw new ArgumentNullException(nameof(resolvers));
             }
 
-            SchemaSyntaxVisitor userSchemaDefinitions = LoadSchema(schema);
-
-            /* 
-                if (userSchemaDefinitions.ObjectTypes.Count == 0)
-                {
-                    throw new ArgumentException("The specified schema contains no type declarations.", nameof(schema));
-                }
-
-                if (!userSchemaDefinitions.HasQueryType)
-                {
-                    throw new ArgumentException("The specified schema does not contain the required 'Query' type.", nameof(schema));
-                }
-
-                SchemaSyntaxVisitor introspectionSchemaDefinitions = LoadSchema(Introspection.Introspection.Schema);
+            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
+            SchemaDocument schemaDocument = schemaReader.Read(schema, _intospectionSchema);
+            // validate schema!
 
 
-                return new Schema(userSchemaDefinitions.ObjectTypes, userSchemaDefinitions.InputTypes, resolvers);
-
-            */
-            throw new NotImplementedException();
+            return new Schema(schemaDocument, resolvers);
         }
 
-        private static SchemaSyntaxVisitor LoadSchema(string schema)
-        {
-            Source source = new Source(schema);
-            Parser parser = new Parser(new Lexer());
-
-            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor();
-            parser.Parse(source).Accept(visitor);
-
-            return visitor;
-        }
 
 
     }

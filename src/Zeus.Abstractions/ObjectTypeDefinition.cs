@@ -11,6 +11,12 @@ namespace Zeus.Abstractions
         private string _stringRepresentation;
 
         public ObjectTypeDefinition(string name,
+            IEnumerable<FieldDefinition> fields)
+            : this(name, fields, null)
+        {
+        }
+
+        public ObjectTypeDefinition(string name,
             IEnumerable<FieldDefinition> fields,
             IEnumerable<string> interfaces)
         {
@@ -41,7 +47,9 @@ namespace Zeus.Abstractions
         }
 
         public string Name { get; }
+        
         public IReadOnlyCollection<string> Interfaces { get; }
+
         public IReadOnlyDictionary<string, FieldDefinition> Fields { get; }
 
         public ObjectTypeDefinition Merge(ObjectTypeDefinition other)
@@ -96,11 +104,11 @@ namespace Zeus.Abstractions
                 StringBuilder sb = new StringBuilder();
                 if (Interfaces.Any())
                 {
-                    sb.AppendLine($"type {Name}");
+                    sb.AppendLine($"type {Name} implements {string.Join(", ", Interfaces)}");                    
                 }
                 else
                 {
-                    sb.AppendLine($"type {Name} implements {string.Join(",", Interfaces)}");
+                    sb.AppendLine($"type {Name}");
                 }
 
                 sb.AppendLine("{");
@@ -110,7 +118,7 @@ namespace Zeus.Abstractions
                     sb.AppendLine($"  {field}");
                 }
 
-                sb.AppendLine("}");
+                sb.Append("}");
 
                 _stringRepresentation = sb.ToString();
             }

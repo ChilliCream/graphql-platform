@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 
 namespace Zeus.Abstractions
-{
+{    
     public class EnumTypeDefinition
        : ITypeDefinition
     {
         private string _stringRepresentation;
-
+        
         public EnumTypeDefinition(string name, IEnumerable<string> values)
         {
             if (string.IsNullOrEmpty(name))
@@ -25,10 +25,11 @@ namespace Zeus.Abstractions
             Name = name;
             Values = new ReadOnlySet<string>(values, StringComparer.Ordinal);
         }
-
+        
         public string Name { get; }
+        
         public IReadOnlySet<string> Values { get; }
-
+        
         public EnumTypeDefinition Merge(EnumTypeDefinition other)
         {
             if (other == null)

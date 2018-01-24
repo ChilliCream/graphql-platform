@@ -76,5 +76,15 @@ namespace Zeus.Abstractions
         {
             return Name;
         }
+
+        public static NamedType String { get; } = new NamedType(ScalarTypes.String);
+
+        public static NamedType Integer { get; } = new NamedType(ScalarTypes.Integer);
+
+        public static NamedType Float { get; } = new NamedType(ScalarTypes.Float);
+
+        public static NamedType ID { get; } = new NamedType(ScalarTypes.ID);
+        
+        public static NamedType Boolean { get; } = new NamedType(ScalarTypes.Boolean);
     }
 }

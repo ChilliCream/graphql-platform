@@ -8,6 +8,11 @@ namespace Zeus.Abstractions
     {
         private string _stringRepresentation = null;
 
+        public InputValueDefinition(string name, IType type)
+            : this(name, type, null)
+        {
+        }
+
         public InputValueDefinition(string name, IType type, IValue defaultValue)
         {
             if (string.IsNullOrEmpty(name))
@@ -26,8 +31,11 @@ namespace Zeus.Abstractions
         }
 
         public string Name { get; }
+
         public IType Type { get; }
+
         public IValue DefaultValue { get; }
+
 
         public override string ToString()
         {

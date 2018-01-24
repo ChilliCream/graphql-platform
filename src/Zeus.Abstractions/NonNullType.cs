@@ -51,7 +51,7 @@ namespace Zeus.Abstractions
                 return true;
             }
 
-            return Equals(other as NamedType);
+            return Equals(other as NonNullType);
         }
 
         public override bool Equals(object obj)
@@ -66,7 +66,7 @@ namespace Zeus.Abstractions
                 return true;
             }
 
-            return Equals(obj as NamedType);
+            return Equals(obj as NonNullType);
         }
 
         public override int GetHashCode()

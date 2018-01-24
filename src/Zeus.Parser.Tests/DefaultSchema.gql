@@ -6,7 +6,7 @@ interface Animal
 type Dog implements Animal
 {
     name: String!
-    flees(max: int = 10) : [Flee!]
+    flees(max: Int = 10) : [Flee!]
     barks(visit: VisitingAnimalInput) : Boolean!
 }
 

@@ -10,6 +10,7 @@ namespace Zeus.Abstractions
         }
 
         public IType Type { get; }
+        
         public string Value { get; }
 
         public override string ToString()

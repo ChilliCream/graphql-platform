@@ -12,13 +12,17 @@ namespace Zeus.Resolvers
         private readonly IDictionary<string, object> _arguments;
 
         private ResolverContext(IServiceProvider serviceProvider,
+            ISchema schema,
             IDictionary<string, object> arguments,
             IImmutableStack<object> path)
         {
             _serviceProvider = serviceProvider;
             _arguments = arguments;
+            Schema = schema;
             Path = path;
         }
+
+        public ISchema Schema { get; }
 
         public IImmutableStack<object> Path { get; }
 
@@ -57,13 +61,16 @@ namespace Zeus.Resolvers
                 throw new ArgumentNullException(nameof(newParent));
             }
 
-            return new ResolverContext(_serviceProvider, arguments, Path.Push(newParent));
+            return new ResolverContext(_serviceProvider, Schema, arguments, Path.Push(newParent));
         }
 
         #region Factories
 
-        public static ResolverContext Create(IServiceProvider serviceProvider,
-            IDictionary<string, object> arguments, object root)
+        public static ResolverContext Create(
+            IServiceProvider serviceProvider,
+            ISchema schema,
+            IDictionary<string, object> arguments,
+            object root)
         {
             if (serviceProvider == null)
             {
@@ -80,7 +87,7 @@ namespace Zeus.Resolvers
             {
                 path = path.Push(root);
             }
-            return new ResolverContext(serviceProvider, arguments, path);
+            return new ResolverContext(serviceProvider, schema, arguments, path);
         }
 
         #endregion

@@ -7,6 +7,7 @@ using Zeus.Abstractions;
 namespace Zeus.Abstractions
 {
     public class SchemaDocument
+        : ISchemaDocument
     {
         private string _stringRepresentation;
 
@@ -49,12 +50,17 @@ namespace Zeus.Abstractions
         }
 
         public IReadOnlyDictionary<string, InterfaceTypeDefinition> InterfaceTypes { get; }
+
         public IReadOnlyDictionary<string, EnumTypeDefinition> EnumTypes { get; }
+
         public IReadOnlyDictionary<string, ObjectTypeDefinition> ObjectTypes { get; }
+
         public IReadOnlyDictionary<string, UnionTypeDefinition> UnionTypes { get; }
+
         public IReadOnlyDictionary<string, InputObjectTypeDefinition> InputObjectTypes { get; }
 
         public ObjectTypeDefinition QueryType { get; }
+
         public ObjectTypeDefinition MutationType { get; }
 
 
