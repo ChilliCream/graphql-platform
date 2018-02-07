@@ -58,7 +58,7 @@ namespace Zeus.Parser.Tests
             Assert.Equal(1, dogType.Fields["flees"].Arguments.Count);
             Assert.True(dogType.Fields["flees"].Arguments.ContainsKey("max"));
             Assert.Equal(NamedType.Integer, dogType.Fields["flees"].Arguments["max"].Type);
-            Assert.Equal("10", dogType.Fields["flees"].Arguments["max"].DefaultValue.Value);
+            Assert.Equal("10", dogType.Fields["flees"].Arguments["max"].DefaultValue.ToString());
 
             Assert.Equal("barks", dogType.Fields["barks"].Name);
             Assert.Equal(new NamedType("Boolean"), dogType.Fields["barks"].Type.InnerType());

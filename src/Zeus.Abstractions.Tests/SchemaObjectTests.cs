@@ -121,8 +121,7 @@ namespace Zeus.Abstractions.Tests
             FieldDefinition fieldDefinition = new FieldDefinition(
                 "foo", new NamedType("String"),
                 new[] {
-                    new InputValueDefinition("a", new NamedType("Int"),
-                        new ScalarValue(new NamedType("Int"), "1")),
+                    new InputValueDefinition("a", new NamedType("Int"), new IntegerValue(1)),
                     new InputValueDefinition("b", new NamedType("Boolean"), null) });
 
             // assert
@@ -385,7 +384,7 @@ namespace Zeus.Abstractions.Tests
             Assert.Equal(2, typeDefinition.Types.Count);
             Assert.True(typeDefinition.Types.Contains(NamedType.String));
             Assert.True(typeDefinition.Types.Contains(NamedType.Boolean));
-            
+
             string expectedStringRepresentation = $"union Foo = {NamedType.String} | {NamedType.Boolean}";
             Assert.Equal(expectedStringRepresentation, typeDefinition.ToString());
         }

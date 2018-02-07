@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using GraphQLParser.AST;
@@ -55,7 +54,7 @@ namespace Zeus.Parser
             {
                 yield return new FieldDefinition(
                     fieldDefinition.Name.Value,
-                    CreateType(fieldDefinition.Type),
+                    fieldDefinition.Type.Map(),
                     GetInputValueDefinitions(fieldDefinition.Arguments));
             }
         }
@@ -64,131 +63,11 @@ namespace Zeus.Parser
         {
             foreach (GraphQLInputValueDefinition inputValueDefinition in inputValueDefinitions)
             {
-                IValue value = null;
-                if (inputValueDefinition.DefaultValue is GraphQLScalarValue sv)
-                {
-                    value = new ScalarValue(CreateType(sv.Kind), sv.Value);
-                }
-
                 yield return new InputValueDefinition(
                     inputValueDefinition.Name.Value,
-                    CreateType(inputValueDefinition.Type),
-                    value);
+                    inputValueDefinition.Type.Map(),
+                    inputValueDefinition.DefaultValue.Map());
             }
-        }
-
-        private IType CreateType(GraphQLType type)
-        {
-            Stack<GraphQLType> typeStack = DisassembleSyntaxTypeNode(type);
-            return BuildType(typeStack);
-        }
-
-        private NamedType CreateType(ASTNodeKind valueKind)
-        {
-            switch (valueKind)
-            {
-                case ASTNodeKind.StringValue:
-                    return new NamedType(ScalarTypes.String);
-                case ASTNodeKind.IntValue:
-                    return new NamedType(ScalarTypes.Integer);
-                case ASTNodeKind.BooleanValue:
-                    return new NamedType(ScalarTypes.Boolean);
-                case ASTNodeKind.FloatValue:
-                    return new NamedType(ScalarTypes.Float);
-                default:
-                    throw new InvalidOperationException("This is not a scalar type.");
-            }
-        }
-
-        private Stack<GraphQLType> DisassembleSyntaxTypeNode(GraphQLType type)
-        {
-            Stack<GraphQLType> typeStack = new Stack<GraphQLType>();
-
-            GraphQLType current = type;
-            while (current != null)
-            {
-                typeStack.Push(current);
-
-                if (current is GraphQLNonNullType nnt)
-                {
-                    current = nnt.Type;
-                }
-                else if (current is GraphQLListType lt)
-                {
-                    current = lt.Type;
-                }
-                else
-                {
-                    current = null;
-                }
-            }
-
-            return typeStack;
-        }
-
-        private IType BuildType(Stack<GraphQLType> typeStack)
-        {
-            IType type = null;
-            GraphQLType current = null;
-
-            while (typeStack.Any())
-            {
-                current = typeStack.Pop();
-                if (current is GraphQLNamedType nt)
-                {
-                    type = new NamedType(nt.Name.Value);
-                }
-                else if (current is GraphQLNonNullType)
-                {
-                    type = new NonNullType(type);
-                }
-                else if (current is GraphQLListType)
-                {
-                    type = new ListType(type);
-                }
-                else
-                {
-                    throw new InvalidOperationException("The type structure is invalid.");
-                }
-            }
-
-            return type;
-        }
-
-        private Stack<GraphQLType> CreateTypeStack(GraphQLType type)
-        {
-            Stack<GraphQLType> typeStack = new Stack<GraphQLType>();
-            GraphQLType current = type;
-
-            while (current != null)
-            {
-                typeStack.Push(current);
-
-                if (current is GraphQLListType list)
-                {
-                    current = list.Type;
-                }
-                else if (current is GraphQLNonNullType nullable)
-                {
-                    current = nullable.Type;
-                }
-                else
-                {
-                    current = null;
-                }
-            }
-
-            return typeStack;
-        }
-
-        private bool IsNullable(Stack<GraphQLType> typeStack)
-        {
-            if (typeStack.Any() && typeStack.Peek() is GraphQLNonNullType)
-            {
-                typeStack.Pop();
-                return false;
-            }
-            return true;
         }
     }
 }

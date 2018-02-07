@@ -1,13 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
     public interface IResolverContext
     {
+        // schema context
         ISchema Schema { get; }
 
+        ObjectTypeDefinition TypeDefinition { get; }
+
+        FieldDefinition FieldDefinition { get; }
+
+        // query context
+        QueryDocument QueryDocument { get; }
+
+        OperationDefinition OperationDefinition { get; }
+
+        Field Field { get; }
+
+        // execution context
         IImmutableStack<object> Path { get; }
 
         T Parent<T>();
@@ -16,7 +30,6 @@ namespace Zeus.Resolvers
 
         T Service<T>();
 
-        IResolverContext Copy(object newParent);
-        IResolverContext Copy(IDictionary<string, object> arguments, object newParent);
+        void RegisterQuery(IBatchedQuery query);
     }
 }
