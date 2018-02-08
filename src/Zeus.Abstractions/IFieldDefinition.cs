@@ -5,6 +5,5 @@ namespace Zeus.Abstractions
         string Name { get; }
 
         IType Type { get; }
-        
     }
 }

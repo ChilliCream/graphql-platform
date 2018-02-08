@@ -50,7 +50,6 @@ namespace Zeus.Abstractions
         {
             string indentation = SerializationUtilities.Identation(indentationDepth);
             StringBuilder sb = new StringBuilder();
-
             sb.Append($"{indentation}... on");
 
             if (TypeCondition != null)

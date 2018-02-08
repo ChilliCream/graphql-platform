@@ -17,5 +17,4 @@ namespace Zeus.Abstractions
             return Mutation.Equals(typeName, StringComparison.Ordinal);
         }
     }
-
 }

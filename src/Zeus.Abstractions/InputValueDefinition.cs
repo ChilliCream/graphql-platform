@@ -42,7 +42,6 @@ namespace Zeus.Abstractions
             if (_stringRepresentation == null)
             {
                 StringBuilder sb = new StringBuilder();
-
                 sb.Append($"{Name}: {Type}");
 
                 if (DefaultValue != null)

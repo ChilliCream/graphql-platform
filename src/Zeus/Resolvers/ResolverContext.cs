@@ -1,3 +1,5 @@
+// forked from https://github.com/ChilliCream/zeus
+/*
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -93,3 +95,4 @@ namespace Zeus.Resolvers
         #endregion
     }
 }
+ */

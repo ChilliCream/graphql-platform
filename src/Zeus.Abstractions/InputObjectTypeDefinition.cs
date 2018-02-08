@@ -36,7 +36,7 @@ namespace Zeus.Abstractions
 
         public string Name { get; }
 
-        public IReadOnlyDictionary<string, InputValueDefinition> Fields { get; set; }
+        public IReadOnlyDictionary<string, InputValueDefinition> Fields { get; }
 
         public InputObjectTypeDefinition Merge(InputObjectTypeDefinition other)
         {

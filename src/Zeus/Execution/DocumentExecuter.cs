@@ -54,130 +54,98 @@ namespace Zeus.Execution
             object initialValue,
             CancellationToken cancellationToken)
         {
-            SelectionResult[] current = null; // todo: create inital results
+            IList<IResolveSelectionTask> batch = null; // todo: create inital results
             HashSet<IBatchedQuery> batchedQueries = new HashSet<IBatchedQuery>();
-            Dictionary<IOptimizedSelection, object> resolverResults = new Dictionary<IOptimizedSelection, object>();
 
             // execute operation
-            while (current != null)
+            while (batch != null)
             {
-                Task<SelectionResult>[] tasks = current.Select(t =>
-                    ExecuteSelectionAsync(t.Selection, variables, t.Result, t.Context, cancellationToken))
-                    .ToArray();
+                // execute selection task batch
+                await Task.WhenAll(batch.Select(t => t.ExecuteAsync(cancellationToken)).ToArray());
 
-                await Task.WhenAll(tasks);
-                await ExecuteBatchedQueriesAsync(batchedQueries, cancellationToken);
+                // execute batched queries
+                await Task.WhenAll(batchedQueries.Select(t => t.ExecuteAsync(cancellationToken)).ToArray());
 
-                current = AddResults(tasks.Select(t => t.Result), resolverResults).ToArray();
-            }
+                // collect delayed resolver and integrate result int overall result map
+                batch = FinalizeResolverResults(batch);
 
-            // build result map
-
-
-        }
-
-        private void BuildResultMap(IOptimizedOperation operation, List<SelectionResult> resolverResults)
-        {
-            Dictionary<string, object> map = new Dictionary<string, object>();
-            Queue<BuildResultMapItem> queue = new Queue<BuildResultMapItem>();
-            while (queue.Any())
-            {
-                BuildResultMapItem current = queue.Dequeue();
-                current.
-            }
-
-
-
-        }
-
-        private void IntegrateSelectionResult(BuildResultMapItem current,  ILookup<IOptimizedSelection, SelectionResult> resultLookup)
-        {
-
-
-
-        }
-
-        private void c(IEnumerable<IOptimizedSelection> selections, Dictionary<string, object> map, Queue<BuildResultMapItem> queue)
-        {
-            foreach (IOptimizedSelection selection in selections)
-            {
-                sele
+                // clear state for next batch
+                batchedQueries.Clear();
             }
         }
 
-        private async Task<SelectionResult> ExecuteSelectionAsync(
-            IOptimizedSelection selection,
+        private IList<IResolveSelectionTask> CreateInitialTaskBatch(
+            IOptimizedOperation operation,
             IVariableCollection variables,
-            object parentResult,
-            IResolverContext parentContext,
-            CancellationToken cancellationToken)
+            object initialValue)
         {
-            IResolverContext context = selection.CreateContext(parentResult, parentContext, variables);
-            object result = selection.Resolver.ResolveAsync(context, cancellationToken);
-            return new SelectionResult(selection, context, result);
-        }
+            List<IResolveSelectionTask> nextBatch = new List<IResolveSelectionTask>();
 
-        private Task ExecuteBatchedQueriesAsync(ICollection<IBatchedQuery> batchedQueries, CancellationToken cancellationToken)
-        {
-            return Task.WhenAll(batchedQueries.Select(t => t.ExecuteAsync(cancellationToken)));
-        }
 
-        private IEnumerable<SelectionResult> AddResults(
-            IEnumerable<SelectionResult> selectionResults,
-            List<SelectionResult> results)
-        {
-            foreach (SelectionResult result in selectionResults)
+
+            foreach (IOptimizedSelection selection in operation.Selections)
             {
-                // invoke delayed results
-                object r = result.Result;
-                if (r is Func<object> f)
-                {
-                    r = f();
-                }
 
-
-
-
-
-                if (result.Selection.FieldDefinition.Type.IsListType()
-                    && !result.Selection.FieldDefinition.Type.ElementType().IsScalarType()
-                    && r is IEnumerable l)
-                {
-                    foreach (object o in l)
-                    {
-                        yield return new SelectionResult(result.Selection, result.Context, o);
-                    }
-                }
-            }
-        }
-
-        private class SelectionResult
-        {
-            public SelectionResult(
-                IOptimizedSelection selection,
-                IResolverContext context,
-                object result)
-            {
-                Selection = selection;
-                Context = context;
-                Result = result;
             }
 
-            public IOptimizedSelection Selection { get; }
-            public IResolverContext Context { get; }
-            public object Result { get; }
+
+            return nextBatch;
         }
 
-        private class BuildResultMapItem
+        private IList<IResolveSelectionTask> FinalizeResolverResults(IEnumerable<IResolveSelectionTask> batch)
         {
-            public BuildResultMapItem(IOptimizedSelection selection, Dictionary<string, object> map)
+            List<IResolveSelectionTask> nextBatch = new List<IResolveSelectionTask>();
+
+            foreach (IResolveSelectionTask task in batch)
             {
-                Selection = Selection;
-                Map = map;
+                ISelectionResultProcessor resultProcessor =
+                    GetSelectionResultProcessor(task.Selection.FieldDefinition.Type);
+                nextBatch.AddRange(resultProcessor.Process(task));
             }
 
-            public IOptimizedSelection Selection { get; }
-            public Dictionary<string, object> Map { get; }
+            return nextBatch;
+        }
+
+        private ISelectionResultProcessor GetSelectionResultProcessor(IType fieldType)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal interface ISelectionResultProcessor
+    {
+        // in: the executed selection result that contains the computed result of the selection.
+        // out: in case the selection is a list or object we will return new selection tasks that have to be executed.
+        IEnumerable<IResolveSelectionTask> Process(IResolveSelectionTask selectionTask);
+    }
+
+    internal interface IResolveSelectionTask
+    {
+        IResolverContext Context { get; }
+        IOptimizedSelection Selection { get; }
+        object Result { get; }
+
+        Task ExecuteAsync(CancellationToken cancellationToken);
+        void FinalizeResult();
+    }
+
+    internal class ResolveSelectionTask
+        : IResolveSelectionTask
+    {
+        public IResolverContext Context => throw new NotImplementedException();
+
+        public IOptimizedSelection Selection => throw new NotImplementedException();
+
+        public object Result => throw new NotImplementedException();
+
+        public Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void FinalizeResult()
+        {
+            throw new NotImplementedException();
         }
     }
 }
