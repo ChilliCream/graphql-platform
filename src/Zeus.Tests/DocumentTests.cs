@@ -9,6 +9,7 @@ using Zeus.Resolvers;
 
 namespace Zeus.Tests
 {
+    /*
     public class DocumentTests
     {
         [Fact]
@@ -64,4 +65,5 @@ namespace Zeus.Tests
     {
         public string D { get; set; } = "Hello World";
     }
+     */
 }

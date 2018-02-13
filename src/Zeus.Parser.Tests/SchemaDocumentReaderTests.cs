@@ -66,7 +66,7 @@ namespace Zeus.Parser.Tests
             Assert.Equal(1, dogType.Fields["barks"].Arguments.Count);
             Assert.True(dogType.Fields["barks"].Arguments.ContainsKey("visit"));
             Assert.Equal(new NamedType("VisitingPetInput"), dogType.Fields["barks"].Arguments["visit"].Type);
-            Assert.Null(dogType.Fields["barks"].Arguments["visit"].DefaultValue);
+            Assert.Equal(NullValue.Instance, dogType.Fields["barks"].Arguments["visit"].DefaultValue);
         }
     }
 }

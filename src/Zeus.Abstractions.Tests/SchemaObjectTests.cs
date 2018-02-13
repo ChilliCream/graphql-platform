@@ -52,7 +52,7 @@ namespace Zeus.Abstractions.Tests
 
             // assert
             Assert.Equal("Foo", typeDefinition.Name);
-            Assert.Equal(1, typeDefinition.Fields.Count);
+            Assert.Equal(2, typeDefinition.Fields.Count);
             Assert.True(typeDefinition.Fields.ContainsKey("a"));
             Assert.Equal("a", typeDefinition.Fields["a"].Name);
             Assert.Equal(new NamedType("String"), typeDefinition.Fields["a"].Type);

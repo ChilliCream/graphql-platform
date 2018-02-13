@@ -1,98 +1,151 @@
-// forked from https://github.com/ChilliCream/zeus
-/*
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
     public class ResolverContext
         : IResolverContext
     {
-        private static Dictionary<string, object> _empty = new Dictionary<string, object>();
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IDictionary<string, object> _arguments;
+        private readonly IServiceProvider _services;
+        private readonly OperationContext _operationContext;
+        private readonly Action<IBatchedQuery> _registerQuery;
+        private readonly SelectionContext _selectionContext;
+        private readonly Func<string, object> _getVariableValue;
 
-        private ResolverContext(IServiceProvider serviceProvider,
-            ISchema schema,
-            IDictionary<string, object> arguments,
-            IImmutableStack<object> path)
+        private ResolverContext(
+            IServiceProvider services,
+            OperationContext operationContext,
+            Func<string, object> getVariableValue,
+            Action<IBatchedQuery> registerQuery)
         {
-            _serviceProvider = serviceProvider;
-            _arguments = arguments;
-            Schema = schema;
-            Path = path;
+            _services = services ?? throw new ArgumentNullException(nameof(services));
+            _operationContext = operationContext ?? throw new ArgumentNullException(nameof(operationContext));
+            _getVariableValue = getVariableValue ?? throw new ArgumentNullException(nameof(getVariableValue));
+            _registerQuery = registerQuery ?? throw new ArgumentNullException(nameof(registerQuery));
+            Path = ImmutableStack<object>.Empty;
         }
 
-        public ISchema Schema { get; }
+        private ResolverContext(
+            IServiceProvider services,
+            OperationContext operationContext,
+            SelectionContext selectionContext,
+            IImmutableStack<object> path,
+            Func<string, object> getVariableValue,
+            Action<IBatchedQuery> registerQuery)
+        {
+            _services = services ?? throw new ArgumentNullException(nameof(services));
+            _operationContext = operationContext ?? throw new ArgumentNullException(nameof(operationContext));
+            _selectionContext = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
+            Path = path ?? throw new ArgumentNullException(nameof(path));
+            _getVariableValue = getVariableValue ?? throw new ArgumentNullException(nameof(getVariableValue));
+            _registerQuery = registerQuery ?? throw new ArgumentNullException(nameof(registerQuery));
+        }
+
+        public ISchema Schema => _operationContext.Schema;
+
+        public ObjectTypeDefinition TypeDefinition => _selectionContext?.TypeDefinition;
+
+        public FieldDefinition FieldDefinition => _selectionContext?.FieldDefinition;
+
+        public QueryDocument QueryDocument => _operationContext.QueryDocument;
+
+        public OperationDefinition OperationDefinition => _operationContext.Operation;
+
+        public Field Field => _selectionContext?.Field;
 
         public IImmutableStack<object> Path { get; }
 
-        public T Parent<T>() => (T)Path.Peek();
-
         public T Argument<T>(string name)
         {
-            if (_arguments.TryGetValue(name, out object o))
+            if (Field == null)
             {
-                return (T)o;
+                throw new InvalidOperationException("The current context has no selection context and thus does not provide any arguments.");
             }
-            throw new ArgumentException(
-                "The specified argument does not exist.",
-                nameof(name));
+
+            if (!Field.Arguments.ContainsKey(name)
+                && !FieldDefinition.Arguments.ContainsKey(name))
+            {
+                throw new InvalidOperationException("The specified argument is not defined.");
+            }
+
+            if (Field.Arguments.TryGetValue(name, out Argument argument))
+            {
+                if (argument.Value is Variable v)
+                {
+                    return (T)_getVariableValue(v.Name);
+                }
+                return ValueConverter.ConvertTo<T>(argument.Value);
+            }
+
+            IValue defaultValue = FieldDefinition.Arguments[name].DefaultValue;
+            return ValueConverter.ConvertTo<T>(defaultValue);
+        }
+
+        public T Parent<T>()
+        {
+            if (Path.Any())
+            {
+                return (T)Path.Peek();
+            }
+
+            throw new InvalidOperationException("The current context has no selection context and thus does not provide a parent.");
+        }
+
+        public void RegisterQuery(IBatchedQuery query)
+        {
+            _registerQuery(query);
         }
 
         public T Service<T>()
         {
-            return (T)_serviceProvider.GetService(typeof(T));
+            return (T)_services.GetService(typeof(T));
         }
 
-        public IResolverContext Copy(object newParent)
+        public IResolverContext Create(
+            SelectionContext selectionContext,
+            object result)
         {
-            return Copy(_empty, newParent);
-        }
-
-        public IResolverContext Copy(IDictionary<string, object> arguments, object newParent)
-        {
-            if (arguments == null)
+            if (selectionContext == null)
             {
-                throw new ArgumentNullException(nameof(arguments));
+                throw new ArgumentNullException(nameof(selectionContext));
             }
 
-            if (newParent == null)
-            {
-                throw new ArgumentNullException(nameof(newParent));
-            }
-
-            return new ResolverContext(_serviceProvider, Schema, arguments, Path.Push(newParent));
+            return new ResolverContext(_services, _operationContext, 
+                selectionContext, Path.Push(result), _getVariableValue, 
+                _registerQuery);
         }
-
-        #region Factories
 
         public static ResolverContext Create(
-            IServiceProvider serviceProvider,
-            ISchema schema,
-            IDictionary<string, object> arguments,
-            object root)
+            IServiceProvider services,
+            OperationContext operationContext,
+            Func<string, object> getVariableValue,
+            Action<IBatchedQuery> registerQuery)
         {
-            if (serviceProvider == null)
+            if (services == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(services));
             }
 
-            if (arguments == null)
+            if (operationContext == null)
             {
-                throw new ArgumentNullException(nameof(arguments));
+                throw new ArgumentNullException(nameof(operationContext));
             }
 
-            IImmutableStack<object> path = ImmutableStack<object>.Empty;
-            if (root != null)
+            if (getVariableValue == null)
             {
-                path = path.Push(root);
+                throw new ArgumentNullException(nameof(getVariableValue));
             }
-            return new ResolverContext(serviceProvider, schema, arguments, path);
+
+            if (registerQuery == null)
+            {
+                throw new ArgumentNullException(nameof(registerQuery));
+            }
+
+            return new ResolverContext(services, operationContext,
+                getVariableValue, registerQuery);
         }
-
-        #endregion
     }
 }
- */

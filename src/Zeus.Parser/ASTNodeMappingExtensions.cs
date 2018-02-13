@@ -74,6 +74,10 @@ namespace Zeus.Parser
 
         public static IValue Map(this GraphQLValue value)
         {
+            if (ReferenceEquals(value, null))
+            {
+                return NullValue.Instance;
+            }
             if (value is GraphQLScalarValue sv)
             {
                 return CreateScalarValue(sv);

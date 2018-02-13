@@ -31,5 +31,7 @@ namespace Zeus.Resolvers
         T Service<T>();
 
         void RegisterQuery(IBatchedQuery query);
+
+        IResolverContext Create(SelectionContext selectionContext, object result);
     }
 }

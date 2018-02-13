@@ -146,4 +146,12 @@ namespace Zeus.Abstractions
             return "{" + string.Join(", ", Fields.Select(t => t.Key + ": " + t.Value)) + "}";
         }
     }
+
+    public static class ValueConverter
+    {
+        public static T ConvertTo<T>(IValue value)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
