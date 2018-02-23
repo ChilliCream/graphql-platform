@@ -53,7 +53,7 @@ namespace Zeus.Execution
             Assert.True(raised);
             Assert.NotNull(result);
             Assert.IsType<object[]>(result);
-            Assert.Empty(nextTasks);
+            Assert.Single(nextTasks);
 
             Assert.Collection((object[])result,
                 i => Assert.IsType<Dictionary<string, object>>(i));

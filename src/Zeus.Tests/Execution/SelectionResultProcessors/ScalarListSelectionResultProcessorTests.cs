@@ -157,7 +157,7 @@ namespace Zeus.Execution
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
             Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
             resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(new Func<object>(() => input)));
+                .Returns(Task.FromResult<object>(input));
 
             Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             selection.Setup(t => t.Name).Returns("foo");
