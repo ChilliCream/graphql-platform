@@ -25,9 +25,7 @@ namespace Zeus.Execution
                 throw new ArgumentNullException(nameof(field));
             }
 
-            string typeName = _operationContext.Operation.Type.ToString();
-
-            if (_operationContext.Schema.ObjectTypes.TryGetValue(typeName, out var typeDefinition)
+            if (_operationContext.Schema.ObjectTypes.TryGetValue(_typeName, out var typeDefinition)
                 && typeDefinition.Fields.TryGetValue(field.Name, out var fieldDefinition))
             {
                 selectionContext = new SelectionContext(typeDefinition, fieldDefinition, field);

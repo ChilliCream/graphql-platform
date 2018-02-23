@@ -73,7 +73,7 @@ namespace Zeus.Execution
             IEnumerable<ISelection> selections,
             NamedType typeCondition)
         {
-            foreach (ISelection selection in _selectionContext.Field.SelectionSet)
+            foreach (ISelection selection in selections)
             {
                 if (selection is Field f
                     && _selectionHelper.TryCreateSelectionContext(f, out var sc))

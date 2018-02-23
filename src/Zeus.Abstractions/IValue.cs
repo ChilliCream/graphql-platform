@@ -28,7 +28,7 @@ namespace Zeus.Abstractions
     {
         protected ScalarValue(TValue value)
         {
-            if (object.Equals(value, default(TValue)))
+            if (object.Equals(value, null))
             {
                 throw new ArgumentNullException(nameof(value));
             }
