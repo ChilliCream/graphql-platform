@@ -6,7 +6,7 @@ namespace Zeus.Execution
 {
     public interface IOperationExecuter
     {
-        Task<IDictionary<string, object>> ExecuteAsync(
+        Task<IReadOnlyDictionary<string, object>> ExecuteAsync(
             IOptimizedOperation operation,
             IVariableCollection variables,
             object initialValue,

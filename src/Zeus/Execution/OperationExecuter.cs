@@ -18,7 +18,7 @@ namespace Zeus.Execution
             _services = services ?? throw new ArgumentNullException(nameof(services));
         }
 
-        public async Task<IDictionary<string, object>> ExecuteAsync(
+        public async Task<IReadOnlyDictionary<string, object>> ExecuteAsync(
             IOptimizedOperation operation,
             IVariableCollection variables,
             object initialValue,
@@ -30,7 +30,7 @@ namespace Zeus.Execution
                 operation, variables, initialValue, batchedQueries, response);
 
             // execute operation
-            while (batch != null)
+            while (batch.Count > 0)
             {
                 // execute selection task batch
                 await Task.WhenAll(batch.Select(t => t.ExecuteAsync(cancellationToken)).ToArray());
@@ -38,7 +38,7 @@ namespace Zeus.Execution
                 // execute batched queries
                 await Task.WhenAll(batchedQueries.Select(t => t.ExecuteAsync(cancellationToken)).ToArray());
 
-                // collect delayed resolver and integrate result int overall result map
+                // collect delayed resolver results and integrate results into overall result map
                 batch = FinalizeResolverResults(batch, variables);
 
                 // clear state for next batch

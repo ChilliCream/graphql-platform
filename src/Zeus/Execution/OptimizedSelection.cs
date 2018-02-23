@@ -16,6 +16,7 @@ namespace Zeus.Execution
         private readonly OptimizedSelectionHelper _selectionHelper;
         private ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>> _selections
             = ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>>.Empty;
+        private IResolver _resolver;
 
         public OptimizedSelection(OperationContext operationContext, SelectionContext selectionContext)
         {
@@ -48,7 +49,17 @@ namespace Zeus.Execution
 
         public Field Field => _selectionContext.Field;
 
-        public IResolver Resolver { get; }
+        public IResolver Resolver
+        {
+            get
+            {
+                if (_resolver == null)
+                {
+                    _resolver = GetResolverInternal();
+                }
+                return _resolver;
+            }
+        }
 
         public IEnumerable<IOptimizedSelection> GetSelections(IType type)
         {
@@ -123,6 +134,17 @@ namespace Zeus.Execution
             object parentResult)
         {
             return parentContext.Create(_selectionContext, parentResult);
+        }
+
+        private IResolver GetResolverInternal()
+        {
+            if (_operationContext.Schema.Resolvers.TryGetResolver(
+                TypeDefinition.Name, FieldDefinition.Name, out var resolver))
+            {
+                return resolver;
+            }
+
+            return new DynamicMemberResolver(FieldDefinition.Name);
         }
     }
 }
