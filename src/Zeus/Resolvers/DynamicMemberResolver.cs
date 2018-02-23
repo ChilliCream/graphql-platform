@@ -17,7 +17,12 @@ namespace Zeus.Resolvers
 
         public DynamicMemberResolver(string propertyName)
         {
+            if (string.IsNullOrEmpty(propertyName))
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
 
+            _propertyName = propertyName;
         }
 
         public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)

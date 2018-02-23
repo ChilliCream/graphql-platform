@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Zeus;
@@ -158,6 +159,8 @@ namespace GraphQL.Tests.Execution
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
+            
+            Stopwatch sw = Stopwatch.StartNew();
             QueryResult result = await documentExecuter.ExecuteAsync(
                 schema, queryDocument, null, null, null, CancellationToken.None);
 
