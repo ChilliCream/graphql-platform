@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Zeus.Abstractions;
 using Zeus.Resolvers;
 
 namespace Zeus.Execution
@@ -29,7 +30,12 @@ namespace Zeus.Execution
             Dictionary<string, object> map = new Dictionary<string, object>();
             selectionTask.IntegrateResult(map);
 
-            foreach (IOptimizedSelection selection in selectionTask.Selection.Selections)
+            IType type = selectionTask.Context.Schema.InferType(
+                selectionTask.Selection.TypeDefinition,
+                selectionTask.Selection.FieldDefinition,
+                result);
+
+            foreach (IOptimizedSelection selection in selectionTask.Selection.GetSelections(type))
             {
                 IResolverContext context = selection.CreateContext(selectionTask.Context, result);
                 yield return new ResolveSelectionTask(context, selection, r => map[selection.Name] = r);

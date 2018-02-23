@@ -20,12 +20,12 @@ namespace Zeus.Abstractions
             Operations = queryDefinitions.OfType<OperationDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
             Fragments = queryDefinitions.OfType<FragmentDefinition>()
-                .ToDictionary(t => t.Name, StringComparer.Ordinal);
+                .ToLookup(t => t.Name, StringComparer.Ordinal);
         }
 
         public IReadOnlyDictionary<string, OperationDefinition> Operations { get; }
 
-        public IReadOnlyDictionary<string, FragmentDefinition> Fragments { get; }
+        public ILookup<string, FragmentDefinition> Fragments { get; }
 
         public override string ToString()
         {

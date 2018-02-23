@@ -82,8 +82,10 @@ namespace Zeus
             return new Schema(schemaDocument, resolvers);
         }
 
-
-
+        public IType InferType(ObjectTypeDefinition typeDefinition, FieldDefinition fieldDefinition, object obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

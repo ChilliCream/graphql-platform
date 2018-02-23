@@ -6,8 +6,11 @@ namespace Zeus
 {
     public interface ISchema
         : ISchemaDocument
-    {        
+    {
         IResolverCollection Resolvers { get; }
+
+        IType InferType(ObjectTypeDefinition typeDefinition,
+            FieldDefinition fieldDefinition, object obj);
     }
 }
 

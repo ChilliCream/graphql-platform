@@ -16,7 +16,7 @@ namespace Zeus.Execution
 
         IResolver Resolver { get; }
 
-        IReadOnlyCollection<IOptimizedSelection> Selections { get; }
+        IEnumerable<IOptimizedSelection> GetSelections(IType type);
 
         IResolverContext CreateContext(IResolverContext parentContext, object parentResult);
     }

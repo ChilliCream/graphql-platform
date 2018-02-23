@@ -1,25 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using GraphQLParser.AST;
 using Zeus.Resolvers;
 using Zeus.Abstractions;
 
 namespace Zeus.Execution
 {
-    public interface IOperationExecuter
-    {
-        Task<IDictionary<string, object>> ExecuteAsync(
-            IOptimizedOperation operation,
-            IVariableCollection variables,
-            object initialValue,
-            CancellationToken cancellationToken);
-    }
-
     public class OperationExecuter
         : IOperationExecuter
     {
@@ -93,74 +81,13 @@ namespace Zeus.Execution
 
             foreach (IResolveSelectionTask task in batch)
             {
+                IType fieldType = task.Selection.FieldDefinition.Type;
                 ISelectionResultProcessor resultProcessor =
-                    GetSelectionResultProcessor(task.Selection.FieldDefinition.Type);
+                    SelectionResultProcessorResolver.GetProcessor(fieldType);
                 nextBatch.AddRange(resultProcessor.Process(task));
             }
 
             return nextBatch;
-        }
-
-        private ISelectionResultProcessor GetSelectionResultProcessor(IType fieldType)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal interface ISelectionResultProcessor
-    {
-        // in: the executed selection result that contains the computed result of the selection.
-        // out: in case the selection is a list or object we will return new selection tasks that have to be executed.
-        IEnumerable<IResolveSelectionTask> Process(IResolveSelectionTask selectionTask);
-    }
-
-    
-
-
-    internal interface IResolveSelectionTask
-    {
-        IResolverContext Context { get; }
-
-        IOptimizedSelection Selection { get; }
-
-        object Result { get; }
-
-        Task ExecuteAsync(CancellationToken cancellationToken);
-
-        void IntegrateResult(object result);
-    }
-
-
-    internal class ResolveSelectionTask
-        : IResolveSelectionTask
-    {
-        private object _result;
-        private readonly Action<object> _addValueToResultMap;
-
-        public ResolveSelectionTask(
-            IResolverContext context,
-            IOptimizedSelection selection,
-            Action<object> addValueToResultMap)
-        {
-            Context = context ?? throw new ArgumentNullException(nameof(context));
-            Selection = selection ?? throw new ArgumentNullException(nameof(selection));
-            _addValueToResultMap = addValueToResultMap ?? throw new ArgumentNullException(nameof(addValueToResultMap));
-        }
-
-        public IResolverContext Context { get; }
-
-        public IOptimizedSelection Selection { get; }
-
-        public object Result => _result;
-
-        public async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
-            _result = await Selection.Resolver.ResolveAsync(Context, cancellationToken);
-        }
-
-        public void IntegrateResult(object finalResult)
-        {
-            _addValueToResultMap(finalResult);
         }
     }
 }
