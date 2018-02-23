@@ -8,41 +8,22 @@ using Zeus.Resolvers;
 namespace Zeus.Execution
 {
     public class OptimizedOperation
-        : IOptimizedNode
-        , IOptimizedOperation
+        : IOptimizedOperation
     {
+        private readonly object _sync = new object();
         private readonly OperationContext _operationContext;
+        private readonly OptimizedSelectionHelper _selectionHelper;
         private ImmutableList<IOptimizedSelection> _selections;
+        private bool _isInitialized;
 
-        public OptimizedOperation(
-            ISchema schema,
-            QueryDocument queryDocument,
-            OperationDefinition operation)
+        public OptimizedOperation(OperationContext operationContext)
         {
-            _operationContext = new OperationContext(
-                schema, queryDocument, operation);
-            _selections = ImmutableList<IOptimizedSelection>.Empty;
-        }
+            _operationContext = operationContext
+                ?? throw new ArgumentNullException(nameof(operationContext));
 
-        public OptimizedOperation(
-            ISchema schema,
-            QueryDocument queryDocument,
-            OperationDefinition operation,
-            IEnumerable<IOptimizedSelection> selections)
-        {
-            _operationContext = new OperationContext(
-                schema, queryDocument, operation);
-            _selections = selections == null
-                ? ImmutableList<IOptimizedSelection>.Empty
-                : selections.ToImmutableList();
-        }
-
-        private OptimizedOperation(
-            OperationContext operationContext,
-            ImmutableList<IOptimizedSelection> selections)
-        {
-            _operationContext = operationContext;
-            _selections = selections;
+            _selectionHelper = new OptimizedSelectionHelper(
+                operationContext,
+                operationContext.Operation.Type.ToString());
         }
 
         public ISchema Schema => _operationContext.Schema;
@@ -51,9 +32,24 @@ namespace Zeus.Execution
 
         public OperationDefinition Operation => _operationContext.Operation;
 
-        public IReadOnlyCollection<IOptimizedSelection> Selections { get; }
-
-        IOptimizedNode IOptimizedNode.Parent => null;
+        public IReadOnlyCollection<IOptimizedSelection> Selections
+        {
+            get
+            {
+                if (!_isInitialized)
+                {
+                    lock (_sync)
+                    {
+                        if (!_isInitialized)
+                        {
+                            _selections = ResolveFields().ToImmutableList();
+                            _isInitialized = true;
+                        }
+                    }
+                }
+                return _selections;
+            }
+        }
 
         public IResolverContext CreateContext(
             IServiceProvider services,
@@ -69,24 +65,15 @@ namespace Zeus.Execution
                 k => variables.GetVariable<object>(k), registerQuery);
         }
 
-        public OptimizedOperation AddSelections(IEnumerable<IOptimizedSelection> selections)
+        private IEnumerable<IOptimizedSelection> ResolveFields()
         {
-            return new OptimizedOperation(_operationContext, _selections.AddRange(selections));
-        }
-
-        public OptimizedOperation ReplaceSelection(IOptimizedSelection oldSelection, IOptimizedSelection newSelection)
-        {
-            return new OptimizedOperation(_operationContext, _selections.Replace(oldSelection, newSelection));
-        }
-
-        IOptimizedNode IOptimizedNode.AddSelections(IEnumerable<IOptimizedSelection> selections)
-        {
-            return AddSelections(selections);
-        }
-
-        IOptimizedNode IOptimizedNode.ReplaceSelection(IOptimizedSelection oldSelection, IOptimizedSelection newSelection)
-        {
-            return ReplaceSelection(oldSelection, newSelection);
+            foreach (Field field in _operationContext.Operation.SelectionSet.OfType<Field>())
+            {
+                if (_selectionHelper.TryCreateSelectionContext(field, out var sc))
+                {
+                    yield return new OptimizedSelection(_operationContext, sc);
+                }
+            }
         }
     }
 }

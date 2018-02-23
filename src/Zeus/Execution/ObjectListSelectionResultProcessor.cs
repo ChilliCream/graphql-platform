@@ -29,7 +29,7 @@ namespace Zeus.Execution
                 return Enumerable.Empty<IResolveSelectionTask>();
             }
 
-            if (result is IEnumerable en)
+            if (!(result is string) && result is IEnumerable en)
             {
                 List<IResolveSelectionTask> nextTasks = new List<IResolveSelectionTask>();
                 List<object> list = new List<object>();
@@ -57,8 +57,8 @@ namespace Zeus.Execution
             list.Add(map);
 
             IType elementType = selectionTask.Context.Schema.InferType(
-                selectionTask.Selection.TypeDefinition, 
-                selectionTask.Selection.FieldDefinition, 
+                selectionTask.Selection.TypeDefinition,
+                selectionTask.Selection.FieldDefinition,
                 element);
 
             foreach (IOptimizedSelection selection in selectionTask.Selection.GetSelections(elementType))

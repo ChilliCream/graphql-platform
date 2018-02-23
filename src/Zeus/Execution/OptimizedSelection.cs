@@ -13,16 +13,21 @@ namespace Zeus.Execution
         private readonly object _sync = new object();
         private readonly OperationContext _operationContext;
         private readonly SelectionContext _selectionContext;
+        private readonly OptimizedSelectionHelper _selectionHelper;
         private ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>> _selections
             = ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>>.Empty;
 
-        private OptimizedSelection(OperationContext operationContext, SelectionContext selectionContext)
+        public OptimizedSelection(OperationContext operationContext, SelectionContext selectionContext)
         {
             _operationContext = operationContext
                 ?? throw new ArgumentNullException(nameof(operationContext));
 
             _selectionContext = selectionContext
                 ?? throw new ArgumentNullException(nameof(selectionContext));
+
+            _selectionHelper = new OptimizedSelectionHelper(
+                operationContext,
+                selectionContext.FieldDefinition.Type.TypeName());
         }
 
         public string Name
@@ -71,7 +76,7 @@ namespace Zeus.Execution
             foreach (ISelection selection in _selectionContext.Field.SelectionSet)
             {
                 if (selection is Field f
-                    && TryCreateSelectionContext(f, out var sc))
+                    && _selectionHelper.TryCreateSelectionContext(f, out var sc))
                 {
                     yield return new OptimizedSelection(_operationContext, sc);
                 }
@@ -79,7 +84,7 @@ namespace Zeus.Execution
                 if (selection is InlineFragment frag
                     && frag.TypeCondition.Equals(typeCondition))
                 {
-                    foreach (IOptimizedSelection optimizedSelection 
+                    foreach (IOptimizedSelection optimizedSelection
                         in ResolveSelections(frag.SelectionSet, typeCondition))
                     {
                         yield return optimizedSelection;
@@ -88,7 +93,7 @@ namespace Zeus.Execution
 
                 if (selection is FragmentSpread fragSpread)
                 {
-                    foreach (IOptimizedSelection optimizedSelection 
+                    foreach (IOptimizedSelection optimizedSelection
                         in ResolveFragmentSpread(fragSpread, typeCondition))
                     {
                         yield return optimizedSelection;
@@ -97,23 +102,8 @@ namespace Zeus.Execution
             }
         }
 
-        private bool TryCreateSelectionContext(Field field, out SelectionContext selectionContext)
-        {
-            string typeName = _selectionContext.FieldDefinition.Type.TypeName();
-
-            if (_operationContext.Schema.ObjectTypes.TryGetValue(typeName, out var typeDefinition)
-                && typeDefinition.Fields.TryGetValue(field.Name, out var fieldDefinition))
-            {
-                selectionContext = new SelectionContext(typeDefinition, fieldDefinition, field);
-                return true;
-            }
-
-            selectionContext = null;
-            return false;
-        }
-
         private IEnumerable<IOptimizedSelection> ResolveFragmentSpread(
-            FragmentSpread fragmentSpread, 
+            FragmentSpread fragmentSpread,
             NamedType typeCondition)
         {
             FragmentDefinition fragmentDefinition = _operationContext.QueryDocument
