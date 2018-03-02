@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Zeus.Abstractions;
 using Zeus.Resolvers;
 
 namespace Zeus.Execution
@@ -28,7 +29,7 @@ namespace Zeus.Execution
                 return Enumerable.Empty<IResolveSelectionTask>();
             }
 
-            if (result is IEnumerable en)
+            if (!(result is string) && result is IEnumerable en)
             {
                 List<IResolveSelectionTask> nextTasks = new List<IResolveSelectionTask>();
                 List<object> list = new List<object>();
@@ -55,7 +56,12 @@ namespace Zeus.Execution
             Dictionary<string, object> map = new Dictionary<string, object>();
             list.Add(map);
 
-            foreach (IOptimizedSelection selection in selectionTask.Selection.Selections)
+            IType elementType = selectionTask.Context.Schema.InferType(
+                selectionTask.Selection.TypeDefinition,
+                selectionTask.Selection.FieldDefinition,
+                element);
+
+            foreach (IOptimizedSelection selection in selectionTask.Selection.GetSelections(elementType))
             {
                 IResolverContext context = selection.CreateContext(selectionTask.Context, element);
                 yield return new ResolveSelectionTask(context, selection, r => map[selection.Name] = r);

@@ -5,6 +5,8 @@ namespace Zeus
     internal class DefaultServiceProvider
         : IServiceProvider
     {
+        private DefaultServiceProvider() { }
+
         public object GetService(Type serviceType)
         {
             if (serviceType == null)
@@ -14,5 +16,7 @@ namespace Zeus
 
             return serviceType.Assembly.CreateInstance(serviceType.FullName);
         }
+
+        public static DefaultServiceProvider Instance { get; } = new DefaultServiceProvider();
     }
 }

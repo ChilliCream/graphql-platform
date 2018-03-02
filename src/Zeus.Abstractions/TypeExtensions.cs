@@ -57,6 +57,30 @@ namespace Zeus.Abstractions
             return type;
         }
 
+        public static string TypeName(this IType type)
+        {
+            IType innerType = type.InnerType().InnerType();
+
+            if (innerType is NamedType nt)
+            {
+                return nt.Name;
+            }
+
+            throw new ArgumentException("The type structure is invalid.");
+        }
+
+        public static NamedType NamedType(this IType type)
+        {
+            IType innerType = type.InnerType().InnerType();
+
+            if (innerType is NamedType nt)
+            {
+                return nt;
+            }
+
+            throw new ArgumentException("The type structure is invalid.");
+        }
+
         public static IType ElementType(this IType type)
         {
             if (type.IsListType())

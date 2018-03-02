@@ -9,8 +9,12 @@ namespace Zeus.Resolvers
         : IResolverBuilder
     {
         private readonly Dictionary<FieldReference, Func<IServiceProvider, IResolver>> _resolvers = new Dictionary<FieldReference, Func<IServiceProvider, IResolver>>();
+        private readonly IServiceProvider _serviceProvider;
 
-        private ResolverBuilder() { }
+        private ResolverBuilder(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
 
         public IResolverBuilder Add(string typeName, string fieldName, Func<IServiceProvider, IResolver> resolverFactory)
         {
@@ -35,12 +39,17 @@ namespace Zeus.Resolvers
 
         public IResolverCollection Build()
         {
-            return new ResolverCollection(_resolvers);
+            return new ResolverCollection(_serviceProvider, _resolvers);
         }
 
         public static IResolverBuilder Create()
         {
-            return new ResolverBuilder();
+            return new ResolverBuilder(DefaultServiceProvider.Instance);
+        }
+
+        public static IResolverBuilder Create(IServiceProvider serviceProvider)
+        {
+            return new ResolverBuilder(serviceProvider);
         }
     }
 }

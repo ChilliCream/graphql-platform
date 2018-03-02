@@ -6,11 +6,11 @@ namespace Zeus.Resolvers
     public class SelectionContext
     {
         public SelectionContext(
-            ObjectTypeDefinition TypeDefinition,
+            ObjectTypeDefinition typeDefinition,
             FieldDefinition fieldDefinition,
             Field field)
         {
-            TypeDefinition = TypeDefinition ?? throw new ArgumentNullException(nameof(TypeDefinition));
+            TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
             FieldDefinition = fieldDefinition ?? throw new ArgumentNullException(nameof(fieldDefinition));
             Field = field ?? throw new ArgumentNullException(nameof(field));
         }

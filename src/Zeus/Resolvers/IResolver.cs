@@ -12,5 +12,5 @@ namespace Zeus.Resolvers
         : IResolver
     {
         new Task<TResult> ResolveAsync(IResolverContext context, CancellationToken cancellationToken);
-    }
+    }    
 }

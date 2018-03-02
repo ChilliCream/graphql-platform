@@ -6,35 +6,22 @@ using System.Threading.Tasks;
 using Moq;
 using Xunit;
 using Zeus.Resolvers;
+using Zeus.Abstractions;
 
 namespace Zeus.Execution
 {
     public class ObjectListSelectionResultProcessorTests
     {
         [Fact]
-        public async Task ResultIsFuncReturnsNull()
+        public void ResultIsFuncReturnsNull()
         {
             // arrange
             object result = null;
             bool raised = false;
 
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(new Func<object>(() => null)));
-
-            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
-            selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
-
-            Action<object> addValueToResultMap = r =>
-            {
-                result = r;
-                raised = true;
-            };
-
-            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
-            await task.ExecuteAsync(CancellationToken.None);
+            Func<object> input = () => null;
+            Action<object> resultIntegratedCallback = r => { result = r; raised = true; };
+            IResolveSelectionTask task = CreateSelectionTaskMock(input, resultIntegratedCallback);
 
             // act
             ObjectListSelectionResultProcessor selectionResultProcessor = new ObjectListSelectionResultProcessor();
@@ -49,29 +36,14 @@ namespace Zeus.Execution
         [InlineData(123)]
         [InlineData("abc")]
         [Theory]
-        public async Task ResultIsFunc(object input)
+        public void ResultIsFunc(object input)
         {
             // arrange
             object result = null;
             bool raised = false;
 
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(new Func<object>(() => input)));
-
-            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
-            selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
-
-            Action<object> addValueToResultMap = r =>
-            {
-                result = r;
-                raised = true;
-            };
-
-            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
-            await task.ExecuteAsync(CancellationToken.None);
+            Action<object> resultIntegratedCallback = r => { result = r; raised = true; };
+            IResolveSelectionTask task = CreateSelectionTaskMock(new Func<object>(() => input), resultIntegratedCallback);
 
             // act
             ObjectListSelectionResultProcessor selectionResultProcessor = new ObjectListSelectionResultProcessor();
@@ -81,39 +53,24 @@ namespace Zeus.Execution
             Assert.True(raised);
             Assert.NotNull(result);
             Assert.IsType<object[]>(result);
-            Assert.Empty(nextTasks);
+            Assert.Single(nextTasks);
 
-            object[] list = (object[])result;
-            Assert.Contains(input, list);
-            Assert.Single(list);
+            Assert.Collection((object[])result,
+                i => Assert.IsType<Dictionary<string, object>>(i));
         }
 
         [InlineData(123)]
         [InlineData("abc")]
         [Theory]
-        public async Task ResultIsSingleScalarValue(object input)
+        public void ResultIsSingleValue(object input)
         {
             // arrange
             object result = null;
             bool raised = false;
+            NamedType namedType = new NamedType("String");
 
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(input);
-
-            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
-            selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
-
-            Action<object> addValueToResultMap = r =>
-            {
-                result = r;
-                raised = true;
-            };
-
-            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
-            await task.ExecuteAsync(CancellationToken.None);
+            Action<object> resultIntegratedCallback = r => { result = r; raised = true; };
+            IResolveSelectionTask task = CreateSelectionTaskMock(input, resultIntegratedCallback);
 
             // act
             ObjectListSelectionResultProcessor selectionResultProcessor = new ObjectListSelectionResultProcessor();
@@ -123,38 +80,22 @@ namespace Zeus.Execution
             Assert.True(raised);
             Assert.NotNull(result);
             Assert.IsType<object[]>(result);
-            Assert.Empty(nextTasks);
+            Assert.Single(nextTasks);
 
-            object[] list = (object[])result;
-            Assert.Contains(input, list);
-            Assert.Single(list);
+            Assert.Collection((object[])result,
+                i => Assert.IsType<Dictionary<string, object>>(i));
         }
 
         [Fact]
-        public async Task ResultIsList()
+        public void ResultIsList()
         {
             // arrange
             object result = null;
             bool raised = false;
+
             List<int> input = new List<int> { 1, 2, 3 };
-
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(input);
-
-            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
-            selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
-
-            Action<object> addValueToResultMap = r =>
-            {
-                result = r;
-                raised = true;
-            };
-
-            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
-            await task.ExecuteAsync(CancellationToken.None);
+            Action<object> resultIntegratedCallback = r => { result = r; raised = true; };
+            IResolveSelectionTask task = CreateSelectionTaskMock(input, resultIntegratedCallback);
 
             // act
             ObjectListSelectionResultProcessor selectionResultProcessor = new ObjectListSelectionResultProcessor();
@@ -164,12 +105,12 @@ namespace Zeus.Execution
             Assert.True(raised);
             Assert.NotNull(result);
             Assert.IsType<object[]>(result);
-            Assert.Empty(nextTasks);
+            Assert.Equal(3, nextTasks.Length);
 
             Assert.Collection((object[])result,
-                i => Assert.Equal(1, i),
-                i => Assert.Equal(2, i),
-                i => Assert.Equal(3, i));
+                i => Assert.IsType<Dictionary<string, object>>(i),
+                i => Assert.IsType<Dictionary<string, object>>(i),
+                i => Assert.IsType<Dictionary<string, object>>(i));
         }
 
         [Fact]
@@ -179,15 +120,8 @@ namespace Zeus.Execution
             object result = null;
             bool raised = false;
 
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
-            Action<object> addValueToResultMap = r =>
-            {
-                result = r;
-                raised = true;
-            };
-
-            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
+            Action<object> resultIntegratedCallback = r => { result = r; raised = true; };
+            IResolveSelectionTask task = CreateSelectionTaskMock(null, resultIntegratedCallback);
 
             // act
             ObjectListSelectionResultProcessor selectionResultProcessor = new ObjectListSelectionResultProcessor();
@@ -208,6 +142,46 @@ namespace Zeus.Execution
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
+        }
+
+        private IResolveSelectionTask CreateSelectionTaskMock(object input, Action<object> resultIntegratedCallback)
+        {
+            return CreateSelectionTaskMock(input, new NamedType("FooType"), resultIntegratedCallback);
+        }
+
+        private IResolveSelectionTask CreateSelectionTaskMock(object input, NamedType type, Action<object> resultIntegratedCallback)
+        {
+            Mock<ISchema> schema = new Mock<ISchema>(MockBehavior.Strict);
+            schema.Setup(t => t.InferType(It.IsAny<ObjectTypeDefinition>(),
+                It.IsAny<FieldDefinition>(), It.IsAny<object>()))
+                .Returns(type);
+
+            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
+            resolverContext.Setup(t => t.Schema).Returns(schema.Object);
+
+            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
+            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(input);
+
+            Mock<IOptimizedSelection> childSelection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
+            childSelection.Setup(t => t.CreateContext(It.IsAny<IResolverContext>(), It.IsAny<object>()))
+                .Returns(resolverContext.Object);
+
+            Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
+            selection.Setup(t => t.TypeDefinition).Returns(default(ObjectTypeDefinition));
+            selection.Setup(t => t.FieldDefinition).Returns(default(FieldDefinition));
+            selection.Setup(t => t.Name).Returns("foo");
+            selection.Setup(t => t.Resolver).Returns(resolver.Object);
+            selection.Setup(t => t.GetSelections(It.IsAny<IType>())).Returns(new[] { childSelection.Object });
+
+            Action<object> addValueToResultMap = r =>
+            {
+                resultIntegratedCallback(r);
+            };
+
+            ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, addValueToResultMap);
+            task.ExecuteAsync(CancellationToken.None).Wait();
+            return task;
         }
     }
 }

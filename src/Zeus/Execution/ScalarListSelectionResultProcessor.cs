@@ -34,14 +34,7 @@ namespace Zeus.Execution
             }
             else if (!IsValueType(result) && result is IEnumerable en)
             {
-                List<object> list = new List<object>();
-
-                foreach (object o in en)
-                {
-                    list.Add(o);
-                }
-
-                selectionTask.IntegrateResult(list.ToArray());
+                selectionTask.IntegrateResult(en.Cast<object>().ToArray());
             }
             else
             {
