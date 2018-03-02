@@ -59,8 +59,6 @@ namespace GraphQL.Tests.Execution
         public async Task CallGetFooAndResolveObject()
         {
             // arrange
-            string expectedResult = Guid.NewGuid().ToString("N");
-
             Schema schema = Schema.Create(
                 @"
                 type Foo
@@ -122,8 +120,6 @@ namespace GraphQL.Tests.Execution
         public async Task CallGetFooAndResolveWithDynamicObject()
         {
             // arrange
-            string expectedResult = Guid.NewGuid().ToString("N");
-
             Schema schema = Schema.Create(
                 @"
                 type Foo
@@ -131,6 +127,7 @@ namespace GraphQL.Tests.Execution
                     a: String!
                     b: String
                     c: Int
+                    d: String
                 }
 
                 type Query {
@@ -140,6 +137,7 @@ namespace GraphQL.Tests.Execution
 
                 ResolverBuilder.Create()
                     .Add("Query", "getFoo", () => new FooMock())
+                    .Add("Foo", "d", () => "xyz")
                     .Build()
             );
 
@@ -152,6 +150,7 @@ namespace GraphQL.Tests.Execution
                         x: a
                         y: b
                         z: c
+                        d
                     }
                 }
                 "
@@ -159,7 +158,7 @@ namespace GraphQL.Tests.Execution
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
-            
+
             Stopwatch sw = Stopwatch.StartNew();
             QueryResult result = await documentExecuter.ExecuteAsync(
                 schema, queryDocument, null, null, null, CancellationToken.None);
@@ -178,6 +177,7 @@ namespace GraphQL.Tests.Execution
             Assert.Equal("hello", fooObject["x"]);
             Assert.Equal("world", fooObject["y"]);
             Assert.Equal(123, fooObject["z"]);
+            Assert.Equal("xyz", fooObject["d"]);
         }
 
     }

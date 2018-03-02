@@ -24,7 +24,6 @@ namespace Zeus
             _resolvers = resolvers;
         }
 
-
         public IReadOnlyDictionary<string, InterfaceTypeDefinition> InterfaceTypes
             => _schemaDocument.InterfaceTypes;
 
