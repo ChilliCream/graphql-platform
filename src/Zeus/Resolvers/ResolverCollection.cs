@@ -13,10 +13,12 @@ namespace Zeus.Resolvers
     {
         private readonly object _sync = new object();
         private readonly IServiceProvider _serviceProvider;
-        private readonly ImmutableDictionary<FieldReference, Func<IServiceProvider, IResolver>> _resolverFactories;
-        private ImmutableDictionary<FieldReference, IResolver> _resolvers = ImmutableDictionary<FieldReference, IResolver>.Empty;
+        private readonly ImmutableDictionary<FieldReference, ResolverFactory> _resolverFactories;
+        private ImmutableDictionary<FieldReference, ResolverDelegate> _resolvers = 
+            ImmutableDictionary<FieldReference, ResolverDelegate>.Empty;
 
-        internal ResolverCollection(IServiceProvider serviceProvider, IDictionary<FieldReference, Func<IServiceProvider, IResolver>> resolverFactories)
+        internal ResolverCollection(IServiceProvider serviceProvider, 
+            IDictionary<FieldReference, ResolverFactory> resolverFactories)
         {
             if (serviceProvider == null)
             {
@@ -32,7 +34,7 @@ namespace Zeus.Resolvers
             _resolverFactories = resolverFactories.ToImmutableDictionary(t => t.Key, t => t.Value);
         }
 
-        public bool TryGetResolver(string typeName, string fieldName, out IResolver resolver)
+        public bool TryGetResolver(string typeName, string fieldName, out ResolverDelegate resolver)
         {
             if (typeName == null)
             {
@@ -47,7 +49,7 @@ namespace Zeus.Resolvers
             FieldReference fieldReference = FieldReference.Create(typeName, fieldName);
             if (!_resolvers.TryGetValue(fieldReference, out resolver))
             {
-                Func<IServiceProvider, IResolver> resolverFactory;
+                ResolverFactory resolverFactory;
                 if (_resolverFactories.TryGetValue(fieldReference, out resolverFactory))
                 {
                     lock (_sync)

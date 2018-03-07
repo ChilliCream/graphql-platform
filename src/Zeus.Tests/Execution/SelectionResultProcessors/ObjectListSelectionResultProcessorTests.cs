@@ -159,9 +159,7 @@ namespace Zeus.Execution
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
             resolverContext.Setup(t => t.Schema).Returns(schema.Object);
 
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(input);
+            ResolverDelegate resolver = new ResolverDelegate((ctx, ct) => Task.FromResult<object>(input));
 
             Mock<IOptimizedSelection> childSelection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             childSelection.Setup(t => t.CreateContext(It.IsAny<IResolverContext>(), It.IsAny<object>()))
@@ -171,7 +169,7 @@ namespace Zeus.Execution
             selection.Setup(t => t.TypeDefinition).Returns(default(ObjectTypeDefinition));
             selection.Setup(t => t.FieldDefinition).Returns(default(FieldDefinition));
             selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
+            selection.Setup(t => t.Resolver).Returns(resolver);
             selection.Setup(t => t.GetSelections(It.IsAny<IType>())).Returns(new[] { childSelection.Object });
 
             Action<object> addValueToResultMap = r =>

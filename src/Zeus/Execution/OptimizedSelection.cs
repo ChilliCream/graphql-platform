@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Zeus.Abstractions;
+using Zeus.Introspection;
 using Zeus.Resolvers;
 
 namespace Zeus.Execution
@@ -16,7 +18,7 @@ namespace Zeus.Execution
         private readonly OptimizedSelectionHelper _selectionHelper;
         private ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>> _selections
             = ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>>.Empty;
-        private IResolver _resolver;
+        private ResolverDelegate _resolver;
 
         public OptimizedSelection(OperationContext operationContext, SelectionContext selectionContext)
         {
@@ -49,7 +51,7 @@ namespace Zeus.Execution
 
         public Field Field => _selectionContext.Field;
 
-        public IResolver Resolver
+        public ResolverDelegate Resolver
         {
             get
             {
@@ -136,7 +138,7 @@ namespace Zeus.Execution
             return parentContext.Create(_selectionContext, parentResult);
         }
 
-        private IResolver GetResolverInternal()
+        private ResolverDelegate GetResolverInternal()
         {
             if (_operationContext.Schema.Resolvers.TryGetResolver(
                 TypeDefinition.Name, FieldDefinition.Name, out var resolver))
@@ -144,7 +146,14 @@ namespace Zeus.Execution
                 return resolver;
             }
 
-            return new DynamicMemberResolver(FieldDefinition.Name);
+            if (TypeName.IsTypeName(_selectionContext.Field.Name))
+            {
+                return new ResolverDelegate((ctx, ct) => 
+                    Task.FromResult<object>(_selectionContext.TypeDefinition.Name));
+            }
+
+            var memberResolver = new DynamicMemberResolver(FieldDefinition.Name);
+            return new ResolverDelegate((ctx, ct) => memberResolver.ResolveAsync(ctx, ct));
         }
     }
 }

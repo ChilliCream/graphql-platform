@@ -11,15 +11,34 @@ namespace Zeus.Abstractions
         private string _stringRepresentation;
 
         public FieldDefinition(string name, IType type)
-            : this(name, type, null)
+            : this(name, type, false, null)
         {
         }
 
-        public FieldDefinition(string name, IType type, IEnumerable<InputValueDefinition> arguments)
+        public FieldDefinition(
+            string name, IType type,
+            bool isIntrospectionField)
+            : this(name, type, isIntrospectionField, null)
+        {
+        }
+
+        public FieldDefinition(
+            string name, IType type,
+            IEnumerable<InputValueDefinition> arguments)
+            : this(name, type, false, arguments)
+        {
+        }
+
+        public FieldDefinition(
+            string name, IType type,
+            bool isIntrospectionField,
+            IEnumerable<InputValueDefinition> arguments)
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException("A type definition name must not be null or empty.", nameof(name));
+                throw new ArgumentException(
+                    "A type definition name must not be null or empty.",
+                    nameof(name));
             }
 
             if (type == null)

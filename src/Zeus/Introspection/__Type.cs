@@ -13,8 +13,8 @@ namespace Zeus.Introspection
             Kind = kind;
             Name = name;
             Description = description;
-            _fields = fields.ToArray();
-            Interfaces = interfaces.ToArray();
+            _fields = fields == null ? null : fields.ToArray();
+            Interfaces = interfaces == null ? null : interfaces.ToArray();
         }
 
         public __TypeKind Kind { get; }
@@ -44,6 +44,15 @@ namespace Zeus.Introspection
         // interface and Union only
         public IReadOnlyCollection<NamedType> PossibleTypes { get; } // => add resolver that looks up the __Types ...
 
+        public static __Type CreateType(ITypeDefinition typeDefinition)
+        {
+            if (typeDefinition is InterfaceTypeDefinition itd)
+            {
+                return CreateInterfaceType(itd);
+            }
+            return null;
+        }
+
         public static __Type CreateObjectType(string name, string description, IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
         {
             if (name == null)
@@ -64,81 +73,22 @@ namespace Zeus.Introspection
             return new __Type(__TypeKind.Object, name, description, fields, interfaces);
         }
 
-        public static __Type CreateInterfaceType(string name, string description, IEnumerable<__Field> fields)
+        private static __Type CreateInterfaceType(InterfaceTypeDefinition interfaceType)
         {
-            if (name == null)
+            if (interfaceType == null)
             {
-                throw new System.ArgumentNullException(nameof(name));
+                throw new System.ArgumentNullException(nameof(interfaceType));
             }
 
-            if (fields == null)
-            {
-                throw new System.ArgumentNullException(nameof(fields));
-            }
-
-            return new __Type(__TypeKind.Interface, name, description, fields, null);
+            return new __Type(__TypeKind.Interface,
+                interfaceType.Name, null,
+                CreateFields(interfaceType.Fields.Values),
+                null);
         }
-    }
 
-    internal class __Field
-    {
-        private __Field(string name, string description, IEnumerable<__InputValue> arguments, 
-            IType type, bool isDepricated, string depricationReason)
+        private static IEnumerable<__Field> CreateFields(IEnumerable<FieldDefinition> fields)
         {
-            Name = name;
-            Description = description;
-            Arguments = arguments.ToArray();
-            Type = type;
-            IsDepricated = isDepricated;
-            DepricationReason = depricationReason;
+            yield break;
         }
-
-        public string Name { get; }
-        public string Description { get; }
-
-        [GraphQLName("args")]
-        public IReadOnlyCollection<__InputValue> Arguments { get; }
-
-        public IType Type { get; }
-
-        public bool IsDepricated { get; }
-
-        public string DepricationReason { get; }
-    }
-
-    internal class __InputValue
-    {
-        private __InputValue(string name, string description, IType type, string defaultValue)
-        {
-            Name = name;
-            Description = description;
-            Type = type;
-            DefaultValue = defaultValue;
-        }
-
-        public string Name { get; }
-        public string Description { get; }
-        public IType Type { get; }
-        public string DefaultValue { get; }
-
-        public static __InputValue Create(string name, string description, IType type, string defaultValue)
-        {
-            if (name == null)
-            {
-                throw new System.ArgumentNullException(nameof(name));
-            }
-
-            if (type == null)
-            {
-                throw new System.ArgumentNullException(nameof(type));
-            }
-
-            return new __InputValue(name, description, type, defaultValue);
-        }
-    }
-
-    internal class __Schema
-    {
-
     }
 }

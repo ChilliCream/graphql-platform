@@ -14,7 +14,7 @@ namespace Zeus.Execution
 
         Field Field { get; }
 
-        IResolver Resolver { get; }
+        ResolverDelegate Resolver { get; }
 
         IEnumerable<IOptimizedSelection> GetSelections(IType type);
 

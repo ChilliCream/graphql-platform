@@ -87,7 +87,19 @@ namespace Zeus.AspNet
 
         private async Task WriteResponseAsync(HttpResponse response, QueryResult queryResult)
         {
-            string json = JsonConvert.SerializeObject(queryResult);
+            Dictionary<string, object> internalResult = new Dictionary<string, object>();
+            
+            if (queryResult.Data != null)
+            {
+                internalResult[nameof(queryResult.Data)] = queryResult.Data;
+            }
+
+            if (queryResult.Errors != null)
+            {
+                internalResult[nameof(queryResult.Errors)] = queryResult.Errors;
+            }
+
+            string json = JsonConvert.SerializeObject(internalResult);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
         }

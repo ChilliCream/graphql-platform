@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +27,7 @@ namespace Zeus.Resolvers
         }
 
         public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
-        {
+        {            
             object parent = context.Parent<object>();
             Type parentType = parent.GetType();
 
@@ -50,9 +51,23 @@ namespace Zeus.Resolvers
 
         private MemberInfo GetMemberInfo(Type type)
         {
-            MemberInfo[] members = type.GetMembers();
-            return members.FirstOrDefault(t => t.Name
-                .Equals(_propertyName, StringComparison.OrdinalIgnoreCase));
+            Dictionary<string, MemberInfo> members = type.GetMembers()
+                .ToDictionary(t => GetMemberName(t), StringComparer.OrdinalIgnoreCase);
+            if (members.TryGetValue(_propertyName, out var selectedMember))
+            {
+                return selectedMember;
+            }
+            return null;
+        }
+
+        private string GetMemberName(MemberInfo member)
+        {
+            if (member.IsDefined(typeof(GraphQLNameAttribute)))
+            {
+                var attribute = member.GetCustomAttribute<GraphQLNameAttribute>();
+                return attribute.Name;
+            }
+            return member.Name;
         }
     }
 }

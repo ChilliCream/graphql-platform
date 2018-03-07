@@ -33,7 +33,7 @@ namespace Zeus.Execution
 
         public async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _result = await Selection.Resolver.ResolveAsync(Context, cancellationToken);
+            _result = await Selection.Resolver(Context, cancellationToken);
         }
 
         public void IntegrateResult(object finalResult)

@@ -1,11 +1,13 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using GraphQLParser;
 using Zeus.Abstractions;
 using Zeus.Resolvers;
 using Zeus.Parser;
-using System.Collections.Immutable;
+using Zeus.Introspection;
 
 namespace Zeus
 {
@@ -20,7 +22,7 @@ namespace Zeus
         private Schema(SchemaDocument schemaDocument,
             IResolverCollection resolvers)
         {
-            _schemaDocument = schemaDocument;
+            _schemaDocument = schemaDocument.WithIntrospectionSchema();
             _resolvers = resolvers;
         }
 
@@ -61,10 +63,15 @@ namespace Zeus
 
             IResolverBuilder resolverBuilder = ResolverBuilder.Create();
             configure(resolverBuilder);
-            return Create(schema, resolverBuilder.Build());
+
+            IResolverCollection resolvers = resolverBuilder
+                .AddIntrospectionResolvers()
+                .Build();
+
+            return Create(schema, resolvers);
         }
 
-        public static Schema Create(string schema, IResolverCollection resolvers)
+        internal static Schema Create(string schema, IResolverCollection resolvers)
         {
             if (schema == null)
             {
@@ -77,7 +84,7 @@ namespace Zeus
             }
 
             SchemaDocumentReader schemaReader = new SchemaDocumentReader();
-            SchemaDocument schemaDocument = schemaReader.Read(schema, _intospectionSchema);
+            SchemaDocument schemaDocument = schemaReader.Read(schema);
             // validate schema!
 
             return new Schema(schemaDocument, resolvers);
@@ -120,7 +127,8 @@ namespace Zeus
 
             if (type.IsDefined(typeof(GraphQLNameAttribute), false))
             {
-                GraphQLNameAttribute attribute = type.GetCustomAttributes(typeof(GraphQLNameAttribute), false)
+                GraphQLNameAttribute attribute = type.GetCustomAttributes(
+                    typeof(GraphQLNameAttribute), false)
                     .OfType<GraphQLNameAttribute>().First();
                 name = new NamedType(attribute.Name);
             }
@@ -135,6 +143,16 @@ namespace Zeus
             }
 
             return name;
+        }
+
+        public IEnumerator<ITypeDefinition> GetEnumerator()
+        {
+            return _schemaDocument.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

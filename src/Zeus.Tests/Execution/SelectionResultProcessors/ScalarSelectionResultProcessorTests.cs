@@ -20,13 +20,11 @@ namespace Zeus.Execution
             bool raised = false;
 
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(new Func<object>(() => null)));
+            ResolverDelegate resolver = new ResolverDelegate((ctx, ct) => Task.FromResult<object>(null));
 
             Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
+            selection.Setup(t => t.Resolver).Returns(resolver);
 
             Action<object> addValueToResultMap = r =>
             {
@@ -56,13 +54,12 @@ namespace Zeus.Execution
             object input = new object();
 
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(new Func<object>(() => input)));
+            ResolverDelegate resolver = new ResolverDelegate(
+                (ctx, ct) => Task.FromResult<object>(new Func<object>(() => input)));      
 
             Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);        
+            selection.Setup(t => t.Resolver).Returns(resolver);
 
             Action<object> addValueToResultMap = r =>
             {
@@ -91,14 +88,12 @@ namespace Zeus.Execution
             bool raised = false;
             string input = "123456";
 
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(input);
-        
+            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);            
+            ResolverDelegate resolver = new ResolverDelegate((ctx, ct) => Task.FromResult<object>(input));
+
             Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);        
+            selection.Setup(t => t.Resolver).Returns(resolver);
 
             Action<object> addValueToResultMap = r =>
             {

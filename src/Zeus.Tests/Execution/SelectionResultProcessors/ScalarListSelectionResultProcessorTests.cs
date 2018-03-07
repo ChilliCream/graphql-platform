@@ -155,13 +155,12 @@ namespace Zeus.Execution
         private IResolveSelectionTask CreateSelectionTaskMock(object input, NamedType type, Action<object> resultIntegratedCallback)
         {
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            Mock<IResolver> resolver = new Mock<IResolver>(MockBehavior.Strict);
-            resolver.Setup(t => t.ResolveAsync(It.IsAny<IResolverContext>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<object>(input));
+
+            ResolverDelegate resolver = new ResolverDelegate((ctx, ct) => Task.FromResult<object>(input));
 
             Mock<IOptimizedSelection> selection = new Mock<IOptimizedSelection>(MockBehavior.Strict);
             selection.Setup(t => t.Name).Returns("foo");
-            selection.Setup(t => t.Resolver).Returns(resolver.Object);
+            selection.Setup(t => t.Resolver).Returns(resolver);
 
             ResolveSelectionTask task = new ResolveSelectionTask(resolverContext.Object, selection.Object, resultIntegratedCallback);
             task.ExecuteAsync(CancellationToken.None).Wait();

@@ -1,5 +1,6 @@
 using System;
 using Zeus.Abstractions;
+using Zeus.Introspection;
 using Zeus.Resolvers;
 
 namespace Zeus.Execution
@@ -11,10 +12,10 @@ namespace Zeus.Execution
 
         public OptimizedSelectionHelper(OperationContext operationContext, string typeName)
         {
-            _operationContext = operationContext 
+            _operationContext = operationContext
                 ?? throw new ArgumentNullException(nameof(operationContext));
-                
-            _typeName = typeName 
+
+            _typeName = typeName
                 ?? throw new ArgumentNullException(nameof(typeName));
         }
 
@@ -25,11 +26,13 @@ namespace Zeus.Execution
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (_operationContext.Schema.ObjectTypes.TryGetValue(_typeName, out var typeDefinition)
-                && typeDefinition.Fields.TryGetValue(field.Name, out var fieldDefinition))
+            if (_operationContext.Schema.ObjectTypes.TryGetValue(_typeName, out var typeDefinition))
             {
-                selectionContext = new SelectionContext(typeDefinition, fieldDefinition, field);
-                return true;
+                if (typeDefinition.Fields.TryGetValue(field.Name, out var fieldDefinition))
+                {
+                    selectionContext = new SelectionContext(typeDefinition, fieldDefinition, field);
+                    return true;
+                }                
             }
 
             selectionContext = null;
