@@ -49,42 +49,45 @@ namespace GraphQL.TestService
                     c: Int
                 }
 
+                type Test {
+                    z: String!
+                }
+
                 type Query {
                     getFoo: Foo 
+                    getTest: Test
                 }
                 ",
-                c => c.Add("Query", "getFoo", () => "1")
-                   .Add("Foo", "a", () => "2")
-                   .Add("Foo", "b", () => "3")
-                   .Add("Foo", "c", () => "4")
+                ConfigureResolvers
            );
         }
 
-
-    }
-
-    public class PersonResolver
-        : IResolver
-    {
-        public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
+        private void ConfigureResolvers(IResolverBuilder builder)
         {
-            BatchedQuery b = new BatchedQuery();
-            b.PersonId = "X";
-            context.RegisterQuery(b);
-            return Task.FromResult<object>(new Func<object>(() => b.Person));
+            builder.AddQueryType<Query>()
+                .AddType<FooXyz>("Foo")
+                .Add("Foo", "b", () => "hello")
+                .Add("Foo", "c", () => 1)
+                .AddType("Test", new {
+                    z = "world"
+                });
         }
     }
 
-    public class BatchedQuery
-        : IBatchedQuery
+    public class Query
     {
-        public string PersonId { get; set; }
-
-        public string Person { get; set; }
-
-        public Task ExecuteAsync(CancellationToken cancellationToken)
+        public object GetFoo()
         {
-            throw new NotImplementedException();
+            return new object();
+        }
+    }
+
+    public class FooXyz
+    {
+        [GraphQLName("a")]
+        public string GetA()
+        {
+            return "a";
         }
     }
 }

@@ -1,12 +1,42 @@
+using System;
+
 namespace Zeus.Introspection
 {
     internal sealed class __DirectiveLocation
+        : IEquatable<__DirectiveLocation>
     {
         private readonly string _stringRepresentation;
 
         private __DirectiveLocation(string stringRepresentation)
         {
             _stringRepresentation = stringRepresentation;
+        }
+
+        public bool Equals(__DirectiveLocation other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return _stringRepresentation.Equals(
+                other._stringRepresentation,
+                StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            return Equals(obj as __DirectiveLocation);
         }
 
         public override int GetHashCode()

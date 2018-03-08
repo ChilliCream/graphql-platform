@@ -9,22 +9,32 @@ using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
-    public class MemberResolver
+    internal class MemberResolver
         : IResolver
     {
         private readonly MemberInfo _memberInfo;
+        private readonly object _fixedInstance;
+        
         private ImmutableList<Func<IResolverContext, CancellationToken, object>> _parameterResolvers;
         private Func<object, IResolverContext, CancellationToken, Task<object>> _resolve;
 
+        public MemberResolver(MemberInfo memberInfo, object fixedInstance)
+        {
+            _memberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
+            _fixedInstance = fixedInstance ?? throw new ArgumentNullException(nameof(fixedInstance));
+        }
+
         public MemberResolver(MemberInfo memberInfo)
         {
-            _memberInfo = memberInfo ?? throw new System.ArgumentNullException(nameof(memberInfo));
+            _memberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
         }
 
         public async Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
         {
             InitializeResolver();
-            return await _resolve(context.Parent<object>(), context, cancellationToken);
+            return await _resolve(
+                _fixedInstance ?? context.Parent<object>(),
+                context, cancellationToken);
         }
 
         private void InitializeResolver()

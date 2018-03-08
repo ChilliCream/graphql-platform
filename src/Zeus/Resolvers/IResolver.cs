@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
@@ -8,16 +9,27 @@ namespace Zeus.Resolvers
         IResolverContext context,
         CancellationToken cancellationToken);
 
-    public delegate ResolverDelegate ResolverFactory(IServiceProvider serviceProvider);
+    public delegate void ResolverFactoryDelegate(
+        ISchemaDocument schema,
+        IServiceProvider serviceProvider,
+        RegisterResolverDelegate registerResolver);
+
+    public delegate void RegisterResolverDelegate(
+        string typeName, string fieldName,
+        ResolverDelegate resolverDelegate);
 
     public interface IResolver
     {
-        Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken);
+        Task<object> ResolveAsync(
+            IResolverContext context,
+            CancellationToken cancellationToken);
     }
 
     public interface IResolver<TResult>
         : IResolver
     {
-        new Task<TResult> ResolveAsync(IResolverContext context, CancellationToken cancellationToken);
+        new Task<TResult> ResolveAsync(
+            IResolverContext context,
+            CancellationToken cancellationToken);
     }
 }

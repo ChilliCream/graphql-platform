@@ -29,9 +29,7 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getString", () => expectedResult)
-                    .Build()
+                c => c.Add("Query", "getString", () => expectedResult)
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
@@ -72,12 +70,10 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getFoo", () => "something")
+                c => c.Add("Query", "getFoo", () => "something")
                     .Add("Foo", "a", () => "hello")
                     .Add("Foo", "b", () => "world")
                     .Add("Foo", "c", () => 123)
-                    .Build()
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
@@ -133,10 +129,8 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getFoo", () => new FooMock())
+                c => c.Add("Query", "getFoo", () => new FooMock())
                     .Add("Foo", "d", () => "xyz")
-                    .Build()
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();

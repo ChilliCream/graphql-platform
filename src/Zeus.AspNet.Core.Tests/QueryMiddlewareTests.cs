@@ -69,7 +69,6 @@ namespace Zeus.AspNet
                    .Add("Foo", "a", () => "hello")
                    .Add("Foo", "b", () => "world")
                    .Add("Foo", "c", () => 123)
-                   .Build()
            );
         }
 

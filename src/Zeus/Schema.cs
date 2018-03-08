@@ -22,7 +22,7 @@ namespace Zeus
         private Schema(SchemaDocument schemaDocument,
             IResolverCollection resolvers)
         {
-            _schemaDocument = schemaDocument.WithIntrospectionSchema();
+            _schemaDocument = schemaDocument;
             _resolvers = resolvers;
         }
 
@@ -51,6 +51,12 @@ namespace Zeus
 
         public static Schema Create(string schema, Action<IResolverBuilder> configure)
         {
+            return Create(schema, configure, DefaultServiceProvider.Instance);
+        }
+
+        public static Schema Create(string schema, Action<IResolverBuilder> configure,
+            IServiceProvider serviceProvider)
+        {
             if (schema == null)
             {
                 throw new ArgumentNullException(nameof(schema));
@@ -61,31 +67,21 @@ namespace Zeus
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
+            SchemaDocument schemaDocument = schemaReader.Read(schema)
+                .WithIntrospectionSchema();
+
             IResolverBuilder resolverBuilder = ResolverBuilder.Create();
             configure(resolverBuilder);
 
             IResolverCollection resolvers = resolverBuilder
                 .AddIntrospectionResolvers()
-                .Build();
-
-            return Create(schema, resolvers);
-        }
-
-        internal static Schema Create(string schema, IResolverCollection resolvers)
-        {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (resolvers == null)
-            {
-                throw new ArgumentNullException(nameof(resolvers));
-            }
-
-            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
-            SchemaDocument schemaDocument = schemaReader.Read(schema);
-            // validate schema!
+                .Build(schemaDocument, serviceProvider);
 
             return new Schema(schemaDocument, resolvers);
         }
