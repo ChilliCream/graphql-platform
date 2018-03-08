@@ -161,7 +161,7 @@ namespace Zeus.Introspection
         private static IEnumerable<__Field> CreateFields(
             IEnumerable<FieldDefinition> fields)
         {
-            foreach (var field in fields)
+            foreach (var field in fields.Where(t => !t.IsIntrospectionField))
             {
                 yield return new __Field(field.Name, null,
                     CreateInputValues(field.Arguments.Values),

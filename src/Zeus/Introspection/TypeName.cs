@@ -8,7 +8,7 @@ namespace Zeus.Introspection
     {
         public const string FieldName = "__typename";
         public static readonly FieldDefinition FieldDefinition =
-            new FieldDefinition(FieldName, NamedType.NonNullString, false);
+            new FieldDefinition(FieldName, NamedType.NonNullString, true);
 
         public static bool IsTypeName(string fieldName)
         {

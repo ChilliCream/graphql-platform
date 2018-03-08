@@ -51,6 +51,7 @@ namespace Zeus.Abstractions
             Arguments = arguments == null
                 ? new Dictionary<string, InputValueDefinition>()
                 : arguments.ToDictionary(t => t.Name, StringComparer.Ordinal);
+            IsIntrospectionField = isIntrospectionField;
         }
 
         public string Name { get; }
@@ -58,6 +59,8 @@ namespace Zeus.Abstractions
         public IType Type { get; }
 
         public IReadOnlyDictionary<string, InputValueDefinition> Arguments { get; }
+
+        public bool IsIntrospectionField { get; }
 
         public override string ToString()
         {

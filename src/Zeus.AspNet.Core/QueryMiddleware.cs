@@ -90,12 +90,12 @@ namespace Zeus.AspNet
             
             if (queryResult.Data != null)
             {
-                internalResult[nameof(queryResult.Data)] = queryResult.Data;
+                internalResult["data"] = queryResult.Data;
             }
 
             if (queryResult.Errors != null)
             {
-                internalResult[nameof(queryResult.Errors)] = queryResult.Errors;
+                internalResult["errors"] = queryResult.Errors;
             }
 
             string json = JsonConvert.SerializeObject(internalResult);
