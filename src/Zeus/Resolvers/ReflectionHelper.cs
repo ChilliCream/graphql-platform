@@ -43,7 +43,7 @@ namespace Zeus.Resolvers
                 lock (_sync)
                 {
                     MemberInfo member = GetMemberInfo(Type, fieldName);
-                    if (member != null)
+                    if (member == null)
                     {
                         resolver = null;
                         return false;
