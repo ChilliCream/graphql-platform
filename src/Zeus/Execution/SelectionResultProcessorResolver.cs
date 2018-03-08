@@ -9,7 +9,7 @@ namespace Zeus.Execution
 {
     internal static class SelectionResultProcessorResolver
     {
-        public static ISelectionResultProcessor GetProcessor(IType fieldType)
+        public static ISelectionResultProcessor GetProcessor(ISchemaDocument schema, IType fieldType)
         {
             if (fieldType == null)
             {
@@ -28,7 +28,8 @@ namespace Zeus.Execution
                 }
             }
 
-            if (fieldType.IsScalarType())
+            if (fieldType.IsScalarType()
+                || schema.EnumTypes.ContainsKey(fieldType.TypeName()))
             {
                 return ScalarSelectionResultProcessor.Default;
             }

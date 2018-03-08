@@ -1,94 +1,139 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Zeus.Abstractions;
 
 namespace Zeus.Introspection
 {
-    internal class __Type
+    internal partial class __Type
     {
+        private readonly __TypeKind _kind;
         private readonly __Field[] _fields;
+        private readonly NamedType[] _interfaces;
 
-        private __Type(__TypeKind kind, string name, string description, IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
+        private __Type(__TypeKind kind, string name, string description,
+            IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
         {
-            Kind = kind;
+            _kind = kind;
             Name = name;
             Description = description;
             _fields = fields == null ? null : fields.ToArray();
-            Interfaces = interfaces == null ? null : interfaces.ToArray();
+            _interfaces = interfaces == null ? null : interfaces.ToArray();
         }
 
-        public __TypeKind Kind { get; }
+        private __Type(string name, string description,
+           IEnumerable<__InputValue> inputFields)
+        {
+            _kind = __TypeKind.InputObject;
+            Name = name;
+            Description = description;
+            InputFields = inputFields.ToArray();
+        }
+
+        private __Type(__TypeKind kind, __Type ofType)
+        {
+            _kind = kind;
+            OfType = ofType;
+        }
+
         public string Name { get; }
         public string Description { get; }
+        public IReadOnlyCollection<__InputValue> InputFields { get; }
+        public __Type OfType { get; }
+
+        [GraphQLName("kind")]
+        public string GetKind()
+        {
+            return _kind.ToString();
+        }
 
         // object and interfaces only
         [GraphQLName("fields")]
-        public IEnumerable<__Field> GetFields(bool includeDepricated)
+        public IEnumerable<__Field> GetFields(bool includeDeprecated)
         {
-            if (Kind != __TypeKind.Interface
-                && Kind != __TypeKind.Object)
+            if (_kind != __TypeKind.Interface
+                && _kind != __TypeKind.Object)
             {
                 return null;
             }
 
-            if (includeDepricated)
+            if (includeDeprecated)
             {
                 return _fields;
             }
-            return _fields.Where(t => t.IsDepricated == false);
+            return _fields.Where(t => t.IsDeprecated == false);
         }
 
         // object only
-        public IReadOnlyCollection<NamedType> Interfaces { get; } // => add resolver that looks up the __Types ...
+        [GraphQLName("interfaces")]
+        public IEnumerable<__Type> GetInterfaces(ISchema schema)
+        {
+            if (_kind == __TypeKind.Object)
+            {
+                return GetInterfacesInternal();
+            }
+            return null;
+
+            IEnumerable<__Type> GetInterfacesInternal()
+            {
+                foreach (NamedType interfaceType in _interfaces)
+                {
+                    if (schema.InterfaceTypes.TryGetValue(interfaceType.Name,
+                        out var interfaceDefinition))
+                    {
+                        yield return CreateInterfaceType(interfaceDefinition);
+                    }
+                }
+            }
+        }
 
         // interface and Union only
-        public IReadOnlyCollection<NamedType> PossibleTypes { get; } // => add resolver that looks up the __Types ...
-
-        public static __Type CreateType(ITypeDefinition typeDefinition)
+        [GraphQLName("possibleTypes")]
+        public IEnumerable<__Type> GetPossibleTypes(ISchema schema)
         {
-            if (typeDefinition is InterfaceTypeDefinition itd)
+            if (_kind == __TypeKind.Interface)
             {
-                return CreateInterfaceType(itd);
+                return GetImplementingTypes(schema);
             }
+
+            if (_kind == __TypeKind.Union)
+            {
+                return GetUnionTypes(schema);
+            }
+
             return null;
         }
 
-        public static __Type CreateObjectType(string name, string description, IEnumerable<__Field> fields, IEnumerable<NamedType> interfaces)
+        private IEnumerable<__Type> GetImplementingTypes(ISchema schema)
         {
-            if (name == null)
+            foreach (ObjectTypeDefinition objectType in schema.ObjectTypes
+                .Values.Where(t => t.Interfaces.Contains(Name)))
             {
-                throw new System.ArgumentNullException(nameof(name));
+                yield return CreateObjectType(objectType);
             }
-
-            if (fields == null)
-            {
-                throw new System.ArgumentNullException(nameof(fields));
-            }
-
-            if (interfaces == null)
-            {
-                throw new System.ArgumentNullException(nameof(interfaces));
-            }
-
-            return new __Type(__TypeKind.Object, name, description, fields, interfaces);
         }
 
-        private static __Type CreateInterfaceType(InterfaceTypeDefinition interfaceType)
+        private IEnumerable<__Type> GetUnionTypes(ISchema schema)
         {
-            if (interfaceType == null)
+            foreach (NamedType namedType in schema.UnionTypes[Name].Types)
             {
-                throw new System.ArgumentNullException(nameof(interfaceType));
+                if (schema.ObjectTypes.TryGetValue(namedType.Name,
+                    out var objectTypeDefinition))
+                {
+                    yield return CreateType(objectTypeDefinition);
+                }
             }
-
-            return new __Type(__TypeKind.Interface,
-                interfaceType.Name, null,
-                CreateFields(interfaceType.Fields.Values),
-                null);
         }
 
-        private static IEnumerable<__Field> CreateFields(IEnumerable<FieldDefinition> fields)
+        [GraphQLName("enumValues")]
+        public IEnumerable<__EnumValue> GetEnumValues(ISchema schema, bool includeDeprecated)
         {
-            yield break;
+            if (_kind == __TypeKind.Enum)
+            {
+                EnumTypeDefinition enumType = schema.EnumTypes[Name];
+                return enumType.Values.Select(t => new __EnumValue(t, null, false, null));
+            }
+            return null;
         }
     }
 }

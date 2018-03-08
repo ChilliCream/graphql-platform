@@ -6,15 +6,19 @@ namespace Zeus.Introspection
 {
     internal class __Field
     {
-        private __Field(string name, string description, IEnumerable<__InputValue> arguments, 
-            IType type, bool isDepricated, string depricationReason)
+        private IType _type;
+
+        internal __Field(string name, string description,
+            IEnumerable<__InputValue> arguments,
+            IType type, bool isDeprecated,
+            string deprecationReason)
         {
             Name = name;
             Description = description;
             Arguments = arguments.ToArray();
-            Type = type;
-            IsDepricated = isDepricated;
-            DepricationReason = depricationReason;
+            _type = type;
+            IsDeprecated = isDeprecated;
+            DeprecationReason = deprecationReason;
         }
 
         public string Name { get; }
@@ -23,10 +27,14 @@ namespace Zeus.Introspection
         [GraphQLName("args")]
         public IReadOnlyCollection<__InputValue> Arguments { get; }
 
-        public IType Type { get; }
+        [GraphQLName("type")]
+        public __Type GetType(ISchema schema)
+        {
+            return __Type.CreateType(schema, _type);
+        }
 
-        public bool IsDepricated { get; }
+        public bool IsDeprecated { get; }
 
-        public string DepricationReason { get; }
+        public string DeprecationReason { get; }
     }
 }

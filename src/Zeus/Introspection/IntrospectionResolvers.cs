@@ -4,9 +4,9 @@ namespace Zeus.Introspection
 {
     internal static class IntrospectionResolvers
     {
-        public static __Schema GetSchema(IResolverContext context)
+        public static __Schema GetSchema()
         {
-            return new __Schema(context.Schema);
+            return new __Schema();
         }
 
         public static __Type GetType(string name)

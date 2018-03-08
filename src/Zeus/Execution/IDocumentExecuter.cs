@@ -8,7 +8,7 @@ namespace Zeus.Execution
     public interface IDocumentExecuter
     {
         Task<QueryResult> ExecuteAsync(
-            ISchema schema, QueryDocument document,
+            ISchema schema, string query,
             string operationName, IDictionary<string, object> variables,
             object initialValue, CancellationToken cancellationToken);
     }

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Zeus.Resolvers
 {
-
     public class DynamicMemberResolver
         : IResolver
     {
@@ -27,7 +26,7 @@ namespace Zeus.Resolvers
         }
 
         public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
-        {            
+        {
             object parent = context.Parent<object>();
             Type parentType = parent.GetType();
 
@@ -51,13 +50,9 @@ namespace Zeus.Resolvers
 
         private MemberInfo GetMemberInfo(Type type)
         {
-            Dictionary<string, MemberInfo> members = type.GetMembers()
-                .ToDictionary(t => GetMemberName(t), StringComparer.OrdinalIgnoreCase);
-            if (members.TryGetValue(_propertyName, out var selectedMember))
-            {
-                return selectedMember;
-            }
-            return null;
+            ILookup<string, MemberInfo> members = type.GetMembers()
+                .ToLookup(t => GetMemberName(t), StringComparer.OrdinalIgnoreCase);
+            return members[_propertyName].FirstOrDefault();
         }
 
         private string GetMemberName(MemberInfo member)

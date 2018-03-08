@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
@@ -102,6 +103,7 @@ namespace Zeus.Resolvers
 
         private void CreateParameterResolvers(MethodInfo method)
         {
+            // TODO: make this more modular and extendable
             if (_parameterResolvers == null)
             {
                 ImmutableList<Func<IResolverContext, CancellationToken, object>> parameterResolvers
@@ -118,6 +120,36 @@ namespace Zeus.Resolvers
                     {
                         parameterResolvers = parameterResolvers.Add(
                             new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc));
+                    }
+                    else if (parameter.ParameterType == typeof(ISchema))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.Schema));
+                    }
+                    else if (parameter.ParameterType == typeof(ObjectTypeDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.TypeDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(FieldDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.FieldDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(QueryDocument))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.QueryDocument));
+                    }
+                    else if (parameter.ParameterType == typeof(OperationDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.OperationDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(Field))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.Field));
                     }
                     else
                     {

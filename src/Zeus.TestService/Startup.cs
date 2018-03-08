@@ -42,10 +42,10 @@ namespace GraphQL.TestService
                interface X {
                    a: String
                }
-                type Foo
+                type Foo implements X
                 {
                     a: String!
-                    b: String
+                    b(z: Boolean = true): String
                     c: Int
                 }
 

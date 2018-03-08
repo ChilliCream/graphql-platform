@@ -109,7 +109,7 @@ namespace Zeus.Abstractions
             }
             else if (type is NonNullType nnt
                 && nnt.Type is NamedType nnnt
-                && ScalarTypes.Contains(nnnt.Name))
+                && (ScalarTypes.Contains(nnnt.Name)))
             {
                 return true;
             }

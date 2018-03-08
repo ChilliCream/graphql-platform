@@ -35,18 +35,17 @@ namespace GraphQL.Tests.Execution
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getString
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -82,7 +81,7 @@ namespace GraphQL.Tests.Execution
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getFoo
@@ -92,13 +91,12 @@ namespace GraphQL.Tests.Execution
                         z: c
                     }
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -142,7 +140,7 @@ namespace GraphQL.Tests.Execution
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getFoo
@@ -153,15 +151,14 @@ namespace GraphQL.Tests.Execution
                         d
                     }
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
 
             Stopwatch sw = Stopwatch.StartNew();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

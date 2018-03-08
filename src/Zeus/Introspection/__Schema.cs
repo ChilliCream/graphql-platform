@@ -5,28 +5,42 @@ namespace Zeus.Introspection
 {
     internal class __Schema
     {
-        private readonly ISchema _schemas;
-
-        public __Schema(ISchema schemas)
+        [GraphQLName("queryType")]
+        public __Type GetQueryType(ISchema schema)
         {
-            _schemas = schemas;
+            return __Type.CreateType(schema.QueryType);
         }
 
-        [GraphQLName("types")]
-        public IEnumerable<__Type> GetTypes()
+        [GraphQLName("mutationType")]
+        public __Type GetMutationType(ISchema schema)
         {
-            foreach (ITypeDefinition typeDefinition in _schemas)
+            if (schema.MutationType == null)
             {
-                __Type type = __Type.CreateType(typeDefinition);
-                if (type != null)
-                {
-                    yield return type;
-                }
+                return null;
+            }
+
+            return __Type.CreateType(schema.MutationType);
+        }
+
+
+        [GraphQLName("types")]
+        public IEnumerable<__Type> GetTypes(ISchema schema)
+        {
+            foreach (__Type scalarType in __Type.CreateScalarTypes())
+            {
+                yield return scalarType;
+            }
+
+            foreach (ITypeDefinition typeDefinition in schema)
+            {
+                yield return __Type.CreateType(typeDefinition);
             }
         }
 
-
-
-
+        [GraphQLName("directives")]
+        public IEnumerable<__Directive> GetDirectives()
+        {
+            yield break;
+        }
     }
 }

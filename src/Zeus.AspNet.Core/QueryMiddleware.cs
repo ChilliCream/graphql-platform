@@ -60,15 +60,14 @@ namespace Zeus.AspNet
             ISchema schema,
             IDocumentExecuter documentExecuter,
             CancellationToken cancellationToken)
-        {
+        {            
             QueryRequest request = await ReadRequestAsync(context.Request)
                 .ConfigureAwait(false);
 
             Dictionary<string, object> variables = ReadVariables(request);
-            QueryDocument query = ReadQuery(request);
 
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, query, request.OperationName,
+                schema, request.Query, request.OperationName,
                 variables, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
@@ -102,12 +101,6 @@ namespace Zeus.AspNet
             string json = JsonConvert.SerializeObject(internalResult);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
-        }
-
-        private QueryDocument ReadQuery(QueryRequest request)
-        {
-            QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            return queryDocumentReader.Read(request.Query);
         }
 
         private Dictionary<string, object> ReadVariables(QueryRequest request)

@@ -83,7 +83,8 @@ namespace Zeus.Execution
             {
                 IType fieldType = task.Selection.FieldDefinition.Type;
                 ISelectionResultProcessor resultProcessor =
-                    SelectionResultProcessorResolver.GetProcessor(fieldType);
+                    SelectionResultProcessorResolver.GetProcessor(
+                        task.Context.Schema, fieldType);
                 nextBatch.AddRange(resultProcessor.Process(task));
             }
 
