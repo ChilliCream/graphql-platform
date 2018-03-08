@@ -65,6 +65,7 @@ namespace GraphQL.TestService
         private void ConfigureResolvers(IResolverBuilder builder)
         {
             builder.AddQueryType<Query>()
+                .Add("Query", "getTest", () => 66)
                 .AddType<FooXyz>("Foo")
                 .Add("Foo", "b", () => "hello")
                 .Add("Foo", "c", () => 1)

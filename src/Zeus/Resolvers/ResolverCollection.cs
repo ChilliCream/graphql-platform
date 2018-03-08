@@ -12,14 +12,12 @@ namespace Zeus.Resolvers
     public class ResolverCollection
         : IResolverCollection
     {
-        private readonly ISchemaDocument _schema;
-
         private IReadOnlyDictionary<FieldReference, ResolverDelegate> _resolvers;
 
         internal ResolverCollection(
             IReadOnlyDictionary<FieldReference, ResolverDelegate> resolvers)
         {
-            if (_resolvers == null)
+            if (resolvers == null)
             {
                 throw new ArgumentNullException(nameof(_resolvers));
             }
