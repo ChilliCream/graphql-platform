@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -7,22 +8,22 @@ using System.Threading.Tasks;
 
 namespace Zeus.Resolvers
 {
-
     public class DynamicMemberResolver
         : IResolver
     {
         private readonly object _sync = new object();
         private readonly string _propertyName;
-        private ImmutableDictionary<Type, MemberResolver> _memberResolvers = ImmutableDictionary<Type, MemberResolver>.Empty;
+        private ImmutableDictionary<Type, ResolverDelegate> _memberResolvers =
+            ImmutableDictionary<Type, ResolverDelegate>.Empty;
 
-        public DynamicMemberResolver(string propertyName)
+        public DynamicMemberResolver(string fieldName)
         {
-            if (string.IsNullOrEmpty(propertyName))
+            if (string.IsNullOrEmpty(fieldName))
             {
-                throw new ArgumentNullException(nameof(propertyName));
+                throw new ArgumentNullException(nameof(fieldName));
             }
 
-            _propertyName = propertyName;
+            _propertyName = fieldName;
         }
 
         public Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
@@ -32,27 +33,19 @@ namespace Zeus.Resolvers
 
             if (!_memberResolvers.TryGetValue(parentType, out var internalResolver))
             {
-                MemberInfo member = GetMemberInfo(parentType);
-                if (member == null)
+                ReflectionHelper reflectionHelper = new ReflectionHelper(parentType);
+                if (!reflectionHelper.TryGetResolver(_propertyName, out internalResolver))
                 {
                     return Task.FromResult<object>(null);
                 }
 
                 lock (_sync)
                 {
-                    internalResolver = new MemberResolver(member);
                     _memberResolvers = _memberResolvers.SetItem(parentType, internalResolver);
                 }
             }
 
-            return internalResolver.ResolveAsync(context, cancellationToken);
-        }
-
-        private MemberInfo GetMemberInfo(Type type)
-        {
-            MemberInfo[] members = type.GetMembers();
-            return members.FirstOrDefault(t => t.Name
-                .Equals(_propertyName, StringComparison.OrdinalIgnoreCase));
+            return internalResolver(context, cancellationToken);
         }
     }
 }

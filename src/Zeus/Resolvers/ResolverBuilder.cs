@@ -2,54 +2,54 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
     public class ResolverBuilder
         : IResolverBuilder
     {
-        private readonly Dictionary<FieldReference, Func<IServiceProvider, IResolver>> _resolvers = new Dictionary<FieldReference, Func<IServiceProvider, IResolver>>();
-        private readonly IServiceProvider _serviceProvider;
+        private readonly List<ResolverFactoryDelegate> _resolverFactories =
+            new List<ResolverFactoryDelegate>();
 
-        private ResolverBuilder(IServiceProvider serviceProvider)
+        public IResolverBuilder Add(
+            ResolverFactoryDelegate resolverFactory)
         {
-            _serviceProvider = serviceProvider;
-        }
-
-        public IResolverBuilder Add(string typeName, string fieldName, Func<IServiceProvider, IResolver> resolverFactory)
-        {
-            if (typeName == null)
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (fieldName == null)
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
 
             if (resolverFactory == null)
             {
                 throw new ArgumentNullException(nameof(resolverFactory));
             }
 
-            _resolvers[FieldReference.Create(typeName, fieldName)] = resolverFactory;
+            _resolverFactories.Add(resolverFactory);
             return this;
         }
 
-        public IResolverCollection Build()
+        public IResolverCollection Build(ISchemaDocument schema,
+            IServiceProvider serviceProvider)
         {
-            return new ResolverCollection(_serviceProvider, _resolvers);
+            Dictionary<FieldReference, ResolverDelegate> resolvers =
+                new Dictionary<FieldReference, ResolverDelegate>();
+
+            foreach (var resolverFactory in _resolverFactories)
+            {
+                resolverFactory(schema, serviceProvider,
+                    (typeName, fieldName, resolver) =>
+                    {
+                        FieldReference fieldReference = FieldReference
+                            .Create(typeName, fieldName);
+                        resolvers[fieldReference] = resolver;
+                    });
+            }
+
+            return new ResolverCollection(resolvers);
         }
 
         public static IResolverBuilder Create()
         {
-            return new ResolverBuilder(DefaultServiceProvider.Instance);
+            return new ResolverBuilder();
         }
 
-        public static IResolverBuilder Create(IServiceProvider serviceProvider)
-        {
-            return new ResolverBuilder(serviceProvider);
-        }
+
     }
 }

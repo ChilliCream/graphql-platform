@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace Zeus.Abstractions
     public class SchemaDocument
         : ISchemaDocument
     {
+        private readonly ITypeDefinition[] _typeDefinitions;
+
         private string _stringRepresentation;
 
         public SchemaDocument(IEnumerable<ITypeDefinition> typeDefinitions)
@@ -18,23 +21,25 @@ namespace Zeus.Abstractions
                 throw new ArgumentNullException(nameof(typeDefinitions));
             }
 
-            InterfaceTypes = typeDefinitions
+            _typeDefinitions = typeDefinitions.ToArray();
+
+            InterfaceTypes = _typeDefinitions
                 .OfType<InterfaceTypeDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
 
-            ObjectTypes = typeDefinitions
+            ObjectTypes = _typeDefinitions
                 .OfType<ObjectTypeDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
 
-            InputObjectTypes = typeDefinitions
+            InputObjectTypes = _typeDefinitions
                 .OfType<InputObjectTypeDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
 
-            UnionTypes = typeDefinitions
+            UnionTypes = _typeDefinitions
                 .OfType<UnionTypeDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
 
-            EnumTypes = typeDefinitions
+            EnumTypes = _typeDefinitions
                 .OfType<EnumTypeDefinition>()
                 .ToDictionary(t => t.Name, StringComparer.Ordinal);
 
@@ -63,7 +68,6 @@ namespace Zeus.Abstractions
 
         public ObjectTypeDefinition MutationType { get; }
 
-
         public override string ToString()
         {
             if (_stringRepresentation == null)
@@ -81,6 +85,20 @@ namespace Zeus.Abstractions
 
             return _stringRepresentation;
         }
+
+        #region GetEnumerator
+
+        public IEnumerator<ITypeDefinition> GetEnumerator()
+        {
+            return _typeDefinitions.OfType<ITypeDefinition>().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
 
         private void WriteTypeDefinitions(StringBuilder sb, IEnumerable<ITypeDefinition> typeDefinitions)
         {

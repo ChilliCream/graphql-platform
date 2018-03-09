@@ -5,25 +5,36 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Zeus.Abstractions;
 
 namespace Zeus.Resolvers
 {
-    public class MemberResolver
+    internal class MemberResolver
         : IResolver
     {
         private readonly MemberInfo _memberInfo;
+        private readonly object _fixedInstance;
+        
         private ImmutableList<Func<IResolverContext, CancellationToken, object>> _parameterResolvers;
         private Func<object, IResolverContext, CancellationToken, Task<object>> _resolve;
 
+        public MemberResolver(MemberInfo memberInfo, object fixedInstance)
+        {
+            _memberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
+            _fixedInstance = fixedInstance ?? throw new ArgumentNullException(nameof(fixedInstance));
+        }
+
         public MemberResolver(MemberInfo memberInfo)
         {
-            _memberInfo = memberInfo ?? throw new System.ArgumentNullException(nameof(memberInfo));
+            _memberInfo = memberInfo ?? throw new ArgumentNullException(nameof(memberInfo));
         }
 
         public async Task<object> ResolveAsync(IResolverContext context, CancellationToken cancellationToken)
         {
             InitializeResolver();
-            return await _resolve(context.Parent<object>(), context, cancellationToken);
+            return await _resolve(
+                _fixedInstance ?? context.Parent<object>(),
+                context, cancellationToken);
         }
 
         private void InitializeResolver()
@@ -102,6 +113,7 @@ namespace Zeus.Resolvers
 
         private void CreateParameterResolvers(MethodInfo method)
         {
+            // TODO: make this more modular and extendable
             if (_parameterResolvers == null)
             {
                 ImmutableList<Func<IResolverContext, CancellationToken, object>> parameterResolvers
@@ -118,6 +130,36 @@ namespace Zeus.Resolvers
                     {
                         parameterResolvers = parameterResolvers.Add(
                             new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc));
+                    }
+                    else if (parameter.ParameterType == typeof(ISchema))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.Schema));
+                    }
+                    else if (parameter.ParameterType == typeof(ObjectTypeDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.TypeDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(FieldDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.FieldDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(QueryDocument))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.QueryDocument));
+                    }
+                    else if (parameter.ParameterType == typeof(OperationDefinition))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.OperationDefinition));
+                    }
+                    else if (parameter.ParameterType == typeof(Field))
+                    {
+                        parameterResolvers = parameterResolvers.Add(
+                            new Func<IResolverContext, CancellationToken, object>((rc, ct) => rc.Field));
                     }
                     else
                     {

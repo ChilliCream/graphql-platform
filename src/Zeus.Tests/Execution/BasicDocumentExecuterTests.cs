@@ -29,24 +29,21 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getString", () => expectedResult)
-                    .Build()
+                c => c.Add("Query", "getString", () => expectedResult)
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getString
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -73,16 +70,14 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getFoo", () => "something")
+                c => c.Add("Query", "getFoo", () => "something")
                     .Add("Foo", "a", () => "hello")
                     .Add("Foo", "b", () => "world")
                     .Add("Foo", "c", () => 123)
-                    .Build()
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getFoo
@@ -92,13 +87,12 @@ namespace GraphQL.Tests.Execution
                         z: c
                     }
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -135,14 +129,12 @@ namespace GraphQL.Tests.Execution
                 }
                 ",
 
-                ResolverBuilder.Create()
-                    .Add("Query", "getFoo", () => new FooMock())
+                c => c.Add("Query", "getFoo", () => new FooMock())
                     .Add("Foo", "d", () => "xyz")
-                    .Build()
             );
 
             QueryDocumentReader queryDocumentReader = new QueryDocumentReader();
-            QueryDocument queryDocument = queryDocumentReader.Read(
+            string query =
                 @"
                 {
                     getFoo
@@ -153,15 +145,14 @@ namespace GraphQL.Tests.Execution
                         d
                     }
                 }
-                "
-            );
+                ";
 
             // act
             DocumentExecuter documentExecuter = new DocumentExecuter();
 
             Stopwatch sw = Stopwatch.StartNew();
             QueryResult result = await documentExecuter.ExecuteAsync(
-                schema, queryDocument, null, null, null, CancellationToken.None);
+                schema, query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

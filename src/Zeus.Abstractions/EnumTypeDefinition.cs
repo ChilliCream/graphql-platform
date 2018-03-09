@@ -23,7 +23,7 @@ namespace Zeus.Abstractions
             }
 
             Name = name;
-            Values = new ReadOnlySet<string>(values, StringComparer.Ordinal);
+            Values = new ReadOnlySet<string>(values.Select(v => v.ToUpperInvariant()), StringComparer.Ordinal);
         }
         
         public string Name { get; }

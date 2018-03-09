@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Zeus.Abstractions;
 using Zeus.Resolvers;
@@ -8,6 +10,12 @@ namespace Zeus.Execution
     public class OperationOptimizer
         : IOperationOptimizer
     {
+        private readonly object _sync = new object();
+        private readonly LinkedList<QueryDocument> _cachedQueries = new LinkedList<QueryDocument>();
+
+        private ImmutableDictionary<QueryDocument, IOptimizedOperation> _cache =
+            ImmutableDictionary<QueryDocument, IOptimizedOperation>.Empty;
+
         public IOptimizedOperation Optimize(ISchema schema, QueryDocument document, string operationName)
         {
             if (schema == null)
@@ -20,9 +28,25 @@ namespace Zeus.Execution
                 throw new ArgumentNullException(nameof(document));
             }
 
-            OperationDefinition operation = GetOperation(document, operationName);
-            OperationContext operationContext = new OperationContext(schema, document, operation);
-            return new OptimizedOperation(operationContext);
+            if (!_cache.TryGetValue(document, out var optimizedOperation))
+            {
+                lock (_sync)
+                {
+                    OperationDefinition operation = GetOperation(document, operationName);
+                    OperationContext operationContext = new OperationContext(schema, document, operation);
+                    optimizedOperation = new OptimizedOperation(operationContext);
+                    
+                    _cache = _cache.SetItem(document, optimizedOperation);
+                    _cachedQueries.AddFirst(document);
+
+                    if (_cachedQueries.Count > 100)
+                    {
+                        _cache = _cache.Remove(_cachedQueries.Last.Value);
+                        _cachedQueries.RemoveLast();
+                    }
+                }
+            }
+            return optimizedOperation;
         }
 
         private static OperationDefinition GetOperation(QueryDocument document, string name)

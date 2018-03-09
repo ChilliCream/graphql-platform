@@ -64,12 +64,11 @@ namespace Zeus.AspNet
                 }
                 ",
 
-               ResolverBuilder.Create()
+               c => c
                    .Add("Query", "getFoo", () => "something")
                    .Add("Foo", "a", () => "hello")
                    .Add("Foo", "b", () => "world")
                    .Add("Foo", "c", () => 123)
-                   .Build()
            );
         }
 

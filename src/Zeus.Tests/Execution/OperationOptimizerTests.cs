@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Zeus;
 using Zeus.Abstractions;
@@ -110,14 +111,12 @@ namespace GraphQL.Tests.Execution
                 }
             ";
 
-            IResolverCollection resolvers = ResolverBuilder
-                .Create()
-                .Add("query", "foos", () => new[] { new object() })
-                .Add("Foo", "x", () => "hello world")
-                .Add("Foo", "y", () => 123456)
-                .Build();
+            Action<IResolverBuilder> configureResolvers = builder =>
+                builder.Add("query", "foos", () => new[] { new object() })
+                    .Add("Foo", "x", () => "hello world")
+                    .Add("Foo", "y", () => 123456);
 
-            return Schema.Create(schemaDocument, resolvers);
+            return Schema.Create(schemaDocument, configureResolvers);
         }
 
         private QueryDocument CreateSimpleValidQuery()

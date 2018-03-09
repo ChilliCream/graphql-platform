@@ -3,6 +3,7 @@ using System.Collections.Generic;
 namespace Zeus.Abstractions
 {
     public interface ISchemaDocument
+        : IEnumerable<ITypeDefinition>
     {
         IReadOnlyDictionary<string, InterfaceTypeDefinition> InterfaceTypes { get; }
 

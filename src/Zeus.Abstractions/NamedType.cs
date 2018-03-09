@@ -79,12 +79,22 @@ namespace Zeus.Abstractions
 
         public static NamedType String { get; } = new NamedType(ScalarTypes.String);
 
+        public static NonNullType NonNullString { get; } = new NonNullType(String);
+
         public static NamedType Integer { get; } = new NamedType(ScalarTypes.Integer);
+
+        public static NonNullType NonNullInteger{ get; } = new NonNullType(Integer);
 
         public static NamedType Float { get; } = new NamedType(ScalarTypes.Float);
 
+        public static NonNullType NonNullFloat { get; } = new NonNullType(Float);
+
         public static NamedType ID { get; } = new NamedType(ScalarTypes.ID);
+
+        public static NonNullType NonNullID { get; } = new NonNullType(ID);
         
         public static NamedType Boolean { get; } = new NamedType(ScalarTypes.Boolean);
+
+        public static NonNullType NonNullBoolean{ get; } = new NonNullType(Boolean);
     }
 }

@@ -59,7 +59,7 @@ namespace Zeus.Abstractions
 
         public static string TypeName(this IType type)
         {
-            IType innerType = type.InnerType().InnerType();
+            IType innerType = type.InnerType().InnerType().InnerType();
 
             if (innerType is NamedType nt)
             {
@@ -71,7 +71,7 @@ namespace Zeus.Abstractions
 
         public static NamedType NamedType(this IType type)
         {
-            IType innerType = type.InnerType().InnerType();
+            IType innerType = type.InnerType().InnerType().InnerType();
 
             if (innerType is NamedType nt)
             {
@@ -109,7 +109,7 @@ namespace Zeus.Abstractions
             }
             else if (type is NonNullType nnt
                 && nnt.Type is NamedType nnnt
-                && ScalarTypes.Contains(nnnt.Name))
+                && (ScalarTypes.Contains(nnnt.Name)))
             {
                 return true;
             }
