@@ -31,7 +31,7 @@ namespace Zeus.Abstractions
                 return ConvertScalar<T, bool>(bv);
             }
          
-            throw new NotSupportedException();
+            throw new NotSupportedException("The specified value type is not yet supported.");
         }
 
         private static T ConvertScalar<T, TScalar>(ScalarValue<TScalar> scalarValue)

@@ -5,7 +5,7 @@ namespace Zeus.Abstractions
        : ScalarValue<string>
     {
         public StringValue(string value)
-            : base(value)
+            : base(value, NamedType.String)
         {
         }
     }

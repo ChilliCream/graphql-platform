@@ -77,11 +77,11 @@ namespace Zeus.Resolvers
                 {
                     return (T)_getVariableValue(v.Name);
                 }
-                return ValueConverter.ConvertTo<T>(argument.Value);
+                return ValueConverter.Convert<T>(argument.Value);
             }
 
             IValue defaultValue = FieldDefinition.Arguments[name].DefaultValue;
-            return ValueConverter.ConvertTo<T>(defaultValue);
+            return ValueConverter.Convert<T>(defaultValue);
         }
 
         public T Parent<T>()

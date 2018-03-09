@@ -37,19 +37,26 @@ namespace Zeus.Execution
             string operationName, IDictionary<string, object> variables,
             object initialValue, CancellationToken cancellationToken)
         {
-            QueryDocument document = ParseQueryDocument(query);
+            try
+            {
+                QueryDocument document = ParseQueryDocument(query);
 
-            VariableCollection variableCollection = variables == null
-                ? new VariableCollection()
-                : new VariableCollection(variables);
+                VariableCollection variableCollection = variables == null
+                    ? new VariableCollection()
+                    : new VariableCollection(variables);
 
-            IOptimizedOperation operation = _operationOptimizer
-                .Optimize(schema, document, operationName);
+                IOptimizedOperation operation = _operationOptimizer
+                    .Optimize(schema, document, operationName);
 
-            IReadOnlyDictionary<string, object> operationResult = await _operationExecuter
-                .ExecuteAsync(operation, variableCollection, initialValue, cancellationToken);
+                IReadOnlyDictionary<string, object> operationResult = await _operationExecuter
+                    .ExecuteAsync(operation, variableCollection, initialValue, cancellationToken);
 
-            return new QueryResult(operationResult);
+                return new QueryResult(operationResult);
+            }
+            catch (GraphQLQueryException ex)
+            {
+                return new QueryResult(new QueryError(ex.Message));
+            }
         }
 
         private QueryDocument ParseQueryDocument(string query)

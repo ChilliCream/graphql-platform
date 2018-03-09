@@ -23,5 +23,7 @@ namespace Zeus.Abstractions
         {
             return "{" + string.Join(", ", Fields.Select(t => t.Key + ": " + t.Value)) + "}";
         }
+
+        object IValue.Value => Fields;
     }
 }

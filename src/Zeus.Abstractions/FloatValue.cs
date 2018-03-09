@@ -5,7 +5,7 @@ namespace Zeus.Abstractions
         : ScalarValue<decimal>
     {
         public FloatValue(decimal value)
-            : base(value)
+            : base(value, NamedType.Float)
         {
         }
     }
