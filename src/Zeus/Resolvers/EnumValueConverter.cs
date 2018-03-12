@@ -6,7 +6,7 @@ namespace Zeus.Resolvers
     internal class EnumValueConverter
         : IValueConverter
     {
-        public T Convert<T>(IValue value)
+        public object Convert(IValue value, Type desiredType)
         {
             if (value == null)
             {
@@ -15,18 +15,18 @@ namespace Zeus.Resolvers
 
             if (value is EnumValue ev)
             {
-                if (typeof(string) == typeof(T) 
-                    || typeof(object) == typeof(T))
+                if (typeof(string) == desiredType
+                    || typeof(object) == desiredType)
                 {
-                    return (T)value.Value;
+                    return value.Value;
                 }
 
-                if (typeof(T).IsEnum)
+                if (desiredType.IsEnum)
                 {
-                    return (T)System.Enum.Parse(typeof(T), ev.Value, true);
+                    return System.Enum.Parse(desiredType, ev.Value, true);
                 }
 
-                return (T)System.Convert.ChangeType(ev.Value, typeof(T));
+                return System.Convert.ChangeType(ev.Value, desiredType);
             }
 
             throw new ArgumentException(

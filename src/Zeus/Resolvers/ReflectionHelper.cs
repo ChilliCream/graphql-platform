@@ -69,7 +69,7 @@ namespace Zeus.Resolvers
             return members[fieldName].FirstOrDefault();
         }
 
-        private static string GetMemberName(MemberInfo member)
+        internal static string GetMemberName(MemberInfo member)
         {
             if (member.IsDefined(typeof(GraphQLNameAttribute)))
             {

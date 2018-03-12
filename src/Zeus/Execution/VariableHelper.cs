@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Zeus.Abstractions;
+using Zeus.Resolvers;
 
 namespace Zeus.Execution
 {
@@ -36,10 +37,10 @@ namespace Zeus.Execution
 
                 if (!IsVariableValueValid(schema, variable.Type, value))
                 {
-                     errors.Add(new QueryError(
-                        $"The value of {variable.Name} "
-                        + "is not of the type {variable.Type}."));
-                    
+                    errors.Add(new QueryError(
+                       $"The value of {variable.Name} "
+                       + "is not of the type {variable.Type}."));
+
                 }
 
                 coercedValues[variable.Name] = value;
@@ -50,7 +51,8 @@ namespace Zeus.Execution
                 : new QueryResult(coercedValues);
         }
 
-        private static object GetVariableValue(VariableDefinition variable,
+        private static object GetVariableValue(
+            VariableDefinition variable,
             IDictionary<string, object> variableValues,
             ICollection<QueryError> errors)
         {
@@ -63,7 +65,7 @@ namespace Zeus.Execution
 
                 if (variable.DefaultValue != null)
                 {
-                    // ValueConverter.Convert<()
+                    value = ValueConverter.Convert(variable.DefaultValue, typeof(object));
                 }
             }
 
@@ -74,5 +76,10 @@ namespace Zeus.Execution
         {
             return true;
         }
+    }
+
+    internal class InputObjectValidator
+    {
+
     }
 }

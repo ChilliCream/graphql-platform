@@ -6,7 +6,7 @@ namespace Zeus.Resolvers
     internal class ScalarValueConverter
         : IValueConverter
     {
-        public T Convert<T>(IValue value)
+        public object Convert(IValue value, Type desiredType)
         {
             if (value == null)
             {
@@ -15,7 +15,7 @@ namespace Zeus.Resolvers
 
             if (value is IScalarValue sv)
             {
-                return (T)System.Convert.ChangeType(sv.Value, typeof(T));
+                return System.Convert.ChangeType(sv.Value, desiredType);
             }
 
             throw new ArgumentException(
