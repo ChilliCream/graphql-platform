@@ -9,6 +9,11 @@ namespace Zeus.Execution
             Data = data;
         }
 
+        public QueryResult(QueryError error)
+        {
+            Errors = new[] { error };
+        }
+
         public QueryResult(IReadOnlyCollection<QueryError> errors)
         {
             Errors = errors;

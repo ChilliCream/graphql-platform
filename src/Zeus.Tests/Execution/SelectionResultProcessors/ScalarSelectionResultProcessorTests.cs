@@ -8,7 +8,7 @@ using Moq;
 using Zeus.Resolvers;
 using Xunit;
 
-namespace Zeus.Execution
+namespace Zeus.Execution.SelectionResultProcessors
 {
     public class ScalarSelectionResultProcessorTests
     {

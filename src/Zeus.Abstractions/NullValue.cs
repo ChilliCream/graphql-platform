@@ -11,6 +11,8 @@ namespace Zeus.Abstractions
             return "null";
         }
 
+        object IValue.Value => null;
+
         public static NullValue Instance { get; } = new NullValue();
     }
 }

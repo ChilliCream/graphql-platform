@@ -35,7 +35,7 @@ namespace Zeus.Execution
                     OperationDefinition operation = GetOperation(document, operationName);
                     OperationContext operationContext = new OperationContext(schema, document, operation);
                     optimizedOperation = new OptimizedOperation(operationContext);
-                    
+
                     _cache = _cache.SetItem(document, optimizedOperation);
                     _cachedQueries.AddFirst(document);
 
@@ -57,7 +57,10 @@ namespace Zeus.Execution
                 {
                     return document.Operations.Values.First();
                 }
-                throw new Exception("TODO: Query Exception");
+
+                throw new GraphQLQueryException(
+                    "The specified query contains more than one operation. "
+                    + "Specify which operation shall be executed.");
             }
             else
             {
@@ -65,7 +68,10 @@ namespace Zeus.Execution
                 {
                     return operation;
                 }
-                throw new Exception("TODO: Query Exception");
+
+                throw new GraphQLQueryException(
+                    $"The specified operation ({name}) could not be "
+                    + "found in the specified query.");
             }
         }
     }

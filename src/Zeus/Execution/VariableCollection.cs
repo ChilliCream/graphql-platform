@@ -1,35 +1,48 @@
 using System;
 using System.Collections.Generic;
+using Zeus.Abstractions;
+using Zeus.Resolvers;
 
 namespace Zeus.Execution
 {
-    public class VariableCollection
+    public partial class VariableCollection
         : IVariableCollection
     {
-        private readonly IDictionary<string, object> _variables;
-        public VariableCollection()
-            : this(new Dictionary<string, object>())
-        {
+        private readonly ISchemaDocument _schema;
+        private readonly OperationDefinition _operation;
+        private readonly IDictionary<string, IValue> _variableValues;
 
-        }
-
-        public VariableCollection(IDictionary<string, object> variables)
+        public VariableCollection(ISchemaDocument schema,
+            OperationDefinition operation,
+            IDictionary<string, object> variableValues)
         {
-            if (variables == null)
+            if (schema == null)
             {
-                throw new ArgumentNullException(nameof(variables));
+                throw new ArgumentNullException(nameof(schema));
             }
 
-            _variables = variables;
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            _schema = schema;
+            _operation = operation;
+            _variableValues = CoerceVariableValues(
+                schema, operation, variableValues);
         }
 
         public T GetVariable<T>(string variableName)
         {
-            if (_variables.TryGetValue(variableName, out var value))
+            if (string.IsNullOrEmpty(variableName))
             {
-                return (T)value;
+                throw new ArgumentException(
+                    "variableName mustn't be null or string.Empty.",
+                    nameof(variableName));
             }
-            return default(T);
+
+            IValue value = _variableValues[variableName];
+            return ValueConverter.Convert<T>(value);
         }
     }
 }

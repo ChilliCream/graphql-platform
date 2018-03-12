@@ -21,12 +21,15 @@ namespace Zeus.Resolvers
             // arrange
             Mock<IServiceProvider> services = new Mock<IServiceProvider>(MockBehavior.Strict);
             Mock<ISchema> schema = new Mock<ISchema>();
+            Mock<IVariableCollection> variables = new Mock<IVariableCollection>(MockBehavior.Strict);
             OperationContext operationContext = new OperationContext(
                 schema.Object, new QueryDocument(Enumerable.Empty<IQueryDefinition>()),
                 new OperationDefinition("foo", OperationType.Query, Enumerable.Empty<ISelection>()));
 
             // act
-            IResolverContext context = ResolverContext.Create(services.Object, operationContext, k => null, q => { });
+            IResolverContext context = ResolverContext.Create(
+                services.Object, operationContext, variables.Object,
+                q => { });
 
             // assert
             Assert.Empty(context.Path);
@@ -38,10 +41,12 @@ namespace Zeus.Resolvers
             // arrange
             Mock<IServiceProvider> services = new Mock<IServiceProvider>(MockBehavior.Strict);
             Mock<ISchema> schema = new Mock<ISchema>();
+            Mock<IVariableCollection> variables = new Mock<IVariableCollection>(MockBehavior.Strict);            
             OperationContext operationContext = new OperationContext(
                 schema.Object, new QueryDocument(Enumerable.Empty<IQueryDefinition>()),
                 new OperationDefinition("foo", OperationType.Query, Enumerable.Empty<ISelection>()));
-            IResolverContext context = ResolverContext.Create(services.Object, operationContext, k => null, q => { });
+            IResolverContext context = ResolverContext.Create(
+                services.Object, operationContext, variables.Object, q => { });
 
             SelectionContext selectionContext = new SelectionContext(
                 new ObjectTypeDefinition("Foo", Enumerable.Empty<FieldDefinition>()),
@@ -62,10 +67,12 @@ namespace Zeus.Resolvers
             // arrange
             Mock<IServiceProvider> services = new Mock<IServiceProvider>(MockBehavior.Strict);
             Mock<ISchema> schema = new Mock<ISchema>();
+            Mock<IVariableCollection> variables = new Mock<IVariableCollection>(MockBehavior.Strict);                        
             OperationContext operationContext = new OperationContext(
                 schema.Object, new QueryDocument(Enumerable.Empty<IQueryDefinition>()),
                 new OperationDefinition("foo", OperationType.Query, Enumerable.Empty<ISelection>()));
-            IResolverContext context = ResolverContext.Create(services.Object, operationContext, k => null, q => { });
+            IResolverContext context = ResolverContext.Create(
+                services.Object, operationContext, variables.Object, q => { });
 
             SelectionContext selectionContext = new SelectionContext(
                 new ObjectTypeDefinition("Foo", Enumerable.Empty<FieldDefinition>()),

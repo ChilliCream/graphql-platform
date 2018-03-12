@@ -21,5 +21,7 @@ namespace Zeus.Abstractions
         {
             return "$" + Name;
         }
+
+        object IValue.Value => Name;
     }
 }

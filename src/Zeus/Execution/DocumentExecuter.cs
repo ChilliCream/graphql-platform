@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Zeus.Abstractions;
@@ -34,22 +35,28 @@ namespace Zeus.Execution
 
         public async Task<QueryResult> ExecuteAsync(
             ISchema schema, string query,
-            string operationName, IDictionary<string, object> variables,
+            string operationName, IDictionary<string, object> variableValues,
             object initialValue, CancellationToken cancellationToken)
         {
-            QueryDocument document = ParseQueryDocument(query);
+            try
+            {
+                QueryDocument document = ParseQueryDocument(query);
 
-            VariableCollection variableCollection = variables == null
-                ? new VariableCollection()
-                : new VariableCollection(variables);
+                IOptimizedOperation operation = _operationOptimizer
+                    .Optimize(schema, document, operationName);
 
-            IOptimizedOperation operation = _operationOptimizer
-                .Optimize(schema, document, operationName);
+                VariableCollection variableCollection = new VariableCollection(
+                    schema, operation.Operation, variableValues);
 
-            IReadOnlyDictionary<string, object> operationResult = await _operationExecuter
-                .ExecuteAsync(operation, variableCollection, initialValue, cancellationToken);
+                IReadOnlyDictionary<string, object> operationResult = await _operationExecuter
+                    .ExecuteAsync(operation, variableCollection, initialValue, cancellationToken);
 
-            return new QueryResult(operationResult);
+                return new QueryResult(operationResult);
+            }
+            catch (GraphQLQueryException ex)
+            {
+                return new QueryResult(ex.Messages.Select(t => new QueryError(t)).ToArray());
+            }
         }
 
         private QueryDocument ParseQueryDocument(string query)

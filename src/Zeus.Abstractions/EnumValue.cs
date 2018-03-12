@@ -1,12 +1,25 @@
 
+using System;
+
 namespace Zeus.Abstractions
 {
     public sealed class EnumValue
-       : ScalarValue<string>
+       : IValue
     {
         public EnumValue(string value)
-            : base(value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "A enum value mustn't be null or empty.",
+                    nameof(value));
+            }
+
+            Value = value;
         }
+
+        public string Value { get; }
+
+        object IValue.Value => Value;
     }
 }

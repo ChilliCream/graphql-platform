@@ -40,7 +40,7 @@ namespace GraphQL.TestService
             return Schema.Create(
                @"
                interface X {
-                   a: String
+                   a: String!
                }
                 type Foo implements X
                 {

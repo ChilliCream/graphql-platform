@@ -5,7 +5,7 @@ namespace Zeus.Abstractions
         : ScalarValue<bool>
     {
         public BooleanValue(bool value)
-            : base(value)
+            : base(value, NamedType.Boolean)
         {
         }
     }

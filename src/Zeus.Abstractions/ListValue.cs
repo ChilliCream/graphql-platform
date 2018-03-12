@@ -17,5 +17,7 @@ namespace Zeus.Abstractions
         {
             return "[" + string.Join(", ", Items.Select(t => t.ToString())) + "]";
         }
+
+        object IValue.Value => Items;
     }
 }
