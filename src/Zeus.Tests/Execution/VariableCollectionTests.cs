@@ -4,7 +4,7 @@ using Zeus.Abstractions;
 using Zeus.Execution;
 using Xunit;
 
-namespace Zeus
+namespace Zeus.Execution
 {
     public class VariableCollectionTests
     {

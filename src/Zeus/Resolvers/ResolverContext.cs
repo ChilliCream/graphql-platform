@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Zeus.Abstractions;
+using Zeus.Execution;
 
 namespace Zeus.Resolvers
 {
@@ -13,17 +14,17 @@ namespace Zeus.Resolvers
         private readonly OperationContext _operationContext;
         private readonly Action<IBatchedQuery> _registerQuery;
         private readonly SelectionContext _selectionContext;
-        private readonly Func<string, object> _getVariableValue;
+        private readonly IVariableCollection _variables;
 
         private ResolverContext(
             IServiceProvider services,
             OperationContext operationContext,
-            Func<string, object> getVariableValue,
+            IVariableCollection variables,
             Action<IBatchedQuery> registerQuery)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
             _operationContext = operationContext ?? throw new ArgumentNullException(nameof(operationContext));
-            _getVariableValue = getVariableValue ?? throw new ArgumentNullException(nameof(getVariableValue));
+            _variables = variables ?? throw new ArgumentNullException(nameof(variables));
             _registerQuery = registerQuery ?? throw new ArgumentNullException(nameof(registerQuery));
             Path = ImmutableStack<object>.Empty;
         }
@@ -33,14 +34,14 @@ namespace Zeus.Resolvers
             OperationContext operationContext,
             SelectionContext selectionContext,
             IImmutableStack<object> path,
-            Func<string, object> getVariableValue,
+            IVariableCollection variables,
             Action<IBatchedQuery> registerQuery)
         {
             _services = services ?? throw new ArgumentNullException(nameof(services));
             _operationContext = operationContext ?? throw new ArgumentNullException(nameof(operationContext));
             _selectionContext = selectionContext ?? throw new ArgumentNullException(nameof(selectionContext));
             Path = path ?? throw new ArgumentNullException(nameof(path));
-            _getVariableValue = getVariableValue ?? throw new ArgumentNullException(nameof(getVariableValue));
+            _variables = variables ?? throw new ArgumentNullException(nameof(variables));
             _registerQuery = registerQuery ?? throw new ArgumentNullException(nameof(registerQuery));
         }
 
@@ -71,17 +72,21 @@ namespace Zeus.Resolvers
                 throw new InvalidOperationException("The specified argument is not defined.");
             }
 
+            IValue argumentValue = GetArgumentValue(name);
+            if (argumentValue is Variable v)
+            {
+                return _variables.GetVariable<T>(v.Name);
+            }
+            return ValueConverter.Convert<T>(argumentValue);
+        }
+
+        private IValue GetArgumentValue(string name)
+        {
             if (Field.Arguments.TryGetValue(name, out Argument argument))
             {
-                if (argument.Value is Variable v)
-                {
-                    return (T)_getVariableValue(v.Name);
-                }
-                return ValueConverter.Convert<T>(argument.Value);
+                return argument.Value;
             }
-
-            IValue defaultValue = FieldDefinition.Arguments[name].DefaultValue;
-            return ValueConverter.Convert<T>(defaultValue);
+            return FieldDefinition.Arguments[name].DefaultValue;
         }
 
         public T Parent<T>()
@@ -113,15 +118,15 @@ namespace Zeus.Resolvers
                 throw new ArgumentNullException(nameof(selectionContext));
             }
 
-            return new ResolverContext(_services, _operationContext, 
-                selectionContext, Path.Push(result), _getVariableValue, 
+            return new ResolverContext(_services, _operationContext,
+                selectionContext, Path.Push(result), _variables,
                 _registerQuery);
         }
 
         public static ResolverContext Create(
             IServiceProvider services,
             OperationContext operationContext,
-            Func<string, object> getVariableValue,
+            IVariableCollection variables,
             Action<IBatchedQuery> registerQuery)
         {
             if (services == null)
@@ -134,9 +139,9 @@ namespace Zeus.Resolvers
                 throw new ArgumentNullException(nameof(operationContext));
             }
 
-            if (getVariableValue == null)
+            if (variables == null)
             {
-                throw new ArgumentNullException(nameof(getVariableValue));
+                throw new ArgumentNullException(nameof(variables));
             }
 
             if (registerQuery == null)
@@ -145,7 +150,7 @@ namespace Zeus.Resolvers
             }
 
             return new ResolverContext(services, operationContext,
-                getVariableValue, registerQuery);
+                variables, registerQuery);
         }
     }
 }

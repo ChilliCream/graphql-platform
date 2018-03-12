@@ -8,7 +8,7 @@ using Xunit;
 using Zeus.Resolvers;
 using Zeus.Abstractions;
 
-namespace Zeus.Execution
+namespace Zeus.Execution.SelectionResultProcessors
 {
     public class ObjectSelectionResultProcessorTests
     {

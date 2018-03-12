@@ -7,7 +7,7 @@ using Zeus.Parser;
 using Zeus.Resolvers;
 using Xunit;
 
-namespace Zeus
+namespace Zeus.Execution
 {
     public class OperationOptimizerTests
     {

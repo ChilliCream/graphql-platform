@@ -61,8 +61,9 @@ namespace Zeus.Execution
                 throw new ArgumentNullException(nameof(registerQuery));
             }
 
-            return ResolverContext.Create(services, _operationContext,
-                k => variables.GetVariable<object>(k), registerQuery);
+            return ResolverContext.Create(
+                services, _operationContext,
+                variables, registerQuery);
         }
 
         private IEnumerable<IOptimizedSelection> ResolveFields()
