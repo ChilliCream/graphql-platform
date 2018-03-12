@@ -129,7 +129,7 @@ namespace Zeus.Execution
             // assert
             Assert.NotNull(result.Data);
             Assert.Null(result.Errors);
-            Assert.Equal("z", result.Data["foo"]);
+            Assert.Equal("y", result.Data["foo"]);
         }
     }
 }

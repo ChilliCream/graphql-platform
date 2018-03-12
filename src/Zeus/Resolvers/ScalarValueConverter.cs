@@ -40,22 +40,22 @@ namespace Zeus.Resolvers
                 return NullValue.Instance;
             }
 
-            if (desiredType.InnerType() == NamedType.Boolean)
+            if (NamedType.Boolean.Equals(desiredType.InnerType()))
             {
                 return new BooleanValue((bool)value);
             }
 
-            if (desiredType.InnerType() == NamedType.Float)
+            if (NamedType.Float.Equals(desiredType.InnerType()))
             {
                 return new FloatValue((decimal)value);
             }
 
-            if (desiredType.InnerType() == NamedType.Integer)
+            if (NamedType.Integer.Equals(desiredType.InnerType()))
             {
                 return new IntegerValue((int)value);
             }
 
-            if (desiredType.InnerType() == NamedType.String)
+            if (NamedType.String.Equals(desiredType.InnerType()))
             {
                 return new StringValue(value is string s ? s : value.ToString());
             }
