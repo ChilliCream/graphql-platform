@@ -29,33 +29,34 @@ if ($RunTests -or $EnableCoverage) {
     
     Get-ChildItem ./src/*.Tests | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" --no-build`n" }
     
-    if (!!$testAssemblies) # Has test assemblies {    
-    $userDirectory = $env:USERPROFILE
-    if ($IsMacOS) {
-        $userDirectory = $env:HOME
-    }
+    if (!!$testAssemblies) {
+        # Has test assemblies {    
+        $userDirectory = $env:USERPROFILE
+        if ($IsMacOS) {
+            $userDirectory = $env:HOME
+        }
         
-    [System.IO.File]::WriteAllText($runTestsCmd, $testAssemblies)
-    Write-Host $runTestsCmd
+        [System.IO.File]::WriteAllText($runTestsCmd, $testAssemblies)
+        Write-Host $runTestsCmd
 
-    if ($EnableCoverage) {
-        # Test & Code Coverage
-        $nugetPackages = [System.IO.Path]::Combine($userDirectory, ".nuget", "packages")
+        if ($EnableCoverage) {
+            # Test & Code Coverage
+            $nugetPackages = [System.IO.Path]::Combine($userDirectory, ".nuget", "packages")
             
-        $openCover = [System.IO.Path]::Combine($nugetPackages, "OpenCover", "*", "tools", "OpenCover.Console.exe")
-        $openCover = Resolve-Path $openCover
+            $openCover = [System.IO.Path]::Combine($nugetPackages, "OpenCover", "*", "tools", "OpenCover.Console.exe")
+            $openCover = Resolve-Path $openCover
 
-        $coveralls = [System.IO.Path]::Combine($nugetPackages, "coveralls.io", "*", "tools", "coveralls.net.exe")
-        $coveralls = Resolve-Path $coveralls
+            $coveralls = [System.IO.Path]::Combine($nugetPackages, "coveralls.io", "*", "tools", "coveralls.net.exe")
+            $coveralls = Resolve-Path $coveralls
 
-        & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[ChilliCream*]*"
-        & $coveralls --opencover coverage.xml
+            & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[ChilliCream*]*"
+            & $coveralls --opencover coverage.xml
+        }
+        else {
+            # Test
+            & $runTestsCmd
+        }
     }
-    else {
-        # Test
-        & $runTestsCmd
-    }
-}
 }
 
 if ($EnableSonar) {
