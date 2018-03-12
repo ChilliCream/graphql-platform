@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Zeus.Abstractions;
 using Zeus.Execution;
@@ -5,7 +6,7 @@ using Xunit;
 
 namespace Zeus
 {
-    public class CoerceVariableValuesTests
+    public class VariableCollectionTests
     {
         [Fact]
         public void NonNullVariableWithNull()
@@ -19,13 +20,11 @@ namespace Zeus
             Dictionary<string, object> variableValues = new Dictionary<string, object>();
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            Action action = () => new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.Null(result.Data);
-            Assert.NotNull(result.Errors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal($"Variable x mustn't be null.", t.Message));
+            Assert.Throws<GraphQLQueryException>(action);
         }
 
         [Fact]
@@ -40,17 +39,11 @@ namespace Zeus
             Dictionary<string, object> variableValues = new Dictionary<string, object>();
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
-                t =>
-                {
-                    Assert.Equal("x", t.Key);
-                    Assert.Null(t.Value);
-                });
+            Assert.Null(variables.GetVariable<string>("x"));
         }
 
         [Fact]
@@ -65,17 +58,11 @@ namespace Zeus
             Dictionary<string, object> variableValues = new Dictionary<string, object>();
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
-                t =>
-                {
-                    Assert.Equal("x", t.Key);
-                    Assert.Equal("hello", t.Value);
-                });
+            Assert.Equal("hello", variables.GetVariable<string>("x"));
         }
 
         [Fact]
@@ -93,17 +80,11 @@ namespace Zeus
             };
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
-                t =>
-                {
-                    Assert.Equal("x", t.Key);
-                    Assert.Equal("world", t.Value);
-                });
+            Assert.Equal("world", variables.GetVariable<string>("x"));
         }
 
         [Fact]
@@ -121,17 +102,11 @@ namespace Zeus
             };
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
-                t =>
-                {
-                    Assert.Equal("x", t.Key);
-                    Assert.Equal("world", t.Value);
-                });
+            Assert.Equal("world", variables.GetVariable<string>("x"));
         }
 
         [Fact]
@@ -149,17 +124,11 @@ namespace Zeus
             };
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
-                t =>
-                {
-                    Assert.Equal("x", t.Key);
-                    Assert.Equal("world", t.Value);
-                });
+            Assert.Equal("world", variables.GetVariable<string>("x"));
         }
 
         [Fact]
@@ -182,15 +151,22 @@ namespace Zeus
             };
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            VariableCollection variables = new VariableCollection(
+                schema, operation, variableValues);
 
             // assert
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
+            IDictionary<string, object> inputObject = variables
+                .GetVariable<IDictionary<string, object>>("x");
+            Assert.NotNull(inputObject);
+            Assert.Collection(inputObject,
                 t =>
                 {
-                    Assert.Equal("x", t.Key);
+                    Assert.Equal("a", t.Key);
+                    Assert.Equal("hello", t.Value);
+                },
+                t =>
+                {
+                    Assert.Equal("b", t.Key);
                     Assert.Equal("world", t.Value);
                 });
         }
@@ -214,13 +190,11 @@ namespace Zeus
             };
 
             // act
-            QueryResult result = VariableHelper.CoerceVariableValues(schema, operation, variableValues);
+            Action action = () => new VariableCollection(
+                schema, operation, variableValues);
 
-            // assert            
-            Assert.NotNull(result.Data);
-            Assert.Null(result.Errors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal($"Variable x mustn't be null.", t.Message));
+            // assert
+            Assert.Throws<GraphQLQueryException>(action);
         }
 
         private SchemaDocument CreateSchema()

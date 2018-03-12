@@ -22,5 +22,45 @@ namespace Zeus.Resolvers
                 "The specified type is not a sacalar type.",
                 nameof(value));
         }
+
+        public IValue Convert(object value, ISchemaDocument schema, IType desiredType)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (desiredType == null)
+            {
+                throw new ArgumentNullException(nameof(desiredType));
+            }
+
+            if (value == null)
+            {
+                return NullValue.Instance;
+            }
+
+            if (desiredType.InnerType() == NamedType.Boolean)
+            {
+                return new BooleanValue((bool)value);
+            }
+
+            if (desiredType.InnerType() == NamedType.Float)
+            {
+                return new FloatValue((decimal)value);
+            }
+
+            if (desiredType.InnerType() == NamedType.Integer)
+            {
+                return new IntegerValue((int)value);
+            }
+
+            if (desiredType.InnerType() == NamedType.String)
+            {
+                return new StringValue(value is string s ? s : value.ToString());
+            }
+
+            throw new NotSupportedException();
+        }
     }
 }

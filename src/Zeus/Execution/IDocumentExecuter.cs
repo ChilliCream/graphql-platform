@@ -9,7 +9,7 @@ namespace Zeus.Execution
     {
         Task<QueryResult> ExecuteAsync(
             ISchema schema, string query,
-            string operationName, IDictionary<string, object> variables,
+            string operationName, IDictionary<string, object> variableValues,
             object initialValue, CancellationToken cancellationToken);
     }
 }

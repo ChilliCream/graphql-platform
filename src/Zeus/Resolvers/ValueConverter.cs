@@ -47,5 +47,45 @@ namespace Zeus.Resolvers
 
             throw new NotSupportedException();
         }
+
+        public static IValue Convert(object value, ISchemaDocument schema, IType desiredType)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (desiredType == null)
+            {
+                throw new ArgumentNullException(nameof(desiredType));
+            }
+
+            if (desiredType.IsNonNullType() && value == null)
+            {
+                throw new GraphQLQueryException("The desired type is a non null type.");
+            }
+
+            if (value == null)
+            {
+                return NullValue.Instance;
+            }
+
+            if (desiredType.IsScalarType())
+            {
+                return _scalarConverter.Convert(value, schema, desiredType);
+            }
+
+            if (schema.EnumTypes.ContainsKey(desiredType.TypeName()))
+            {
+                return _enumValueConverter.Convert(value, schema, desiredType);
+            }
+
+            if (desiredType.IsListType())
+            {
+                return _listValueConverter.Convert(value, schema, desiredType);
+            }
+
+            return _inputObjectConverter.Convert(value, schema, desiredType);
+        }
     }
 }

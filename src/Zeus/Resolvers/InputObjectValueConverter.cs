@@ -88,6 +88,86 @@ namespace Zeus.Resolvers
             return obj;
         }
 
+        public IValue Convert(object value, ISchemaDocument schema, IType desiredType)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
 
+            if (desiredType == null)
+            {
+                throw new ArgumentNullException(nameof(desiredType));
+            }
+
+            if (value == null)
+            {
+                return NullValue.Instance;
+            }
+
+            if (!schema.InputObjectTypes.TryGetValue(
+                desiredType.TypeName(), out var typeDefinition))
+            {
+                throw new GraphQLQueryException(
+                    "The specified desired type is not a input object type.");
+            }
+
+            if (value is IDictionary<string, object> d)
+            {
+                return CreateInputObject(d, schema, typeDefinition);
+            }
+            return CreateInputObject(value, schema, typeDefinition);
+        }
+
+        private InputObjectValue CreateInputObject(
+            IDictionary<string, object> value,
+            ISchemaDocument schema,
+            InputObjectTypeDefinition typeDefinition)
+        {
+            Type objectType = value.GetType();
+
+            Dictionary<string, IValue> fields = new Dictionary<string, IValue>();
+
+            foreach (InputValueDefinition field in typeDefinition.Fields.Values)
+            {
+                if (!value.TryGetValue(field.Name, out var fieldValue))
+                {
+                    throw new GraphQLQueryException(
+                        "The specified input object is missing a required field.");
+                }
+
+                fields[field.Name] = ValueConverter.Convert(
+                    fieldValue, schema, field.Type);
+            }
+
+            return new InputObjectValue(fields);
+        }
+
+        private InputObjectValue CreateInputObject(object value,
+            ISchemaDocument schema,
+            InputObjectTypeDefinition typeDefinition)
+        {
+            Type objectType = value.GetType();
+            ILookup<string, PropertyInfo> properties = objectType.GetProperties()
+                .ToLookup(t => ReflectionHelper.GetMemberName(t),
+                   StringComparer.OrdinalIgnoreCase);
+
+            Dictionary<string, IValue> fields = new Dictionary<string, IValue>();
+
+            foreach (InputValueDefinition field in typeDefinition.Fields.Values)
+            {
+                PropertyInfo property = properties[field.Name].FirstOrDefault();
+                if (property == null)
+                {
+                    throw new GraphQLQueryException(
+                        "The specified input object is missing a required field.");
+                }
+
+                fields[field.Name] = ValueConverter.Convert(
+                    property.GetValue(value), schema, field.Type);
+            }
+
+            return new InputObjectValue(fields);
+        }
     }
 }

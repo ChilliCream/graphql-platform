@@ -33,5 +33,42 @@ namespace Zeus.Resolvers
                 "The specified type is not an enum value type.",
                 nameof(value));
         }
+
+        public IValue Convert(object value, ISchemaDocument schema, IType desiredType)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (desiredType == null)
+            {
+                throw new ArgumentNullException(nameof(desiredType));
+            }
+
+            if (value == null)
+            {
+                return NullValue.Instance;
+            }
+
+            string s = value.ToString().ToUpperInvariant();
+            if (schema.EnumTypes.TryGetValue(
+                desiredType.TypeName(),
+                out var typeDefinition))
+            {
+                if (typeDefinition.Values.Contains(s))
+                {
+                    return new EnumValue(s);
+                }
+                else
+                {
+                    throw new GraphQLQueryException("The specified enum does not contain the given element.");
+                }
+            }
+            else
+            {
+                throw new GraphQLQueryException("The specified enum type does not exist.");
+            }
+        }
     }
 }

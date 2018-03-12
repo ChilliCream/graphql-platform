@@ -105,5 +105,29 @@ namespace Zeus.Resolvers
 
             return set;
         }
+
+        public IValue Convert(object value, ISchemaDocument schema, IType desiredType)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (desiredType == null)
+            {
+                throw new ArgumentNullException(nameof(desiredType));
+            }
+
+            if (value == null)
+            {
+                return NullValue.Instance;
+            }
+
+            IType elementType = desiredType.ElementType();
+            IValue[] elements = ((IEnumerable)value).OfType<object>()
+                .Select(t => ValueConverter.Convert(value, schema, elementType))
+                .ToArray();
+            return new ListValue(elements);
+        }
     }
 }
