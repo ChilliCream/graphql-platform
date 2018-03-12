@@ -8,6 +8,7 @@ using Zeus.Abstractions;
 using Zeus.Resolvers;
 using Zeus.Parser;
 using Zeus.Introspection;
+using System.Reflection;
 
 namespace Zeus
 {
@@ -49,44 +50,8 @@ namespace Zeus
 
         public IResolverCollection Resolvers => _resolvers;
 
-        public static Schema Create(string schema, Action<IResolverBuilder> configure)
-        {
-            return Create(schema, configure, DefaultServiceProvider.Instance);
-        }
-
-        public static Schema Create(string schema, Action<IResolverBuilder> configure,
-            IServiceProvider serviceProvider)
-        {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
-            SchemaDocument schemaDocument = schemaReader.Read(schema)
-                .WithIntrospectionSchema();
-
-            IResolverBuilder resolverBuilder = ResolverBuilder.Create();
-            configure(resolverBuilder);
-
-            IResolverCollection resolvers = resolverBuilder
-                .AddIntrospectionResolvers()
-                .Build(schemaDocument, serviceProvider);
-
-            return new Schema(schemaDocument, resolvers);
-        }
-
-        public IType InferType(ObjectTypeDefinition typeDefinition, FieldDefinition fieldDefinition, object obj)
+        public IType InferType(ObjectTypeDefinition typeDefinition,
+            FieldDefinition fieldDefinition, object obj)
         {
             if (typeDefinition == null)
             {
@@ -121,17 +86,7 @@ namespace Zeus
                 return name;
             }
 
-            if (type.IsDefined(typeof(GraphQLNameAttribute), false))
-            {
-                GraphQLNameAttribute attribute = type.GetCustomAttributes(
-                    typeof(GraphQLNameAttribute), false)
-                    .OfType<GraphQLNameAttribute>().First();
-                name = new NamedType(attribute.Name);
-            }
-            else
-            {
-                name = new NamedType(type.Name);
-            }
+            name = GetTypeName(type);
 
             lock (_sync)
             {
@@ -141,6 +96,22 @@ namespace Zeus
             return name;
         }
 
+        private NamedType GetTypeName(Type type)
+        {
+            if (type.IsDefined(typeof(GraphQLNameAttribute), false))
+            {
+                GraphQLNameAttribute attribute =
+                    type.GetCustomAttribute<GraphQLNameAttribute>();
+                return new NamedType(attribute.Name);
+            }
+            else
+            {
+                return new NamedType(type.Name);
+            }
+        }
+
+        #region IEnumerable
+
         public IEnumerator<ITypeDefinition> GetEnumerator()
         {
             return _schemaDocument.GetEnumerator();
@@ -149,6 +120,47 @@ namespace Zeus
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        #endregion
+
+        public static Schema Create(string schema,
+            Action<IResolverBuilder> configure)
+        {
+            return Create(schema, configure, DefaultServiceProvider.Instance);
+        }
+
+        public static Schema Create(string schema,
+            Action<IResolverBuilder> configure,
+            IServiceProvider serviceProvider)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
+            SchemaDocument schemaDocument = schemaReader.Read(schema)
+                .WithIntrospectionSchema();
+
+            IResolverBuilder resolverBuilder = ResolverBuilder.Create();
+            configure(resolverBuilder);
+
+            IResolverCollection resolvers = resolverBuilder
+                .AddIntrospectionResolvers()
+                .Build(schemaDocument, serviceProvider);
+
+            return new Schema(schemaDocument, resolvers);
         }
     }
 }
