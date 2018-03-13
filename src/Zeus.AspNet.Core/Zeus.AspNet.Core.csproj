@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Zeus.AspNet</RootNamespace>
     <AssemblyName>Zeus.AspNet.Core</AssemblyName>
+    <PackageId>Prometheus.AspNet.Core</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
