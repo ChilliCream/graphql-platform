@@ -5,13 +5,13 @@ using Xunit;
 
 namespace Prometheus.Validation
 {
-    public class QueryValidationTests
+    public class QueryOperationValidationTests
     {
         [Fact]
-        public void OperationNameIsNotUnique_NameIsUnique_Success()
+        public void OperationNameUniquenessRule_NameIsUnique_Success()
         {
             // arrange
-            OperationNameIsNotUnique rule = new OperationNameIsNotUnique();
+            OperationNameUniquenessRule rule = new OperationNameUniquenessRule();
             ISchemaDocument schema = CreateSchema();
             IQueryDocument query = ParseQuery(@"
                 query getDogName {
@@ -38,10 +38,10 @@ namespace Prometheus.Validation
         }
 
         [Fact]
-        public void OperationNameIsNotUnique_NameIsNotUnique_SameOperationType_Error()
+        public void OperationNameUniquenessRule_NameIsNotUnique_SameOperationType_Error()
         {
             // arrange
-            OperationNameIsNotUnique rule = new OperationNameIsNotUnique();
+            OperationNameUniquenessRule rule = new OperationNameUniquenessRule();
             ISchemaDocument schema = CreateSchema();
             IQueryDocument query = ParseQuery(@"
                 query getName {
@@ -73,10 +73,10 @@ namespace Prometheus.Validation
         }
 
         [Fact]
-        public void OperationNameIsNotUnique_NameIsNotUnique_DifferentOperationType_Error()
+        public void OperationNameUniquenessRule_NameIsNotUnique_DifferentOperationType_Error()
         {
             // arrange
-            OperationNameIsNotUnique rule = new OperationNameIsNotUnique();
+            OperationNameUniquenessRule rule = new OperationNameUniquenessRule();
             ISchemaDocument schema = CreateSchema();
             IQueryDocument query = ParseQuery(@"
                 query getName {
@@ -103,6 +103,65 @@ namespace Prometheus.Validation
                 {
                     Assert.IsType<ErrorResult>(t);
                     Assert.Equal($"The operation name getName is not unique.",
+                        ((ErrorResult)t).Message);
+                });
+        }
+
+        [Fact]
+        public void LoneAnonymousOperationRule_SingleAnonymousOperation_Success()
+        {
+            // arrange
+            LoneAnonymousOperationRule rule = new LoneAnonymousOperationRule();
+            ISchemaDocument schema = CreateSchema();
+            IQueryDocument query = ParseQuery(@"
+                {
+                    dog {
+                        name
+                    }
+                }
+            ");
+
+            // act
+            IValidationResult[] results = rule.Apply(schema, query).ToArray();
+
+            // assert
+            Assert.Collection(results,
+                t => Assert.IsType<SuccessResult>(t));
+        }
+
+        [Fact]
+        public void LoneAnonymousOperationRule_AnonymousAndNamedOperation_Error()
+        {
+            // arrange
+            LoneAnonymousOperationRule rule = new LoneAnonymousOperationRule();
+            ISchemaDocument schema = CreateSchema();
+            IQueryDocument query = ParseQuery(@"
+                {
+                    dog {
+                        name
+                    }
+                }
+
+                query getName {
+                    dog {
+                        owner {
+                            name
+                        }
+                    }
+                }
+            ");
+
+            // act
+            IValidationResult[] results = rule.Apply(schema, query).ToArray();
+
+            // assert
+            Assert.Collection(results,
+                t =>
+                {
+                    Assert.IsType<ErrorResult>(t);
+                    Assert.Equal("There is at least one "
+                        + " anonymous operation although the query consists of "
+                        + "more than one operation.",
                         ((ErrorResult)t).Message);
                 });
         }
