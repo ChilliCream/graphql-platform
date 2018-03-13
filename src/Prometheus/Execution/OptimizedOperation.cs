@@ -22,13 +22,12 @@ namespace Prometheus.Execution
                 ?? throw new ArgumentNullException(nameof(operationContext));
 
             _selectionHelper = new OptimizedSelectionHelper(
-                operationContext,
-                operationContext.Operation.Type.ToString());
+                operationContext);
         }
 
         public ISchema Schema => _operationContext.Schema;
 
-        public QueryDocument QueryDocument => _operationContext.QueryDocument;
+        public IQueryDocument QueryDocument => _operationContext.QueryDocument;
 
         public OperationDefinition Operation => _operationContext.Operation;
 
@@ -68,9 +67,12 @@ namespace Prometheus.Execution
 
         private IEnumerable<IOptimizedSelection> ResolveFields()
         {
-            foreach (Field field in _operationContext.Operation.SelectionSet.OfType<Field>())
+            foreach (Field field in _operationContext.Operation
+                .SelectionSet.OfType<Field>())
             {
-                if (_selectionHelper.TryCreateSelectionContext(field, out var sc))
+                if (_selectionHelper.TryCreateSelectionContext(
+                    _operationContext.Operation.Type.ToString(),
+                    field, out var sc))
                 {
                     yield return new OptimizedSelection(_operationContext, sc);
                 }

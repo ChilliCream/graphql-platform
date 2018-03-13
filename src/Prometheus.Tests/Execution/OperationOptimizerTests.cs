@@ -16,7 +16,7 @@ namespace Prometheus.Execution
         {
             // arrange
             ISchema schema = CreateSchema();
-            QueryDocument query = CreateSimpleValidQuery();
+            IQueryDocument query = CreateSimpleValidQuery();
 
             // act
             OperationOptimizer operationOptimizer = new OperationOptimizer();
@@ -43,7 +43,7 @@ namespace Prometheus.Execution
         {
             // arrange
             ISchema schema = CreateSchema();
-            QueryDocument query = CreateValidQueryWithFragmentSpread();
+            IQueryDocument query = CreateValidQueryWithFragmentSpread();
 
             // act
             OperationOptimizer operationOptimizer = new OperationOptimizer();
@@ -75,7 +75,7 @@ namespace Prometheus.Execution
         {
             // arrange
             ISchema schema = CreateSchema();
-            QueryDocument query = CreateSimpleInvalidQuery();
+            IQueryDocument query = CreateSimpleInvalidQuery();
 
             // act
             OperationOptimizer operationOptimizer = new OperationOptimizer();
@@ -119,7 +119,7 @@ namespace Prometheus.Execution
             return Schema.Create(schemaDocument, configureResolvers);
         }
 
-        private QueryDocument CreateSimpleValidQuery()
+        private IQueryDocument CreateSimpleValidQuery()
         {
             string queryDocument = @"
                 query getBars {
@@ -133,7 +133,7 @@ namespace Prometheus.Execution
             return documentReader.Read(queryDocument);
         }
 
-        private QueryDocument CreateSimpleInvalidQuery()
+        private IQueryDocument CreateSimpleInvalidQuery()
         {
             string queryDocument = @"
                 query getBars {
@@ -148,7 +148,7 @@ namespace Prometheus.Execution
             return documentReader.Read(queryDocument);
         }
 
-        private QueryDocument CreateValidQueryWithFragmentSpread()
+        private IQueryDocument CreateValidQueryWithFragmentSpread()
         {
             string queryDocument = @"
                 query getBars {

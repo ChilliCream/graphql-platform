@@ -51,7 +51,7 @@ namespace Prometheus.Resolvers
 
         public FieldDefinition FieldDefinition => _selectionContext?.FieldDefinition;
 
-        public QueryDocument QueryDocument => _operationContext.QueryDocument;
+        public IQueryDocument QueryDocument => _operationContext.QueryDocument;
 
         public OperationDefinition OperationDefinition => _operationContext.Operation;
 

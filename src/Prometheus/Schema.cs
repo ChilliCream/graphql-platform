@@ -18,7 +18,8 @@ namespace Prometheus
         private readonly object _sync = new object();
         private readonly SchemaDocument _schemaDocument;
         private readonly IResolverCollection _resolvers;
-        private ImmutableDictionary<Type, NamedType> _typeNameCache = ImmutableDictionary<Type, NamedType>.Empty;
+        private ImmutableDictionary<Type, NamedType> _typeNameCache = 
+            ImmutableDictionary<Type, NamedType>.Empty;
 
         private Schema(SchemaDocument schemaDocument,
             IResolverCollection resolvers)
@@ -50,7 +51,7 @@ namespace Prometheus
 
         public IResolverCollection Resolvers => _resolvers;
 
-        public IType InferType(ObjectTypeDefinition typeDefinition,
+        public IType ResolveAbstractType(ObjectTypeDefinition typeDefinition,
             FieldDefinition fieldDefinition, object obj)
         {
             if (typeDefinition == null)
@@ -72,7 +73,13 @@ namespace Prometheus
             if (_schemaDocument.UnionTypes.ContainsKey(schemaTypeName)
                 || _schemaDocument.InterfaceTypes.ContainsKey(schemaTypeName))
             {
-                return GetTypeName(obj);
+                NamedType type = GetTypeName(obj);
+                if (!_schemaDocument.ObjectTypes.ContainsKey(type.Name))
+                {
+                    throw new GraphQLQueryException(
+                        "Could not resolve the type name.");
+                }
+                return type;
             }
 
             return fieldDefinition.Type.NamedType();

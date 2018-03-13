@@ -3,7 +3,13 @@ using System;
 
 namespace Prometheus.Execution
 {
+    public interface IQueryError
+    {
+        string Message { get; }
+    }
+
     public class QueryError
+        : IQueryError
     {
         public QueryError(string message)
         {

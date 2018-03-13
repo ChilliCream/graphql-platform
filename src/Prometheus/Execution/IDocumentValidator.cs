@@ -4,6 +4,6 @@ namespace Prometheus.Execution
 {
     public interface IDocumentValidator
     {
-        DocumentValidationReport Validate(ISchema schema, QueryDocument document);
+        DocumentValidationReport Validate(ISchema schema, IQueryDocument document);
     }
 }

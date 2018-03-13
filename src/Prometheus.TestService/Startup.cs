@@ -39,23 +39,17 @@ namespace GraphQL.TestService
         {
             return Schema.Create(
                @"
-               interface X {
-                   a: String!
-               }
-                type Foo implements X
-                {
+                interface Z {
                     a: String!
-                    b(z: Boolean = true): String
-                    c: Int
                 }
 
-                type Test {
-                    z: String!
+                type X implements Z
+                {
+                    a: String!
                 }
 
                 type Query {
-                    getFoo: Foo 
-                    getTest: Test
+                    c: Z!
                 }
                 ",
                 ConfigureResolvers
@@ -64,31 +58,21 @@ namespace GraphQL.TestService
 
         private void ConfigureResolvers(IResolverBuilder builder)
         {
-            builder.AddQueryType<Query>()
-                .Add("Query", "getTest", () => 66)
-                .AddType<FooXyz>("Foo")
-                .Add("Foo", "b", () => "hello")
-                .Add("Foo", "c", () => 1)
-                .AddType("Test", new {
-                    z = "world"
-                });
+            builder.AddQueryType<Query>();
         }
     }
 
     public class Query
     {
-        public object GetFoo()
+        public object c()
         {
-            return new object();
+            return new Y();
         }
     }
 
-    public class FooXyz
+    [GraphQLName("X")]
+    public class Y
     {
-        [GraphQLName("a")]
-        public string GetA()
-        {
-            return "a";
-        }
+        public string a { get; set; } = "foo";
     }
 }

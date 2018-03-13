@@ -9,23 +9,24 @@ namespace Prometheus.Execution
             Data = data;
         }
 
-        public QueryResult(QueryError error)
+        public QueryResult(IQueryError error)
         {
             Errors = new[] { error };
         }
 
-        public QueryResult(IReadOnlyCollection<QueryError> errors)
+        public QueryResult(IReadOnlyCollection<IQueryError> errors)
         {
             Errors = errors;
         }
 
-        public QueryResult(IReadOnlyDictionary<string, object> data, IReadOnlyCollection<QueryError> errors)
+        public QueryResult(IReadOnlyDictionary<string, object> data, 
+            IReadOnlyCollection<IQueryError> errors)
         {
             Data = data;
             Errors = errors;
         }
 
         public IReadOnlyDictionary<string, object> Data { get; }
-        public IReadOnlyCollection<QueryError> Errors { get; }
+        public IReadOnlyCollection<IQueryError> Errors { get; }
     }
 }

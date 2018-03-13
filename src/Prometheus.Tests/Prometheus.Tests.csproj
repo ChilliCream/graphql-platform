@@ -13,8 +13,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
-    <PackageReference Include="OpenCover" Version="4.6.519" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="Microsoft.CodeCoverage" Version="1.0.3" />
     <PackageReference Include="Moq" Version="4.8.1" />

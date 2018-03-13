@@ -9,8 +9,9 @@ namespace Prometheus
     {
         IResolverCollection Resolvers { get; }
 
-        IType InferType(ObjectTypeDefinition typeDefinition,
-            FieldDefinition fieldDefinition, object obj);
+        // TODO : move to execution
+        IType ResolveAbstractType(ObjectTypeDefinition typeDefinition,
+            FieldDefinition fieldDefinition, object result);
     }
 }
 

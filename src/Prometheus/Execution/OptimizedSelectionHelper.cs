@@ -8,31 +8,30 @@ namespace Prometheus.Execution
     internal class OptimizedSelectionHelper
     {
         private readonly OperationContext _operationContext;
-        private readonly string _typeName;
 
-        public OptimizedSelectionHelper(OperationContext operationContext, string typeName)
+        public OptimizedSelectionHelper(OperationContext operationContext)
         {
             _operationContext = operationContext
                 ?? throw new ArgumentNullException(nameof(operationContext));
-
-            _typeName = typeName
-                ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public bool TryCreateSelectionContext(Field field, out SelectionContext selectionContext)
+        public bool TryCreateSelectionContext(
+            string typeName, Field field, 
+            out SelectionContext selectionContext)
         {
             if (field == null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (_operationContext.Schema.ObjectTypes.TryGetValue(_typeName, out var typeDefinition))
+            ISchema schema = _operationContext.Schema;
+            if (schema.ObjectTypes.TryGetValue(typeName, out var typeDefinition))
             {
                 if (typeDefinition.Fields.TryGetValue(field.Name, out var fieldDefinition))
                 {
                     selectionContext = new SelectionContext(typeDefinition, fieldDefinition, field);
                     return true;
-                }                
+                }
             }
 
             selectionContext = null;

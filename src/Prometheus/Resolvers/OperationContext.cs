@@ -7,7 +7,7 @@ namespace Prometheus.Resolvers
     {
         public OperationContext(
             ISchema schema,
-            QueryDocument queryDocument,
+            IQueryDocument queryDocument,
             OperationDefinition operation)
         {
             Schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -17,7 +17,7 @@ namespace Prometheus.Resolvers
 
         public ISchema Schema { get; }
 
-        public QueryDocument QueryDocument { get; }
+        public IQueryDocument QueryDocument { get; }
 
         public OperationDefinition Operation { get; }
     }

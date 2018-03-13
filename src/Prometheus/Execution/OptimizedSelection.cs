@@ -20,7 +20,9 @@ namespace Prometheus.Execution
             = ImmutableDictionary<NamedType, IImmutableList<IOptimizedSelection>>.Empty;
         private ResolverDelegate _resolver;
 
-        public OptimizedSelection(OperationContext operationContext, SelectionContext selectionContext)
+        public OptimizedSelection(
+            OperationContext operationContext,
+            SelectionContext selectionContext)
         {
             _operationContext = operationContext
                 ?? throw new ArgumentNullException(nameof(operationContext));
@@ -29,8 +31,7 @@ namespace Prometheus.Execution
                 ?? throw new ArgumentNullException(nameof(selectionContext));
 
             _selectionHelper = new OptimizedSelectionHelper(
-                operationContext,
-                selectionContext.FieldDefinition.Type.TypeName());
+                operationContext);
         }
 
         public string Name
@@ -65,6 +66,19 @@ namespace Prometheus.Execution
 
         public IEnumerable<IOptimizedSelection> GetSelections(IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            IType fieldType = _selectionContext.FieldDefinition.Type;
+            if (!IsSameType(fieldType, type)
+                && IsImplementationOf(fieldType, type))
+            {
+                throw new GraphQLQueryException(
+                    $"{type} is not an implementation of {fieldType}.");
+            }
+
             NamedType namedType = type.NamedType();
             if (_selections.TryGetValue(namedType, out var selections))
             {
@@ -72,7 +86,9 @@ namespace Prometheus.Execution
             }
 
             ISelectionSet fieldSelectionSet = _selectionContext.Field.SelectionSet;
-            selections = ResolveSelections(fieldSelectionSet, namedType).ToImmutableList();
+            selections = ResolveSelections(
+                namedType, fieldSelectionSet, namedType)
+                .ToImmutableList();
 
             lock (_sync)
             {
@@ -83,13 +99,15 @@ namespace Prometheus.Execution
         }
 
         private IEnumerable<IOptimizedSelection> ResolveSelections(
+            NamedType namedType,
             IEnumerable<ISelection> selections,
             NamedType typeCondition)
         {
             foreach (ISelection selection in selections)
             {
                 if (selection is Field f
-                    && _selectionHelper.TryCreateSelectionContext(f, out var sc))
+                    && _selectionHelper.TryCreateSelectionContext(
+                        namedType.Name, f, out var sc))
                 {
                     yield return new OptimizedSelection(_operationContext, sc);
                 }
@@ -98,7 +116,7 @@ namespace Prometheus.Execution
                     && frag.TypeCondition.Equals(typeCondition))
                 {
                     foreach (IOptimizedSelection optimizedSelection
-                        in ResolveSelections(frag.SelectionSet, typeCondition))
+                        in ResolveSelections(namedType, frag.SelectionSet, typeCondition))
                     {
                         yield return optimizedSelection;
                     }
@@ -107,7 +125,7 @@ namespace Prometheus.Execution
                 if (selection is FragmentSpread fragSpread)
                 {
                     foreach (IOptimizedSelection optimizedSelection
-                        in ResolveFragmentSpread(fragSpread, typeCondition))
+                        in ResolveFragmentSpread(namedType, fragSpread, typeCondition))
                     {
                         yield return optimizedSelection;
                     }
@@ -116,16 +134,17 @@ namespace Prometheus.Execution
         }
 
         private IEnumerable<IOptimizedSelection> ResolveFragmentSpread(
+            NamedType namedType,
             FragmentSpread fragmentSpread,
             NamedType typeCondition)
         {
             FragmentDefinition fragmentDefinition = _operationContext.QueryDocument
-               .Fragments[fragmentSpread.Name]
-               .FirstOrDefault(t => t.TypeCondition.Equals(typeCondition));
+                .GetFragment(fragmentSpread.Name, typeCondition);
 
             if (fragmentDefinition != null)
             {
-                return ResolveSelections(fragmentDefinition.SelectionSet, typeCondition);
+                return ResolveSelections(namedType,
+                    fragmentDefinition.SelectionSet, typeCondition);
             }
 
             return Enumerable.Empty<IOptimizedSelection>();
@@ -148,12 +167,36 @@ namespace Prometheus.Execution
 
             if (TypeName.IsTypeName(_selectionContext.Field.Name))
             {
-                return new ResolverDelegate((ctx, ct) => 
+                return new ResolverDelegate((ctx, ct) =>
                     Task.FromResult<object>(_selectionContext.TypeDefinition.Name));
             }
 
             var memberResolver = new DynamicMemberResolver(FieldDefinition.Name);
             return new ResolverDelegate((ctx, ct) => memberResolver.ResolveAsync(ctx, ct));
+        }
+
+        private bool IsImplementationOf(IType interfaceType, IType objectType)
+        {
+            if (IsInterface(interfaceType))
+            {
+                if (_operationContext.Schema.ObjectTypes.TryGetValue(
+                    interfaceType.TypeName(), out var objectTypeDefinition))
+                {
+                    return objectTypeDefinition.Interfaces
+                        .Contains(interfaceType.TypeName());
+                }
+            }
+            return false;
+        }
+
+        public bool IsInterface(IType type)
+        {
+            return _operationContext.Schema.InterfaceTypes.ContainsKey(type.TypeName());
+        }
+
+        public bool IsSameType(IType x, IType y)
+        {
+            return string.Equals(x.ToString(), y.ToString(), StringComparison.Ordinal);
         }
     }
 }
