@@ -6,6 +6,7 @@ using Xunit;
 namespace Prometheus.Validation
 {
     public class QueryOperationValidationTests
+        : QueryValidationTestBase
     {
         [Fact]
         public void OperationNameUniquenessRule_NameIsUnique_Success()
@@ -164,18 +165,6 @@ namespace Prometheus.Validation
                         + "more than one operation.",
                         ((ErrorResult)t).Message);
                 });
-        }
-
-        private ISchemaDocument CreateSchema()
-        {
-            SchemaDocumentReader schemaReader = new SchemaDocumentReader();
-            return schemaReader.Read(Schemas.Default);
-        }
-
-        private IQueryDocument ParseQuery(string query)
-        {
-            QueryDocumentReader queryReader = new QueryDocumentReader();
-            return queryReader.Read(query);
         }
     }
 }
