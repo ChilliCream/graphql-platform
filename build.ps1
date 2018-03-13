@@ -78,7 +78,7 @@ if ($EnableSonar) {
 
 if ($Publish) {
     $dropRootDirectory = Join-Path -Path $PSScriptRoot -ChildPath "drop"
-    $packageFilter = "$dropRootDirectory/*.nupkg"
+    $packageFilter = "$dropRootDirectory\*.nupkg"
 
     if ($env:PreVersion) {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix
