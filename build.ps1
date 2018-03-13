@@ -11,6 +11,18 @@ if ($version -ne $null) {
     $env:Version = $version
 }
 
+if ($env:Version.Contains("-")) {
+    $index = $env:Version.IndexOf("-");
+    $env:VersionPrefix = $env:Version.Substring(0, $index)
+    $env:VersionSuffix = $env:Version.Substring($index + 1)
+    $env:PreVersion = $true
+}
+else {
+    $env:VersionPrefix = $env:Version
+    $env:VersionSuffix = $null
+    $env:PreVersion = $false
+}
+
 if ($EnableSonar) {
 
 }
@@ -65,5 +77,15 @@ if ($EnableSonar) {
 }
 
 if ($Publish) {
-     
+    $dropRootDirectory = Join-Path -Path $PSScriptRoot -ChildPath "drop"
+    $packageFilter = "$dropRootDirectory/*.nupkg"
+
+    if ($env:PreVersion) {
+        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix
+    }
+    else {
+        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix
+    }
+    
+    dotnet nuget push $packageFilter -s https://api.nuget.org/v3/index.json -k $env:NUGET_APIKEY
 }
