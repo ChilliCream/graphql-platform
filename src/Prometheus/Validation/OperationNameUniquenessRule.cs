@@ -5,7 +5,7 @@ using Prometheus.Abstractions;
 
 namespace Prometheus.Validation
 {
-    public class OperationNameIsNotUnique
+    public class OperationNameUniquenessRule
         : IQueryValidationRule
     {
         public string Code { get; } = "Q5111";
