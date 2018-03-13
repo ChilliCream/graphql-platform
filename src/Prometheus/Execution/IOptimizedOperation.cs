@@ -8,7 +8,7 @@ namespace Prometheus.Execution
     public interface IOptimizedOperation
     {
         ISchema Schema { get; }
-        QueryDocument QueryDocument { get; }
+        IQueryDocument QueryDocument { get; }
         OperationDefinition Operation { get; }
         IReadOnlyCollection<IOptimizedSelection> Selections { get; }
 

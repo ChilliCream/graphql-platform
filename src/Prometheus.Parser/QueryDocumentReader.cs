@@ -5,7 +5,7 @@ namespace Prometheus.Parser
     public class QueryDocumentReader
         : IQueryDocumentReader
     {
-        public QueryDocument Read(string query)
+        public IQueryDocument Read(string query)
         {
             if (query == null)
             {

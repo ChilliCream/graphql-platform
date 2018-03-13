@@ -15,12 +15,12 @@ namespace Prometheus.Parser.Tests
 
             // act
             QueryDocumentReader reader = new QueryDocumentReader();
-            QueryDocument queryDocument = reader.Read(query);
+            IQueryDocument queryDocument = reader.Read(query);
 
             // assert
-            Assert.Equal(1, queryDocument.Operations.Count);
+            Assert.Equal(1, queryDocument.OfType<OperationDefinition>().Count());
 
-            OperationDefinition operation = queryDocument.Operations.Values.First();
+            OperationDefinition operation = queryDocument.GetOperation(null);
             Assert.Equal(1, operation.SelectionSet.Count);
 
             Field queryField = operation.SelectionSet.OfType<Field>().First();
@@ -43,12 +43,12 @@ namespace Prometheus.Parser.Tests
 
             // act
             QueryDocumentReader reader = new QueryDocumentReader();
-            QueryDocument queryDocument = reader.Read(query);
+            IQueryDocument queryDocument = reader.Read(query);
 
             // assert
-            Assert.Equal(1, queryDocument.Operations.Count);
+             Assert.Equal(1, queryDocument.OfType<OperationDefinition>().Count());
 
-            OperationDefinition operation = queryDocument.Operations.Values.First();
+            OperationDefinition operation = queryDocument.GetOperation(null);
             Assert.Equal(1, operation.VariableDefinitions.Count);
             Assert.Equal(1, operation.SelectionSet.Count);
 

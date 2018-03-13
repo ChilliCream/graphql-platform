@@ -5,6 +5,6 @@ namespace Prometheus.Parser
 {
     public interface IQueryDocumentReader
     {
-        QueryDocument Read(string query);
+        IQueryDocument Read(string query);
     }
 }

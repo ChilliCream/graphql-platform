@@ -13,14 +13,11 @@ namespace Prometheus.Execution
     public class DocumentExecuter
         : IDocumentExecuter
     {
-        private readonly object _sync = new object();
         private readonly QueryDocumentReader _queryDocumentReader = new QueryDocumentReader();
+        private readonly ICache<string, IQueryDocument> _cache = new Cache<string, IQueryDocument>();
 
         private readonly IOperationOptimizer _operationOptimizer;
         private readonly IOperationExecuter _operationExecuter;
-
-        private ImmutableDictionary<string, QueryDocument> _cache = ImmutableDictionary<string, QueryDocument>.Empty;
-        private LinkedList<string> _cachedQueries = new LinkedList<string>();
 
         public DocumentExecuter()
             : this(DefaultServiceProvider.Instance)
@@ -29,18 +26,23 @@ namespace Prometheus.Execution
 
         public DocumentExecuter(IServiceProvider serviceProvider)
         {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
             _operationOptimizer = new OperationOptimizer();
             _operationExecuter = new OperationExecuter(serviceProvider);
         }
 
         public async Task<QueryResult> ExecuteAsync(
-            ISchema schema, string query,
-            string operationName, IDictionary<string, object> variableValues,
+            ISchema schema, string query, string operationName,
+            IDictionary<string, object> variableValues,
             object initialValue, CancellationToken cancellationToken)
         {
             try
             {
-                QueryDocument document = ParseQueryDocument(query);
+                IQueryDocument document = ParseQueryDocument(query);
 
                 IOptimizedOperation operation = _operationOptimizer
                     .Optimize(schema, document, operationName);
@@ -59,28 +61,11 @@ namespace Prometheus.Execution
             }
         }
 
-        private QueryDocument ParseQueryDocument(string query)
+        private IQueryDocument ParseQueryDocument(string query)
         {
             string normalizedQuery = NormalizeQuery(query);
-
-            if (!_cache.TryGetValue(normalizedQuery, out var queryDocument))
-            {
-                lock (_sync)
-                {
-                    queryDocument = _queryDocumentReader.Read(query);
-
-                    _cache = _cache.SetItem(normalizedQuery, queryDocument);
-                    _cachedQueries.AddFirst(normalizedQuery);
-
-                    if (_cachedQueries.Count > 100)
-                    {
-                        _cache = _cache.Remove(_cachedQueries.Last.Value);
-                        _cachedQueries.RemoveLast();
-                    }
-                }
-            }
-
-            return queryDocument;
+            return _cache.GetOrCreate(normalizedQuery,
+                () => _queryDocumentReader.Read(query));
         }
 
         private string NormalizeQuery(string query)

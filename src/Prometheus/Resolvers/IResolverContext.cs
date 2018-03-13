@@ -15,7 +15,7 @@ namespace Prometheus.Resolvers
         FieldDefinition FieldDefinition { get; }
 
         // query context
-        QueryDocument QueryDocument { get; }
+        IQueryDocument QueryDocument { get; }
 
         OperationDefinition OperationDefinition { get; }
 

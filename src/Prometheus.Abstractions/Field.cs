@@ -7,6 +7,7 @@ namespace Prometheus.Abstractions
 {
     public class Field
         : ISelection
+        , IHasSelectionSet
     {
         private string _stringRepresentation;
 

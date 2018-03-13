@@ -8,6 +8,9 @@ namespace Prometheus.Execution
 {
     public interface IOperationOptimizer
     {
-        IOptimizedOperation Optimize(ISchema schema, QueryDocument queryDocument, string operationName);
+        IOptimizedOperation Optimize(
+            ISchema schema,
+            IQueryDocument queryDocument,
+            string operationName);
     }
 }

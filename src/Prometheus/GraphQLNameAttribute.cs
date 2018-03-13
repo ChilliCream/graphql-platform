@@ -2,7 +2,7 @@ using System;
 
 namespace Prometheus
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public sealed class GraphQLNameAttribute
         : Attribute
     {

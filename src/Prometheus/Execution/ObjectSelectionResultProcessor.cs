@@ -30,7 +30,7 @@ namespace Prometheus.Execution
             Dictionary<string, object> map = new Dictionary<string, object>();
             selectionTask.IntegrateResult(map);
 
-            IType type = selectionTask.Context.Schema.InferType(
+            IType type = selectionTask.Context.Schema.ResolveAbstractType(
                 selectionTask.Selection.TypeDefinition,
                 selectionTask.Selection.FieldDefinition,
                 result);

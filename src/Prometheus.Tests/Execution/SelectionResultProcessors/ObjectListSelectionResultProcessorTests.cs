@@ -152,7 +152,7 @@ namespace Prometheus.Execution.SelectionResultProcessors
         private IResolveSelectionTask CreateSelectionTaskMock(object input, NamedType type, Action<object> resultIntegratedCallback)
         {
             Mock<ISchema> schema = new Mock<ISchema>(MockBehavior.Strict);
-            schema.Setup(t => t.InferType(It.IsAny<ObjectTypeDefinition>(),
+            schema.Setup(t => t.ResolveAbstractType(It.IsAny<ObjectTypeDefinition>(),
                 It.IsAny<FieldDefinition>(), It.IsAny<object>()))
                 .Returns(type);
 
