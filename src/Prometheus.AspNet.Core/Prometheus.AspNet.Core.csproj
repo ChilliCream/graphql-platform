@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Prometheus.AspNet</RootNamespace>
+    <AssemblyName>Prometheus.AspNet.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.1.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />   
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Prometheus\Prometheus.csproj" />
+    <ProjectReference Include="..\Prometheus.Abstractions\Prometheus.Abstractions.csproj" />
+    <ProjectReference Include="..\Prometheus.Parser\Prometheus.Parser.csproj" />
+  </ItemGroup>
+</Project>

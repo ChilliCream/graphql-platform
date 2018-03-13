@@ -1,0 +1,56 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Prometheus.Resolvers;
+
+namespace Prometheus.Execution
+{
+    internal class ScalarListSelectionResultProcessor
+        : ISelectionResultProcessor
+    {
+        public IEnumerable<IResolveSelectionTask> Process(IResolveSelectionTask selectionTask)
+        {
+            if (selectionTask == null)
+            {
+                throw new ArgumentNullException(nameof(selectionTask));
+            }
+
+            object result = selectionTask.Result;
+            if (result is Func<object> f)
+            {
+                result = f();
+            }
+
+            if (result == null)
+            {
+                selectionTask.IntegrateResult(null);
+                yield break;
+            }
+
+            if (!IsValueType(result) && result is IEnumerable<object> eno)
+            {
+                selectionTask.IntegrateResult(eno.ToArray());
+            }
+            else if (!IsValueType(result) && result is IEnumerable en)
+            {
+                selectionTask.IntegrateResult(en.Cast<object>().ToArray());
+            }
+            else
+            {
+                selectionTask.IntegrateResult(new[] { result });
+            }
+        }
+
+        private static bool IsValueType(object result)
+        {
+            if (result is string)
+            {
+                return true;
+            }
+            return result.GetType().IsValueType;
+        }
+
+        internal static ScalarListSelectionResultProcessor Default { get; } = new ScalarListSelectionResultProcessor();
+    }
+}
