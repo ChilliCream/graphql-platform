@@ -49,7 +49,7 @@ namespace GraphQL.TestService
                 }
 
                 type Query {
-                    c: Z!
+                    c(x: String): Z!
                 }
                 ",
                 ConfigureResolvers

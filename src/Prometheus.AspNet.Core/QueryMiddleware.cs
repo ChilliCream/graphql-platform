@@ -64,11 +64,9 @@ namespace Prometheus.AspNet
             QueryRequest request = await ReadRequestAsync(context.Request)
                 .ConfigureAwait(false);
 
-            Dictionary<string, object> variables = ReadVariables(request);
-
             QueryResult result = await documentExecuter.ExecuteAsync(
                 schema, request.Query, request.OperationName,
-                variables, null, CancellationToken.None)
+                request.Variables, null, CancellationToken.None)
                 .ConfigureAwait(false);
 
             await WriteResponseAsync(context.Response, result)
@@ -102,10 +100,5 @@ namespace Prometheus.AspNet
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
         }
-
-        private Dictionary<string, object> ReadVariables(QueryRequest request)
-            => string.IsNullOrEmpty(request.Variables)
-                ? null
-                : JsonConvert.DeserializeObject<Dictionary<string, object>>(request.Query);
     }
 }
