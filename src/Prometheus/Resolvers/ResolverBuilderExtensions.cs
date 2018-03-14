@@ -481,6 +481,7 @@ namespace Prometheus.Resolvers
 
         private static void AddResolverType<T>(IResolverBuilder resolverBuilder,
             string typeName, T resolverTypeInstance)
+            where T : class
         {
             resolverBuilder.Add((s, sp, reg) =>
             {
