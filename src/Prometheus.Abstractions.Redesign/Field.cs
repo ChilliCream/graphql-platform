@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Prometheus.Resolvers;
 
 namespace Prometheus.Types
 {
@@ -22,7 +23,7 @@ namespace Prometheus.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.",
+                    "A field name must not be null or empty.",
                     nameof(config));
             }
 

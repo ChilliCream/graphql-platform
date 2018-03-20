@@ -33,13 +33,20 @@ namespace Prometheus.Types
                 throw new ArgumentNullException(nameof(config));
             }
 
+            if (string.IsNullOrEmpty(config.Name))
+            {
+                throw new ArgumentException(
+                    "A type name must not be null or empty.",
+                    nameof(config));
+            }
+
             _config = config;
             Name = config.Name;
             Description = config.Description;
         }
 
         public string Name { get; }
-        
+
         public string Description { get; }
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces
@@ -61,22 +68,20 @@ namespace Prometheus.Types
         {
             get
             {
-                if()
+                if (_fields == null)
+                {
+                    var fields = _config.Fields();
+                    if (fields == null)
+                    {
+                        throw new InvalidOperationException(
+                            "The fields collection mustn't be null.");
+                    }
+                    _fields = fields.ToDictionary(t => t.Name);
+                }
+                return _fields;
             }
         }
     }
-
-    /*
-
-        name: string,
-          description?: ?string,
-        
-          interfaces?: Thunk<?Array<GraphQLInterfaceType>>,
-          fields: Thunk<GraphQLFieldConfigMap<TSource, TContext>>,
-          isTypeOf?: ?GraphQLIsTypeOfFn<TSource, TContext>,
-          astNode?: ?ObjectTypeDefinitionNode,
-          extensionASTNodes?: ?$ReadOnlyArray<ObjectTypeExtensionNode>,
-         */
 
     public class ObjectTypeConfig
     {
@@ -88,20 +93,4 @@ namespace Prometheus.Types
 
         public Func<IEnumerable<Field>> Fields { get; set; }
     }
-
-    public class InterfaceType
-    {
-        public string Name { get; internal set; }
-    }
-
-
-    public interface IFieldCollection
-        : IReadOnlyCollection<Field>
-    {
-        Field GetField(stirng name);
-        bool ContainsField(string name);
-    }
-
-
-
 }
