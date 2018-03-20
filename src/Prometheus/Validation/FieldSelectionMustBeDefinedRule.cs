@@ -4,6 +4,7 @@ using Prometheus.Abstractions;
 
 namespace Prometheus.Validation
 {
+    /*
     public class FieldSelectionMustBeDefinedRule
         : IQueryValidationRule
     {
@@ -118,4 +119,5 @@ namespace Prometheus.Validation
                 $"The field \"{fieldName}\" does not exist on {fieldName}.");
         }
     }
+     */
 }
