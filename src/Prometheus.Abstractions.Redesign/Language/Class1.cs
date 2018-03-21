@@ -3,60 +3,152 @@
 namespace Prometheus.Language
 {
 
-}
+    public interface ISyntaxNode
+    {
+        NodeKind Kind { get; }
+        Location Location { get; }
+    }
+
+    public class Token
+    {
+
+    }
+
+    public class Source { }
+
+    public class Location
+    {
+        /// <summary>
+        /// Gets the character offset at which this <see cref="ISyntaxNode" /> begins.
+        /// </summary>
+        public int Start { get; }
+
+        /// <summary>
+        /// Gets the character offset at which this <see cref="ISyntaxNode" /> ends.
+        /// </summary>
+        public int End { get; }
 
 
-// Name
+        /// <summary>
+        /// Gets the <see cref="Token" /> at which this <see cref="ISyntaxNode" /> begins.
+        /// </summary>
+        public Token StartToken { get; }
 
-export type NameNode = {
-  +kind: 'Name',
-  +loc?: Location,
-  +value: string,
-};
+        /// <summary>
+        /// Gets the <see cref="Token" /> at which this <see cref="ISyntaxNode" /> ends.
+        /// </summary>
+        public Token EndToken { get; }
 
-// Document
+        /// <summary>
+        /// Gets the <see cref="Source" /> document the AST represents.
+        /// </summary>
+        /// <returns></returns>
+        public Source Source { get; }
 
-export type DocumentNode = {
-  +kind: 'Document',
-  +loc?: Location,
-  +definitions: $ReadOnlyArray<DefinitionNode>,
-};
+    }
 
-export type DefinitionNode =
-  | ExecutableDefinitionNode
-  | TypeSystemDefinitionNode; // experimental non-spec addition.
 
-export type ExecutableDefinitionNode =
-  | OperationDefinitionNode
-  | FragmentDefinitionNode;
+    public enum NodeKind
+    {
+        Name,
+        Document,
+        OperationDefinition,
+        VariableDefinition,
+        Variable,
+        SelectionSet
+    }
 
-export type OperationDefinitionNode = {
-  +kind: 'OperationDefinition',
-  +loc?: Location,
-  +operation: OperationTypeNode,
-  +name?: NameNode,
-  +variableDefinitions?: $ReadOnlyArray<VariableDefinitionNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +selectionSet: SelectionSetNode,
-};
+    public class NameNode
+        : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.Name;
+        public Location Location { get; }
+        public string Value { get; }
+    }
 
-export type OperationTypeNode = 'query' | 'mutation' | 'subscription';
+    // Document
 
-export type VariableDefinitionNode = {
-  +kind: 'VariableDefinition',
-  +loc?: Location,
-  +variable: VariableNode,
-  +type: TypeNode,
-  +defaultValue?: ValueNode,
-};
+    public class DocumentNode
+        : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.Document;
+        public Location Location { get; }
+        public IReadOnlyCollection<IExecutableDefinitionNode> Definitions { get; }
+    }
 
-export type VariableNode = {
-  +kind: 'Variable',
-  +loc?: Location,
-  +name: NameNode,
-};
+    public interface IExecutableDefinitionNode
+        : ISyntaxNode
+    {
+        NameNode Name { get; }
+    }
 
-export type SelectionSetNode = {
+    public enum OperationTypeNode
+    {
+        Query,
+        Mutation,
+        Subscription
+    }
+
+    public class OperationDefinitionNode
+        : IExecutableDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.OperationDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public OperationTypeNode Operation { get; }
+        public IReadOnlyCollection<VariableDefinitionNode> VariableDefinitions { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public SelectionSetNode SelectionSet { get; }
+    }
+
+
+    public class VariableDefinitionNode
+        : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.VariableDefinition;
+        public Location Location { get; }
+        public VariableNode Variable { get; }
+        public TypeNode Type { get; }
+        public ValueNode DefaultValue { get; }
+    }
+
+    public class DirectiveNode
+    {
+
+    }
+
+    public class SelectionSetNode
+        : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.SelectionSet;
+        public IReadOnlyCollection<ISelectionNode> Selections { get; }
+    }
+
+    public class VariableNode
+        : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.Variable;
+        public Location Location { get; }
+        public NameNode Name { get; }
+    }
+
+    public class TypeNode
+    {
+
+    }
+
+    public class ValueNode
+    {
+
+    }
+
+    public interface ISelectionNode
+        : ISyntaxNode
+    {
+
+    }
+
+    export type SelectionSetNode = {
   kind: 'SelectionSet',
   loc?: Location,
   selections: $ReadOnlyArray<SelectionNode>,
