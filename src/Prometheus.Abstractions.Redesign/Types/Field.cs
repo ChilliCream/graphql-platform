@@ -10,7 +10,7 @@ namespace Prometheus.Types
     {
         private readonly FieldConfig _config;
         private IOutputType _type;
-        private IReadOnlyDictionary<string, InputValue> _arguments;
+        private IReadOnlyDictionary<string, InputField> _arguments;
         private FieldResolverDelegate _resolver;
 
         public Field(FieldConfig config)
@@ -53,7 +53,7 @@ namespace Prometheus.Types
             }
         }
 
-        public IReadOnlyDictionary<string, InputValue> Arguments
+        public IReadOnlyDictionary<string, InputField> Arguments
         {
             get
             {
@@ -61,7 +61,7 @@ namespace Prometheus.Types
                 {
                     var arguments = _config.Arguments();
                     _arguments = (arguments == null)
-                        ? new Dictionary<string, InputValue>()
+                        ? new Dictionary<string, InputField>()
                         : _config.Arguments().ToDictionary(t => t.Name);
                 }
                 return _arguments;
@@ -89,7 +89,7 @@ namespace Prometheus.Types
 
         public Func<IOutputType> Type { get; set; }
 
-        public Func<IEnumerable<InputValue>> Arguments { get; set; }
+        public Func<IEnumerable<InputField>> Arguments { get; set; }
 
         public Func<FieldResolverDelegate> Resolver { get; set; }
     }

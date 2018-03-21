@@ -10,7 +10,7 @@ namespace Prometheus.Types
         , INullableType
     {
         private readonly InputObjectTypeConfig _config;
-        public Dictionary<string, InputValue> _fields;
+        public Dictionary<string, InputField> _fields;
 
         public InputObjectType(InputObjectTypeConfig config)
         {
@@ -35,7 +35,7 @@ namespace Prometheus.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, InputValue> Fields
+        public IReadOnlyDictionary<string, InputField> Fields
         {
             get
             {
@@ -60,6 +60,6 @@ namespace Prometheus.Types
 
         public string Description { get; set; }
 
-        public Func<IEnumerable<InputValue>> Fields { get; }
+        public Func<IEnumerable<InputField>> Fields { get; }
     }
 }
