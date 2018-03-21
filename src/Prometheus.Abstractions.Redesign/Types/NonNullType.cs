@@ -11,12 +11,14 @@ namespace Prometheus.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsNonNullType())
+            if (!(type is INullableType))
             {
                 throw new ArgumentException(
-                    "A non null type cannot be the inner type of a non null type.",
+                    "The inner type of non-null type must be a nullable type",
                     nameof(type));
             }
+
+            Type = type;
         }
 
         public IType Type { get; }

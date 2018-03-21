@@ -9,6 +9,8 @@ namespace Prometheus.Types
     public class ScalarType
         : IOutputType
         , IInputType
+        , INamedType
+        , INullableType
     {
         private readonly ScalarTypeConfig _config;
         private readonly SerializeValue _serialize;

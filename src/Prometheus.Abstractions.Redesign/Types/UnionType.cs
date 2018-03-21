@@ -8,6 +8,7 @@ namespace Prometheus.Types
     public class UnionType
         : IOutputType
         , INamedType
+        , INullableType
     {
         private readonly UnionTypeConfig _config;
         private readonly ResolveType _typeResolver;

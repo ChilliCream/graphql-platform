@@ -18,7 +18,7 @@ namespace Prometheus.Types
                     nameof(config));
             }
 
-            if (Value == null)
+            if (config.Value == null)
             {
                 throw new ArgumentException(
                     "The inner value of enum value cannot be null or empty.",

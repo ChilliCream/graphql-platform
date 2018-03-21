@@ -10,6 +10,8 @@ namespace Prometheus.Types
 {
     public class ObjectType
         : IOutputType
+        , INamedType
+        , INullableType
     {
         private readonly ObjectTypeConfig _config;
         private readonly IsOfType _isOfType;

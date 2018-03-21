@@ -5,6 +5,7 @@ namespace Prometheus.Types
     public class ListType
         : IOutputType
         , IInputType
+        , INullableType
     {
         public ListType(IType elementType)
         {

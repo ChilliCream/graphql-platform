@@ -7,11 +7,12 @@ namespace Prometheus.Types
 {
     public class InterfaceType
         : IOutputType
+        , INamedType
+        , INullableType
     {
         private readonly InterfaceTypeConfig _config;
         private readonly ResolveType _typeResolver;
         private IReadOnlyDictionary<string, Field> _fields;
-
 
         public InterfaceType(InterfaceTypeConfig config)
         {
