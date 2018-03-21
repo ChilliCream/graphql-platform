@@ -42,6 +42,7 @@ namespace Prometheus.Language
         UnionTypeExtension,
         EnumTypeExtension,
         InputObjectTypeExtension,
-        DirectiveDefinition
+        DirectiveDefinition,
+        FloatValue
     }
 }
