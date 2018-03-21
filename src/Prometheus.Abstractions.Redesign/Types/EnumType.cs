@@ -5,6 +5,8 @@ using System.Linq;
 namespace Prometheus.Types
 {
     public class EnumType
+        : IOutputType
+        , IInputType
     {
         private readonly EnumTypeConfig _config;
         private readonly ParseLiteral _parseLiteral;

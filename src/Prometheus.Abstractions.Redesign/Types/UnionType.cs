@@ -6,6 +6,7 @@ using Prometheus.Resolvers;
 namespace Prometheus.Types
 {
     public class UnionType
+        : IOutputType
     {
         private readonly UnionTypeConfig _config;
         private readonly ResolveType _typeResolver;

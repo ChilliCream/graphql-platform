@@ -7,6 +7,8 @@ namespace Prometheus.Types
     public delegate object GetVariableValue(string variableName);
 
     public class ScalarType
+        : IOutputType
+        , IInputType
     {
         private readonly ScalarTypeConfig _config;
         private readonly SerializeValue _serialize;
