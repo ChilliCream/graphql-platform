@@ -5,12 +5,12 @@ namespace Prometheus.Types
     public delegate string SerializeValue(object value);
     public delegate object ParseLiteral(IValue value, GetVariableValue getVariableValue);
     public delegate object GetVariableValue(string variableName);
-    
+
     public class ScalarType
     {
-        private ScalarTypeConfig _config;
-        public readonly SerializeValue _serialize;
-        public readonly ParseLiteral _parseLiteral;
+        private readonly ScalarTypeConfig _config;
+        private readonly SerializeValue _serialize;
+        private readonly ParseLiteral _parseLiteral;
 
         public ScalarType(ScalarTypeConfig config)
         {
@@ -37,13 +37,6 @@ namespace Prometheus.Types
 
         public string Description { get; }
 
-        /*
-        TODO : Docu
-   serialize: gets invoked when serializing the result to send it back to a client.
-   parseValue: gets invoked to parse client input that was passed through variables.
-   parseLiteral: gets invoked to parse client input that was passed inline in the query.
-    */
-
         // .net native to external  
         public string Serialize(object value)
         {
@@ -67,22 +60,6 @@ namespace Prometheus.Types
         }
     }
 
-    /*
-    
-    export type GraphQLScalarTypeConfig<TInternal, TExternal> = {
-  name: string,
-  description?: ?string,
-  astNode?: ?ScalarTypeDefinitionNode,
-  serialize: (value: mixed) => ?TExternal,
-  parseValue?: (value: mixed) => ?TInternal,
-  parseLiteral?: (
-    valueNode: ValueNode,
-    variables: ?ObjMap<mixed>,
-  ) => ?TInternal,
-};
-    
-     */
-
     public class ScalarTypeConfig
     {
         public string Name { get; set; }
@@ -90,6 +67,7 @@ namespace Prometheus.Types
         public string Description { get; set; }
 
         public SerializeValue Serialize { get; set; }
+        
         public ParseLiteral ParseLiteral { get; set; }
     }
 }

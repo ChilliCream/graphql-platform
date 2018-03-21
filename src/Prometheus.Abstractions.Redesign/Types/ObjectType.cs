@@ -7,18 +7,6 @@ using System.Threading.Tasks;
 
 namespace Prometheus.Types
 {
-
-    /*
-
-    name: string,
-      interfaces?: Thunk<?Array<GraphQLInterfaceType>>,
-      fields: Thunk<GraphQLFieldConfigMap<TSource, TContext>>,
-      isTypeOf?: ?GraphQLIsTypeOfFn<TSource, TContext>,
-      description?: ?string,
-      astNode?: ?ObjectTypeDefinitionNode,
-      extensionASTNodes?: ?$ReadOnlyArray<ObjectTypeExtensionNode>,
-     */
-
     public class ObjectType
         : IOutputType
     {

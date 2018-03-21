@@ -9,7 +9,7 @@ namespace Prometheus.Types
     public class Field
     {
         private readonly FieldConfig _config;
-        private ObjectType _type;
+        private IOutputType _type;
         private IReadOnlyDictionary<string, InputValue> _arguments;
         private FieldResolverDelegate _resolver;
 
@@ -36,7 +36,7 @@ namespace Prometheus.Types
 
         public string Description { get; }
 
-        public ObjectType Type
+        public IOutputType Type
         {
             get
             {
@@ -87,7 +87,7 @@ namespace Prometheus.Types
 
         public string Description { get; set; }
 
-        public Func<ObjectType> Type { get; set; }
+        public Func<IOutputType> Type { get; set; }
 
         public Func<IEnumerable<InputValue>> Arguments { get; set; }
 
