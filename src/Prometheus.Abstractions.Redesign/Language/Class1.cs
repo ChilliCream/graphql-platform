@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Prometheus.Language
 {
@@ -70,7 +71,19 @@ namespace Prometheus.Language
         ObjectValue,
         ObjectField,
         Directive,
-        NamedType
+        NamedType,
+        ListType,
+        NonNullType,
+        SchemaDefinition,
+        OperationTypeDefinition,
+        ScalarTypeDefinition,
+        ObjectTypeDefinition,
+        FieldDefinition,
+        InputValueDefinition,
+        InterfaceTypeDefinition,
+        UnionTypeDefinition,
+        EnumTypeDefinition,
+        EnumValueDefinition
     }
 
     public class NameNode
@@ -209,7 +222,7 @@ namespace Prometheus.Language
     }
 
     public class NamedTypeNode
-      : ITypeNode
+      : INullableType
     {
         public NodeKind Kind { get; } = NodeKind.NamedType;
         public Location Location { get; }
@@ -300,146 +313,188 @@ namespace Prometheus.Language
         public IValueNode Value { get; }
     }
 
+    public interface INullableType
+      : ITypeNode
+    { }
 
-    export type ITypeNode = NamedTypeNode | ListTypeNode | NonNullTypeNode;
+    public class ListTypeNode
+      : INullableType
+    {
+        public NodeKind Kind { get; } = NodeKind.ListType;
+        public Location Location { get; }
+        public ITypeNode Type { get; }
+    }
+
+    public class NonNullTypeNode
+      : ITypeNode
+    {
+        public NodeKind Kind { get; } = NodeKind.NonNullType;
+        public Location Location { get; }
+        public INullableType Type { get; }
+    }
+
+
+    public interface ITypeSystemDefinitionNode
+      : ISyntaxNode
+    {
+
+    }
 
 
 
-export type NamedTypeNode = {
-  +kind: 'NamedType',
-  +loc?: Location,
-  +name: NameNode,
-};
+    // Type System Definition
 
-export type ListTypeNode = {
-  +kind: 'ListType',
-  +loc?: Location,
-  +type: TypeNode,
-};
-
-export type NonNullTypeNode = {
-  +kind: 'NonNullType',
-  +loc?: Location,
-  +type: NamedTypeNode | ListTypeNode,
-};
-
-// Type System Definition
-
-export type TypeSystemDefinitionNode =
-  | SchemaDefinitionNode
-  | TypeDefinitionNode
+    export type TypeSystemDefinitionNode =
   | TypeExtensionNode
   | DirectiveDefinitionNode;
 
-export type SchemaDefinitionNode = {
-  +kind: 'SchemaDefinition',
-  +loc?: Location,
-  +directives: $ReadOnlyArray<DirectiveNode>,
-  +operationTypes: $ReadOnlyArray<OperationTypeDefinitionNode>,
-};
 
-export type OperationTypeDefinitionNode = {
-  +kind: 'OperationTypeDefinition',
-  +loc?: Location,
-  +operation: OperationTypeNode,
-  +type: NamedTypeNode,
-};
 
-// Type Definition
+    public class SchemaDefinitionNode
+      : ITypeSystemDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.SchemaDefinition;
+        public Location Location { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<OperationTypeDefinitionNode> OperationTypes { get; }
+    }
 
-export type TypeDefinitionNode =
-  | ScalarTypeDefinitionNode
-  | ObjectTypeDefinitionNode
-  | InterfaceTypeDefinitionNode
-  | UnionTypeDefinitionNode
-  | EnumTypeDefinitionNode
-  | InputObjectTypeDefinitionNode;
+    public class OperationTypeDefinitionNode
+      : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.OperationTypeDefinition;
+        public Location Location { get; }
+        public OperationTypeNode Operation { get; }
+        public NamedTypeNode Type { get; }
+    }
 
-export type ScalarTypeDefinitionNode = {
-  +kind: 'ScalarTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-};
 
-export type ObjectTypeDefinitionNode = {
-  +kind: 'ObjectTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +interfaces?: $ReadOnlyArray<NamedTypeNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +fields?: $ReadOnlyArray<FieldDefinitionNode>,
-};
 
-export type FieldDefinitionNode = {
-  +kind: 'FieldDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +arguments?: $ReadOnlyArray<InputValueDefinitionNode>,
-  +type: TypeNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-};
 
-export type InputValueDefinitionNode = {
-  +kind: 'InputValueDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +type: TypeNode,
-  +defaultValue?: ValueNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-};
+    // Type Definition
 
-export type InterfaceTypeDefinitionNode = {
-  +kind: 'InterfaceTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +fields?: $ReadOnlyArray<FieldDefinitionNode>,
-};
+    public interface ITypeDefinitionNode
+      : ITypeSystemDefinitionNode
+    {
+        NameNode Name { get; }
+        StringValueNode Description { get; }
+        IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
 
-export type UnionTypeDefinitionNode = {
-  +kind: 'UnionTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +types?: $ReadOnlyArray<NamedTypeNode>,
-};
 
-export type EnumTypeDefinitionNode = {
-  +kind: 'EnumTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +values?: $ReadOnlyArray<EnumValueDefinitionNode>,
-};
+public class ScalarTypeDefinitionNode
+  : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.ScalarTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
 
-export type EnumValueDefinitionNode = {
-  +kind: 'EnumValueDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-};
+    public class ObjectTypeDefinitionNode
+  : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.ObjectTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<NamedTypeNode> Interfaces { get; }
+        public IReadOnlyCollection<FieldDefinitionNode> Fields { get; }
 
-export type InputObjectTypeDefinitionNode = {
-  +kind: 'InputObjectTypeDefinition',
-  +loc?: Location,
-  +description?: StringValueNode,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +fields?: $ReadOnlyArray<InputValueDefinitionNode>,
-};
+    }
 
-// Type Extensions
+    public class FieldDefinitionNode
+      : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.FieldDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
+        public ITypeNode Type { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
 
-export type TypeExtensionNode =
+    public class InputValueDefinitionNode
+       : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.InputValueDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public ITypeNode Type { get; }
+        public IValueNode Value { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
+
+    public class InterfaceTypeDefinitionNode
+     : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.InterfaceTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<FieldDefinitionNode> Fields { get; }
+
+    }
+
+    public class UnionTypeDefinitionNode
+      : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<NamedTypeNode> Types { get; }
+    }
+
+    public class EnumTypeDefinitionNode
+      : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.EnumTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<EnumValueDefinitionNode> Values { get; }
+    }
+
+    public class EnumValueDefinitionNode
+       : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.EnumValueDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
+
+
+    public class InputObjectTypeDefinitionNode
+  : ITypeDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.InputObjectTypeDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public StringValueNode Description { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<InputValueDefinitionNode> Fields { get; }
+
+    }
+
+    public interface ITypeExtensionNode
+      : ITypeSystemDefinitionNode
+    {
+
+    }
+
+    // Type Extensions
+
+    export type TypeExtensionNode =
   | ScalarTypeExtensionNode
   | ObjectTypeExtensionNode
   | InterfaceTypeExtensionNode
@@ -505,3 +560,6 @@ export type DirectiveDefinitionNode = {
   +arguments?: $ReadOnlyArray<InputValueDefinitionNode>,
   +locations: $ReadOnlyArray<NameNode>,
 };
+
+
+public class StringValueNode { }
