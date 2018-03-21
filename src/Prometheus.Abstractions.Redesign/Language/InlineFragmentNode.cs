@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class InlineFragmentNode
-         : ISelectionNode
+        : ISelectionNode
     {
         public NodeKind Kind { get; } = NodeKind.InlineFragment;
         public Location Location { get; }

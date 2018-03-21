@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class OperationTypeDefinitionNode
-      : ISyntaxNode
+        : ISyntaxNode
     {
         public NodeKind Kind { get; } = NodeKind.OperationTypeDefinition;
         public Location Location { get; }

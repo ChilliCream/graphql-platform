@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class FieldDefinitionNode
-      : ISyntaxNode
+        : ISyntaxNode
     {
         public NodeKind Kind { get; } = NodeKind.FieldDefinition;
         public Location Location { get; }

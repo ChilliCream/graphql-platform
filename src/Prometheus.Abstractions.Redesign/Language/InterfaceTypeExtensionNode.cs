@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class InterfaceTypeExtensionNode
-    : ITypeExtensionNode
+        : ITypeExtensionNode
     {
         public NodeKind Kind { get; } = NodeKind.InterfaceTypeExtension;
         public Location Location { get; }

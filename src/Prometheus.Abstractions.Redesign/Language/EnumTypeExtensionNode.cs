@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class EnumTypeExtensionNode
-      : ITypeDefinitionNode
+        : ITypeDefinitionNode
     {
         public NodeKind Kind { get; } = NodeKind.EnumTypeExtension;
         public Location Location { get; }

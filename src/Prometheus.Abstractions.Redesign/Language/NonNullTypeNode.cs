@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class NonNullTypeNode
-      : ITypeNode
+        : ITypeNode
     {
         public NodeKind Kind { get; } = NodeKind.NonNullType;
         public Location Location { get; }

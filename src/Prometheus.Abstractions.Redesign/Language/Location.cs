@@ -12,7 +12,6 @@ namespace Prometheus.Language
         /// </summary>
         public int End { get; }
 
-
         /// <summary>
         /// Gets the <see cref="Token" /> at which this <see cref="ISyntaxNode" /> begins.
         /// </summary>
@@ -28,6 +27,5 @@ namespace Prometheus.Language
         /// </summary>
         /// <returns></returns>
         public Source Source { get; }
-
     }
 }

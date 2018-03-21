@@ -2,8 +2,6 @@ using System.Collections.Generic;
 
 namespace Prometheus.Language
 {
-    // Document
-
     public class DocumentNode
         : ISyntaxNode
     {

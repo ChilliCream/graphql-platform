@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class FloatValueNode
-      : IValueNode
+        : IValueNode
     {
         public NodeKind Kind { get; } = NodeKind.IntValue;
         public Location Location { get; }

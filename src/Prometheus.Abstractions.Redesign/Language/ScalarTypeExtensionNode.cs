@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class ScalarTypeExtensionNode
-    : ITypeExtensionNode
+        : ITypeExtensionNode
     {
         public NodeKind Kind { get; } = NodeKind.ScalarTypeExtension;
         public Location Location { get; }

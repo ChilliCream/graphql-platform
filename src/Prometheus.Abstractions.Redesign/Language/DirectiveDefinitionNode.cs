@@ -9,7 +9,6 @@ namespace Prometheus.Language
         public Location Location { get; }
         public NameNode Name { get; }
         public StringValueNode Description { get; }
-
         public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
         public IReadOnlyCollection<NameNode> Locations { get; }
     }

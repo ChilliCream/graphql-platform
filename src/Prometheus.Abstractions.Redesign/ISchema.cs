@@ -21,11 +21,11 @@ namespace Prometheus
             throw new NotImplementedException();
         }
 
-        public new T GetType<T>(string name) where T : IType
+        public T GetType<T>(string name) where T : IType
         {
             throw new NotImplementedException();
         }
-        
+
         public IEnumerator<IType> GetEnumerator()
         {
             throw new NotImplementedException();

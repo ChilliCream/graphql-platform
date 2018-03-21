@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class UnionTypeDefinitionNode
-      : ITypeDefinitionNode
+        : ITypeDefinitionNode
     {
         public NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
         public Location Location { get; }

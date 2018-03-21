@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Prometheus.Language;
 
 namespace Prometheus.Types
 {
@@ -83,7 +84,7 @@ namespace Prometheus.Types
         }
 
         // ast node to .net native
-        public object ParseLiteral(IValue value, GetVariableValue getVariableValue)
+        public object ParseLiteral(IValueNode value, GetVariableValue getVariableValue)
         {
             if (value == null)
             {

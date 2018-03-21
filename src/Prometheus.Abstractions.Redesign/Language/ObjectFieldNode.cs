@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class ObjectFieldNode
-      : ISyntaxNode
+        : ISyntaxNode
     {
         public NodeKind Kind { get; } = NodeKind.ObjectField;
         public Location Location { get; }

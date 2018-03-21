@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class StringValueNode
-      : IValueNode
+        : IValueNode
     {
         public NodeKind Kind { get; } = NodeKind.StringValue;
         public Location Location { get; }

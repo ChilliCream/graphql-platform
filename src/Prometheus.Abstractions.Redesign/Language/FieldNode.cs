@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class FieldNode
-      : ISelectionNode
+        : ISelectionNode
     {
         public NodeKind Kind { get; } = NodeKind.Field;
         public Location Location { get; }

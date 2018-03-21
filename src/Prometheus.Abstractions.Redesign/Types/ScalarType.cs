@@ -1,9 +1,10 @@
 using System;
+using Prometheus.Language;
 
 namespace Prometheus.Types
 {
     public delegate string SerializeValue(object value);
-    public delegate object ParseLiteral(IValue value, GetVariableValue getVariableValue);
+    public delegate object ParseLiteral(IValueNode value, GetVariableValue getVariableValue);
     public delegate object GetVariableValue(string variableName);
 
     public class ScalarType
@@ -48,7 +49,7 @@ namespace Prometheus.Types
         }
 
         // ast node to .net native
-        public object ParseLiteral(IValue value, GetVariableValue getVariableValue)
+        public object ParseLiteral(IValueNode value, GetVariableValue getVariableValue)
         {
             if (value == null)
             {

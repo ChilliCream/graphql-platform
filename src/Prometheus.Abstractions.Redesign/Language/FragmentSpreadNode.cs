@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class FragmentSpreadNode
-      : ISelectionNode
+        : ISelectionNode
     {
         public NodeKind Kind { get; } = NodeKind.FragmentSpread;
         public Location Location { get; }

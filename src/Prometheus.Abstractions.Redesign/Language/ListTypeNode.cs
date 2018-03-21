@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public class ListTypeNode
-      : INullableType
+        : INullableType
     {
         public NodeKind Kind { get; } = NodeKind.ListType;
         public Location Location { get; }

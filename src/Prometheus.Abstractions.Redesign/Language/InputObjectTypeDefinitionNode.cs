@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class InputObjectTypeDefinitionNode
-  : ITypeDefinitionNode
+        : ITypeDefinitionNode
     {
         public NodeKind Kind { get; } = NodeKind.InputObjectTypeDefinition;
         public Location Location { get; }

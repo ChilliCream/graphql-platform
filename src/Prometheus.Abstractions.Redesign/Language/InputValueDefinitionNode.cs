@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Prometheus.Language
 {
     public class InputValueDefinitionNode
-       : ISyntaxNode
+        : ISyntaxNode
     {
         public NodeKind Kind { get; } = NodeKind.InputValueDefinition;
         public Location Location { get; }
