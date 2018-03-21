@@ -6,21 +6,21 @@ namespace Prometheus.Types
         : IOutputType
         , IInputType
     {
-        public ListType(IType type)
+        public ListType(IType elementType)
         {
-            if (type == null)
+            if (elementType == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(elementType));
             }
 
-            if (type is ListType)
+            if (elementType.IsListType())
             {
                 throw new ArgumentException(
                     "It is not possible to put a list type into list type.",
-                    nameof(type));
+                    nameof(elementType));
             }
 
-            if(type is NonNullType)
+            ElementType = elementType;
         }
 
         public IType ElementType { get; }
