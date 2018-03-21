@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Prometheus.Resolvers;
 
 namespace Prometheus.Types
 {
@@ -11,6 +12,7 @@ namespace Prometheus.Types
         : IOutputType
     {
         private readonly ObjectTypeConfig _config;
+        private readonly IsOfType _isOfType;
         private IReadOnlyDictionary<string, InterfaceType> _interfaces;
         private IReadOnlyDictionary<string, Field> _fields;
 
@@ -29,6 +31,7 @@ namespace Prometheus.Types
             }
 
             _config = config;
+            _isOfType = config.IsOfType;
             Name = config.Name;
             Description = config.Description;
         }
@@ -69,6 +72,18 @@ namespace Prometheus.Types
                 return _fields;
             }
         }
+
+        public bool IsOfType(
+            IResolverContext context,
+            object resolverResult)
+        {
+            if (_isOfType == null)
+            {
+                throw new NotImplementedException(
+                    "The fallback resolver logic is not yet implemented.");
+            }
+            return _isOfType(context, resolverResult);
+        }
     }
 
     public class ObjectTypeConfig
@@ -80,5 +95,7 @@ namespace Prometheus.Types
         public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
 
         public Func<IEnumerable<Field>> Fields { get; set; }
+
+        public IsOfType IsOfType { get; set; }
     }
 }

@@ -47,7 +47,7 @@ namespace Prometheus.Types
         public bool TryGetValue(string name, out object value)
         {
             InitializeValues();
-            
+
             if (_nameTovalues.TryGetValue(name, out var enumValue))
             {
                 value = enumValue.Value;

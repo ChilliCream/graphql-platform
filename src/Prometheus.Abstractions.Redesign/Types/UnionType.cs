@@ -5,15 +5,13 @@ using Prometheus.Resolvers;
 
 namespace Prometheus.Types
 {
-    public class InterfaceType
-        : IOutputType
+    public class UnionType
     {
-        private readonly InterfaceTypeConfig _config;
+        private readonly UnionTypeConfig _config;
         private readonly ResolveType _typeResolver;
-        private IReadOnlyDictionary<string, Field> _fields;
+        private Dictionary<string, ObjectType> _types;
 
-
-        public InterfaceType(InterfaceTypeConfig config)
+        public UnionType(UnionTypeConfig config)
         {
             if (config == null)
             {
@@ -23,7 +21,7 @@ namespace Prometheus.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "An interface type name must not be null or empty.",
+                    "An type name must not be null or empty.",
                     nameof(config));
             }
 
@@ -37,21 +35,21 @@ namespace Prometheus.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, Field> Fields
+        public IReadOnlyDictionary<string, ObjectType> Types
         {
             get
             {
-                if (_fields == null)
+                if (_types == null)
                 {
-                    var fields = _config.Fields();
-                    if (fields == null)
+                    var types = _config.Types();
+                    if (types == null)
                     {
                         throw new InvalidOperationException(
-                            "The fields collection mustn't be null.");
+                            "An union type must have at least two types.");
                     }
-                    _fields = fields.ToDictionary(t => t.Name);
+                    _types = types.ToDictionary(t => t.Name);
                 }
-                return _fields;
+                return _types;
             }
         }
 
@@ -66,13 +64,13 @@ namespace Prometheus.Types
         }
     }
 
-    public class InterfaceTypeConfig
+    public class UnionTypeConfig
     {
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public Func<IEnumerable<Field>> Fields { get; set; }
+        public Func<IEnumerable<ObjectType>> Types { get; set; }
 
         public ResolveType TypeResolver { get; set; }
     }
