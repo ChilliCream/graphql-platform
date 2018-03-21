@@ -55,7 +55,22 @@ namespace Prometheus.Language
         OperationDefinition,
         VariableDefinition,
         Variable,
-        SelectionSet
+        SelectionSet,
+        Field,
+        Argument,
+        FragmentSpread,
+        InlineFragment,
+        FragmentDefinition,
+        IntValue,
+        StringValue,
+        BooleanValue,
+        NullValue,
+        EnumValue,
+        ListValue,
+        ObjectValue,
+        ObjectField,
+        Directive,
+        NamedType
     }
 
     public class NameNode
@@ -108,36 +123,42 @@ namespace Prometheus.Language
         public NodeKind Kind { get; } = NodeKind.VariableDefinition;
         public Location Location { get; }
         public VariableNode Variable { get; }
-        public TypeNode Type { get; }
-        public ValueNode DefaultValue { get; }
+        public ITypeNode Type { get; }
+        public IValueNode DefaultValue { get; }
     }
 
     public class DirectiveNode
     {
-
+        public NodeKind Kind { get; } = NodeKind.Directive;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
     }
 
     public class SelectionSetNode
         : ISyntaxNode
     {
         public NodeKind Kind { get; } = NodeKind.SelectionSet;
+        public Location Location { get; }
         public IReadOnlyCollection<ISelectionNode> Selections { get; }
     }
 
     public class VariableNode
-        : ISyntaxNode
+        : IValueNode
     {
         public NodeKind Kind { get; } = NodeKind.Variable;
         public Location Location { get; }
         public NameNode Name { get; }
     }
 
-    public class TypeNode
+    public interface ITypeNode
+      : ISyntaxNode
     {
 
     }
 
-    public class ValueNode
+    public interface IValueNode
+      : ISyntaxNode
     {
 
     }
@@ -148,140 +169,141 @@ namespace Prometheus.Language
 
     }
 
-    export type SelectionSetNode = {
-  kind: 'SelectionSet',
-  loc?: Location,
-  selections: $ReadOnlyArray<SelectionNode>,
-};
+    public class FieldNode
+      : ISelectionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.Field;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public NameNode Alias { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        public SelectionSetNode SelectionSet { get; }
+    }
 
-export type SelectionNode = FieldNode | FragmentSpreadNode | InlineFragmentNode;
+    public class ArgumentNode
+      : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.Argument;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public IValueNode Value { get; }
+    }
 
-export type FieldNode = {
-  +kind: 'Field',
-  +loc?: Location,
-  +alias?: NameNode,
-  +name: NameNode,
-  +arguments?: $ReadOnlyArray<ArgumentNode>,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +selectionSet?: SelectionSetNode,
-};
+    public class FragmentSpreadNode
+      : ISelectionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.FragmentSpread;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+    }
+    public class InlineFragmentNode
+         : ISelectionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.InlineFragment;
+        public Location Location { get; }
+        public NamedTypeNode TypeCondition { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public SelectionSetNode SelectionSet { get; }
+    }
 
-export type ArgumentNode = {
-  +kind: 'Argument',
-  +loc?: Location,
-  +name: NameNode,
-  +value: ValueNode,
-};
+    public class NamedTypeNode
+      : ITypeNode
+    {
+        public NodeKind Kind { get; } = NodeKind.NamedType;
+        public Location Location { get; }
+        public NameNode Name { get; }
+    }
 
-// Fragments
+    public class FragmentDefinitionNode
+      : IExecutableDefinitionNode
+    {
+        public NodeKind Kind { get; } = NodeKind.FragmentDefinition;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public NamedTypeNode TypeCondition { get; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public SelectionSetNode SelectionSet { get; }
+    }
 
-export type FragmentSpreadNode = {
-  +kind: 'FragmentSpread',
-  +loc?: Location,
-  +name: NameNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-};
+    public class IntValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.IntValue;
+        public Location Location { get; }
+        public string Value { get; }
+    }
 
-export type InlineFragmentNode = {
-  +kind: 'InlineFragment',
-  +loc?: Location,
-  +typeCondition?: NamedTypeNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +selectionSet: SelectionSetNode,
-};
+    public class FloatValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.IntValue;
+        public Location Location { get; }
+        public string Value { get; }
+    }
 
-export type FragmentDefinitionNode = {
-  +kind: 'FragmentDefinition',
-  +loc?: Location,
-  +name: NameNode,
-  // Note: fragment variable definitions are experimental and may be changed
-  // or removed in the future.
-  +variableDefinitions?: $ReadOnlyArray<VariableDefinitionNode>,
-  +typeCondition: NamedTypeNode,
-  +directives?: $ReadOnlyArray<DirectiveNode>,
-  +selectionSet: SelectionSetNode,
-};
+    public class StringValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.StringValue;
+        public Location Location { get; }
+        public string Value { get; }
+        public bool? Block { get; }
+    }
 
-// Values
+    public class BooleanValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.BooleanValue;
+        public Location Location { get; }
+        public bool Value { get; }
+    }
 
-export type ValueNode =
-  | VariableNode
-  | IntValueNode
-  | FloatValueNode
-  | StringValueNode
-  | BooleanValueNode
-  | NullValueNode
-  | EnumValueNode
-  | ListValueNode
-  | ObjectValueNode;
+    public class NullValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.NullValue;
+        public Location Location { get; }
+    }
 
-export type IntValueNode = {
-  +kind: 'IntValue',
-  +loc?: Location,
-  +value: string,
-};
+    public class EnumValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.EnumValue;
+        public Location Location { get; }
+        public string Value { get; }
+    }
 
-export type FloatValueNode = {
-  +kind: 'FloatValue',
-  +loc?: Location,
-  +value: string,
-};
+    public class ListValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.ListValue;
+        public Location Location { get; }
+        public IReadOnlyCollection<IValueNode> Value { get; }
+    }
 
-export type StringValueNode = {
-  +kind: 'StringValue',
-  +loc?: Location,
-  +value: string,
-  +block?: boolean,
-};
+    public class ObjectValueNode
+      : IValueNode
+    {
+        public NodeKind Kind { get; } = NodeKind.ObjectValue;
+        public Location Location { get; }
+        public IReadOnlyCollection<ObjectFieldNode> Fields { get; }
+    }
 
-export type BooleanValueNode = {
-  +kind: 'BooleanValue',
-  +loc?: Location,
-  +value: boolean,
-};
+    public class ObjectFieldNode
+      : ISyntaxNode
+    {
+        public NodeKind Kind { get; } = NodeKind.ObjectField;
+        public Location Location { get; }
+        public NameNode Name { get; }
+        public IValueNode Value { get; }
+    }
 
-export type NullValueNode = {
-  +kind: 'NullValue',
-  +loc?: Location,
-};
 
-export type EnumValueNode = {
-  +kind: 'EnumValue',
-  +loc?: Location,
-  +value: string,
-};
+    export type ITypeNode = NamedTypeNode | ListTypeNode | NonNullTypeNode;
 
-export type ListValueNode = {
-  +kind: 'ListValue',
-  +loc?: Location,
-  +values: $ReadOnlyArray<ValueNode>,
-};
 
-export type ObjectValueNode = {
-  +kind: 'ObjectValue',
-  +loc?: Location,
-  +fields: $ReadOnlyArray<ObjectFieldNode>,
-};
-
-export type ObjectFieldNode = {
-  +kind: 'ObjectField',
-  +loc?: Location,
-  +name: NameNode,
-  +value: ValueNode,
-};
-
-// Directives
-
-export type DirectiveNode = {
-  +kind: 'Directive',
-  +loc?: Location,
-  +name: NameNode,
-  +arguments?: $ReadOnlyArray<ArgumentNode>,
-};
-
-// Type Reference
-
-export type TypeNode = NamedTypeNode | ListTypeNode | NonNullTypeNode;
 
 export type NamedTypeNode = {
   +kind: 'NamedType',
