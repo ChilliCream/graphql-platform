@@ -7,6 +7,7 @@ namespace Prometheus.Types
     public class EnumType
         : IOutputType
         , IInputType
+        , INamedType
     {
         private readonly EnumTypeConfig _config;
         private readonly ParseLiteral _parseLiteral;
