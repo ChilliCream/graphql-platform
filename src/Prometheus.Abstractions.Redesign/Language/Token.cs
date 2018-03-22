@@ -40,7 +40,7 @@ namespace Prometheus.Language
         public Token Next { get; }
     }
 
-    internal class TokenConfig
+    public class TokenConfig
     {
         public TokenConfig(
             TokenKind kind, 
@@ -54,6 +54,22 @@ namespace Prometheus.Language
             Line = line;
             Column = column;
             Previous = previous;
+        }
+
+         public TokenConfig(
+            TokenKind kind, 
+            int start, int end, 
+            int line, int column, 
+            TokenConfig previous,
+            string value)
+        {
+            Kind = kind;
+            Start = start;
+            End = end;
+            Line = line;
+            Column = column;
+            Previous = previous;
+            Value = value;
         }
 
         /// <summary>
