@@ -19,19 +19,32 @@ namespace Prometheus.Language
             _body = body;
         }
 
+
         public char Read(int position)
         {
             return _body[position];
         }
 
-        public string Read(int position, int length)
+        public string Read(int startIndex, int length)
         {
-            return _body[position];
+            return _body.Substring(startIndex, length);
+        }
+
+        public bool Check(int startIndex, params int[] expectedCharacters)
+        {
+            for (int i = 0; i < expectedCharacters.Length; i++)
+            {
+                if (_body[i + startIndex] != expectedCharacters[i])
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public bool IsEndOfStream(int position)
         {
-            return (position >= _body.Length);
+            return (position <= _body.Length);
         }
     }
 
@@ -39,10 +52,6 @@ namespace Prometheus.Language
 
     public class Lexer
     {
-
-
-
-
         public TokenConfig ReadNextToken(LexerState state, Source source, TokenConfig previous)
         {
             int pos = GetPositionAfterWhitespace(previous);
@@ -57,7 +66,7 @@ namespace Prometheus.Language
             int code = source.Read(pos);
 
             // SourceCharacter
-            if (code < 0x0020 && code !== 0x0009 && code !== 0x000a && code !== 0x000d)
+            if (code < 0x0020 && code != 0x0009 && code != 0x000a && code != 0x000d)
             {
                 throw new SyntaxException(
                   source, pos,
@@ -86,8 +95,7 @@ namespace Prometheus.Language
                     return new TokenConfig(TokenKind.RightParenthesis, pos, pos + 1, line, col, previous);
                 // .
                 case 46:
-                    if (_body[pos + 1] == 46
-                        && _body[pos + 2] == 46)
+                    if (source.Check(pos + 1, 46, 46))
                     {
                         return new TokenConfig(TokenKind.Spread, pos, pos + 3, line, col, previous);
                     }
@@ -186,15 +194,14 @@ namespace Prometheus.Language
                     return ReadNumber(source, pos, (char)code, line, col, previous);
                 // "
                 case 34:
-                    if (_body[pos + 1] == 34
-                           && _body[pos + 2] == 34)
+                    if (source.Check(pos + 1, 34, 34))
                     {
                         return readBlockString(source, pos, line, col, previous);
                     }
                     return readString(source, pos, line, col, previous);
             }
 
-            throw syntaxError(source, pos, unexpectedCharacterMessage(code));
+            throw new SyntaxException(source, pos, "unexpectedCharacterMessage(code)");
         }
 
         private int GetPositionAfterWhitespace(TokenConfig previous)
@@ -249,7 +256,7 @@ namespace Prometheus.Language
                 isFloat = true;
 
                 code = source.Read(++position);
-                if (code === 43 || code === 45)
+                if (code == 43 || code == 45)
                 {
                     // + -
                     code = source.Read(++position);
@@ -264,7 +271,7 @@ namespace Prometheus.Language
               line,
               col,
               prev,
-              source.Read(start, position), prev);
+              source.Read(start, position));
         }
 
         public int ReadDigits(Source source, int start, char firstCode)
@@ -312,7 +319,7 @@ namespace Prometheus.Language
                 // Closing Quote (")
                 if (code == 34)
                 {
-                    value += slice.call(body, chunkStart, position);
+                    value += source.Read(chunkStart, position);
                     return new TokenConfig(
                       TokenKind.String,
                       start,
@@ -324,7 +331,7 @@ namespace Prometheus.Language
                 }
 
                 // SourceCharacter
-                if (code < 0x0020 && code !== 0x0009)
+                if (code < 0x0020 && code != 0x0009)
                 {
                     throw new SyntaxException(
                       source,
@@ -365,45 +372,35 @@ namespace Prometheus.Language
                             value += '\t';
                             break;
                         case 117: // u
-                            const charCode = uniCharCode(
-                              charCodeAt.call(body, position + 1),
-                              charCodeAt.call(body, position + 2),
-                              charCodeAt.call(body, position + 3),
-                              charCodeAt.call(body, position + 4),
+                            int charCode = uniCharCode(
+                              source.Read(position + 1),
+                              source.Read(position + 2),
+                              source.Read(position + 3),
+                              source.Read(position + 4));
 
-
-                            );
                             if (charCode < 0)
                             {
-                                throw syntaxError(
+                                throw new SyntaxException(
                                   source,
                                   position,
-                                  'Invalid character escape sequence: ' +
-                                    `\\u${ body.slice(position + 1, position + 5)}.`,
-            );
+                                  "Invalid character escape sequence: " +
+                                    "\\u${ body.slice(position + 1, position + 5)}.");
                             }
-                            value += String.fromCharCode(charCode);
+                            value += (char)charCode;
                             position += 4;
                             break;
                         default:
-                            throw syntaxError(
-                              source,
-                              position,
-                              `Invalid character escape sequence: \\${
-                                String.fromCharCode(
-                            code,
-
-
-
-                            )}.`,
-          );
+                            throw new SyntaxException(
+                                  source,
+                                  position,
+                              "Invalid character escape sequence: \\${String.fromCharCode(code)}.");
                     }
                     ++position;
                     chunkStart = position;
                 }
             }
 
-            throw syntaxError(source, position, 'Unterminated string.');
+            throw new SyntaxException(source, position, "Unterminated string.");
         }
 
         /**
@@ -411,150 +408,146 @@ namespace Prometheus.Language
          *
          * """("?"?(\\"""|\\(?!=""")|[^"\\]))*"""
          */
-        function readBlockString(source, start, line, col, prev): Token {
-  const body = source.body;
-        let position = start + 3;
-        let chunkStart = position;
-        let code = 0;
-        let rawValue = '';
+        public TokenConfig readBlockString(Source source, int start, int line, int col, TokenConfig prev)
+        {
+            int position = start + 3;
+            int chunkStart = position;
+            int code = 0;
+            string rawValue = string.Empty;
 
-  while (
-    position<body.length &&
-    (code = charCodeAt.call(body, position)) !== null
-  ) {
-    // Closing Triple-Quote (""")
-    if (
-      code === 34 &&
-      charCodeAt.call(body, position + 1) === 34 &&
-      charCodeAt.call(body, position + 2) === 34
-    ) {
-      rawValue += slice.call(body, chunkStart, position);
-      return new Tok(
-        TokenKind.BLOCK_STRING,
-        start,
-        position + 3,
-        line,
-        col,
-        prev,
-        blockStringValue(rawValue),
-      );
+            while (
+              !source.IsEndOfStream(position)
+            )
+            {
+                // Closing Triple-Quote (""")
+                if (
+                  code == 34 &&
+                  source.Read(position + 1) == 34 &&
+                  source.Read(position + 2) == 34
+                )
+                {
+                    rawValue += source.Read(chunkStart, position);
+                    return new TokenConfig(
+                      TokenKind.BlockString,
+                      start,
+                      position + 3,
+                      line,
+                      col,
+                      prev,
+                      blockStringValue(rawValue)
+                    );
+                }
+
+                // SourceCharacter
+                if (
+                  code < 0x0020 &&
+                  code != 0x0009 &&
+                  code != 0x000a &&
+                  code != 0x000d
+                )
+                {
+                    throw new SyntaxException(
+                      source,
+                      position,
+                      "Invalid character within String: ${ printCharCode(code)}.");
+                }
+
+                // Escape Triple-Quote (\""")
+                if (
+                  code == 92 &&
+                  source.Read(position + 1) == 34 &&
+                  source.Read(position + 2) == 34 &&
+                  source.Read(position + 3) == 34
+                )
+                {
+                    rawValue += source.Read(chunkStart, position) + "\"\"\"";
+                    position += 4;
+                    chunkStart = position;
+                }
+                else
+                {
+                    ++position;
+                }
+            }
+
+            throw new SyntaxException(source, position, "Unterminated string.");
+        }
+
+        /**
+         * Converts four hexidecimal chars to the integer that the
+         * string represents. For example, uniCharCode('0','0','0','f')
+         * will return 15, and uniCharCode('0','0','f','f') returns 255.
+         *
+         * Returns a negative number on error, if a char was invalid.
+         *
+         * This is implemented by noting that char2hex() returns -1 on error,
+         * which means the result of ORing the char2hex() will also be negative.
+         */
+        public int uniCharCode(int a, int b, int c, int d)
+        {
+            return (
+              (char2hex(a) << 12) | (char2hex(b) << 8) | (char2hex(c) << 4) | char2hex(d)
+            );
+        }
+
+        /**
+         * Converts a hex character to its integer value.
+         * '0' becomes 0, '9' becomes 9
+         * 'A' becomes 10, 'F' becomes 15
+         * 'a' becomes 10, 'f' becomes 15
+         *
+         * Returns -1 on error.
+         */
+        public int char2hex(int a)
+        {
+            return a >= 48 && a <= 57
+              ? a - 48 // 0-9
+              : a >= 65 && a <= 70
+                ? a - 55 // A-F
+                : a >= 97 && a <= 102
+                  ? a - 87 // a-f
+                  : -1;
+        }
+
+        /**
+         * Reads an alphanumeric + underscore name from the source.
+         *
+         * [_A-Za-z][_0-9A-Za-z]*
+         */
+        public TokenConfig readName(Source source, int start, int line, int col, TokenConfig prev)
+        {
+            int position = start + 1;
+            int code = 0;
+            while (
+              source.IsEndOfStream(position) &&
+              (code = source.Read(position)) != null &&
+              (code == 95 || // _
+              (code >= 48 && code <= 57) || // 0-9
+              (code >= 65 && code <= 90) || // A-Z
+                (code >= 97 && code <= 122)) // a-z
+            )
+            {
+                ++position;
+            }
+            return new TokenConfig(
+              TokenKind.Name,
+              start,
+              position,
+              line,
+              col,
+              prev,
+              source.Read(start, position)
+
+
+            );
+        }
+
     }
 
-    // SourceCharacter
-    if (
-      code< 0x0020 &&
-      code !== 0x0009 &&
-      code !== 0x000a &&
-      code !== 0x000d
-    ) {
-      throw syntaxError(
-        source,
-        position,
-        `Invalid character within String: ${ printCharCode(code)}.`,
-      );
-    }
-
-    // Escape Triple-Quote (\""")
-    if (
-      code === 92 &&
-      charCodeAt.call(body, position + 1) === 34 &&
-      charCodeAt.call(body, position + 2) === 34 &&
-      charCodeAt.call(body, position + 3) === 34
-    ) {
-      rawValue += slice.call(body, chunkStart, position) + '"""';
-      position += 4;
-      chunkStart = position;
-    } else {
-      ++position;
-    }
-  }
-
-  throw syntaxError(source, position, 'Unterminated string.');
-}
-
-/**
- * Converts four hexidecimal chars to the integer that the
- * string represents. For example, uniCharCode('0','0','0','f')
- * will return 15, and uniCharCode('0','0','f','f') returns 255.
- *
- * Returns a negative number on error, if a char was invalid.
- *
- * This is implemented by noting that char2hex() returns -1 on error,
- * which means the result of ORing the char2hex() will also be negative.
- */
-public int uniCharCode(a, b, c, d)
-{
-    return (
-      (char2hex(a) << 12) | (char2hex(b) << 8) | (char2hex(c) << 4) | char2hex(d)
-    );
-}
-
-/**
- * Converts a hex character to its integer value.
- * '0' becomes 0, '9' becomes 9
- * 'A' becomes 10, 'F' becomes 15
- * 'a' becomes 10, 'f' becomes 15
- *
- * Returns -1 on error.
- */
-public int char2hex(int a)
-{
-    return a >= 48 && a <= 57
-      ? a - 48 // 0-9
-      : a >= 65 && a <= 70
-        ? a - 55 // A-F
-        : a >= 97 && a <= 102
-          ? a - 87 // a-f
-          : -1;
-}
-
-/**
- * Reads an alphanumeric + underscore name from the source.
- *
- * [_A-Za-z][_0-9A-Za-z]*
- */
-function readName(source, start, line, col, prev): Token {
-  const body = source.body;
-const bodyLength = body.length;
-let position = start + 1;
-let code = 0;
-  while (
-    position !== bodyLength &&
-    (code = charCodeAt.call(body, position)) !== null &&
-    (code === 95 || // _
-    (code >= 48 && code <= 57) || // 0-9
-    (code >= 65 && code <= 90) || // A-Z
-      (code >= 97 && code <= 122)) // a-z
-  ) {
-    ++position;
-  }
-  return new Tok(
-    TokenKind.NAME,
-    start,
-    position,
-    line,
-    col,
-    prev,
-    slice.call(body, start, position),
-  );
-}
-
-
-    }
 
     [System.Serializable]
-public class SyntaxException : System.Exception
-{
-    public SyntaxException(Source source, int position, string message) { }
-}
-
-public class LexerContext
-{
-
-}
-
-public class Source
-{
-
-}
+    public class SyntaxException : System.Exception
+    {
+        public SyntaxException(Source source, int position, string message) { }
+    }
 }
