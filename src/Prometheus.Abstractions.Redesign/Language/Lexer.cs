@@ -252,6 +252,36 @@ namespace Prometheus.Language
             return position;
         }
 
+        /**
+ * Reads a comment token from the source file.
+ *
+ * #[\u0009\u0020-\uFFFF]*
+ */
+        public TokenConfig readComment(Source source, int start, int line, int col, TokenConfig prev)
+        {
+            int code;
+            int position = start;
+
+            do
+            {
+                code = source.Read(++position);
+            } while (
+              code != null &&
+              // SourceCharacter but not LineTerminator
+              (code > 0x001f || code == 0x0009)
+            );
+
+            return new TokenConfig(
+              TokenKind.Comment,
+              start,
+              position,
+              line,
+              col,
+              prev,
+              source.Read(start + 1, position)
+            );
+        }
+
 
         private TokenConfig ReadNumber(Source source, int start, char firstCode, int line, int col, TokenConfig prev)
         {
