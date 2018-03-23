@@ -6,48 +6,185 @@ using System.Text.RegularExpressions;
 
 namespace Prometheus.Language
 {
+
+
+    interface ILexer
+    {
+        Token Read(ISource source);
+    }
+
     public class LexerState
     {
-        public Source Source { get; }
         public int Line { get; set; }
         public int LineStart { get; set; }
     }
 
-    public class Source
+    public static class CharExtensions
     {
-        private readonly string _body;
-
-        public Source(string body)
+        public static bool IsLetter(this char c)
         {
-            _body = body;
+            return c >= 64 && c <= 122;
+        }
+
+        public static bool IsDigit(this char c)
+        {
+            return c >= 48 && c <= 57;
+        }
+
+        public static bool IsDot(this char c)
+        {
+            return c == '.';
+        }
+
+        public static bool IsHyphen(this char c)
+        {
+            return c == '-';
+        }
+    }
+
+
+    public class Lexer
+        : ILexer
+    {
+        public Token Read(ISource source)
+        {
+            var state = new LexerState();
+            var thunk = new Thunk();
+            var thunk = new NextTokenThunk(this, state, source);
+            var startToken = new Token(TokenKind.StartOfFile, 0, 0, 0, 0, null, thunk);
+            thunk.SetPrevious(startToken);
         }
 
 
-        public char Read(int position)
-        {
-            return _body[position];
-        }
 
-        public string Read(int startIndex, int length)
+        private Token ReadNextToken(ILexerContext context, ISource source, Token previous)
         {
-            return _body.Substring(startIndex, length);
-        }
+            SkipWhitespaces(context, source, previous);
+            context.Column = 1 + context.Position - context.LineStart;
 
-        public bool Check(int startIndex, params int[] expectedCharacters)
-        {
-            for (int i = 0; i < expectedCharacters.Length; i++)
+            if (context.IsEndOfStream())
             {
-                if (_body[i + startIndex] != expectedCharacters[i])
+                return new Token(TokenKind.EndOfFile, context.Column,
+                    previous.End, context.Line, context.Column,
+                    previous, new Thunk<Token>(default(Token)));
+            }
+
+            char code = context.Read();
+
+            if (code.IsLetter())
+            {
+
+            }
+
+            if (code.IsDigit() || code.IsHyphen())
+            {
+
+            }
+        }
+
+        public void SkipWhitespaces(ILexerContext context, ISource source, Token previous)
+        {
+
+        }
+
+
+        private TokenConfig ReadNumber(ILexerContext context, TokenConfig previous, char firstCode)
+        {
+            char code = firstCode;
+            int start = context.Position;
+            bool isFloat;
+
+            if (code.IsHyphen())
+            {
+                code = context.Read();
+            }
+
+            if (code == '0')
+            {
+                code = context.Read();
+                if (char.IsDigit(code))
                 {
-                    return false;
+                    throw new SyntaxException(context,
+                        $"Invalid number, unexpected digit after 0: {code}.");
                 }
             }
-            return true;
+            else
+            {
+                code = ReadDigits(context, code);
+            }
+
+            if (code.IsDot())
+            {
+                isFloat = true;
+                code = ReadDigits(context, context.Read());
+            }
+
+            if (code == 'E' || code == 'e')
+            {
+                isFloat = true;
+
+                code = context.Read();
+                if (code == 43 || code == 45)
+                {
+                    // + -
+                    code = source.Read(++position);
+                }
+                position = ReadDigits(source, position, code);
+            }
+
+            return new TokenConfig(
+              isFloat ? TokenKind.Float : TokenKind.Integer,
+              start,
+              position,
+              line,
+              col,
+              prev,
+              source.Read(start, position));
         }
 
-        public bool IsEndOfStream(int position)
+        public char ReadDigits(ILexerContext context, char firstCode)
         {
-            return (position <= _body.Length);
+            int start = context.Position;
+            int position = start;
+            char code = firstCode;
+
+            if (code >= 48 && code <= 57)
+            {
+                // 0 - 9
+                do
+                {
+                    code = source.Read(++position);
+                } while (code >= 48 && code <= 57); // 0 - 9
+                return position;
+            }
+
+            throw new SyntaxException(
+              source,
+              position,
+              "Invalid number, expected digit but got: ${ printCharCode(code) }.");
+        }
+
+
+        private class NextTokenThunk
+            : Thunk<Token>
+        {
+            public NextTokenThunk(Func<Token, Token> thaw, Thunk<Token> previous)
+                : base(() => thaw(previous.Value))
+            {
+            }
+
+            public void SetPrevious(Token previous)
+            {
+                if (previous == null)
+                {
+                    _previous = previous;
+                }
+            }
+
+            public Token GetNext()
+            {
+                return lexer.ReadNextToken(state, source, _previous);
+            }
         }
     }
 
@@ -688,6 +825,6 @@ namespace Prometheus.Language
     [System.Serializable]
     public class SyntaxException : System.Exception
     {
-        public SyntaxException(Source source, int position, string message) { }
+        public SyntaxException(ILexerContext context, string message) { }
     }
 }

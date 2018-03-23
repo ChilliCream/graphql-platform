@@ -5,6 +5,43 @@ namespace Prometheus.Language
 
     public class Token
     {
+        private readonly Thunk<Token> _next;
+
+        public Token(
+            TokenKind kind,
+            int start, int end,
+            int line, int column,
+            Token previous,
+            Thunk<Token> next)
+        {
+            Kind = kind;
+            Start = start;
+            End = end;
+            Line = line;
+            Column = column;
+            Previous = previous;
+            _next = next;
+        }
+
+        public Token(
+           TokenKind kind,
+           int start, int end,
+           int line, int column,
+           string value,
+           Token previous,
+           Thunk<Token> next)
+        {
+            Kind = kind;
+            Start = start;
+            End = end;
+            Line = line;
+            Column = column;
+            Value = value;
+            Previous = previous;
+            _next = next;
+        }
+
+
         /// <summary>
         /// Gets the kind of <see cref="Token" />.
         /// </summary>
@@ -37,15 +74,15 @@ namespace Prometheus.Language
 
         public Token Previous { get; }
 
-        public Token Next { get; }
+        public Token Next => _next.Value;
     }
 
     public class TokenConfig
     {
         public TokenConfig(
-            TokenKind kind, 
-            int start, int end, 
-            int line, int column, 
+            TokenKind kind,
+            int start, int end,
+            int line, int column,
             TokenConfig previous)
         {
             Kind = kind;
@@ -56,12 +93,12 @@ namespace Prometheus.Language
             Previous = previous;
         }
 
-         public TokenConfig(
-            TokenKind kind, 
-            int start, int end, 
-            int line, int column, 
-            TokenConfig previous,
-            string value)
+        public TokenConfig(
+           TokenKind kind,
+           int start, int end,
+           int line, int column,
+           TokenConfig previous,
+           string value)
         {
             Kind = kind;
             Start = start;
