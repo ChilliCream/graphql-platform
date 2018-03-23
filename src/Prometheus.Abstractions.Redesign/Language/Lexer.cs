@@ -1,13 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Prometheus.Language
 {
     public class LexerState
     {
         public Source Source { get; }
-        public int Line { get; }
-        public int LineStart { get; }
+        public int Line { get; set; }
+        public int LineStart { get; set; }
     }
 
     public class Source
@@ -50,11 +53,11 @@ namespace Prometheus.Language
 
 
 
-    public class Lexer
+    public class LexerPort
     {
         public TokenConfig ReadNextToken(LexerState state, Source source, TokenConfig previous)
         {
-            int pos = GetPositionAfterWhitespace(previous);
+            int pos = GetPositionAfterWhitespace(state, source, previous);
             int line = state.Line;
             int col = 1 + pos - state.LineStart;
 
@@ -178,7 +181,7 @@ namespace Prometheus.Language
                 case 120:
                 case 121:
                 case 122:
-                    return readName(source, pos, line, col, prev);
+                    return readName(source, pos, line, col, previous);
                 // - 0-9
                 case 45:
                 case 48:
@@ -204,9 +207,49 @@ namespace Prometheus.Language
             throw new SyntaxException(source, pos, "unexpectedCharacterMessage(code)");
         }
 
-        private int GetPositionAfterWhitespace(TokenConfig previous)
+        /**
+ * Reads from body starting at startPosition until it finds a non-whitespace
+ * or commented character, then returns the position of that character for
+ * lexing.
+ */
+        public int GetPositionAfterWhitespace(LexerState lexer, Source source, TokenConfig previous)
         {
-
+            int position = previous.End;
+            while (!source.IsEndOfStream(position))
+            {
+                int code = source.Read(position);
+                // tab | space | comma | BOM
+                if (code == 9 || code == 32 || code == 44 || code == 0xfeff)
+                {
+                    ++position;
+                }
+                else if (code == 10)
+                {
+                    // new line
+                    ++position;
+                    ++lexer.Line;
+                    lexer.LineStart = position;
+                }
+                else if (code == 13)
+                {
+                    // carriage return
+                    if (source.Read(position + 1) == 10)
+                    {
+                        position += 2;
+                    }
+                    else
+                    {
+                        ++position;
+                    }
+                    ++lexer.Line;
+                    lexer.LineStart = position;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return position;
         }
 
 
@@ -309,8 +352,8 @@ namespace Prometheus.Language
             string value = string.Empty;
 
             while (
-              position < body.length &&
-              (code = charCodeAt.call(body, position)) != null &&
+              !source.IsEndOfStream(position) &&
+              (code = source.Read(position)) != null &&
               // not LineTerminator
               code != 0x000a &&
               code != 0x000d
@@ -542,6 +585,73 @@ namespace Prometheus.Language
             );
         }
 
+        public string blockStringValue(string rawString)
+        {
+            // Expand a block string's raw value into independent lines.
+            string[] lines = rawString
+                .Replace("\r\n", "\n")
+                .Replace("\n\r", "\n")
+                .Split('\n');
+
+            // Remove common indentation from all lines but first.
+            int? commonIndent = null;
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                int indent = leadingWhitespace(line);
+                if (
+                  indent < line.Length &&
+                  (commonIndent == null || indent < commonIndent)
+                )
+                {
+                    commonIndent = indent;
+                    if (commonIndent == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (commonIndent.HasValue)
+            {
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    lines[i] = lines[i].Substring(commonIndent.Value);
+                }
+            }
+
+
+            // Remove leading and trailing blank lines.
+            Queue<string> shiftLines = new Queue<string>(lines);
+            while (shiftLines.Any() && isBlank(shiftLines.Peek()))
+            {
+                shiftLines.Dequeue();
+            }
+
+            Stack<string> popLines = new Stack<string>(shiftLines);
+            while (popLines.Any() && isBlank(popLines.Peek()))
+            {
+                popLines.Pop();
+            }
+
+            // Return a string of the lines joined with U+000A.
+            return string.Join("\n", popLines);
+        }
+
+        public int leadingWhitespace(string str)
+        {
+            int i = 0;
+            while (i < str.Length && (str[i] == ' ' || str[i] == '\t'))
+            {
+                i++;
+            }
+            return i;
+        }
+
+        public bool isBlank(string str)
+        {
+            return leadingWhitespace(str) == str.Length;
+        }
     }
 
 
