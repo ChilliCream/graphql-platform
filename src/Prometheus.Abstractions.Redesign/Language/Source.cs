@@ -1,3 +1,5 @@
+using System;
+
 namespace Prometheus.Language
 {
     public interface ISource
@@ -42,7 +44,12 @@ namespace Prometheus.Language
 
         char ReadPrevious();
         char Read();
-        char Peek();
+        char? Peek();
+        bool PeekTest(Func<char, bool> test);
+        bool PeekTest(params Func<char, bool>[] test);
+        bool PeekTest(params char[] expectedCharacters);
+
+        string Read(int startIndex, int endIndex);
         bool IsEndOfStream();
     }
 

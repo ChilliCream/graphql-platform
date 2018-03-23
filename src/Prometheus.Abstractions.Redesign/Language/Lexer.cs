@@ -21,9 +21,15 @@ namespace Prometheus.Language
 
     public static class CharExtensions
     {
+        public static bool IsLetterOrDigit(this char c)
+        {
+            return c.IsLetter() || c.IsDigit();
+        }
+
         public static bool IsLetter(this char c)
         {
-            return c >= 64 && c <= 122;
+            return (c >= 65 && c <= 90) // A-Z
+                || (c >= 97 && c <= 122); // a-z
         }
 
         public static bool IsDigit(this char c)
@@ -40,6 +46,31 @@ namespace Prometheus.Language
         {
             return c == '-';
         }
+
+        public static bool IsUnderscore(this char c)
+        {
+            return c == '_';
+        }
+
+        public static bool IsMinus(this char c)
+        {
+            return c.IsHyphen();
+        }
+
+        public static bool IsPlus(this char c)
+        {
+            return c == '+';
+        }
+
+        public static bool IsQuote(this char c)
+        {
+            return c == '"';
+        }
+
+        public static bool IsHash(this char c)
+        {
+            return c == '#';
+        }
     }
 
 
@@ -48,18 +79,13 @@ namespace Prometheus.Language
     {
         public Token Read(ISource source)
         {
-            var state = new LexerState();
-            var thunk = new Thunk();
-            var thunk = new NextTokenThunk(this, state, source);
-            var startToken = new Token(TokenKind.StartOfFile, 0, 0, 0, 0, null, thunk);
-            thunk.SetPrevious(startToken);
+            ILexerContext context = null;
+            return CreateToken(context, null, TokenKind.StartOfFile, 0);
         }
 
-
-
-        private Token ReadNextToken(ILexerContext context, ISource source, Token previous)
+        private Token ReadNextToken(ILexerContext context, Token previous)
         {
-            SkipWhitespaces(context, source, previous);
+            SkipWhitespaces(context, previous);
             context.Column = 1 + context.Position - context.LineStart;
 
             if (context.IsEndOfStream())
@@ -71,30 +97,50 @@ namespace Prometheus.Language
 
             char code = context.Read();
 
-            if (code.IsLetter())
+            if (code.IsLetter() || code.IsUnderscore())
+            {
+                return ReadName(context, previous);
+            }
+
+            if (code.IsDigit() || code.IsMinus())
+            {
+                return ReadNumber(context, previous, code);
+            }
+
+            if (code.IsQuote())
+            {
+            }
+
+            if (code.IsHash())
             {
 
             }
 
-            if (code.IsDigit() || code.IsHyphen())
+            if (code.IsDot()
+                && context.PeekTest(c => c.IsDot(), c => c.IsDot()))
             {
 
             }
+
+            if ()
+
+                return null;
         }
 
-        public void SkipWhitespaces(ILexerContext context, ISource source, Token previous)
+
+
+        public void SkipWhitespaces(ILexerContext context, Token previous)
         {
 
         }
 
-
-        private TokenConfig ReadNumber(ILexerContext context, TokenConfig previous, char firstCode)
+        private Token ReadNumber(ILexerContext context, Token previous, char firstCode)
         {
             char code = firstCode;
             int start = context.Position;
-            bool isFloat;
+            bool isFloat = false;
 
-            if (code.IsHyphen())
+            if (code.IsMinus())
             {
                 code = context.Read();
             }
@@ -124,70 +170,77 @@ namespace Prometheus.Language
                 isFloat = true;
 
                 code = context.Read();
-                if (code == 43 || code == 45)
+                if (code.IsPlus() || code.IsMinus())
                 {
-                    // + -
-                    code = source.Read(++position);
+                    code = context.Read();
                 }
-                position = ReadDigits(source, position, code);
+                code = ReadDigits(context, code);
             }
 
-            return new TokenConfig(
-              isFloat ? TokenKind.Float : TokenKind.Integer,
-              start,
-              position,
-              line,
-              col,
-              prev,
-              source.Read(start, position));
+            TokenKind kind = isFloat ? TokenKind.Float : TokenKind.Integer;
+            return CreateToken(context, previous, kind, start,
+                context.Read(start, context.Position));
         }
 
-        public char ReadDigits(ILexerContext context, char firstCode)
+        private char ReadDigits(ILexerContext context, char firstCode)
+        {
+            if (!firstCode.IsDigit())
+            {
+                throw new SyntaxException(context,
+                    $"Invalid number, expected digit but got: {firstCode}.");
+            }
+
+            char code = firstCode;
+            while (code.IsDigit())
+            {
+                code = context.Read();
+            }
+            return code;
+        }
+
+        /**
+        * Reads an alphanumeric + underscore name from the source.
+        *
+        * [_A-Za-z][_0-9A-Za-z]*
+        */
+        private Token ReadName(ILexerContext context, Token previous)
         {
             int start = context.Position;
-            int position = start;
-            char code = firstCode;
 
-            if (code >= 48 && code <= 57)
+            while (context.PeekTest(c => c.IsLetterOrDigit() || c.IsUnderscore()))
             {
-                // 0 - 9
-                do
-                {
-                    code = source.Read(++position);
-                } while (code >= 48 && code <= 57); // 0 - 9
-                return position;
+                context.Read();
             }
 
-            throw new SyntaxException(
-              source,
-              position,
-              "Invalid number, expected digit but got: ${ printCharCode(code) }.");
+            return CreateToken(context, previous, TokenKind.Name,
+                start, context.Read(start, context.Position));
         }
 
-
-        private class NextTokenThunk
-            : Thunk<Token>
+        private Token CreateToken(ILexerContext context, Token previous,
+            TokenKind kind, int start, string value)
         {
-            public NextTokenThunk(Func<Token, Token> thaw, Thunk<Token> previous)
-                : base(() => thaw(previous.Value))
-            {
-            }
+            NextTokenThunk next = CreateNextThunk(context);
+            Token token = new Token(kind, start, context.Position,
+                context.Line, context.Column, value, previous, next);
+            next.SetPrevious(token);
+            return token;
+        }
 
-            public void SetPrevious(Token previous)
-            {
-                if (previous == null)
-                {
-                    _previous = previous;
-                }
-            }
+        private Token CreateToken(ILexerContext context, Token previous,
+            TokenKind kind, int start)
+        {
+            NextTokenThunk next = CreateNextThunk(context);
+            Token token = new Token(kind, start, context.Position,
+                context.Line, context.Column, previous, next);
+            next.SetPrevious(token);
+            return token;
+        }
 
-            public Token GetNext()
-            {
-                return lexer.ReadNextToken(state, source, _previous);
-            }
+        private NextTokenThunk CreateNextThunk(ILexerContext context)
+        {
+            return new NextTokenThunk(previous => ReadNextToken(context, previous));
         }
     }
-
 
 
     public class LexerPort
@@ -345,10 +398,10 @@ namespace Prometheus.Language
         }
 
         /**
- * Reads from body starting at startPosition until it finds a non-whitespace
- * or commented character, then returns the position of that character for
- * lexing.
- */
+    * Reads from body starting at startPosition until it finds a non-whitespace
+    * or commented character, then returns the position of that character for
+    * lexing.
+*/
         public int GetPositionAfterWhitespace(LexerState lexer, Source source, TokenConfig previous)
         {
             int position = previous.End;
@@ -390,10 +443,10 @@ namespace Prometheus.Language
         }
 
         /**
- * Reads a comment token from the source file.
- *
- * #[\u0009\u0020-\uFFFF]*
- */
+    * Reads a comment token from the source file.
+    *
+    * #[\u0009\u0020-\uFFFF]*
+*/
         public TokenConfig readComment(Source source, int start, int line, int col, TokenConfig prev)
         {
             int code;

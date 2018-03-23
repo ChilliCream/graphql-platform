@@ -30,8 +30,18 @@ namespace Prometheus.Language
 
         public void Thaw(T value)
         {
+            if (_thawed)
+            {
+                throw new InvalidOperationException();
+            }
+
             _thawed = true;
             _value = value;
+        }
+
+        protected virtual void Thaw()
+        {
+            _value = _thaw();
         }
 
         public T Value
@@ -44,11 +54,13 @@ namespace Prometheus.Language
                     {
                         throw new InvalidOperationException();
                     }
-                    _value = _thaw();
+                    Thaw();
                     _thawed = true;
                 }
                 return _value;
             }
         }
+
+
     }
 }
