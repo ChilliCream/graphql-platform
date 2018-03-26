@@ -9,6 +9,13 @@ namespace Prometheus.Language
     public class Lexer
         : ILexer
     {
+        /// <summary>
+        /// Read the first token from the given <paramref name="source"/>.
+        /// </summary>
+        /// <returns>
+        /// Returns the first token from the given <paramref name="source"/>.
+        /// </returns>
+        /// <param name="source">The graphql source.</param>
         public Token Read(ISource source)
         {
             if (source == null)
@@ -20,9 +27,15 @@ namespace Prometheus.Language
             return CreateToken(context, null, TokenKind.StartOfFile, 0);
         }
 
+        /// <summary>
+		/// Reads the token that comes after the <paramref name="previous"/>-token.
+        /// </summary>
+		/// <returns>Returns token that comes after the <paramref name="previous"/>-token.</returns>
+        /// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
         private Token ReadNextToken(ILexerContext context, Token previous)
         {
-            SkipWhitespaces(context, previous);
+            SkipWhitespaces(context);
             context.Column = 1 + context.Position - context.LineStart;
 
             if (context.IsEndOfStream())
@@ -68,7 +81,11 @@ namespace Prometheus.Language
             return null;
         }
 
-        public void SkipWhitespaces(ILexerContext context, Token previous)
+        /// <summary>
+        /// Skips the whitespaces.
+        /// </summary>
+        /// <param name="context">The lexer context.</param>
+        public void SkipWhitespaces(ILexerContext context)
         {
             while (context.PeekTest(c => c.IsWhitespace()))
             {
@@ -93,6 +110,16 @@ namespace Prometheus.Language
             }
         }
 
+        /// <summary>
+        /// Reads a punctuator token.
+        /// </summary>
+		/// <remarks>
+		/// http://facebook.github.io/graphql/October2016/#sec-Language
+		/// Section 2.1.8
+		/// </remarks>
+        /// <returns>Returns the punctuator token read from the source stream.</returns>
+		/// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
         private Token ReadPunctuator(ILexerContext context, Token previous)
         {
             if (context.PeekTest(c => c.IsDot(), c => c.IsDot()))
@@ -105,6 +132,17 @@ namespace Prometheus.Language
             return CreateToken(context, previous, kind, context.Position);
         }
 
+        /// <summary>
+		/// Lookups the <see cref="TokenKind" /> for the current punctuator token.
+        /// </summary>
+		/// <returns>
+		/// The <see cref="TokenKind" /> for the current punctuator token.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
+		/// <exception cref="SyntaxException">
+		/// The code does not represent a valid punctiator token.
+		/// </exception>
         private TokenKind LookupPunctuator(ILexerContext context, char code)
         {
             switch (code)
