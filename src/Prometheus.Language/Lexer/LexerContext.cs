@@ -132,12 +132,13 @@ namespace Prometheus.Language
 			return _source.Read(Position - 1);
 		}
 
-		public void Skip()
+		public ILexerContext Skip()
 		{
 			Position++;
+			return this;
 		}
 
-		public void Skip(int count)
+		public ILexerContext Skip(int count)
 		{
 			if (count < 1)
 			{
@@ -146,6 +147,7 @@ namespace Prometheus.Language
 			}
 
 			Position += count;
+			return this;
 		}
 	}
 }

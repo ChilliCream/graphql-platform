@@ -15,8 +15,8 @@ namespace Prometheus.Language
         char Read();
         char? Peek();
         bool IsEndOfStream();
-        void Skip();
-        void Skip(int count);
+		ILexerContext Skip();
+		ILexerContext Skip(int count);
 
         bool PeekTest(Func<char, bool> test);
         bool PeekTest(params Func<char, bool>[] test);

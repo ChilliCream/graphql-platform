@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Prometheus.Language
 {
-	public class PunctuatorTokenReaderTests
+	public class PunctuatorReaderTests
 	{
 
 		[Fact]

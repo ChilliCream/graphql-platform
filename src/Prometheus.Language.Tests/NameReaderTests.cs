@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Prometheus.Language
 {
-	public class NameTokenReaderTests
+	public class NameReaderTests
 	{
 		[Fact]
 		private void ReadToken()
@@ -17,7 +17,7 @@ namespace Prometheus.Language
 			Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
 				null, new Thunk<Token>((Token)null));
 
-			NameTokenReader reader = new NameTokenReader(
+			NameReader reader = new NameReader(
 				(a, b) => null);
 
 			// act
@@ -47,7 +47,7 @@ namespace Prometheus.Language
 			Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
 				null, new Thunk<Token>((Token)null));
 
-			NameTokenReader reader = new NameTokenReader(
+			NameReader reader = new NameReader(
 				(a, b) => null);
 
 			// act
