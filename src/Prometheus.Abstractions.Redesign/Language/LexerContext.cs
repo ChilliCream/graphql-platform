@@ -9,11 +9,11 @@ namespace Prometheus.Language
 
         public LexerContext(ISource source)
         {
-            if(source == null) 
+            if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
-            
+
             _source = source;
         }
 
@@ -126,6 +126,22 @@ namespace Prometheus.Language
         public char ReadPrevious()
         {
             return _source.Read(Position - 1);
+        }
+
+        public void Skip()
+        {
+            Position++;
+        }
+
+        public void Skip(int count)
+        {
+            if (count < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count), count, 
+                    "count mustn't be less than 1.");
+            }
+
+            Position += count;
         }
     }
 }
