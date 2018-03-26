@@ -118,5 +118,62 @@ namespace Prometheus.Language
 			Assert.Equal(sourceBody.Length, token.End);
 			Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
 		}
+
+		[Fact]
+		public void ReadInvalidToken()
+		{
+			// arrange
+			Source source = new Source("z");
+			LexerContext context = new LexerContext(source);
+
+			//CreateToken(context, null, TokenKind.StartOfFile, 0);
+			Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
+				null, new Thunk<Token>((Token)null));
+
+			PunctuatorTokenReader reader = new PunctuatorTokenReader(
+				(a, b) => null);
+
+			// act
+			Action read = () => reader.ReadToken(context, previous);
+
+			// assert
+			Assert.Throws<SyntaxException>(read);
+		}
+        
+		[InlineData("x", false)]
+		[InlineData(".", true)]
+		[InlineData("!", true)]
+		[InlineData("$", true)]
+		[InlineData("&", true)]
+		[InlineData("(", true)]
+		[InlineData(")", true)]
+		[InlineData(":", true)]
+		[InlineData("=", true)]
+		[InlineData("@", true)]
+		[InlineData("[", true)]
+		[InlineData("]", true)]
+		[InlineData("{", true)]
+		[InlineData("}", true)]
+		[InlineData("|", true)]
+		[Theory]
+		public void CanHandle(string token, bool expectedResult)
+        {
+            // arrange
+            Source source = new Source(token);
+            LexerContext context = new LexerContext(source);
+
+            //CreateToken(context, null, TokenKind.StartOfFile, 0);
+            Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
+                null, new Thunk<Token>((Token)null));
+
+            PunctuatorTokenReader reader = new PunctuatorTokenReader(
+                (a, b) => null);
+
+            // act
+			bool result = reader.CanHandle(context);
+
+            // assert
+			Assert.Equal(expectedResult, result);
+        }
 	}
 }
