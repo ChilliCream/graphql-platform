@@ -10,5 +10,6 @@
   <ItemGroup>
     <Folder Include="Lexer\" />
     <Folder Include="AST\" />
+    <Folder Include="Parser\" />
   </ItemGroup>
 </Project>
