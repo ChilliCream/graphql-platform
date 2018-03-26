@@ -1,17 +1,15 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 
 namespace Prometheus.Language
 {
-	public class NumberReaderTests
+	public class NameTokenReaderTests
 	{
-		[InlineData("1234.123", true)]
-		[InlineData("-1234.123", true)]
-		[InlineData("1234", false)]
-		[InlineData("-1234", false)]
-		[Theory]
-		private void ReadToken(string sourceBody, bool isFloat)
+		[Fact]
+		private void ReadToken()
 		{
-			// arrange         
+			// arrange
+			string sourceBody = "helloWorld_123";
 			Source source = new Source(sourceBody);
 			LexerContext context = new LexerContext(source);
 
@@ -19,7 +17,7 @@ namespace Prometheus.Language
 			Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
 				null, new Thunk<Token>((Token)null));
 
-			NumberReader reader = new NumberReader(
+			NameTokenReader reader = new NameTokenReader(
 				(a, b) => null);
 
 			// act
@@ -27,7 +25,7 @@ namespace Prometheus.Language
 
 			// assert
 			Assert.NotNull(token);
-			Assert.Equal(isFloat ? TokenKind.Float : TokenKind.Integer, token.Kind);
+			Assert.Equal(TokenKind.Name, token.Kind);
 			Assert.Equal(sourceBody, token.Value);
 			Assert.Equal(1, token.Line);
 			Assert.Equal(1, token.Column);
@@ -36,11 +34,8 @@ namespace Prometheus.Language
 			Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
 		}
 
-		[InlineData("1234.123", true)]
-        [InlineData("-1234.123", true)]
-		[InlineData("1234", true)]
-		[InlineData("-1234", true)]
-		[InlineData("helloWorld_123", false)]
+		[InlineData("123_helloWorld", false)]
+		[InlineData("helloWorld_123", true)]
 		[Theory]
 		private void CanHandle(string sourceBody, bool expectedResult)
 		{
@@ -52,7 +47,7 @@ namespace Prometheus.Language
 			Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1,
 				null, new Thunk<Token>((Token)null));
 
-			NumberReader reader = new NumberReader(
+			NameTokenReader reader = new NameTokenReader(
 				(a, b) => null);
 
 			// act

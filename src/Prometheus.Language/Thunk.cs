@@ -41,6 +41,10 @@ namespace Prometheus.Language
 
         protected virtual void Thaw()
         {
+			if (_thaw == null)
+            {
+                throw new InvalidOperationException();
+            }
             _value = _thaw();
         }
 
@@ -50,17 +54,11 @@ namespace Prometheus.Language
             {
                 if (!_thawed)
                 {
-                    if (_thaw == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-                    Thaw();
+					Thaw();
                     _thawed = true;
                 }
                 return _value;
             }
         }
-
-
     }
 }

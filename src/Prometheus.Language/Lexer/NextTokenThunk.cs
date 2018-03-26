@@ -19,7 +19,7 @@ namespace Prometheus.Language
 
         public void SetPrevious(Token previous)
         {
-            if (previous == null)
+			if (_previous == null)
             {
                 _previous = previous;
             }

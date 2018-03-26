@@ -1,9 +1,16 @@
 ﻿namespace Prometheus.Language
 {
-	public class NumberReader
+
+    /// <summary>
+	/// Reads int tokens specified in 
+	/// http://facebook.github.io/graphql/October2016/#IntValue
+	/// or a float tokens specified in
+	/// http://facebook.github.io/graphql/October2016/#FloatValue.
+    /// </summary>
+	public class NumberTokenReader
 		: TokenReaderBase
 	{
-		public NumberReader(ReadNextToken readNextTokenDelegate)
+		public NumberTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
 		}

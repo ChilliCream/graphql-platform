@@ -3,9 +3,8 @@
 namespace Prometheus.Language
 {
 	/// <summary>
-	/// Reads punctuator token specified in 
-	/// http://facebook.github.io/graphql/October2016/#sec-Language
-	/// section 2.1.8.
+	/// Reads punctuator tokens specified in 
+	/// http://facebook.github.io/graphql/October2016/#sec-Punctuators.
 	/// </summary>
 	public class PunctuatorTokenReader
 		: TokenReaderBase
