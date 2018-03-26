@@ -62,9 +62,8 @@ namespace Prometheus.Language
 
             if (code.IsHash())
             {
-
+                return ReadComment(context, previous);
             }
-
 
             return null;
         }
@@ -98,7 +97,8 @@ namespace Prometheus.Language
         {
             if (context.PeekTest(c => c.IsDot(), c => c.IsDot()))
             {
-                throw new NotImplementedException();
+                context.Skip(2);
+                return CreateToken(context, previous, TokenKind.Spread, context.Position - 3);
             }
 
             TokenKind kind = LookupPunctuator(context, context.ReadPrevious());
@@ -293,6 +293,25 @@ namespace Prometheus.Language
             }
 
             throw new SyntaxException(context, "Unterminated string.");
+        }
+
+        /**
+* Reads a comment token from the source file.
+*
+* #[\u0009\u0020-\uFFFF]*
+*/
+        public Token ReadComment(ILexerContext context, Token previous)
+        {
+            int code;
+            int start = context.Position - 1;
+
+            while (context.PeekTest(c => c > 0x001f || c.IsTab()))
+            {
+                context.Skip();
+            }
+
+            return CreateToken(context, previous, TokenKind.Comment,
+                start, context.Read(start, context.Position));
         }
 
         public string TrimBlockStringValue(string rawString)

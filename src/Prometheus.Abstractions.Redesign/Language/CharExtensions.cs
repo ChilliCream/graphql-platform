@@ -88,5 +88,11 @@ namespace Prometheus.Language
             return c == '"' || c == '/' || c == '\\' || c == '\b'
                 || c == '\f' || c == '\n' || c == '\r' || c == '\t';
         }
+
+        public static bool IsTab(this char c)
+        {
+            // 0x0009
+            return c == '\t';
+        }
     }
 }
