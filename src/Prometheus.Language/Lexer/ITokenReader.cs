@@ -4,6 +4,7 @@
 
 	public interface ITokenReader
 	{
+		bool CanHandle(ILexerContext context);
 		Token ReadToken(ILexerContext context, Token previous);
 	}
 }

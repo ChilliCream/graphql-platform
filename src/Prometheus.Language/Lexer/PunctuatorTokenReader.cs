@@ -1,4 +1,6 @@
-﻿namespace Prometheus.Language
+﻿using System;
+
+namespace Prometheus.Language
 {
 	/// <summary>
 	/// Reads punctuator token specified in 
@@ -12,6 +14,28 @@
 			: base(readNextTokenDelegate)
 		{
 
+		}
+
+		/// <summary>
+		/// Defines if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token, <c>false</c> otherwise.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <paramref name="context"/> is <c>null</c>.
+		/// </exception>
+		public override bool CanHandle(ILexerContext context)
+		{
+			if (context == null)
+			{
+				throw new ArgumentNullException(nameof(context));
+			}
+
+			return context.PeekTest(c => c.IsPunctuator());
 		}
 
 		/// <summary>
@@ -31,7 +55,7 @@
 			}
 
 			TokenKind kind = LookupPunctuator(context, context.Read());
-			return CreateToken(context, previous, kind, context.Position);
+			return CreateToken(context, previous, kind, context.Position - 1);
 		}
 
 		/// <summary>

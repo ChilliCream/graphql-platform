@@ -5,7 +5,7 @@ namespace Prometheus.Language
 {
 	public class PunctuatorTokenReaderTests
 	{
-    
+
 		[Fact]
 		public void ReadBangToken()
 		{
@@ -82,11 +82,11 @@ namespace Prometheus.Language
 		}
 
 		[Fact]
-        public void ReadSpreadToken()
-        {
+		public void ReadSpreadToken()
+		{
 			ReadToken("...", TokenKind.Spread);
-        }
-        	
+		}
+
 		private void ReadToken(char code, TokenKind kind)
 		{
 			ReadToken(code.ToString(), kind);
@@ -110,6 +110,13 @@ namespace Prometheus.Language
 
 			// assert
 			Assert.NotNull(token);
+			Assert.Equal(kind, token.Kind);
+			Assert.Null(token.Value);
+			Assert.Equal(1, token.Line);
+			Assert.Equal(1, token.Column);
+			Assert.Equal(0, token.Start);
+			Assert.Equal(sourceBody.Length, token.End);
+			Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
 		}
 	}
 }

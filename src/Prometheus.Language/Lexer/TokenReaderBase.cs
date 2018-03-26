@@ -16,7 +16,9 @@ namespace Prometheus.Language
             _readNextTokenDelegate = readNextTokenDelegate;
         }
 
-        public abstract Token ReadToken(ILexerContext context, Token previous);
+		public abstract bool CanHandle(ILexerContext context);
+
+		public abstract Token ReadToken(ILexerContext context, Token previous);
 
         protected Token CreateToken(ILexerContext context, Token previous,
             TokenKind kind, int start, string value)
