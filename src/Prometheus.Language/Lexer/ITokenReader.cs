@@ -1,10 +1,10 @@
 ﻿namespace Prometheus.Language
 {
-	public delegate Token ReadNextToken(ILexerContext context, Token previous);
+    public delegate Token ReadNextToken(ILexerContext context, Token previous);
 
-	public interface ITokenReader
-	{
-		/// <summary>
+    public interface ITokenReader
+    {
+        /// <summary>
         /// Defines if this <see cref="ITokenReader"/> is able to 
         /// handle the next token.
         /// </summary>
@@ -16,7 +16,7 @@
         /// <exception cref="System.ArgumentNullException">
         /// <paramref name="context"/> is <c>null</c>.
         /// </exception>
-		bool CanHandle(ILexerContext context);
+        bool CanHandle(ILexerContext context);
 
         /// <summary>
 		/// Reads the currently selected token from the 
@@ -29,5 +29,5 @@
 		/// <param name="context">The lexer context.</param>
         /// <param name="previous">The previous-token.</param>
 		Token ReadToken(ILexerContext context, Token previous);
-	}
+    }
 }

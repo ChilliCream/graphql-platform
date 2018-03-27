@@ -24,7 +24,7 @@ namespace Prometheus.Language
 
         public char Read(int position)
         {
-			if (position >= _body.Length)
+            if (position >= _body.Length)
             {
                 // TODO: message
                 throw new ArgumentNullException();
