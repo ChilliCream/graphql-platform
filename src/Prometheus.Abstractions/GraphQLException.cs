@@ -16,10 +16,6 @@ namespace Prometheus
         public GraphQLException(string[] messages)
             : base(CreateMessage(messages))
         {
-            if (messages == null)
-            {
-                throw new ArgumentNullException(nameof(messages));
-            }
             Messages = messages;
         }
 
@@ -54,6 +50,10 @@ namespace Prometheus
 
         private static string CreateMessage(IEnumerable<string> messages)
         {
+            if (messages == null)
+            {
+                throw new ArgumentNullException(nameof(messages));
+            }
             return string.Join("\r\n", messages);
         }
     }
