@@ -3,23 +3,47 @@
 namespace Prometheus.Language
 {
 	/// <summary>
-	/// Reads string tokens specified in 
-	/// http://facebook.github.io/graphql/October2016/#StringValue
+	/// Reads string tokens as specified in 
+	/// http://facebook.github.io/graphql/October2016/#StringValue.
 	/// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
 	/// </summary>
 	public class StringTokenReader
 		: TokenReaderBase
 	{
+		/// <summary>
+        /// Initializes a new instance of the <see cref="T:Prometheus.Language.StringTokenReader"/> class.
+        /// </summary>
+        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public StringTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
 		}
 
+		/// <summary>
+        /// Defines if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token, <c>false</c> otherwise.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="context"/> is <c>null</c>.
+        /// </exception>
 		public override bool CanHandle(ILexerContext context)
 		{
 			return context.PeekTest(c => c.IsQuote());
 		}
 
+		/// <summary>
+        /// Reads a string value token from the lexer context.
+        /// </summary>  
+        /// <returns>
+        /// Returns the string value token read from the lexer context.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
 			int chunkStart = context.Position;

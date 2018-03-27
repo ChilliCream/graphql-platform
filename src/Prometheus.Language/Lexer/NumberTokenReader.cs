@@ -40,7 +40,7 @@
         /// Reads an int or float token from the lexer context.
         /// </summary>  
         /// <returns>
-		/// Returns the an int or float token read from the lexer context.
+		/// Returns the int or float token read from the lexer context.
         /// </returns>
         /// <param name="context">The lexer context.</param>
         /// <param name="previous">The previous-token.</param>
