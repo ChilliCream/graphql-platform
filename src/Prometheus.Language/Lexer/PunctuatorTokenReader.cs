@@ -3,12 +3,18 @@
 namespace Prometheus.Language
 {
 	/// <summary>
-	/// Reads punctuator tokens specified in 
-	/// http://facebook.github.io/graphql/October2016/#sec-Punctuators.
+	/// Reads punctuator tokens as specified in 
+	/// http://facebook.github.io/graphql/October2016/#sec-Punctuators
+	/// one of ! $ ( ) ... : = @ [ ] { | }
+	/// additionaly the reader will tokenize ampersands.
 	/// </summary>
 	public class PunctuatorTokenReader
 		: TokenReaderBase
 	{
+	    /// <summary>
+        /// Initializes a new instance of the <see cref="T:Prometheus.Language.PunctuatorTokenReader"/> class.
+        /// </summary>
+        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public PunctuatorTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
@@ -38,13 +44,13 @@ namespace Prometheus.Language
 		}
 
 		/// <summary>
-		/// Reads a punctuator token.
-		/// </summary>	
-		/// <returns>
-		/// Returns the punctuator token read from the source stream.
-		/// </returns>
-		/// <param name="context">The lexer context.</param>
-		/// <param name="previous">The previous-token.</param>
+        /// Reads a punctuator token from the lexer context.
+        /// </summary>  
+        /// <returns>
+        /// Returns the punctuator token read from the lexer context.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
 			if (context.PeekTest(c => c.IsDot(), c => c.IsDot(), c => c.IsDot()))
