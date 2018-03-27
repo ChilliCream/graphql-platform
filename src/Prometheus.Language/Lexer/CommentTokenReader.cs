@@ -1,7 +1,7 @@
 ﻿namespace Prometheus.Language
 {   
     /// <summary>
-	/// Reads comment tokens specified in 
+	/// Reads comment tokens specified as in 
 	/// http://facebook.github.io/graphql/October2016/#sec-Comments
 	/// #[\u0009\u0020-\uFFFF]*
     /// </summary>

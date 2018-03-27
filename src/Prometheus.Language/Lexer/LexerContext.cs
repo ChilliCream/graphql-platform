@@ -116,7 +116,7 @@ namespace Prometheus.Language
 					"A source start index cannot be less than 0.");
 			}
 
-			if (endIndex <= startIndex)
+			if (endIndex < startIndex)
 			{
 				throw new ArgumentOutOfRangeException(
 					nameof(endIndex), endIndex,
@@ -124,6 +124,10 @@ namespace Prometheus.Language
 			}
 
 			int length = endIndex - startIndex;
+			if (length == 0)
+			{
+				return string.Empty;
+			}
 			return _source.Read(startIndex, length);
 		}
 

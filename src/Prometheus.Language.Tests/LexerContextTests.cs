@@ -22,6 +22,34 @@ namespace Prometheus.Language
 		}
 
 		[Fact]
+		public void ReadRange()
+		{
+			// arrange
+			LexerContext context = new LexerContext(Source);
+
+			// act
+			string s = context.Read(2, 3);
+
+			// assert
+			Assert.Equal(0, context.Position);
+			Assert.Equal("3", s);
+		}
+
+		[Fact]
+		public void ReadEmptyRange()
+		{
+			// arrange
+			LexerContext context = new LexerContext(Source);
+
+			// act
+			string s = context.Read(1, 1);
+
+			// assert
+			Assert.Equal(0, context.Position);
+			Assert.Equal(string.Empty, s);
+		}
+
+		[Fact]
 		public void IsEndOfStream_BeginOfStream()
 		{
 			// arrange
@@ -176,37 +204,37 @@ namespace Prometheus.Language
 		}
 
 		[Fact]
-        public void NewLine()
-        {
-            // arrange
-            LexerContext context = new LexerContext(Source);
+		public void NewLine()
+		{
+			// arrange
+			LexerContext context = new LexerContext(Source);
 
 			// act
 			context.Skip();
 			context.NewLine();
 
-            // assert
-            Assert.Equal(1, context.Position);
+			// assert
+			Assert.Equal(1, context.Position);
 			Assert.Equal(2, context.Line);
 			Assert.Equal(1, context.LineStart);
 			Assert.Equal(1, context.Column);
-        }
+		}
 
 		[Fact]
 		public void NewLine_On_Position_2()
-        {
-            // arrange
-            LexerContext context = new LexerContext(Source);
+		{
+			// arrange
+			LexerContext context = new LexerContext(Source);
 
-            // act
-            context.Skip(2);
-            context.NewLine();
+			// act
+			context.Skip(2);
+			context.NewLine();
 
-            // assert
-            Assert.Equal(2, context.Position);
-            Assert.Equal(2, context.Line);
-            Assert.Equal(2, context.LineStart);
-            Assert.Equal(1, context.Column);
-        }
+			// assert
+			Assert.Equal(2, context.Position);
+			Assert.Equal(2, context.Line);
+			Assert.Equal(2, context.LineStart);
+			Assert.Equal(1, context.Column);
+		}
 	}
 }

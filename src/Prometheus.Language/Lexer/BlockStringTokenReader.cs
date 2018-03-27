@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Prometheus.Language
 {
+	/// <summary>
+	/// Reads block string tokens as specified in 
+	/// http://facebook.github.io/graphql/draft/#BlockStringCharacter.
+	/// </summary>
 	public class BlockStringTokenReader
 		: TokenReaderBase
 	{
@@ -12,6 +17,18 @@ namespace Prometheus.Language
 		{
 		}
 
+		/// <summary>
+		/// Defines if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token, <c>false</c> otherwise.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <paramref name="context"/> is <c>null</c>.
+		/// </exception>
 		public override bool CanHandle(ILexerContext context)
 		{
 			return context.PeekTest(
@@ -20,6 +37,14 @@ namespace Prometheus.Language
 				c => c.IsQuote());
 		}
 
+		/// <summary>
+		/// Reads a block string token from the lexer context.
+		/// </summary>  
+		/// <returns>
+		/// Returns the punctuator token read from the lexer context.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+		/// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
 			StringBuilder rawValue = new StringBuilder();
@@ -37,7 +62,7 @@ namespace Prometheus.Language
 				{
 					context.Skip(2);
 					rawValue.Append(context.Read(chunkStart, context.Position - 3));
-					CreateToken(context, previous, TokenKind.BlockString,
+					return CreateToken(context, previous, TokenKind.BlockString,
 						start, TrimBlockStringValue(rawValue.ToString()));
 				}
 
@@ -53,7 +78,7 @@ namespace Prometheus.Language
 				if (code.IsBackslash() && context.PeekTest(
 					c => c.IsQuote(), c => c.IsQuote(), c => c.IsQuote()))
 				{
-					rawValue.Append(context.Read(chunkStart, context.Position));
+					rawValue.Append(context.Read(chunkStart, context.Position - 1));
 					rawValue.Append("\"\"\"");
 					context.Skip(3);
 					chunkStart = context.Position;
@@ -65,16 +90,21 @@ namespace Prometheus.Language
 
 		public string TrimBlockStringValue(string rawString)
 		{
-			// Expand a block string's raw value into independent lines.
-			string[] lines = rawString
-				.Replace("\r\n", "\n")
-				.Replace("\n\r", "\n")
-				.Split('\n');
-
+			string[] lines = ParseLines(rawString);
 			string[] trimmedLines = new string[lines.Length];
 
-			// Remove common indentation from all lines but first.
-			int commonIndent = int.MaxValue;
+			int commonIndent = DetermineCommonIdentation(lines, trimmedLines);
+			RemoveCommonIndetation(lines, commonIndent);
+
+			// Return a string of the lines joined with U+000A.
+			return string.Join("\n", TrimBlankLines(lines, trimmedLines));
+		}
+
+		private int DetermineCommonIdentation(string[] lines, string[] trimmedLines)
+		{
+			int commonIndent = lines.Length < 2 ? 0 : int.MaxValue;
+			trimmedLines[0] = lines[0].TrimStart(' ', '\t');
+
 			for (int i = 1; i < lines.Length; i++)
 			{
 				trimmedLines[i] = lines[i].TrimStart(' ', '\t');
@@ -90,6 +120,11 @@ namespace Prometheus.Language
 				}
 			}
 
+			return commonIndent;
+		}
+
+		private void RemoveCommonIndetation(string[] lines, int commonIndent)
+		{
 			if (commonIndent > 0)
 			{
 				for (int i = 1; i < lines.Length; i++)
@@ -97,8 +132,14 @@ namespace Prometheus.Language
 					lines[i] = lines[i].Substring(commonIndent);
 				}
 			}
+		}
 
-			// Remove leading and trailing blank lines.
+		/// <summary>
+		/// Trims leading and trailing the blank lines.
+		/// </summary>
+		/// <returns>Returns the trimmed down lines.</returns>
+		private IEnumerable<string> TrimBlankLines(string[] lines, string[] trimmedLines)
+		{
 			int start = 0;
 			for (int i = 0; i <= trimmedLines.Length; i++)
 			{
@@ -106,26 +147,37 @@ namespace Prometheus.Language
 				{
 					break;
 				}
-				start = i;
+				start++;
 			}
 
 			if (start == trimmedLines.Length - 1)
 			{
-				return string.Empty;
+				return Enumerable.Empty<string>();
 			}
 
 			int end = trimmedLines.Length;
-			for (int i = trimmedLines.Length; i >= 0; i--)
+			for (int i = trimmedLines.Length - 1; i >= 0; i--)
 			{
 				if (trimmedLines[i].Length > 0)
 				{
 					break;
 				}
-				end = i;
+				end--;
 			}
 
-			// Return a string of the lines joined with U+000A.
-			return string.Join("\n", trimmedLines.Skip(start).Take(end - start));
+			if (end == trimmedLines.Length && start == 0)
+			{
+				return lines;
+			}
+			return lines.Skip(start).Take(end - start);
+		}
+
+		private string[] ParseLines(string rawString)
+		{
+			return rawString
+				.Replace("\r\n", "\n")
+				.Replace("\n\r", "\n")
+				.Split('\n');
 		}
 	}
 }
