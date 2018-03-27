@@ -5,11 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Class1.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Lexer\" />
     <Folder Include="AST\" />
     <Folder Include="Parser\" />
   </ItemGroup>
+
 </Project>
