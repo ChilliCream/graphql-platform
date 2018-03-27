@@ -1,7 +1,7 @@
 namespace Prometheus.Language
 {
     public interface IExecutableDefinitionNode
-        : ISyntaxNode
+        : IDefinitionNode
     {
         NameNode Name { get; }
     }

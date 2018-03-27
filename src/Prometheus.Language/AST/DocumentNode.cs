@@ -7,6 +7,6 @@ namespace Prometheus.Language
     {
         public NodeKind Kind { get; } = NodeKind.Document;
         public Location Location { get; }
-        public IReadOnlyCollection<IExecutableDefinitionNode> Definitions { get; }
+        public IReadOnlyCollection<IDefinitionNode> Definitions { get; }
     }
 }
