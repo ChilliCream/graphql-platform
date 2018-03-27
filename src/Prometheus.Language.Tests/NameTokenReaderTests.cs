@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Prometheus.Language
 {
-    public class NameTokenReaderTests
+	public class NameTokenReaderTests
     {
         [Fact]
         private void ReadToken()

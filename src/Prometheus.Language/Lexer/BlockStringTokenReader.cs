@@ -12,6 +12,10 @@ namespace Prometheus.Language
 	public class BlockStringTokenReader
 		: TokenReaderBase
 	{
+		/// <summary>
+        /// Initializes a new instance of the <see cref="T:Prometheus.Language.BlockStringTokenReader"/> class.
+        /// </summary>
+        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public BlockStringTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
@@ -41,7 +45,7 @@ namespace Prometheus.Language
 		/// Reads a block string token from the lexer context.
 		/// </summary>  
 		/// <returns>
-		/// Returns the punctuator token read from the lexer context.
+		/// Returns the block string token read from the lexer context.
 		/// </returns>
 		/// <param name="context">The lexer context.</param>
 		/// <param name="previous">The previous-token.</param>
