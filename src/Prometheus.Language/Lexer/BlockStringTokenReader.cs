@@ -71,8 +71,8 @@ namespace Prometheus.Language
 				}
 
 				// SourceCharacter
-				if (code < 0x0020 && code != 0x0009
-					&& code != 0x000a && code != 0x000d)
+				if (code.IsControlCharacter() && !code.IsTab()
+				    && !code.IsNewLine() && !code.IsReturn())
 				{
 					throw new SyntaxException(context,
 						$"Invalid character within String: ${code}.");

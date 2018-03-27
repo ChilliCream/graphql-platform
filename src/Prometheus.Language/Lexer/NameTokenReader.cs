@@ -1,32 +1,49 @@
-﻿namespace Prometheus.Language
+﻿using System;
+
+namespace Prometheus.Language
 {
 	/// <summary>
-	/// Reads name tokens specified in 
+	/// Reads name tokens as specified in 
 	/// http://facebook.github.io/graphql/October2016/#Name
-	/// [_A-Za-z][_0-9A-Za-z]ßßß
+	/// [_A-Za-z][_0-9A-Za-z]
     /// </summary>
 	public class NameTokenReader
 		: TokenReaderBase
 	{
+		/// <summary>
+        /// Initializes a new instance of the <see cref="T:Prometheus.Language.NameTokenReader"/> class.
+        /// </summary>
+        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public NameTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
 		}
 
+		/// <summary>
+        /// Defines if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token, <c>false</c> otherwise.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="context"/> is <c>null</c>.
+        /// </exception>
 		public override bool CanHandle(ILexerContext context)
 		{
 			return context.PeekTest(c => c.IsLetter() || c.IsUnderscore());
 		}
 
-	
-        /// <summary>
-		/// Reads an alphanumeric + underscore name token from the <see cref="ISource"/>
-        /// </summary>
-		/// <returns>
-        /// Returns the punctuator token read from the source stream.
+		/// <summary>
+        /// Reads a name token from the lexer context.
+        /// </summary>  
+        /// <returns>
+        /// Returns the name token read from the lexer context.
         /// </returns>
-        /// <param name="context">Context.</param>
-        /// <param name="previous">Previous.</param>
+        /// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
 			int start = context.Position;
