@@ -11,57 +11,62 @@ namespace Prometheus.Language
 		: TokenReaderBase
 	{
 		/// <summary>
-        /// Initializes a new instance of the <see cref="T:Prometheus.Language.StringTokenReader"/> class.
-        /// </summary>
-        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
+		/// Initializes a new instance of the <see cref="T:Prometheus.Language.StringTokenReader"/> class.
+		/// </summary>
+		/// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public StringTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
 		}
 
 		/// <summary>
-        /// Defines if this <see cref="ITokenReader"/> is able to 
-        /// handle the next token.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
-        /// handle the next token, <c>false</c> otherwise.
-        /// </returns>
-        /// <param name="context">The lexer context.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="context"/> is <c>null</c>.
-        /// </exception>
+		/// Defines if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+		/// handle the next token, <c>false</c> otherwise.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+		/// <exception cref="ArgumentNullException">
+		/// <paramref name="context"/> is <c>null</c>.
+		/// </exception>
 		public override bool CanHandle(ILexerContext context)
 		{
-			return context.PeekTest(c => c.IsQuote());
+			return context.PeekTest(c => c.IsQuote())
+				&& !context.PeekTest(c => c.IsQuote(), c => c.IsQuote(), c => c.IsQuote());
 		}
 
 		/// <summary>
-        /// Reads a string value token from the lexer context.
-        /// </summary>  
-        /// <returns>
-        /// Returns the string value token read from the lexer context.
-        /// </returns>
-        /// <param name="context">The lexer context.</param>
-        /// <param name="previous">The previous-token.</param>
+		/// Reads a string value token from the lexer context.
+		/// </summary>  
+		/// <returns>
+		/// Returns the string value token read from the lexer context.
+		/// </returns>
+		/// <param name="context">The lexer context.</param>
+		/// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
-			int chunkStart = context.Position;
+			int start = context.Position;
+			int chunkStart = start + 1;
 			StringBuilder value = new StringBuilder();
 
-			while (context.PeekTest(c => c != 0x000a && c != 0x000d))
+			// skip the opening quote
+			context.Skip();
+
+			while (context.PeekTest(c => !c.IsNewLine() || !c.IsReturn()))
 			{
-				// Closing Quote (")
+				// closing Quote (")
 				char code = context.Read();
 				if (code.IsQuote())
 				{
-					value.Append(context.Read(chunkStart, context.Position));
+					value.Append(context.Read(chunkStart, context.Position - 1));
 					return CreateToken(context, previous,
-						TokenKind.String, chunkStart, value.ToString());
+						TokenKind.String, start, value.ToString());
 				}
 
 				// SourceCharacter
-				if (code < 0x0020 && code != 0x0009)
+				if (code.IsControlCharacter() && !code.IsTab())
 				{
 					throw new SyntaxException(context,
 					  $"Invalid character within String: {code}.");
