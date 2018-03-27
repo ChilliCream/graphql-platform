@@ -2,24 +2,48 @@
 {
 
     /// <summary>
-	/// Reads int tokens specified in 
+	/// Reads int tokens as specified in 
 	/// http://facebook.github.io/graphql/October2016/#IntValue
-	/// or a float tokens specified in
+	/// or a float tokens as specified in
 	/// http://facebook.github.io/graphql/October2016/#FloatValue.
     /// </summary>
 	public class NumberTokenReader
 		: TokenReaderBase
 	{
+		/// <summary>
+        /// Initializes a new instance of the <see cref="T:Prometheus.Language.NumberTokenReader"/> class.
+        /// </summary>
+        /// <param name="readNextTokenDelegate">Read next token delegate.</param>
 		public NumberTokenReader(ReadNextToken readNextTokenDelegate)
 			: base(readNextTokenDelegate)
 		{
 		}
 
+		/// <summary>
+        /// Defines if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c>, if this <see cref="ITokenReader"/> is able to 
+        /// handle the next token, <c>false</c> otherwise.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="context"/> is <c>null</c>.
+        /// </exception>
 		public override bool CanHandle(ILexerContext context)
 		{
 			return context.PeekTest(c => c.IsDigit() || c.IsMinus());
 		}
 
+		/// <summary>
+        /// Reads an int or float token from the lexer context.
+        /// </summary>  
+        /// <returns>
+		/// Returns the an int or float token read from the lexer context.
+        /// </returns>
+        /// <param name="context">The lexer context.</param>
+        /// <param name="previous">The previous-token.</param>
 		public override Token ReadToken(ILexerContext context, Token previous)
 		{
 			int start = context.Position;
