@@ -106,7 +106,7 @@ namespace Prometheus.Language
         /// Skips the whitespaces.
         /// </summary>
         /// <param name="context">The lexer context.</param>
-        public void SkipWhitespaces(ILexerContext context)
+        private void SkipWhitespaces(ILexerContext context)
         {
             while (context.PeekTest(c => c.IsWhitespace()))
             {
