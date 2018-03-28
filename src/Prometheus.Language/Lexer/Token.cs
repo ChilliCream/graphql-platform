@@ -40,7 +40,6 @@ namespace Prometheus.Language
             _next = next;
         }
 
-
         /// <summary>
         /// Gets the kind of <see cref="Token" />.
         /// </summary>
