@@ -1,3 +1,5 @@
+using System;
+
 namespace Prometheus.Language
 {
     public class ArgumentNode
@@ -7,12 +9,12 @@ namespace Prometheus.Language
         {
             if (name == null)
             {
-                throw new System.ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(name));
             }
 
-            if (name == null)
+            if (value == null)
             {
-                throw new System.ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(value));
             }
 
             Location = location;
