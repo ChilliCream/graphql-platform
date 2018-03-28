@@ -119,7 +119,7 @@ namespace Prometheus.Language
                     case Keywords.Scalar:
                         return ParseScalarTypeDefinition(context);
                     case Keywords.Type:
-                        return parseObjectTypeDefinition(lexer);
+                        return ParseObjectTypeDefinition(context);
                     case Keywords.Interface:
                         return parseInterfaceTypeDefinition(lexer);
                     case Keywords.Union:
@@ -266,26 +266,28 @@ namespace Prometheus.Language
         private InputValueDefinitionNode ParseInputValueDefinition(
             IParserContext context)
         {
-            const start = lexer.token;
-            const description = parseDescription(lexer);
-            const name = parseName(lexer);
-            expect(lexer, TokenKind.COLON);
-            const type = parseTypeReference(lexer);
-            let defaultValue;
-            if (skip(lexer, TokenKind.EQUALS))
+            Token start = context.Token;
+            StringValueNode description = ParseDescription(context);
+            NameNode name = ParseName(context);
+            context.ExpectColon();
+            ITypeNode type = ParseTypeReference(context);
+            IValueNode defaultValue = null;
+            if (context.Skip(TokenKind.Equal))
             {
-                defaultValue = parseConstValue(lexer);
+                defaultValue = ParseConstantValue(context);
             }
-            const directives = parseDirectives(lexer, true);
-            return {
-            kind: Kind.INPUT_VALUE_DEFINITION,
-    description,
-    name,
-    type,
-    defaultValue,
-    directives,
-    loc: loc(lexer, start),
-  };
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new InputValueDefinitionNode
+            (
+                location,
+                name,
+                description,
+                type,
+                defaultValue,
+                directives
+            );
         }
 
         private ITypeNode ParseTypeReference(IParserContext context)
@@ -307,14 +309,19 @@ namespace Prometheus.Language
                 type = ParseNamedType(context);
             }
 
-            if (skip(lexer, TokenKind.BANG))
+            if (context.Skip(TokenKind.Bang))
             {
-                return ({
-                kind: Kind.NON_NULL_TYPE,
-                type,
-                loc: loc(lexer, start),
-                }: NonNullTypeNode);
+                if (type is INullableType nt)
+                {
+                    return new NonNullTypeNode
+                    (
+                        context.CreateLocation(start),
+                        nt
+                    );
+                }
+                context.Unexpected(context.Token.Previous);
             }
+
             return type;
         }
 
@@ -459,10 +466,11 @@ namespace Prometheus.Language
 
         private StringValueNode ParseDescription(IParserContext context)
         {
-            if (peekDescription(lexer))
+            if (context.Peek(t => t.IsDescription()))
             {
-                return parseStringLiteral(lexer);
+                return ParseStringLiteral(lexer);
             }
+            return null;
         }
 
         private IEnumerable<T> ParseMany<T>(
