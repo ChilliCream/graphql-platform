@@ -108,7 +108,8 @@ namespace Prometheus.Language
         private ITypeSystemDefinitionNode parseTypeSystemDefinition(IParserContext context)
         {
             // Many definitions begin with a description and require a lookahead.
-            Token keywordToken = context.SkipDescription();
+            Token keywordToken = context.Token.IsDescription()
+                ? context.Peek() : context.Token;
 
             if (keywordToken.IsName())
             {
@@ -143,6 +144,7 @@ namespace Prometheus.Language
             IParserContext context)
         {
             Token start = context.Token;
+            context.SkipDescription();
             context.ExpectSchemaKeyword();
 
             var directives = ParseDirectives(context, true).ToArray();
