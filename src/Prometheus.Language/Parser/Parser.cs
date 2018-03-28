@@ -235,7 +235,7 @@ namespace Prometheus.Language
             NameNode name = ParseName(context);
             InputValueDefinitionNode[] arguments = ParseArgumentDefinitions(context).ToArray(); ;
             context.ExpectColon();
-            ITypeNode type = parseTypeReference(lexer);
+            ITypeNode type = ParseTypeReference(context);
             DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
             Location location = context.CreateLocation(start);
 
