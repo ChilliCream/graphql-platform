@@ -2,7 +2,9 @@
 
 namespace Prometheus.Language
 {
-    public abstract class TokenReaderBase
+    internal delegate Token ReadNextToken(ILexerContext context, Token previous);
+    
+    internal abstract class TokenReaderBase
         : ITokenReader
     {
         private ReadNextToken _readNextTokenDelegate;

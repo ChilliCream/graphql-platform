@@ -16,6 +16,8 @@ namespace Prometheus.Language
             _value = value;
         }
 
+        public string Value => _value;
+
         public bool Equals(TokenKind other)
         {
             if (ReferenceEquals(null, other))

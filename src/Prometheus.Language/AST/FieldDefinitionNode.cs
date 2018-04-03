@@ -5,6 +5,40 @@ namespace Prometheus.Language
     public class FieldDefinitionNode
         : ISyntaxNode
     {
+        public FieldDefinitionNode(Location location,
+            NameNode name, StringValueNode description,
+            IReadOnlyCollection<InputValueDefinitionNode> arguments,
+            ITypeNode type,
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            if (name == null)
+            {
+                throw new System.ArgumentNullException(nameof(name));
+            }
+
+            if (arguments == null)
+            {
+                throw new System.ArgumentNullException(nameof(arguments));
+            }
+
+            if (type == null)
+            {
+                throw new System.ArgumentNullException(nameof(type));
+            }
+
+            if (directives == null)
+            {
+                throw new System.ArgumentNullException(nameof(directives));
+            }
+
+            Location = location;
+            Name = name;
+            Description = description;
+            Arguments = arguments;
+            Type = type;
+            Directives = directives;
+        }
+
         public NodeKind Kind { get; } = NodeKind.FieldDefinition;
         public Location Location { get; }
         public NameNode Name { get; }

@@ -7,7 +7,7 @@ namespace Prometheus.Language
     /// http://facebook.github.io/graphql/October2016/#Name
     /// [_A-Za-z][_0-9A-Za-z]
     /// </summary>
-    public class NameTokenReader
+    internal class NameTokenReader
         : TokenReaderBase
     {
         /// <summary>

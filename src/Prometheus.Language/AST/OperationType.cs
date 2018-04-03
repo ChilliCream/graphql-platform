@@ -1,6 +1,6 @@
 namespace Prometheus.Language
 {
-    public enum OperationTypeNode
+    public enum OperationType
     {
         Query,
         Mutation,

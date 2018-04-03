@@ -5,6 +5,34 @@ namespace Prometheus.Language
     public class UnionTypeDefinitionNode
         : ITypeDefinitionNode
     {
+        public UnionTypeDefinitionNode(
+            Location location, NameNode name,
+            StringValueNode description,
+            IReadOnlyCollection<DirectiveNode> directives,
+            IReadOnlyCollection<NamedTypeNode> types)
+        {
+            if (name == null)
+            {
+                throw new System.ArgumentNullException(nameof(name));
+            }
+
+            if (directives == null)
+            {
+                throw new System.ArgumentNullException(nameof(directives));
+            }
+
+            if (types == null)
+            {
+                throw new System.ArgumentNullException(nameof(types));
+            }
+
+            Location = location;
+            Name = name;
+            Description = description;
+            Directives = directives;
+            Types = types;
+        }
+
         public NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
         public Location Location { get; }
         public NameNode Name { get; }
