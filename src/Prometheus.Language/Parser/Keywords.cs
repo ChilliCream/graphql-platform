@@ -12,6 +12,10 @@ namespace Prometheus.Language
         public const string Extend = "extend";
         public const string Directive = "directive";
         public const string Implements = "implements";
+        public const string On = "on";
+        public const string True = "true";
+        public const string False = "false";
+        public const string Null = "null";
     }
 
 

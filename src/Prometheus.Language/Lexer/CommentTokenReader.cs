@@ -7,7 +7,7 @@ namespace Prometheus.Language
     /// http://facebook.github.io/graphql/October2016/#sec-Comments.
     /// #[\u0009\u0020-\uFFFF]*
     /// </summary>
-    public class CommentTokenReader
+    internal class CommentTokenReader
         : TokenReaderBase
     {
         /// <summary>

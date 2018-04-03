@@ -8,7 +8,7 @@ namespace Prometheus.Language
     /// one of ! $ ( ) ... : = @ [ ] { | }
     /// additionaly the reader will tokenize ampersands.
     /// </summary>
-    public class PunctuatorTokenReader
+    internal class PunctuatorTokenReader
         : TokenReaderBase
     {
         /// <summary>

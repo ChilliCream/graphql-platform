@@ -1,8 +1,6 @@
 ﻿namespace Prometheus.Language
 {
-    public delegate Token ReadNextToken(ILexerContext context, Token previous);
-
-    public interface ITokenReader
+    internal interface ITokenReader
     {
         /// <summary>
         /// Defines if this <see cref="ITokenReader"/> is able to 

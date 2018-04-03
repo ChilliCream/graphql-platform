@@ -7,7 +7,7 @@
 	/// or a float tokens as specified in
 	/// http://facebook.github.io/graphql/October2016/#FloatValue.
     /// </summary>
-	public class NumberTokenReader
+	internal class NumberTokenReader
         : TokenReaderBase
     {
         /// <summary>

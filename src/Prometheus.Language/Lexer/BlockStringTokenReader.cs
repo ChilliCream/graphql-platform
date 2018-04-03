@@ -9,7 +9,7 @@ namespace Prometheus.Language
     /// Reads block string tokens as specified in 
     /// http://facebook.github.io/graphql/draft/#BlockStringCharacter.
     /// </summary>
-    public class BlockStringTokenReader
+    internal class BlockStringTokenReader
         : TokenReaderBase
     {
         /// <summary>

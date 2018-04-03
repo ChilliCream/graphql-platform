@@ -1,6 +1,6 @@
 namespace Prometheus.Language
 {
-    public static class CharExtensions
+    internal static class CharExtensions
     {
         public static bool IsLetterOrDigit(this char c)
         {

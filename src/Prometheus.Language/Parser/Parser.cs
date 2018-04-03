@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Prometheus.Language
 {
-    public class Parser
+    public partial class Parser
         : IParser
     {
         public DocumentNode Parse(ILexer lexer, ISource source)
@@ -22,7 +22,8 @@ namespace Prometheus.Language
             Token start = lexer.Read(source);
             if (start.Kind != TokenKind.StartOfFile)
             {
-                throw new InvalidOperationException("The first token must be a start of file token.");
+                throw new InvalidOperationException(
+                    "The first token must be a start of file token.");
             }
             return ParseDocument(source, start);
         }
@@ -30,20 +31,25 @@ namespace Prometheus.Language
         private DocumentNode ParseDocument(ISource source, Token start)
         {
             List<IDefinitionNode> definitions = new List<IDefinitionNode>();
-            Token current = start;
+            ParserContext context = new ParserContext(source, start);
 
-            while (current.Kind != TokenKind.EndOfFile)
+            context.MoveNext();
+
+            while (!context.IsEndOfFile())
             {
-                current = current.Next;
-                definitions.Add(ParseDefinition(source, current));
+                definitions.Add(ParseDefinition(context));
             }
 
-            throw new InvalidOperationException();
+            Location location = context.CreateLocation(start);
 
+            return new DocumentNode(location, definitions.AsReadOnly());
         }
 
-        private IDefinitionNode ParseDefinition(ISource source, Token token)
+        private IDefinitionNode ParseDefinition(IParserContext context)
         {
+            Token token = context.Current.IsDescription()
+                ? context.Peek() : context.Current;
+
             if (token.IsName())
             {
                 switch (token.Value)
@@ -64,7 +70,7 @@ namespace Prometheus.Language
                     case "input":
                     case "extend":
                     case "directive":
-                        throw new InvalidOperationException();
+                        return ParseTypeSystemDefinition(context);
 
                         // Note: The schema definition language is an experimental addition.
                         // return parseTypeSystemDefinition(lexer);
@@ -83,9 +89,7 @@ namespace Prometheus.Language
                 // return parseTypeSystemDefinition(lexer);
             }
 
-            throw new InvalidOperationException();
-
-            // throw unexpected(lexer);
+            throw context.Unexpected(token);
         }
 
         // Implements the parsing rules in the Type Definition section.
@@ -105,11 +109,11 @@ namespace Prometheus.Language
          *   - EnumTypeDefinition
          *   - InputObjectTypeDefinition
          */
-        private ITypeSystemDefinitionNode parseTypeSystemDefinition(IParserContext context)
+        private ITypeSystemDefinitionNode ParseTypeSystemDefinition(IParserContext context)
         {
             // Many definitions begin with a description and require a lookahead.
-            Token keywordToken = context.Token.IsDescription()
-                ? context.Peek() : context.Token;
+            Token keywordToken = context.Current.IsDescription()
+                ? context.Peek() : context.Current;
 
             if (keywordToken.IsName())
             {
@@ -122,28 +126,27 @@ namespace Prometheus.Language
                     case Keywords.Type:
                         return ParseObjectTypeDefinition(context);
                     case Keywords.Interface:
-                        return parseInterfaceTypeDefinition(lexer);
+                        return ParseInterfaceTypeDefinition(context);
                     case Keywords.Union:
-                        return parseUnionTypeDefinition(lexer);
+                        return ParseUnionTypeDefinition(context);
                     case Keywords.Enum:
-                        return parseEnumTypeDefinition(lexer);
+                        return ParseEnumTypeDefinition(context);
                     case Keywords.Input:
-                        return parseInputObjectTypeDefinition(lexer);
+                        return ParseInputObjectTypeDefinition(context);
                     case Keywords.Extend:
-                        return parseTypeExtension(lexer);
+                        return ParseTypeExtension(context);
                     case Keywords.Directive:
-                        return parseDirectiveDefinition(lexer);
+                        return ParseDirectiveDefinition(context);
                 }
             }
 
             throw context.Unexpected(keywordToken);
         }
 
-
         private SchemaDefinitionNode ParseSchemaDefinition(
             IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             context.SkipDescription();
             context.ExpectSchemaKeyword();
 
@@ -164,9 +167,10 @@ namespace Prometheus.Language
             );
         }
 
-        private ScalarTypeDefinitionNode ParseScalarTypeDefinition(IParserContext context)
+        private ScalarTypeDefinitionNode ParseScalarTypeDefinition(
+            IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectScalarKeyword();
             NameNode name = ParseName(context);
@@ -182,9 +186,10 @@ namespace Prometheus.Language
             );
         }
 
-        private ObjectTypeDefinitionNode ParseObjectTypeDefinition(IParserContext context)
+        private ObjectTypeDefinitionNode ParseObjectTypeDefinition(
+            IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectTypeKeyword();
             NameNode name = ParseName(context);
@@ -204,23 +209,423 @@ namespace Prometheus.Language
             );
         }
 
-        private IEnumerable<NamedTypeNode> ParseImplementsInterfaces(IParserContext context)
+        private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
+            IParserContext context)
         {
-            if (context.Token.Value == Keywords.Implements)
-            {
-                context.MoveNext();
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            context.ExpectInterfaceKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            FieldDefinitionNode[] fields = ParseFieldsDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
 
-                while (context.Skip(TokenKind.Ampersand))
+            return new InterfaceTypeDefinitionNode
+            (
+                location,
+                name,
+                description,
+                directives,
+                fields
+            );
+        }
+
+        private UnionTypeDefinitionNode ParseUnionTypeDefinition(
+            IParserContext context)
+        {
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            context.ExpectUnionKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            NamedTypeNode[] types = ParseUnionMemberTypes(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new UnionTypeDefinitionNode
+            (
+                location,
+                name,
+                description,
+                directives,
+                types
+            );
+        }
+
+        private IEnumerable<NamedTypeNode> ParseUnionMemberTypes(
+            IParserContext context)
+        {
+            if (context.Skip(TokenKind.Equal))
+            {
+                // skip optional leading pipe
+                context.Skip(TokenKind.Pipe);
+
+                do
                 {
                     yield return ParseNamedType(context);
                 }
+                while (context.Skip(TokenKind.Pipe));
+            }
+        }
+
+
+        private EnumTypeDefinitionNode ParseEnumTypeDefinition(
+            IParserContext context)
+        {
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            context.ExpectEnumKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            EnumValueDefinitionNode[] values = ParseEnumValuesDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new EnumTypeDefinitionNode
+            (
+                location,
+                name,
+                description,
+                directives,
+                values
+            );
+        }
+
+        private IEnumerable<EnumValueDefinitionNode> ParseEnumValuesDefinition(
+            IParserContext context)
+        {
+            if (context.Peek(TokenKind.LeftBrace))
+            {
+                return ParseMany(
+                    context,
+                    TokenKind.LeftBrace,
+                    ParseEnumValueDefinition,
+                    TokenKind.RightBrace);
+            }
+            return Enumerable.Empty<EnumValueDefinitionNode>();
+        }
+
+        private EnumValueDefinitionNode ParseEnumValueDefinition(
+            IParserContext context)
+        {
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new EnumValueDefinitionNode
+            (
+                location,
+                name,
+                description,
+                directives
+            );
+        }
+
+        private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition(
+            IParserContext context)
+        {
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            context.ExpectInputKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            InputValueDefinitionNode[] fields = ParseInputFieldsDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new InputObjectTypeDefinitionNode
+            (
+                location,
+                name,
+                description,
+                directives,
+                fields
+            );
+        }
+
+        private IEnumerable<InputValueDefinitionNode> ParseInputFieldsDefinition(
+            IParserContext context)
+        {
+            if (context.Peek(TokenKind.LeftBrace))
+            {
+                return ParseMany(
+                    context,
+                    TokenKind.LeftBrace,
+                    ParseInputValueDefinition,
+                    TokenKind.RightBrace);
+            }
+            return Enumerable.Empty<InputValueDefinitionNode>();
+        }
+
+        private ITypeExtensionNode ParseTypeExtension(IParserContext context)
+        {
+            Token keywordToken = context.Peek().Next;
+
+            if (keywordToken.Kind == TokenKind.Name)
+            {
+                switch (keywordToken.Value)
+                {
+                    case Keywords.Scalar:
+                        return ParseScalarTypeExtension(context);
+                    case Keywords.Type:
+                        return ParseObjectTypeExtension(context);
+                    case Keywords.Interface:
+                        return ParseInterfaceTypeExtension(context);
+                    case Keywords.Union:
+                        return ParseUnionTypeExtension(context);
+                    case Keywords.Enum:
+                        return ParseEnumTypeExtension(context);
+                    case Keywords.Input:
+                        return ParseInputObjectTypeExtension(context);
+                }
+            }
+
+            throw context.Unexpected(keywordToken);
+        }
+
+
+        private ScalarTypeExtensionNode ParseScalarTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectScalarKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            if (directives.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+            Location location = context.CreateLocation(start);
+
+            return new ScalarTypeExtensionNode
+            (
+                location,
+                name,
+                directives
+            );
+        }
+
+        private ObjectTypeExtensionNode ParseObjectTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectTypeKeyword();
+            NameNode name = ParseName(context);
+            NamedTypeNode[] interfaces = ParseImplementsInterfaces(context).ToArray();
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            FieldDefinitionNode[] fields = ParseFieldsDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            if (interfaces.Length == 0
+                && directives.Length == 0
+                && fields.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            return new ObjectTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                interfaces,
+                fields
+            );
+        }
+
+        private InterfaceTypeExtensionNode ParseInterfaceTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectInterfaceKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            FieldDefinitionNode[] fields = ParseFieldsDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            if (directives.Length == 0
+                && fields.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            return new InterfaceTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                fields
+            );
+        }
+
+        private UnionTypeExtensionNode ParseUnionTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectUnionKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            NamedTypeNode[] types = ParseUnionMemberTypes(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            if (directives.Length == 0 && types.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            return new UnionTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                types
+            );
+        }
+
+        private EnumTypeExtensionNode ParseEnumTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectEnumKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            EnumValueDefinitionNode[] values = ParseEnumValuesDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            if (directives.Length == 0 && values.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            return new EnumTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                values
+            );
+        }
+
+        private InputObjectTypeExtensionNode ParseInputObjectTypeExtension(IParserContext context)
+        {
+            Token start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectInputKeyword();
+            NameNode name = ParseName(context);
+            DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
+            InputValueDefinitionNode[] fields = ParseInputFieldsDefinition(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            if (directives.Length == 0 && fields.Length == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            return new InputObjectTypeExtensionNode
+            (
+                location,
+                name,
+                directives,
+                fields
+            );
+        }
+
+        private DirectiveDefinitionNode ParseDirectiveDefinition(IParserContext context)
+        {
+            Token start = context.Current;
+            StringValueNode description = ParseDescription(context);
+            context.ExpectDirectiveKeyword();
+            context.ExpectAt();
+            NameNode name = ParseName(context);
+            InputValueDefinitionNode[] arguments = ParseArgumentDefinitions(context).ToArray();
+            context.ExpectOnKeyword();
+            NameNode[] locations = ParseDirectiveLocations(context).ToArray();
+            Location location = context.CreateLocation(start);
+
+            return new DirectiveDefinitionNode
+            (
+                location,
+                name,
+                description,
+                arguments,
+                locations
+            );
+        }
+
+        /**
+         * DirectiveLocations :
+         *   - `|`? DirectiveLocation
+         *   - DirectiveLocations | DirectiveLocation
+         */
+        private IEnumerable<NameNode> ParseDirectiveLocations(IParserContext context)
+        {
+            // skip optional leading pipe.
+            context.Skip(TokenKind.Pipe);
+
+            do
+            {
+                yield return ParseDirectiveLocation(context);
+            }
+            while (context.Skip(TokenKind.Pipe));
+        }
+
+        /*
+         * DirectiveLocation :
+         *   - ExecutableDirectiveLocation
+         *   - TypeSystemDirectiveLocation
+         *
+         * ExecutableDirectiveLocation : one of
+         *   `QUERY`
+         *   `MUTATION`
+         *   `SUBSCRIPTION`
+         *   `FIELD`
+         *   `FRAGMENT_DEFINITION`
+         *   `FRAGMENT_SPREAD`
+         *   `INLINE_FRAGMENT`
+         *
+         * TypeSystemDirectiveLocation : one of
+         *   `SCHEMA`
+         *   `SCALAR`
+         *   `OBJECT`
+         *   `FIELD_DEFINITION`
+         *   `ARGUMENT_DEFINITION`
+         *   `INTERFACE`
+         *   `UNION`
+         *   `ENUM`
+         *   `ENUM_VALUE`
+         *   `INPUT_OBJECT`
+         *   `INPUT_FIELD_DEFINITION`
+         */
+        private NameNode ParseDirectiveLocation(IParserContext context)
+        {
+            Token start = context.Current;
+            NameNode name = ParseName(context);
+            if (DirectiveLocation.IsValidName(name.Value))
+            {
+                return name;
+            }
+            throw context.Unexpected(start);
+        }
+
+        private IEnumerable<NamedTypeNode> ParseImplementsInterfaces(
+            IParserContext context)
+        {
+            if (context.SkipKeyword(Keywords.Implements))
+            {
+                // skip optional leading amperdand.
+                context.Skip(TokenKind.Ampersand);
+
+                do
+                {
+                    yield return ParseNamedType(context);
+                }
+                while (context.Skip(TokenKind.Ampersand));
             }
         }
 
         private IEnumerable<FieldDefinitionNode> ParseFieldsDefinition(
             IParserContext context)
         {
-            if (context.Peek(TokenKind.LeftBrace))
+            if (context.Current.IsLeftBrace())
             {
                 return ParseMany(context,
                     TokenKind.LeftBrace,
@@ -230,12 +635,13 @@ namespace Prometheus.Language
             return Enumerable.Empty<FieldDefinitionNode>();
         }
 
-        private FieldDefinitionNode ParseFieldDefinition(IParserContext context)
+        private FieldDefinitionNode ParseFieldDefinition(
+            IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             StringValueNode description = ParseDescription(context);
             NameNode name = ParseName(context);
-            InputValueDefinitionNode[] arguments = ParseArgumentDefinitions(context).ToArray(); ;
+            InputValueDefinitionNode[] arguments = ParseArgumentDefinitions(context).ToArray();
             context.ExpectColon();
             ITypeNode type = ParseTypeReference(context);
             DirectiveNode[] directives = ParseDirectives(context, true).ToArray();
@@ -268,7 +674,7 @@ namespace Prometheus.Language
         private InputValueDefinitionNode ParseInputValueDefinition(
             IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             StringValueNode description = ParseDescription(context);
             NameNode name = ParseName(context);
             context.ExpectColon();
@@ -294,7 +700,7 @@ namespace Prometheus.Language
 
         private ITypeNode ParseTypeReference(IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             ITypeNode type;
             Location location;
 
@@ -321,13 +727,14 @@ namespace Prometheus.Language
                         nt
                     );
                 }
-                context.Unexpected(context.Token.Previous);
+                context.Unexpected(context.Current.Previous);
             }
 
             return type;
         }
 
-        private IEnumerable<DirectiveNode> ParseDirectives(IParserContext context, bool isConstant)
+        private IEnumerable<DirectiveNode> ParseDirectives(
+            IParserContext context, bool isConstant)
         {
             while (context.Peek(TokenKind.At))
             {
@@ -338,7 +745,7 @@ namespace Prometheus.Language
         private DirectiveNode ParseDirective(
             IParserContext context, bool isConstant)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             context.ExpectAt();
             NameNode name = ParseName(context);
             var arguments = ParseArguments(context, isConstant).ToArray();
@@ -366,7 +773,7 @@ namespace Prometheus.Language
             IParserContext context,
             Func<IParserContext, ArgumentNode> parseArgument)
         {
-            if (context.Token.Next.IsLeftParenthesis())
+            if (context.Current.Next.IsLeftParenthesis())
             {
                 return ParseMany(
                     context,
@@ -387,9 +794,10 @@ namespace Prometheus.Language
             return ParseArgument(context, c => ParseValueLiteral(c, false));
         }
 
-        private ArgumentNode ParseArgument(IParserContext context, Func<IParserContext, IValueNode> parseValue)
+        private ArgumentNode ParseArgument(IParserContext context,
+            Func<IParserContext, IValueNode> parseValue)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = parseValue(context);
@@ -403,19 +811,12 @@ namespace Prometheus.Language
             );
         }
 
-        private IValueNode ParseValueLiteral(IParserContext context, bool isConstant)
-        {
-            throw new NotImplementedException();
-        }
+        
 
-        private IValueNode ParseConstantValue(IParserContext context)
+        private OperationTypeDefinitionNode ParseOperationTypeDefinition(
+            IParserContext context)
         {
-            throw new NotImplementedException();
-        }
-
-        private OperationTypeDefinitionNode ParseOperationTypeDefinition(IParserContext context)
-        {
-            Token start = context.Token;
+            Token start = context.Current;
             OperationType operation = ParseOperationType(context);
             context.ExpectColon();
             NamedTypeNode type = ParseNamedType(context);
@@ -443,7 +844,7 @@ namespace Prometheus.Language
 
         private NamedTypeNode ParseNamedType(IParserContext context)
         {
-            Token start = context.Token;
+            Token start = context.Current;
             NameNode name = ParseName(context);
             Location location = context.CreateLocation(start);
 
@@ -468,9 +869,9 @@ namespace Prometheus.Language
 
         private StringValueNode ParseDescription(IParserContext context)
         {
-            if (context.Peek(t => t.IsDescription()))
+            if (context.Current.IsDescription())
             {
-                return ParseStringLiteral(lexer);
+                return ParseStringLiteral(context);
             }
             return null;
         }
@@ -481,16 +882,22 @@ namespace Prometheus.Language
             Func<IParserContext, T> parser,
             TokenKind closeKind)
         {
-            if (context.Token.Kind != openKind)
+            if (context.Current.Kind != openKind)
             {
                 throw new SyntaxException(context,
-                    $"Expected a name token: {context.Token}.");
+                    $"Expected a name token: {context.Current}.");
             }
 
-            while (context.Skip(closeKind)) // todo : fix this
+            // skip opening token
+            context.MoveNext();
+
+            while (context.Current.Kind != closeKind) // todo : fix this
             {
                 yield return parser(context);
             }
+
+            // skip closing token
+            context.MoveNext();
         }
     }
 }

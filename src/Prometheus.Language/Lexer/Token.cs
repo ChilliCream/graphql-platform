@@ -73,5 +73,10 @@ namespace Prometheus.Language
         public Token Previous { get; }
 
         public Token Next => _next.Value;
+
+        public override string ToString()
+        {
+            return Value ?? Kind.ToString();
+        }
     }
 }

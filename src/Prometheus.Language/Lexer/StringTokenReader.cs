@@ -7,7 +7,7 @@ namespace Prometheus.Language
     /// http://facebook.github.io/graphql/October2016/#StringValue.
     /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
     /// </summary>
-    public class StringTokenReader
+    internal class StringTokenReader
         : TokenReaderBase
     {
         /// <summary>
