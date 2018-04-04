@@ -7,8 +7,6 @@ namespace Prometheus.Language
     public class DirectiveLocation
         : IEquatable<DirectiveLocation>
     {
-        private static readonly Dictionary<string, DirectiveLocation> _locations
-            = GetAll().ToDictionary(t => t._value);
         private string _value;
 
         private DirectiveLocation(string value)
@@ -69,11 +67,11 @@ namespace Prometheus.Language
         public static DirectiveLocation Query = new DirectiveLocation("QUERY");
         public static DirectiveLocation Mutation = new DirectiveLocation("MUTATION");
         public static DirectiveLocation Subscription = new DirectiveLocation("SUBSCRIPTION");
-        public static DirectiveLocation Field = new DirectiveLocation("Field");
+        public static DirectiveLocation Field = new DirectiveLocation("FIELD");
         public static DirectiveLocation FragmentDefinition = new DirectiveLocation("FRAGMENT_DEFINITION");
         public static DirectiveLocation FragmentSpread = new DirectiveLocation("FRAGMENT_SPREAD");
         public static DirectiveLocation InlineFragment = new DirectiveLocation("INLINE_FRAGMENT");
-        public static DirectiveLocation Schema = new DirectiveLocation("Schema");
+        public static DirectiveLocation Schema = new DirectiveLocation("SCHEMA");
         public static DirectiveLocation Scalar = new DirectiveLocation("SCALAR");
         public static DirectiveLocation Object = new DirectiveLocation("OBJECT");
         public static DirectiveLocation FieldDefinition = new DirectiveLocation("FIELD_DEFINITION");
@@ -87,34 +85,54 @@ namespace Prometheus.Language
 
         public static bool IsValidName(string value)
         {
-            return _locations.ContainsKey(value);
+            return DirectiveLocationLookup.IsValidName(value);
         }
 
         public static bool TryParse(string value, out DirectiveLocation location)
         {
-            return _locations.TryGetValue(value, out location);
+            return DirectiveLocationLookup.TryParse(value, out location);
         }
 
-        private static IEnumerable<DirectiveLocation> GetAll()
+        private static class DirectiveLocationLookup
         {
-            yield return Query;
-            yield return Mutation;
-            yield return Subscription;
-            yield return Field;
-            yield return FragmentDefinition;
-            yield return FragmentSpread;
-            yield return InlineFragment;
-            yield return Schema;
-            yield return Scalar;
-            yield return Object;
-            yield return FieldDefinition;
-            yield return ArgumentDefinition;
-            yield return Interface;
-            yield return Union;
-            yield return Enum;
-            yield return EnumValue;
-            yield return InputObject;
-            yield return InputFieldDefinition;
+            private readonly static Dictionary<string, DirectiveLocation> _locations;
+
+            static DirectiveLocationLookup()
+            {
+                _locations = GetAll().ToDictionary(t => t._value);
+            }
+
+            public static bool IsValidName(string value)
+            {
+                return _locations.ContainsKey(value);
+            }
+
+            public static bool TryParse(string value, out DirectiveLocation location)
+            {
+                return _locations.TryGetValue(value, out location);
+            }
+
+            private static IEnumerable<DirectiveLocation> GetAll()
+            {
+                yield return Query;
+                yield return Mutation;
+                yield return Subscription;
+                yield return Field;
+                yield return FragmentDefinition;
+                yield return FragmentSpread;
+                yield return InlineFragment;
+                yield return Schema;
+                yield return Scalar;
+                yield return Object;
+                yield return FieldDefinition;
+                yield return ArgumentDefinition;
+                yield return Interface;
+                yield return Union;
+                yield return Enum;
+                yield return EnumValue;
+                yield return InputObject;
+                yield return InputFieldDefinition;
+            }
         }
     }
 }

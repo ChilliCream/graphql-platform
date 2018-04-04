@@ -120,7 +120,7 @@ namespace Prometheus.Language
 
         public static Location CreateLocation(this IParserContext context, Token start)
         {
-            return null;
+            return new Location(context.Source, start, context.Current);
         }
 
         public static SyntaxException Unexpected(this IParserContext context, Token token)

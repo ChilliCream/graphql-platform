@@ -67,7 +67,7 @@ namespace Prometheus.Language
                     context.Skip(2);
                     rawValue.Append(context.Read(chunkStart, context.Position - 3));
                     return CreateToken(context, previous, TokenKind.BlockString,
-                        start, TrimBlockStringValue(rawValue.ToString()));
+                        start, TrimBlockStringValue(context, rawValue.ToString()));
                 }
 
                 // SourceCharacter
@@ -92,10 +92,12 @@ namespace Prometheus.Language
             throw new SyntaxException(context, "Unterminated string.");
         }
 
-        public string TrimBlockStringValue(string rawString)
+        public string TrimBlockStringValue(ILexerContext context, string rawString)
         {
             string[] lines = ParseLines(rawString);
             string[] trimmedLines = new string[lines.Length];
+
+            context.NewLine(lines.Length - 1);
 
             int commonIndent = DetermineCommonIdentation(lines, trimmedLines);
             RemoveCommonIndetation(lines, commonIndent);
@@ -147,7 +149,7 @@ namespace Prometheus.Language
             int start = 0;
             for (int i = 0; i <= trimmedLines.Length; i++)
             {
-                if (trimmedLines[i].Length > 0)
+                if (trimmedLines[i]?.Length > 0)
                 {
                     break;
                 }
@@ -162,7 +164,7 @@ namespace Prometheus.Language
             int end = trimmedLines.Length;
             for (int i = trimmedLines.Length - 1; i >= 0; i--)
             {
-                if (trimmedLines[i].Length > 0)
+                if (trimmedLines[i]?.Length > 0)
                 {
                     break;
                 }

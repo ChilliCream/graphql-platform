@@ -1,3 +1,5 @@
+using System;
+
 namespace Prometheus.Language
 {
     public static class TokenExtensions
@@ -64,6 +66,30 @@ namespace Prometheus.Language
         public static bool IsRightBracket(this Token token)
         {
             return token.Kind == TokenKind.RightBracket;
+        }
+
+        public static Token Peek(this Token token)
+        {
+            if (token.Kind == TokenKind.EndOfFile)
+            {
+                throw new InvalidOperationException(
+                    "The specified token is the last token in the token chain.");
+            }
+
+            Token next = token;
+            
+            do
+            {
+                next = next.Next;
+            }
+            while (CanBeSkipped(next));
+
+            return next;
+        }
+
+        private static bool CanBeSkipped(Token token)
+        {
+            return token.Kind == TokenKind.Comment;
         }
     }
 

@@ -1,7 +1,33 @@
+using System;
+
 namespace Prometheus.Language
 {
     public class Location
     {
+        public Location(ISource source, Token start, Token end)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (start == null)
+            {
+                throw new ArgumentNullException(nameof(start));
+            }
+
+            if (end == null)
+            {
+                throw new ArgumentNullException(nameof(end));
+            }
+
+            StartToken = start;
+            EndToken = end;
+            Source = source;
+            Start = start.Start;
+            End = end.End;
+        }
+
         /// <summary>
         /// Gets the character offset at which this <see cref="ISyntaxNode" /> begins.
         /// </summary>
@@ -26,6 +52,6 @@ namespace Prometheus.Language
         /// Gets the <see cref="Source" /> document the AST represents.
         /// </summary>
         /// <returns></returns>
-        public Source Source { get; }
+        public ISource Source { get; }
     }
 }

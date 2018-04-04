@@ -12,5 +12,10 @@ namespace Prometheus.Language
         public NodeKind Kind { get; } = NodeKind.Name;
         public Location Location { get; }
         public string Value { get; }
+
+        public override string ToString()
+        {
+            return $"Name: {Value}";
+        }
     }
 }

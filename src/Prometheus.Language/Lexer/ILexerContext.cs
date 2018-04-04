@@ -4,12 +4,14 @@ namespace Prometheus.Language
 {
     public interface ILexerContext
     {
-        int Position { get; set; }
-        int Line { get; set; }
-        int LineStart { get; set; }
-        int Column { get; set; }
+        int Position { get; }
+        int Line { get; }
+        int LineStart { get; }
+        int Column { get; }
 
         void NewLine();
+        void NewLine(int lines);
+        void UpdateColumn();
 
         char ReadPrevious();
         char Read();

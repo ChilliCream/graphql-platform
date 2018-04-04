@@ -13,9 +13,9 @@ namespace Prometheus.Language
                 throw new System.ArgumentNullException(nameof(name));
             }
 
-            if (Arguments == null)
+            if (arguments == null)
             {
-                throw new System.ArgumentNullException(nameof(Arguments));
+                throw new System.ArgumentNullException(nameof(arguments));
             }
 
             Location = location;

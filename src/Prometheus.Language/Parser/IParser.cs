@@ -1,7 +1,7 @@
 ﻿namespace Prometheus.Language
 {
-	public interface IParser
-	{
-		DocumentNode Parse(ILexer lexer, ISource source);
-	}
+    public interface IParser
+    {
+        DocumentNode Parse(ILexer lexer, ISource source);
+    }
 }

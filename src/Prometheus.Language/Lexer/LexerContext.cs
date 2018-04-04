@@ -21,10 +21,10 @@ namespace Prometheus.Language
             Column = 1;
         }
 
-        public int Position { get; set; }
-        public int Line { get; set; }
-        public int LineStart { get; set; }
-        public int Column { get; set; }
+        public int Position { get; private set; }
+        public int Line { get; private set; }
+        public int LineStart { get; private set; }
+        public int Column { get; private set; }
 
         public bool IsEndOfStream()
         {
@@ -33,8 +33,25 @@ namespace Prometheus.Language
 
         public void NewLine()
         {
-            Line++;
+            NewLine(1);
+        }
+
+        public void NewLine(int lines)
+        {
+            if (lines < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(lines), "must be greater or equal to 1.");
+            }
+
+            Line += lines;
             LineStart = Position;
+            UpdateColumn();
+        }
+
+        public void UpdateColumn()
+        {
+            Column = 1 + Position - LineStart;
         }
 
         public char? Peek()

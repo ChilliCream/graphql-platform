@@ -89,6 +89,11 @@ namespace Prometheus.Language
 
         private IValueNode ParseScalarValue(IParserContext context)
         {
+            if (context.Current.IsString())
+            {
+                return ParseStringLiteral(context);
+            }
+
             Token start = context.ExpectScalarValue();
             Location location = context.CreateLocation(start);
 
@@ -108,11 +113,6 @@ namespace Prometheus.Language
                     location,
                     start.Value
                 );
-            }
-
-            if (start.IsString())
-            {
-                return ParseStringLiteral(context);
             }
 
             throw context.Unexpected(start);

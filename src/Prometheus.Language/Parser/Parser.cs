@@ -71,9 +71,6 @@ namespace Prometheus.Language
                     case "extend":
                     case "directive":
                         return ParseTypeSystemDefinition(context);
-
-                        // Note: The schema definition language is an experimental addition.
-                        // return parseTypeSystemDefinition(lexer);
                 }
             }
             else if (token.IsLeftBrace())
@@ -83,11 +80,9 @@ namespace Prometheus.Language
             }
             else if (token.IsDescription())
             {
-                throw new InvalidOperationException();
-
-                // Note: The schema definition language is an experimental addition.
-                // return parseTypeSystemDefinition(lexer);
+                return ParseTypeSystemDefinition(context);
             }
+
 
             throw context.Unexpected(token);
         }
@@ -292,7 +287,7 @@ namespace Prometheus.Language
         private IEnumerable<EnumValueDefinitionNode> ParseEnumValuesDefinition(
             IParserContext context)
         {
-            if (context.Peek(TokenKind.LeftBrace))
+            if (context.Current.IsLeftBrace())
             {
                 return ParseMany(
                     context,
@@ -345,7 +340,7 @@ namespace Prometheus.Language
         private IEnumerable<InputValueDefinitionNode> ParseInputFieldsDefinition(
             IParserContext context)
         {
-            if (context.Peek(TokenKind.LeftBrace))
+            if (context.Current.IsLeftBrace())
             {
                 return ParseMany(
                     context,
@@ -358,7 +353,7 @@ namespace Prometheus.Language
 
         private ITypeExtensionNode ParseTypeExtension(IParserContext context)
         {
-            Token keywordToken = context.Peek().Next;
+            Token keywordToken = context.Peek();
 
             if (keywordToken.Kind == TokenKind.Name)
             {
@@ -661,7 +656,7 @@ namespace Prometheus.Language
         private IEnumerable<InputValueDefinitionNode> ParseArgumentDefinitions(
             IParserContext context)
         {
-            if (context.Peek(TokenKind.LeftParenthesis))
+            if (context.Current.IsLeftParenthesis())
             {
                 return ParseMany(context,
                     TokenKind.LeftParenthesis,
@@ -736,7 +731,7 @@ namespace Prometheus.Language
         private IEnumerable<DirectiveNode> ParseDirectives(
             IParserContext context, bool isConstant)
         {
-            while (context.Peek(TokenKind.At))
+            while (context.Current.IsAt())
             {
                 yield return ParseDirective(context, isConstant);
             }
@@ -773,7 +768,7 @@ namespace Prometheus.Language
             IParserContext context,
             Func<IParserContext, ArgumentNode> parseArgument)
         {
-            if (context.Current.Next.IsLeftParenthesis())
+            if (context.Current.IsLeftParenthesis())
             {
                 return ParseMany(
                     context,
@@ -811,7 +806,7 @@ namespace Prometheus.Language
             );
         }
 
-        
+
 
         private OperationTypeDefinitionNode ParseOperationTypeDefinition(
             IParserContext context)

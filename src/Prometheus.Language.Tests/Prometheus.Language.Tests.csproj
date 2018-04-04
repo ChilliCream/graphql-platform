@@ -18,4 +18,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Prometheus.Language\Prometheus.Language.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\schema-kitchen-sink.graphql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\schema-kitchen-sink.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@ namespace Prometheus.Language
             Number = new NumberTokenReader(ReadNextToken);
             Comment = new CommentTokenReader(ReadNextToken);
             BlockString = new BlockStringTokenReader(ReadNextToken);
+            String = new StringTokenReader(ReadNextToken);
         }
 
         private ITokenReader Punctuator { get; }
@@ -49,7 +50,7 @@ namespace Prometheus.Language
         private Token ReadNextToken(ILexerContext context, Token previous)
         {
             SkipWhitespaces(context);
-            context.Column = 1 + context.Position - context.LineStart;
+            context.UpdateColumn();
 
             if (context.IsEndOfStream())
             {
@@ -123,6 +124,10 @@ namespace Prometheus.Language
                         context.Read();
                     }
                     context.NewLine();
+                }
+                else if (code.IsWhitespace())
+                {
+                    // ignore and move to next char
                 }
                 else
                 {
