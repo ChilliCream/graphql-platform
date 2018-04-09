@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Prometheus.Parser</RootNamespace>
     <AssemblyName>Prometheus.Parser</AssemblyName>
+    <PackageId>HotChocolate.Parser</PackageId>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Prometheus.Abstrations</RootNamespace>
     <AssemblyName>Prometheus.Abstrations</AssemblyName>
+    <PackageId>HotChocolate.Abstractions</PackageId>
   </PropertyGroup>
     
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

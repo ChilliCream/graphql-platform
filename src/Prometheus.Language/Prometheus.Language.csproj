@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>HotChocolate.Language</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
