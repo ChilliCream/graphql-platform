@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>HotChocolate.Core</AssemblyName>
+    <RootNamespace>HotChocolate</RootNamespace>
+  </PropertyGroup>
+
+   <PropertyGroup>
+    <PackageId>HotChocolate.Core</PackageId>
+    <Description>
+  
+    </Description>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>   
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />      
+  </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\HotChocolate.Language\HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+</Project>
