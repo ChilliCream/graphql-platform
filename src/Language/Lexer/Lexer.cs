@@ -6,7 +6,7 @@ using System.Text;
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// The default GraphQL implementation.
+    /// The default lexer implementation.
     /// </summary>
     public partial class Lexer
         : ILexer
