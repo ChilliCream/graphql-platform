@@ -2,7 +2,8 @@ namespace HotChocolate.Language
 {
     /// <summary>
     /// Represents the GraphQL lexer. 
-    /// The lexer tokenizes a GraphQL <see cref="ISource" /> and returns the first token.
+    /// The lexer tokenizes a GraphQL <see cref="ISource" />
+    /// and returns the first token.
     /// The tokens are chained as a a doubly linked list.
     /// </summary>
     public interface ILexer
@@ -20,6 +21,9 @@ namespace HotChocolate.Language
         /// </returns>
         /// <exception cref="SyntaxException">
         /// There are unexpected tokens in the given <paramref name="source" />.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="source" /> is null.
         /// </exception>
         Token Read(ISource source);
     }

@@ -11,6 +11,23 @@ namespace HotChocolate.Language
     public partial class Lexer
         : ILexer
     {
+        /// <summary>
+        /// Reads <see cref="Token" />s from a GraphQL 
+        /// <paramref name="source" /> and returns the first token. 
+        /// </summary>
+        /// <param name="source">
+        /// The GraphQL source that shall be tokenized.
+        /// </param>
+        /// <returns>
+        /// Returns the first token of the given 
+        /// GraphQL <paramref name="source" />.
+        /// </returns>
+        /// <exception cref="SyntaxException">
+        /// There are unexpected tokens in the given <paramref name="source" />.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="source" /> is null.
+        /// </exception>
         public Token Read(ISource source)
         {
             if (source == null)

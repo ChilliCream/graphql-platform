@@ -1,6 +1,11 @@
 namespace HotChocolate.Language
 {
-    public static class CharExtensions
+    /// <summary>
+    /// This class provides internal char utilities 
+    /// that are used to tokenize a GraphQL source text.
+    /// These utilities are used by the lexer dfault implementation.
+    /// </summary>
+    internal static class CharExtensions
     {
         private static readonly bool[] _isLetterOrUnderscore = new bool[char.MaxValue + 1];
         private static readonly bool[] _isControlCharacter = new bool[char.MaxValue + 1];
@@ -8,6 +13,8 @@ namespace HotChocolate.Language
         private static readonly bool[] _isWhitespace = new bool[char.MaxValue + 1];
         private static readonly bool[] _isPunctuator = new bool[char.MaxValue + 1];
         private static readonly bool[] _isDigitOrMinus = new bool[char.MaxValue + 1];
+
+        #region Initialize Arrays
 
         static CharExtensions()
         {
@@ -77,16 +84,12 @@ namespace HotChocolate.Language
             _isDigitOrMinus['9'] = true;
         }
 
-        public static bool IsLetterOrDigit(this char c)
-        {
-            return c.IsLetter() || c.IsDigit();
-        }
+        #endregion
 
         public static bool IsLetterOrDigitOrUnderscore(this char c)
         {
             return c.IsLetterOrUnderscore() || c.IsDigit();
         }
-
 
         public static bool IsLetter(this char c)
         {

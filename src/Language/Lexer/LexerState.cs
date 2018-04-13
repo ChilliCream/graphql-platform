@@ -2,14 +2,39 @@ using System;
 
 namespace HotChocolate.Language
 {
-    internal class LexerState
+    /// <summary>
+    /// Represents the internal state of a lexer session.
+    /// </summary>
+    internal sealed class LexerState
     {
+        /// <summary>
+        /// The current position of the lexer pointer.
+        /// </summary>
         public int Position;
+
+        /// <summary>
+        /// The number of the current line to which 
+        /// the lexer is currently pointing to.
+        /// The line index is 1-based.
+        /// </summary>
         public int Line = 1;
+
+        /// <summary>
+        /// The source index of where the current line starts.
+        /// </summary>
         public int LineStart = 0;
+
+        /// <summary>
+        /// The column in the line where the lexer is currently pointing to.
+        /// </summary>
         public int Column = 1;
+
+        /// <summary>
+        /// The normalized GraphQL source text that is beeing tokenized.
+        /// </summary>
         public string SourceText;
 
+        
         public void NewLine()
         {
             Line++;
