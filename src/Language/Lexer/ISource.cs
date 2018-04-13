@@ -1,7 +1,7 @@
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// Represents a GraphQL document source.
+    /// Represents a GraphQL source.
     /// </summary>
     public interface ISource
     {
