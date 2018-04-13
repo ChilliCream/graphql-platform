@@ -4,7 +4,16 @@
     <TargetFrameworks>netcoreapp2.0;netstandard1.4;netstandard2.0</TargetFrameworks>
     <AssemblyName>HotChocolate.Language</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>HotChocolate.Language</PackageId>
+    <Description>
+    The hot chocolate language package provides a GraphQL 
+    lexer and parser and builds the foundation for the 
+    hot chocolate GraphQL APIs and tools.
+    </Description>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>   
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
