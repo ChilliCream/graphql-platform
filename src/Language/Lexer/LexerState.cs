@@ -26,6 +26,7 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// The column in the line where the lexer is currently pointing to.
+        /// The column index is 1-based.
         /// </summary>
         public int Column = 1;
 
@@ -34,7 +35,9 @@ namespace HotChocolate.Language
         /// </summary>
         public string SourceText;
 
-        
+        /// <summary>
+        /// Sets the state to a new line.
+        /// </summary>
         public void NewLine()
         {
             Line++;
@@ -42,6 +45,12 @@ namespace HotChocolate.Language
             UpdateColumn();
         }
 
+        /// <summary>
+        /// Sets the state to a new line.
+        /// </summary>
+        /// <param name="lines">
+        /// The number of lines to skip.
+        /// </param>
         public void NewLine(int lines)
         {
             if (lines < 1)
@@ -55,11 +64,19 @@ namespace HotChocolate.Language
             UpdateColumn();
         }
 
+        /// <summary>
+        /// Updates the column index.
+        /// </summary>
         public void UpdateColumn()
         {
             Column = 1 + Position - LineStart;
         }
 
+        /// <summary>
+        /// Checks if the lexer source pointer has reached 
+        /// the end of the GraphQL source text.
+        /// </summary>
+        /// <returns></returns>
         public bool IsEndOfStream()
         {
             return !(Position < SourceText.Length);
