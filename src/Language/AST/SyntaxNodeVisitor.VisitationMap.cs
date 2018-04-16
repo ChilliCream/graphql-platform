@@ -5,7 +5,7 @@ namespace HotChocolate.Language
 {
     public partial class SyntaxNodeVisitor
     {
-        private void ExecuteVisitationMap(ISyntaxNode node)
+        protected void ExecuteVisitationMap(ISyntaxNode node)
         {
             switch (node.Kind)
             {

@@ -11,9 +11,9 @@ namespace HotChocolate.Language
 
         public virtual void Visit(ISyntaxNode node)
         {
-            if (node != null && _visitationMap.TryGetValue(node.Kind, out var visitMethod))
+            if (node != null)
             {
-                visitMethod(this, node);
+                ExecuteVisitationMap(node);
             }
         }
 
