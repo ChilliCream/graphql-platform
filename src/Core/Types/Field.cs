@@ -67,7 +67,7 @@ namespace HotChocolate.Types
                     var arguments = _config.Arguments();
                     _arguments = (arguments == null)
                         ? new Dictionary<string, InputField>()
-                        : _config.Arguments().ToDictionary(t => t.Name);
+                        : arguments;
                 }
                 return _arguments;
             }
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
 
         public Func<IOutputType> Type { get; set; }
 
-        public Func<IEnumerable<InputField>> Arguments { get; set; }
+        public Func<IReadOnlyDictionary<string, InputField>> Arguments { get; set; }
 
         public Func<FieldResolverDelegate> Resolver { get; set; }
     }

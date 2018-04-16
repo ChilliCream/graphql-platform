@@ -32,9 +32,12 @@ namespace HotChocolate.Types
 
             _config = config;
             _typeResolver = config.TypeResolver;
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
+
+        public InterfaceTypeDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
@@ -52,13 +55,11 @@ namespace HotChocolate.Types
                         throw new InvalidOperationException(
                             "The fields collection mustn't be null.");
                     }
-                    _fields = fields.ToDictionary(t => t.Name);
+                    _fields = fields;
                 }
                 return _fields;
             }
         }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => throw new NotImplementedException();
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
@@ -70,19 +71,20 @@ namespace HotChocolate.Types
             return _typeResolver?.Invoke(context, resolverResult);
         }
 
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            throw new NotImplementedException();
-        }
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Fields.Values;
     }
 
     public class InterfaceTypeConfig
     {
+        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public Func<IEnumerable<Field>> Fields { get; set; }
+        public Func<IReadOnlyDictionary<string, Field>> Fields { get; set; }
 
         public ResolveType TypeResolver { get; set; }
     }

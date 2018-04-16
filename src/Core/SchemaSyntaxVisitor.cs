@@ -1,21 +1,28 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    public delegate FieldResolverDelegate FieldResolverFactory(
+        ObjectType objectType, Field field);
+
     public class SchemaSyntaxVisitor
         : SyntaxNodeVisitor
     {
-        private Dictionary<string, InterfaceTypeDefinitionNode> _interfaces = 
-            new Dictionary<string, InterfaceTypeDefinitionNode>();
-        private Dictionary<string, ObjectType> _objectTypes = 
-            new Dictionary<string, ObjectType>();
+        private readonly SchemaReaderContext _context;
+        private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
+        private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
 
-        public IEnumerable<ObjectType> GetTypes()
+        public SchemaSyntaxVisitor(SchemaReaderContext context)
         {
-            return _objectTypes.Values;
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            _context = context;
         }
 
         protected override void VisitDocument(DocumentNode node)
@@ -26,65 +33,13 @@ namespace HotChocolate
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node)
         {
-            ObjectTypeConfig config = new ObjectTypeConfig
-            {
-                SyntaxNode = node,
-                Name = node.Name.Value,
-                Description = node.Description?.Value,
-            };
-
-            config.Fields = () => GetFields(node);
-
-            _objectTypes[config.Name] = new ObjectType(config);
+            _context.Register(_objectTypeFactory.Create(_context, node));
         }
 
-        private IReadOnlyCollection<Field> GetFields(
-            ObjectTypeDefinitionNode node)
+        protected override void VisitInterfaceTypeDefinition(
+            InterfaceTypeDefinitionNode node)
         {
-            int index = 0;
-            Field[] fields = new Field[node.Fields.Count];
-
-            foreach (FieldDefinitionNode field in node.Fields)
-            {
-                FieldConfig config = new FieldConfig
-                {
-                    SyntaxNode = field,
-                    Name = field.Name.Value,
-                    Description = field.Description?.Value,
-                    Arguments = () => GetFieldArguments(field)
-                };
-
-                fields[index++] = new Field(config);
-            }
-
-            return fields;
-        }
-
-        private IReadOnlyCollection<InputField> GetFieldArguments(
-            FieldDefinitionNode field)
-        {
-            int index = 0;
-            InputField[] inputFields = new InputField[field.Arguments.Count];
-
-            foreach (InputValueDefinitionNode inputField in field.Arguments)
-            {
-                InputFieldConfig config = new InputFieldConfig
-                {
-                    SyntaxNode = inputField,
-                    Name = inputField.Name.Value,
-                    Description = inputField.Description?.Value,
-                    Type = () => GetInputType(inputField.Type)
-                };
-
-                inputFields[index++] = new InputField(config);
-            }
-
-            return inputFields;
-        }
-
-        private IInputType GetInputType(ITypeNode type)
-        {
-            throw new NotImplementedException();
+            _context.Register(_interfaceTypeFactory.Create(_context, node));
         }
     }
 }

@@ -56,7 +56,7 @@ namespace HotChocolate.Types
                     var interfaces = _config.Interfaces();
                     _interfaces = (interfaces == null)
                         ? new Dictionary<string, InterfaceType>()
-                        : interfaces.ToDictionary(t => t.Name);
+                        : interfaces;
                 }
                 return _interfaces;
             }
@@ -74,7 +74,7 @@ namespace HotChocolate.Types
                         throw new InvalidOperationException(
                             "The fields collection mustn't be null.");
                     }
-                    _fields = fields.ToDictionary(t => t.Name);
+                    _fields = fields;
                 }
                 return _fields;
             }
@@ -117,9 +117,9 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
+        public Func<IReadOnlyDictionary<string, InterfaceType>> Interfaces { get; set; }
 
-        public Func<IEnumerable<Field>> Fields { get; set; }
+        public Func<IReadOnlyDictionary<string, Field>> Fields { get; set; }
 
         public IsOfType IsOfType { get; set; }
     }
