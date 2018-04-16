@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -12,6 +13,7 @@ namespace HotChocolate.Types
         : IOutputType
         , INamedType
         , INullableType
+        , ITypeSystemNode
     {
         private readonly ObjectTypeConfig _config;
         private readonly IsOfType _isOfType;
@@ -36,7 +38,10 @@ namespace HotChocolate.Types
             _isOfType = config.IsOfType;
             Name = config.Name;
             Description = config.Description;
+            SyntaxNode = config.SyntaxNode;
         }
+
+        public ObjectTypeDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
@@ -75,9 +80,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public bool IsOfType(
-            IResolverContext context,
-            object resolverResult)
+        public bool IsOfType(IResolverContext context, object resolverResult)
         {
             if (_isOfType == null)
             {
@@ -86,10 +89,30 @@ namespace HotChocolate.Types
             }
             return _isOfType(context, resolverResult);
         }
+
+        #region ITypeSystemNode
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
+        {
+            foreach (InterfaceType node in Interfaces.Values)
+            {
+                yield return node;
+            }
+
+            foreach (Field node in Fields.Values)
+            {
+                yield return node;
+            }
+        }
+
+        #endregion
     }
 
     public class ObjectTypeConfig
     {
+        public ObjectTypeDefinitionNode SyntaxNode { get; set; }
         public string Name { get; set; }
 
         public string Description { get; set; }

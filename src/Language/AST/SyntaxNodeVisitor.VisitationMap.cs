@@ -21,6 +21,9 @@ namespace HotChocolate.Language
                 case NodeKind.Directive:
                     VisitDirective((DirectiveNode)node);
                     break;
+                case NodeKind.Document:
+                    VisitDocument((DocumentNode)node);
+                    break;
                 case NodeKind.EnumTypeDefinition:
                     VisitEnumTypeDefinition((EnumTypeDefinitionNode)node);
                     break;

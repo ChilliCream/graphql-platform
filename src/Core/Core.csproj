@@ -6,11 +6,11 @@
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
-   <PropertyGroup>
+  <PropertyGroup>
     <PackageId>HotChocolate.Core</PackageId>
-    <Description>
+  <Description>
   
-    </Description>
+  </Description>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>   
   </PropertyGroup>
 
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\HotChocolate.Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\Language\Language.csproj" />
   </ItemGroup>
 
 </Project>

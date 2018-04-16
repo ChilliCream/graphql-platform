@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class InputField
+        : ITypeSystemNode
     {
         private readonly InputFieldConfig _config;
         private IInputType _type;
@@ -24,10 +28,12 @@ namespace HotChocolate.Types
             }
 
             _config = config;
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
 
+        public InputValueDefinitionNode SyntaxNode { get; }
         public string Name { get; }
         public string Description { get; }
         public IInputType Type
@@ -46,7 +52,7 @@ namespace HotChocolate.Types
                 return _type;
             }
         }
-        
+
         public object DefaultValue
         {
             get
@@ -59,10 +65,17 @@ namespace HotChocolate.Types
                 return _defaultValue;
             }
         }
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() =>
+            Enumerable.Empty<ITypeSystemNode>();
     }
 
     public class InputFieldConfig
     {
+        public InputValueDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }

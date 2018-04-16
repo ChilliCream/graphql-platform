@@ -27,7 +27,7 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "An type name must not be null or empty.",
+                    "A type name must not be null or empty.",
                     nameof(config));
             }
 
@@ -54,10 +54,7 @@ namespace HotChocolate.Types
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IEnumerable<ITypeSystemNode> GetNodes()
-        {
-            return Values;
-        }
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
 
         public bool TryGetValue(string name, out object value)
         {

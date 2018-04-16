@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
     public class Field
+        : ITypeSystemNode
     {
         private readonly FieldConfig _config;
         private IOutputType _type;
@@ -28,9 +30,12 @@ namespace HotChocolate.Types
             }
 
             _config = config;
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
+
+        public FieldDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
@@ -79,10 +84,19 @@ namespace HotChocolate.Types
                 return _resolver;
             }
         }
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => throw new NotImplementedException();
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class FieldConfig
     {
+        public FieldDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }

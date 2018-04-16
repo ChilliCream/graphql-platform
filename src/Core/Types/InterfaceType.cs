@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -9,6 +10,7 @@ namespace HotChocolate.Types
         : IOutputType
         , INamedType
         , INullableType
+        , ITypeSystemNode
     {
         private readonly InterfaceTypeConfig _config;
         private readonly ResolveType _typeResolver;
@@ -56,6 +58,8 @@ namespace HotChocolate.Types
             }
         }
 
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => throw new NotImplementedException();
+
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
             if (context == null)
@@ -64,6 +68,11 @@ namespace HotChocolate.Types
             }
 
             return _typeResolver?.Invoke(context, resolverResult);
+        }
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
+        {
+            throw new NotImplementedException();
         }
     }
 
