@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
     <CCSourceDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</CCSourceDirectory>
-    <CCVersionProps>$([System.IO.Path]::Combine($(SlSourceDirectory), 'Version.props'))</CCVersionProps>
-    <CCPackageProps>$([System.IO.Path]::Combine($(SlSourceDirectory), 'Package.props'))</CCPackageProps>
+    <CCVersionProps>$([System.IO.Path]::Combine($(CCSourceDirectory), 'Version.props'))</CCVersionProps>
+    <CCPackageProps>$([System.IO.Path]::Combine($(CCSourceDirectory), 'Package.props'))</CCPackageProps>
   </PropertyGroup>
   
   <Import Project="$(CCVersionProps)" Condition="Exists('$(CCVersionProps)')"/>
