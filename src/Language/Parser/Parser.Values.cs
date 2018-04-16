@@ -20,7 +20,7 @@ namespace HotChocolate.Language
         /// - ObjectValue[isConstant]
         /// <see cref="BooleanValueNode" />: true or false.
         /// <see cref="NullValueNode" />: null
-        /// <see cref="EnumValue" />: Name but not true, false or null.
+        /// <see cref="EnumValueNode" />: Name but not true, false or null.
         /// </summary>
         /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
