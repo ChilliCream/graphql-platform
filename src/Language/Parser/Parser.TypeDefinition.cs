@@ -64,7 +64,7 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses a description.
-        /// <see cref="ParseDescription" />:
+        /// <see cref="StringValueNode" />:
         /// StringValue
         /// </summary>
         /// <param name="context">The parser context.</param>
@@ -79,7 +79,7 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses a schema definition.
-        /// <see cref="SchemaDefinition" />:
+        /// <see cref="SchemaDefinitionNode" />:
         /// schema Directives[isConstant:true]? { OperationTypeDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
@@ -195,7 +195,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses implementing interfaces.
         /// <see cref="List{NamedTypeNode}" />:
-        /// implements '&'? NamedType
+        /// implements &amp;? NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
         private List<NamedTypeNode> ParseImplementsInterfaces(
@@ -220,7 +220,8 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses field definitions of an interface type or object type  
-        /// <see cref="IReadOnlyCollection{FieldDefinitionNode}" /> : { FieldDefinition+ }
+        /// <see cref="IReadOnlyCollection{FieldDefinitionNode}" />:
+        /// { FieldDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
         private List<FieldDefinitionNode> ParseFieldsDefinition(
