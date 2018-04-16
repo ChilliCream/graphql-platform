@@ -3,49 +3,136 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
-    // TODO : we are still missing some visitations
-
     public partial class SyntaxNodeVisitor
     {
-        private static readonly Dictionary<NodeKind, Action<SyntaxNodeVisitor, ISyntaxNode>> _visitationMap
-         = new Dictionary<NodeKind, Action<SyntaxNodeVisitor, ISyntaxNode>>
-         {
-                { NodeKind.Argument, (v, n) => v.VisitArgument((ArgumentNode)n) },
-                { NodeKind.Directive, (v, n) => v.VisitDirective((DirectiveNode)n) },
-                { NodeKind.DirectiveDefinition, (v, n) => v.VisitDirectiveDefinition((DirectiveDefinitionNode)n) },
-                { NodeKind.Document, (v, n) => v.VisitDocument((DocumentNode)n) },
-                { NodeKind.EnumTypeDefinition, (v, n) => v.VisitEnumTypeDefinition((EnumTypeDefinitionNode)n) },
-                { NodeKind.EnumValueDefinition, (v, n) => v.VisitEnumValueDefinition((EnumValueDefinitionNode)n) },
-                { NodeKind.Field, (v, n) => v.VisitField((FieldNode)n) },
-                { NodeKind.FieldDefinition, (v, n) => v.VisitFieldDefinition((FieldDefinitionNode)n) },
-                { NodeKind.FragmentDefinition, (v, n) => v.VisitFragmentDefinition((FragmentDefinitionNode)n) },
-                { NodeKind.FragmentSpread, (v, n) => v.VisitFragmentSpread((FragmentSpreadNode)n) },
-                { NodeKind.InlineFragment, (v, n) => v.VisitInlineFragment((InlineFragmentNode)n) },
-                { NodeKind.InputObjectTypeDefinition, (v, n) => v.VisitInputObjectTypeDefinition((InputObjectTypeDefinitionNode)n) },
-                { NodeKind.InputValueDefinition, (v, n) => v.VisitInputValueDefinition((InputValueDefinitionNode)n) },
-                { NodeKind.InterfaceTypeDefinition, (v, n) => v.VisitInterfaceTypeDefinition((InterfaceTypeDefinitionNode)n) },
-                { NodeKind.ListType, (v, n) => v.VisitListType((ListTypeNode)n) },
-                { NodeKind.ListValue, (v, n) => v.VisitListValue((ListValueNode)n) },
-                { NodeKind.Name, (v, n) => v.VisitName((NameNode)n) },
-                { NodeKind.NamedType, (v, n) => v.VisitNamedType((NamedTypeNode)n) },
-                { NodeKind.NonNullType, (v, n) => v.VisitNonNullType((NonNullTypeNode)n) },
-                { NodeKind.ObjectField, (v, n) => v.VisitObjectField((ObjectFieldNode)n) },
-                { NodeKind.ObjectTypeDefinition, (v, n) => v.VisitObjectTypeDefinition((ObjectTypeDefinitionNode)n) },
-                { NodeKind.ObjectValue, (v, n) => v.VisitObjectValue((ObjectValueNode)n) },
-                { NodeKind.OperationDefinition, (v, n) => v.VisitOperationDefinition((OperationDefinitionNode)n) },
-                { NodeKind.OperationTypeDefinition, (v, n) => v.VisitOperationTypeDefinition((OperationTypeDefinitionNode)n) },
-                { NodeKind.ScalarTypeDefinition, (v, n) => v.VisitScalarTypeDefinition((ScalarTypeDefinitionNode)n) },
-                { NodeKind.SchemaDefinition, (v, n) => v.VisitSchemaDefinition((SchemaDefinitionNode)n) },
-                { NodeKind.SelectionSet, (v, n) => v.VisitSelectionSet((SelectionSetNode)n) },
-                { NodeKind.UnionTypeDefinition, (v, n) => v.VisitUnionTypeDefinition((UnionTypeDefinitionNode)n) },
-                { NodeKind.Variable, (v, n) => v.VisitVariable((VariableNode)n) },
-                { NodeKind.VariableDefinition, (v, n) => v.VisitVariableDefinition((VariableDefinitionNode)n) },
-                { NodeKind.EnumValue, (v, n) => v.VisitEnumValue((EnumValueNode)n) },
-                { NodeKind.BooleanValue, (v, n) => v.VisitBooleanValue((BooleanValueNode)n) },
-                { NodeKind.FloatValue, (v, n) => v.VisitFloatValue((FloatValueNode)n) },
-                { NodeKind.IntValue, (v, n) => v.VisitIntValue((IntValueNode)n) },
-                { NodeKind.NullValue, (v, n) => v.VisitNullValue((NullValueNode)n) },
-                { NodeKind.StringValue, (v, n) => v.VisitStringValue((StringValueNode)n) },
-         };
+        private void ExecuteVisitationMap(ISyntaxNode node)
+        {
+            switch (node.Kind)
+            {
+                case NodeKind.Argument:
+                    VisitArgument((ArgumentNode)node);
+                    break;
+                case NodeKind.BooleanValue:
+                    VisitBooleanValue((BooleanValueNode)node);
+                    break;
+                case NodeKind.DirectiveDefinition:
+                    VisitDirectiveDefinition((DirectiveDefinitionNode)node);
+                    break;
+                case NodeKind.Directive:
+                    VisitDirective((DirectiveNode)node);
+                    break;
+                case NodeKind.EnumTypeDefinition:
+                    VisitEnumTypeDefinition((EnumTypeDefinitionNode)node);
+                    break;
+                case NodeKind.EnumTypeExtension:
+                    VisitEnumTypeExtension((EnumTypeExtensionNode)node);
+                    break;
+                case NodeKind.EnumValue:
+                    VisitEnumValue((EnumValueNode)node);
+                    break;
+                case NodeKind.FieldDefinition:
+                    VisitFieldDefinition((FieldDefinitionNode)node);
+                    break;
+                case NodeKind.Field:
+                    VisitField((FieldNode)node);
+                    break;
+                case NodeKind.FloatValue:
+                    VisitFloatValue((FloatValueNode)node);
+                    break;
+                case NodeKind.FragmentDefinition:
+                    VisitFragmentDefinition((FragmentDefinitionNode)node);
+                    break;
+                case NodeKind.FragmentSpread:
+                    VisitFragmentSpread((FragmentSpreadNode)node);
+                    break;
+                case NodeKind.InlineFragment:
+                    VisitInlineFragment((InlineFragmentNode)node);
+                    break;
+                case NodeKind.InputObjectTypeDefinition:
+                    VisitInputObjectTypeDefinition((InputObjectTypeDefinitionNode)node);
+                    break;
+                case NodeKind.InputObjectTypeExtension:
+                    VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node);
+                    break;
+                case NodeKind.InputValueDefinition:
+                    VisitInputValueDefinition((InputValueDefinitionNode)node);
+                    break;
+                case NodeKind.InterfaceTypeDefinition:
+                    VisitInterfaceTypeDefinition((InterfaceTypeDefinitionNode)node);
+                    break;
+                case NodeKind.InterfaceTypeExtension:
+                    VisitInterfaceTypeExtension((InterfaceTypeExtensionNode)node);
+                    break;
+                case NodeKind.IntValue:
+                    VisitIntValue((IntValueNode)node);
+                    break;
+                case NodeKind.ListType:
+                    VisitListType((ListTypeNode)node);
+                    break;
+                case NodeKind.ListValue:
+                    VisitListValue((ListValueNode)node);
+                    break;
+                case NodeKind.NamedType:
+                    VisitNamedType((NamedTypeNode)node);
+                    break;
+                case NodeKind.Name:
+                    VisitName((NameNode)node);
+                    break;
+                case NodeKind.NonNullType:
+                    VisitNonNullType((NonNullTypeNode)node);
+                    break;
+                case NodeKind.NullValue:
+                    VisitNullValue((NullValueNode)node);
+                    break;
+                case NodeKind.ObjectField:
+                    VisitObjectField((ObjectFieldNode)node);
+                    break;
+                case NodeKind.ObjectTypeDefinition:
+                    VisitObjectTypeDefinition((ObjectTypeDefinitionNode)node);
+                    break;
+                case NodeKind.ObjectTypeExtension:
+                    VisitObjectTypeExtension((ObjectTypeExtensionNode)node);
+                    break;
+                case NodeKind.ObjectValue:
+                    VisitObjectValue((ObjectValueNode)node);
+                    break;
+                case NodeKind.OperationDefinition:
+                    VisitOperationDefinition((OperationDefinitionNode)node);
+                    break;
+                case NodeKind.OperationTypeDefinition:
+                    VisitOperationTypeDefinition((OperationTypeDefinitionNode)node);
+                    break;
+                case NodeKind.ScalarTypeDefinition:
+                    VisitScalarTypeDefinition((ScalarTypeDefinitionNode)node);
+                    break;
+                case NodeKind.ScalarTypeExtension:
+                    VisitScalarTypeExtension((ScalarTypeExtensionNode)node);
+                    break;
+                case NodeKind.SchemaDefinition:
+                    VisitSchemaDefinition((SchemaDefinitionNode)node);
+                    break;
+                case NodeKind.SelectionSet:
+                    VisitSelectionSet((SelectionSetNode)node);
+                    break;
+                case NodeKind.StringValue:
+                    VisitStringValue((StringValueNode)node);
+                    break;
+                case NodeKind.UnionTypeDefinition:
+                    VisitUnionTypeDefinition((UnionTypeDefinitionNode)node);
+                    break;
+                case NodeKind.UnionTypeExtension:
+                    VisitUnionTypeExtension((UnionTypeExtensionNode)node);
+                    break;
+                case NodeKind.VariableDefinition:
+                    VisitVariableDefinition((VariableDefinitionNode)node);
+                    break;
+                case NodeKind.Variable:
+                    VisitVariable((VariableNode)node);
+                    break;
+                default:
+                    throw new NotSupportedException(
+                        $"The specified node kind {node.Kind} is not yet supported.");
+            }
+        }
     }
 }
