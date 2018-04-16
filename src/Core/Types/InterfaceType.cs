@@ -68,7 +68,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return _typeResolver?.Invoke(context, resolverResult);
+            return _typeResolver.Invoke(context, resolverResult);
         }
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
