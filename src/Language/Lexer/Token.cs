@@ -41,29 +41,32 @@
 			Previous = previous;
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the 
-		/// <see cref="T:HotChocolate.Language.Token"/> class.
-		/// </summary>
-		/// <param name="kind">
-		/// The token kind.
+        /// <summary>
+        /// Initializes a new instance of the 
+        /// <see cref="T:HotChocolate.Language.Token"/> class.
+        /// </summary>
+        /// <param name="kind">
+        /// The token kind.
+        /// </param>
+        /// <param name="start">
+        /// The start index of this token.
+        /// </param>
+        /// <param name="end">
+        /// The end index of this token.
+        /// </param>
+        /// <param name="line">
+        /// The 1-base line index in which this token is located.
+        /// </param>
+        /// <param name="column">
+        /// The 1-base column index in which this token is located.
+        /// </param>
+        /// <param name="value">
+		/// The token value.
 		/// </param>
-		/// <param name="start">
-		/// The start index of this token.
-		/// </param>
-		/// <param name="end">
-		/// The end index of this token.
-		/// </param>
-		/// <param name="line">
-		/// The 1-base line index in which this token is located.
-		/// </param>
-		/// <param name="column">
-		/// The 1-base column index in which this token is located.
-		/// </param>
-		/// <param name="previous">
-		/// The token that came before this token.
-		/// </param>
-		public Token(
+        /// <param name="previous">
+        /// The token that came before this token.
+        /// </param>
+        public Token(
 		   TokenKind kind,
 		   int start, int end,
 		   int line, int column,

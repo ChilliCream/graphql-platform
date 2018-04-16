@@ -39,7 +39,6 @@ namespace HotChocolate.Language
 
             try
             {
-
                 Token start = new Token(TokenKind.StartOfFile, 0, 0,
                     state.Line, state.Column, null);
                 Token current = start;
@@ -109,7 +108,6 @@ namespace HotChocolate.Language
                     state.Position += 2;
                     return ReadBlockStringToken(state, previous);
                 }
-
                 return ReadStringValueToken(state, previous);
             }
 
@@ -521,7 +519,7 @@ namespace HotChocolate.Language
             return true;
         }
 
-        public int CharToHex(int a)
+        private int CharToHex(int a)
         {
             return a >= 48 && a <= 57
               ? a - 48 // 0-9

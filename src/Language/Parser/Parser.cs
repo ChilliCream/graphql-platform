@@ -118,12 +118,6 @@ namespace HotChocolate.Language
             }
 
             throw context.Unexpected(context.Current);
-        }
-
-        
-
-       
-
-       
+        }       
     }
 }

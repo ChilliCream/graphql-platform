@@ -34,6 +34,5 @@ namespace HotChocolate.Language
         {
             return token.Value ?? _visualization[token.Kind];
         }
-
     }
 }
