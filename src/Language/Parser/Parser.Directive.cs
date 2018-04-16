@@ -118,7 +118,5 @@ namespace HotChocolate.Language
             }
             throw context.Unexpected(start);
         }
-
-
     }
 }

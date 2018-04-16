@@ -6,12 +6,6 @@ namespace HotChocolate.Language
 {
     public partial class Parser
     {
-        
-
-        
-
-        
-
         private NameNode ParseName(ParserContext context)
         {
             Token token = context.ExpectName();
@@ -23,8 +17,6 @@ namespace HotChocolate.Language
                 token.Value
             );
         }
-
-        
 
         private List<T> ParseMany<T>(
             ParserContext context,
