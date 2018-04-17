@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal class ObjectTypeFactory
+    internal sealed class ObjectTypeFactory
         : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
         public ObjectType Create(
@@ -68,7 +68,7 @@ namespace HotChocolate
                     context, objectTypeDefinition, objectType,
                     fieldDefinition, field);
                 config.Resolver = () => context.CreateResolver(
-                    objectType, field);
+                    objectType.Name, field.Name);
                 config.Type = () => context.GetOutputType(fieldDefinition.Type);
             }
 

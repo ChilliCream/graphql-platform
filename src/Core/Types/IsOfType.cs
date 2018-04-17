@@ -6,6 +6,11 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public delegate bool IsOfType(
-        IResolverContext context, 
+        IResolverContext context,
+        object resolverResult);
+    
+    public delegate bool IsOfTypeRouter(
+        string typeName,
+        IResolverContext context,
         object resolverResult);
 }

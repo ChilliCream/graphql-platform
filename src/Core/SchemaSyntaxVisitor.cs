@@ -5,10 +5,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    public delegate FieldResolverDelegate FieldResolverFactory(
+    internal delegate FieldResolverDelegate FieldResolverFactory(
         ObjectType objectType, Field field);
 
-    public class SchemaSyntaxVisitor
+    internal class SchemaSyntaxVisitor
         : SyntaxNodeVisitor
     {
         private readonly SchemaReaderContext _context;

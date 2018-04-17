@@ -3,6 +3,8 @@ using System;
 namespace HotChocolate.Types
 {
     public class NonNullType
+        : IOutputType
+        , IInputType
     {
         public NonNullType(IType type)
         {

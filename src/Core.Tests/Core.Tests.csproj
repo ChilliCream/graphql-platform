@@ -2,8 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-
+    <AssemblyName>HotChocolate.Core.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Core.Tests</RootNamespace>
+    
     <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>

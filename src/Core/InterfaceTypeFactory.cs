@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal class InterfaceTypeFactory
+    internal sealed class InterfaceTypeFactory
         : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(

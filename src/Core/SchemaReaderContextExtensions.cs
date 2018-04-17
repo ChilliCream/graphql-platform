@@ -12,12 +12,15 @@ namespace HotChocolate
         {
             if (type.Kind == NodeKind.NonNullType)
             {
-                return GetOutputType(context, ((NonNullTypeNode)type).Type);
+                return new NonNullType(
+                    GetOutputType(context,
+                        ((NonNullTypeNode)type).Type));
             }
 
             if (type.Kind == NodeKind.ListType)
             {
-                return GetOutputType(context, ((ListTypeNode)type).Type);
+                return new ListType(GetOutputType(
+                    context, ((ListTypeNode)type).Type));
             }
 
             if (type.Kind == NodeKind.NamedType)
@@ -32,14 +35,17 @@ namespace HotChocolate
             this SchemaReaderContext context,
             ITypeNode type)
         {
-            if (type.Kind == NodeKind.NonNullType)
+             if (type.Kind == NodeKind.NonNullType)
             {
-                return GetInputType(context, ((NonNullTypeNode)type).Type);
+                return new NonNullType(
+                    GetInputType(context,
+                        ((NonNullTypeNode)type).Type));
             }
 
             if (type.Kind == NodeKind.ListType)
             {
-                return GetInputType(context, ((ListTypeNode)type).Type);
+                return new ListType(GetInputType(
+                    context, ((ListTypeNode)type).Type));
             }
 
             if (type.Kind == NodeKind.NamedType)
