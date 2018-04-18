@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language
 {
     /// <summary>
     /// Represents a GraphQL source token.
@@ -61,8 +61,8 @@
         /// The 1-base column index in which this token is located.
         /// </param>
         /// <param name="value">
-		/// The token value.
-		/// </param>
+        /// The token value.
+        /// </param>
         /// <param name="previous">
         /// The token that came before this token.
         /// </param>
@@ -114,11 +114,11 @@
 
         /// <summary>
         /// Gets the token that came before this token.
-		/// If this token is a 
-		/// <see cref="TokenKind.StartOfFile"/>-token than 
-		/// this property will return <c>null</c>.
+        /// If this token is a 
+        /// <see cref="TokenKind.StartOfFile"/>-token than 
+        /// this property will return <c>null</c>.
         /// </summary>
-		public Token Previous { get; }
+        public Token Previous { get; }
 
         /// <summary>
         /// Gets the token that comes after this token.
@@ -130,15 +130,15 @@
 
         /// <summary>
         /// Returns a <see cref="T:System.String"/> 
-		/// that represents the current 
-		/// <see cref="T:HotChocolate.Language.Token"/>.
+        /// that represents the current 
+        /// <see cref="T:HotChocolate.Language.Token"/>.
         /// </summary>
         /// <returns>
-		/// A <see cref="T:System.String"/> 
-		/// that represents the current 
-		/// <see cref="T:HotChocolate.Language.Token"/>.
-		/// </returns>
-		public override string ToString()
+        /// A <see cref="T:System.String"/> 
+        /// that represents the current 
+        /// <see cref="T:HotChocolate.Language.Token"/>.
+        /// </returns>
+        public override string ToString()
         {
             return TokenVisualizer.Visualize(this);
         }
