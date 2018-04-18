@@ -119,13 +119,13 @@ namespace HotChocolate.Language
         /// <summary>
         /// Reads a GraphQL source from a file.
         /// </summary>
-		/// <param name="filePath">
-		/// The file path.
-		/// </param>
+        /// <param name="filePath">
+        /// The file path.
+        /// </param>
         /// <returns>
-		/// Returns a <see cref="Source"/> consisting of the file content.
-		/// </returns>
-		public static Source FromFile(string filePath)
+        /// Returns a <see cref="Source"/> consisting of the file content.
+        /// </returns>
+        public static Source FromFile(string filePath)
         {
             if (filePath == null)
             {
