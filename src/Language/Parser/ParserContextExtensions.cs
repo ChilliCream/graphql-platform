@@ -48,7 +48,7 @@ namespace HotChocolate.Language
 
         public static Token ExpectScalarValue(this ParserContext context)
         {
-             if (context.Current.IsScalarValue())
+            if (context.Current.IsScalarValue())
             {
                 context.MoveNext();
                 return context.Current.Previous;

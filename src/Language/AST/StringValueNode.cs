@@ -6,8 +6,8 @@ namespace HotChocolate.Language
         : IValueNode
     {
         public StringValueNode(
-            Location location, 
-            string value, 
+            Location location,
+            string value,
             bool block)
         {
             if (value == null)

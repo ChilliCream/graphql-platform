@@ -16,5 +16,7 @@ namespace HotChocolate.Language
         // TODO : add ColumnOffset and LineOffset 
         // to support scenarious where we want to offset
         // the token location.
+
+        // TODO : add name property to better show in which schema document the error happend
     }
 }

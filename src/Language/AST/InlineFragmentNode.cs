@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         : ISelectionNode
     {
         public InlineFragmentNode(
-            Location location, 
-            NamedTypeNode typeCondition, 
-            IReadOnlyCollection<DirectiveNode> directives, 
+            Location location,
+            NamedTypeNode typeCondition,
+            IReadOnlyCollection<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
             if (typeCondition == null)

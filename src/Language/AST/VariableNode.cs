@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : IValueNode
     {
         public VariableNode(
-            Location location, 
+            Location location,
             NameNode name)
         {
             if (name == null)

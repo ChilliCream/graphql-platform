@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public DocumentNode(
-            Location location, 
+            Location location,
             IReadOnlyCollection<IDefinitionNode> definitions)
         {
             if (definitions == null)

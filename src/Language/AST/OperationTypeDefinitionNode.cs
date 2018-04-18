@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public OperationTypeDefinitionNode(
-            Location location, 
+            Location location,
             OperationType operation,
             NamedTypeNode type)
         {

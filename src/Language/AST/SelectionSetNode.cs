@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public SelectionSetNode(
-            Location location, 
+            Location location,
             IReadOnlyCollection<ISelectionNode> selections)
         {
             if (selections == null)

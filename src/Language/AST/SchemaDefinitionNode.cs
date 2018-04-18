@@ -7,8 +7,8 @@ namespace HotChocolate.Language
         : ITypeSystemDefinitionNode
     {
         public SchemaDefinitionNode(
-            Location location, 
-            IReadOnlyCollection<DirectiveNode> directives, 
+            Location location,
+            IReadOnlyCollection<DirectiveNode> directives,
             IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
         {
             if (directives == null)

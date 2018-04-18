@@ -100,7 +100,7 @@ namespace HotChocolate.Language
                 items
             );
         }
-        
+
         /// <summary>
         /// Parses an object value.
         /// <see cref="ObjectValueNode" />:
