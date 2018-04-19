@@ -21,6 +21,7 @@
     <PackageReference Include="coverlet.msbuild" Version="1.0.1" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
+    <PackageReference Include="Moq" Version="4.8.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 

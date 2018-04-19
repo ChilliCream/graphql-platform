@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor)
         {
             StringBuilder source = new StringBuilder();
-            source.Append($"public static Func<{nameof(IResolverContext)}, {nameof(CancellationToken)}, {nameof(Task<object>)}");
+            source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
             source.Append(resolverName);
             source.Append(" ");
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
-            foreach (FieldResolverArgumentDescriptor argumentDescriptor in resolverDescriptor.Arguments)
+            foreach (FieldResolverArgumentDescriptor argumentDescriptor in resolverDescriptor.ArgumentDescriptors)
             {
                 GenerateArgumentInvocation(argumentDescriptor, source);
                 source.AppendLine();
@@ -33,7 +33,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             GenerateResolverInvocation(resolverDescriptor, source);
 
             source.AppendLine();
-            source.Append("}");
+            source.Append("};");
             return source.ToString();
         }
 

@@ -48,6 +48,8 @@ namespace HotChocolate
     {
         private readonly List<FieldResolver> _resolverRegistry =
             new List<FieldResolver>();
+        private readonly List<FieldResolverDescriptor> _resolverDescriptors =
+            new List<FieldResolverDescriptor>();
 
         public ISchemaConfiguration Name<TObjectType>(string typeName)
         {
@@ -107,6 +109,13 @@ namespace HotChocolate
         {
             throw new NotImplementedException();
         }
+
+        public IEnumerable<FieldResolver> CreateResolvers()
+        {
+            throw new NotImplementedException();
+        }
+
+
     }
 
 

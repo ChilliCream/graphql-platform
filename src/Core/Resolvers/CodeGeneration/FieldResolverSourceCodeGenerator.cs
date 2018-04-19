@@ -7,6 +7,10 @@ namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal class FieldResolverSourceCodeGenerator
     {
+        internal const string Namespace = "HotChocolate.Resolvers.CodeGeneration";
+        internal const string ClassName = "___CompiledResolvers";
+        internal const string FullClassName = Namespace + "." + ClassName;
+
         private static readonly SourceCodeGenerator[] _generators =
             new SourceCodeGenerator[]
             {
@@ -38,11 +42,10 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine("using System.Threading.Tasks;");
             source.AppendLine("using HotChocolate;");
             source.AppendLine("using HotChocolate.Resolvers;");
-            source.AppendLine("using HotChocolate.Resolvers.CodeGeneration;");
 
-            source.AppendLine("namespace HotChocolate.Resolvers.CodeGeneration");
+            source.AppendLine($"namespace {Namespace}");
             source.AppendLine("{");
-            source.AppendLine("public static class ___CompiledResolvers");
+            source.AppendLine($"public static class {ClassName}");
             source.AppendLine("{");
 
             GenerateResolvers(fieldResolverDescriptors, source);
@@ -61,7 +64,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             foreach (FieldResolverDescriptor resolverDescriptor in
                 fieldResolverDescriptors)
             {
-                string resolverName = "_" + i++;
+                string resolverName = GetResolverName(i++);
                 SourceCodeGenerator generator = _generators.First(
                     t => t.CanGenerate(resolverDescriptor));
                 source.AppendLine(generator.Generate(
@@ -69,8 +72,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
         }
 
-
-
-
+        public string GetResolverName(int index)
+        {
+            return "_" + index;
+        }
     }
 }

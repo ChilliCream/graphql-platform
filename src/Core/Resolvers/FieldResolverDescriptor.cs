@@ -20,6 +20,7 @@ namespace HotChocolate.Resolvers
             Kind = kind;
             ResolverType = resolverType;
             SourceType = sourceType;
+            MemberName = memberName;
             ArgumentDescriptors = argumentDescriptors;
             IsAsync = isAsync;
             IsMethod = isMethod;
@@ -78,7 +79,7 @@ namespace HotChocolate.Resolvers
             return new FieldResolverDescriptor(field, FieldResolverKind.Source,
                 sourceType, sourceType, methodName,
                 argumentDescriptors.ToArray(),
-                isAsync, false);
+                isAsync, true);
         }
 
         public static FieldResolverDescriptor CreateCollectionProperty(
@@ -99,7 +100,7 @@ namespace HotChocolate.Resolvers
             return new FieldResolverDescriptor(field, FieldResolverKind.Collection,
                 resolverType, sourceType, propertyName,
                 argumentDescriptors.ToArray(),
-                isAsync, false);
+                isAsync, true);
         }
 
 
