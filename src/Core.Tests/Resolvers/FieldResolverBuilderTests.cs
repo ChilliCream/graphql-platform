@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
     public class FieldResolverBuilderTests
     {
         [Fact]
-        public void CreateSourceMethodResolver()
+        public void CreateSyncSourceMethodResolver()
         {
             // arrange
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -37,6 +37,36 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("Hello World", result);
                 });
         }
+
+         [Fact]
+        public void CreateSourcePropertyResolver()
+        {
+            // arrange
+            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
+            context.Setup(t => t.Parent<FooResolver>()).Returns(new FooResolver());
+
+            FieldReference fieldReference = new FieldReference("type", "field");
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateSourceProperty(fieldReference, typeof(FooResolver),
+                    "BarProperty");
+
+            // act
+            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
+            FieldResolver[] resolvers = fieldResolverBuilder.Build(
+                new[] { descriptor }).ToArray();
+
+            // assert
+            Assert.Collection(resolvers,
+                r =>
+                {
+                    Assert.Equal("type", r.TypeName);
+                    Assert.Equal("field", r.FieldName);
+                    Assert.NotNull(r.Resolver);
+
+                    object result = r.Resolver(context.Object, CancellationToken.None).Result;
+                    Assert.Equal("Hello World Property", result);
+                });
+        }
     }
 
     public class FooResolver
@@ -45,5 +75,7 @@ namespace HotChocolate.Resolvers
         {
             return "Hello World";
         }
+
+        public string BarProperty { get; } = "Hello World Property";
     }
 }

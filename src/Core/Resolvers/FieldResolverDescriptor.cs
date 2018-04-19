@@ -27,8 +27,7 @@ namespace HotChocolate.Resolvers
         }
 
         public static FieldResolverDescriptor CreateSourceProperty(
-            FieldReference field, Type sourceType,
-            string propertyName)
+            FieldReference field, Type sourceType, string propertyName)
         {
             if (field == null)
             {
