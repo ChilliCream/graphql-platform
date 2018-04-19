@@ -8,7 +8,7 @@ namespace HotChocolate
         : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
         public ObjectType Create(
-            SchemaReaderContext context,
+            SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition)
         {
             ObjectTypeConfig config = new ObjectTypeConfig
@@ -27,7 +27,7 @@ namespace HotChocolate
         }
 
         private IReadOnlyDictionary<string, InterfaceType> GetInterfaces(
-            SchemaReaderContext context,
+            SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType)
         {
@@ -44,7 +44,7 @@ namespace HotChocolate
         }
 
         private Dictionary<string, Field> GetFields(
-            SchemaReaderContext context,
+            SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType)
         {
@@ -76,7 +76,7 @@ namespace HotChocolate
         }
 
         private Dictionary<string, InputField> GetFieldArguments(
-            SchemaReaderContext context,
+            SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType,
             FieldDefinitionNode fieldDefinition,

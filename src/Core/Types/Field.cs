@@ -85,12 +85,9 @@ namespace HotChocolate.Types
             }
         }
 
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => throw new NotImplementedException();
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            throw new NotImplementedException();
-        }
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() 
+            => Enumerable.Empty<ITypeSystemNode>();
     }
 
     public class FieldConfig

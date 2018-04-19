@@ -1,9 +1,8 @@
 using System;
-using HotChocolate.Resolvers;
 
-namespace HotChocolate
+namespace HotChocolate.Resolvers
 {
-    internal sealed class FieldResolver
+    public sealed class FieldResolver
     {
         public FieldResolver(
             string typeName, string fieldName,

@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal sealed class SchemaReaderContext
+    internal sealed class SchemaContext
     {
         private readonly Dictionary<string, List<ObjectType>> _implementsLookup =
             new Dictionary<string, List<ObjectType>>();
@@ -15,7 +15,7 @@ namespace HotChocolate
         private readonly IReadOnlyDictionary<string, ResolveType> _typeResolver;
         private readonly IsOfTypeRouter _isOfTypeRouter;
 
-        public SchemaReaderContext(
+        public SchemaContext(
             IEnumerable<INamedType> systemTypes,
             IEnumerable<FieldResolver> fieldResolvers,
             IReadOnlyDictionary<string, ResolveType> typeResolver,

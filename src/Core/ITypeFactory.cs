@@ -7,6 +7,6 @@ namespace HotChocolate
         where TNode : ISyntaxNode
         where TType : IType
     {
-        TType Create(SchemaReaderContext context, TNode node);
+        TType Create(SchemaContext context, TNode node);
     }
 }

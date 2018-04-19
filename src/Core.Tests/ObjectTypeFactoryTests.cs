@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
 
-namespace Core.Tests
+namespace HotChocolate
 {
     public class ObjectTypeFactoryTests
     {
@@ -27,7 +28,7 @@ namespace Core.Tests
             FieldResolver fieldResolver = new FieldResolver(
                 "Simple", "a",
                 (c, r) => Task.FromResult<object>("hello"));
-            SchemaReaderContext context = new SchemaReaderContext(
+            SchemaContext context = new SchemaContext(
                 new[] { scalarType },
                 new[] { fieldResolver },
                 new Dictionary<string, ResolveType>(),

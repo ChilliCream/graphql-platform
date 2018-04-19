@@ -4,10 +4,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal static class SchemaReaderContextExtensions
+    internal static class SchemaContextExtensions
     {
         public static IOutputType GetOutputType(
-            this SchemaReaderContext context,
+            this SchemaContext context,
             ITypeNode type)
         {
             if (type.Kind == NodeKind.NonNullType)
@@ -32,7 +32,7 @@ namespace HotChocolate
         }
 
         public static IInputType GetInputType(
-            this SchemaReaderContext context,
+            this SchemaContext context,
             ITypeNode type)
         {
              if (type.Kind == NodeKind.NonNullType)

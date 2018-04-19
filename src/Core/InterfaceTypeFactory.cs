@@ -8,7 +8,7 @@ namespace HotChocolate
         : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(
-            SchemaReaderContext context,
+            SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
             InterfaceTypeConfig config = new InterfaceTypeConfig
@@ -25,7 +25,7 @@ namespace HotChocolate
         }
 
         private Dictionary<string, Field> GetFields(
-            SchemaReaderContext context,
+            SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition,
             InterfaceType interfaceType)
         {
@@ -55,7 +55,7 @@ namespace HotChocolate
         }
 
         private Dictionary<string, InputField> GetFieldArguments(
-            SchemaReaderContext context,
+            SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition,
             InterfaceType interfaceType,
             FieldDefinitionNode fieldDefinition,

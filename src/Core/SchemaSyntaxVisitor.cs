@@ -11,11 +11,11 @@ namespace HotChocolate
     internal class SchemaSyntaxVisitor
         : SyntaxNodeVisitor
     {
-        private readonly SchemaReaderContext _context;
+        private readonly SchemaContext _context;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
 
-        public SchemaSyntaxVisitor(SchemaReaderContext context)
+        public SchemaSyntaxVisitor(SchemaContext context)
         {
             if (context == null)
             {
