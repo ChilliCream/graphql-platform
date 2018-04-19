@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public sealed class SyncSourceMethodGenerator
+    internal sealed class SyncSourceMethodGenerator
         : SourceCodeGenerator
     {
         protected override void GenerateResolverInvocation(
@@ -14,7 +14,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             if (resolverDescriptor.Arguments.Any())
             {
-                string arguments = string.Join(", ", 
+                string arguments = string.Join(", ",
                     resolverDescriptor.Arguments.Select(t => t.Name));
                 source.AppendLine(arguments);
             }
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         public override bool CanGenerate(
             FieldResolverDescriptor resolverDescriptor)
-                => !resolverDescriptor.IsAsync 
+                => !resolverDescriptor.IsAsync
                     && resolverDescriptor.IsMethod
                     && resolverDescriptor.Kind == FieldResolverKind.Source;
     }

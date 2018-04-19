@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public sealed class AsyncResolverMethodGenerator
+    internal sealed class AsyncResolverMethodGenerator
         : SourceCodeGenerator
     {
         protected override void GenerateResolverInvocation(

@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     public class CompilerTests
     {
@@ -42,7 +42,7 @@ namespace HotChocolate
         {
             // arrange
             string sourceText = @"
-                using HotChocolate;
+                using HotChocolate.Resolvers.CodeGeneration;
 
                 namespace FS
                 {

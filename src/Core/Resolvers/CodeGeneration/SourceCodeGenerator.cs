@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public abstract class SourceCodeGenerator
+    internal abstract class SourceCodeGenerator
     {
         public string Generate(
             string resolverName,

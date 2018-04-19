@@ -2,7 +2,7 @@ using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public sealed class SourcePropertyGenerator
+    internal sealed class SourcePropertyGenerator
        : SourceCodeGenerator
     {
         protected override void GenerateResolverInvocation(FieldResolverDescriptor resolverDescriptor, StringBuilder source)

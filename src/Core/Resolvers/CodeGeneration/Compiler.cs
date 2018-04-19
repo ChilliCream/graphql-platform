@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Resolvers
 {
-    public static class Compiler
+    internal static class Compiler
     {
         private static readonly CSharpCompilationOptions _options =
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
@@ -58,9 +58,7 @@ namespace HotChocolate.Resolvers
                 {
                     references.Add(MetadataReference.CreateFromFile(assembly.Location));
                 }
-                catch
-                {
-                }
+                catch { } // TODO : fix this
             }
             return references;
         }

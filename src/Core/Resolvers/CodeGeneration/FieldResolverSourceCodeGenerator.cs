@@ -5,7 +5,7 @@ using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public class FieldResolverSourceCodeGenerator
+    internal class FieldResolverSourceCodeGenerator
     {
         private static readonly SourceCodeGenerator[] _generators =
             new SourceCodeGenerator[]
