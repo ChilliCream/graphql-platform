@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace HotChocolate.Resolvers
 {
@@ -11,7 +12,7 @@ namespace HotChocolate.Resolvers
             FieldResolverKind kind,
             Type resolverType,
             Type sourceType,
-            string memberName,
+            MemberInfo member,
             IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors,
             bool isAsync,
             bool isMethod)
@@ -20,14 +21,14 @@ namespace HotChocolate.Resolvers
             Kind = kind;
             ResolverType = resolverType;
             SourceType = sourceType;
-            MemberName = memberName;
+            Member = member;
             ArgumentDescriptors = argumentDescriptors;
             IsAsync = isAsync;
             IsMethod = isMethod;
         }
 
         public static FieldResolverDescriptor CreateSourceProperty(
-            FieldReference field, Type sourceType, string propertyName)
+            FieldReference field, Type sourceType, PropertyInfo property)
         {
             if (field == null)
             {
@@ -39,20 +40,21 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
-            if (string.IsNullOrEmpty(propertyName))
+            if (property == null)
             {
-                throw new ArgumentNullException(nameof(propertyName));
+                throw new ArgumentNullException(nameof(property));
             }
 
-            return new FieldResolverDescriptor(field, FieldResolverKind.Source,
-                sourceType, sourceType, propertyName,
+            return new FieldResolverDescriptor(
+                field, FieldResolverKind.Source,
+                sourceType, sourceType, property,
                 Array.Empty<FieldResolverArgumentDescriptor>(),
                 false, false);
         }
 
         public static FieldResolverDescriptor CreateSourceMethod(
             FieldReference field, Type sourceType,
-            string methodName, bool isAsync,
+            MethodInfo method, bool isAsync,
             IEnumerable<FieldResolverArgumentDescriptor> argumentDescriptors)
         {
             if (field == null)
@@ -65,9 +67,9 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
-            if (string.IsNullOrEmpty(methodName))
+            if (method == null)
             {
-                throw new ArgumentNullException(nameof(methodName));
+                throw new ArgumentNullException(nameof(method));
             }
 
             if (argumentDescriptors == null)
@@ -75,36 +77,82 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(argumentDescriptors));
             }
 
-            return new FieldResolverDescriptor(field, FieldResolverKind.Source,
-                sourceType, sourceType, methodName,
+            return new FieldResolverDescriptor(
+                field, FieldResolverKind.Source,
+                sourceType, sourceType, method,
                 argumentDescriptors.ToArray(),
                 isAsync, true);
         }
 
         public static FieldResolverDescriptor CreateCollectionProperty(
             FieldReference field, Type resolverType, Type sourceType,
-            string propertyName)
+            PropertyInfo property)
         {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (property == null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
             return new FieldResolverDescriptor(field, FieldResolverKind.Collection,
-                resolverType, sourceType, propertyName,
+                resolverType, sourceType, property,
                 Array.Empty<FieldResolverArgumentDescriptor>(),
                 false, false);
         }
 
         public static FieldResolverDescriptor CreateCollectionMethod(
             FieldReference field, Type resolverType, Type sourceType,
-            string propertyName, bool isAsync,
+            MethodInfo method, bool isAsync,
             IEnumerable<FieldResolverArgumentDescriptor> argumentDescriptors)
         {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
+            if (argumentDescriptors == null)
+            {
+                throw new ArgumentNullException(nameof(argumentDescriptors));
+            }
+
             return new FieldResolverDescriptor(field, FieldResolverKind.Collection,
-                resolverType, sourceType, propertyName,
+                resolverType, sourceType, method,
                 argumentDescriptors.ToArray(),
                 isAsync, true);
         }
 
-
         /// <summary>
-        /// Gets a reference describing to which field the resolver is bound to.
+        /// Gets a reference describing to which field 
+        /// the resolver is bound to.
         /// </summary>
         public FieldReference Field { get; }
 
@@ -127,10 +175,10 @@ namespace HotChocolate.Resolvers
         public Type SourceType { get; }
 
         /// <summary>
-        /// Gets the relevant member name if the resolver is not a delegeate; 
-        /// otherwise, this property is null.
+        /// Gets the member of a collection our source resolver 
+        /// that shall be bound as field resolver..
         /// </summary>
-        public string MemberName { get; }
+        public MemberInfo Member { get; }
 
         /// <summary>
         /// Gets a collection of argument descriptors 
@@ -149,6 +197,5 @@ namespace HotChocolate.Resolvers
         /// otherwise the resolver is expected to be a property.
         /// </summary>
         public bool IsMethod { get; }
-
     }
 }
