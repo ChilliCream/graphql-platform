@@ -3,14 +3,14 @@ using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public sealed class AsyncSourceMethodGenerator
+    public sealed class SyncResolverMethodGenerator
         : SourceCodeGenerator
     {
         protected override void GenerateResolverInvocation(
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
-            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return await source.{resolverDescriptor.MemberName} (");
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{resolverDescriptor.ResolverType.FullName}>();");
+            source.AppendLine($"return Task.FromResult<object>(resolver.{resolverDescriptor.MemberName} (");
 
             if (resolverDescriptor.Arguments.Any())
             {
@@ -19,13 +19,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 source.AppendLine(arguments);
             }
 
-            source.Append(");");
+            source.Append("));");
         }
 
         public override bool CanGenerate(
             FieldResolverDescriptor resolverDescriptor)
-                => resolverDescriptor.IsAsync 
+                => !resolverDescriptor.IsAsync
                     && resolverDescriptor.IsMethod
-                    && resolverDescriptor.Kind == FieldResolverKind.Source;
+                    && resolverDescriptor.Kind == FieldResolverKind.Collection;
     }
 }

@@ -45,5 +45,11 @@ namespace HotChocolate.Resolvers
         /// Defines if the resolver is an asynchronous resolver.
         /// </summary>
         public bool IsAsync { get; }
+
+        /// <summary>
+        /// Defines if the resolver is a method; 
+        /// otherwise the resolver is expected to be a property.
+        /// </summary>
+        public bool IsMethod { get; }
     }
 }
