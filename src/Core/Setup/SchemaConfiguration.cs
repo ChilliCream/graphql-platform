@@ -198,7 +198,7 @@ namespace HotChocolate
         private string GetFieldName(MemberResolverInfo resolverInfo, Type resolverType)
         {
             string name = string.IsNullOrEmpty(resolverInfo.Alias)
-                ? resolverInfo.Member.Name // TODO : casing
+                ? ReflectionHelper.AdjustCasing(resolverInfo.Member.Name)
                 : resolverInfo.Alias;
 
             if (_fieldAliases.TryGetValue(resolverType,

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -38,7 +36,8 @@ namespace HotChocolate
                 }
                 else
                 {
-                    yield return new MemberResolverInfo(property);
+                    yield return new MemberResolverInfo(property,
+                        AdjustCasing(property.Name));
                 }
             }
         }
@@ -59,12 +58,19 @@ namespace HotChocolate
                 {
                     if (method.Name.StartsWith("Get"))
                     {
-                        yield return new MemberResolverInfo(method, method.Name.Substring(3));
+                        yield return new MemberResolverInfo(method,
+                            AdjustCasing(method.Name.Substring(3)));
                     }
-                    yield return new MemberResolverInfo(method);
+                    yield return new MemberResolverInfo(method,
+                        AdjustCasing(method.Name));
                 }
             }
 
+        }
+
+        public static string AdjustCasing(string name)
+        {
+            return name.Substring(0, 1).ToLowerInvariant() + name.Substring(1);
         }
     }
 }
