@@ -64,7 +64,7 @@ namespace HotChocolate.Types
             {
                 if (_arguments == null)
                 {
-                    var arguments = _config.Arguments();
+                    var arguments = _config.Arguments?.Invoke();
                     _arguments = (arguments == null)
                         ? new Dictionary<string, InputField>()
                         : arguments;
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
         }
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() 
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
             => Enumerable.Empty<ITypeSystemNode>();
     }
 

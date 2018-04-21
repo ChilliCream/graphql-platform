@@ -80,8 +80,8 @@ namespace HotChocolate
             if (!_fieldAliases.TryGetValue(typeof(TObjectType),
                 out Dictionary<MemberInfo, string> mappings))
             {
-                _fieldAliases[typeof(TObjectType)] =
-                    new Dictionary<MemberInfo, string>();
+                mappings = new Dictionary<MemberInfo, string>();
+                _fieldAliases[typeof(TObjectType)] = mappings;
             }
 
             foreach (KeyValuePair<MemberInfo, string> mapping in
@@ -167,7 +167,7 @@ namespace HotChocolate
         private bool AllArgumentsMatch(Field field, FieldResolverDescriptor resolverDescriptor)
         {
             foreach (FieldResolverArgumentDescriptor argumentDescriptor in
-                resolverDescriptor.ArgumentDescriptors)
+                resolverDescriptor.Arguments())
             {
                 if (!field.Arguments.ContainsKey(argumentDescriptor.Name))
                 {

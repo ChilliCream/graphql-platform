@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Resolvers
@@ -9,6 +10,13 @@ namespace HotChocolate.Resolvers
             return descriptor.ArgumentDescriptors
                 .Where(t => t.Kind == FieldResolverArgumentKind.Argument)
                 .Count();
+        }
+
+        public static IEnumerable<FieldResolverArgumentDescriptor> Arguments(
+            this FieldResolverDescriptor descriptor)
+        {
+            return descriptor.ArgumentDescriptors
+                .Where(t => t.Kind == FieldResolverArgumentKind.Argument);
         }
     }
 }

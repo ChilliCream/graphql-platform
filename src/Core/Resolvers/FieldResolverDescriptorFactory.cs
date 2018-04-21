@@ -48,13 +48,13 @@ namespace HotChocolate.Resolvers
                 {
                     if (mapping.Key == mapping.Value)
                     {
-                        yield return CreateResolverDescriptor(
+                        yield return CreateSourceResolverDescriptor(
                             resolverInfo, mapping.Key, mapping.Value,
                             _getObjectTypeName(mapping.Value));
                     }
                     else
                     {
-                        yield return CreateSourceResolverDescriptor(
+                        yield return CreateResolverDescriptor(
                             resolverInfo, mapping.Key, mapping.Value,
                             _getObjectTypeName(mapping.Value));
                     }
