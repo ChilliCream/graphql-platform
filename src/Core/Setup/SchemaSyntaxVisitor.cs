@@ -33,13 +33,13 @@ namespace HotChocolate
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node)
         {
-            _context.Register(_objectTypeFactory.Create(_context, node));
+            _context.RegisterType(_objectTypeFactory.Create(_context, node));
         }
 
         protected override void VisitInterfaceTypeDefinition(
             InterfaceTypeDefinitionNode node)
         {
-            _context.Register(_interfaceTypeFactory.Create(_context, node));
+            _context.RegisterType(_interfaceTypeFactory.Create(_context, node));
         }
     }
 }

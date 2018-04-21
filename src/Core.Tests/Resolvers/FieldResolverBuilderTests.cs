@@ -18,7 +18,8 @@ namespace HotChocolate.Resolvers
             FieldReference fieldReference = new FieldReference("type", "field");
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(fieldReference, typeof(FooResolver),
-                    "Bar", false, Array.Empty<FieldResolverArgumentDescriptor>());
+                    typeof(FooResolver).GetMethod("Bar"), false,
+                    Array.Empty<FieldResolverArgumentDescriptor>());
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
@@ -38,7 +39,7 @@ namespace HotChocolate.Resolvers
                 });
         }
 
-         [Fact]
+        [Fact]
         public void CreateSourcePropertyResolver()
         {
             // arrange
@@ -48,7 +49,7 @@ namespace HotChocolate.Resolvers
             FieldReference fieldReference = new FieldReference("type", "field");
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateSourceProperty(fieldReference, typeof(FooResolver),
-                    "BarProperty");
+                    typeof(FooResolver).GetProperty("BarProperty"));
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();

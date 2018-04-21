@@ -46,6 +46,12 @@ namespace HotChocolate
                 }
             }
 
+            if (propertyExpression.Body is MethodCallExpression mc
+                && type == mc.Method.ReflectedType)
+            {
+                return mc.Method;
+            }
+
             throw new ArgumentException(
                 "The specied expression does not refer to a property.",
                 nameof(propertyExpression));

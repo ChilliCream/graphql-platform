@@ -36,6 +36,7 @@ namespace HotChocolate.Types
         public InputValueDefinitionNode SyntaxNode { get; }
         public string Name { get; }
         public string Description { get; }
+
         public IInputType Type
         {
             get

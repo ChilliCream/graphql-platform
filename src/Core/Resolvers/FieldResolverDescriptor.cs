@@ -151,7 +151,7 @@ namespace HotChocolate.Resolvers
         }
 
         /// <summary>
-        /// Gets a reference describing to which field 
+        /// Gets a reference describing to which field
         /// the resolver is bound to.
         /// </summary>
         public FieldReference Field { get; }
@@ -167,22 +167,22 @@ namespace HotChocolate.Resolvers
         public Type ResolverType { get; }
 
         /// <summary>
-        /// Gets the type of the source object. 
-        /// The source object is the object type providing 
+        /// Gets the type of the source object.
+        /// The source object is the object type providing
         /// the fields for the reslver.
         /// <see cref="IResolverContext.Parent{T}" />
         /// /// </summary>
         public Type SourceType { get; }
 
         /// <summary>
-        /// Gets the member of a collection our source resolver 
+        /// Gets the member of a collection our source resolver
         /// that shall be bound as field resolver..
         /// </summary>
         public MemberInfo Member { get; }
 
         /// <summary>
-        /// Gets a collection of argument descriptors 
-        /// defining the structure of the arguments 
+        /// Gets a collection of argument descriptors
+        /// defining the structure of the arguments
         /// that the resolver demands.
         /// </summary>
         public IReadOnlyCollection<FieldResolverArgumentDescriptor> ArgumentDescriptors { get; }
@@ -193,7 +193,7 @@ namespace HotChocolate.Resolvers
         public bool IsAsync { get; }
 
         /// <summary>
-        /// Defines if the resolver is a method; 
+        /// Defines if the resolver is a method;
         /// otherwise the resolver is expected to be a property.
         /// </summary>
         public bool IsMethod { get; }

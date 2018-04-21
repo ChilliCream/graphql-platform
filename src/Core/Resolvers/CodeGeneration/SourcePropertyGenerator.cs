@@ -8,7 +8,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override void GenerateResolverInvocation(FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return Task.FromResult<object>(source.{resolverDescriptor.MemberName});");
+            source.AppendLine($"return Task.FromResult<object>(source.{resolverDescriptor.Member.Name});");
         }
 
         public override bool CanGenerate(

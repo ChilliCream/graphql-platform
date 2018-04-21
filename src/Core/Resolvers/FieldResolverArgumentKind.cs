@@ -10,6 +10,7 @@ namespace HotChocolate.Resolvers
         Field,
         QueryDocument,
         OperationDefinition,
-        FieldSelection
+        FieldSelection,
+        Context
     }
 }

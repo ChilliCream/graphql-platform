@@ -11,13 +11,14 @@ namespace HotChocolate
         private readonly Dictionary<string, List<ObjectType>> _implementsLookup =
             new Dictionary<string, List<ObjectType>>();
         private readonly Dictionary<string, INamedType> _types;
-        private readonly Dictionary<string, FieldResolverDelegate> _fieldResolvers;
+        private readonly Dictionary<string, FieldResolverDelegate> _fieldResolvers
+            = new Dictionary<string, FieldResolverDelegate>();
         private readonly IReadOnlyDictionary<string, ResolveType> _typeResolver;
         private readonly IsOfTypeRouter _isOfTypeRouter;
+        private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
 
         public SchemaContext(
             IEnumerable<INamedType> systemTypes,
-            IEnumerable<FieldResolver> fieldResolvers,
             IReadOnlyDictionary<string, ResolveType> typeResolver,
             IsOfTypeRouter isOfTypeRouter)
         {
@@ -26,30 +27,51 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(systemTypes));
             }
 
-            if (fieldResolvers == null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolvers));
-            }
-
             if (typeResolver == null)
             {
                 throw new ArgumentNullException(nameof(typeResolver));
             }
 
             _types = systemTypes.ToDictionary(t => t.Name);
-            _fieldResolvers = fieldResolvers.ToDictionary(
-                t => t.TypeName + "." + t.FieldName, t => t.Resolver);
             _typeResolver = typeResolver;
             _isOfTypeRouter = isOfTypeRouter;
         }
 
-        public void Register(INamedType type)
+        public void RegisterType(INamedType type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
+
             _types.Add(type.Name, type);
+        }
+
+        public void RegisterResolvers(IEnumerable<FieldResolver> fieldResolvers)
+        {
+            if (fieldResolvers == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolvers));
+            }
+
+            foreach (FieldResolver fieldResolver in fieldResolvers)
+            {
+                string key = $"{fieldResolver.TypeName}.{fieldResolver.FieldName}";
+                _fieldResolvers[key] = fieldResolver.Resolver;
+            }
+        }
+
+        public void RegisterTypeMappings(IEnumerable<KeyValuePair<string, Type>> typeMappings)
+        {
+            if (typeMappings == null)
+            {
+                throw new ArgumentNullException(nameof(typeMappings));
+            }
+
+            foreach (KeyValuePair<string, Type> typeMapping in typeMappings)
+            {
+                _typeMappings[typeMapping.Key] = typeMapping.Value;
+            }
         }
 
         private void RegisterLookup(
@@ -76,6 +98,7 @@ namespace HotChocolate
             throw new ArgumentException(
                 "The specified type does not exist or is not an output type.");
         }
+
         public T GetOutputType<T>(string typeName)
             where T : IOutputType
         {
@@ -87,6 +110,20 @@ namespace HotChocolate
             throw new ArgumentException(
                 "The specified type does not exist or is " +
                 "not of the specified type.");
+        }
+
+        public bool TryGetOutputType<T>(string typeName, out T type)
+            where T : IOutputType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T ot)
+            {
+                type = ot;
+                return true;
+            }
+
+            type = default(T);
+            return false;
         }
 
         public IInputType GetInputType(string typeName)
@@ -117,8 +154,22 @@ namespace HotChocolate
             if (_isOfTypeRouter == null)
             {
                 return new IsOfType((c, r) =>
-                    c.ObjectType.Name == r.GetType().Name);
+                {
+                    if (r == null)
+                    {
+                        return true;
+                    }
+
+                    if (_typeMappings.TryGetValue(typeName, out Type type)
+                        && type.IsInstanceOfType(r))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                });
             }
+
             return new IsOfType((c, r) => _isOfTypeRouter(typeName, c, r));
         }
 

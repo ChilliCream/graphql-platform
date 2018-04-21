@@ -30,9 +30,9 @@ namespace HotChocolate
                 (c, r) => Task.FromResult<object>("hello"));
             SchemaContext context = new SchemaContext(
                 new[] { scalarType },
-                new[] { fieldResolver },
                 new Dictionary<string, ResolveType>(),
                 null);
+            context.RegisterResolvers(new[] { fieldResolver });
 
             // act
             ObjectTypeFactory factory = new ObjectTypeFactory();
@@ -53,6 +53,6 @@ namespace HotChocolate
             Assert.Equal("String", objectType.Fields["b"].Type.TypeName());
             Assert.Equal("hello", (objectType.Fields["a"]
                 .Resolver(null, CancellationToken.None)).Result);
-        }        
+        }
     }
 }

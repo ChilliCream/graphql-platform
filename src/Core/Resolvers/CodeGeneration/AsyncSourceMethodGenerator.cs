@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return await source.{resolverDescriptor.MemberName} (");
+            source.AppendLine($"return await source.{resolverDescriptor.Member.Name} (");
 
             if (resolverDescriptor.ArgumentDescriptors.Any())
             {

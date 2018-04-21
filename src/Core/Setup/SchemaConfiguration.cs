@@ -1,22 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    internal delegate string GetObjectTypeName(Type objectType);
+
+    internal delegate string GetFieldName(
+        MemberResolverInfo resolverInfo, Type resolverType);
+
     internal class SchemaConfiguration
         : ISchemaConfiguration
     {
         private readonly List<FieldResolver> _resolverRegistry =
             new List<FieldResolver>();
-        private readonly List<FieldResolverDescriptor> _resolverDescriptors =
-            new List<FieldResolverDescriptor>();
+        private readonly Dictionary<Type, Type> _resolverObjectTypeMapping =
+            new Dictionary<Type, Type>();
 
-        private Dictionary<Type, string> _typeAliases = new Dictionary<Type, string>();
-        private Dictionary<Type, Dictionary<MemberInfo, string>> _fieldAliases =
+        private readonly Dictionary<Type, string> _typeAliases =
+            new Dictionary<Type, string>();
+        private readonly Dictionary<Type, Dictionary<MemberInfo, string>> _fieldAliases =
             new Dictionary<Type, Dictionary<MemberInfo, string>>();
-
 
         public ISchemaConfiguration Name<TObjectType>(string typeName)
         {
@@ -26,6 +33,7 @@ namespace HotChocolate
             }
 
             _typeAliases[typeof(TObjectType)] = typeName;
+
             return this;
         }
 
@@ -39,22 +47,50 @@ namespace HotChocolate
 
             _typeAliases[typeof(TObjectType)] = typeName;
 
-            FluentFieldMapping<TObjectType> fluentFieldMapping = new FluentFieldMapping<TObjectType>();
-            foreach (Action<IFluentFieldMapping<TObjectType>> fieldMapping in fieldMappings)
+            Name<TObjectType>(fieldMappings);
+
+            return this;
+        }
+
+        public ISchemaConfiguration Name<TObjectType>(
+            params Action<IFluentFieldMapping<TObjectType>>[] fieldMappings)
+        {
+            Type objectType = typeof(TObjectType);
+            if (!_typeAliases.ContainsKey(objectType))
+            {
+                if (objectType.IsDefined(typeof(GraphQLNameAttribute)))
+                {
+                    _typeAliases[objectType] = objectType
+                        .GetCustomAttribute<GraphQLNameAttribute>().Name;
+                }
+                else
+                {
+                    _typeAliases[objectType] = objectType.Name;
+                }
+            }
+
+            FluentFieldMapping<TObjectType> fluentFieldMapping =
+                new FluentFieldMapping<TObjectType>();
+            foreach (Action<IFluentFieldMapping<TObjectType>> fieldMapping in
+                fieldMappings)
             {
                 fieldMapping(fluentFieldMapping);
             }
 
-            if (_fieldAliases.TryGetValue(typeof(TObjectType), out Dictionary<string, string>()))
+            if (!_fieldAliases.TryGetValue(typeof(TObjectType),
+                out Dictionary<MemberInfo, string> mappings))
+            {
+                _fieldAliases[typeof(TObjectType)] =
+                    new Dictionary<MemberInfo, string>();
+            }
 
+            foreach (KeyValuePair<MemberInfo, string> mapping in
+                fluentFieldMapping.Mappings)
+            {
+                mappings[mapping.Key] = mapping.Value;
+            }
 
-                return this;
-        }
-
-        public ISchemaConfiguration Name<TObjectType>(
-            params Action<IFluentFieldMapping<TObjectType>>[] fieldMapping)
-        {
-            throw new NotImplementedException();
+            return this;
         }
 
         public ISchemaConfiguration Resolver(
@@ -81,34 +117,98 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaConfiguration Resolver<TResolver>()
-        {
-            return Resolver<TResolver>(typeof(TResolver).Name);
-        }
-
-        public ISchemaConfiguration Resolver<TResolver>(string typeName)
-        {
-            throw new NotImplementedException();
-        }
-
         public ISchemaConfiguration Resolver<TResolver, TObjectType>()
         {
-            return Resolver<TResolver, TObjectType>(typeof(TResolver).Name);
+            _resolverObjectTypeMapping[typeof(TResolver)] = typeof(TObjectType);
+            return this;
         }
 
-        public ISchemaConfiguration Resolver<TResolver, TObjectType>(string typeName)
+        public void Commit(SchemaContext context)
         {
-            throw new NotImplementedException();
+            FieldResolverDescriptorFactory fieldResolverDescriptorFactory =
+                new FieldResolverDescriptorFactory(
+                    _resolverObjectTypeMapping,
+                    GetObjectTypeName, GetFieldName);
+            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
+
+            IEnumerable<FieldResolver> fieldResolvers = fieldResolverBuilder
+                .Build(GetBestMatchingFieldResolvers(
+                    context, fieldResolverDescriptorFactory.Create()));
+            context.RegisterResolvers(fieldResolvers);
+            context.RegisterTypeMappings(_typeAliases.Select(
+                t => new KeyValuePair<string, Type>(t.Value, t.Key)));
         }
 
-        public IEnumerable<FieldResolver> CreateResolvers()
+        private IEnumerable<FieldResolverDescriptor> GetBestMatchingFieldResolvers(
+            SchemaContext context,
+            IEnumerable<FieldResolverDescriptor> resolverDescriptors)
         {
-            throw new NotImplementedException();
+            foreach (var resolverGroup in resolverDescriptors.GroupBy(r => r.Field))
+            {
+                FieldReference fieldReference = resolverGroup.Key;
+                if (context.TryGetOutputType<ObjectType>(
+                        fieldReference.TypeName, out ObjectType type)
+                    && type.Fields.TryGetValue(
+                        fieldReference.FieldName, out Field field))
+                {
+                    foreach (FieldResolverDescriptor resolverDescriptor in
+                        resolverGroup.OrderByDescending(t => t.ArgumentCount()))
+                    {
+                        if (AllArgumentsMatch(field, resolverDescriptor))
+                        {
+                            yield return resolverDescriptor;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
+        private bool AllArgumentsMatch(Field field, FieldResolverDescriptor resolverDescriptor)
+        {
+            foreach (FieldResolverArgumentDescriptor argumentDescriptor in
+                resolverDescriptor.ArgumentDescriptors)
+            {
+                if (!field.Arguments.ContainsKey(argumentDescriptor.Name))
+                {
+                    return false;
+                }
 
+                // TODO : Check that argument types are compatible.
+                /*
+                if (field.Arguments.TryGetValue(
+                    argumentDescriptor.Name, out InputField inputField))
+                {
+
+                }
+                 */
+            }
+            return true;
+        }
+
+        private string GetObjectTypeName(Type objectType)
+        {
+            if (_typeAliases.TryGetValue(objectType, out string name))
+            {
+                return name;
+            }
+            return objectType.Name;
+        }
+
+        private string GetFieldName(MemberResolverInfo resolverInfo, Type resolverType)
+        {
+            string name = string.IsNullOrEmpty(resolverInfo.Alias)
+                ? resolverInfo.Member.Name // TODO : casing
+                : resolverInfo.Alias;
+
+            if (_fieldAliases.TryGetValue(resolverType,
+                out Dictionary<MemberInfo, string> mappings)
+                && mappings.TryGetValue(resolverInfo.Member, out string alias))
+            {
+                name = alias;
+            }
+
+            return name;
+        }
     }
-
-
-
 }

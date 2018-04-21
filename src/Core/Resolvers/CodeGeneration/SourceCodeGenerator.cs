@@ -71,6 +71,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 case FieldResolverArgumentKind.Source:
                     source.Append($"ctx.{nameof(IResolverContext.Parent)}<{argumentDescriptor.Type.FullName}>()");
                     break;
+                case FieldResolverArgumentKind.Context:
+                    source.Append($"ctx");
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
             source.Append(";");
         }
