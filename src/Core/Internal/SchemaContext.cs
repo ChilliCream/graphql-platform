@@ -88,6 +88,32 @@ namespace HotChocolate
             types.Add(objectType);
         }
 
+        public INamedType GetType(string typeName)
+        {
+            if (_types.TryGetValue(typeName, out var t))
+            {
+                return t;
+            }
+            throw new ArgumentException(
+                "The specified type does not exist.");
+        }
+        public T GetType<T>(string typeName)
+            where T : INamedType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T type)
+            {
+                return type;
+            }
+            throw new ArgumentException(
+                "The specified type does not exist or is not of the specified type.");
+        }
+
+        public IEnumerable<IType> GetAllTypes()
+        {
+            return _types.Values;
+        }
+
         public IOutputType GetOutputType(string typeName)
         {
             if (_types.TryGetValue(typeName, out var t)
@@ -203,7 +229,5 @@ namespace HotChocolate
             throw new InvalidOperationException(
                 "At least one type must match.");
         }
-
-
     }
 }

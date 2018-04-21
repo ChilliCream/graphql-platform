@@ -4,9 +4,9 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     public interface ISchema
-        : IEnumerable<IType>
+        : IEnumerable<IType> // TODO : maybe we should consider removing enumerable and having a concrete method GetAllTypes()
     {
-        IType GetType(string name);
-        T GetType<T>(string name) where T : IType;
+        INamedType GetType(string typeName);
+        T GetType<T>(string typeName) where T : INamedType;
     }
 }

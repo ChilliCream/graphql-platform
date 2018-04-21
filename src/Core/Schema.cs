@@ -9,34 +9,51 @@ namespace HotChocolate
     public class Schema
         : ISchema
     {
-        public IType GetType(string name)
+        private readonly SchemaContext _context;
+
+        private Schema(SchemaContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
         }
 
-        public T GetType<T>(string name) where T : IType
+        public INamedType GetType(string typeName)
         {
-            throw new NotImplementedException();
+            return _context.GetType(typeName);
+        }
+
+        public T GetType<T>(string typeName) where T : INamedType
+        {
+            return _context.GetType<T>(typeName);
         }
 
         public IEnumerator<IType> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return _context.GetAllTypes().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerator();
         }
 
         public static Schema Create(
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
         {
+            SchemaContext context = new SchemaContext(
+                new INamedType[] { },
+                new Dictionary<string, ResolveType>(), null);
 
+            // deserialize schema objects
+            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
+            visitor.Visit(schemaDocument);
 
+            // configure resolvers and aliases
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configure(configuration);
+            configuration.Commit(context);
 
-            throw new NotImplementedException();
+            return new Schema(context);
         }
     }
 }
