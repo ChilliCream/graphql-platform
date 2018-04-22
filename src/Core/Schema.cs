@@ -16,6 +16,12 @@ namespace HotChocolate
             _context = context;
         }
 
+        public ObjectType Query => throw new NotImplementedException();
+
+        public ObjectType Mutation => throw new NotImplementedException();
+
+        public ObjectType Subscription => throw new NotImplementedException();
+
         public INamedType GetType(string typeName)
         {
             return _context.GetType(typeName);
@@ -26,14 +32,9 @@ namespace HotChocolate
             return _context.GetType<T>(typeName);
         }
 
-        public IEnumerator<IType> GetEnumerator()
+        public IReadOnlyCollection<INamedType> GetAllTypes()
         {
-            return _context.GetAllTypes().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            return _context.GetAllTypes();
         }
 
         public static Schema Create(

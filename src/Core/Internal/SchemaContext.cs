@@ -109,7 +109,7 @@ namespace HotChocolate
                 "The specified type does not exist or is not of the specified type.");
         }
 
-        public IEnumerable<IType> GetAllTypes()
+        public IReadOnlyCollection<INamedType> GetAllTypes()
         {
             return _types.Values;
         }
