@@ -7,33 +7,38 @@ namespace HotChocolate.Language
     /// </summary>
     internal sealed class LexerState
     {
+        public LexerState(string sourceText)
+        {
+            SourceText = sourceText;
+        }
+
         /// <summary>
         /// The current position of the lexer pointer.
         /// </summary>
-        public int Position;
+        public int Position { get; set; }
 
         /// <summary>
-        /// The number of the current line to which 
+        /// The number of the current line to which
         /// the lexer is currently pointing to.
         /// The line index is 1-based.
         /// </summary>
-        public int Line = 1;
+        public int Line { get; private set; } = 1;
 
         /// <summary>
         /// The source index of where the current line starts.
         /// </summary>
-        public int LineStart = 0;
+        public int LineStart { get; private set; } = 0;
 
         /// <summary>
         /// The column in the line where the lexer is currently pointing to.
         /// The column index is 1-based.
         /// </summary>
-        public int Column = 1;
+        public int Column { get; private set; } = 1;
 
         /// <summary>
         /// The normalized GraphQL source text that is beeing tokenized.
         /// </summary>
-        public string SourceText;
+        public string SourceText { get; }
 
         /// <summary>
         /// Sets the state to a new line.
@@ -73,7 +78,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Checks if the lexer source pointer has reached 
+        /// Checks if the lexer source pointer has reached
         /// the end of the GraphQL source text.
         /// </summary>
         /// <returns></returns>
