@@ -7,8 +7,7 @@ namespace HotChocolate
     internal static class SchemaContextExtensions
     {
         public static IOutputType GetOutputType(
-            this SchemaContext context,
-            ITypeNode type)
+            this SchemaContext context, ITypeNode type)
         {
             if (type.Kind == NodeKind.NonNullType)
             {
@@ -32,10 +31,9 @@ namespace HotChocolate
         }
 
         public static IInputType GetInputType(
-            this SchemaContext context,
-            ITypeNode type)
+            this SchemaContext context, ITypeNode type)
         {
-             if (type.Kind == NodeKind.NonNullType)
+            if (type.Kind == NodeKind.NonNullType)
             {
                 return new NonNullType(
                     GetInputType(context,

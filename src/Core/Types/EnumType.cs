@@ -13,7 +13,6 @@ namespace HotChocolate.Types
         , ITypeSystemNode
     {
         private readonly EnumTypeConfig _config;
-        private readonly ParseLiteral _parseLiteral;
         private Dictionary<string, EnumValue> _nameTovalues;
         private Dictionary<object, EnumValue> _valueToValues;
 
@@ -34,7 +33,6 @@ namespace HotChocolate.Types
             _config = config;
             Name = config.Name;
             Description = config.Description;
-            _parseLiteral = config.ParseLiteral;
         }
 
         public string Name { get; }
@@ -84,27 +82,6 @@ namespace HotChocolate.Types
             return false;
         }
 
-        // .net native to external  
-        public string Serialize(object value)
-        {
-            return _valueToValues[value].Name;
-        }
-
-        // ast node to .net native
-        public object ParseLiteral(IValueNode value, GetVariableValue getVariableValue)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            if (getVariableValue == null)
-            {
-                throw new ArgumentNullException(nameof(getVariableValue));
-            }
-
-            return _parseLiteral(value, getVariableValue);
-        }
 
         private void InitializeValues()
         {
@@ -120,6 +97,16 @@ namespace HotChocolate.Types
                 _valueToValues = values.ToDictionary(t => t.Value);
             }
         }
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal, Type targetType)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class EnumTypeConfig
@@ -131,7 +118,5 @@ namespace HotChocolate.Types
         public EnumTypeDefinitionNode SyntaxNode { get; set; }
 
         public Func<IEnumerable<EnumValue>> Values { get; set; }
-
-        public ParseLiteral ParseLiteral { get; set; }
     }
 }

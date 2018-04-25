@@ -17,8 +17,7 @@ namespace HotChocolate
         public void CreateObjectTypeWithTwoFields()
         {
             // arrange
-            ScalarType scalarType = new ScalarType(
-                new ScalarTypeConfig { Name = "String" });
+            StringType scalarType = new StringType();
 
             Parser parser = new Parser();
             DocumentNode document = parser.Parse(
