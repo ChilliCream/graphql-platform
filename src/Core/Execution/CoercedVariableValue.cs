@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class CoercedVariableValue
     {

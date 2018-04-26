@@ -4,9 +4,9 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
-    internal class VariableValueResolver
+    internal sealed class VariableValueResolver
     {
         public Dictionary<string, CoercedVariableValue> CoerceVariableValues(
             ISchema schema,

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class QueryExecuter
     {

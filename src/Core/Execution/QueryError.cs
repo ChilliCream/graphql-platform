@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class QueryError
        : IQueryError

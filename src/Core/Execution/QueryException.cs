@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class QueryException
         : Exception

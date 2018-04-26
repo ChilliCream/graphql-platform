@@ -1,4 +1,4 @@
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public interface IQueryError
     {
