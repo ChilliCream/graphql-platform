@@ -38,12 +38,23 @@ namespace HotChocolate
         }
 
         public static Schema Create(
+            string schema,
+            Action<ISchemaConfiguration> configure)
+        {
+            Parser parser = new Parser();
+
+            DocumentNode schemaDocument = parser.Parse(new Source(schema));
+            return Create(schemaDocument, configure);
+        }
+
+        public static Schema Create(
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
         {
             SchemaContext context = new SchemaContext(
-                new INamedType[] { },
-                new Dictionary<string, ResolveType>(), null);
+                CreateSystemTypes(),
+                new Dictionary<string, ResolveType>(),
+                null);
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
@@ -55,6 +66,11 @@ namespace HotChocolate
             configuration.Commit(context);
 
             return new Schema(context);
+        }
+
+        private static IEnumerable<INamedType> CreateSystemTypes()
+        {
+            yield return new StringType();
         }
     }
 }

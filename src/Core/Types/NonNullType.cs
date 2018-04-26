@@ -40,7 +40,7 @@ namespace HotChocolate.Types
                     return false;
                 }
 
-                _inputType.IsInstanceOfType(literal);
+                return _inputType.IsInstanceOfType(literal);
             }
 
             throw new InvalidOperationException(

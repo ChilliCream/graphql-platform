@@ -39,7 +39,7 @@ namespace HotChocolate
                             variableName));
                     }
 
-                    if (type.IsInstanceOfType(variableValue))
+                    if (!type.IsInstanceOfType(variableValue))
                     {
                         errors.Add(new VariableError(
                             "The variable value is not of the variable type.",
