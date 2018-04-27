@@ -450,6 +450,7 @@ namespace HotChocolate.Execution
                 });
         }
 
+        [Fact]
         public void FragmentDefinitions()
         {
             // arrange
