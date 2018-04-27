@@ -12,14 +12,14 @@ namespace HotChocolate.Language
         : ILexer
     {
         /// <summary>
-        /// Reads <see cref="Token" />s from a GraphQL 
-        /// <paramref name="source" /> and returns the first token. 
+        /// Reads <see cref="Token" />s from a GraphQL
+        /// <paramref name="source" /> and returns the first token.
         /// </summary>
         /// <param name="source">
         /// The GraphQL source that shall be tokenized.
         /// </param>
         /// <returns>
-        /// Returns the first token of the given 
+        /// Returns the first token of the given
         /// GraphQL <paramref name="source" />.
         /// </returns>
         /// <exception cref="SyntaxException">
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(source));
             }
 
-            LexerState state = new LexerState { SourceText = source.Text };
+            LexerState state = new LexerState(source.Text);
 
             try
             {
@@ -115,7 +115,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads punctuator tokens as specified in 
+        /// Reads punctuator tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
         /// one of ! $ ( ) ... : = @ [ ] { | }
         /// additionaly the reader will tokenize ampersands.
@@ -162,7 +162,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads comment tokens as specified in 
+        /// Reads comment tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#sec-Comments
         /// #[\u0009\u0020-\uFFFF]*
         /// from the current lexer state.
@@ -184,10 +184,10 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads name tokens as specified in 
+        /// Reads name tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#Name
         /// [_A-Za-z][_0-9A-Za-z]
-        /// from the current lexer state. 
+        /// from the current lexer state.
         /// </summary>
         /// <param name="state">The lexer state.</param>
         /// <param name="previous">The previous-token.</param>
@@ -198,15 +198,22 @@ namespace HotChocolate.Language
         {
             int start = state.Position;
 
-            while (state.SourceText[++state.Position]
-                .IsLetterOrDigitOrUnderscore()) { }
+            int position = state.Position;
+            do
+            {
+                position++;
+            }
+            while (position < state.SourceText.Length
+                && state.SourceText[position].IsLetterOrDigitOrUnderscore());
+
+            state.Position = position;
 
             return CreateToken(state, previous, TokenKind.Name,
                 start, state.SourceText.Substring(start, state.Position - start));
         }
 
         /// <summary>
-        /// Reads int tokens as specified in 
+        /// Reads int tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#IntValue
         /// or a float tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#FloatValue
@@ -282,10 +289,10 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads block string tokens as specified in 
+        /// Reads block string tokens as specified in
         /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
         /// from the current lexer state.
-        /// </summary>        
+        /// </summary>
         /// <param name="state">The lexer state.</param>
         /// <param name="previous">The previous-token.</param>
         /// <returns>
@@ -430,7 +437,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads string tokens as specified in 
+        /// Reads string tokens as specified in
         /// http://facebook.github.io/graphql/October2016/#StringValue
         /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
         /// from the current lexer state.
@@ -449,7 +456,7 @@ namespace HotChocolate.Language
             char code;
             while (!(code = state.SourceText[++state.Position]).IsNewLine())
             {
-                // closing Quote (")                
+                // closing Quote (")
                 if (code.IsQuote())
                 {
                     value.Append(state.SourceText.Substring(chunkStart, state.Position - chunkStart));
@@ -550,7 +557,7 @@ namespace HotChocolate.Language
 
 
         /// <summary>
-        /// Skips the whitespaces and moves the position 
+        /// Skips the whitespaces and moves the position
         /// to the next non whitespace character.
         /// </summary>
         private void SkipWhitespaces(LexerState state)

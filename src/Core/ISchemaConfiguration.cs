@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -14,5 +15,7 @@ namespace HotChocolate
         ISchemaConfiguration Name<TObjectType>(
             params Action<IFluentFieldMapping<TObjectType>>[] fieldMapping);
 
+        ISchemaConfiguration Register<T>(T type)
+            where T : INamedType;
     }
 }

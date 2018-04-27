@@ -3,76 +3,36 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public delegate string SerializeValue(object value);
-    public delegate object ParseLiteral(IValueNode value, GetVariableValue getVariableValue);
-    public delegate object GetVariableValue(string variableName);
-
-    public class ScalarType
+    public abstract class ScalarType
         : IOutputType
         , IInputType
         , INamedType
         , INullableType
     {
-        private readonly ScalarTypeConfig _config;
-        private readonly SerializeValue _serialize;
-        private readonly ParseLiteral _parseLiteral;
-
-        public ScalarType(ScalarTypeConfig config)
+        protected ScalarType(string name)
+            : this(name, null)
         {
-            if (config == null)
+        }
+
+        protected ScalarType(string name, string description)
+        {
+            if (string.IsNullOrEmpty(name))
             {
-                throw new System.ArgumentNullException(nameof(config));
+                throw new ArgumentNullException(nameof(name));
             }
 
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "A scalar type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            _config = config;
-            Name = config.Name;
-            Description = config.Description;
-            _serialize = config.Serialize;
-            _parseLiteral = config.ParseLiteral;
+            Name = name;
+            Description = description;
         }
 
         public string Name { get; }
 
-        public string Description { get; }
+        public virtual string Description { get; }
 
-        // .net native to external  
-        public string Serialize(object value)
-        {
-            return _serialize(value);
-        }
+        public abstract bool IsInstanceOfType(IValueNode literal);
 
-        // ast node to .net native
-        public object ParseLiteral(IValueNode value, GetVariableValue getVariableValue)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+        public abstract object ParseLiteral(IValueNode literal, Type targetType);
 
-            if (getVariableValue == null)
-            {
-                throw new ArgumentNullException(nameof(getVariableValue));
-            }
-
-            return _parseLiteral(value, getVariableValue);
-        }
-    }
-
-    public class ScalarTypeConfig
-    {
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public SerializeValue Serialize { get; set; }
-        
-        public ParseLiteral ParseLiteral { get; set; }
+        public abstract string Serialize(object value);
     }
 }

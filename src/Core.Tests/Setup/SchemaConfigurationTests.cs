@@ -24,10 +24,7 @@ namespace HotChocolate.Setup
             resolverContext.Setup(t => t.Parent<DummyObjectType>())
                .Returns(dummyObjectType);
 
-            ScalarType stringType = new ScalarType(new ScalarTypeConfig
-            {
-                Name = "String"
-            });
+            StringType stringType = new StringType();
 
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
@@ -73,10 +70,7 @@ namespace HotChocolate.Setup
             resolverContext.Setup(t => t.Parent<DummyObjectType>())
                .Returns(dummyObjectType);
 
-            ScalarType stringType = new ScalarType(new ScalarTypeConfig
-            {
-                Name = "String"
-            });
+            StringType stringType = new StringType();
 
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
@@ -120,11 +114,7 @@ namespace HotChocolate.Setup
             resolverContext.Setup(t => t.Parent<DummyObjectType>())
                .Returns(dummyObjectType);
 
-            ScalarType stringType = new ScalarType(new ScalarTypeConfig
-            {
-                Name = "String"
-            });
-
+            ScalarType stringType = new StringType();
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "Dummy",

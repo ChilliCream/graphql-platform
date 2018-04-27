@@ -52,6 +52,11 @@ namespace HotChocolate.Types
             return IsType<InterfaceType>(type);
         }
 
+        public static bool IsInputType(this IType type)
+        {
+            return IsType<IInputType>(type);
+        }
+
         public static bool IsUnionType(this IType type)
         {
             return IsType<UnionType>(type);

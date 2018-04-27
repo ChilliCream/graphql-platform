@@ -15,6 +15,9 @@ namespace HotChocolate
     internal class SchemaConfiguration
         : ISchemaConfiguration
     {
+        private readonly Dictionary<string, INamedType> _registeredTypes =
+            new Dictionary<string, INamedType>();
+
         private readonly List<FieldResolver> _resolverRegistry =
             new List<FieldResolver>();
         private readonly Dictionary<Type, Type> _resolverObjectTypeMapping =
@@ -93,6 +96,13 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaConfiguration Register<T>(T type)
+            where T : INamedType
+        {
+            _registeredTypes[type.Name] = type;
+            return this;
+        }
+
         public ISchemaConfiguration Resolver(
             string typeName, string fieldName,
             FieldResolverDelegate fieldResolver)
@@ -125,6 +135,11 @@ namespace HotChocolate
 
         public void Commit(SchemaContext context)
         {
+            foreach (INamedType type in _registeredTypes.Values)
+            {
+                context.RegisterType(type);
+            }
+
             FieldResolverDescriptorFactory fieldResolverDescriptorFactory =
                 new FieldResolverDescriptorFactory(
                     _resolverObjectTypeMapping,
@@ -210,5 +225,7 @@ namespace HotChocolate
 
             return name;
         }
+
+
     }
 }
