@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    public class CoercedVariableValue
+    public class CoercedValue
     {
-        public CoercedVariableValue(IInputType inputType, IValueNode value)
+        public CoercedValue(IInputType inputType, IValueNode value)
         {
             if (inputType == null)
             {

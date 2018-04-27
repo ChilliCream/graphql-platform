@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedVariableValue> coercedVariableValues =
+            Dictionary<string, CoercedValue> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedVariableValue> coercedVariableValues =
+            Dictionary<string, CoercedValue> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedVariableValue> coercedVariableValues =
+            Dictionary<string, CoercedValue> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert

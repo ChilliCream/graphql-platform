@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -143,7 +143,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -178,7 +178,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -218,7 +218,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -267,7 +267,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -313,7 +313,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -369,7 +369,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -428,7 +428,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -470,7 +470,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, CoercedValue>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions

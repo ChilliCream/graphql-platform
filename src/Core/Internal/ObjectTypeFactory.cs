@@ -94,13 +94,11 @@ namespace HotChocolate
                     SyntaxNode = inputFieldDefinition,
                     Name = inputFieldDefinition.Name.Value,
                     Description = inputFieldDefinition.Description?.Value,
-                    Type = () => context.GetInputType(inputFieldDefinition.Type)
+                    Type = () => context.GetInputType(inputFieldDefinition.Type),
+                    DefaultValue = () => inputFieldDefinition.DefaultValue
                 };
 
-                InputField inputField = new InputField(config);
-                inputFields[inputField.Name] = inputField;
-
-                // TODO: default value
+                inputFields[config.Name] = new InputField(config);
             }
 
             return inputFields;

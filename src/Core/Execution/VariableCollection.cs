@@ -6,9 +6,9 @@ namespace HotChocolate.Execution
 {
     internal sealed class VariableCollection
     {
-        private readonly Dictionary<string, CoercedVariableValue> _variables;
+        private readonly Dictionary<string, CoercedValue> _variables;
 
-        public VariableCollection(Dictionary<string, CoercedVariableValue> variables)
+        public VariableCollection(Dictionary<string, CoercedValue> variables)
         {
             if (variables == null)
             {
@@ -26,7 +26,7 @@ namespace HotChocolate.Execution
             }
 
             if (!_variables.TryGetValue(variableName,
-                out CoercedVariableValue variableValue))
+                out CoercedValue variableValue))
             {
                 throw new QueryException(new VariableError(
                     "The specified variable was not declared.", variableName));
