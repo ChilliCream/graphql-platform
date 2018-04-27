@@ -38,30 +38,30 @@ if ($RunTests -or $EnableCoverage) {
     $runTestsCmd = [System.Guid]::NewGuid().ToString("N") + ".cmd"
     $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
     $testAssemblies = ""
-    
+
     Get-ChildItem ./src/*.Tests | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" --no-build`n" }
-    
+
     if (!!$testAssemblies) {
-        # Has test assemblies {    
+        # Has test assemblies {
         $userDirectory = $env:USERPROFILE
         if ($IsMacOS) {
             $userDirectory = $env:HOME
         }
-        
+
         [System.IO.File]::WriteAllText($runTestsCmd, $testAssemblies)
         Write-Host $runTestsCmd
 
         if ($EnableCoverage) {
             # Test & Code Coverage
             $nugetPackages = [System.IO.Path]::Combine($userDirectory, ".nuget", "packages")
-            
+
             $openCover = [System.IO.Path]::Combine($nugetPackages, "OpenCover", "*", "tools", "OpenCover.Console.exe")
             $openCover = Resolve-Path $openCover
 
             $coveralls = [System.IO.Path]::Combine($nugetPackages, "coveralls.io", "*", "tools", "coveralls.net.exe")
             $coveralls = Resolve-Path $coveralls
 
-            & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[ChilliCream*]*"
+            & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[HotChocolate*]*"
             & $coveralls --opencover coverage.xml
         }
         else {
@@ -73,7 +73,7 @@ if ($RunTests -or $EnableCoverage) {
 
 if ($EnableSonar) {
 
-    
+
 }
 
 if ($Publish) {
@@ -86,6 +86,6 @@ if ($Publish) {
     else {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix
     }
-    
+
     dotnet nuget push $packageFilter -s https://api.nuget.org/v3/index.json -k $env:NUGET_APIKEY
 }
