@@ -198,8 +198,15 @@ namespace HotChocolate.Language
         {
             int start = state.Position;
 
-            while (state.SourceText[++state.Position]
-                .IsLetterOrDigitOrUnderscore()) { }
+            int position = state.Position;
+            do
+            {
+                position++;
+            }
+            while (position < state.SourceText.Length
+                && state.SourceText[position].IsLetterOrDigitOrUnderscore());
+
+            state.Position = position;
 
             return CreateToken(state, previous, TokenKind.Name,
                 start, state.SourceText.Substring(start, state.Position - start));

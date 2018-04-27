@@ -9,7 +9,8 @@ namespace HotChocolate.Execution
 {
     public class QueryExecuter
     {
-        private VariableValueResolver _variableValueResolver = new VariableValueResolver();
+        private VariableValueResolver _variableValueResolver =
+            new VariableValueResolver();
 
         public async Task<QueryResult> ExecuteAsync(
             ISchema schema,
@@ -66,8 +67,5 @@ namespace HotChocolate.Execution
             throw new NotImplementedException();
 
         }
-
-
-
     }
 }
