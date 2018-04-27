@@ -6,11 +6,11 @@ namespace HotChocolate.Execution
 {
     internal sealed class Fragment
     {
-        public Fragment(IType type, SelectionSetNode selectionSet)
+        public Fragment(IType typeCondition, SelectionSetNode selectionSet)
         {
-            if (type == null)
+            if (typeCondition == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(typeCondition));
             }
 
             if (selectionSet == null)
@@ -18,12 +18,11 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(selectionSet));
             }
 
-            Type = type;
+            TypeCondition = typeCondition;
             SelectionSet = selectionSet;
         }
 
         public IType TypeCondition { get; }
         public SelectionSetNode SelectionSet { get; }
-        public IType Type { get; }
     }
 }

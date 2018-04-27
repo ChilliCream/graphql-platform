@@ -44,7 +44,7 @@ namespace HotChocolate.Language
             Token start = context.Current;
             context.ExpectFragmentKeyword();
 
-            // Experimental support for defining variables within fragments 
+            // Experimental support for defining variables within fragments
             // changesthe grammar of FragmentDefinition:
             // fragment FragmentName VariableDefinitions? on TypeCondition Directives? SelectionSet
             if (context.Options.Experimental.AllowFragmentVariables)
@@ -126,7 +126,6 @@ namespace HotChocolate.Language
           ParserContext context, Token start,
           NamedTypeNode typeCondition)
         {
-            NameNode name = ParseFragmentName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, false);
             SelectionSetNode selectionSet = ParseSelectionSet(context);
@@ -146,7 +145,7 @@ namespace HotChocolate.Language
         /// <see cref="NameNode" />:
         /// Name
         /// </summary>
-        /// <param name="context">The parser context.</param>     
+        /// <param name="context">The parser context.</param>
         private NameNode ParseFragmentName(ParserContext context)
         {
             if (context.Current.IsOnKeyword())
