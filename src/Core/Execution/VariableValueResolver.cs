@@ -8,14 +8,14 @@ namespace HotChocolate.Execution
 {
     internal sealed class VariableValueResolver
     {
-        public Dictionary<string, CoercedValue> CoerceVariableValues(
+        public Dictionary<string, object> CoerceVariableValues(
             ISchema schema,
             OperationDefinitionNode operation,
             IReadOnlyDictionary<string, IValueNode> variableValues)
         {
             List<QueryError> errors = new List<QueryError>();
-            Dictionary<string, CoercedValue> coercedValues =
-                new Dictionary<string, CoercedValue>();
+            Dictionary<string, object> coercedValues =
+                new Dictionary<string, object>();
 
             foreach (VariableDefinitionNode variableDefinition in
                 operation.VariableDefinitions)
@@ -46,8 +46,7 @@ namespace HotChocolate.Execution
                             variableName));
                     }
 
-                    coercedValues[variableName] =
-                            new CoercedValue(type, variableValue);
+                    coercedValues[variableName] = type.ParseLiteral(variableValue);
                 }
                 else
                 {

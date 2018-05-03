@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
         {
             OperationDefinitionNode operation =
                 GetOperation(queryDocument, operationName);
-            Dictionary<string, CoercedValue> coercedVariableValues =
+            Dictionary<string, object> coercedVariableValues =
                 _variableValueResolver.CoerceVariableValues(schema, operation, variables);
 
             throw new NotImplementedException();

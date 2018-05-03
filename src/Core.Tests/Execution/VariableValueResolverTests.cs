@@ -24,14 +24,13 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedValue> coercedVariableValues =
+            Dictionary<string, object> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert
             Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.IsType<StringValueNode>(coercedVariableValues["test"].Value);
-            Assert.Equal("123456", ((StringValueNode)coercedVariableValues["test"].Value).Value);
-            Assert.Equal("String", coercedVariableValues["test"].InputType.TypeName());
+            Assert.IsType<string>(coercedVariableValues["test"]);
+            Assert.Equal("123456", coercedVariableValues["test"]);
         }
 
         [Fact]
@@ -66,14 +65,13 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedValue> coercedVariableValues =
+            Dictionary<string, object> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert
             Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.IsType<StringValueNode>(coercedVariableValues["test"].Value);
-            Assert.Equal("foo", ((StringValueNode)coercedVariableValues["test"].Value).Value);
-            Assert.Equal("String", coercedVariableValues["test"].InputType.TypeName());
+            Assert.IsType<string>(coercedVariableValues["test"]);
+            Assert.Equal("foo", coercedVariableValues["test"]);
         }
 
         [Fact]
@@ -89,12 +87,12 @@ namespace HotChocolate.Execution
 
             // act
             VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, CoercedValue> coercedVariableValues =
+            Dictionary<string, object> coercedVariableValues =
                 resolver.CoerceVariableValues(schema, operation, variableValues);
 
             // assert
             Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.IsType<NullValueNode>(coercedVariableValues["test"].Value);
+            Assert.Equal(null, coercedVariableValues["test"]);
         }
 
         private ISchema CreateSchema()

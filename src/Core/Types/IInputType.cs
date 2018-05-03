@@ -6,7 +6,8 @@ namespace HotChocolate.Types
     public interface IInputType
         : IType
     {
+        Type NativeType { get; }
         bool IsInstanceOfType(IValueNode literal);
-        object ParseLiteral(IValueNode literal, Type targetType);
+        object ParseLiteral(IValueNode literal);
     }
 }

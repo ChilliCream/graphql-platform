@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : IOutputType
+        : IInputType
         , INamedType
         , INullableType
     {
@@ -51,6 +52,18 @@ namespace HotChocolate.Types
                 }
                 return _fields;
             }
+        }
+
+        public Type NativeType => throw new NotImplementedException();
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal)
+        {
+            throw new NotImplementedException();
         }
     }
 

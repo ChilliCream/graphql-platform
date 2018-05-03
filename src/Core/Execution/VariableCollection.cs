@@ -6,9 +6,9 @@ namespace HotChocolate.Execution
 {
     internal sealed class VariableCollection
     {
-        private readonly Dictionary<string, CoercedValue> _variables;
+        private readonly Dictionary<string, object> _variables;
 
-        public VariableCollection(Dictionary<string, CoercedValue> variables)
+        public VariableCollection(Dictionary<string, object> variables)
         {
             if (variables == null)
             {
@@ -26,14 +26,33 @@ namespace HotChocolate.Execution
             }
 
             if (!_variables.TryGetValue(variableName,
-                out CoercedValue variableValue))
+                out object variableValue))
             {
                 throw new QueryException(new VariableError(
                     "The specified variable was not declared.", variableName));
             }
 
-            IInputType inputType = variableValue.InputType;
-            return (T)inputType.ParseLiteral(variableValue.Value, typeof(T));
+            // TODO : integrate converters
+            return (T)variableValue;
+        }
+
+        public bool TryGetVariable<T>(string variableName, out T variableValue)
+        {
+            if (string.IsNullOrEmpty(variableName))
+            {
+                throw new ArgumentNullException(nameof(variableName));
+            }
+
+            if (_variables.TryGetValue(variableName,
+                out object value))
+            {
+                // TODO : integrate converters
+                variableValue = (T)value;
+                return true;
+            }
+
+            variableValue = default(T);
+            return false;
         }
     }
 }

@@ -29,10 +29,12 @@ namespace HotChocolate.Types
 
         public virtual string Description { get; }
 
+        public abstract Type NativeType { get; }
+
         public abstract bool IsInstanceOfType(IValueNode literal);
 
-        public abstract object ParseLiteral(IValueNode literal, Type targetType);
+        public abstract object ParseLiteral(IValueNode literal);
 
-        public abstract string Serialize(object value);
+        public abstract string Serialize(object value); // TODO: return type should be object
     }
 }
