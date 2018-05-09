@@ -47,9 +47,9 @@ namespace HotChocolate.Language
 
                 do
                 {
-                    SyntaxToken prev = current;
-                    current = ReadNextToken(state, prev);
-                    prev.Next = current;
+                    SyntaxToken previous = current;
+                    current = ReadNextToken(state, previous);
+                    previous.Next = current;
                 }
                 while (current.Kind != TokenKind.EndOfFile);
 
@@ -89,12 +89,12 @@ namespace HotChocolate.Language
 
             if (code.IsPunctuator())
             {
-                return ReadPunctuatorToken(state, previous, code);
+                return ReadPunctuatorToken(state, previous, in code);
             }
 
             if (code.IsDigitOrMinus())
             {
-                return ReadNumberToken(state, previous, code);
+                return ReadNumberToken(state, previous, in code);
             }
 
             if (code.IsHash())
@@ -128,7 +128,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadPunctuatorToken(LexerState state, SyntaxToken previous, char firstCode)
+        private SyntaxToken ReadPunctuatorToken(LexerState state, SyntaxToken previous, in char firstCode)
         {
             state.Position++;
 
@@ -229,7 +229,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNumberToken(LexerState state, SyntaxToken previous, char firstCode)
+        private SyntaxToken ReadNumberToken(LexerState state, SyntaxToken previous, in char firstCode)
         {
             int start = state.Position;
             char code = firstCode;
@@ -251,14 +251,15 @@ namespace HotChocolate.Language
             }
             else
             {
-                ReadDigits(state, code);
+                ReadDigits(state, in code);
                 code = state.SourceText[state.Position];
             }
 
             if (code.IsDot())
             {
                 isFloat = true;
-                ReadDigits(state, state.SourceText[++state.Position]);
+                code = state.SourceText[++state.Position];
+                ReadDigits(state, in code);
                 code = state.SourceText[state.Position];
             }
 
@@ -271,7 +272,7 @@ namespace HotChocolate.Language
                 {
                     code = state.SourceText[++state.Position];
                 }
-                ReadDigits(state, code);
+                ReadDigits(state, in code);
             }
 
             TokenKind kind = isFloat ? TokenKind.Float : TokenKind.Integer;
@@ -279,7 +280,7 @@ namespace HotChocolate.Language
                 state.SourceText.Substring(start, state.Position - start - 1));
         }
 
-        private void ReadDigits(LexerState state, char firstCode)
+        private void ReadDigits(LexerState state, in char firstCode)
         {
             if (!firstCode.IsDigit())
             {
@@ -364,7 +365,7 @@ namespace HotChocolate.Language
 
 
             int commonIndent = DetermineCommonIdentation(lines, trimmedLines);
-            RemoveCommonIndetation(lines, commonIndent);
+            RemoveCommonIndetation(lines, in commonIndent);
 
             // Return a string of the lines joined with U+000A.
             return (string.Join("\n", TrimBlankLines(lines, trimmedLines)), lines.Length);
@@ -389,7 +390,7 @@ namespace HotChocolate.Language
             return commonIndent;
         }
 
-        private void RemoveCommonIndetation(string[] lines, int commonIndent)
+        private void RemoveCommonIndetation(string[] lines, in int commonIndent)
         {
             if (commonIndent > 0)
             {

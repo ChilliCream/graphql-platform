@@ -1,7 +1,7 @@
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// This class provides internal char utilities 
+    /// This class provides internal char utilities
     /// that are used to tokenize a GraphQL source text.
     /// These utilities are used by the lexer dfault implementation.
     /// </summary>
@@ -86,102 +86,102 @@ namespace HotChocolate.Language
 
         #endregion
 
-        public static bool IsLetterOrDigitOrUnderscore(this char c)
+        public static bool IsLetterOrDigitOrUnderscore(in this char c)
         {
             return c.IsLetterOrUnderscore() || c.IsDigit();
         }
 
-        public static bool IsLetter(this char c)
+        public static bool IsLetter(in this char c)
         {
-            c |= (char)0x20;
-            return ((c >= 'a' && c <= 'z'));
+            char normalized = (char)(c | 0x20);
+            return ((normalized >= 'a' && normalized <= 'z'));
         }
 
-        public static bool IsLetterOrUnderscore(this char c)
+        public static ref readonly bool IsLetterOrUnderscore(in this char c)
         {
-            return _isLetterOrUnderscore[c];
+            return ref _isLetterOrUnderscore[c];
         }
 
-        public static bool IsDigit(this char c)
+        public static bool IsDigit(in this char c)
         {
             return c >= 48 && c <= 57;
         }
 
-        public static bool IsDigitOrMinus(this char c)
+        public static ref bool IsDigitOrMinus(in this char c)
         {
-            return _isDigitOrMinus[c];
+            return ref _isDigitOrMinus[c];
         }
 
-        public static bool IsDot(this char c)
+        public static bool IsDot(in this char c)
         {
             return c == '.';
         }
 
-        public static bool IsHyphen(this char c)
+        public static bool IsHyphen(in this char c)
         {
             return c == '-';
         }
 
-        public static bool IsUnderscore(this char c)
+        public static bool IsUnderscore(in this char c)
         {
             return c == '_';
         }
 
-        public static bool IsMinus(this char c)
+        public static bool IsMinus(in this char c)
         {
             return c.IsHyphen();
         }
 
-        public static bool IsPlus(this char c)
+        public static bool IsPlus(in this char c)
         {
             return c == '+';
         }
 
-        public static bool IsQuote(this char c)
+        public static bool IsQuote(in this char c)
         {
             return c == '"';
         }
 
-        public static bool IsBackslash(this char c)
+        public static bool IsBackslash(in this char c)
         {
             return c == '\\';
         }
 
-        public static bool IsHash(this char c)
+        public static bool IsHash(in this char c)
         {
             return c == '#';
         }
 
-        public static bool IsPunctuator(this char c)
+        public static ref readonly bool IsPunctuator(in this char c)
         {
-            return _isPunctuator[c];
+            return ref _isPunctuator[c];
         }
 
-        public static bool IsWhitespace(this char c)
+        public static ref readonly bool IsWhitespace(in this char c)
         {
-            return _isWhitespace[c];
+            return ref _isWhitespace[c];
         }
 
-        public static bool IsNewLine(this char c)
+        public static bool IsNewLine(in this char c)
         {
             // 0x000a
             return c == '\n';
         }
 
-        public static bool IsReturn(this char c)
+        public static bool IsReturn(in this char c)
         {
             // 0x000d
             return c == '\r';
         }
 
-        public static bool IsValidEscapeCharacter(this char c)
+        public static ref readonly bool IsValidEscapeCharacter(in this char c)
         {
-            return _isEscapeCharacter[c];
+            return ref _isEscapeCharacter[c];
         }
 
-        public static bool IsControlCharacter(this char c)
+        public static ref readonly bool IsControlCharacter(in this char c)
         {
-            return _isControlCharacter[c];
+            return ref _isControlCharacter[c];
         }
     }
 }
