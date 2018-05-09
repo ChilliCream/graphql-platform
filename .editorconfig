@@ -36,8 +36,8 @@ dotnet_style_null_propagation = true:error
 dotnet_style_explicit_tuple_names = true:error
 
 # Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:error
-csharp_style_var_when_type_is_apparent = true:error
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = false:error
 
 # Prefer method-like constructs to have a block body

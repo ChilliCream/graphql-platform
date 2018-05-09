@@ -14,12 +14,10 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceText = "type a { b: String c: Int }";
-            Source source = new Source(sourceText);
-            Lexer lexer = new Lexer();
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(lexer, source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(document.Definitions,
@@ -50,12 +48,10 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceText = "interface a { b: String c: Int }";
-            Source source = new Source(sourceText);
-            Lexer lexer = new Lexer();
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(lexer, source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(document.Definitions,

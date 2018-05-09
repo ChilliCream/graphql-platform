@@ -16,11 +16,10 @@ namespace HotChocolate.Language
                 Path.GetDirectoryName(GetType().Assembly.Location),
                 "Resources", "schema-kitchen-sink.graphql");
             string sourceText = File.ReadAllText(sourceFile);
-            Source source = new Source(sourceText);
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(new Lexer(), source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(

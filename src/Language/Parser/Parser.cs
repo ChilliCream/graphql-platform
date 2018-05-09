@@ -5,20 +5,31 @@ using System.Linq;
 namespace HotChocolate.Language
 {
     public sealed partial class Parser
-        : IParser
     {
-        public DocumentNode Parse(ILexer lexer, ISource source)
+        private readonly Lexer _lexer;
+
+        public Parser()
         {
-            return Parse(lexer, source, ParserOptions.Default);
+            _lexer = new Lexer();
         }
 
-        public DocumentNode Parse(ILexer lexer, ISource source, ParserOptions options)
+        public Parser(Lexer lexer)
         {
             if (lexer == null)
             {
                 throw new ArgumentNullException(nameof(lexer));
             }
 
+            _lexer = lexer;
+        }
+
+        public DocumentNode Parse(ISource source)
+        {
+            return Parse(source, ParserOptions.Default);
+        }
+
+        public DocumentNode Parse(ISource source, ParserOptions options)
+        {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
@@ -29,7 +40,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(options));
             }
 
-            Token start = lexer.Read(source);
+            SyntaxToken start = _lexer.Read(source);
             if (start.Kind != TokenKind.StartOfFile)
             {
                 throw new InvalidOperationException(
@@ -38,7 +49,7 @@ namespace HotChocolate.Language
             return ParseDocument(source, start, options ?? ParserOptions.Default);
         }
 
-        private DocumentNode ParseDocument(ISource source, Token start, ParserOptions options)
+        private DocumentNode ParseDocument(ISource source, SyntaxToken start, ParserOptions options)
         {
             List<IDefinitionNode> definitions = new List<IDefinitionNode>();
             ParserContext context = new ParserContext(source, start, options);
@@ -57,7 +68,7 @@ namespace HotChocolate.Language
 
         private IDefinitionNode ParseDefinition(ParserContext context)
         {
-            Token token = context.Current;
+            SyntaxToken token = context.Current;
             if (token.IsDescription())
             {
                 token = token.Peek();

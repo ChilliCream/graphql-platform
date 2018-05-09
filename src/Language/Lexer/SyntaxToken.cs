@@ -1,12 +1,12 @@
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// Represents a GraphQL source token.
+    /// Represents a GraphQL syntax token.
     /// </summary>
-    public sealed class Token
+    public sealed class SyntaxToken
     {
         /// <summary>
-        /// Initializes a new instance of the 
+        /// Initializes a new instance of the
         /// <see cref="T:HotChocolate.Language.Token"/> class.
         /// </summary>
         /// <param name="kind">
@@ -27,11 +27,11 @@ namespace HotChocolate.Language
         /// <param name="previous">
         /// The token that came before this token.
         /// </param>
-        public Token(
+        public SyntaxToken(
             TokenKind kind,
             int start, int end,
             int line, int column,
-            Token previous)
+            SyntaxToken previous)
         {
             Kind = kind;
             Start = start;
@@ -42,7 +42,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Initializes a new instance of the 
+        /// Initializes a new instance of the
         /// <see cref="T:HotChocolate.Language.Token"/> class.
         /// </summary>
         /// <param name="kind">
@@ -66,12 +66,12 @@ namespace HotChocolate.Language
         /// <param name="previous">
         /// The token that came before this token.
         /// </param>
-        public Token(
+        public SyntaxToken(
            TokenKind kind,
            int start, int end,
            int line, int column,
            string value,
-           Token previous)
+           SyntaxToken previous)
         {
             Kind = kind;
             Start = start;
@@ -83,7 +83,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Gets the kind of <see cref="Token" />.
+        /// Gets the kind of <see cref="SyntaxToken" />.
         /// </summary>
         public TokenKind Kind { get; }
 
@@ -98,12 +98,12 @@ namespace HotChocolate.Language
         public int End { get; }
 
         /// <summary>
-        /// Gets the 1-indexed line number on which this <see cref="Token" /> appears.
+        /// Gets the 1-indexed line number on which this <see cref="SyntaxToken" /> appears.
         /// </summary>
         public int Line { get; }
 
         /// <summary>
-        /// Gets the 1-indexed column number at which this <see cref="Token" /> begins.
+        /// Gets the 1-indexed column number at which this <see cref="SyntaxToken" /> begins.
         /// </summary>
         public int Column { get; }
 
@@ -114,28 +114,28 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Gets the token that came before this token.
-        /// If this token is a 
-        /// <see cref="TokenKind.StartOfFile"/>-token than 
+        /// If this token is a
+        /// <see cref="TokenKind.StartOfFile"/>-token than
         /// this property will return <c>null</c>.
         /// </summary>
-        public Token Previous { get; }
+        public SyntaxToken Previous { get; }
 
         /// <summary>
         /// Gets the token that comes after this token.
-        /// If this token is a 
-        /// <see cref="TokenKind.EndOfFile"/>-token than 
+        /// If this token is a
+        /// <see cref="TokenKind.EndOfFile"/>-token than
         /// this property will return <c>null</c>.
         /// </summary>
-        public Token Next { get; internal set; }
+        public SyntaxToken Next { get; internal set; }
 
         /// <summary>
-        /// Returns a <see cref="T:System.String"/> 
-        /// that represents the current 
+        /// Returns a <see cref="T:System.String"/>
+        /// that represents the current
         /// <see cref="T:HotChocolate.Language.Token"/>.
         /// </summary>
         /// <returns>
-        /// A <see cref="T:System.String"/> 
-        /// that represents the current 
+        /// A <see cref="T:System.String"/>
+        /// that represents the current
         /// <see cref="T:HotChocolate.Language.Token"/>.
         /// </returns>
         public override string ToString()

@@ -6,13 +6,15 @@ using System.Text;
 namespace HotChocolate.Language
 {
     /// <summary>
-    /// The default lexer implementation.
+    /// Represents the GraphQL lexer.
+    /// The lexer tokenizes a GraphQL <see cref="ISource" />
+    /// and returns the first token.
+    /// The tokens are chained as a a doubly linked syntax token chain.
     /// </summary>
     public partial class Lexer
-        : ILexer
     {
         /// <summary>
-        /// Reads <see cref="Token" />s from a GraphQL
+        /// Reads <see cref="SyntaxToken" />s from a GraphQL
         /// <paramref name="source" /> and returns the first token.
         /// </summary>
         /// <param name="source">
@@ -28,7 +30,7 @@ namespace HotChocolate.Language
         /// <exception cref="ArgumentNullException">
         /// <paramref name="source" /> is null.
         /// </exception>
-        public Token Read(ISource source)
+        public SyntaxToken Read(ISource source)
         {
             if (source == null)
             {
@@ -39,13 +41,13 @@ namespace HotChocolate.Language
 
             try
             {
-                Token start = new Token(TokenKind.StartOfFile, 0, 0,
+                SyntaxToken start = new SyntaxToken(TokenKind.StartOfFile, 0, 0,
                     state.Line, state.Column, null);
-                Token current = start;
+                SyntaxToken current = start;
 
                 do
                 {
-                    Token prev = current;
+                    SyntaxToken prev = current;
                     current = ReadNextToken(state, prev);
                     prev.Next = current;
                 }
@@ -66,14 +68,14 @@ namespace HotChocolate.Language
         /// <returns>Returns token that comes after the <paramref name="previous"/>-token.</returns>
         /// <param name="state">The lexer state.</param>
         /// <param name="previous">The previous-token.</param>
-        private Token ReadNextToken(LexerState state, Token previous)
+        private SyntaxToken ReadNextToken(LexerState state, SyntaxToken previous)
         {
             SkipWhitespaces(state);
             state.UpdateColumn();
 
             if (state.IsEndOfStream())
             {
-                return new Token(TokenKind.EndOfFile, state.Column,
+                return new SyntaxToken(TokenKind.EndOfFile, state.Column,
                     previous.End, state.Line, state.Column,
                     previous);
             }
@@ -126,7 +128,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
-        private Token ReadPunctuatorToken(LexerState state, Token previous, char firstCode)
+        private SyntaxToken ReadPunctuatorToken(LexerState state, SyntaxToken previous, char firstCode)
         {
             state.Position++;
 
@@ -172,7 +174,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the comment token read from the current lexer state.
         /// </returns>
-        private Token ReadCommentToken(LexerState state, Token previous)
+        private SyntaxToken ReadCommentToken(LexerState state, SyntaxToken previous)
         {
             int start = state.Position;
 
@@ -194,7 +196,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the name token read from the current lexer state.
         /// </returns>
-        private Token ReadNameToken(LexerState state, Token previous)
+        private SyntaxToken ReadNameToken(LexerState state, SyntaxToken previous)
         {
             int start = state.Position;
 
@@ -227,7 +229,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
-        private Token ReadNumberToken(LexerState state, Token previous, char firstCode)
+        private SyntaxToken ReadNumberToken(LexerState state, SyntaxToken previous, char firstCode)
         {
             int start = state.Position;
             char code = firstCode;
@@ -298,7 +300,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the block string token read from the current lexer state.
         /// </returns>
-        private Token ReadBlockStringToken(LexerState state, Token previous)
+        private SyntaxToken ReadBlockStringToken(LexerState state, SyntaxToken previous)
         {
             StringBuilder rawValue = new StringBuilder();
             int start = state.Position - 2;
@@ -320,7 +322,7 @@ namespace HotChocolate.Language
                     }
 
                     var result = TrimBlockStringValue(rawValue.ToString());
-                    Token token = CreateToken(state, previous,
+                    SyntaxToken token = CreateToken(state, previous,
                         TokenKind.BlockString, start, result.value);
                     state.Position++;
                     state.NewLine(result.lines - 1);
@@ -447,7 +449,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the string value token read from the current lexer state.
         /// </returns>
-        private Token ReadStringValueToken(LexerState state, Token previous)
+        private SyntaxToken ReadStringValueToken(LexerState state, SyntaxToken previous)
         {
             int start = state.Position;
             int chunkStart = state.Position + 1;
@@ -460,7 +462,7 @@ namespace HotChocolate.Language
                 if (code.IsQuote())
                 {
                     value.Append(state.SourceText.Substring(chunkStart, state.Position - chunkStart));
-                    Token token = CreateToken(state, previous,
+                    SyntaxToken token = CreateToken(state, previous,
                         TokenKind.String, start, value.ToString());
                     state.Position++;
                     return token;
@@ -537,21 +539,21 @@ namespace HotChocolate.Language
                   : -1;
         }
 
-        private Token CreateToken(LexerState state, Token previous, TokenKind kind)
+        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind)
         {
-            return new Token(kind, state.Position - 1, state.Position,
+            return new SyntaxToken(kind, state.Position - 1, state.Position,
                 state.Line, state.Column, previous);
         }
 
-        private Token CreateToken(LexerState state, Token previous, TokenKind kind, int start)
+        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind, int start)
         {
-            return new Token(kind, start, state.Position,
+            return new SyntaxToken(kind, start, state.Position,
                 state.Line, state.Column, previous);
         }
 
-        private Token CreateToken(LexerState state, Token previous, TokenKind kind, int start, string value)
+        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind, int start, string value)
         {
-            return new Token(kind, start, state.Position,
+            return new SyntaxToken(kind, start, state.Position,
                 state.Line, state.Column, value, previous);
         }
 
