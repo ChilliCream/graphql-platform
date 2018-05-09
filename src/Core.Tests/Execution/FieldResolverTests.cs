@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             bool errorRaised = false;
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             bool errorRaised = false;
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
         public void SkipFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -134,7 +134,7 @@ namespace HotChocolate.Execution
         public void IncludeFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a @include(if:true)
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution
         public void SkipOverIncludeFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a @include(if:true)
@@ -204,7 +204,7 @@ namespace HotChocolate.Execution
         public void FieldsAndInlineFragments()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -250,7 +250,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitions()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -300,7 +300,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitionsUnionType()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -356,7 +356,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitionsInterfaceType()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -412,7 +412,7 @@ namespace HotChocolate.Execution
         public void InlineFragments()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     ... Test
@@ -454,7 +454,7 @@ namespace HotChocolate.Execution
         public void FragmentDefinitions()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     ... Test
@@ -492,7 +492,7 @@ namespace HotChocolate.Execution
                 });
         }
 
-        private ISchema CreateSchema()
+        private Schema CreateSchema()
         {
             return Schema.Create(@"
                 type Foo implements IFoo {

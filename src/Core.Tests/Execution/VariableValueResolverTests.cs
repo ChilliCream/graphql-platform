@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
         public void QueryWithNonNullVariableAndDefaultWhereValueWasProvided()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
             Dictionary<string, IValueNode> variableValues =
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
         public void QueryWithNonNullVariableAndDefaultWhereValueWasNotProvided()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
             Dictionary<string, IValueNode> variableValues =
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
         public void QueryWithNonNullVariableAndDefaultWhereValueIsNull()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
             Dictionary<string, IValueNode> variableValues =
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
         public void QueryWithNullableVariableAndNoDefaultWhereNoValueWasProvided()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String) { a }");
             Dictionary<string, IValueNode> variableValues =
@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
             Assert.Equal(null, coercedVariableValues["test"]);
         }
 
-        private ISchema CreateSchema()
+        private Schema CreateSchema()
         {
             return Schema.Create("type Foo { a: String }", c => { });
         }

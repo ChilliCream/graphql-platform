@@ -57,7 +57,7 @@ namespace HotChocolate.Resolvers
                 return FieldResolverArgumentKind.Context;
             }
 
-            if (argumentType == typeof(ISchema))
+            if (argumentType == typeof(Schema))
             {
                 return FieldResolverArgumentKind.Schema;
             }

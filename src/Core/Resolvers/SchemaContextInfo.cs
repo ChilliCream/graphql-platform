@@ -5,7 +5,7 @@ namespace HotChocolate.Resolvers
 {
     internal class SchemaContextInfo
     {
-        public SchemaContextInfo(ISchema schema, ObjectType objectType, Field field)
+        public SchemaContextInfo(Schema schema, ObjectType objectType, Field field)
         {
             if (schema == null)
             {
@@ -27,7 +27,7 @@ namespace HotChocolate.Resolvers
             Field = field;
         }
 
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
         public ObjectType ObjectType { get; }
 

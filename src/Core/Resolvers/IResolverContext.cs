@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
     public interface IResolverContext
     {
         // schema context
-        ISchema Schema { get; }
+        Schema Schema { get; }
 
         ObjectType ObjectType { get; }
 

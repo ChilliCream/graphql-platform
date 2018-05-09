@@ -5,8 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    public sealed class Schema
-        : ISchema
+    public class Schema
     {
         private readonly SchemaContext _context;
 

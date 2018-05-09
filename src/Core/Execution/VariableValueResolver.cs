@@ -9,7 +9,7 @@ namespace HotChocolate.Execution
     internal sealed class VariableValueResolver
     {
         public Dictionary<string, object> CoerceVariableValues(
-            ISchema schema,
+            Schema schema,
             OperationDefinitionNode operation,
             IReadOnlyDictionary<string, IValueNode> variableValues)
         {
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             return coercedValues;
         }
 
-        private IType GetType(ISchema schema, ITypeNode typeNode)
+        private IType GetType(Schema schema, ITypeNode typeNode)
         {
             if (typeNode is NonNullTypeNode nonNullType)
             {

@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
             new VariableValueResolver();
 
         public async Task<QueryResult> ExecuteAsync(
-            ISchema schema,
+            Schema schema,
             DocumentNode queryDocument,
             string operationName,
             IReadOnlyDictionary<string, IValueNode> variables,
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
         }
 
         private Task<QueryResult> ExecuteQueryAsync(
-            ISchema schema,
+            Schema schema,
             OperationDefinitionNode operation,
             Dictionary<string, IValueNode> variableValues)
         {
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
         }
 
         private Task<QueryResult> ExecuteMutationAsync(
-            ISchema schema,
+            Schema schema,
             OperationDefinitionNode operation,
             Dictionary<string, IValueNode> variableValues)
         {

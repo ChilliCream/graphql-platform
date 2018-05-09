@@ -46,7 +46,7 @@ namespace HotChocolate.Resolvers
         }
 
         // schema context
-        public ISchema Schema => _schemaContext.Schema;
+        public Schema Schema => _schemaContext.Schema;
 
         public ObjectType ObjectType => _schemaContext.ObjectType;
 
