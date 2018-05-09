@@ -43,7 +43,7 @@ namespace HotChocolate.Language
         {
 
         }
-        internal SyntaxException(ParserContext context, Token token, string message)
+        internal SyntaxException(ParserContext context, SyntaxToken token, string message)
         {
 
         }

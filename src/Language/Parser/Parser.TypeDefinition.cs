@@ -28,7 +28,7 @@ namespace HotChocolate.Language
         private ITypeSystemDefinitionNode ParseTypeSystemDefinition(ParserContext context)
         {
             // Many definitions begin with a description and require a lookahead.
-            Token keywordToken = context.Current;
+            SyntaxToken keywordToken = context.Current;
             if (keywordToken.IsDescription())
             {
                 keywordToken = keywordToken.Peek();
@@ -86,7 +86,7 @@ namespace HotChocolate.Language
         private SchemaDefinitionNode ParseSchemaDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.SkipDescription();
             context.ExpectSchemaKeyword();
 
@@ -118,7 +118,7 @@ namespace HotChocolate.Language
         private OperationTypeDefinitionNode ParseOperationTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             OperationType operation = ParseOperationType(context);
             context.ExpectColon();
             NamedTypeNode type = ParseNamedType(context);
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
         private ScalarTypeDefinitionNode ParseScalarTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectScalarKeyword();
             NameNode name = ParseName(context);
@@ -169,7 +169,7 @@ namespace HotChocolate.Language
         private ObjectTypeDefinitionNode ParseObjectTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectTypeKeyword();
             NameNode name = ParseName(context);
@@ -247,7 +247,7 @@ namespace HotChocolate.Language
         private FieldDefinitionNode ParseFieldDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             NameNode name = ParseName(context);
             List<InputValueDefinitionNode> arguments =
@@ -297,7 +297,7 @@ namespace HotChocolate.Language
         private InputValueDefinitionNode ParseInputValueDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             NameNode name = ParseName(context);
             context.ExpectColon();
@@ -331,7 +331,7 @@ namespace HotChocolate.Language
         private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectInterfaceKeyword();
             NameNode name = ParseName(context);
@@ -360,7 +360,7 @@ namespace HotChocolate.Language
         private UnionTypeDefinitionNode ParseUnionTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectUnionKeyword();
             NameNode name = ParseName(context);
@@ -415,7 +415,7 @@ namespace HotChocolate.Language
         private EnumTypeDefinitionNode ParseEnumTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectEnumKeyword();
             NameNode name = ParseName(context);
@@ -464,7 +464,7 @@ namespace HotChocolate.Language
         private EnumValueDefinitionNode ParseEnumValueDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
@@ -483,7 +483,7 @@ namespace HotChocolate.Language
         private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectInputKeyword();
             NameNode name = ParseName(context);

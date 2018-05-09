@@ -29,7 +29,7 @@ namespace HotChocolate.Language
         /// </param>
         private IValueNode ParseValueLiteral(ParserContext context, bool isConstant)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
 
             if (start.Kind == TokenKind.LeftBracket)
             {
@@ -61,7 +61,7 @@ namespace HotChocolate.Language
 
         private StringValueNode ParseStringLiteral(ParserContext context)
         {
-            Token start = context.ExpectString();
+            SyntaxToken start = context.ExpectString();
             bool isBlock = start.Kind == TokenKind.BlockString;
             Location location = context.CreateLocation(start);
 
@@ -86,7 +86,7 @@ namespace HotChocolate.Language
         /// </param>
         private ListValueNode ParseList(ParserContext context, bool isConstant)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             List<IValueNode> items = isConstant
                 ? ParseMany(context, TokenKind.LeftBracket,
                     ParseConstantValue, TokenKind.RightBracket)
@@ -114,7 +114,7 @@ namespace HotChocolate.Language
         /// </param>
         private ObjectValueNode ParseObject(ParserContext context, bool isConstant)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             List<ObjectFieldNode> fields = ParseMany(context,
                 TokenKind.LeftBrace,
                 c => ParseObjectField(c, isConstant),
@@ -130,7 +130,7 @@ namespace HotChocolate.Language
 
         private ObjectFieldNode ParseObjectField(ParserContext context, bool isConstant)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = ParseValueLiteral(context, isConstant);
@@ -151,7 +151,7 @@ namespace HotChocolate.Language
                 return ParseStringLiteral(context);
             }
 
-            Token start = context.ExpectScalarValue();
+            SyntaxToken start = context.ExpectScalarValue();
             Location location = context.CreateLocation(start);
 
             if (start.Kind == TokenKind.Float)
@@ -177,7 +177,7 @@ namespace HotChocolate.Language
 
         private IValueNode ParseEnumValue(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             Location location = context.CreateLocation(start);
             context.MoveNext();
 

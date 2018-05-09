@@ -14,7 +14,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private OperationDefinitionNode ParseOperationDefinition(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             if (start.IsLeftBrace())
             {
                 return ParseOperationDefinitionShortHandForm(context, start);
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private OperationDefinitionNode ParseOperationDefinitionShortHandForm(
-            ParserContext context, Token start)
+            ParserContext context, SyntaxToken start)
         {
             SelectionSetNode selectionSet = ParseSelectionSet(context);
             Location location = context.CreateLocation(start);
@@ -70,7 +70,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private OperationType ParseOperationType(ParserContext context)
         {
-            Token token = context.ExpectName();
+            SyntaxToken token = context.ExpectName();
 
             switch (token.Value)
             {
@@ -111,7 +111,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private VariableDefinitionNode ParseVariableDefinition(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             VariableNode variable = ParseVariable(context);
             context.ExpectColon();
             ITypeNode type = ParseTypeReference(context);
@@ -137,7 +137,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private VariableNode ParseVariable(ParserContext context)
         {
-            Token start = context.ExpectDollar();
+            SyntaxToken start = context.ExpectDollar();
             NameNode name = ParseName(context);
             Location location = context.CreateLocation(start);
 
@@ -156,7 +156,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private SelectionSetNode ParseSelectionSet(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             List<ISelectionNode> selections = ParseMany(context,
                 TokenKind.LeftBrace,
                 ParseSelection,
@@ -195,7 +195,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FieldNode ParseField(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             bool hasAlias = context.Peek(TokenKind.Colon);
             NameNode alias = null;
             NameNode name = null;
@@ -297,7 +297,7 @@ namespace HotChocolate.Language
         private ArgumentNode ParseArgument(ParserContext context,
             Func<ParserContext, IValueNode> parseValue)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = parseValue(context);

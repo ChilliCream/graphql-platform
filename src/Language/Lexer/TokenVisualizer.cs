@@ -30,7 +30,7 @@ namespace HotChocolate.Language
             {TokenKind.Comment, "Comment"}
         };
 
-        public static string Visualize(Token token)
+        public static string Visualize(SyntaxToken token)
         {
             return token.Value ?? _visualization[token.Kind];
         }

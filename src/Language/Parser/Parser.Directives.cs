@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     {
         private DirectiveDefinitionNode ParseDirectiveDefinition(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectDirectiveKeyword();
             context.ExpectAt();
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
 
         private NameNode ParseDirectiveLocation(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             NameNode name = ParseName(context);
             if (DirectiveLocation.IsValidName(name.Value))
             {
@@ -73,7 +73,7 @@ namespace HotChocolate.Language
         private DirectiveNode ParseDirective(
             ParserContext context, bool isConstant)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectAt();
             NameNode name = ParseName(context);
             List<ArgumentNode> arguments =

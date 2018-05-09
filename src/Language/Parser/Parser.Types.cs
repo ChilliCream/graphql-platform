@@ -17,7 +17,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ITypeNode ParseTypeReference(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             ITypeNode type;
             Location location;
 
@@ -58,7 +58,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private NamedTypeNode ParseNamedType(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             NameNode name = ParseName(context);
             Location location = context.CreateLocation(start);
 
