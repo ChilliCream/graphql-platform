@@ -23,7 +23,9 @@ namespace HotChocolate.Resolvers
         FieldNode FieldSelection { get; }
 
         // execution context
-        ImmutableStack<object> Path { get; }
+        ImmutableStack<object> Path { get; } // parents
+
+        // string Path => /foo/bar[0]/test
 
         T Parent<T>();
 

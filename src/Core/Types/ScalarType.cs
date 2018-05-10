@@ -35,6 +35,6 @@ namespace HotChocolate.Types
 
         public abstract object ParseLiteral(IValueNode literal);
 
-        public abstract string Serialize(object value); // TODO: return type should be object
+        public abstract object Serialize(object value); // TODO: return type should be object
     }
 }

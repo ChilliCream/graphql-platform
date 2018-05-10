@@ -41,7 +41,7 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
-        public override string Serialize(object value)
+        public override object Serialize(object value)
         {
             if (value == null)
             {
@@ -50,7 +50,7 @@ namespace HotChocolate.Types
 
             if (typeof(string).IsInstanceOfType(value))
             {
-                return (string)value;
+                return value;
             }
 
             throw new ArgumentException(
