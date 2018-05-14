@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -16,24 +17,40 @@ namespace HotChocolate.Execution
             new VariableValueResolver();
         private readonly IServiceProvider _services;
 
+        public OperationExecuter()
+            : this(new DefaultServiceProvider())
+        { }
+
         public OperationExecuter(IServiceProvider services)
         {
             _services = services;
         }
 
-
-        public async Task<QueryResult> ExecuteRequest(
+        public async Task<QueryResult> ExecuteRequestAsync(
             Schema schema, DocumentNode queryDocument, string operationName,
-            Dictionary<string, IValueNode> variableValues, object initialValue)
+            Dictionary<string, IValueNode> variableValues, object initialValue,
+            CancellationToken cancellationToken)
         {
             ExecutionContext executionContext = CreateExecutionContext(
                 schema, queryDocument, operationName,
                 variableValues, initialValue);
 
+            switch (executionContext.Operation.Operation)
+            {
+                case OperationType.Query:
+                    List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
+                        executionContext, schema.Query);
+                    executionContext.NextBatch.AddRange(tasks);
+                    await ExecuteFieldResolversAsync(executionContext, cancellationToken);
+                    break;
 
+                case OperationType.Mutation:
+                    throw new NotSupportedException();
+                case OperationType.Subscription:
+                    throw new NotSupportedException();
+            }
 
-
-            throw new NotImplementedException();
+            return new QueryResult(); // TODO : add errors and result
         }
 
         private ExecutionContext CreateExecutionContext(
@@ -51,15 +68,79 @@ namespace HotChocolate.Execution
         }
 
         private OperationDefinitionNode GetOperation(
-            DocumentNode document, string operationName)
+            DocumentNode queryDocument, string operationName)
         {
-            throw new NotImplementedException();
+            OperationDefinitionNode[] operations = queryDocument.Definitions
+                .OfType<OperationDefinitionNode>()
+                .ToArray();
+
+            if (string.IsNullOrEmpty(operationName))
+            {
+                if (operations.Length == 1)
+                {
+                    return operations[0];
+                }
+                throw new Exception();
+            }
+            else
+            {
+                OperationDefinitionNode operation = operations.SingleOrDefault(
+                    t => string.Equals(t.Name.Value, operationName, StringComparison.Ordinal));
+                if (operation == null)
+                {
+                    throw new Exception();
+                }
+                return operation;
+            }
         }
 
+        private List<FieldResolverTask> CreateInitialFieldResolverBatch(
+            ExecutionContext executionContext,
+            ObjectType objectType)
+        {
+            ImmutableStack<object> source = ImmutableStack<object>
+                .Empty.Push(executionContext.RootValue);
+
+            List<FieldResolverTask> batch = new List<FieldResolverTask>();
+
+            IReadOnlyCollection<FieldSelection> fieldSelections =
+                executionContext.FieldResolver.CollectFields(objectType,
+                    executionContext.Operation.SelectionSet,
+                    error => executionContext.Errors.Add(error));
+
+            foreach (FieldSelection fieldSelection in fieldSelections)
+            {
+                batch.Add(new FieldResolverTask(source,
+                    objectType, fieldSelection,
+                    Path.New(fieldSelection.ResponseName),
+                    executionContext.Result));
+            }
+
+            return batch;
+        }
+
+        private async Task ExecuteFieldResolversAsync(
+            ExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            while (executionContext.NextBatch.Count > 0)
+            {
+                List<FieldResolverTask> currentBatch =
+                    new List<FieldResolverTask>(executionContext.NextBatch);
+                executionContext.NextBatch.Clear();
+
+                await ExecuteFieldResolverBatchAsync(executionContext,
+                    currentBatch, cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+            }
+        }
 
         private async Task ExecuteFieldResolverBatchAsync(
             ExecutionContext executionContext,
-
             List<FieldResolverTask> batch,
             CancellationToken cancellationToken)
         {

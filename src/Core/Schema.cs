@@ -12,9 +12,10 @@ namespace HotChocolate
         private Schema(SchemaContext context)
         {
             _context = context;
+            Query = (ObjectType)context.GetType("Query"); // TODO : rework
         }
 
-        public ObjectType Query => throw new NotImplementedException();
+        public ObjectType Query { get; }
 
         public ObjectType Mutation => throw new NotImplementedException();
 

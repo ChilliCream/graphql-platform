@@ -515,6 +515,7 @@ namespace HotChocolate.Execution
 
                 union FooUnion = Foo | Fa
 
+                type Query { }
                 ", c => { });
         }
     }

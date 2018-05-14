@@ -19,16 +19,6 @@ namespace HotChocolate.Execution
             Result = result;
         }
 
-        public FieldResolverTask(FieldResolverTask fieldResolverTask, IType fieldType)
-        {
-            Source = field;
-            ObjectType = objectType;
-            FieldSelection = fieldSelection;
-            FieldType = fieldType;
-            Path = path;
-            Result = result;
-        }
-
         public ImmutableStack<object> Source { get; }
         public ObjectType ObjectType { get; }
         public FieldSelection FieldSelection { get; }
@@ -38,16 +28,6 @@ namespace HotChocolate.Execution
         public void SetValue(object value)
         {
             Result[FieldSelection.ResponseName] = value;
-        }
-
-        public FieldResolverTask WithFieldType(IType fieldType)
-        {
-            if (fieldType == null)
-            {
-                throw new ArgumentNullException(nameof(fieldType));
-            }
-
-            return new FieldResolverTask(fieldType);
         }
     }
 }
