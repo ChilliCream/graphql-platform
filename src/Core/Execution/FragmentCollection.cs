@@ -10,10 +10,10 @@ namespace HotChocolate.Execution
     {
         private readonly Dictionary<string, List<Fragment>> _fragments =
             new Dictionary<string, List<Fragment>>();
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly DocumentNode _queryDocument;
 
-        public FragmentCollection(ISchema schema, DocumentNode queryDocument)
+        public FragmentCollection(Schema schema, DocumentNode queryDocument)
         {
             if (schema == null)
             {

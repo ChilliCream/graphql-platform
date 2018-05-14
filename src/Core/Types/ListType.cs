@@ -31,9 +31,12 @@ namespace HotChocolate.Types
             _isInputType = elementType.InnerType().IsInputType();
             _inputType = elementType.InnerType() as IInputType;
             ElementType = elementType;
+            NativeType = _isInputType ? CreateListType(_inputType.NativeType) : null;
         }
 
         public IType ElementType { get; }
+
+        public Type NativeType { get; }
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -73,16 +76,11 @@ namespace HotChocolate.Types
                 "The specified type is not an input type.");
         }
 
-        public object ParseLiteral(IValueNode literal, Type targetType)
+        public object ParseLiteral(IValueNode literal)
         {
             if (literal == null)
             {
                 throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
             }
 
             if (literal is NullValueNode)
@@ -92,18 +90,7 @@ namespace HotChocolate.Types
 
             if (_isInputType && literal is ListValueNode listValueLiteral)
             {
-                if (targetType.IsArray)
-                {
-                    return CreateArray(literal, targetType, listValueLiteral);
-                }
-
-                if (targetType.IsGenericType)
-                {
-                    return CreateList(literal, targetType, listValueLiteral);
-                }
-
-                throw new NotSupportedException(
-                    "The target type cannot be handled.");
+                return CreateArray(literal, listValueLiteral);
             }
 
             throw new InvalidOperationException(
@@ -111,42 +98,25 @@ namespace HotChocolate.Types
         }
 
         private object CreateArray(IValueNode literal,
-            Type targetType, ListValueNode listValueLiteral)
+            ListValueNode listValueLiteral)
         {
-            Type elementType = targetType.GetElementType();
+            Type elementType = _inputType.NativeType;
             Array array = Array.CreateInstance(
                 elementType,
                 listValueLiteral.Items.Count);
 
             for (int i = 0; i < listValueLiteral.Items.Count; i++)
             {
-                object element = _inputType.ParseLiteral(literal, elementType);
+                object element = _inputType.ParseLiteral(literal);
                 array.SetValue(element, i);
             }
 
             return array;
         }
 
-        private object CreateList(IValueNode literal,
-           Type targetType, ListValueNode listValueLiteral)
+        private static Type CreateListType(Type elementType)
         {
-            Type elementType = targetType.GetGenericArguments()
-                .SingleOrDefault();
-            if (elementType != null && typeof(IList).IsAssignableFrom(targetType))
-            {
-                IList list = (IList)Activator.CreateInstance(targetType);
-
-                for (int i = 0; i < listValueLiteral.Items.Count; i++)
-                {
-                    object element = _inputType.ParseLiteral(literal, elementType);
-                    list.Add(element);
-                }
-
-                return list;
-            }
-
-            throw new NotSupportedException(
-                "A list type must implement IList.");
+            return Array.CreateInstance(elementType, 0).GetType();
         }
     }
 }

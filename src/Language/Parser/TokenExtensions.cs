@@ -19,63 +19,63 @@ namespace HotChocolate.Language
         }
 
 
-        public static bool IsDescription(this Token token)
+        public static bool IsDescription(this SyntaxToken token)
         {
             return _isString[(int)token.Kind];
         }
 
-        public static bool IsString(this Token token)
+        public static bool IsString(this SyntaxToken token)
         {
             return _isString[(int)token.Kind];
         }
 
-        public static bool IsScalarValue(this Token token)
+        public static bool IsScalarValue(this SyntaxToken token)
         {
             return _isScalar[(int)token.Kind];
         }
 
-        public static bool IsName(this Token token)
+        public static bool IsName(this SyntaxToken token)
         {
             return token.Kind == TokenKind.Name;
         }
 
-        public static bool IsAt(this Token token)
+        public static bool IsAt(this SyntaxToken token)
         {
             return token.Kind == TokenKind.At;
         }
 
-        public static bool IsDollar(this Token token)
+        public static bool IsDollar(this SyntaxToken token)
         {
             return token.Kind == TokenKind.Dollar;
         }
 
-        public static bool IsColon(this Token token)
+        public static bool IsColon(this SyntaxToken token)
         {
             return token.Kind == TokenKind.Colon;
         }
 
-        public static bool IsLeftBrace(this Token token)
+        public static bool IsLeftBrace(this SyntaxToken token)
         {
             return token.Kind == TokenKind.LeftBrace;
         }
 
-        public static bool IsLeftParenthesis(this Token token)
+        public static bool IsLeftParenthesis(this SyntaxToken token)
         {
             return token.Kind == TokenKind.LeftParenthesis;
         }
 
-        public static bool IsSpread(this Token token)
+        public static bool IsSpread(this SyntaxToken token)
         {
             return token.Kind == TokenKind.Spread;
         }
 
-        public static bool IsOnKeyword(this Token token)
+        public static bool IsOnKeyword(this SyntaxToken token)
         {
             return token.Kind == TokenKind.Name
                 && token.Value == Keywords.On;
         }
 
-        public static Token Peek(this Token token)
+        public static SyntaxToken Peek(this SyntaxToken token)
         {
             if (token.Kind == TokenKind.EndOfFile)
             {
@@ -83,7 +83,7 @@ namespace HotChocolate.Language
                     "The specified token is the last token in the token chain.");
             }
 
-            Token next = token;
+            SyntaxToken next = token;
 
             do
             {

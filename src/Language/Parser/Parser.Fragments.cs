@@ -14,7 +14,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ISelectionNode ParseFragment(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectSpread();
             bool isOnKeyword = context.Current.IsOnKeyword();
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FragmentDefinitionNode ParseFragmentDefinition(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectFragmentKeyword();
 
             // Experimental support for defining variables within fragments
@@ -99,7 +99,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         /// <param name="start">The start token of the current fragment node.</param>
         private FragmentSpreadNode ParseFragmentSpread(
-          ParserContext context, Token start)
+          ParserContext context, SyntaxToken start)
         {
             NameNode name = ParseFragmentName(context);
             List<DirectiveNode> directives =
@@ -123,7 +123,7 @@ namespace HotChocolate.Language
         /// <param name="start">The start token of the current fragment node.</param>
         /// <param name="typeCondition">The fragment type condition.</param>
         private InlineFragmentNode ParseInlineFragment(
-          ParserContext context, Token start,
+          ParserContext context, SyntaxToken start,
           NamedTypeNode typeCondition)
         {
             List<DirectiveNode> directives =

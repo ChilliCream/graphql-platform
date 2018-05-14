@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
@@ -10,28 +9,28 @@ namespace HotChocolate.Resolvers
     public interface IResolverContext
     {
         // schema context
-        object Schema { get; }
+        Schema Schema { get; }
 
         ObjectType ObjectType { get; }
 
         Field Field { get; }
 
         // query context
-        object QueryDocument { get; }
+        DocumentNode QueryDocument { get; }
 
-        object OperationDefinition { get; }
+        OperationDefinitionNode Operation { get; }
 
-        object FieldSelection { get; }
+        FieldNode FieldSelection { get; }
 
         // execution context
-        IImmutableStack<object> Path { get; }
+        ImmutableStack<object> Path { get; } // parents
+
+        // string Path => /foo/bar[0]/test
 
         T Parent<T>();
 
         T Argument<T>(string name);
 
         T Service<T>();
-
-        void RegisterQuery(object query); // => redesign
     }
 }

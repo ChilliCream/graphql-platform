@@ -7,11 +7,14 @@
       "label": "build",
       "command": "dotnet build src",
       "type": "shell",
-      "group": "build",
       "presentation": {
         "reveal": "silent"
       },
-      "problemMatcher": "$msCompile"
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     {
       "label": "test language with coverage",
@@ -43,7 +46,7 @@
       ],
       "problemMatcher": "$msCompile",
       "group": {
-        "kind": "build",
+        "kind": "test",
         "isDefault": true
       }
     }

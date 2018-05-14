@@ -62,6 +62,11 @@ namespace HotChocolate.Types
             return IsType<UnionType>(type);
         }
 
+        public static bool IsAbstractType(this IType type)
+        {
+            return type.IsUnionType() || type.IsInterfaceType();
+        }
+
         public static bool IsType<T>(this IType type)
             where T : IType
         {

@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     internal sealed class ParserContext
     {
-        public ParserContext(ISource source, Token start, ParserOptions options)
+        public ParserContext(ISource source, SyntaxToken start, ParserOptions options)
         {
             if (source == null)
             {
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
 
         public ParserOptions Options { get; }
         public ISource Source { get; }
-        public Token Current { get; private set; }
+        public SyntaxToken Current { get; private set; }
 
         public bool MoveNext()
         {

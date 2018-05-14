@@ -11,6 +11,8 @@ namespace HotChocolate.Types
         {
         }
 
+        public override Type NativeType { get; } = typeof(string);
+
         public override bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
@@ -22,28 +24,16 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public override object ParseLiteral(IValueNode literal, Type targetType)
+        public override object ParseLiteral(IValueNode literal)
         {
             if (literal == null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
             if (literal is StringValueNode stringLiteral)
             {
-                if (targetType == typeof(string)
-                    || targetType == typeof(char[]))
-                {
-                    return stringLiteral.Value;
-                }
-
-                throw new NotSupportedException(
-                    "The target type cannot be handled.");
+                return stringLiteral.Value;
             }
 
             throw new ArgumentException(
@@ -51,7 +41,7 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
-        public override string Serialize(object value)
+        public override object Serialize(object value)
         {
             if (value == null)
             {
@@ -60,17 +50,7 @@ namespace HotChocolate.Types
 
             if (typeof(string).IsInstanceOfType(value))
             {
-                return (string)value;
-            }
-
-            if (typeof(char).IsInstanceOfType(value))
-            {
-                return char.ToString((char)value);
-            }
-
-            if (typeof(char[]).IsInstanceOfType(value))
-            {
-                return string.Join(string.Empty, value);
+                return value;
             }
 
             throw new ArgumentException(

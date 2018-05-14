@@ -4,37 +4,37 @@ namespace HotChocolate.Language
 {
     internal static class ParserContextExtensions
     {
-        public static Token ExpectName(this ParserContext context)
+        public static SyntaxToken ExpectName(this ParserContext context)
         {
             return Expect(context, TokenKind.Name);
         }
 
-        public static Token ExpectColon(this ParserContext context)
+        public static SyntaxToken ExpectColon(this ParserContext context)
         {
             return Expect(context, TokenKind.Colon);
         }
 
-        public static Token ExpectDollar(this ParserContext context)
+        public static SyntaxToken ExpectDollar(this ParserContext context)
         {
             return Expect(context, TokenKind.Dollar);
         }
 
-        public static Token ExpectAt(this ParserContext context)
+        public static SyntaxToken ExpectAt(this ParserContext context)
         {
             return Expect(context, TokenKind.At);
         }
 
-        public static Token ExpectRightBracket(this ParserContext context)
+        public static SyntaxToken ExpectRightBracket(this ParserContext context)
         {
             return Expect(context, TokenKind.RightBracket);
         }
 
-        public static Token ExpectLeftBrace(this ParserContext context)
+        public static SyntaxToken ExpectLeftBrace(this ParserContext context)
         {
             return Expect(context, TokenKind.RightBracket);
         }
 
-        public static Token ExpectString(this ParserContext context)
+        public static SyntaxToken ExpectString(this ParserContext context)
         {
             if (context.Current.IsString())
             {
@@ -46,7 +46,7 @@ namespace HotChocolate.Language
                 $"Expected a name token: {context.Current}.");
         }
 
-        public static Token ExpectScalarValue(this ParserContext context)
+        public static SyntaxToken ExpectScalarValue(this ParserContext context)
         {
             if (context.Current.IsScalarValue())
             {
@@ -58,12 +58,12 @@ namespace HotChocolate.Language
                 $"Expected a name token: {context.Current}.");
         }
 
-        public static Token ExpectSpread(this ParserContext context)
+        public static SyntaxToken ExpectSpread(this ParserContext context)
         {
             return Expect(context, TokenKind.Spread);
         }
 
-        public static Token Expect(this ParserContext context, TokenKind kind)
+        public static SyntaxToken Expect(this ParserContext context, TokenKind kind)
         {
             if (context.Current.Kind == kind)
             {
@@ -75,64 +75,64 @@ namespace HotChocolate.Language
                 $"Expected a name token: {context.Current}.");
         }
 
-        public static Token ExpectScalarKeyword(this ParserContext context)
+        public static SyntaxToken ExpectScalarKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Scalar);
         }
 
-        public static Token ExpectSchemaKeyword(this ParserContext context)
+        public static SyntaxToken ExpectSchemaKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Schema);
         }
 
-        public static Token ExpectTypeKeyword(this ParserContext context)
+        public static SyntaxToken ExpectTypeKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Type);
         }
 
-        public static Token ExpectInterfaceKeyword(this ParserContext context)
+        public static SyntaxToken ExpectInterfaceKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Interface);
         }
 
-        public static Token ExpectUnionKeyword(this ParserContext context)
+        public static SyntaxToken ExpectUnionKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Union);
         }
 
-        public static Token ExpectEnumKeyword(this ParserContext context)
+        public static SyntaxToken ExpectEnumKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Enum);
         }
 
-        public static Token ExpectInputKeyword(this ParserContext context)
+        public static SyntaxToken ExpectInputKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Input);
         }
 
-        public static Token ExpectExtendKeyword(this ParserContext context)
+        public static SyntaxToken ExpectExtendKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Extend);
         }
 
-        public static Token ExpectDirectiveKeyword(this ParserContext context)
+        public static SyntaxToken ExpectDirectiveKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Directive);
         }
 
-        public static Token ExpectOnKeyword(this ParserContext context)
+        public static SyntaxToken ExpectOnKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.On);
         }
 
-        public static Token ExpectFragmentKeyword(this ParserContext context)
+        public static SyntaxToken ExpectFragmentKeyword(this ParserContext context)
         {
             return ExpectKeyword(context, Keywords.Fragment);
         }
 
-        public static Token ExpectKeyword(ParserContext context, string keyword)
+        public static SyntaxToken ExpectKeyword(ParserContext context, string keyword)
         {
-            Token token = context.Current;
+            SyntaxToken token = context.Current;
             if (token.IsName() && token.Value == keyword)
             {
                 context.MoveNext();
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
                 $"Expected \"{keyword}\", found {token}");
         }
 
-        public static Location CreateLocation(this ParserContext context, Token start)
+        public static Location CreateLocation(this ParserContext context, SyntaxToken start)
         {
             if (context.Options.NoLocations)
             {
@@ -151,13 +151,13 @@ namespace HotChocolate.Language
             return new Location(context.Source, start, context.Current);
         }
 
-        public static SyntaxException Unexpected(this ParserContext context, Token token)
+        public static SyntaxException Unexpected(this ParserContext context, SyntaxToken token)
         {
             return new SyntaxException(context, token,
                 $"Unexpected token: {token}.");
         }
 
-        public static Token SkipDescription(this ParserContext context)
+        public static SyntaxToken SkipDescription(this ParserContext context)
         {
             if (context.Current.IsDescription())
             {

@@ -13,7 +13,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.Equal(TokenKind.StartOfFile, token.Kind);

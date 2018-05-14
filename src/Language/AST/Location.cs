@@ -6,8 +6,8 @@ namespace HotChocolate.Language
     {
         public Location(
             ISource source,
-            Token start,
-            Token end)
+            SyntaxToken start,
+            SyntaxToken end)
         {
             if (source == null)
             {
@@ -42,14 +42,14 @@ namespace HotChocolate.Language
         public int End { get; }
 
         /// <summary>
-        /// Gets the <see cref="Token" /> at which this <see cref="ISyntaxNode" /> begins.
+        /// Gets the <see cref="SyntaxToken" /> at which this <see cref="ISyntaxNode" /> begins.
         /// </summary>
-        public Token StartToken { get; }
+        public SyntaxToken StartToken { get; }
 
         /// <summary>
-        /// Gets the <see cref="Token" /> at which this <see cref="ISyntaxNode" /> ends.
+        /// Gets the <see cref="SyntaxToken" /> at which this <see cref="ISyntaxNode" /> ends.
         /// </summary>
-        public Token EndToken { get; }
+        public SyntaxToken EndToken { get; }
 
         /// <summary>
         /// Gets the <see cref="Source" /> document the AST represents.

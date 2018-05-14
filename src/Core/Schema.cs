@@ -1,22 +1,21 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    public sealed class Schema
-        : ISchema
+    public class Schema
     {
         private readonly SchemaContext _context;
 
         private Schema(SchemaContext context)
         {
             _context = context;
+            Query = (ObjectType)context.GetType("Query"); // TODO : rework
         }
 
-        public ObjectType Query => throw new NotImplementedException();
+        public ObjectType Query { get; }
 
         public ObjectType Mutation => throw new NotImplementedException();
 

@@ -13,7 +13,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.NotNull(token);
@@ -21,7 +21,7 @@ namespace HotChocolate.Language
             Assert.NotNull(token.Next.Next);
             Assert.Null(token.Next.Next.Next);
 
-            Token blockStringToken = token.Next;
+            SyntaxToken blockStringToken = token.Next;
             Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
             Assert.Equal("helloWorld_123\n\tfoo\nbar", blockStringToken.Value);
             Assert.Equal(1, blockStringToken.Line);
@@ -40,7 +40,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.NotNull(token);
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
             Assert.NotNull(token.Next.Next);
             Assert.Null(token.Next.Next.Next);
 
-            Token blockStringToken = token.Next;
+            SyntaxToken blockStringToken = token.Next;
             Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
             Assert.Equal("\"\"\"helloWorld_123\n\tfoo\nbar", blockStringToken.Value);
             Assert.Equal(1, blockStringToken.Line);
@@ -67,7 +67,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.NotNull(token);
@@ -75,7 +75,7 @@ namespace HotChocolate.Language
             Assert.NotNull(token.Next.Next);
             Assert.Null(token.Next.Next.Next);
 
-            Token blockStringToken = token.Next;
+            SyntaxToken blockStringToken = token.Next;
             Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
             Assert.Equal("hello\"\"\"World_123\n\tfoo\nbar", blockStringToken.Value);
             Assert.Equal(1, blockStringToken.Line);
@@ -94,7 +94,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.NotNull(token);
@@ -102,7 +102,7 @@ namespace HotChocolate.Language
             Assert.NotNull(token.Next.Next);
             Assert.Null(token.Next.Next.Next);
 
-            Token blockStringToken = token.Next;
+            SyntaxToken blockStringToken = token.Next;
             Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
             Assert.Equal("helloWorld_123\n\tfoo\nbar", blockStringToken.Value);
             Assert.Equal(1, blockStringToken.Line);
@@ -121,7 +121,7 @@ namespace HotChocolate.Language
             Lexer lexer = new Lexer();
 
             // act
-            Token token = lexer.Read(source);
+            SyntaxToken token = lexer.Read(source);
 
             // assert
             Assert.NotNull(token);
@@ -129,7 +129,7 @@ namespace HotChocolate.Language
             Assert.NotNull(token.Next.Next);
             Assert.Null(token.Next.Next.Next);
 
-            Token blockStringToken = token.Next;
+            SyntaxToken blockStringToken = token.Next;
             Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
             Assert.Equal("helloWorld_123\n\tfoo\nbar", blockStringToken.Value);
             Assert.Equal(1, blockStringToken.Line);

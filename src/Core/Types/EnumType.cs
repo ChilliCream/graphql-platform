@@ -50,9 +50,7 @@ namespace HotChocolate.Types
 
         public EnumTypeDefinitionNode SyntaxNode { get; }
 
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
+        public Type NativeType => throw new NotImplementedException();
 
         public bool TryGetValue(string name, out object value)
         {
@@ -82,7 +80,6 @@ namespace HotChocolate.Types
             return false;
         }
 
-
         private void InitializeValues()
         {
             if (_nameTovalues == null || _valueToValues == null)
@@ -103,10 +100,17 @@ namespace HotChocolate.Types
             throw new NotImplementedException();
         }
 
-        public object ParseLiteral(IValueNode literal, Type targetType)
+        public object ParseLiteral(IValueNode literal)
         {
             throw new NotImplementedException();
         }
+
+        #region TypeSystemNode
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
+
+        #endregion
     }
 
     public class EnumTypeConfig
@@ -118,5 +122,7 @@ namespace HotChocolate.Types
         public EnumTypeDefinitionNode SyntaxNode { get; set; }
 
         public Func<IEnumerable<EnumValue>> Values { get; set; }
+
+        public Func<Type> NativeType { get; set; }
     }
 }

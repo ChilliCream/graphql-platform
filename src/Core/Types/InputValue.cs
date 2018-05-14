@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     {
         private readonly InputFieldConfig _config;
         private IInputType _type;
-        private object _defaultValue;
+        private IValueNode _defaultValue;
         private bool _isDefaultValueResolved;
 
         public InputField(InputFieldConfig config)
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public object DefaultValue
+        public IValueNode DefaultValue
         {
             get
             {
@@ -83,6 +83,6 @@ namespace HotChocolate.Types
 
         public Func<IInputType> Type { get; set; }
 
-        public Func<object> DefaultValue { get; set; }
+        public Func<IValueNode> DefaultValue { get; set; }
     }
 }

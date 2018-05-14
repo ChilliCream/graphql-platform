@@ -27,9 +27,12 @@ namespace HotChocolate.Types
             _isInputType = type.InnerType().IsInputType();
             _inputType = type.InnerType() as IInputType;
             Type = type;
+            NativeType = _isInputType ? _inputType.NativeType : null;
         }
 
         public IType Type { get; }
+
+        public Type NativeType { get; }
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -47,16 +50,11 @@ namespace HotChocolate.Types
                 "The specified type is not an input type.");
         }
 
-        public object ParseLiteral(IValueNode literal, Type targetType)
+        public object ParseLiteral(IValueNode literal)
         {
             if (literal == null)
             {
                 throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (targetType == null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
             }
 
             if (_isInputType)
@@ -67,7 +65,7 @@ namespace HotChocolate.Types
                         "A non null type cannot parse null value literals.");
                 }
 
-                return _inputType.ParseLiteral(literal, targetType);
+                return _inputType.ParseLiteral(literal);
             }
 
             throw new InvalidOperationException(

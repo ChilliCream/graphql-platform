@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     {
         private ITypeExtensionNode ParseTypeExtension(ParserContext context)
         {
-            Token keywordToken = context.Current.Peek();
+            SyntaxToken keywordToken = context.Current.Peek();
 
             if (keywordToken.Kind == TokenKind.Name)
             {
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
         private ScalarTypeExtensionNode ParseScalarTypeExtension(
             ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectScalarKeyword();
             NameNode name = ParseName(context);
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
 
         private ObjectTypeExtensionNode ParseObjectTypeExtension(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectTypeKeyword();
             NameNode name = ParseName(context);
@@ -88,7 +88,7 @@ namespace HotChocolate.Language
 
         private InterfaceTypeExtensionNode ParseInterfaceTypeExtension(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInterfaceKeyword();
             NameNode name = ParseName(context);
@@ -115,7 +115,7 @@ namespace HotChocolate.Language
 
         private UnionTypeExtensionNode ParseUnionTypeExtension(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectUnionKeyword();
             NameNode name = ParseName(context);
@@ -141,7 +141,7 @@ namespace HotChocolate.Language
 
         private EnumTypeExtensionNode ParseEnumTypeExtension(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectEnumKeyword();
             NameNode name = ParseName(context);
@@ -167,7 +167,7 @@ namespace HotChocolate.Language
 
         private InputObjectTypeExtensionNode ParseInputObjectTypeExtension(ParserContext context)
         {
-            Token start = context.Current;
+            SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInputKeyword();
             NameNode name = ParseName(context);

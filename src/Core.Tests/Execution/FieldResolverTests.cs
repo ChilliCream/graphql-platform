@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             bool errorRaised = false;
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -38,13 +38,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("c", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             bool errorRaised = false;
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -82,13 +82,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("c", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
         public void SkipFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -124,7 +124,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -134,7 +134,7 @@ namespace HotChocolate.Execution
         public void IncludeFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a @include(if:true)
@@ -143,7 +143,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -159,7 +159,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution
         public void SkipOverIncludeFields()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a @include(if:true)
@@ -178,7 +178,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -194,7 +194,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -204,7 +204,7 @@ namespace HotChocolate.Execution
         public void FieldsAndInlineFragments()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -218,7 +218,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -234,13 +234,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("z", f.Name);
+                    Assert.Equal("z", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -250,7 +250,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitions()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -267,7 +267,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -283,13 +283,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -300,7 +300,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitionsUnionType()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -313,7 +313,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -332,13 +332,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_a,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -346,7 +346,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_b,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -356,7 +356,7 @@ namespace HotChocolate.Execution
         public void FieldsAndFragmentDefinitionsInterfaceType()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -369,7 +369,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -388,13 +388,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_a,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -402,7 +402,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_b,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -412,7 +412,7 @@ namespace HotChocolate.Execution
         public void InlineFragments()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     ... Test
@@ -428,7 +428,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -444,7 +444,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -454,7 +454,7 @@ namespace HotChocolate.Execution
         public void FragmentDefinitions()
         {
             // arrange
-            ISchema schema = CreateSchema();
+            Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     ... Test
@@ -470,7 +470,7 @@ namespace HotChocolate.Execution
             ");
 
             VariableCollection variables = new VariableCollection(
-                new Dictionary<string, CoercedVariableValue>());
+                new Dictionary<string, object>());
             FragmentCollection fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -486,13 +486,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
         }
 
-        private ISchema CreateSchema()
+        private Schema CreateSchema()
         {
             return Schema.Create(@"
                 type Foo implements IFoo {
@@ -515,6 +515,7 @@ namespace HotChocolate.Execution
 
                 union FooUnion = Foo | Fa
 
+                type Query { }
                 ", c => { });
         }
     }

@@ -6,7 +6,7 @@ namespace HotChocolate.Execution
 {
     public class FieldSelection
     {
-        public FieldSelection(FieldNode node, Field field, string name)
+        public FieldSelection(FieldNode node, Field field, string responseName)
         {
             if (node == null)
             {
@@ -18,17 +18,17 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(responseName))
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(responseName));
             }
 
             Node = node;
             Field = field;
-            Name = name;
+            ResponseName = responseName;
         }
 
-        public string Name { get; }
+        public string ResponseName { get; }
         public Field Field { get; }
         public FieldNode Node { get; }
     }

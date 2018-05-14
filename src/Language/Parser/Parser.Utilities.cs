@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     {
         private NameNode ParseName(ParserContext context)
         {
-            Token token = context.ExpectName();
+            SyntaxToken token = context.ExpectName();
             Location location = context.CreateLocation(token);
 
             return new NameNode

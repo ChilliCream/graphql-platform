@@ -10,12 +10,10 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceText = "{ x { y } }";
-            Source source = new Source(sourceText);
-            Lexer lexer = new Lexer();
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(lexer, source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(document.Definitions,
@@ -63,12 +61,10 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceText = operation + " a($s : String = \"hello\") { x { y } }";
-            Source source = new Source(sourceText);
-            Lexer lexer = new Lexer();
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(lexer, source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(document.Definitions,
@@ -122,11 +118,10 @@ namespace HotChocolate.Language
             // arrange
             string sourceText = "query a { x { ... y } } fragment y on Type { z } ";
             Source source = new Source(sourceText);
-            Lexer lexer = new Lexer();
 
             // act
             Parser parser = new Parser();
-            DocumentNode document = parser.Parse(lexer, source);
+            DocumentNode document = parser.Parse(sourceText);
 
             // assert
             Assert.Collection(document.Definitions,
