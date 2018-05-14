@@ -46,10 +46,10 @@ namespace HotChocolate.Execution
             UserContext = userContext;
             _services = services;
 
+            Result = new Dictionary<string, object>();
             Fragments = new FragmentCollection(schema, queryDocument);
             FieldResolver = new FieldResolver(variables, Fragments);
             Errors = new List<IQueryError>();
-            Result = new QueryResultBuilder();
             NextBatch = new List<FieldResolverTask>();
         }
 
@@ -60,8 +60,8 @@ namespace HotChocolate.Execution
         public DocumentNode QueryDocument { get; }
         public OperationDefinitionNode Operation { get; }
         public VariableCollection Variables { get; }
+        public Dictionary<string, object> Result { get; }
         public List<IQueryError> Errors { get; }
-        public QueryResultBuilder Result { get; }
         public List<FieldResolverTask> NextBatch { get; }
         public FieldResolver FieldResolver { get; }
 

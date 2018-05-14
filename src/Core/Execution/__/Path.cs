@@ -15,15 +15,14 @@ namespace HotChocolate.Execution
             IsIndexer = false;
         }
 
-        private Path(Path parent, int index)
+        private Path(Path parent, string name, int index)
         {
             Parent = parent;
-            Name = null;
+            Name = name;
             Index = index;
             IsIndexer = true;
         }
 
-        public ImmutableQueue<Path> Elements { get; }
         public Path Parent { get; }
         public string Name { get; }
         public int Index { get; }
@@ -31,7 +30,7 @@ namespace HotChocolate.Execution
 
         public Path Create(int index)
         {
-            return new Path(this, index);
+            return new Path(this.Parent, this.Name, index);
         }
 
         public Path Create(string name)
@@ -99,7 +98,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public static Path Create(string name)
+        public static Path New(string name)
         {
             return new Path(null, name);
         }

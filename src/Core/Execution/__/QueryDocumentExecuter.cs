@@ -4,16 +4,62 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    public class QueryDocumentExecuter
+    public class OperationExecuter
     {
+        private static readonly VariableValueResolver _variableValueResolver =
+            new VariableValueResolver();
+        private readonly IServiceProvider _services;
+
+        public OperationExecuter(IServiceProvider services)
+        {
+            _services = services;
+        }
+
+
+        public async Task<QueryResult> ExecuteRequest(
+            Schema schema, DocumentNode queryDocument, string operationName,
+            Dictionary<string, IValueNode> variableValues, object initialValue)
+        {
+            ExecutionContext executionContext = CreateExecutionContext(
+                schema, queryDocument, operationName,
+                variableValues, initialValue);
+
+
+
+
+            throw new NotImplementedException();
+        }
+
+        private ExecutionContext CreateExecutionContext(
+            Schema schema, DocumentNode queryDocument, string operationName,
+            Dictionary<string, IValueNode> variableValues, object initialValue)
+        {
+            OperationDefinitionNode operation = GetOperation(queryDocument, operationName);
+            VariableCollection variables = new VariableCollection(
+                _variableValueResolver.CoerceVariableValues(
+                    schema, operation, variableValues));
+            ExecutionContext executionContext = new ExecutionContext(
+                schema, queryDocument, operation, variables, _services,
+                initialValue, null);
+            return executionContext;
+        }
+
+        private OperationDefinitionNode GetOperation(
+            DocumentNode document, string operationName)
+        {
+            throw new NotImplementedException();
+        }
+
 
         private async Task ExecuteFieldResolverBatchAsync(
             ExecutionContext executionContext,
+
             List<FieldResolverTask> batch,
             CancellationToken cancellationToken)
         {
@@ -24,20 +70,21 @@ namespace HotChocolate.Execution
             {
                 IResolverContext resolverContext = new ResolverContext(
                     executionContext, task);
-                object resolverResult = task.Field.Field.Resolver(
+                object resolverResult = task.FieldSelection.Field.Resolver(
                     resolverContext, cancellationToken);
                 runningTasks.Add((task, resolverResult));
             }
 
             foreach (var runningTask in runningTasks)
             {
-                FieldSelection fieldSelection = runningTask.task.Field;
+                FieldSelection fieldSelection = runningTask.task.FieldSelection;
                 object fieldValue = await CompleteFieldValueAsync(
                     runningTask.resolverResult);
 
                 TryCompleteValue(executionContext, runningTask.task.Source,
                     fieldSelection, fieldSelection.Field.Type,
-                    runningTask.task.Path, fieldValue);
+                    runningTask.task.Path, fieldValue,
+                    runningTask.task.SetValue);
             }
         }
 
@@ -47,7 +94,8 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             IType fieldType,
             Path path,
-            object fieldValue)
+            object fieldValue,
+            Action<object> setValue)
         {
             object completedValue = fieldValue;
 
@@ -56,34 +104,36 @@ namespace HotChocolate.Execution
                 IType innerType = fieldType.InnerType();
                 if (!TryCompleteValue(
                     executionContext, source, fieldSelection,
-                    innerType, path, completedValue))
+                    innerType, path, completedValue, setValue))
                 {
                     executionContext.Errors.Add(new FieldError(
                         "Cannot return null for non-nullable field.",
                         fieldSelection.Node));
-                    executionContext.Result.AddValue(path, null);
                     return false;
                 }
             }
 
             if (completedValue == null)
             {
-                executionContext.Result.AddValue(path, null);
+                setValue(null);
                 return false;
             }
 
             if (fieldSelection.Field.Type.IsListType())
             {
-                return TryCompleteListValue(executionContext, source, fieldSelection, fieldType, path, completedValue);
+                return TryCompleteListValue(executionContext, source,
+                    fieldSelection, fieldType, path, completedValue, setValue);
             }
 
             if (fieldSelection.Field.Type.IsScalarType()
                 || fieldSelection.Field.Type.IsEnumType())
             {
-                return TryCompleteScalarValue(executionContext, source, fieldSelection, fieldType, path, completedValue);
+                return TryCompleteScalarValue(executionContext, source,
+                    fieldSelection, fieldType, path, completedValue, setValue);
             }
 
-            return TryCompleteObjectValue(executionContext, source, fieldSelection, fieldType, path, completedValue);
+            return TryCompleteObjectValue(executionContext, source,
+                fieldSelection, fieldType, path, completedValue, setValue);
         }
 
         private bool TryCompleteListValue(
@@ -92,10 +142,12 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             IType fieldType,
             Path path,
-            object fieldValue)
+            object fieldValue,
+            Action<object> setValue)
         {
             IType elementType = fieldSelection.Field.Type.ElementType();
             bool isNonNullElement = elementType.IsNonNullType();
+            List<object> list = new List<object>();
             int i = 0;
 
             foreach (object element in ((IEnumerable)fieldValue))
@@ -103,18 +155,20 @@ namespace HotChocolate.Execution
                 Path elementPath = path.Create(i++);
                 bool hasValue = TryCompleteValue(
                     executionContext, source, fieldSelection,
-                    elementType, elementPath, element);
+                    elementType, elementPath, element,
+                    value => list.Add(value));
 
                 if (isNonNullElement && !hasValue)
                 {
                     executionContext.Errors.Add(new FieldError(
                         "The list does not allow null elements",
                         fieldSelection.Node));
-                    executionContext.Result.AddValue(path, null);
+                    setValue(null);
                     return false;
                 }
             }
 
+            setValue(list);
             return true;
         }
 
@@ -124,12 +178,13 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             IType fieldType,
             Path path,
-            object fieldValue)
+            object fieldValue,
+            Action<object> setValue)
         {
             try
             {
                 // TODO :   include enums
-                executionContext.Result.AddValue(path, ((ScalarType)fieldType).Serialize(fieldValue));
+                setValue(((ScalarType)fieldType).Serialize(fieldValue));
                 return true;
             }
             catch (ArgumentException ex)
@@ -141,7 +196,7 @@ namespace HotChocolate.Execution
                 executionContext.Errors.Add(new FieldError("Undefined field serialization error.", fieldSelection.Node));
             }
 
-            executionContext.Result.AddValue(path, null);
+            setValue(null);
             return false;
         }
 
@@ -151,9 +206,11 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             IType fieldType,
             Path path,
-            object fieldValue)
+            object fieldValue,
+            Action<object> setValue)
         {
             ObjectType objectType = ResolveObjectType(fieldType, fieldValue);
+            Dictionary<string, object> objectResult = new Dictionary<string, object>();
 
             IReadOnlyCollection<FieldSelection> fields = executionContext
                 .FieldResolver.CollectFields(
@@ -163,10 +220,11 @@ namespace HotChocolate.Execution
             foreach (FieldSelection field in fields)
             {
                 executionContext.NextBatch.Add(new FieldResolverTask(
-                    source.Push(fieldValue), objectType,
-                    field, path.Create(field.ResponseName)));
+                    source.Push(fieldValue), objectType, field,
+                    path.Create(field.ResponseName), objectResult));
             }
 
+            setValue(objectResult);
             return true;
         }
 
@@ -191,8 +249,6 @@ namespace HotChocolate.Execution
             // TODO : error message
             throw new NotSupportedException("we should never end up here");
         }
-
-
 
         // todo: rework ....
         private async Task<object> CompleteFieldValueAsync(object resolverResult)

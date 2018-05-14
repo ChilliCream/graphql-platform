@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
             _executionContext = executionContext;
             _fieldResolverTask = fieldResolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-                fieldResolverTask.ObjectType, fieldResolverTask.Field,
+                fieldResolverTask.ObjectType, fieldResolverTask.FieldSelection,
                 executionContext.Variables);
         }
 
@@ -39,13 +39,13 @@ namespace HotChocolate.Execution
 
         public ObjectType ObjectType => _fieldResolverTask.ObjectType;
 
-        public Field Field => _fieldResolverTask.Field.Field;
+        public Field Field => _fieldResolverTask.FieldSelection.Field;
 
         public DocumentNode QueryDocument => _executionContext.QueryDocument;
 
         public OperationDefinitionNode Operation => _executionContext.Operation;
 
-        public FieldNode FieldSelection => _fieldResolverTask.Field.Node;
+        public FieldNode FieldSelection => _fieldResolverTask.FieldSelection.Node;
 
         public ImmutableStack<object> Path => _fieldResolverTask.Source;
 
