@@ -57,7 +57,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     source.Append($"ctx.{nameof(IResolverContext.ObjectType)}");
                     break;
                 case FieldResolverArgumentKind.OperationDefinition:
-                    source.Append($"ctx.{nameof(IResolverContext.OperationDefinition)}");
+                    source.Append($"ctx.{nameof(IResolverContext.Operation)}");
                     break;
                 case FieldResolverArgumentKind.QueryDocument:
                     source.Append($"ctx.{nameof(IResolverContext.QueryDocument)}");

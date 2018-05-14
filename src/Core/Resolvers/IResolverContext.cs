@@ -18,7 +18,7 @@ namespace HotChocolate.Resolvers
         // query context
         DocumentNode QueryDocument { get; }
 
-        OperationDefinitionNode OperationDefinition { get; }
+        OperationDefinitionNode Operation { get; }
 
         FieldNode FieldSelection { get; }
 

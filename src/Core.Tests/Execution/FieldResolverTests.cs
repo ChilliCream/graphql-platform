@@ -38,13 +38,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("c", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -82,13 +82,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("c", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -124,7 +124,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -159,7 +159,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -194,7 +194,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -234,13 +234,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("z", f.Name);
+                    Assert.Equal("z", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -283,13 +283,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -332,13 +332,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_a,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -346,7 +346,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_b,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -388,13 +388,13 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_a,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 },
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -402,7 +402,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields_b,
                 f =>
                 {
-                    Assert.Equal("a", f.Name);
+                    Assert.Equal("a", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -444,7 +444,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
@@ -486,7 +486,7 @@ namespace HotChocolate.Execution
             Assert.Collection(fields,
                 f =>
                 {
-                    Assert.Equal("x", f.Name);
+                    Assert.Equal("x", f.ResponseName);
                     Assert.Equal("a", f.Field.Name);
                     Assert.Equal("String", f.Field.Type.TypeName());
                 });
