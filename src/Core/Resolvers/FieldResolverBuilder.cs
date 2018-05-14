@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers
                 yield return new FieldResolver(
                     descriptors[i].Field.TypeName,
                     descriptors[i].Field.FieldName,
-                    (FieldResolverDelegate)field.GetValue(field));
+                    (AsyncFieldResolverDelegate)field.GetValue(field));
             }
         }
     }

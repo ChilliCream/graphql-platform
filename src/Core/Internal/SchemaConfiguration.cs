@@ -105,7 +105,7 @@ namespace HotChocolate
 
         public ISchemaConfiguration Resolver(
             string typeName, string fieldName,
-            FieldResolverDelegate fieldResolver)
+            AsyncFieldResolverDelegate fieldResolver)
         {
             if (typeName == null)
             {

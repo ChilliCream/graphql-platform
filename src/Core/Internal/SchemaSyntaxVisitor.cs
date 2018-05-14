@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal delegate FieldResolverDelegate FieldResolverFactory(
+    internal delegate AsyncFieldResolverDelegate FieldResolverFactory(
         ObjectType objectType, Field field);
 
     internal class SchemaSyntaxVisitor

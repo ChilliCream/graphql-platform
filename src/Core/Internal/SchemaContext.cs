@@ -11,8 +11,8 @@ namespace HotChocolate
         private readonly Dictionary<string, List<ObjectType>> _implementsLookup =
             new Dictionary<string, List<ObjectType>>();
         private readonly Dictionary<string, INamedType> _types;
-        private readonly Dictionary<string, FieldResolverDelegate> _fieldResolvers
-            = new Dictionary<string, FieldResolverDelegate>();
+        private readonly Dictionary<string, AsyncFieldResolverDelegate> _fieldResolvers
+            = new Dictionary<string, AsyncFieldResolverDelegate>();
         private readonly IReadOnlyDictionary<string, ResolveType> _typeResolver;
         private readonly IsOfTypeRouter _isOfTypeRouter;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
@@ -163,7 +163,7 @@ namespace HotChocolate
                 "The specified type does not exist or is not an output type.");
         }
 
-        public FieldResolverDelegate CreateResolver(
+        public AsyncFieldResolverDelegate CreateResolver(
             string typeName, string fieldName)
         {
             string key = $"{typeName}.{fieldName}";

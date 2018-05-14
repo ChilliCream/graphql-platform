@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -55,24 +54,16 @@ namespace HotChocolate.Execution
             {
                 if (literal is VariableNode variable)
                 {
-                    if (variables.TryGetVariable(variable.Name.Value, out object value))
+                    if (variables.TryGetVariable(
+                        variable.Name.Value, out object value))
                     {
                         return value;
                     }
-                    else
-                    {
-                        return ParseLiteral(argumentType, defaultValue);
-                    }
+                    return ParseLiteral(argumentType, defaultValue);
                 }
-                else
-                {
-                    return ParseLiteral(argumentType, literal);
-                }
+                return ParseLiteral(argumentType, literal);
             }
-            else
-            {
-                return ParseLiteral(argumentType, defaultValue);
-            }
+            return ParseLiteral(argumentType, defaultValue);
         }
 
         private object ParseLiteral(IInputType argumentType, IValueNode value)
