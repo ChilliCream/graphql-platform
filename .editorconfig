@@ -19,21 +19,21 @@ indent_size = 4
 dotnet_sort_system_directives_first = true
 
 # Avoid "this." and "Me." if not necessary
-dotnet_style_qualification_for_field = false:error
-dotnet_style_qualification_for_property = false:error
-dotnet_style_qualification_for_method = false:error
-dotnet_style_qualification_for_event = false:error
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
 
 # Use language keywords instead of framework type names for type references
-dotnet_style_predefined_type_for_locals_parameters_members = true:error
-dotnet_style_predefined_type_for_member_access = true:error
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
 
 # Suggest more modern language features when available
-dotnet_style_object_initializer = true:error
-dotnet_style_collection_initializer = true:error
-dotnet_style_coalesce_expression = true:error
-dotnet_style_null_propagation = true:error
-dotnet_style_explicit_tuple_names = true:error
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_explicit_tuple_names = true:suggestion
 
 # Prefer "var" everywhere
 csharp_style_var_for_built_in_types = true:suggestion
