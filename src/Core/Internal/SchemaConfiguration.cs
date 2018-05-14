@@ -145,11 +145,11 @@ namespace HotChocolate
                     _resolverObjectTypeMapping,
                     GetObjectTypeName, GetFieldName);
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-
             IEnumerable<FieldResolver> fieldResolvers = fieldResolverBuilder
                 .Build(GetBestMatchingFieldResolvers(
                     context, fieldResolverDescriptorFactory.Create()));
             context.RegisterResolvers(fieldResolvers);
+            context.RegisterResolvers(_resolverRegistry);
             context.RegisterTypeMappings(_typeAliases.Select(
                 t => new KeyValuePair<string, Type>(t.Value, t.Key)));
         }

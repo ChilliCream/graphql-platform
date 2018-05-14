@@ -23,6 +23,11 @@ namespace HotChocolate.Execution
 
         public OperationExecuter(IServiceProvider services)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             _services = services;
         }
 
@@ -46,11 +51,16 @@ namespace HotChocolate.Execution
 
                 case OperationType.Mutation:
                     throw new NotSupportedException();
+
                 case OperationType.Subscription:
                     throw new NotSupportedException();
             }
 
-            return new QueryResult(); // TODO : add errors and result
+            if (executionContext.Errors.Any())
+            {
+                return new QueryResult(executionContext.Data, executionContext.Errors);
+            }
+            return new QueryResult(executionContext.Data);
         }
 
         private ExecutionContext CreateExecutionContext(
@@ -113,7 +123,7 @@ namespace HotChocolate.Execution
                 batch.Add(new FieldResolverTask(source,
                     objectType, fieldSelection,
                     Path.New(fieldSelection.ResponseName),
-                    executionContext.Result));
+                    executionContext.Data));
             }
 
             return batch;

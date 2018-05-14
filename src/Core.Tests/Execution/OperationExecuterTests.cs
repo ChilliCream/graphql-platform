@@ -24,9 +24,15 @@ namespace HotChocolate.Execution
                 schema, query, null, new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
 
-
             // assert
             Assert.NotNull(result);
+            Assert.Null(result.Errors);
+            Assert.Collection(result.Data,
+                item =>
+                {
+                    Assert.Equal("a", item.Key);
+                    Assert.Equal("hello world", item.Value);
+                });
         }
 
         private Schema CreateSchema()
