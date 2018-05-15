@@ -12,7 +12,6 @@ namespace HotChocolate
         private readonly List<FieldResolverBinding> _fieldResolverBindings =
             new List<FieldResolverBinding>();
 
-
         public ISchemaConfiguration2 BindResolver(
             string typeName, string fieldName,
             FieldResolverDelegate fieldResolver)
@@ -59,53 +58,6 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaConfiguration2 BindResolver<TResolver>()
-        {
-            Type type = typeof(TResolver);
-            string typeName = GetTypeName(type);
-            _fieldResolverBindings.Add(
-                new CollectionFieldResolverBinding(typeName, type));
-            return this;
-        }
-
-        public ISchemaConfiguration2 BindResolver<TResolver>(
-            params Action<IFluentFieldMapping<TResolver>>[] fieldMapping)
-        {
-            if (fieldMapping.Length == 0)
-            {
-                return BindResolver<TResolver>();
-            }
-
-            Type type = typeof(TResolver);
-            string typeName = GetTypeName(type);
-            Dictionary<string, MemberInfo> explicitBindings =
-                CreateFieldBindings(fieldMapping);
-            _fieldResolverBindings.Add(
-                new CollectionFieldResolverBinding(typeName, type));
-            return this;
-        }
-
-        public ISchemaConfiguration2 BindResolver<TResolver>(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-            throw new NotImplementedException();
-        }
-
-        public ISchemaConfiguration2 BindResolver<TResolver>(
-            string name,
-            params Action<IFluentFieldMapping<TResolver>>[] fieldMapping)
-        {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            throw new NotImplementedException();
-        }
-
         public ISchemaConfiguration2 BindResolver<TResolver, TObjectType>()
         {
             throw new NotImplementedException();
@@ -113,7 +65,7 @@ namespace HotChocolate
 
         public ISchemaConfiguration2 BindResolver<TResolver, TObjectType>(params Action<IFluentFieldMapping<TResolver>>[] fieldMapping)
         {
-            throw new NotImplementedException();
+            CollectionFieldResolverBinding binding = new CollectionFieldResolverBinding()
         }
 
         public ISchemaConfiguration2 BindType<T>(string typeName)
@@ -169,28 +121,17 @@ namespace HotChocolate
 
     }
 
-    internal class FieldResolverBinding
+    internal interface IFieldResolverBinding
     {
-        public FieldResolverBinding(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
 
-            TypeName = typeName;
-        }
-
-        public string TypeName { get; }
     }
 
     internal class DelegateFieldResolverBinding
-        : FieldResolverBinding
+        : IFieldResolverBinding
     {
         public DelegateFieldResolverBinding(
             string typeName, string fieldName,
             FieldResolverDelegate resolver)
-            : base(typeName)
         {
             if (resolver == null)
             {
@@ -209,7 +150,6 @@ namespace HotChocolate
         public DelegateFieldResolverBinding(
             string typeName, string fieldName,
             AsyncFieldResolverDelegate fieldResolver)
-            : base(typeName)
         {
             if (fieldResolver == null)
             {
@@ -226,6 +166,7 @@ namespace HotChocolate
                 (ctx, ct) => fieldResolver(ctx, ct));
         }
 
+        public string TypeName { get; }
         public string FieldName { get; }
         public FieldResolverDelegate Resolver { get; }
     }

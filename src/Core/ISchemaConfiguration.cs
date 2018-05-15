@@ -75,30 +75,6 @@ namespace HotChocolate
             string typeName, string fieldName,
             AsyncFieldResolverDelegate fieldResolver);
 
-        /// <summary>
-        /// Binds all the public methods and properties that are applicable
-        /// to fields of an object type defined in the GraphQL schema.
-        /// The relation between the specified <typeparamref name="TResolver"/>
-        /// and the object type and its field will inferred from the
-        /// type name or if provided from a schema type binding
-        /// <seealso cref="ISchemaConfiguration2.BindType{TObjectType}(string)"/>
-        /// <seealso cref="ISchemaConfiguration2.BindType{TObjectType}(Action{IFluentFieldMapping{TObjectType}}[])"/>
-        /// <seealso cref="ISchemaConfiguration2.BindType{TObjectType}(string, Action{IFluentFieldMapping{TObjectType}}[])"/>
-        /// <seealso cref="GraphQLNameAttribute"/>.
-        /// </summary>
-        /// <typeparam name="TResolver">
-        /// A type that provides one or more field resolvers.
-        /// </typeparam>
-        ISchemaConfiguration2 BindResolver<TResolver>();
-
-        ISchemaConfiguration2 BindResolver<TResolver>(
-            params Action<IFluentFieldMapping<TResolver>>[] fieldMapping);
-
-        ISchemaConfiguration2 BindResolver<TResolver>(string typeName);
-
-        ISchemaConfiguration2 BindResolver<TResolver>(string typeName,
-            params Action<IFluentFieldMapping<TResolver>>[] fieldMapping);
-
         ISchemaConfiguration2 BindResolver<TResolver, TObjectType>();
 
         ISchemaConfiguration2 BindResolver<TResolver, TObjectType>(

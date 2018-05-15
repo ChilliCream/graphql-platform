@@ -1,22 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
-    // TODO : maybe move to resolvers
     internal class ResolverContext
         : IResolverContext
     {
-        private static readonly ArgumentResolver _argumentResolver = new ArgumentResolver();
+        private static readonly ArgumentResolver _argumentResolver =
+            new ArgumentResolver();
         private readonly ExecutionContext _executionContext;
         private readonly FieldResolverTask _fieldResolverTask;
         private Dictionary<string, object> _arguments;
 
-        public ResolverContext(ExecutionContext executionContext, FieldResolverTask fieldResolverTask)
+        public ResolverContext(
+            ExecutionContext executionContext,
+            FieldResolverTask fieldResolverTask)
         {
             if (executionContext == null)
             {
@@ -47,7 +50,9 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection => _fieldResolverTask.FieldSelection.Node;
 
-        public ImmutableStack<object> Path => _fieldResolverTask.Source;
+        public ImmutableStack<object> Source => _fieldResolverTask.Source;
+
+        public Path Path => _fieldResolverTask.Path;
 
         public T Argument<T>(string name)
         {
@@ -66,7 +71,7 @@ namespace HotChocolate.Execution
 
         public T Parent<T>()
         {
-            return (T)Path.Peek();
+            return (T)Source.Peek();
         }
 
         public T Service<T>()

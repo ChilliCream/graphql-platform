@@ -90,6 +90,8 @@ namespace HotChocolate.Execution
                 {
                     return operations[0];
                 }
+
+                // TODO : Exception
                 throw new Exception();
             }
             else
@@ -98,6 +100,7 @@ namespace HotChocolate.Execution
                     t => string.Equals(t.Name.Value, operationName, StringComparison.Ordinal));
                 if (operation == null)
                 {
+                    // TODO : Exception
                     throw new Exception();
                 }
                 return operation;
