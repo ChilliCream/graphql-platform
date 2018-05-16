@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -21,9 +22,21 @@ namespace HotChocolate.Configuration
         IBindType<T> BindType<T>(BindingBehavior bindingBehavior)
             where T : class;
 
+        /// <summary>
+        /// Registers a custom scalar type.
+        /// </summary>
+        /// <param name="scalarType">The custom scalar type object.</param>
+        /// <typeparam name="T">The custom scalar type.</typeparam>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="scalarType"/> cannot be <c>null</c>.
+        /// </exception>
         void RegisterScalar<T>(T scalarType)
             where T : ScalarType;
 
+        /// <summary>
+        /// Registers a custom scalar type.
+        /// </summary>
+        /// <typeparam name="T">The custom scalar type.</typeparam>
         void RegisterScalar<T>()
             where T : ScalarType, new();
     }

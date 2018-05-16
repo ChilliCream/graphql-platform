@@ -27,9 +27,6 @@ namespace HotChocolate
         /// </summary>
         /// <param name="type">The custom scalar type object.</param>
         /// <typeparam name="T">The custom scalar type.</typeparam>
-        /// <exception cref="ArgumentException">
-        /// The specified type was already registered.
-        /// </exception>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="type"/> cannot be <c>null</c>.
         /// </exception>
@@ -117,20 +114,5 @@ namespace HotChocolate
            c.BindType<X>().ToSubscription();
 
          */
-    }
-
-
-    public class Foo
-    {
-        public void Bar()
-        {
-            Schema.Create2(new DocumentNode(), c =>
-            {
-                c.BindResolver<Foo, Foo>(t => t.Field(x => x.Bar(), "test"));
-
-             })
-
-
-        }
     }
 }

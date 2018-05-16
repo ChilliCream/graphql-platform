@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Resolvers
 {
-    internal static class Compiler
+    internal static class CSharpCompiler
     {
         private static readonly CSharpCompilationOptions _options =
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
