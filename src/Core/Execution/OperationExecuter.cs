@@ -246,7 +246,7 @@ namespace HotChocolate.Execution
 
             foreach (object element in ((IEnumerable)fieldValue))
             {
-                Path elementPath = path.Create(i++);
+                Path elementPath = path.Append(i++);
                 bool hasValue = TryCompleteValue(
                     executionContext, source, fieldSelection,
                     elementType, elementPath, element,
@@ -315,7 +315,7 @@ namespace HotChocolate.Execution
             {
                 executionContext.NextBatch.Add(new FieldResolverTask(
                     source.Push(fieldValue), objectType, field,
-                    path.Create(field.ResponseName), objectResult));
+                    path.Append(field.ResponseName), objectResult));
             }
 
             setValue(objectResult);

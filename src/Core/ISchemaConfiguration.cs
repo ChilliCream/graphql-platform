@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -86,5 +87,50 @@ namespace HotChocolate
             params Action<IFluentFieldMapping<T>>[] fieldMapping);
         ISchemaConfiguration2 BindType<T>(
             params Action<IFluentFieldMapping<T>>[] fieldMapping);
+
+
+
+
+        /*
+            c.RegisterScalar<StringType>(new StringType());
+            c.RegisterScalar(new StringType());
+
+            c.BindType<T>().To("xyz")
+
+            c.BindResolver<A>().To("foo");
+            c.BindResolver<A>().To("foo")
+                .WithMapping(m => m.From(t => t.y).To("x"));
+
+            c.BindResolver<A>().To<B>()
+                .WithMapping(m => m.From(t => t.y).To(t => t.x));
+
+            c.BindResolver<A>().To<B>()
+                .WithMapping(
+                    m => m.From(t => t.y).To(t => t.x).And()
+                        .From(t => t.y).To("x")).And()
+             .BindResolver...
+
+            c.BindResolver(delegate).To("foo", "bar");
+
+           c.BindType<X>().ToQuery();
+           c.BindType<X>().ToMutation();
+           c.BindType<X>().ToSubscription();
+
+         */
+    }
+
+
+    public class Foo
+    {
+        public void Bar()
+        {
+            Schema.Create2(new DocumentNode(), c =>
+            {
+                c.BindResolver<Foo, Foo>(t => t.Field(x => x.Bar(), "test"));
+
+             })
+
+
+        }
     }
 }
