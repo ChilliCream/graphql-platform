@@ -8,7 +8,12 @@ namespace HotChocolate.Configuration
     internal class SchemaConfiguration
         : ISchemaConfiguration
     {
-        private readonly List<ResolverBindingInfo> _bindings = new List<ResolverBindingInfo>();
+        private readonly Dictionary<string, ScalarType> _scalarTypes =
+            new Dictionary<string, ScalarType>();
+        private readonly List<ResolverBindingInfo> _resolverBindings =
+            new List<ResolverBindingInfo>();
+        private readonly List<TypeBindingInfo> _typeBindings =
+            new List<TypeBindingInfo>();
 
         public IBindResolverDelegate BindResolver(AsyncFieldResolverDelegate fieldResolver)
         {
@@ -17,7 +22,7 @@ namespace HotChocolate.Configuration
                 {
                     AsyncFieldResolver = fieldResolver
                 };
-            _bindings.Add(bindingInfo);
+            _resolverBindings.Add(bindingInfo);
             return new BindResolverDelegate(bindingInfo);
         }
 
@@ -28,7 +33,7 @@ namespace HotChocolate.Configuration
                 {
                     FieldResolver = fieldResolver
                 };
-            _bindings.Add(bindingInfo);
+            _resolverBindings.Add(bindingInfo);
             return new BindResolverDelegate(bindingInfo);
         }
 
@@ -54,19 +59,35 @@ namespace HotChocolate.Configuration
         public IBindType<T> BindType<T>()
             where T : class
         {
-            throw new NotImplementedException();
+            return BindType<T>(BindingBehavior.Implicit);
+        }
+
+        public IBindType<T> BindType<T>(BindingBehavior bindingBehavior)
+            where T : class
+        {
+            TypeBindingInfo bindingInfo = new TypeBindingInfo
+            {
+                Behavior = bindingBehavior
+            };
+            _typeBindings.Add(bindingInfo);
+            return new BindType<T>(bindingInfo);
         }
 
         public void RegisterScalar<T>(T scalarType)
             where T : ScalarType
         {
-            throw new NotImplementedException();
+            if (scalarType == null)
+            {
+                throw new ArgumentNullException(nameof(scalarType));
+            }
+
+            _scalarTypes[scalarType.Name] = scalarType;
         }
 
         public void RegisterScalar<T>()
             where T : ScalarType, new()
         {
-            throw new NotImplementedException();
+            RegisterScalar(new T());
         }
     }
 }

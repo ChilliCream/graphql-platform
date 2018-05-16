@@ -24,6 +24,7 @@ namespace HotChocolate.Configuration
         }
 
         public void To<TObjectType>(Expression<Func<TObjectType, object>> resolver)
+            where TObjectType : class
         {
             _bindingInfo.ObjectType = typeof(TObjectType);
             _bindingInfo.FieldMember = resolver.ExtractMember();
