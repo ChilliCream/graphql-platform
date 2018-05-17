@@ -6,6 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+    // TODO : Rename this class or Resolvers.FieldResolver
     internal class FieldResolver
     {
         private readonly VariableCollection _variables;

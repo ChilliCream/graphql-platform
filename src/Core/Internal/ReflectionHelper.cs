@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate
 {
@@ -17,12 +18,12 @@ namespace HotChocolate
             return type.Name;
         }
 
-        public static IEnumerable<MemberResolverInfo> GetMemberResolverInfos(Type type)
+        public static IEnumerable<FieldResolverMember> GetMemberResolverInfos(Type type)
         {
             return GetProperties(type).Concat(GetMethods(type));
         }
 
-        private static IEnumerable<MemberResolverInfo> GetProperties(Type type)
+        private static IEnumerable<FieldResolverMember> GetProperties(Type type)
         {
             PropertyInfo[] properties = type.GetProperties(
                 BindingFlags.Public | BindingFlags.Instance);
@@ -42,7 +43,7 @@ namespace HotChocolate
             }
         }
 
-        private static IEnumerable<MemberResolverInfo> GetMethods(Type type)
+        private static IEnumerable<FieldResolverMember> GetMethods(Type type)
         {
             MethodInfo[] methods = type.GetMethods(
                 BindingFlags.Public | BindingFlags.Instance);

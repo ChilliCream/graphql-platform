@@ -51,7 +51,7 @@ namespace HotChocolate.Configuration
                 new ResolverCollectionBindingInfo
                 {
                     Behavior = bindingBehavior,
-                    ResolverCollection = typeof(TResolver)
+                    ResolverType = typeof(TResolver)
                 };
             return new BindResolver<TResolver>(bindingInfo);
         }

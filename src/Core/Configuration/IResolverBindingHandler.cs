@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -8,34 +10,67 @@ namespace HotChocolate.Configuration
 {
     internal interface IResolverBindingHandler
     {
-        IEnumerable<FieldResolver> ApplyBinding(
+        IEnumerable<Resolvers.FieldResolver> ApplyBinding(
             ResolverBindingInfo resolverBindingInfo);
     }
 
     internal class ResolverCollectionBindingHandler
         : IResolverBindingHandler
     {
-        public IEnumerable<FieldResolver> ApplyBinding(ResolverBindingInfo resolverBindingInfo)
-        {
 
+
+        public IEnumerable<Resolvers.FieldResolver> ApplyBinding(
+            ResolverBindingInfo resolverBindingInfo)
+        {
+            List<Resolvers.FieldResolver> resolvers = new List<Resolvers.FieldResolver>();
+            if (resolverBindingInfo is ResolverCollectionBindingInfo b)
+            {
+                FieldResolverDescriptorFactory descriptorFactory =
+                    new FieldResolverDescriptorFactory(GetObjectTypeName, GetFieldName);
+
+                if (b.Behavior == BindingBehavior.Implicit)
+                {
+
+                }
+
+                foreach (FieldResolverBindungInfo fieldBinding in b.Fields)
+                {
+                    if (b.IsSourceResolver)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+
+
+
+                /*
+        FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
+        IEnumerable<Resolvers.FieldResolver> fieldResolvers = fieldResolverBuilder
+            .Build(GetBestMatchingFieldResolvers(
+                context, fieldResolverDescriptorFactory.Create()));
+                 */
+            }
+
+        }
+
+        private FieldResolverDescriptor CreateSourceResolverDescriptor(
+            ResolverCollectionBindingInfo binding,
+            FieldResolverBindungInfo fieldBinding)
+        {
+            if (fieldBinding.ResolverMember is PropertyInfo p)
+            {
+
+            }
 
         }
 
         public void Commit(SchemaContext context)
         {
-            foreach (INamedType type in _registeredTypes.Values)
-            {
-                context.RegisterType(type);
-            }
 
-            FieldResolverDescriptorFactory fieldResolverDescriptorFactory =
-                new FieldResolverDescriptorFactory(
-                    _resolverObjectTypeMapping,
-                    GetObjectTypeName, GetFieldName);
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-            IEnumerable<FieldResolver> fieldResolvers = fieldResolverBuilder
-                .Build(GetBestMatchingFieldResolvers(
-                    context, fieldResolverDescriptorFactory.Create()));
 
         }
 

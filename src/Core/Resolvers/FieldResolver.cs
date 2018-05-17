@@ -2,6 +2,7 @@ using System;
 
 namespace HotChocolate.Resolvers
 {
+    // TODO : Rename this class or Execution.FieldResolver
     public sealed class FieldResolver
         : FieldReference
         , IEquatable<FieldResolver>

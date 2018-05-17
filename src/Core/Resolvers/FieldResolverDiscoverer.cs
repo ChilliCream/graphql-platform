@@ -6,23 +6,15 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Resolvers
 {
-    internal class FieldResolverDescriptorFactory
+    internal class FieldResolverDiscoverer
     {
-        private readonly Dictionary<Type, Type> _resolverObjectTypeMapping =
-            new Dictionary<Type, Type>();
         private readonly GetObjectTypeName _getObjectTypeName;
         private readonly GetFieldName _getFieldName;
 
-        public FieldResolverDescriptorFactory(
-            Dictionary<Type, Type> resolverObjectTypeMapping,
+        public FieldResolverDiscoverer(
             GetObjectTypeName getObjectTypeName,
             GetFieldName getFieldName)
         {
-            if (resolverObjectTypeMapping == null)
-            {
-                throw new ArgumentNullException(nameof(resolverObjectTypeMapping));
-            }
-
             if (getObjectTypeName == null)
             {
                 throw new ArgumentNullException(nameof(getObjectTypeName));
@@ -33,78 +25,91 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(getFieldName));
             }
 
-            _resolverObjectTypeMapping = resolverObjectTypeMapping;
             _getObjectTypeName = getObjectTypeName;
             _getFieldName = getFieldName;
         }
 
-        public IEnumerable<FieldResolverDescriptor> Create()
+        public IEnumerable<FieldResolverDescriptor> GetPossibleResolvers(
+            Type resolverType, Type sourceType)
         {
-            foreach (KeyValuePair<Type, Type> mapping in
-                _resolverObjectTypeMapping)
+            foreach (MemberResolverInfo resolverInfo in
+                ReflectionHelper.GetMemberResolverInfos(resolverType))
             {
-                foreach (MemberResolverInfo resolverInfo in
-                    ReflectionHelper.GetMemberResolverInfos(mapping.Key))
+                FieldReference field = new FieldReference(
+                    _getObjectTypeName(sourceType),
+                    _getFieldName(resolverInfo, resolverType));
+
+                if (resolverType == sourceType)
                 {
-                    if (mapping.Key == mapping.Value)
-                    {
-                        yield return CreateSourceResolverDescriptor(
-                            resolverInfo, mapping.Key, mapping.Value,
-                            _getObjectTypeName(mapping.Value));
-                    }
-                    else
-                    {
-                        yield return CreateResolverDescriptor(
-                            resolverInfo, mapping.Key, mapping.Value,
-                            _getObjectTypeName(mapping.Value));
-                    }
+                    yield return CreateSourceResolverDescriptor(
+                        resolverInfo, resolverType, sourceType, field);
+                }
+                else
+                {
+                    yield return CreateResolverDescriptor(
+                        resolverInfo, resolverType, sourceType, field);
+                }
+            }
+        }
+
+        public IEnumerable<FieldResolverDescriptor> GetSelectedResolvers(
+            Type resolverType, Type sourceType,
+            IEnumerable<FieldResolverMember> selectedResolvers)
+        {
+            foreach (FieldResolverMember fieldResolverMember in selectedResolvers)
+            {
+                if (resolverType == sourceType)
+                {
+                    yield return CreateSourceResolverDescriptor(
+                        fieldResolverMember, resolverType, sourceType);
+                }
+                else
+                {
+                    yield return CreateResolverDescriptor(
+                        fieldResolverMember, resolverType, sourceType);
                 }
             }
         }
 
         private FieldResolverDescriptor CreateResolverDescriptor(
-            MemberResolverInfo resolverInfo, Type resolverType,
-            Type objectType, string objectTypeName)
+            FieldResolverMember fieldResolverMember,
+            Type resolverType, Type objectType)
         {
-            FieldReference field = new FieldReference(
-                objectTypeName, _getFieldName(resolverInfo, resolverType));
-
-            if (resolverInfo.Member is PropertyInfo p)
+            if (fieldResolverMember.Member is PropertyInfo p)
             {
                 return FieldResolverDescriptor.CreateCollectionProperty(
-                    field, resolverType, objectType, p);
+                    fieldResolverMember, resolverType, objectType, p);
             }
-            else if (resolverInfo.Member is MethodInfo m)
+            else if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
                     CreateResolverArgumentDescriptors(m, resolverType, objectType);
                 return FieldResolverDescriptor.CreateCollectionMethod(
-                    field, resolverType, objectType, m, isAsync, argumentDescriptors);
+                    fieldResolverMember, resolverType, objectType, m,
+                    isAsync, argumentDescriptors);
             }
 
             throw new NotSupportedException();
         }
 
         private FieldResolverDescriptor CreateSourceResolverDescriptor(
-           MemberResolverInfo resolverInfo, Type resolverType,
-           Type objectType, string objectTypeName)
+           FieldResolverMember fieldResolverMember,
+           Type resolverType, Type objectType)
         {
-            FieldReference field = new FieldReference(
-                objectTypeName, _getFieldName(resolverInfo, resolverType));
-
-            if (resolverInfo.Member is PropertyInfo p)
+            if (fieldResolverMember.Member is PropertyInfo p)
             {
                 return FieldResolverDescriptor.CreateSourceProperty(
-                    field, objectType, p);
+                    fieldResolverMember, objectType, p);
             }
-            else if (resolverInfo.Member is MethodInfo m)
+            else if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
                     CreateResolverArgumentDescriptors(m, resolverType, objectType);
                 return FieldResolverDescriptor.CreateSourceMethod(
-                    field, objectType, m, isAsync, argumentDescriptors);
+                    fieldResolverMember, objectType, m, isAsync,
+                    argumentDescriptors);
             }
 
             throw new NotSupportedException();
