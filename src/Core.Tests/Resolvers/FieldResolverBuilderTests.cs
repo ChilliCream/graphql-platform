@@ -34,7 +34,7 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = r.Resolver(context.Object, CancellationToken.None).Result;
+                    object result = r.Resolver(context.Object, CancellationToken.None);
                     Assert.Equal("Hello World", result);
                 });
         }
@@ -64,7 +64,7 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = r.Resolver(context.Object, CancellationToken.None).Result;
+                    object result = r.Resolver(context.Object, CancellationToken.None);
                     Assert.Equal("Hello World Property", result);
                 });
         }

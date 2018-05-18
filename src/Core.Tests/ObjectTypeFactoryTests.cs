@@ -51,7 +51,7 @@ namespace HotChocolate
             Assert.False(objectType.Fields["b"].Type.IsScalarType());
             Assert.Equal("String", objectType.Fields["b"].Type.TypeName());
             Assert.Equal("hello", (objectType.Fields["a"]
-                .Resolver(null, CancellationToken.None)).Result);
+                .Resolver(null, CancellationToken.None)));
         }
     }
 }

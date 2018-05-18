@@ -67,13 +67,6 @@ namespace HotChocolate
             return new Schema(context);
         }
 
-        public static Schema Create2(
-            DocumentNode schemaDocument,
-            Action<Configuration.ISchemaConfiguration> configure)
-        {
-            throw new NotImplementedException();
-        }
-
         private static IEnumerable<INamedType> CreateSystemTypes()
         {
             yield return new StringType();

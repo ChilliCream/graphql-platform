@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -94,10 +96,7 @@ namespace HotChocolate.Configuration
 
         public void Commit(SchemaContext schemaContext)
         {
-            foreach (ScalarType scalarType in _scalarTypes.Values)
-            {
-                schemaContext.RegisterType(scalarType);
-            }
+            RegisterCustomScalarTypes(schemaContext);
 
 
 
@@ -110,6 +109,69 @@ namespace HotChocolate.Configuration
             {
                 schemaContext.RegisterType(scalarType);
             }
+        }
+
+        private void CompleteCollectionBindings()
+        {
+            List<TypeBindingInfo> handledTypeBindings = new List<TypeBindingInfo>();
+
+            foreach (ResolverCollectionBindingInfo binding in _resolverBindings
+                .OfType<ResolverCollectionBindingInfo>())
+            {
+                if (binding.ObjectType == null && binding.ObjectTypeName == null)
+                {
+                    binding.ObjectType = binding.ResolverType;
+                }
+
+                TypeBindingInfo typeBinding = null;
+                if (binding.ObjectType == null)
+                {
+                    typeBinding = _typeBindings.FirstOrDefault(
+                        t => string.Equals(t.Name, binding.ObjectTypeName,
+                            StringComparison.Ordinal));
+                    binding.ObjectType = typeBinding?.Type;
+                }
+
+                if (binding.ObjectTypeName == null)
+                {
+                    typeBinding = _typeBindings.FirstOrDefault(
+                        t => t.Type == binding.ObjectType);
+                    binding.ObjectTypeName = typeBinding?.Name;
+                }
+
+                if (binding.ObjectTypeName == null)
+                {
+                    binding.ObjectTypeName = GetNameFromType(binding.ObjectType);
+                }
+
+                CompleteFieldResolverBindungs(binding, typeBinding, binding.Fields);
+
+                if (typeBinding != null)
+                {
+                    handledTypeBindings.Add(typeBinding);
+                }
+            }
+        }
+
+        private void CompleteFieldResolverBindungs(
+            ResolverCollectionBindingInfo resolverCollectionBinding,
+            TypeBindingInfo typeBinding,
+            IEnumerable<FieldResolverBindungInfo> fieldResolverBindings)
+        {
+            foreach (FieldResolverBindungInfo binding in
+                fieldResolverBindings)
+            {
+                //if (fieldRes)
+            }
+        }
+
+        private string GetNameFromType(Type type)
+        {
+            if (type.IsDefined(typeof(GraphQLNameAttribute)))
+            {
+                return type.GetCustomAttribute<GraphQLNameAttribute>().Name;
+            }
+            return type.Name;
         }
     }
 }

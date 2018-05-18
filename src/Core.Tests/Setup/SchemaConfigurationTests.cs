@@ -55,8 +55,8 @@ namespace HotChocolate.Setup
             configuration.Commit(schemaContext);
 
             // assert
-            AsyncFieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
-            object result = await fieldResolver(resolverContext.Object, CancellationToken.None);
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.Bar, result);
         }
 
@@ -99,8 +99,8 @@ namespace HotChocolate.Setup
             configuration.Commit(schemaContext);
 
             // assert
-            AsyncFieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
-            object result = await fieldResolver(resolverContext.Object, CancellationToken.None);
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.Bar, result);
         }
 
@@ -142,8 +142,8 @@ namespace HotChocolate.Setup
             configuration.Commit(schemaContext);
 
             // assert
-            AsyncFieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar2");
-            object result = await fieldResolver(resolverContext.Object, CancellationToken.None);
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar2");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.GetBar2(), result);
         }
 
