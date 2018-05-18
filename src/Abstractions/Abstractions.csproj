@@ -4,10 +4,10 @@
     <TargetFrameworks>netstandard2.0; netstandard1.4</TargetFrameworks>
     <AssemblyName>HotChocolate.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
+    <PackageId>HotChocolate.Abstractions</PackageId>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <PackageId>HotChocolate.Abstractions</PackageId>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
