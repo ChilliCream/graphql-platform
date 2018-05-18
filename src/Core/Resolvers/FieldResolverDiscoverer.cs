@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Resolvers
 {
@@ -51,20 +50,20 @@ namespace HotChocolate.Resolvers
 
         private FieldResolverDescriptor CreateResolverDescriptor(
             FieldResolverMember fieldResolverMember,
-            Type resolverType, Type objectType)
+            Type resolverType, Type sourceType)
         {
             if (fieldResolverMember.Member is PropertyInfo p)
             {
                 return FieldResolverDescriptor.CreateCollectionProperty(
-                    fieldResolverMember, resolverType, objectType, p);
+                    fieldResolverMember, resolverType, sourceType, p);
             }
             else if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, resolverType, objectType);
+                    CreateResolverArgumentDescriptors(m, resolverType, sourceType);
                 return FieldResolverDescriptor.CreateCollectionMethod(
-                    fieldResolverMember, resolverType, objectType, m,
+                    fieldResolverMember, resolverType, sourceType, m,
                     isAsync, argumentDescriptors);
             }
 
@@ -73,20 +72,20 @@ namespace HotChocolate.Resolvers
 
         private FieldResolverDescriptor CreateSourceResolverDescriptor(
            FieldResolverMember fieldResolverMember,
-           Type resolverType, Type objectType)
+           Type resolverType, Type sourceType)
         {
             if (fieldResolverMember.Member is PropertyInfo p)
             {
                 return FieldResolverDescriptor.CreateSourceProperty(
-                    fieldResolverMember, objectType, p);
+                    fieldResolverMember, sourceType, p);
             }
             else if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, resolverType, objectType);
+                    CreateResolverArgumentDescriptors(m, resolverType, sourceType);
                 return FieldResolverDescriptor.CreateSourceMethod(
-                    fieldResolverMember, objectType, m, isAsync,
+                    fieldResolverMember, sourceType, m, isAsync,
                     argumentDescriptors);
             }
 
@@ -94,7 +93,7 @@ namespace HotChocolate.Resolvers
         }
 
         private IReadOnlyCollection<FieldResolverArgumentDescriptor> CreateResolverArgumentDescriptors(
-            MethodInfo method, Type resolverType, Type objectType)
+            MethodInfo method, Type resolverType, Type sourceType)
         {
             List<FieldResolverArgumentDescriptor> arguments =
                 new List<FieldResolverArgumentDescriptor>();
@@ -102,7 +101,7 @@ namespace HotChocolate.Resolvers
             foreach (ParameterInfo parameter in method.GetParameters())
             {
                 FieldResolverArgumentKind kind = FieldResolverArgumentDescriptor
-                    .LookupKind(parameter.ParameterType, objectType);
+                    .LookupKind(parameter.ParameterType, sourceType);
                 arguments.Add(FieldResolverArgumentDescriptor.Create(
                     parameter.Name, kind, parameter.ParameterType));
             }

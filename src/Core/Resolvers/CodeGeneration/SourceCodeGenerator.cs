@@ -41,7 +41,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             switch (argumentDescriptor.Kind)
             {
                 case FieldResolverArgumentKind.Argument:
-                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{argumentDescriptor.Type.FullName}>({argumentDescriptor.Name})");
+                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{argumentDescriptor.Type.FullName}>(\"{argumentDescriptor.Name}\")");
                     break;
                 case FieldResolverArgumentKind.Field:
                     source.Append($"ctx.{nameof(IResolverContext.Field)}");

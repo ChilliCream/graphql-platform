@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             {
                 string arguments = string.Join(", ",
                     resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
-                source.AppendLine(arguments);
+                source.Append(arguments);
             }
 
             source.Append(");");

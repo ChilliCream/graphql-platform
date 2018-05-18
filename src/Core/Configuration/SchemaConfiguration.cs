@@ -144,6 +144,8 @@ namespace HotChocolate.Configuration
                     binding.ObjectTypeName = GetNameFromType(binding.ObjectType);
                 }
 
+                // TODO : error handling if object type cannot be resolverd
+
                 CompleteFieldResolverBindungs(binding, typeBinding, binding.Fields);
 
                 if (typeBinding != null)
@@ -161,7 +163,30 @@ namespace HotChocolate.Configuration
             foreach (FieldResolverBindungInfo binding in
                 fieldResolverBindings)
             {
-                //if (fieldRes)
+                if (binding.FieldMember == null && binding.FieldName == null)
+                {
+                    binding.FieldMember = binding.ResolverMember;
+                }
+
+                if (binding.FieldMember == null && typeBinding != null)
+                {
+                    FieldBindingInfo fieldBinding = typeBinding.Fields.FirstOrDefault(
+                        t => t.Name == binding.FieldName);
+                    binding.FieldMember = fieldBinding?.Member;
+                }
+
+                if (binding.FieldName == null && typeBinding != null)
+                {
+                    FieldBindingInfo fieldBinding = typeBinding.Fields.FirstOrDefault(
+                        t => t.Member == binding.FieldMember);
+                    binding.FieldName = fieldBinding?.Name;
+                }
+
+                // todo : error handling
+                if (binding.FieldName == null)
+                {
+                    binding.FieldName = GetNameFromMember(binding.FieldMember);
+                }
             }
         }
 
@@ -199,6 +224,21 @@ namespace HotChocolate.Configuration
                 return type.GetCustomAttribute<GraphQLNameAttribute>().Name;
             }
             return type.Name;
+        }
+
+        private string GetNameFromMember(MemberInfo member)
+        {
+            if (member.IsDefined(typeof(GraphQLNameAttribute)))
+            {
+                return member.GetCustomAttribute<GraphQLNameAttribute>().Name;
+            }
+
+            if (member.Name.Length == 1)
+            {
+                return member.Name.ToLowerInvariant();
+            }
+
+            return member.Name.Substring(0, 1).ToLowerInvariant() + member.Name.Substring(1);
         }
 
         private class ResolverBindingContext

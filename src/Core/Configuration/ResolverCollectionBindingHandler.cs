@@ -70,7 +70,7 @@ namespace HotChocolate.Configuration
                     resolverBinding.Fields.Select(
                         t => new FieldResolverMember(
                             resolverBinding.ObjectTypeName,
-                            t.FieldName, t.FieldMember));
+                            t.FieldName, t.ResolverMember)).ToArray();
 
                 foreach (FieldResolverDescriptor explicitDescriptor in
                     _fieldResolverDiscoverer.GetSelectedResolvers(
