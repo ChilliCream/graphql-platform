@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
@@ -48,10 +49,9 @@ namespace HotChocolate.Setup
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.Name<DummyObjectType>("Dummy");
-            configuration.Name<DummyObjectTypeResolver>(
-                t => t.Field(x => x.GetFooBar(It.Is<DummyObjectType>()), "bar"));
-            configuration.Resolver<DummyObjectTypeResolver, DummyObjectType>();
+            configuration.BindType<DummyObjectType>().To("Dummy");
+            configuration.BindResolver<DummyObjectTypeResolver>().To("Dummy")
+                .Resolve("bar").With(t => t.GetFooBar(It.Is<DummyObjectType>()));
             configuration.Commit(schemaContext);
 
             // assert
@@ -94,8 +94,7 @@ namespace HotChocolate.Setup
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.Name<DummyObjectType>("Dummy");
-            configuration.Resolver<DummyObjectType, DummyObjectType>();
+            configuration.BindType<DummyObjectType>().To("Dummy");
             configuration.Commit(schemaContext);
 
             // assert
@@ -137,8 +136,7 @@ namespace HotChocolate.Setup
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.Name<DummyObjectType>("Dummy");
-            configuration.Resolver<DummyObjectType, DummyObjectType>();
+            configuration.BindType<DummyObjectType>().To("Dummy");
             configuration.Commit(schemaContext);
 
             // assert

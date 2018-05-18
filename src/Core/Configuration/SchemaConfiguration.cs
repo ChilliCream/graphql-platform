@@ -96,6 +96,10 @@ namespace HotChocolate.Configuration
 
         public void Commit(SchemaContext schemaContext)
         {
+            // Complete Binding Objects
+            List<TypeBindingInfo> handledTypeBindings = new List<TypeBindingInfo>();
+            CompleteCollectionBindings(handledTypeBindings);
+
             RegisterCustomScalarTypes(schemaContext);
 
 
@@ -111,10 +115,8 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void CompleteCollectionBindings()
+        private void CompleteCollectionBindings(List<TypeBindingInfo> handledTypeBindings)
         {
-            List<TypeBindingInfo> handledTypeBindings = new List<TypeBindingInfo>();
-
             foreach (ResolverCollectionBindingInfo binding in _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>())
             {

@@ -41,8 +41,8 @@ namespace HotChocolate.Execution
                 type Query { a: String }
                 ", c =>
             {
-                c.Resolver("Query", "a",
-                    (ctx, ct) => Task.FromResult<object>("hello world"));
+                c.BindResolver(() => "hello world")
+                    .To("Query", "a");
             });
         }
     }
