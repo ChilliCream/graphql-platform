@@ -72,7 +72,8 @@ namespace HotChocolate.Configuration
         {
             TypeBindingInfo bindingInfo = new TypeBindingInfo
             {
-                Behavior = bindingBehavior
+                Behavior = bindingBehavior,
+                Type = typeof(T)
             };
             _typeBindings.Add(bindingInfo);
             return new BindType<T>(bindingInfo);

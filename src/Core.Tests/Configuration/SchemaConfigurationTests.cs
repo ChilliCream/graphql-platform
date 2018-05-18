@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -20,7 +21,7 @@ namespace HotChocolate.Configuration
             StringType stringType = new StringType();
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
-                Name = "Dummy",
+                Name = "TestObjectA",
                 Fields = () => new Dictionary<string, Field>
                 {
                     { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
@@ -33,12 +34,12 @@ namespace HotChocolate.Configuration
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.BindResolver<DummyResolverCollection>().To<Dummy>();
+            configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
             configuration.Commit(schemaContext);
 
             // assert
-            Assert.NotNull(schemaContext.CreateResolver("Dummy", "a"));
-            Assert.NotNull(schemaContext.CreateResolver("Dummy", "b"));
+            Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "a"));
+            Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "b"));
             Assert.Throws<InvalidOperationException>(
                 () => schemaContext.CreateResolver("Dummy", "x"));
         }
@@ -48,9 +49,9 @@ namespace HotChocolate.Configuration
         {
             // arrange
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            resolverContext.Setup(t => t.Parent<Dummy>()).Returns(new Dummy());
-            resolverContext.Setup(t => t.Service<DummyResolverCollection>())
-                .Returns(new DummyResolverCollection());
+            resolverContext.Setup(t => t.Parent<TestObjectA>()).Returns(new TestObjectA());
+            resolverContext.Setup(t => t.Service<TestResolverCollectionA>())
+                .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
             SchemaContext schemaContext = new SchemaContext();
@@ -62,7 +63,7 @@ namespace HotChocolate.Configuration
             };
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
-                Name = "Dummy",
+                Name = "TestObjectA",
                 Fields = () => new Dictionary<string, Field>
                 {
                     { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType, Arguments = arguments}) },
@@ -76,19 +77,19 @@ namespace HotChocolate.Configuration
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration
-                .BindResolver<DummyResolverCollection>(BindingBehavior.Explicit)
-                .To<Dummy>()
+                .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
+                .To<TestObjectA>()
                 .Resolve(t => t.A)
                 .With(t => t.GetA(default, default));
 
             configuration.Commit(schemaContext);
 
             // assert
-            FieldResolverDelegate resolver = schemaContext.CreateResolver("Dummy", "a");
+            FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
             Assert.Equal("a_dummy_a", resolver(resolverContext.Object, CancellationToken.None));
             Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("Dummy", "b"));
+                () => schemaContext.CreateResolver("TestObjectA", "b"));
         }
 
         [Fact]
@@ -100,7 +101,7 @@ namespace HotChocolate.Configuration
             StringType stringType = new StringType();
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
-                Name = "Dummy",
+                Name = "TestObjectA",
                 Fields = () => new Dictionary<string, Field>
                 {
                     { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
@@ -113,36 +114,167 @@ namespace HotChocolate.Configuration
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.BindType<Dummy>();
+            configuration.BindType<TestObjectA>();
             configuration.Commit(schemaContext);
 
             // assert
-            FieldResolverDelegate resolver = schemaContext.CreateResolver("Dummy", "a");
+            FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
             Assert.Equal("a", resolver(null, CancellationToken.None));
 
-            resolver = schemaContext.CreateResolver("Dummy", "b");
+            resolver = schemaContext.CreateResolver("TestObjectA", "b");
             Assert.NotNull(resolver);
             Assert.Equal("b", resolver(null, CancellationToken.None));
 
             Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("Dummy", "c"));
+                () => schemaContext.CreateResolver("TestObjectA", "c"));
+        }
+
+        [Fact]
+        public void BindResolverCollectionToObjectType()
+        {
+            // arrange
+            TestObjectB dummyObjectType = new TestObjectB();
+
+            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>();
+            resolverContext.Setup(t => t.Service<TestResolverCollectionB>())
+               .Returns(new TestResolverCollectionB());
+            resolverContext.Setup(t => t.Parent<TestObjectB>())
+               .Returns(dummyObjectType);
+
+            StringType stringType = new StringType();
+
+            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    {
+                        "bar",
+                        new Field(new FieldConfig
+                        {
+                            Name = "bar",
+                            Type = () => stringType
+                        })
+                    }
+                }
+            });
+
+            SchemaContext schemaContext = new SchemaContext(
+                new INamedType[] { stringType, objectType });
+
+            // act
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration.BindType<TestObjectB>().To("Dummy");
+            configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
+                .Resolve("bar").With(t => t.GetFooBar(It.Is<TestObjectB>()));
+            configuration.Commit(schemaContext);
+
+            // assert
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
+            Assert.Equal(dummyObjectType.Bar, result);
+        }
+
+        [Fact]
+        public void BindObjectTypeAsResolver()
+        {
+            // arrange
+            TestObjectB dummyObjectType = new TestObjectB();
+
+            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>();
+            resolverContext.Setup(t => t.Parent<TestObjectB>())
+               .Returns(dummyObjectType);
+
+            StringType stringType = new StringType();
+
+            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    {
+                        "bar",
+                        new Field(new FieldConfig
+                        {
+                            Name = "bar",
+                            Type = () => stringType
+                        })
+                    }
+                }
+            });
+
+            SchemaContext schemaContext = new SchemaContext(
+                new INamedType[] { stringType, objectType },
+                new Dictionary<string, ResolveType>(), null);
+
+            // act
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration.BindType<TestObjectB>().To("Dummy");
+            configuration.Commit(schemaContext);
+
+            // assert
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
+            Assert.Equal(dummyObjectType.Bar, result);
+        }
+
+        [Fact]
+        public void BindMethodAsFieldImplicitly()
+        {
+            // arrange
+            TestObjectB dummyObjectType = new TestObjectB();
+
+            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>();
+            resolverContext.Setup(t => t.Parent<TestObjectB>())
+               .Returns(dummyObjectType);
+
+            ScalarType stringType = new StringType();
+            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    {
+                        "bar2",
+                        new Field(new FieldConfig
+                        {
+                            Name = "bar2",
+                            Type = () => stringType
+                        })
+                    }
+                }
+            });
+
+            SchemaContext schemaContext = new SchemaContext(
+                new INamedType[] { stringType, objectType },
+                new Dictionary<string, ResolveType>(), null);
+
+            // act
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration.BindType<TestObjectB>().To("Dummy");
+            configuration.Commit(schemaContext);
+
+            // assert
+            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar2");
+            object result = fieldResolver(resolverContext.Object, CancellationToken.None);
+            Assert.Equal(dummyObjectType.GetBar2(), result);
         }
     }
 
-    public class DummyResolverCollection
+    public class TestResolverCollectionA
     {
-        public string GetA(Dummy dummy)
+        public string GetA(TestObjectA dummy)
         {
             return "a_dummy";
         }
 
-        public string GetA(Dummy dummy, string a)
+        public string GetA(TestObjectA dummy, string a)
         {
             return "a_dummy_a";
         }
 
-        public string GetFoo(Dummy dummy)
+        public string GetFoo(TestObjectA dummy)
         {
             return null;
         }
@@ -150,9 +282,24 @@ namespace HotChocolate.Configuration
         public string B { get; set; }
     }
 
-    public class Dummy
+    public class TestObjectA
     {
         public string A { get; set; } = "a";
         public string B { get; set; } = "b";
+    }
+
+    public class TestResolverCollectionB
+    {
+        public string GetFooBar(TestObjectB objectType)
+        {
+            return objectType.Bar;
+        }
+    }
+
+    public class TestObjectB
+    {
+        public string Bar { get; } = "hello";
+
+        public string GetBar2() => "world";
     }
 }
