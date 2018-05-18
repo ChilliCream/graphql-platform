@@ -165,8 +165,7 @@ namespace HotChocolate.Configuration
             });
 
             SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { stringType, objectType },
-                new Dictionary<string, ResolveType>(), null);
+                new INamedType[] { stringType, objectType });
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
@@ -207,8 +206,7 @@ namespace HotChocolate.Configuration
             });
 
             SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { stringType, objectType },
-                new Dictionary<string, ResolveType>(), null);
+                new INamedType[] { stringType, objectType });
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();

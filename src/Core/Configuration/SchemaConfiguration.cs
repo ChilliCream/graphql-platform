@@ -112,6 +112,7 @@ namespace HotChocolate.Configuration
                 CreateObjectTypeBindings(schemaContext);
             Dictionary<string, InputObjectTypeBinding> inputObjectTypeBindings =
                 CreateInputObjectTypeBindings(schemaContext);
+            // todo : register type bindings with context
 
             // complete resolver bindings for further processing
             List<ObjectTypeBinding> handledTypeBindings = new List<ObjectTypeBinding>();
@@ -444,10 +445,19 @@ namespace HotChocolate.Configuration
                 new Dictionary<string, MemberInfo>(
                     StringComparer.OrdinalIgnoreCase);
 
-            foreach (MemberInfo member in type.GetProperties()
-                .Cast<MemberInfo>().Concat(type.GetMethods()))
+            foreach (PropertyInfo property in type.GetProperties())
             {
-                members[GetNameFromMember(member)] = member;
+                members[GetNameFromMember(property)] = property;
+            }
+
+            foreach (MethodInfo method in type.GetMethods())
+            {
+                members[GetNameFromMember(method)] = method;
+                if (method.Name.Length > 3 && method.Name
+                    .StartsWith("Get", StringComparison.OrdinalIgnoreCase))
+                {
+                    members[method.Name.Substring(3)] = method;
+                }
             }
 
             return members;
