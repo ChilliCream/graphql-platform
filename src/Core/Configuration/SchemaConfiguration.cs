@@ -15,7 +15,8 @@ namespace HotChocolate.Configuration
         private readonly List<TypeBindingInfo> _typeBindings =
             new List<TypeBindingInfo>();
 
-        public IBindResolverDelegate BindResolver(AsyncFieldResolverDelegate fieldResolver)
+        public IBindResolverDelegate BindResolver(
+            AsyncFieldResolverDelegate fieldResolver)
         {
             ResolverDelegateBindingInfo bindingInfo =
                 new ResolverDelegateBindingInfo
@@ -26,7 +27,8 @@ namespace HotChocolate.Configuration
             return new BindResolverDelegate(bindingInfo);
         }
 
-        public IBindResolverDelegate BindResolver(FieldResolverDelegate fieldResolver)
+        public IBindResolverDelegate BindResolver(
+            FieldResolverDelegate fieldResolver)
         {
             ResolverDelegateBindingInfo bindingInfo =
                 new ResolverDelegateBindingInfo
@@ -88,6 +90,26 @@ namespace HotChocolate.Configuration
             where T : ScalarType, new()
         {
             RegisterScalar(new T());
+        }
+
+        public void Commit(SchemaContext schemaContext)
+        {
+            foreach (ScalarType scalarType in _scalarTypes.Values)
+            {
+                schemaContext.RegisterType(scalarType);
+            }
+
+
+
+
+        }
+
+        private void RegisterCustomScalarTypes(SchemaContext schemaContext)
+        {
+            foreach (ScalarType scalarType in _scalarTypes.Values)
+            {
+                schemaContext.RegisterType(scalarType);
+            }
         }
     }
 }

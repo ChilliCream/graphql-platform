@@ -20,6 +20,16 @@ namespace HotChocolate.Resolvers
 
         public MemberInfo Member { get; }
 
+        public FieldResolverMember WithTypeName(string typeName)
+        {
+            return new FieldResolverMember(typeName, FieldName, Member);
+        }
+
+        public FieldResolverMember WithFieldName(string fieldName)
+        {
+            return new FieldResolverMember(TypeName, fieldName, Member);
+        }
+
         public bool Equals(FieldResolverMember other)
         {
             if (ReferenceEquals(null, other))
