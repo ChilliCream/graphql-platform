@@ -10,13 +10,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return await source.{resolverDescriptor.Member.Name} (");
+            source.AppendLine($"return source.{resolverDescriptor.Member.Name} (");
 
             if (resolverDescriptor.ArgumentDescriptors.Any())
             {
-                string arguments = string.Join(", ", 
+                string arguments = string.Join(", ",
                     resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
-                source.AppendLine(arguments);
+                source.Append(arguments);
             }
 
             source.Append(");");
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         public override bool CanGenerate(
             FieldResolverDescriptor resolverDescriptor)
-                => resolverDescriptor.IsAsync 
+                => resolverDescriptor.IsAsync
                     && resolverDescriptor.IsMethod
                     && resolverDescriptor.Kind == FieldResolverKind.Source;
     }

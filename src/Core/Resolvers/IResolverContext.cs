@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -23,9 +24,9 @@ namespace HotChocolate.Resolvers
         FieldNode FieldSelection { get; }
 
         // execution context
-        ImmutableStack<object> Path { get; } // parents
+        ImmutableStack<object> Source { get; } // parents
 
-        // string Path => /foo/bar[0]/test
+        Path Path { get; }
 
         T Parent<T>();
 

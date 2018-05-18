@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -10,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Resolvers
 {
-    internal static class Compiler
+    internal static class CSharpCompiler
     {
         private static readonly CSharpCompilationOptions _options =
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
@@ -45,7 +46,10 @@ namespace HotChocolate.Resolvers
                     stream.Position = 0;
                     return Assembly.Load(stream.ToArray());
                 }
-                throw new Exception(); // TODO : EXCEPTION
+
+                // TODO : EXCEPTION
+                throw new Exception(string.Join(Environment.NewLine,
+                    result.Diagnostics.Select(t => t.ToString())));
             }
         }
 

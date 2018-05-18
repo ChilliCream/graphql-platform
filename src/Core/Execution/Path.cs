@@ -3,10 +3,9 @@ using System.Collections.Immutable;
 
 namespace HotChocolate.Execution
 {
-    internal class Path
+    public sealed class Path
         : IEquatable<Path>
     {
-
         private Path(Path parent, string name)
         {
             Parent = parent;
@@ -28,12 +27,12 @@ namespace HotChocolate.Execution
         public int Index { get; }
         public bool IsIndexer { get; }
 
-        public Path Create(int index)
+        internal Path Append(int index)
         {
             return new Path(this.Parent, this.Name, index);
         }
 
-        public Path Create(string name)
+        internal Path Append(string name)
         {
             return new Path(this, name);
         }
@@ -98,7 +97,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public static Path New(string name)
+        internal static Path New(string name)
         {
             return new Path(null, name);
         }

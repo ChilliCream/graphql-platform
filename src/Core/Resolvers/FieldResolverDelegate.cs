@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Resolvers
 {
-    public delegate Task<object> FieldResolverDelegate(
+    public delegate Task<object> AsyncFieldResolverDelegate(
         IResolverContext context,
         CancellationToken cancellationToken);
 
-    // TODO: the internal underlying field resolver delegate shopuld look like the following:
-    // TODO : results can be Task<object>, Func<object>, Func<Task<object>>, object
-    internal delegate object FieldResolverDelegate2(
+    public delegate object FieldResolverDelegate(
         IResolverContext context,
         CancellationToken cancellationToken);
 }

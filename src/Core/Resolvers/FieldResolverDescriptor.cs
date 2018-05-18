@@ -108,7 +108,8 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(property));
             }
 
-            return new FieldResolverDescriptor(field, FieldResolverKind.Collection,
+            return new FieldResolverDescriptor(field,
+                FieldResolverKind.Collection,
                 resolverType, sourceType, property,
                 Array.Empty<FieldResolverArgumentDescriptor>(),
                 false, false);

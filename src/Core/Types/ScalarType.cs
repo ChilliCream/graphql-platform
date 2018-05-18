@@ -8,6 +8,8 @@ namespace HotChocolate.Types
         , IInputType
         , INamedType
         , INullableType
+        , ISerializableType
+
     {
         protected ScalarType(string name)
             : this(name, null)
@@ -35,6 +37,6 @@ namespace HotChocolate.Types
 
         public abstract object ParseLiteral(IValueNode literal);
 
-        public abstract object Serialize(object value); // TODO: return type should be object
+        public abstract object Serialize(object value);
     }
 }

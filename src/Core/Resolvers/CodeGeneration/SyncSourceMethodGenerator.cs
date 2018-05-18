@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return Task.FromResult<object>(source.{resolverDescriptor.Member.Name} (");
+            source.AppendLine($"return source.{resolverDescriptor.Member.Name} (");
 
             if (resolverDescriptor.ArgumentDescriptors.Any())
             {
@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 source.AppendLine(arguments);
             }
 
-            source.Append("));");
+            source.Append(");");
         }
 
         public override bool CanGenerate(

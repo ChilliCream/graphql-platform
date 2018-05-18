@@ -25,7 +25,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ";
 
             // act
-            Assembly assembly = Compiler.Compile(sourceText);
+            Assembly assembly = CSharpCompiler.Compile(sourceText);
 
             // assert
             object obj = assembly.CreateInstance("FS.Foo");
@@ -57,7 +57,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ";
 
             // act
-            Assembly assembly = Compiler.Compile(sourceText);
+            Assembly assembly = CSharpCompiler.Compile(sourceText);
 
             // assert
             Foo foo = new Foo { Bar = Guid.NewGuid().ToString() };

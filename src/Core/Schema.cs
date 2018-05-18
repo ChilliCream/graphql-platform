@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -40,9 +41,7 @@ namespace HotChocolate
             string schema,
             Action<ISchemaConfiguration> configure)
         {
-            Parser parser = new Parser();
-
-            DocumentNode schemaDocument = parser.Parse(new Source(schema));
+            DocumentNode schemaDocument = Parser.Default.Parse(schema);
             return Create(schemaDocument, configure);
         }
 
@@ -51,9 +50,7 @@ namespace HotChocolate
             Action<ISchemaConfiguration> configure)
         {
             SchemaContext context = new SchemaContext(
-                CreateSystemTypes(),
-                new Dictionary<string, ResolveType>(),
-                null);
+                CreateSystemTypes());
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);

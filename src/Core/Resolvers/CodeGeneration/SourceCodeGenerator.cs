@@ -17,10 +17,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append(resolverName);
             source.Append(" ");
             source.Append(" = ");
-            if (resolverDescriptor.IsAsync)
-            {
-                source.Append("async ");
-            }
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
@@ -45,7 +41,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             switch (argumentDescriptor.Kind)
             {
                 case FieldResolverArgumentKind.Argument:
-                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{argumentDescriptor.Type.FullName}>({argumentDescriptor.Name})");
+                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{argumentDescriptor.Type.FullName}>(\"{argumentDescriptor.Name}\")");
                     break;
                 case FieldResolverArgumentKind.Field:
                     source.Append($"ctx.{nameof(IResolverContext.Field)}");

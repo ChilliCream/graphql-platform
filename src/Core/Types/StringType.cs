@@ -36,6 +36,11 @@ namespace HotChocolate.Types
                 return stringLiteral.Value;
             }
 
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
             throw new ArgumentException(
                 "The string type can only parse string literals.",
                 nameof(literal));

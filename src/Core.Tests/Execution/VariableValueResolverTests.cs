@@ -97,7 +97,7 @@ namespace HotChocolate.Execution
 
         private Schema CreateSchema()
         {
-            return Schema.Create("type Foo { a: String }", c => { });
+            return Schema.Create("type Query { foo: Foo } type Foo { a: String }", c => { });
         }
 
         private OperationDefinitionNode CreateQuery(string query)

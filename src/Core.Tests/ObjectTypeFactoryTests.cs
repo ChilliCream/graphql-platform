@@ -26,11 +26,9 @@ namespace HotChocolate
                 .Definitions.OfType<ObjectTypeDefinitionNode>().First();
             FieldResolver fieldResolver = new FieldResolver(
                 "Simple", "a",
-                (c, r) => Task.FromResult<object>("hello"));
+                (c, r) => "hello");
             SchemaContext context = new SchemaContext(
-                new[] { scalarType },
-                new Dictionary<string, ResolveType>(),
-                null);
+                new[] { scalarType });
             context.RegisterResolvers(new[] { fieldResolver });
 
             // act
@@ -51,7 +49,7 @@ namespace HotChocolate
             Assert.False(objectType.Fields["b"].Type.IsScalarType());
             Assert.Equal("String", objectType.Fields["b"].Type.TypeName());
             Assert.Equal("hello", (objectType.Fields["a"]
-                .Resolver(null, CancellationToken.None)).Result);
+                .Resolver(null, CancellationToken.None)));
         }
     }
 }
