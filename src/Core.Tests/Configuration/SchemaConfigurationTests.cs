@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using Xunit;
@@ -9,15 +10,16 @@ namespace HotChocolate.Configuration
         [Fact]
         public void Foo()
         {
-            SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { },
-                new Dictionary<string, ResolveType>(),
-                null);
+            SchemaContext schemaContext = new SchemaContext();
 
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindResolver<DummyResolverCollection>().To<Dummy>();
             configuration.Commit(schemaContext);
 
+            Assert.NotNull(schemaContext.CreateResolver("Dummy", "a"));
+            Assert.NotNull(schemaContext.CreateResolver("Dummy", "b"));
+            Assert.Throws<InvalidOperationException>(
+                () => schemaContext.CreateResolver("Dummy", "x"));
         }
     }
 

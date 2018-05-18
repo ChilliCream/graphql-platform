@@ -13,28 +13,46 @@ namespace HotChocolate
         private readonly Dictionary<string, INamedType> _types;
         private readonly Dictionary<string, FieldResolverDelegate> _fieldResolvers
             = new Dictionary<string, FieldResolverDelegate>();
-        private readonly IReadOnlyDictionary<string, ResolveType> _typeResolver;
-        private readonly IsOfTypeRouter _isOfTypeRouter;
+        private readonly IReadOnlyDictionary<string, ResolveType> _customTypeResolver;
+        private readonly IReadOnlyDictionary<string, IsOfType> _customIsOfTypeFunctions;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
+
+        public SchemaContext()
+            : this(Enumerable.Empty<INamedType>())
+        {
+        }
+
+        public SchemaContext(
+            IEnumerable<INamedType> systemTypes)
+            : this(systemTypes,
+                new Dictionary<string, ResolveType>(),
+                new Dictionary<string, IsOfType>())
+        {
+        }
 
         public SchemaContext(
             IEnumerable<INamedType> systemTypes,
-            IReadOnlyDictionary<string, ResolveType> typeResolver,
-            IsOfTypeRouter isOfTypeRouter)
+            IReadOnlyDictionary<string, ResolveType> customTypeResolvers,
+            IReadOnlyDictionary<string, IsOfType> customIsOfTypeFunctions)
         {
             if (systemTypes == null)
             {
                 throw new ArgumentNullException(nameof(systemTypes));
             }
 
-            if (typeResolver == null)
+            if (customTypeResolvers == null)
             {
-                throw new ArgumentNullException(nameof(typeResolver));
+                throw new ArgumentNullException(nameof(customTypeResolvers));
+            }
+
+            if (customIsOfTypeFunctions == null)
+            {
+                throw new ArgumentNullException(nameof(customIsOfTypeFunctions));
             }
 
             _types = systemTypes.ToDictionary(t => t.Name);
-            _typeResolver = typeResolver;
-            _isOfTypeRouter = isOfTypeRouter;
+            _customTypeResolver = customTypeResolvers;
+            _customIsOfTypeFunctions = customIsOfTypeFunctions;
         }
 
         public void RegisterType(INamedType type)
@@ -177,7 +195,8 @@ namespace HotChocolate
 
         public IsOfType CreateIsOfType(string typeName)
         {
-            if (_isOfTypeRouter == null)
+            if (!_customIsOfTypeFunctions.TryGetValue(
+                typeName, out IsOfType isOfType))
             {
                 return new IsOfType((c, r) =>
                 {
@@ -195,13 +214,12 @@ namespace HotChocolate
                     return false;
                 });
             }
-
-            return new IsOfType((c, r) => _isOfTypeRouter(typeName, c, r));
+            return isOfType;
         }
 
         public ResolveType CreateTypeResolver(string typeName)
         {
-            if (_typeResolver.TryGetValue(typeName, out var rt))
+            if (_customTypeResolver.TryGetValue(typeName, out var rt))
             {
                 return rt;
             }
