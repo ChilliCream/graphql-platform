@@ -181,6 +181,20 @@ namespace HotChocolate
                 "The specified type does not exist or is not an output type.");
         }
 
+        public bool TryGetInputType<T>(string typeName, out T type)
+            where T : IInputType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T it)
+            {
+                type = it;
+                return true;
+            }
+
+            type = default(T);
+            return false;
+        }
+
         public FieldResolverDelegate CreateResolver(
             string typeName, string fieldName)
         {

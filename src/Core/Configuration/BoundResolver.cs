@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Configuration
 {
-    public class BoundResolver<TResolver>
+    internal class BoundResolver<TResolver>
        : IBoundResolver<TResolver>
        where TResolver : class
     {
@@ -32,7 +32,7 @@ namespace HotChocolate.Configuration
         }
     }
 
-    public class BoundResolver<TResolver, TObjectType>
+    internal class BoundResolver<TResolver, TObjectType>
         : BoundResolver<TResolver>
         , IBoundResolver<TResolver, TObjectType>
         where TResolver : class

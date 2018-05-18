@@ -137,5 +137,4 @@ namespace HotChocolate.Configuration
             return true;
         }
     }
-
 }

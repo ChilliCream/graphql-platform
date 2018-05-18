@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Configuration
 {
-    public class BindType<T>
+    internal class BindType<T>
         : IBindType<T>
         where T : class
     {

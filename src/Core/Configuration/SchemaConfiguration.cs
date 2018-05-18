@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -98,15 +99,30 @@ namespace HotChocolate.Configuration
 
         public void Commit(SchemaContext schemaContext)
         {
-            // Complete Binding Objects
-            List<TypeBindingInfo> handledTypeBindings = new List<TypeBindingInfo>();
-            CompleteCollectionBindings(handledTypeBindings);
+            if (schemaContext == null)
+            {
+                throw new ArgumentNullException(nameof(schemaContext));
+            }
 
+            // register custom scalars and enums
             RegisterCustomScalarTypes(schemaContext);
 
+            // create type bindings
+            Dictionary<string, ObjectTypeBinding> objectTypeBindings =
+                CreateObjectTypeBindings(schemaContext);
+            Dictionary<string, InputObjectTypeBinding> inputObjectTypeBindings =
+                CreateInputObjectTypeBindings(schemaContext);
+
+            // complete resolver bindings for further processing
+            List<ObjectTypeBinding> handledTypeBindings = new List<ObjectTypeBinding>();
+            CompleteDelegateBindings(objectTypeBindings, handledTypeBindings);
+            CompleteCollectionBindings(objectTypeBindings, handledTypeBindings);
+
+            // create field resolvers and register them
             List<FieldResolver> fieldResolvers = new List<FieldResolver>();
             fieldResolvers.AddRange(CreateFieldResolvers(schemaContext));
-            fieldResolvers.AddRange(CreateMissingResolvers(schemaContext, fieldResolvers));
+            fieldResolvers.AddRange(CreateMissingResolvers(
+                schemaContext, fieldResolvers, objectTypeBindings));
             schemaContext.RegisterResolvers(fieldResolvers);
         }
 
@@ -118,23 +134,170 @@ namespace HotChocolate.Configuration
             }
         }
 
+        // object type bindings
+        private Dictionary<string, ObjectTypeBinding> CreateObjectTypeBindings(
+            SchemaContext schemaContext)
+        {
+            Dictionary<string, ObjectTypeBinding> typeBindings =
+                new Dictionary<string, ObjectTypeBinding>();
+
+            foreach (TypeBindingInfo typeBindingInfo in _typeBindings)
+            {
+                if (typeBindingInfo.Name == null)
+                {
+                    typeBindingInfo.Name = GetNameFromType(typeBindingInfo.Type);
+                }
+
+                IEnumerable<FieldBinding> fieldBindings = null;
+                if (schemaContext.TryGetOutputType<ObjectType>(
+                    typeBindingInfo.Name, out ObjectType ot))
+                {
+                    fieldBindings = CreateFieldBindings(typeBindingInfo, ot.Fields);
+                    typeBindings[ot.Name] = new ObjectTypeBinding(ot.Name,
+                        typeBindingInfo.Type, ot, fieldBindings);
+                }
+            }
+
+            return typeBindings;
+        }
+
+        private IEnumerable<FieldBinding> CreateFieldBindings(
+            TypeBindingInfo typeBindingInfo,
+            IReadOnlyDictionary<string, Field> fields)
+        {
+            Dictionary<string, FieldBinding> fieldBindings =
+                new Dictionary<string, FieldBinding>();
+
+            // create explicit field bindings
+            foreach (FieldBindingInfo fieldBindingInfo in
+                typeBindingInfo.Fields)
+            {
+                if (fieldBindingInfo.Name == null)
+                {
+                    fieldBindingInfo.Name = GetNameFromMember(
+                        fieldBindingInfo.Member);
+                }
+
+                if (fields.TryGetValue(fieldBindingInfo.Name, out Field field))
+                {
+                    fieldBindings[field.Name] = new FieldBinding(
+                        fieldBindingInfo.Name, fieldBindingInfo.Member, field);
+                }
+            }
+
+            // create implicit field bindings
+            if (typeBindingInfo.Behavior == BindingBehavior.Implicit)
+            {
+                Dictionary<string, MemberInfo> members =
+                    GetMembers(typeBindingInfo.Type);
+                foreach (Field field in fields.Values
+                    .Where(t => !fieldBindings.ContainsKey(t.Name)))
+                {
+                    if (members.TryGetValue(field.Name, out MemberInfo member))
+                    {
+                        fieldBindings[field.Name] = new FieldBinding(
+                            field.Name, member, field);
+                    }
+                }
+            }
+
+            return fieldBindings.Values;
+        }
+
+        // input object type bindings
+        private Dictionary<string, InputObjectTypeBinding> CreateInputObjectTypeBindings(
+           SchemaContext schemaContext)
+        {
+            Dictionary<string, InputObjectTypeBinding> typeBindings =
+                new Dictionary<string, InputObjectTypeBinding>();
+
+            foreach (TypeBindingInfo typeBindingInfo in _typeBindings)
+            {
+                if (typeBindingInfo.Name == null)
+                {
+                    typeBindingInfo.Name = GetNameFromType(typeBindingInfo.Type);
+                }
+
+                IEnumerable<InputFieldBinding> fieldBindings = null;
+                if (schemaContext.TryGetInputType<InputObjectType>(
+                    typeBindingInfo.Name, out InputObjectType iot))
+                {
+                    fieldBindings = CreateInputFieldBindings(typeBindingInfo, iot.Fields);
+                    typeBindings[iot.Name] = new InputObjectTypeBinding(iot.Name,
+                        typeBindingInfo.Type, iot, fieldBindings);
+                }
+            }
+
+            return typeBindings;
+        }
+
+        private IEnumerable<InputFieldBinding> CreateInputFieldBindings(
+            TypeBindingInfo typeBindingInfo,
+            IReadOnlyDictionary<string, InputField> fields)
+        {
+            Dictionary<string, InputFieldBinding> fieldBindings =
+                new Dictionary<string, InputFieldBinding>();
+
+            // create explicit field bindings
+            foreach (FieldBindingInfo fieldBindingInfo in
+                typeBindingInfo.Fields)
+            {
+                if (fieldBindingInfo.Name == null)
+                {
+                    fieldBindingInfo.Name = GetNameFromMember(
+                        fieldBindingInfo.Member);
+                }
+
+                if (fields.TryGetValue(fieldBindingInfo.Name, out InputField field))
+                {
+                    if (fieldBindingInfo.Member is PropertyInfo p)
+                    {
+                        fieldBindings[field.Name] = new InputFieldBinding(
+                            fieldBindingInfo.Name, p, field);
+                    }
+                    // TODO : error -> exception?
+                }
+            }
+
+            // create implicit field bindings
+            if (typeBindingInfo.Behavior == BindingBehavior.Implicit)
+            {
+                Dictionary<string, PropertyInfo> properties =
+                    GetProperties(typeBindingInfo.Type);
+                foreach (InputField field in fields.Values
+                    .Where(t => !fieldBindings.ContainsKey(t.Name)))
+                {
+                    if (properties.TryGetValue(field.Name,
+                        out PropertyInfo property))
+                    {
+                        fieldBindings[field.Name] = new InputFieldBinding(
+                            field.Name, property, field);
+                    }
+                }
+            }
+
+            return fieldBindings.Values;
+        }
+
+        // complete resolver bindings
         private void CompleteDelegateBindings(
-            List<TypeBindingInfo> handledTypeBindings)
+            Dictionary<string, ObjectTypeBinding> typeBindings,
+            List<ObjectTypeBinding> handledTypeBindings)
         {
             foreach (ResolverDelegateBindingInfo binding in _resolverBindings
                 .OfType<ResolverDelegateBindingInfo>())
             {
                 if (binding.ObjectTypeName == null && binding.ObjectType == null)
                 {
-                    // incomplete binding
+                    // skip incomplete binding --> todo: maybe an exception?
                     continue;
                 }
 
                 if (binding.ObjectTypeName == null)
                 {
-                    TypeBindingInfo typeBinding = _typeBindings.FirstOrDefault(
-                        t => t.Type == binding.ObjectType);
-                    FieldBindingInfo fieldBinding = typeBinding?.Fields
+                    ObjectTypeBinding typeBinding = typeBindings.Values
+                        .FirstOrDefault(t => t.Type == binding.ObjectType);
+                    FieldBinding fieldBinding = typeBinding?.Fields.Values
                         .FirstOrDefault(t => t.Member == binding.FieldMember);
                     binding.ObjectTypeName = typeBinding?.Name;
                     binding.FieldName = fieldBinding?.Name;
@@ -143,7 +306,8 @@ namespace HotChocolate.Configuration
         }
 
         private void CompleteCollectionBindings(
-            List<TypeBindingInfo> handledTypeBindings)
+            Dictionary<string, ObjectTypeBinding> typeBindings,
+            List<ObjectTypeBinding> handledTypeBindings)
         {
             foreach (ResolverCollectionBindingInfo binding in _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>())
@@ -153,18 +317,17 @@ namespace HotChocolate.Configuration
                     binding.ObjectType = binding.ResolverType;
                 }
 
-                TypeBindingInfo typeBinding = null;
-                if (binding.ObjectType == null)
+                ObjectTypeBinding typeBinding = null;
+                if (binding.ObjectType == null && typeBindings
+                    .TryGetValue(binding.ObjectTypeName, out typeBinding))
                 {
-                    typeBinding = _typeBindings.FirstOrDefault(
-                        t => string.Equals(t.Name, binding.ObjectTypeName,
-                            StringComparison.Ordinal));
-                    binding.ObjectType = typeBinding?.Type;
+
+                    binding.ObjectType = typeBinding.Type;
                 }
 
                 if (binding.ObjectTypeName == null)
                 {
-                    typeBinding = _typeBindings.FirstOrDefault(
+                    typeBinding = typeBindings.Values.FirstOrDefault(
                         t => t.Type == binding.ObjectType);
                     binding.ObjectTypeName = typeBinding?.Name;
                 }
@@ -187,7 +350,7 @@ namespace HotChocolate.Configuration
 
         private void CompleteFieldResolverBindungs(
             ResolverCollectionBindingInfo resolverCollectionBinding,
-            TypeBindingInfo typeBinding,
+            ObjectTypeBinding typeBinding,
             IEnumerable<FieldResolverBindungInfo> fieldResolverBindings)
         {
             foreach (FieldResolverBindungInfo binding in
@@ -198,17 +361,17 @@ namespace HotChocolate.Configuration
                     binding.FieldMember = binding.ResolverMember;
                 }
 
-                if (binding.FieldMember == null && typeBinding != null)
+                if (binding.FieldMember == null && typeBinding != null
+                    && typeBinding.Fields.TryGetValue(
+                        binding.FieldName, out FieldBinding fieldBinding))
                 {
-                    FieldBindingInfo fieldBinding = typeBinding.Fields.FirstOrDefault(
-                        t => t.Name == binding.FieldName);
-                    binding.FieldMember = fieldBinding?.Member;
+                    binding.FieldMember = fieldBinding.Member;
                 }
 
                 if (binding.FieldName == null && typeBinding != null)
                 {
-                    FieldBindingInfo fieldBinding = typeBinding.Fields.FirstOrDefault(
-                        t => t.Member == binding.FieldMember);
+                    fieldBinding = typeBinding.Fields.Values
+                        .FirstOrDefault(t => t.Member == binding.FieldMember);
                     binding.FieldName = fieldBinding?.Name;
                 }
 
@@ -218,35 +381,6 @@ namespace HotChocolate.Configuration
                     binding.FieldName = GetNameFromMember(binding.FieldMember);
                 }
             }
-        }
-
-        private IEnumerable<FieldResolver> CreateMissingResolvers(
-            SchemaContext schemaContext,
-            IEnumerable<FieldResolver> fieldResolvers)
-        {
-            Dictionary<FieldReference, FieldResolver> lookupField
-                = fieldResolvers.ToDictionary(
-                    t => new FieldReference(t.TypeName, t.FieldName));
-
-            foreach (TypeBindingInfo typeBinding in _typeBindings)
-            {
-                if (schemaContext.TryGetOutputType<ObjectType>(
-                    typeBinding.Name, out ObjectType ot))
-                {
-                    foreach (Field field in ot.Fields.Values)
-                    {
-                        FieldReference fieldReference =
-                            new FieldReference(ot.Name, field.Name);
-                        if (!lookupField.TryGetValue(fieldReference,
-                            out FieldResolver fieldResolver))
-                        {
-
-                        }
-                    }
-                }
-            }
-
-            yield break;
         }
 
         private IEnumerable<FieldResolver> CreateFieldResolvers(
@@ -275,6 +409,62 @@ namespace HotChocolate.Configuration
             }
 
             return fieldResolvers;
+        }
+
+        private IEnumerable<FieldResolver> CreateMissingResolvers(
+            SchemaContext schemaContext,
+            IEnumerable<FieldResolver> fieldResolvers,
+            Dictionary<string, ObjectTypeBinding> typeBindings)
+        {
+            Dictionary<FieldReference, FieldResolver> lookupField =
+                fieldResolvers.ToDictionary(
+                    t => new FieldReference(t.TypeName, t.FieldName));
+
+            FieldResolverDiscoverer discoverer = new FieldResolverDiscoverer();
+            List<FieldResolverDescriptor> descriptors = new List<FieldResolverDescriptor>();
+            foreach (ObjectTypeBinding typeBinding in typeBindings.Values)
+            {
+                List<FieldResolverMember> missingResolvers = new List<FieldResolverMember>();
+                foreach (FieldBinding field in typeBinding.Fields.Values)
+                {
+                    missingResolvers.Add(new FieldResolverMember(
+                        typeBinding.Name, field.Name, field.Member));
+                }
+                descriptors.AddRange(discoverer.GetSelectedResolvers(
+                    typeBinding.Type, typeBinding.Type, missingResolvers));
+            }
+
+            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
+            return fieldResolverBuilder.Build(descriptors);
+        }
+
+        private Dictionary<string, MemberInfo> GetMembers(Type type)
+        {
+            Dictionary<string, MemberInfo> members =
+                new Dictionary<string, MemberInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            foreach (MemberInfo member in type.GetProperties()
+                .Cast<MemberInfo>().Concat(type.GetMethods()))
+            {
+                members[GetNameFromMember(member)] = member;
+            }
+
+            return members;
+        }
+
+        private Dictionary<string, PropertyInfo> GetProperties(Type type)
+        {
+            Dictionary<string, PropertyInfo> members =
+                new Dictionary<string, PropertyInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            foreach (PropertyInfo property in type.GetProperties())
+            {
+                members[GetNameFromMember(property)] = property;
+            }
+
+            return members;
         }
 
         private string GetNameFromType(Type type)

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Configuration
 {
-    public class BindFieldResolver<TResolver>
+    internal class BindFieldResolver<TResolver>
         : IBindFieldResolver<TResolver>
         where TResolver : class
     {

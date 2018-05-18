@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace HotChocolate.Configuration
 {
-    public class FieldResolverBindungInfo
+    internal class FieldResolverBindungInfo
     {
         public string FieldName { get; set; }
         public MemberInfo FieldMember { get; set; }
