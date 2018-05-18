@@ -10,16 +10,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return Task.FromResult<object>(resolver.{resolverDescriptor.Member.Name} (");
+            source.AppendLine($"return resolver.{resolverDescriptor.Member.Name} (");
 
             if (resolverDescriptor.ArgumentDescriptors.Any())
             {
-                string arguments = string.Join(", ", 
+                string arguments = string.Join(", ",
                     resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
                 source.AppendLine(arguments);
             }
 
-            source.Append("));");
+            source.Append(");");
         }
 
         public override bool CanGenerate(

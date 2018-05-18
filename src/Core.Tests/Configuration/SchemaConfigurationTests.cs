@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
 
@@ -8,9 +10,23 @@ namespace HotChocolate.Configuration
     public class SchemaConfigurationTests
     {
         [Fact]
-        public void Foo()
+        public void BindResolverCollectionToObjectTypeImplicitly()
         {
             SchemaContext schemaContext = new SchemaContext();
+
+            StringType stringType = new StringType();
+            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
+                    { "b", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) }
+                }
+            });
+
+            schemaContext.RegisterType(stringType);
+            schemaContext.RegisterType(dummyType);
 
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindResolver<DummyResolverCollection>().To<Dummy>();
@@ -21,18 +37,84 @@ namespace HotChocolate.Configuration
             Assert.Throws<InvalidOperationException>(
                 () => schemaContext.CreateResolver("Dummy", "x"));
         }
+
+        [Fact]
+        public void BindResolverCollectionToObjectTypeExplicitly()
+        {
+            SchemaContext schemaContext = new SchemaContext();
+
+            StringType stringType = new StringType();
+            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
+                    { "b", new Field(new FieldConfig{ Name= "b", Type = () => stringType }) }
+                }
+            });
+
+            schemaContext.RegisterType(stringType);
+            schemaContext.RegisterType(dummyType);
+
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration
+                .BindResolver<DummyResolverCollection>(BindingBehavior.Explicit)
+                .To<Dummy>()
+                .Resolve(t => t.A)
+                .With(t => t.GetA(default, default));
+
+            configuration.Commit(schemaContext);
+
+            FieldResolverDelegate resolver = schemaContext.CreateResolver("Dummy", "a");
+            Assert.NotNull(resolver);
+            Assert.Equal("a_dummy_a", resolver(null, CancellationToken.None));
+            Assert.Throws<InvalidOperationException>(
+                () => schemaContext.CreateResolver("Dummy", "b"));
+        }
+
+        [Fact]
+        public void DeriveResolverFromObjectType()
+        {
+            SchemaContext schemaContext = new SchemaContext();
+
+            StringType stringType = new StringType();
+            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
+            {
+                Name = "Dummy",
+                Fields = () => new Dictionary<string, Field>
+                {
+                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
+                    { "b", new Field(new FieldConfig{ Name= "b", Type = () => stringType }) }
+                }
+            });
+
+            schemaContext.RegisterType(stringType);
+            schemaContext.RegisterType(dummyType);
+
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration.BindType<Dummy>();
+
+            configuration.Commit(schemaContext);
+
+            FieldResolverDelegate resolver = schemaContext.CreateResolver("Dummy", "a");
+            Assert.NotNull(resolver);
+            Assert.Equal("a_dummy_a", resolver(null, CancellationToken.None));
+            Assert.Throws<InvalidOperationException>(
+                () => schemaContext.CreateResolver("Dummy", "b"));
+        }
     }
 
     public class DummyResolverCollection
     {
         public string GetA(Dummy dummy)
         {
-            return null;
+            return "a_dummy";
         }
 
         public string GetA(Dummy dummy, string a)
         {
-            return null;
+            return "a_dummy_a";
         }
 
         public string GetFoo(Dummy dummy)
@@ -45,7 +127,7 @@ namespace HotChocolate.Configuration
 
     public class Dummy
     {
-        public string A { get; set; }
-        public string B { get; set; }
+        public string A { get; set; } = "a";
+        public string B { get; set; } = "b";
     }
 }

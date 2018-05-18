@@ -261,7 +261,7 @@ namespace HotChocolate.Configuration
                 }
 
                 TypeBindingInfo binding = _typeBindings[fieldResolverMember.TypeName].FirstOrDefault();
-                if (binding == null)
+                if (binding != null)
                 {
                     FieldBindingInfo fieldBinding = binding.Fields
                         .FirstOrDefault(t => t.Member == fieldResolverMember.Member);

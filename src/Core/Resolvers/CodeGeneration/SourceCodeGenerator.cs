@@ -12,15 +12,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverDescriptor resolverDescriptor)
         {
             StringBuilder source = new StringBuilder();
-            source.Append($"public static {nameof(AsyncFieldResolverDelegate)}");
+            source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
             source.Append(resolverName);
             source.Append(" ");
             source.Append(" = ");
-            if (resolverDescriptor.IsAsync)
-            {
-                source.Append("async ");
-            }
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
