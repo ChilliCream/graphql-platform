@@ -103,7 +103,11 @@ namespace HotChocolate.Configuration
             CompleteCollectionBindings(handledTypeBindings);
 
             RegisterCustomScalarTypes(schemaContext);
-            schemaContext.RegisterResolvers(CreateFieldResolvers(schemaContext));
+
+            List<FieldResolver> fieldResolvers = new List<FieldResolver>();
+            fieldResolvers.AddRange(CreateFieldResolvers(schemaContext));
+            fieldResolvers.AddRange(CreateMissingResolvers(schemaContext, fieldResolvers));
+            schemaContext.RegisterResolvers(fieldResolvers);
         }
 
         private void RegisterCustomScalarTypes(SchemaContext schemaContext)
@@ -114,7 +118,32 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void CompleteCollectionBindings(List<TypeBindingInfo> handledTypeBindings)
+        private void CompleteDelegateBindings(
+            List<TypeBindingInfo> handledTypeBindings)
+        {
+            foreach (ResolverDelegateBindingInfo binding in _resolverBindings
+                .OfType<ResolverDelegateBindingInfo>())
+            {
+                if (binding.ObjectTypeName == null && binding.ObjectType == null)
+                {
+                    // incomplete binding
+                    continue;
+                }
+
+                if (binding.ObjectTypeName == null)
+                {
+                    TypeBindingInfo typeBinding = _typeBindings.FirstOrDefault(
+                        t => t.Type == binding.ObjectType);
+                    FieldBindingInfo fieldBinding = typeBinding?.Fields
+                        .FirstOrDefault(t => t.Member == binding.FieldMember);
+                    binding.ObjectTypeName = typeBinding?.Name;
+                    binding.FieldName = fieldBinding?.Name;
+                }
+            }
+        }
+
+        private void CompleteCollectionBindings(
+            List<TypeBindingInfo> handledTypeBindings)
         {
             foreach (ResolverCollectionBindingInfo binding in _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>())
@@ -191,7 +220,37 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private IEnumerable<FieldResolver> CreateFieldResolvers(SchemaContext schemaContext)
+        private IEnumerable<FieldResolver> CreateMissingResolvers(
+            SchemaContext schemaContext,
+            IEnumerable<FieldResolver> fieldResolvers)
+        {
+            Dictionary<FieldReference, FieldResolver> lookupField
+                = fieldResolvers.ToDictionary(
+                    t => new FieldReference(t.TypeName, t.FieldName));
+
+            foreach (TypeBindingInfo typeBinding in _typeBindings)
+            {
+                if (schemaContext.TryGetOutputType<ObjectType>(
+                    typeBinding.Name, out ObjectType ot))
+                {
+                    foreach (Field field in ot.Fields.Values)
+                    {
+                        FieldReference fieldReference =
+                            new FieldReference(ot.Name, field.Name);
+                        if (!lookupField.TryGetValue(fieldReference,
+                            out FieldResolver fieldResolver))
+                        {
+
+                        }
+                    }
+                }
+            }
+
+            yield break;
+        }
+
+        private IEnumerable<FieldResolver> CreateFieldResolvers(
+            SchemaContext schemaContext)
         {
             List<FieldResolver> fieldResolvers = new List<FieldResolver>();
 

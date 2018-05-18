@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
@@ -93,45 +91,7 @@ namespace HotChocolate.Configuration
         }
 
         [Fact]
-        public void DeriveResolverFromObjectType()
-        {
-            // arrange
-            SchemaContext schemaContext = new SchemaContext();
-
-            StringType stringType = new StringType();
-            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
-            {
-                Name = "TestObjectA",
-                Fields = () => new Dictionary<string, Field>
-                {
-                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
-                    { "b", new Field(new FieldConfig{ Name= "b", Type = () => stringType }) }
-                }
-            });
-
-            schemaContext.RegisterType(stringType);
-            schemaContext.RegisterType(dummyType);
-
-            // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.BindType<TestObjectA>();
-            configuration.Commit(schemaContext);
-
-            // assert
-            FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
-            Assert.NotNull(resolver);
-            Assert.Equal("a", resolver(null, CancellationToken.None));
-
-            resolver = schemaContext.CreateResolver("TestObjectA", "b");
-            Assert.NotNull(resolver);
-            Assert.Equal("b", resolver(null, CancellationToken.None));
-
-            Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("TestObjectA", "c"));
-        }
-
-        [Fact]
-        public void BindResolverCollectionToObjectType()
+        public void BindResolverCollectionToObjectTypeViaName()
         {
             // arrange
             TestObjectB dummyObjectType = new TestObjectB();
@@ -177,7 +137,7 @@ namespace HotChocolate.Configuration
         }
 
         [Fact]
-        public void BindObjectTypeAsResolver()
+        public void DeriveResolverFromObjectTypeProperty()
         {
             // arrange
             TestObjectB dummyObjectType = new TestObjectB();
@@ -220,7 +180,7 @@ namespace HotChocolate.Configuration
         }
 
         [Fact]
-        public void BindMethodAsFieldImplicitly()
+        public void DeriveResolverFromObjectTypeMethod()
         {
             // arrange
             TestObjectB dummyObjectType = new TestObjectB();
