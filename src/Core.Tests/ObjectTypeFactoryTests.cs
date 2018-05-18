@@ -26,11 +26,9 @@ namespace HotChocolate
                 .Definitions.OfType<ObjectTypeDefinitionNode>().First();
             FieldResolver fieldResolver = new FieldResolver(
                 "Simple", "a",
-                (c, r) => Task.FromResult<object>("hello"));
+                (c, r) => "hello");
             SchemaContext context = new SchemaContext(
-                new[] { scalarType },
-                new Dictionary<string, ResolveType>(),
-                null);
+                new[] { scalarType });
             context.RegisterResolvers(new[] { fieldResolver });
 
             // act
