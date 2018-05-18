@@ -41,9 +41,7 @@ namespace HotChocolate
             string schema,
             Action<ISchemaConfiguration> configure)
         {
-            Parser parser = new Parser();
-
-            DocumentNode schemaDocument = parser.Parse(new Source(schema));
+            DocumentNode schemaDocument = Parser.Default.Parse(schema);
             return Create(schemaDocument, configure);
         }
 

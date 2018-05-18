@@ -46,7 +46,16 @@ namespace HotChocolate.Execution
                             variableName));
                     }
 
-                    coercedValues[variableName] = type.ParseLiteral(variableValue);
+                    try
+                    {
+                        coercedValues[variableName] = type.ParseLiteral(variableValue);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        errors.Add(new VariableError(
+                            ex.Message,
+                            variableName));
+                    }
                 }
                 else
                 {
