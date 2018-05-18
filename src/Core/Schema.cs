@@ -52,9 +52,7 @@ namespace HotChocolate
             Action<ISchemaConfiguration> configure)
         {
             SchemaContext context = new SchemaContext(
-                CreateSystemTypes(),
-                new Dictionary<string, ResolveType>(),
-                null);
+                CreateSystemTypes());
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
