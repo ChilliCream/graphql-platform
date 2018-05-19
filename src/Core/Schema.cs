@@ -6,6 +6,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// A GraphQL Schema defines the capabilities of a GraphQL server. It
+    /// exposes all available types and directives on the server, as well as
+    /// the entry points for query, mutation, and subscription operations.
+    /// </summary>
     public class Schema
     {
         private readonly SchemaContext _context;
@@ -13,14 +18,25 @@ namespace HotChocolate
         private Schema(SchemaContext context)
         {
             _context = context;
-            Query = (ObjectType)context.GetType("Query"); // TODO : rework
+            QueryType = (ObjectType)context.GetType("Query"); // TODO : rework
         }
 
-        public ObjectType Query { get; }
+        /// <summary>
+        /// The type that query operations will be rooted at.
+        /// </summary>
+        public ObjectType QueryType { get; }
 
-        public ObjectType Mutation => throw new NotImplementedException();
+        /// <summary>
+        /// If this server supports mutation, the type that
+        /// mutation operations will be rooted at.
+        /// </summary>
+        public ObjectType MutationType => throw new NotImplementedException();
 
-        public ObjectType Subscription => throw new NotImplementedException();
+        /// <summary>
+        /// If this server support subscription, the type that
+        /// subscription operations will be rooted at.
+        /// </summary>
+        public ObjectType SubscriptionType => throw new NotImplementedException();
 
         public INamedType GetType(string typeName)
         {
