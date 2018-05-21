@@ -4,5 +4,6 @@ namespace HotChocolate.Types
         : IType
     {
         string Name { get; }
+        string Description { get; }
     }
 }

@@ -17,137 +17,94 @@ namespace HotChocolate.Introspection
             {
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
+                    Description = "Location adjacent to a query operation.",
+                    Value = DirectiveLocation.Query
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a mutation operation.",
+                    Value = DirectiveLocation.Mutation
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a subscription operation.",
+                    Value = DirectiveLocation.Subscription
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a field.",
+                    Value = DirectiveLocation.Field
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a fragment definition.",
+                    Value = DirectiveLocation.FragmentDefinition
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a fragment spread.",
+                    Value = DirectiveLocation.FragmentSpread
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to an inline fragment.",
+                    Value = DirectiveLocation.InlineFragment
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a schema definition.",
+                    Value = DirectiveLocation.Schema
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a scalar definition.",
+                    Value = DirectiveLocation.Scalar
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to an object type definition.",
+                    Value = DirectiveLocation.Object
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to a field definition.",
+                    Value = DirectiveLocation.FieldDefinition
+                }),
+                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
+                {
+                    Description = "Location adjacent to an argument definition.",
                     Value = DirectiveLocation.ArgumentDefinition
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
+                    Description = "Location adjacent to an interface definition.",
+                    Value = DirectiveLocation.Interface
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
+                    Description = "Location adjacent to a union definition.",
+                    Value = DirectiveLocation.Union
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
+                    Description = "Location adjacent to an enum definition.",
+                    Value = DirectiveLocation.Enum
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
+                    Description = "Location adjacent to an enum value definition.",
+                    Value = DirectiveLocation.EnumValue
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
+                    Description = "Location adjacent to an input object type definition.",
+                    Value = DirectiveLocation.InputObject
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-                new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
-                {
-                    Name = "",
-                    Description = "",
-                    Value = DirectiveLocation.ArgumentDefinition
-                }),
-
+                    Description = "Location adjacent to an input object field definition.",
+                    Value = DirectiveLocation.InputFieldDefinition
+                })
             }
 
 

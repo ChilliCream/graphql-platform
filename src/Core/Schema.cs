@@ -72,6 +72,11 @@ namespace HotChocolate
             return Array.Empty<object>();
         }
 
+        public IEnumerable<IType> GetPossibleTypes(IType abstractType )
+        {
+            throw new NotImplementedException();
+        }
+
         public static Schema Create(
             string schema,
             Action<ISchemaConfiguration> configure)

@@ -11,6 +11,7 @@ namespace HotChocolate.Types
         , INamedType
         , INullableType
         , ITypeSystemNode
+        , IHasFields
     {
         private readonly InterfaceTypeConfig _config;
         private readonly ResolveType _typeResolver;

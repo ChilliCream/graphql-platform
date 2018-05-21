@@ -14,6 +14,7 @@ namespace HotChocolate.Types
         , INamedType
         , INullableType
         , ITypeSystemNode
+        , IHasFields
     {
         private readonly IsOfType _isOfType;
         private readonly Func<IEnumerable<InterfaceType>> _resolveInterfaces;

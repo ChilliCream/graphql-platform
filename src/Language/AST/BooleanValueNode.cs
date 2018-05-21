@@ -5,6 +5,11 @@ namespace HotChocolate.Language
     public sealed class BooleanValueNode
         : IValueNode
     {
+        public BooleanValueNode(bool value)
+            : this(null, value)
+        {
+        }
+
         public BooleanValueNode(
             Location location,
             bool value)

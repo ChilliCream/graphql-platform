@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Introspection
@@ -9,48 +13,132 @@ namespace HotChocolate.Introspection
         {
             Name = _typeName,
             Description =
-                "A GraphQL Schema defines the capabilities of a GraphQL server. It " +
-                "exposes all available types and directives on the server, as well as " +
-                "the entry points for query, mutation, and subscription operations.",
+                "The fundamental unit of any GraphQL Schema is the type. There are " +
+                "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
+                "\n\nDepending on the kind of a type, certain fields describe " +
+                "information about that type. Scalar types provide no information " +
+                "beyond a name and description, while Enum types provide their values. " +
+                "Object and Interface types provide the fields they describe. Abstract " +
+                "types, Union and Interface, provide the Object types possible " +
+                "at runtime. List and NonNull types compose other types.",
             IsIntrospection = true,
             Fields = new[]
             {
                 new Field(new FieldConfig
                 {
-                    Name = "types",
-                    Description = "A list of all types supported by this server.",
-                    Type = () => new NonNullType(new ListType(new NonNullType(c.GetOutputType(_typeName)))),
-                    Resolver = () => (ctx, ct) => ctx.Schema.GetAllTypes()
+                    Name = "kind",
+                    Type = () => new NonNullType(c.GetOutputType(_typeKindName)),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(!type.TryGetKind(out TypeKind kind))
+                        {
+                            return new QueryError("Unknown kind of type: " + type);
+                        }
+                        return kind;
+                    }
                 }),
                 new Field(new FieldConfig
                 {
-                    Name = "queryType",
-                    Description = "The type that query operations will be rooted at.",
-                    Type = () => new NonNullType(c.GetOutputType(_typeName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.QueryType
-                }),
-                new Field(new FieldConfig
-                {
-                    Name = "mutationType",
-                    Description =
-                        "If this server supports mutation, the type that " +
-                        "mutation operations will be rooted at.",
-                    Type = () => new NonNullType(c.GetOutputType(_typeName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.MutationType
+                    Name = "name",
+                    Type = () => c.StringType(),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type is INamedType n)
+                        {
+                            return n.Name;
+                        }
+                        return null;
+                    }
                 }),
                 new Field(new FieldConfig
                 {
                     Name = "description",
-                    Description =
-                        "If this server support subscription, the type that " +
-                        "subscription operations will be rooted at.",
-                    Type = () => new NonNullType(c.GetOutputType(_typeName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.SubscriptionType
+                    Type = () => c.StringType(),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type is INamedType n)
+                        {
+                            return n.Description;
+                        }
+                        return null;
+                    }
                 }),
                 new Field(new FieldConfig
                 {
-                    Name = "directives",
-                    Description = "A list of all directives supported by this server.",
+                    Name = "fields",
+                    Type = () => new ListType(new NonNullType(c.GetOutputType(_fieldName))),
+                    Arguments = new []
+                    {
+                        new InputField(new InputFieldConfig
+                        {
+                            Name = "includeDeprecated",
+                            Type = () => c.BooleanType(),
+                            DefaultValue = () => new BooleanValueNode(false)
+                        })
+                    },
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        bool includeDeprecated = ctx.Argument<bool>("includeDeprecated");
+                        if(type.IsObjectType() || type.IsInterfaceType())
+                        {
+                            IReadOnlyDictionary<string, Field> fields =
+                                ((IHasFields)type).Fields;
+                            if(!includeDeprecated)
+                            {
+                                return fields.Values.Where(t => !t.IsDeprecated);
+                            }
+                            return fields.Values;
+                        }
+                        return null;
+                    }
+                }),
+                new Field(new FieldConfig
+                {
+                    Name = "interfaces",
+                    Type = () => new ListType(new NonNullType(c.GetOutputType(_typeName))),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type is ObjectType ot)
+                        {
+                            return ot.Interfaces.Values;
+                        }
+                        return null;
+                    }
+                }),
+                new Field(new FieldConfig
+                {
+                    Name = "possibleTypes",
+                    Type = () =>  new ListType(new NonNullType(c.GetOutputType(_directiveName))),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type.IsAbstractType())
+                        {
+                            ctx.Schema.GetPossibleTypes(type);
+                        }
+                        return null;
+                    }
+                }),
+                new Field(new FieldConfig
+                {
+                    Name = "enumValues",
+                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
+                    Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
+                }),
+                new Field(new FieldConfig
+                {
+                    Name = "inputFields",
+                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
+                    Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
+                }),
+                new Field(new FieldConfig
+                {
+                    Name = "ofType",
                     Type = () => new NonNullType(c.GetOutputType(_directiveName)),
                     Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
                 })
