@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
             {
                 case OperationType.Query:
                     List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
-                        executionContext, schema.Query);
+                        executionContext, schema.QueryType);
                     executionContext.NextBatch.AddRange(tasks);
                     await ExecuteFieldResolversAsync(executionContext, cancellationToken);
                     break;

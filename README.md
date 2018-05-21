@@ -1,6 +1,3 @@
-
-
-
 ![React Rasta](https://cdn.rawgit.com/ChilliCream/react-rasta-logo/master/img/react-rasta-banner-light.svg)
 
 [![release](https://img.shields.io/github/release/ChilliCream/react-rasta.svg)](https://github.com/ChilliCream/react-rasta/releases) [

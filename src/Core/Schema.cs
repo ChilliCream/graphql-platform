@@ -18,7 +18,19 @@ namespace HotChocolate
         private Schema(SchemaContext context)
         {
             _context = context;
-            QueryType = (ObjectType)context.GetType("Query"); // TODO : rework
+            QueryType = (ObjectType)context.GetType(TypeNames.Query);
+
+            if (context.TryGetOutputType<ObjectType>(
+                TypeNames.Mutation, out ObjectType mutationType))
+            {
+                MutationType = mutationType;
+            }
+
+            if (context.TryGetOutputType<ObjectType>(
+                TypeNames.Mutation, out ObjectType subscriptionType))
+            {
+                SubscriptionType = subscriptionType;
+            }
         }
 
         /// <summary>
@@ -30,20 +42,21 @@ namespace HotChocolate
         /// If this server supports mutation, the type that
         /// mutation operations will be rooted at.
         /// </summary>
-        public ObjectType MutationType => throw new NotImplementedException();
+        public ObjectType MutationType { get; }
 
         /// <summary>
         /// If this server support subscription, the type that
         /// subscription operations will be rooted at.
         /// </summary>
-        public ObjectType SubscriptionType => throw new NotImplementedException();
+        public ObjectType SubscriptionType { get; }
 
         public INamedType GetType(string typeName)
         {
             return _context.GetType(typeName);
         }
 
-        public T GetType<T>(string typeName) where T : INamedType
+        public T GetType<T>(string typeName)
+            where T : INamedType
         {
             return _context.GetType<T>(typeName);
         }
@@ -57,6 +70,7 @@ namespace HotChocolate
             string schema,
             Action<ISchemaConfiguration> configure)
         {
+            // todo : argument validation
             DocumentNode schemaDocument = Parser.Default.Parse(schema);
             return Create(schemaDocument, configure);
         }
@@ -65,6 +79,7 @@ namespace HotChocolate
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
         {
+            // todo : argument validation
             SchemaContext context = new SchemaContext(
                 CreateSystemTypes());
 

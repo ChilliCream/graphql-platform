@@ -1,22 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Abstractions;
+using HotChocolate.Types;
 
 namespace HotChocolate.Introspection
 {
     internal partial class __Type
     {
-        public static IEnumerable<__Type> CreateScalarTypes()
+        public static __Type CreateType(Schema schema, INamedType type)
         {
-            yield return new __Type(__TypeKind.Scalar, ScalarTypes.Boolean, null, null, null);
-            yield return new __Type(__TypeKind.Scalar, ScalarTypes.Float, null, null, null);
-            yield return new __Type(__TypeKind.Scalar, ScalarTypes.ID, null, null, null);
-            yield return new __Type(__TypeKind.Scalar, ScalarTypes.Integer, null, null, null);
-            yield return new __Type(__TypeKind.Scalar, ScalarTypes.String, null, null, null);
         }
 
-        public static __Type CreateType(ISchema schema, IType type)
+        public static __Type CreateType(Schema schema, ObjectType type)
         {
             if (type.IsNonNullType())
             {
@@ -35,13 +30,13 @@ namespace HotChocolate.Introspection
             return CreateFromNamedType(schema, type.NamedType());
         }
 
-        private static __Type CreateNonNullListType(ISchema schema, IType type)
+        private static __Type CreateNonNullListType(Schema schema, IType type)
         {
             return new __Type(__TypeKind.NonNull,
                 CreateListType(schema, type.InnerType()));
         }
 
-        private static __Type CreateListType(ISchema schema, IType type)
+        private static __Type CreateListType(Schema schema, IType type)
         {
             if (type.IsNonNullElementType())
             {
@@ -55,13 +50,13 @@ namespace HotChocolate.Introspection
             }
         }
 
-        private static __Type CreateNonNullNamedType(ISchema schema, IType type)
+        private static __Type CreateNonNullNamedType(Schema schema, IType type)
         {
             return new __Type(__TypeKind.NonNull,
                 CreateFromNamedType(schema, type.NamedType()));
         }
 
-        private static __Type CreateFromNamedType(ISchema schema, NamedType namedType)
+        private static __Type CreateFromNamedType(Schema schema, INamedType namedType)
         {
             if (namedType.IsScalarType())
             {

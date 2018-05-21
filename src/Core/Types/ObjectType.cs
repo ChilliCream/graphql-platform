@@ -47,6 +47,8 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
+        public bool IsIntrospection { get; }
+
         public IReadOnlyDictionary<string, InterfaceType> Interfaces
         {
             get
@@ -116,6 +118,8 @@ namespace HotChocolate.Types
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public bool IsIntrospection { get; set; }
 
         public Func<IReadOnlyDictionary<string, InterfaceType>> Interfaces { get; set; }
 
