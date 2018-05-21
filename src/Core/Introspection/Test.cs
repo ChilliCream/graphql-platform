@@ -6,10 +6,17 @@ namespace HotChocolate.Introspection
     public class Foo
         : ObjectType
     {
-        public Foo(ObjectTypeConfig config)
-            : base(config)
+        public Foo()
+            : base(Create())
         {
+        }
 
+        private static ObjectTypeConfig Create()
+        {
+            return new ObjectTypeConfig
+            {
+
+            }
         }
     }
 }

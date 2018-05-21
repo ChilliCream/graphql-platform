@@ -21,35 +21,36 @@ namespace HotChocolate
             ObjectType objectType = new ObjectType(config);
             config.Interfaces = () => GetInterfaces(
                 context, objectTypeDefinition, objectType);
-            config.Fields = () => GetFields(
+            config.Fields = GetFields(
                 context, objectTypeDefinition, objectType);
             return objectType;
         }
 
-        private IReadOnlyDictionary<string, InterfaceType> GetInterfaces(
+        private IEnumerable<InterfaceType> GetInterfaces(
             SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType)
         {
-            Dictionary<string, InterfaceType> interfaces =
-                new Dictionary<string, InterfaceType>();
+            int i = 0;
+            InterfaceType[] interfaces =
+                new InterfaceType[objectTypeDefinition.Interfaces.Count];
 
             foreach (NamedTypeNode type in objectTypeDefinition.Interfaces)
             {
-                interfaces[type.Name.Value] = context
+                interfaces[i++] = context
                     .GetOutputType<InterfaceType>(type.Name.Value);
             }
 
             return interfaces;
         }
 
-        private Dictionary<string, Field> GetFields(
+        private IEnumerable<Field> GetFields(
             SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType)
         {
-            Dictionary<string, Field> fields = new Dictionary<string, Field>(
-                objectTypeDefinition.Fields.Count);
+            int i = 0;
+            Field[] fields = new Field[objectTypeDefinition.Fields.Count];
 
             foreach (FieldDefinitionNode fieldDefinition in
                 objectTypeDefinition.Fields)
@@ -62,7 +63,7 @@ namespace HotChocolate
                 };
 
                 Field field = new Field(config);
-                fields[field.Name] = field;
+                fields[i++] = field;
 
                 config.Arguments = () => GetFieldArguments(
                     context, objectTypeDefinition, objectType,

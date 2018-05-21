@@ -15,10 +15,10 @@ namespace HotChocolate.Types
         , INullableType
         , ITypeSystemNode
     {
-        private readonly ObjectTypeConfig _config;
         private readonly IsOfType _isOfType;
-        private IReadOnlyDictionary<string, InterfaceType> _interfaces;
-        private IReadOnlyDictionary<string, Field> _fields;
+        private readonly Func<IEnumerable<InterfaceType>> _resolveInterfaces;
+        private readonly Dictionary<string, Field> _fields;
+        private Dictionary<string, InterfaceType> _interfaces;
 
         public ObjectType(ObjectTypeConfig config)
         {
@@ -34,11 +34,20 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _config = config;
+            _fields = new Dictionary<string, Field>();
+            _resolveInterfaces = config.Interfaces;
             _isOfType = config.IsOfType;
+
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
-            SyntaxNode = config.SyntaxNode;
+            IsIntrospection = config.IsIntrospection;
+
+            foreach (Field field in config.Fields)
+            {
+                _fields[field.Name] = field;
+            }
+
         }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; }
@@ -55,32 +64,16 @@ namespace HotChocolate.Types
             {
                 if (_interfaces == null)
                 {
-                    var interfaces = _config.Interfaces();
+                    IEnumerable<InterfaceType> interfaces = _resolveInterfaces();
                     _interfaces = (interfaces == null)
                         ? new Dictionary<string, InterfaceType>()
-                        : interfaces;
+                        : interfaces.ToDictionary(t => t.Name);
                 }
                 return _interfaces;
             }
         }
 
-        public IReadOnlyDictionary<string, Field> Fields
-        {
-            get
-            {
-                if (_fields == null)
-                {
-                    var fields = _config.Fields();
-                    if (fields == null)
-                    {
-                        throw new InvalidOperationException(
-                            "The fields collection mustn't be null.");
-                    }
-                    _fields = fields;
-                }
-                return _fields;
-            }
-        }
+        public IReadOnlyDictionary<string, Field> Fields => _fields;
 
         public bool IsOfType(IResolverContext context, object resolverResult)
         {
@@ -121,9 +114,9 @@ namespace HotChocolate.Types
 
         public bool IsIntrospection { get; set; }
 
-        public Func<IReadOnlyDictionary<string, InterfaceType>> Interfaces { get; set; }
+        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
 
-        public Func<IReadOnlyDictionary<string, Field>> Fields { get; set; }
+        public IEnumerable<Field> Fields { get; set; }
 
         public IsOfType IsOfType { get; set; }
     }
