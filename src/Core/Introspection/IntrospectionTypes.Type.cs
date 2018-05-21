@@ -127,20 +127,66 @@ namespace HotChocolate.Introspection
                 new Field(new FieldConfig
                 {
                     Name = "enumValues",
-                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
+                    Type = () => new ListType(new NonNullType(c.GetOutputType(_enumValueName))),
+                    Arguments = new[]
+                    {
+                        new InputField(new InputFieldConfig
+                        {
+                            Name = "includeDeprecated",
+                            Type = () => c.BooleanType(),
+                            DefaultValue = () => new BooleanValueNode(false)
+                        })
+                    },
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        bool includeDeprecated = ctx.Argument<bool>("includeDeprecated");
+                        if(type is EnumType et)
+                        {
+                            IReadOnlyCollection<EnumValue> values = et.Values;
+                            if(!includeDeprecated)
+                            {
+                                return values.Where(t => !t.IsDeprecated);
+                            }
+                            return values;
+                        }
+                        return null;
+                    }
                 }),
                 new Field(new FieldConfig
                 {
                     Name = "inputFields",
-                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
+                    Type = () => new ListType(new NonNullType(c.GetOutputType(_inputValueName))),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type is InputObjectType iot)
+                        {
+                            return iot.Fields.Values;
+                        }
+                        return null;
+                    }
                 }),
                 new Field(new FieldConfig
                 {
                     Name = "ofType",
-                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
-                    Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
+                    Type = () => c.GetOutputType(_typeName),
+                    Resolver = () => (ctx, ct) =>
+                    {
+                        IType type = ctx.Parent<IType>();
+                        if(type is ListType lt)
+                        {
+                            return lt;
+                        }
+                        else if(type is NonNullType nnt)
+                        {
+                            return nnt;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
                 })
             }
         };
