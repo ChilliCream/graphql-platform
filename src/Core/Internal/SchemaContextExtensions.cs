@@ -53,5 +53,26 @@ namespace HotChocolate
 
             throw new NotSupportedException();
         }
+
+        public static ScalarType StringType(this ISchemaContext context)
+        {
+            return context.GetOutputType<StringType>(WellKnownTypes.StringType);
+        }
+
+        public static NonNullType NonNullStringType(this ISchemaContext context)
+        {
+            return new NonNullType(context.StringType());
+        }
+
+        public static ScalarType BooleanType(this ISchemaContext context)
+        {
+            // TODO : boolean type
+            return context.GetOutputType<ScalarType>(WellKnownTypes.BooleanType);
+        }
+
+        public static NonNullType NonNullBooleanType(this ISchemaContext context)
+        {
+            return new NonNullType(context.BooleanType());
+        }
     }
 }

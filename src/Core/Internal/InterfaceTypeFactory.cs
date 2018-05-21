@@ -45,7 +45,7 @@ namespace HotChocolate
                 Field field = new Field(config);
                 fields[field.Name] = field;
 
-                config.Arguments = () => GetFieldArguments(
+                config.Arguments = GetFieldArguments(
                     context, interfaceTypeDefinition, interfaceType,
                     fieldDefinition, field);
                 config.Type = () => context.GetOutputType(fieldDefinition.Type);
@@ -54,16 +54,16 @@ namespace HotChocolate
             return fields;
         }
 
-        private Dictionary<string, InputField> GetFieldArguments(
+        private IEnumerable<InputField> GetFieldArguments(
             SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition,
             InterfaceType interfaceType,
             FieldDefinitionNode fieldDefinition,
             Field field)
         {
-            Dictionary<string, InputField> inputFields =
-                new Dictionary<string, InputField>(
-                    fieldDefinition.Arguments.Count);
+            int i = 0;
+            InputField[] inputFields =
+                new InputField[fieldDefinition.Arguments.Count];
 
             foreach (InputValueDefinitionNode inputFieldDefinition in
                 fieldDefinition.Arguments)
@@ -73,13 +73,12 @@ namespace HotChocolate
                     SyntaxNode = inputFieldDefinition,
                     Name = inputFieldDefinition.Name.Value,
                     Description = inputFieldDefinition.Description?.Value,
-                    Type = () => context.GetInputType(inputFieldDefinition.Type)
+                    Type = () => context.GetInputType(inputFieldDefinition.Type),
+                    DefaultValue = () => inputFieldDefinition.DefaultValue
                 };
 
                 InputField inputField = new InputField(config);
-                inputFields[inputField.Name] = inputField;
-
-                // TODO: default value
+                inputFields[i++] = inputField;
             }
 
             return inputFields;

@@ -114,15 +114,30 @@ namespace HotChocolate.Types
     }
 
     public class EnumTypeConfig
+        : INamedTypeConfig
     {
+        public EnumTypeDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public EnumTypeDefinitionNode SyntaxNode { get; set; }
+        public bool IsIntrospection { get; set; }
 
-        public Func<IEnumerable<EnumValue>> Values { get; set; }
+        public IEnumerable<EnumValue> Values { get; set; }
 
-        public Func<Type> NativeType { get; set; }
+        public virtual Type NativeType { get; set; }
+    }
+
+    public class EnumTypeConfig<T>
+        : EnumTypeConfig
+    {
+        public new IEnumerable<EnumValue<T>> Values { get; set; }
+
+        public override Type NativeType
+        {
+            get => typeof(T);
+            set => throw new NotSupportedException();
+        }
     }
 }

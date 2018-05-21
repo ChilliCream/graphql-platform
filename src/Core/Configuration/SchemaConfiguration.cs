@@ -501,7 +501,7 @@ namespace HotChocolate.Configuration
             return member.Name.Substring(0, 1).ToLowerInvariant() + member.Name.Substring(1);
         }
 
-        public void RegisterObjectType(Func<SchemaContext, ObjectTypeConfig> create)
+        public void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)
         {
             throw new NotImplementedException();
         }

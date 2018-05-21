@@ -106,6 +106,7 @@ namespace HotChocolate.Types
     }
 
     public class ObjectTypeConfig
+        : INamedTypeConfig
     {
         public ObjectTypeDefinitionNode SyntaxNode { get; set; }
         public string Name { get; set; }

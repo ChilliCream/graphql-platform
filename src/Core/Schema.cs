@@ -66,26 +66,68 @@ namespace HotChocolate
             return _context.GetAllTypes();
         }
 
+        // TODO : Introduce directive type
+        public IReadOnlyCollection<object> GetDirectives()
+        {
+            return Array.Empty<object>();
+        }
+
         public static Schema Create(
             string schema,
             Action<ISchemaConfiguration> configure)
         {
-            // todo : argument validation
-            DocumentNode schemaDocument = Parser.Default.Parse(schema);
-            return Create(schemaDocument, configure);
+            if (string.IsNullOrEmpty(schema))
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return Create(Parser.Default.Parse(schema), configure);
         }
 
         public static Schema Create(
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
         {
-            // todo : argument validation
+            if (schemaDocument == null)
+            {
+                throw new ArgumentNullException(nameof(schemaDocument));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             SchemaContext context = new SchemaContext(
                 CreateSystemTypes());
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
             visitor.Visit(schemaDocument);
+
+            // configure resolvers and aliases
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configure(configuration);
+            configuration.Commit(context);
+
+            return new Schema(context);
+        }
+
+        public static Schema Create(
+            Action<ISchemaConfiguration> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            SchemaContext context = new SchemaContext(
+                CreateSystemTypes());
 
             // configure resolvers and aliases
             SchemaConfiguration configuration = new SchemaConfiguration();

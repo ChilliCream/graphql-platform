@@ -38,6 +38,8 @@ namespace HotChocolate.Types
             Name = config.Name;
             Description = config.Description;
             IsIntrospection = config.IsIntrospection;
+            IsDeprecated = !string.IsNullOrEmpty(config.DeprecationReason);
+            DeprecationReason = config.DeprecationReason;
         }
 
         public FieldDefinitionNode SyntaxNode { get; }
@@ -47,6 +49,10 @@ namespace HotChocolate.Types
         public string Description { get; }
 
         internal bool IsIntrospection { get; }
+
+        public bool IsDeprecated { get; }
+
+        public string DeprecationReason { get; }
 
         public IOutputType Type
         {
@@ -93,6 +99,8 @@ namespace HotChocolate.Types
         public string Description { get; set; }
 
         internal bool IsIntrospection { get; set; }
+
+        public string DeprecationReason { get; set; }
 
         public Func<IOutputType> Type { get; set; }
 
