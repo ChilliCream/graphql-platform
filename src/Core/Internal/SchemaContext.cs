@@ -6,7 +6,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    // TODO : move under configuration?
     internal sealed class SchemaContext
+        : ISchemaContext
     {
         private readonly Dictionary<string, List<ObjectType>> _implementsLookup =
             new Dictionary<string, List<ObjectType>>();

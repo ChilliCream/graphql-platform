@@ -501,6 +501,11 @@ namespace HotChocolate.Configuration
             return member.Name.Substring(0, 1).ToLowerInvariant() + member.Name.Substring(1);
         }
 
+        public void RegisterObjectType(Func<SchemaContext, ObjectTypeConfig> create)
+        {
+            throw new NotImplementedException();
+        }
+
         private class ResolverBindingContext
             : IResolverBindingContext
         {

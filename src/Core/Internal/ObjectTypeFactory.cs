@@ -65,7 +65,7 @@ namespace HotChocolate
                 Field field = new Field(config);
                 fields[i++] = field;
 
-                config.Arguments = () => GetFieldArguments(
+                config.Arguments = GetFieldArguments(
                     context, objectTypeDefinition, objectType,
                     fieldDefinition, field);
                 config.Resolver = () => context.CreateResolver(
@@ -76,16 +76,16 @@ namespace HotChocolate
             return fields;
         }
 
-        private Dictionary<string, InputField> GetFieldArguments(
+        private IEnumerable<InputField> GetFieldArguments(
             SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition,
             ObjectType objectType,
             FieldDefinitionNode fieldDefinition,
             Field field)
         {
-            Dictionary<string, InputField> inputFields =
-                new Dictionary<string, InputField>(
-                    fieldDefinition.Arguments.Count);
+            int i = 0;
+            InputField[] inputFields =
+                new InputField[fieldDefinition.Arguments.Count];
 
             foreach (InputValueDefinitionNode inputFieldDefinition in
                 fieldDefinition.Arguments)
@@ -99,7 +99,7 @@ namespace HotChocolate
                     DefaultValue = () => inputFieldDefinition.DefaultValue
                 };
 
-                inputFields[config.Name] = new InputField(config);
+                inputFields[i++] = new InputField(config);
             }
 
             return inputFields;

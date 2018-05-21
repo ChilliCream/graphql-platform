@@ -39,5 +39,7 @@ namespace HotChocolate.Configuration
         /// <typeparam name="T">The custom scalar type.</typeparam>
         void RegisterScalar<T>()
             where T : ScalarType, new();
+
+        void RegisterObjectType(Func<SchemaContext, ObjectTypeConfig> create);
     }
 }

@@ -10,9 +10,10 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly FieldConfig _config;
+        private readonly Dictionary<string, InputField> _arguments;
+        private readonly Func<IOutputType> _resolveType;
+        private readonly Func<FieldResolverDelegate> _resolveResolver;
         private IOutputType _type;
-        private IReadOnlyDictionary<string, InputField> _arguments;
         private FieldResolverDelegate _resolver;
 
         public Field(FieldConfig config)
@@ -29,10 +30,14 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _config = config;
+            _arguments = config.Arguments.ToDictionary(t => t.Name);
+            _resolveType = config.Type;
+            _resolveResolver = config.Resolver;
+
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
+            IsIntrospection = config.IsIntrospection;
         }
 
         public FieldDefinitionNode SyntaxNode { get; }
@@ -41,13 +46,15 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
+        internal bool IsIntrospection { get; }
+
         public IOutputType Type
         {
             get
             {
                 if (_type == null)
                 {
-                    _type = _config.Type();
+                    _type = _resolveType();
                     if (_type == null)
                     {
                         throw new InvalidOperationException(
@@ -58,20 +65,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public IReadOnlyDictionary<string, InputField> Arguments
-        {
-            get
-            {
-                if (_arguments == null)
-                {
-                    var arguments = _config.Arguments?.Invoke();
-                    _arguments = (arguments == null)
-                        ? new Dictionary<string, InputField>()
-                        : arguments;
-                }
-                return _arguments;
-            }
-        }
+        public IReadOnlyDictionary<string, InputField> Arguments => _arguments;
 
         public FieldResolverDelegate Resolver
         {
@@ -79,7 +73,7 @@ namespace HotChocolate.Types
             {
                 if (_resolver == null)
                 {
-                    _resolver = _config.Resolver();
+                    _resolver = _resolveResolver();
                 }
                 return _resolver;
             }
@@ -98,9 +92,11 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
+        internal bool IsIntrospection { get; set; }
+
         public Func<IOutputType> Type { get; set; }
 
-        public Func<IReadOnlyDictionary<string, InputField>> Arguments { get; set; }
+        public IEnumerable<InputField> Arguments { get; set; }
 
         public Func<FieldResolverDelegate> Resolver { get; set; }
     }
