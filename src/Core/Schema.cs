@@ -20,16 +20,16 @@ namespace HotChocolate
         private Schema(SchemaContext context)
         {
             _context = context;
-            QueryType = (ObjectType)context.GetType(TypeNames.Query);
+            QueryType = (ObjectType)context.GetType(WellKnownTypes.Query);
 
             if (context.TryGetOutputType<ObjectType>(
-                TypeNames.Mutation, out ObjectType mutationType))
+                WellKnownTypes.Mutation, out ObjectType mutationType))
             {
                 MutationType = mutationType;
             }
 
             if (context.TryGetOutputType<ObjectType>(
-                TypeNames.Mutation, out ObjectType subscriptionType))
+                WellKnownTypes.Mutation, out ObjectType subscriptionType))
             {
                 SubscriptionType = subscriptionType;
             }
@@ -37,6 +37,10 @@ namespace HotChocolate
             SchemaField = IntrospectionTypes.CreateSchemaField(context);
             TypeField = IntrospectionTypes.CreateTypeField(context);
             TypeNameField = IntrospectionTypes.CreateTypeNameField(context);
+
+            SchemaField.CompleteInitialization(error => { }, QueryType);
+            TypeField.CompleteInitialization(error => { }, QueryType);
+            TypeNameField.CompleteInitialization(error => { }, QueryType);
         }
 
         /// <summary>
@@ -175,22 +179,32 @@ namespace HotChocolate
                 SchemaConfiguration configuration = new SchemaConfiguration();
                 configure(configuration);
                 configuration.Commit(context);
-
-                // finalize objects and seal the schema context
-                List<SchemaError> errors = context.Seal();
-
-                if (strict && errors.Any())
-                {
-                    throw new SchemaException(errors);
-                }
-
-                return new Schema(context);
             }
             catch (ArgumentException ex)
             {
-                // TODO : maybe we should throw a more specific argument exception that at least contains the config object.
-                throw new SchemaException(new[] { new SchemaError(ex.Message, null) });
+                // TODO : maybe we should throw a more specific
+                // argument exception that at least contains the config object.
+                throw new SchemaException(new[]
+                {
+                    new SchemaError(ex.Message, null)
+                });
             }
+
+            // finalize objects and seal the schema context
+            List<SchemaError> errors = context.Seal();
+
+            if (strict && errors.Any())
+            {
+                throw new SchemaException(errors);
+            }
+
+            if (!context.TypeExists<ObjectType>(WellKnownTypes.Query))
+            {
+                throw new SchemaException(new SchemaError(
+                    "Schema is missing the mandatory `Query` type."));
+            }
+
+            return new Schema(context);
         }
 
         private static SchemaContext CreateSchemaContext()

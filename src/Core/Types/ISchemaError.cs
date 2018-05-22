@@ -5,6 +5,16 @@ namespace HotChocolate.Types
 {
     public class SchemaError
     {
+        public SchemaError(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            Message = message;
+        }
+
         public SchemaError(string message, INamedType type)
         {
             if (string.IsNullOrEmpty(message))

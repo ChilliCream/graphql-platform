@@ -11,7 +11,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Factories;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Types.Factories
 {
     public class ObjectTypeFactoryTests
     {

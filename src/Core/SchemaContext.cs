@@ -125,6 +125,17 @@ namespace HotChocolate
             types.Add(objectType);
         }
 
+        public bool TypeExists<T>(string typeName)
+            where T : INamedType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public INamedType GetType(string typeName)
         {
             if (_types.TryGetValue(typeName, out var t))

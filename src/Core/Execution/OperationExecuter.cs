@@ -67,10 +67,12 @@ namespace HotChocolate.Execution
             Schema schema, DocumentNode queryDocument, string operationName,
             Dictionary<string, IValueNode> variableValues, object initialValue)
         {
+            Dictionary<string, IValueNode> vars = variableValues
+                ?? new Dictionary<string, IValueNode>();
             OperationDefinitionNode operation = GetOperation(queryDocument, operationName);
             VariableCollection variables = new VariableCollection(
                 _variableValueResolver.CoerceVariableValues(
-                    schema, operation, variableValues));
+                    schema, operation, vars));
             ExecutionContext executionContext = new ExecutionContext(
                 schema, queryDocument, operation, variables, _services,
                 initialValue, null);
@@ -182,6 +184,7 @@ namespace HotChocolate.Execution
             }
         }
 
+        // TODO : refactor this
         private bool TryCompleteValue(
             ExecutionContext executionContext,
             ImmutableStack<object> source,
@@ -205,6 +208,7 @@ namespace HotChocolate.Execution
                         fieldSelection.Node));
                     return false;
                 }
+                return true;
             }
 
             if (completedValue == null)
@@ -283,11 +287,14 @@ namespace HotChocolate.Execution
             }
             catch (ArgumentException ex)
             {
-                executionContext.Errors.Add(new FieldError(ex.Message, fieldSelection.Node));
+                executionContext.Errors.Add(new FieldError(
+                    ex.Message, fieldSelection.Node));
             }
             catch (Exception)
             {
-                executionContext.Errors.Add(new FieldError("Undefined field serialization error.", fieldSelection.Node));
+                executionContext.Errors.Add(new FieldError(
+                    "Undefined field serialization error.",
+                    fieldSelection.Node));
             }
 
             setValue(null);
