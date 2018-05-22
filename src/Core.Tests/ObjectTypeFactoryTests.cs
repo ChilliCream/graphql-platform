@@ -34,6 +34,7 @@ namespace HotChocolate
             // act
             ObjectTypeFactory factory = new ObjectTypeFactory();
             ObjectType objectType = factory.Create(context, objectTypeDefinition);
+            ((ITypeInitializer)objectType).CompleteInitialization(error => { });
 
             // assert
             Assert.Equal("Simple", objectType.Name);

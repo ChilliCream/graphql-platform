@@ -38,8 +38,7 @@ namespace HotChocolate.Configuration
             // assert
             Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "a"));
             Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "b"));
-            Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("Dummy", "x"));
+            Assert.Null(schemaContext.CreateResolver("Dummy", "x"));
         }
 
         [Fact]
@@ -86,8 +85,7 @@ namespace HotChocolate.Configuration
             FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
             Assert.Equal("a_dummy_a", resolver(resolverContext.Object, CancellationToken.None));
-            Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("TestObjectA", "b"));
+            Assert.Null(schemaContext.CreateResolver("TestObjectA", "b"));
         }
 
         [Fact]
