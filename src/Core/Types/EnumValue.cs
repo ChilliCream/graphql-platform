@@ -80,7 +80,7 @@ namespace HotChocolate.Types
                 _value = value;
                 if (string.IsNullOrEmpty(Name))
                 {
-                    Name = value.ToString();
+                    Name = value.ToString().ToUpperInvariant();
                 }
             }
         }

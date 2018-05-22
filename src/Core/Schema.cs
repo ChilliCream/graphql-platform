@@ -50,6 +50,50 @@ namespace HotChocolate
         /// </summary>
         public ObjectType SubscriptionType { get; }
 
+        internal Field SchemaField
+        {
+            // TODO : move initialized field to a class var
+            get => new Field(new FieldConfig
+            {
+                Name = "__schema",
+                Description = "Access the current type schema of this server.",
+                Type = () => new NonNullType(_context.GetOutputType("__Schema")),
+                Resolver = () => (ctx, ct) => ctx.Schema
+            });
+        }
+
+        internal Field TypeField
+        {
+            // TODO : move initialized field to a class var
+            get => new Field(new FieldConfig
+            {
+                Name = "__type",
+                Description = "Request the type information of a single type.",
+                Type = () => _context.GetOutputType("__Type"),
+                Arguments = new[]
+                {
+                    new InputField(new InputFieldConfig
+                    {
+                        Name ="type",
+                        Type = () => _context.NonNullStringType()
+                    })
+                },
+                Resolver = () => (ctx, ct) => ctx.Schema.GetType(ctx.Argument<string>("type"))
+            });
+        }
+
+        internal Field TypeNameField
+        {
+            // TODO : move initialized field to a class var
+            get => new Field(new FieldConfig
+            {
+                Name = "__typename",
+                Description = "The name of the current Object type at runtime.",
+                Type = () => _context.NonNullStringType(),
+                Resolver = () => (ctx, ct) => ctx.ObjectType.Name
+            });
+        }
+
         public INamedType GetType(string typeName)
         {
             return _context.GetType(typeName);
@@ -72,7 +116,7 @@ namespace HotChocolate
             return Array.Empty<object>();
         }
 
-        public IEnumerable<IType> GetPossibleTypes(IType abstractType )
+        public IEnumerable<IType> GetPossibleTypes(IType abstractType)
         {
             throw new NotImplementedException();
         }

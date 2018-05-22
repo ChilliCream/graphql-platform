@@ -37,6 +37,7 @@ namespace HotChocolate.Introspection
                     Type = () => new NonNullType(c.GetOutputType(_typeName)),
                     Resolver = () => (ctx, ct) => ctx.Parent<InputField>().Type
                 }),
+                // TODO : implement ast tostring functionality and return serialized string
                 new Field(new FieldConfig
                 {
                     Name = "defaultValue",
@@ -44,7 +45,7 @@ namespace HotChocolate.Introspection
                         "A GraphQL-formatted string representing the default value for this " +
                         "input value.",
                     Type = () => c.StringType(),
-                    Resolver = () => (ctx, ct) => ctx.Parent<InputField>().IsDeprecated
+                    Resolver = () => (ctx, ct) => null
                 })
             }
         };

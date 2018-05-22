@@ -37,16 +37,19 @@ namespace HotChocolate.Introspection
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "FRAGMENT_DEFINITION",
                     Description = "Location adjacent to a fragment definition.",
                     Value = DirectiveLocation.FragmentDefinition
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "FRAGMENT_SPREAD",
                     Description = "Location adjacent to a fragment spread.",
                     Value = DirectiveLocation.FragmentSpread
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "INLINE_FRAGMENT",
                     Description = "Location adjacent to an inline fragment.",
                     Value = DirectiveLocation.InlineFragment
                 }),
@@ -67,11 +70,13 @@ namespace HotChocolate.Introspection
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "FIELD_DEFINITION",
                     Description = "Location adjacent to a field definition.",
                     Value = DirectiveLocation.FieldDefinition
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "ARGUMENT_DEFINITION",
                     Description = "Location adjacent to an argument definition.",
                     Value = DirectiveLocation.ArgumentDefinition
                 }),
@@ -92,16 +97,19 @@ namespace HotChocolate.Introspection
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "ENUM_VALUE",
                     Description = "Location adjacent to an enum value definition.",
                     Value = DirectiveLocation.EnumValue
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "INPUT_OBJECT",
                     Description = "Location adjacent to an input object type definition.",
                     Value = DirectiveLocation.InputObject
                 }),
                 new EnumValue<DirectiveLocation>(new EnumValueConfig<DirectiveLocation>
                 {
+                    Name = "INPUT_FIELD_DEFINITION",
                     Description = "Location adjacent to an input object field definition.",
                     Value = DirectiveLocation.InputFieldDefinition
                 })
