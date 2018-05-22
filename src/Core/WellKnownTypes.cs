@@ -4,6 +4,6 @@ namespace HotChocolate
     {
         public const string StringType = "String";
         public const string BooleanType = "Boolean";
-
+        public const string IntType = "Int";
     }
 }

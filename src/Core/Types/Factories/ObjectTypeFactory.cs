@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Types.Factories
 {
     internal sealed class ObjectTypeFactory
         : ObjectTypeFactoryBase

@@ -7,6 +7,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Factories;
 using Xunit;
 
 namespace HotChocolate

@@ -3,10 +3,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class IntType
+    public sealed class IntegerType
         : ScalarType
     {
-        public IntType()
+        public IntegerType()
             : base("Int")
         {
         }

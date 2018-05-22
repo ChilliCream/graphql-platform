@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Types.Factories
 {
     internal interface ITypeFactory<in TNode, out TType>
         where TNode : ISyntaxNode
