@@ -22,7 +22,6 @@ namespace HotChocolate.Types
         private readonly Func<IEnumerable<InterfaceType>> _interfaceFactory;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
-        private readonly IEnumerable<Field> _fields;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
@@ -40,10 +39,32 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
+            Field[] fields = config.Fields?.ToArray()
+                 ?? Array.Empty<Field>();
+            if (fields.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.",
+                    nameof(config));
+            }
+
+            foreach (Field field in fields)
+            {
+                if (_fieldMap.ContainsKey(field.Name))
+                {
+                    throw new ArgumentException(
+                        $"The field name `{field.Name}` " +
+                        $"is not unique within `{Name}`.",
+                        nameof(config));
+                }
+                else
+                {
+                    _fieldMap.Add(field.Name, field);
+                }
+            }
 
             _isOfType = config.IsOfType;
             _interfaceFactory = config.Interfaces;
-            _fields = config.Fields;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -87,31 +108,11 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        // TODO : split method into InitFields, InitInterfaces, ValidateImplementation
         void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
         {
-            Field[] fields = _fields.ToArray();
-            if (fields.Length == 0)
-            {
-                reportError(new SchemaError(
-                    $"The interface type {Name} has no fields.",
-                    this));
-            }
-
-            foreach (Field field in fields)
+            foreach (Field field in _fieldMap.Values)
             {
                 field.CompleteInitialization(reportError, this);
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    reportError(new SchemaError(
-                        $"The field name of field {field.Name} " +
-                        $"is not unique within {Name}.",
-                        this));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
             }
 
             InterfaceType[] interfaces = _interfaceFactory?.Invoke()?.ToArray()
@@ -140,12 +141,8 @@ namespace HotChocolate.Types
                     {
                         foreach (InputField interfaceArgument in interfaceField.Arguments.Values)
                         {
-                            if (field.Arguments.TryGetValue(
-                                interfaceArgument.Name, out InputField argument))
-                            {
-                                // TODO : implement equals and compare
-                            }
-                            else
+                            if (!field.Arguments.ContainsKey(
+                                interfaceArgument.Name))
                             {
                                 reportError(new SchemaError(
                                     $"Object type {Name} does not implement the " +

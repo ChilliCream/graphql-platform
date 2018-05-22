@@ -5,83 +5,22 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     internal sealed class InterfaceTypeFactory
-        : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
+        : ObjectTypeFactoryBase
+        , ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(
             SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
-            InterfaceTypeConfig config = new InterfaceTypeConfig
+            return new InterfaceType(new InterfaceTypeConfig
             {
                 SyntaxNode = interfaceTypeDefinition,
                 Name = interfaceTypeDefinition.Name.Value,
                 Description = interfaceTypeDefinition.Description?.Value,
-            };
-
-            InterfaceType interfaceType = new InterfaceType(config);
-            config.Fields = () => GetFields(
-                context, interfaceTypeDefinition, interfaceType);
-            return interfaceType;
-        }
-
-        private Dictionary<string, Field> GetFields(
-            SchemaContext context,
-            InterfaceTypeDefinitionNode interfaceTypeDefinition,
-            InterfaceType interfaceType)
-        {
-            Dictionary<string, Field> fields = new Dictionary<string, Field>(
-                interfaceTypeDefinition.Fields.Count);
-
-            foreach (FieldDefinitionNode fieldDefinition in
-                interfaceTypeDefinition.Fields)
-            {
-                FieldConfig config = new FieldConfig
-                {
-                    SyntaxNode = fieldDefinition,
-                    Name = fieldDefinition.Name.Value,
-                    Description = fieldDefinition.Description?.Value
-                };
-
-                Field field = new Field(config);
-                fields[field.Name] = field;
-
-                config.Arguments = GetFieldArguments(
-                    context, interfaceTypeDefinition, interfaceType,
-                    fieldDefinition, field);
-                config.Type = () => context.GetOutputType(fieldDefinition.Type);
-            }
-
-            return fields;
-        }
-
-        private IEnumerable<InputField> GetFieldArguments(
-            SchemaContext context,
-            InterfaceTypeDefinitionNode interfaceTypeDefinition,
-            InterfaceType interfaceType,
-            FieldDefinitionNode fieldDefinition,
-            Field field)
-        {
-            int i = 0;
-            InputField[] inputFields =
-                new InputField[fieldDefinition.Arguments.Count];
-
-            foreach (InputValueDefinitionNode inputFieldDefinition in
-                fieldDefinition.Arguments)
-            {
-                InputFieldConfig config = new InputFieldConfig
-                {
-                    SyntaxNode = inputFieldDefinition,
-                    Name = inputFieldDefinition.Name.Value,
-                    Description = inputFieldDefinition.Description?.Value,
-                    Type = () => context.GetInputType(inputFieldDefinition.Type),
-                    DefaultValue = () => inputFieldDefinition.DefaultValue
-                };
-
-                InputField inputField = new InputField(config);
-                inputFields[i++] = inputField;
-            }
-
-            return inputFields;
+                Fields = GetFields(context,
+                    interfaceTypeDefinition.Name.Value,
+                    interfaceTypeDefinition.Fields),
+            });
         }
     }
 }

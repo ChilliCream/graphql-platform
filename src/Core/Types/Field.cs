@@ -12,7 +12,6 @@ namespace HotChocolate.Types
     {
         private readonly Func<IOutputType> _typeFactory;
         private readonly Func<FieldResolverDelegate> _resolverFactory;
-        private IEnumerable<InputField> _arguments;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
         private IOutputType _type;
@@ -39,9 +38,25 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
+            if (config.Arguments != null)
+            {
+                foreach (InputField argument in config.Arguments)
+                {
+                    if (_argumentMap.ContainsKey(argument.Name))
+                    {
+                        throw new ArgumentException(
+                            $"The argument names are not unique -> argument: `{argument.Name}`.",
+                            nameof(config));
+                    }
+                    else
+                    {
+                        _argumentMap.Add(argument.Name, argument);
+                    }
+                }
+            }
+
             _typeFactory = config.Type;
             _resolverFactory = config.Resolver;
-            _arguments = config.Arguments;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -63,7 +78,7 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; }
 
-        public IOutputType Type { get; }
+        public IOutputType Type => _type;
 
         public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
 
@@ -87,35 +102,22 @@ namespace HotChocolate.Types
             if (_type == null)
             {
                 reportError(new SchemaError(
-                    $"The type of field {Name} is null.",
+                    $"The type of field `{Name}` is null.",
                     parentType));
             }
 
-            if (_arguments != null)
+            foreach (InputField argument in _argumentMap.Values)
             {
-                foreach (InputField argument in _arguments)
-                {
-                    if (_argumentMap.ContainsKey(argument.Name))
-                    {
-                        reportError(new SchemaError(
-                            $"The field name of field {Name} " +
-                            $"is not unique within {parentType.Name}.",
-                            parentType));
-                    }
-                    else
-                    {
-                        argument.CompleteInitialization(reportError, parentType);
-                        _argumentMap.Add(argument.Name, argument);
-                    }
-                }
+                argument.CompleteInitialization(reportError, parentType);
             }
+
 
             if (parentType is ObjectType)
             {
                 if (_resolverFactory == null)
                 {
                     reportError(new SchemaError(
-                        $"The field {Name} of object type {parentType.Name} " +
+                        $"The field `{Name}` of object type `{parentType.Name}` " +
                         "has no resolver factory.", parentType));
                 }
                 else
@@ -124,7 +126,7 @@ namespace HotChocolate.Types
                     if (_resolver == null)
                     {
                         reportError(new SchemaError(
-                            $"The field {Name} of object type {parentType.Name} " +
+                            $"The field `{Name}` of object type `{parentType.Name}` " +
                             "has no resolver.", parentType));
                     }
                 }

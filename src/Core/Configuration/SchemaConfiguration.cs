@@ -110,27 +110,27 @@ namespace HotChocolate.Configuration
             foreach (Func<ISchemaContext, T> factory in typeFactory)
             {
                 Func<ISchemaContext, INamedType> namedTypeFactory;
-                if (typeof(T) == typeof(EnumTypeConfig))
+                if (typeof(EnumTypeConfig).IsAssignableFrom(typeof(T)))
                 {
                     namedTypeFactory = c => new EnumType(
                         (EnumTypeConfig)(object)factory(c));
                 }
-                else if (typeof(T) == typeof(InputObjectTypeConfig))
+                else if (typeof(InputObjectTypeConfig).IsAssignableFrom(typeof(T)))
                 {
                     namedTypeFactory = c => new InputObjectType(
                         (InputObjectTypeConfig)(object)factory(c));
                 }
-                else if (typeof(T) == typeof(InterfaceTypeConfig))
+                else if (typeof(InterfaceTypeConfig).IsAssignableFrom(typeof(T)))
                 {
                     namedTypeFactory = c => new InterfaceType(
                         (InterfaceTypeConfig)(object)factory(c));
                 }
-                else if (typeof(T) == typeof(ObjectTypeConfig))
+                else if (typeof(ObjectTypeConfig).IsAssignableFrom(typeof(T)))
                 {
                     namedTypeFactory = c => new ObjectType(
                         (ObjectTypeConfig)(object)factory(c));
                 }
-                else if (typeof(T) == typeof(UnionTypeConfig))
+                else if (typeof(UnionTypeConfig).IsAssignableFrom(typeof(T)))
                 {
                     namedTypeFactory = c => new UnionType(
                         (UnionTypeConfig)(object)factory(c));
@@ -145,7 +145,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void Commit(SchemaContext schemaContext)
+        internal void Commit(SchemaContext schemaContext)
         {
             if (schemaContext == null)
             {
@@ -379,7 +379,6 @@ namespace HotChocolate.Configuration
                 if (binding.ObjectType == null && typeBindings
                     .TryGetValue(binding.ObjectTypeName, out typeBinding))
                 {
-
                     binding.ObjectType = typeBinding.Type;
                 }
 

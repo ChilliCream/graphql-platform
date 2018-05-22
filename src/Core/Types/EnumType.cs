@@ -11,11 +11,9 @@ namespace HotChocolate.Types
         , IInputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
     {
-        private readonly IEnumerable<EnumValue> _values;
-        private Dictionary<string, EnumValue> _nameToValues;
-        private Dictionary<object, EnumValue> _valueToValues;
+        private readonly Dictionary<string, EnumValue> _nameToValues;
+        private readonly Dictionary<object, EnumValue> _valueToValues;
 
         public EnumType(EnumTypeConfig config)
         {
@@ -31,14 +29,25 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.Values == null)
+            EnumValue[] values = config.Values?.ToArray()
+                ?? Array.Empty<EnumValue>();
+            if (values.Length == 0)
             {
                 throw new ArgumentException(
-                    "An enum type must provide enum values.",
+                    $"The enum type {config.Name} has no values.",
                     nameof(config));
             }
+            else
+            {
+                // TODO : what to do if:
+                // - values are not of the same type
+                // - one or more values are null
+                NativeType = config.NativeType
+                    ?? values.First(t => t.Value != null).Value.GetType();
+            }
 
-            _values = config.Values;
+            _nameToValues = values.ToDictionary(t => t.Name);
+            _valueToValues = values.ToDictionary(t => t.Value);
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -111,41 +120,6 @@ namespace HotChocolate.Types
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
 
         #endregion
-
-        #region Initialization
-
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
-        {
-            try
-            {
-                EnumValue[] values = _values.ToArray();
-                if (values.Length == 0)
-                {
-                    reportError(new SchemaError(
-                        $"The enum type {Name} has no values.",
-                        this));
-                }
-                else
-                {
-                    NativeType = values.First(t => t.Value != null).Value.GetType();
-                }
-
-                _nameToValues = values.ToDictionary(t => t.Name);
-                _valueToValues = values.ToDictionary(t => t.Value);
-
-                // TODO : what to do if:
-                // - values are not of the same type
-                // - one or more values are null
-            }
-            catch
-            {
-                reportError(new SchemaError(
-                    $"The enum values of {Name} are not unique.",
-                    this));
-            }
-        }
-
-        #endregion
     }
 
     public class EnumTypeConfig
@@ -167,7 +141,11 @@ namespace HotChocolate.Types
     public class EnumTypeConfig<T>
         : EnumTypeConfig
     {
-        public new IEnumerable<EnumValue<T>> Values { get; set; }
+        public new IEnumerable<EnumValue<T>> Values
+        {
+            get => base.Values.Cast<EnumValue<T>>();
+            set => base.Values = value;
+        }
 
         public override Type NativeType
         {

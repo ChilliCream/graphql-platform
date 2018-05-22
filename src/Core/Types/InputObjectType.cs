@@ -12,7 +12,6 @@ namespace HotChocolate.Types
         , ITypeSystemNode
         , ITypeInitializer
     {
-        private readonly IEnumerable<InputField> _fields;
         public readonly Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
 
@@ -30,14 +29,31 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.Fields == null)
+            InputField[] fields = config.Fields?.ToArray()
+                ?? Array.Empty<InputField>();
+
+            if (fields.Length == 0)
             {
                 throw new ArgumentException(
-                    "An input object must provide fields.",
-                    nameof(config));
+                   $"The input object `{config.Name}` must at least " +
+                   "provide one field.",
+                   nameof(config));
             }
 
-            _fields = config.Fields;
+            foreach (InputField field in fields)
+            {
+                if (_fieldMap.ContainsKey(field.Name))
+                {
+                    throw new ArgumentException(
+                        $"The input field name `{field.Name}` " +
+                        $"is not unique within `{config.Name}`.",
+                        nameof(config));
+                }
+                else
+                {
+                    _fieldMap.Add(field.Name, field);
+                }
+            }
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -80,34 +96,13 @@ namespace HotChocolate.Types
 
         void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
         {
-            InputField[] fields = _fields.ToArray();
-            if (fields.Length == 0)
-            {
-                reportError(new SchemaError(
-                    $"The input type {Name} has no fields.",
-                    this));
-            }
-
-            foreach (InputField field in fields)
+            foreach (InputField field in _fieldMap.Values)
             {
                 field.CompleteInitialization(reportError, this);
-
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    reportError(new SchemaError(
-                        $"The field name of field {field.Name} " +
-                        $"is not unique within {Name}.",
-                        this));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
             }
         }
 
         #endregion
-
     }
 
     public class InputObjectTypeConfig

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Introspection;
 using HotChocolate.Language;
@@ -92,6 +93,14 @@ namespace HotChocolate
             string schema,
             Action<ISchemaConfiguration> configure)
         {
+            return Create(schema, configure, false);
+        }
+
+        public static Schema Create(
+            string schema,
+            Action<ISchemaConfiguration> configure,
+            bool strict)
+        {
             if (string.IsNullOrEmpty(schema))
             {
                 throw new ArgumentNullException(nameof(schema));
@@ -102,12 +111,20 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return Create(Parser.Default.Parse(schema), configure);
+            return Create(Parser.Default.Parse(schema), configure, strict);
         }
 
         public static Schema Create(
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
+        {
+            return Create(schemaDocument, configure, false);
+        }
+
+        public static Schema Create(
+            DocumentNode schemaDocument,
+            Action<ISchemaConfiguration> configure,
+            bool strict)
         {
             if (schemaDocument == null)
             {
@@ -119,44 +136,64 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = new SchemaContext(
-                CreateSystemTypes());
-
-            // configure introspection types
-            RegisterIntrospectionTypes(context);
+            SchemaContext context = CreateSchemaContext();
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
             visitor.Visit(schemaDocument);
 
-            // configure resolvers and aliases
-            SchemaConfiguration configuration = new SchemaConfiguration();
-            configure(configuration);
-            configuration.Commit(context);
-
-            return new Schema(context);
+            return CreateSchema(context, configure, strict);
         }
 
         public static Schema Create(
             Action<ISchemaConfiguration> configure)
+        {
+            return Create(configure, false);
+        }
+
+        public static Schema Create(
+            Action<ISchemaConfiguration> configure,
+            bool strict)
         {
             if (configure == null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = new SchemaContext(
-                CreateSystemTypes());
+            SchemaContext context = CreateSchemaContext();
+            return CreateSchema(context, configure, strict);
+        }
 
-            // configure introspection types
-            RegisterIntrospectionTypes(context);
-
-            // configure resolvers and aliases
+        private static Schema CreateSchema(
+            SchemaContext context,
+            Action<ISchemaConfiguration> configure,
+            bool strict)
+        {
+            // configure resolvers, custom types and type mappings.
             SchemaConfiguration configuration = new SchemaConfiguration();
             configure(configuration);
             configuration.Commit(context);
 
+            // finalize objects and seal the schema context
+            List<SchemaError> errors = context.Seal();
+
+            if (strict && errors.Any())
+            {
+                throw new SchemaException(errors);
+            }
+
             return new Schema(context);
+        }
+
+        private static SchemaContext CreateSchemaContext()
+        {
+            // create context with system types
+            SchemaContext context = new SchemaContext(CreateSystemTypes());
+
+            // register introspection types
+            RegisterIntrospectionTypes(context);
+
+            return context;
         }
 
         private static void RegisterIntrospectionTypes(SchemaContext context)
@@ -176,6 +213,8 @@ namespace HotChocolate
         private static IEnumerable<INamedType> CreateSystemTypes()
         {
             yield return new StringType();
+            yield return new BooleanType();
+            yield return new IntType();
         }
     }
 }

@@ -15,7 +15,6 @@ namespace HotChocolate.Types
         , IHasFields
     {
         private readonly ResolveType _typeResolver;
-        private readonly IEnumerable<Field> _fields;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
@@ -33,15 +32,31 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.Fields == null)
+            Field[] fields = config.Fields?.ToArray()
+                ?? Array.Empty<Field>();
+            if (fields.Length == 0)
             {
                 throw new ArgumentException(
-                    "An interface type must provide fields.",
+                    $"The interface type `{Name}` has no fields.",
                     nameof(config));
             }
 
+            foreach (Field field in fields)
+            {
+                if (_fieldMap.ContainsKey(field.Name))
+                {
+                    throw new ArgumentException(
+                        $"The field name `{field.Name}` " +
+                        $"is not unique within `{Name}`.",
+                        nameof(config));
+                }
+                else
+                {
+                    _fieldMap.Add(field.Name, field);
+                }
+            }
+
             _typeResolver = config.TypeResolver;
-            _fields = config.Fields;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -54,7 +69,7 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, Field> Fields { get; }
+        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
@@ -78,28 +93,9 @@ namespace HotChocolate.Types
 
         void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
         {
-            Field[] fields = _fields.ToArray();
-            if (fields.Length == 0)
-            {
-                reportError(new SchemaError(
-                    $"The interface type {Name} has no fields.",
-                    this));
-            }
-
-            foreach (Field field in fields)
+            foreach (Field field in _fieldMap.Values)
             {
                 field.CompleteInitialization(reportError, this);
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    reportError(new SchemaError(
-                        $"The field name of field {field.Name} " +
-                        $"is not unique within {Name}.",
-                        this));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
             }
         }
 

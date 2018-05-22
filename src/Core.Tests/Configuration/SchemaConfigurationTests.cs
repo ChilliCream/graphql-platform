@@ -23,7 +23,7 @@ namespace HotChocolate.Configuration
                 Fields = new[]
                 {
                     new Field(new FieldConfig{ Name= "a", Type = () => stringType }),
-                    new Field(new FieldConfig{ Name= "a", Type = () => stringType })
+                    new Field(new FieldConfig{ Name= "b", Type = () => stringType })
                 }
             });
 

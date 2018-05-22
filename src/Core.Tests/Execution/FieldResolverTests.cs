@@ -296,7 +296,7 @@ namespace HotChocolate.Execution
         }
 
         // TODO : enable when schema supports unions
-        [Fact(Skip = "Schema does not support unions yet.")]
+        [Fact]
         public void FieldsAndFragmentDefinitionsUnionType()
         {
             // arrange
@@ -515,7 +515,7 @@ namespace HotChocolate.Execution
 
                 union FooUnion = Foo | Fa
 
-                type Query { }
+                type Query { a: String }
                 ", c => { });
         }
     }

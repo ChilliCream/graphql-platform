@@ -57,11 +57,18 @@ namespace HotChocolate
             _customIsOfTypeFunctions = customIsOfTypeFunctions;
         }
 
+        public bool AreTypesFinal { get; private set; }
+
         public void RegisterType(INamedType type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             _types.Add(type.Name, type);
@@ -72,6 +79,11 @@ namespace HotChocolate
             if (fieldResolvers == null)
             {
                 throw new ArgumentNullException(nameof(fieldResolvers));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             foreach (FieldResolver fieldResolver in fieldResolvers)
@@ -86,6 +98,11 @@ namespace HotChocolate
             if (typeMappings == null)
             {
                 throw new ArgumentNullException(nameof(typeMappings));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             foreach (KeyValuePair<string, Type> typeMapping in typeMappings)
@@ -205,8 +222,7 @@ namespace HotChocolate
             {
                 return resolver;
             }
-            throw new InvalidOperationException(
-                "The configuration is missing a resolver.");
+            return null;
         }
 
         public IsOfType CreateIsOfType(string typeName)
@@ -262,6 +278,44 @@ namespace HotChocolate
 
             throw new InvalidOperationException(
                 "At least one type must match.");
+        }
+
+        internal List<SchemaError> Seal()
+        {
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException(
+                    "Types are already in a final state.");
+            }
+            AreTypesFinal = true;
+
+            List<SchemaError> errors = new List<SchemaError>();
+
+            // Initialize types in correct order
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<InterfaceType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<InputObjectType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<ObjectType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<UnionType>(),
+                error => errors.Add(error));
+
+            return errors;
+        }
+
+        private void CompleteTypeInitialization(
+           IEnumerable<ITypeInitializer> initializers,
+           Action<SchemaError> reportError)
+        {
+            foreach (ITypeInitializer initializer in initializers)
+            {
+                initializer.CompleteInitialization(reportError);
+            }
         }
     }
 }
