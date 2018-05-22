@@ -26,5 +26,37 @@ namespace HotChocolate.Introspection
             }
             return false;
         }
+
+        public static readonly Func<ISchemaContext, Field> CreateSchemaField = c => new Field(new FieldConfig
+        {
+            Name = "__schema",
+            Description = "Access the current type schema of this server.",
+            Type = () => new NonNullType(c.GetOutputType(_schemaName)),
+            Resolver = () => (ctx, ct) => ctx.Schema
+        });
+
+        public static readonly Func<ISchemaContext, Field> CreateTypeField = c => new Field(new FieldConfig
+        {
+            Name = "__type",
+            Description = "Request the type information of a single type.",
+            Type = () => c.GetOutputType(_typeName),
+            Arguments = new[]
+                {
+                    new InputField(new InputFieldConfig
+                    {
+                        Name ="type",
+                        Type = () => c.NonNullStringType()
+                    })
+                },
+            Resolver = () => (ctx, ct) => ctx.Schema.GetType(ctx.Argument<string>("type"))
+        });
+
+        public static readonly Func<ISchemaContext, Field> CreateTypeNameField = c => new Field(new FieldConfig
+        {
+            Name = "__typename",
+            Description = "The name of the current Object type at runtime.",
+            Type = () => c.NonNullStringType(),
+            Resolver = () => (ctx, ct) => ctx.ObjectType.Name
+        });
     }
 }

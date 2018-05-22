@@ -65,7 +65,7 @@ namespace HotChocolate.Introspection
                 }),
                 new EnumValue(new EnumValueConfig
                 {
-                    Name = "NON_NULL"
+                    Name = "NON_NULL",
                     Description =
                         "Indicates this type is a non-null. " +
                         "`ofType` is a valid field.",

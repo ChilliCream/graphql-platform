@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Introspection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -31,6 +32,10 @@ namespace HotChocolate
             {
                 SubscriptionType = subscriptionType;
             }
+
+            SchemaField = IntrospectionTypes.CreateSchemaField(context);
+            TypeField = IntrospectionTypes.CreateTypeField(context);
+            TypeNameField = IntrospectionTypes.CreateTypeNameField(context);
         }
 
         /// <summary>
@@ -50,49 +55,11 @@ namespace HotChocolate
         /// </summary>
         public ObjectType SubscriptionType { get; }
 
-        internal Field SchemaField
-        {
-            // TODO : move initialized field to a class var
-            get => new Field(new FieldConfig
-            {
-                Name = "__schema",
-                Description = "Access the current type schema of this server.",
-                Type = () => new NonNullType(_context.GetOutputType("__Schema")),
-                Resolver = () => (ctx, ct) => ctx.Schema
-            });
-        }
+        internal Field SchemaField { get; }
 
-        internal Field TypeField
-        {
-            // TODO : move initialized field to a class var
-            get => new Field(new FieldConfig
-            {
-                Name = "__type",
-                Description = "Request the type information of a single type.",
-                Type = () => _context.GetOutputType("__Type"),
-                Arguments = new[]
-                {
-                    new InputField(new InputFieldConfig
-                    {
-                        Name ="type",
-                        Type = () => _context.NonNullStringType()
-                    })
-                },
-                Resolver = () => (ctx, ct) => ctx.Schema.GetType(ctx.Argument<string>("type"))
-            });
-        }
+        internal Field TypeField { get; }
 
-        internal Field TypeNameField
-        {
-            // TODO : move initialized field to a class var
-            get => new Field(new FieldConfig
-            {
-                Name = "__typename",
-                Description = "The name of the current Object type at runtime.",
-                Type = () => _context.NonNullStringType(),
-                Resolver = () => (ctx, ct) => ctx.ObjectType.Name
-            });
-        }
+        internal Field TypeNameField { get; }
 
         public INamedType GetType(string typeName)
         {
@@ -155,6 +122,9 @@ namespace HotChocolate
             SchemaContext context = new SchemaContext(
                 CreateSystemTypes());
 
+            // configure introspection types
+            RegisterIntrospectionTypes(context);
+
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
             visitor.Visit(schemaDocument);
@@ -178,12 +148,29 @@ namespace HotChocolate
             SchemaContext context = new SchemaContext(
                 CreateSystemTypes());
 
+            // configure introspection types
+            RegisterIntrospectionTypes(context);
+
             // configure resolvers and aliases
             SchemaConfiguration configuration = new SchemaConfiguration();
             configure(configuration);
             configuration.Commit(context);
 
             return new Schema(context);
+        }
+
+        private static void RegisterIntrospectionTypes(SchemaContext context)
+        {
+            SchemaConfiguration configuration = new SchemaConfiguration();
+            configuration.RegisterType(IntrospectionTypes.__Directive);
+            configuration.RegisterType(IntrospectionTypes.__DirectiveLocation);
+            configuration.RegisterType(IntrospectionTypes.__EnumValue);
+            configuration.RegisterType(IntrospectionTypes.__Field);
+            configuration.RegisterType(IntrospectionTypes.__InputValue);
+            configuration.RegisterType(IntrospectionTypes.__Schema);
+            configuration.RegisterType(IntrospectionTypes.__Type);
+            configuration.RegisterType(IntrospectionTypes.__TypeKind);
+            configuration.Commit(context);
         }
 
         private static IEnumerable<INamedType> CreateSystemTypes()
