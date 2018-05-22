@@ -169,20 +169,28 @@ namespace HotChocolate
             Action<ISchemaConfiguration> configure,
             bool strict)
         {
-            // configure resolvers, custom types and type mappings.
-            SchemaConfiguration configuration = new SchemaConfiguration();
-            configure(configuration);
-            configuration.Commit(context);
-
-            // finalize objects and seal the schema context
-            List<SchemaError> errors = context.Seal();
-
-            if (strict && errors.Any())
+            try
             {
-                throw new SchemaException(errors);
-            }
+                // configure resolvers, custom types and type mappings.
+                SchemaConfiguration configuration = new SchemaConfiguration();
+                configure(configuration);
+                configuration.Commit(context);
 
-            return new Schema(context);
+                // finalize objects and seal the schema context
+                List<SchemaError> errors = context.Seal();
+
+                if (strict && errors.Any())
+                {
+                    throw new SchemaException(errors);
+                }
+
+                return new Schema(context);
+            }
+            catch (ArgumentException ex)
+            {
+                // TODO : maybe we should throw a more specific argument exception that at least contains the config object.
+                throw new SchemaException(new[] { new SchemaError(ex.Message, null) });
+            }
         }
 
         private static SchemaContext CreateSchemaContext()
@@ -214,7 +222,7 @@ namespace HotChocolate
         {
             yield return new StringType();
             yield return new BooleanType();
-            yield return new IntType();
+            yield return new IntegerType();
         }
     }
 }

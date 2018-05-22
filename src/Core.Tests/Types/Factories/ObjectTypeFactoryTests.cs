@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -15,7 +16,7 @@ namespace HotChocolate
     public class ObjectTypeFactoryTests
     {
         [Fact]
-        public void CreateObjectTypeWithTwoFields()
+        public void CreateObjectType()
         {
             // arrange
             StringType scalarType = new StringType();
@@ -52,6 +53,56 @@ namespace HotChocolate
             Assert.Equal("String", objectType.Fields["b"].Type.TypeName());
             Assert.Equal("hello", (objectType.Fields["a"]
                 .Resolver(null, CancellationToken.None)));
+        }
+
+        [Fact]
+        public void CreateUnion()
+        {
+            // arrange
+            DocumentNode document = Parser.Default.Parse(
+                "union X = A | B");
+            UnionTypeDefinitionNode unionTypeDefinition = document
+                .Definitions.OfType<UnionTypeDefinitionNode>().First();
+
+            SchemaContext context = new SchemaContext(
+                new[] { new StringType() });
+            SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
+            schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+            {
+                Name = "A",
+                Fields = new[]
+                {
+                    new Field(new FieldConfig
+                    {
+                        Name = "a",
+                        Type = () => c.StringType()
+                    })
+                }
+            });
+            schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+            {
+                Name = "B",
+                Fields = new[]
+                {
+                    new Field(new FieldConfig
+                    {
+                        Name = "a",
+                        Type = () => c.StringType()
+                    })
+                }
+            });
+            schemaConfiguration.Commit(context);
+
+            // act
+            UnionTypeFactory factory = new UnionTypeFactory();
+            UnionType unionType = factory.Create(context, unionTypeDefinition);
+            ((ITypeInitializer)unionType).CompleteInitialization(error => { });
+
+            // assert
+            Assert.Equal("X", unionType.Name);
+            Assert.Equal(2, unionType.Types.Count);
+            Assert.Equal("A", unionType.Types.First().Key);
+            Assert.Equal("B", unionType.Types.Last().Key);
         }
     }
 }

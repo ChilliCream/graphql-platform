@@ -12,11 +12,6 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(message));
             }
 
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Message = message;
             Type = type;
         }
@@ -26,11 +21,6 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentNullException(nameof(message));
-            }
-
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
             }
 
             Message = message;
