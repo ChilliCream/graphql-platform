@@ -51,7 +51,7 @@ namespace HotChocolate.Introspection
                 {
                     Name = "directives",
                     Description = "A list of all directives supported by this server.",
-                    Type = () => new NonNullType(c.GetOutputType(_directiveName)),
+                    Type = () => new NonNullType(new ListType(new NonNullType(c.GetOutputType(_directiveName)))),
                     Resolver = () => (ctx, ct) => ctx.Schema.GetDirectives()
                 })
             }

@@ -217,14 +217,14 @@ namespace HotChocolate.Execution
                 return false;
             }
 
-            if (fieldSelection.Field.Type.IsListType())
+            if (fieldType.IsListType())
             {
                 return TryCompleteListValue(executionContext, source,
                     fieldSelection, fieldType, path, completedValue, setValue);
             }
 
-            if (fieldSelection.Field.Type.IsScalarType()
-                || fieldSelection.Field.Type.IsEnumType())
+            if (fieldType.IsScalarType()
+                || fieldType.IsEnumType())
             {
                 return TryCompleteScalarValue(executionContext, source,
                     fieldSelection, fieldType, path, completedValue, setValue);
