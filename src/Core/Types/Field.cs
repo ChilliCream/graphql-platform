@@ -10,9 +10,11 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly Dictionary<string, InputField> _arguments;
-        private readonly Func<IOutputType> _resolveType;
-        private readonly Func<FieldResolverDelegate> _resolveResolver;
+        private readonly Func<IOutputType> _typeFactory;
+        private readonly Func<FieldResolverDelegate> _resolverFactory;
+        private IEnumerable<InputField> _arguments;
+        private readonly Dictionary<string, InputField> _argumentMap =
+            new Dictionary<string, InputField>();
         private IOutputType _type;
         private FieldResolverDelegate _resolver;
 
@@ -30,9 +32,16 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _arguments = config.Arguments.ToDictionary(t => t.Name);
-            _resolveType = config.Type;
-            _resolveResolver = config.Resolver;
+            if (config.Type == null)
+            {
+                throw new ArgumentException(
+                    "A field type must not be null or empty.",
+                    nameof(config));
+            }
+
+            _typeFactory = config.Type;
+            _resolverFactory = config.Resolver;
+            _arguments = config.Arguments;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -54,40 +63,75 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; }
 
-        public IOutputType Type
-        {
-            get
-            {
-                if (_type == null)
-                {
-                    _type = _resolveType();
-                    if (_type == null)
-                    {
-                        throw new InvalidOperationException(
-                            "The field return type mustn't be null.");
-                    }
-                }
-                return _type;
-            }
-        }
+        public IOutputType Type { get; }
 
-        public IReadOnlyDictionary<string, InputField> Arguments => _arguments;
+        public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
 
-        public FieldResolverDelegate Resolver
-        {
-            get
-            {
-                if (_resolver == null)
-                {
-                    _resolver = _resolveResolver();
-                }
-                return _resolver;
-            }
-        }
+        public FieldResolverDelegate Resolver => _resolver;
+
+        #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-            => Enumerable.Empty<ITypeSystemNode>();
+            => _argumentMap.Values;
+
+        #endregion
+
+        #region Initialization
+
+        internal void CompleteInitialization(
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory();
+            if (_type == null)
+            {
+                reportError(new SchemaError(
+                    $"The type of field {Name} is null.",
+                    parentType));
+            }
+
+            if (_arguments != null)
+            {
+                foreach (InputField argument in _arguments)
+                {
+                    if (_argumentMap.ContainsKey(argument.Name))
+                    {
+                        reportError(new SchemaError(
+                            $"The field name of field {Name} " +
+                            $"is not unique within {parentType.Name}.",
+                            parentType));
+                    }
+                    else
+                    {
+                        argument.CompleteInitialization(reportError, parentType);
+                        _argumentMap.Add(argument.Name, argument);
+                    }
+                }
+            }
+
+            if (parentType is ObjectType)
+            {
+                if (_resolverFactory == null)
+                {
+                    reportError(new SchemaError(
+                        $"The field {Name} of object type {parentType.Name} " +
+                        "has no resolver factory.", parentType));
+                }
+                else
+                {
+                    _resolver = _resolverFactory();
+                    if (_resolver == null)
+                    {
+                        reportError(new SchemaError(
+                            $"The field {Name} of object type {parentType.Name} " +
+                            "has no resolver.", parentType));
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 
     public class FieldConfig

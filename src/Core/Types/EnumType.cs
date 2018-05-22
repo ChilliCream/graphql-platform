@@ -6,14 +6,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : IOutputType
+        : INamedType
+        , IOutputType
         , IInputType
-        , INamedType
         , INullableType
         , ITypeSystemNode
+        , ITypeInitializer
     {
-        private readonly EnumTypeConfig _config;
-        private Dictionary<string, EnumValue> _nameTovalues;
+        private readonly IEnumerable<EnumValue> _values;
+        private Dictionary<string, EnumValue> _nameToValues;
         private Dictionary<object, EnumValue> _valueToValues;
 
         public EnumType(EnumTypeConfig config)
@@ -26,37 +27,36 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.",
+                    "Am enum type name must not be null or empty.",
                     nameof(config));
             }
 
-            _config = config;
+            if (config.Values == null)
+            {
+                throw new ArgumentException(
+                    "An enum type must provide enum values.",
+                    nameof(config));
+            }
+
+            _values = config.Values;
+
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
+        public EnumTypeDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
         public string Description { get; }
 
-        public IReadOnlyCollection<EnumValue> Values
-        {
-            get
-            {
-                InitializeValues();
-                return _nameTovalues.Values;
-            }
-        }
+        public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public EnumTypeDefinitionNode SyntaxNode { get; }
-
-        public Type NativeType => throw new NotImplementedException();
+        public Type NativeType { get; internal set; }
 
         public bool TryGetValue(string name, out object value)
         {
-            InitializeValues();
-
-            if (_nameTovalues.TryGetValue(name, out var enumValue))
+            if (_nameToValues.TryGetValue(name, out var enumValue))
             {
                 value = enumValue.Value;
                 return true;
@@ -68,8 +68,6 @@ namespace HotChocolate.Types
 
         public bool TryGetName(object value, out string name)
         {
-            InitializeValues();
-
             if (_valueToValues.TryGetValue(value, out var enumValue))
             {
                 name = enumValue.Name;
@@ -80,35 +78,72 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private void InitializeValues()
-        {
-            if (_nameTovalues == null || _valueToValues == null)
-            {
-                var values = _config.Values();
-                if (values == null)
-                {
-                    throw new InvalidOperationException(
-                        "An enum type must have at least one value.");
-                }
-                _nameTovalues = values.ToDictionary(t => t.Name);
-                _valueToValues = values.ToDictionary(t => t.Value);
-            }
-        }
-
         public bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal is EnumValueNode ev)
+            {
+                return _nameToValues.ContainsKey(ev.Value);
+            }
+            return false;
         }
 
         public object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is EnumValueNode evn
+                && _nameToValues.TryGetValue(evn.Value, out EnumValue ev))
+            {
+                return ev.Value;
+            }
+
+            throw new ArgumentException(
+                "The specified value cannot be handled " +
+                $"by the EnumType {Name}.");
         }
 
         #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
+
+        #endregion
+
+        #region Initialization
+
+        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        {
+            try
+            {
+                EnumValue[] values = _values.ToArray();
+                if (values.Length == 0)
+                {
+                    reportError(new SchemaError(
+                        $"The enum type {Name} has no values.",
+                        this));
+                }
+                else
+                {
+                    NativeType = values.First(t => t.Value != null).Value.GetType();
+                }
+
+                _nameToValues = values.ToDictionary(t => t.Name);
+                _valueToValues = values.ToDictionary(t => t.Value);
+
+                // TODO : what to do if:
+                // - values are not of the same type
+                // - one or more values are null
+            }
+            catch
+            {
+                reportError(new SchemaError(
+                    $"The enum values of {Name} are not unique.",
+                    this));
+            }
+        }
 
         #endregion
     }

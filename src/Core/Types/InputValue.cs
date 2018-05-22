@@ -8,10 +8,10 @@ namespace HotChocolate.Types
     public class InputField
         : ITypeSystemNode
     {
-        private readonly InputFieldConfig _config;
+        private readonly Func<IInputType> _typeFactory;
+        private readonly Func<IValueNode> _defaultValueFactory;
         private IInputType _type;
         private IValueNode _defaultValue;
-        private bool _isDefaultValueResolved;
 
         public InputField(InputFieldConfig config)
         {
@@ -23,54 +23,70 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A input value name must not be null or empty.",
+                    "An input value name must not be null or empty.",
                     nameof(config));
             }
 
-            _config = config;
+            if (config.Type == null)
+            {
+                throw new ArgumentException(
+                    "An input type factory must not be null or empty.",
+                    nameof(config));
+            }
+
+            _typeFactory = config.Type;
+            _defaultValueFactory = config.DefaultValue;
+
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
+
         public string Name { get; }
+
         public string Description { get; }
 
-        public IInputType Type
-        {
-            get
-            {
-                if (_type == null)
-                {
-                    _type = _config.Type();
-                    if (_type == null)
-                    {
-                        throw new InvalidOperationException(
-                            "An input field always has to specify a value type.");
-                    }
-                }
-                return _type;
-            }
-        }
+        public IInputType Type => _type;
 
-        public IValueNode DefaultValue
-        {
-            get
-            {
-                if (!_isDefaultValueResolved)
-                {
-                    _defaultValue = _config.DefaultValue();
-                    _isDefaultValueResolved = true;
-                }
-                return _defaultValue;
-            }
-        }
+        public IValueNode DefaultValue => _defaultValue;
+
+        #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() =>
             Enumerable.Empty<ITypeSystemNode>();
+
+        #endregion
+
+        #region Initialization
+
+        internal void CompleteInitialization(
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory();
+            if (_type == null)
+            {
+                reportError(new SchemaError(
+                    $"The type of the input field {Name} is null.",
+                    parentType));
+            }
+
+
+            if (_defaultValueFactory == null)
+            {
+                _defaultValue = new NullValueNode(null);
+            }
+            else
+            {
+                _defaultValue = _defaultValueFactory();
+            }
+        }
+
+        #endregion
     }
 
     public class InputFieldConfig

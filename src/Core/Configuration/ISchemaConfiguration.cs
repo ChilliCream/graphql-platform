@@ -40,6 +40,7 @@ namespace HotChocolate.Configuration
         void RegisterScalar<T>()
             where T : ScalarType, new();
 
-        void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory);
+        void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)
+            where T : INamedTypeConfig;
     }
 }
