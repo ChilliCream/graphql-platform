@@ -5,6 +5,7 @@
         "name": "Query"
       },
       "mutationType": null,
+      "subscriptionType": null,
       "types": [
         {
           "kind": "INPUT_OBJECT",
@@ -581,29 +582,21 @@
               "description": "If this server supports mutation, the type that mutation operations will be rooted at.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "__Type",
-                  "ofType": null
-                }
+                "kind": "OBJECT",
+                "name": "__Type",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "description",
+              "name": "subscriptionType",
               "description": "If this server support subscription, the type that subscription operations will be rooted at.",
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "OBJECT",
-                  "name": "__Type",
-                  "ofType": null
-                }
+                "kind": "OBJECT",
+                "name": "__Type",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -944,26 +937,5 @@
       "directives": []
     }
   },
-  "Errors": [
-    {
-      "FieldName": "subscriptionType",
-      "Locations": [
-        {
-          "Line": 6,
-          "Column": 26
-        }
-      ],
-      "Message": "Could not resolve the specified field."
-    },
-    {
-      "FieldName": "mutationType",
-      "Locations": [
-        {
-          "Line": 5,
-          "Column": 26
-        }
-      ],
-      "Message": "Cannot return null for non-nullable field."
-    }
-  ]
+  "Errors": null
 }

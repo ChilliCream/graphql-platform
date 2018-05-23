@@ -35,16 +35,16 @@ namespace HotChocolate.Introspection
                     Description =
                         "If this server supports mutation, the type that " +
                         "mutation operations will be rooted at.",
-                    Type = () => new NonNullType(c.GetOutputType(_typeName)),
+                    Type = () => c.GetOutputType(_typeName),
                     Resolver = () => (ctx, ct) => ctx.Schema.MutationType
                 }),
                 new Field(new FieldConfig
                 {
-                    Name = "description",
+                    Name = "subscriptionType",
                     Description =
                         "If this server support subscription, the type that " +
                         "subscription operations will be rooted at.",
-                    Type = () => new NonNullType(c.GetOutputType(_typeName)),
+                    Type = () => c.GetOutputType(_typeName),
                     Resolver = () => (ctx, ct) => ctx.Schema.SubscriptionType
                 }),
                 new Field(new FieldConfig
