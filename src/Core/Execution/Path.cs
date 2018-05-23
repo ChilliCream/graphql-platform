@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
 
             if (IsIndexer)
             {
-                return $"{path}[{Index}]";
+                return $"{path}/{Name}[{Index}]";
             }
             else
             {

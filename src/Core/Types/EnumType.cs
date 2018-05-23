@@ -6,15 +6,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : IOutputType
+        : INamedType
+        , IOutputType
         , IInputType
-        , INamedType
         , INullableType
+        , ISerializableType
         , ITypeSystemNode
     {
-        private readonly EnumTypeConfig _config;
-        private Dictionary<string, EnumValue> _nameTovalues;
-        private Dictionary<object, EnumValue> _valueToValues;
+        private readonly Dictionary<string, EnumValue> _nameToValues;
+        private readonly Dictionary<object, EnumValue> _valueToValues;
 
         public EnumType(EnumTypeConfig config)
         {
@@ -26,37 +26,47 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.",
+                    "Am enum type name must not be null or empty.",
                     nameof(config));
             }
 
-            _config = config;
+            EnumValue[] values = config.Values?.ToArray()
+                ?? Array.Empty<EnumValue>();
+            if (values.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"The enum type {config.Name} has no values.",
+                    nameof(config));
+            }
+            else
+            {
+                // TODO : what to do if:
+                // - values are not of the same type
+                // - one or more values are null
+                NativeType = config.NativeType
+                    ?? values.First(t => t.Value != null).Value.GetType();
+            }
+
+            _nameToValues = values.ToDictionary(t => t.Name);
+            _valueToValues = values.ToDictionary(t => t.Value);
+
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
         }
+        public EnumTypeDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
         public string Description { get; }
 
-        public IReadOnlyCollection<EnumValue> Values
-        {
-            get
-            {
-                InitializeValues();
-                return _nameTovalues.Values;
-            }
-        }
+        public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public EnumTypeDefinitionNode SyntaxNode { get; }
-
-        public Type NativeType => throw new NotImplementedException();
+        public Type NativeType { get; internal set; }
 
         public bool TryGetValue(string name, out object value)
         {
-            InitializeValues();
-
-            if (_nameTovalues.TryGetValue(name, out var enumValue))
+            if (_nameToValues.TryGetValue(name, out var enumValue))
             {
                 value = enumValue.Value;
                 return true;
@@ -68,8 +78,6 @@ namespace HotChocolate.Types
 
         public bool TryGetName(object value, out string name)
         {
-            InitializeValues();
-
             if (_valueToValues.TryGetValue(value, out var enumValue))
             {
                 name = enumValue.Name;
@@ -80,29 +88,48 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private void InitializeValues()
-        {
-            if (_nameTovalues == null || _valueToValues == null)
-            {
-                var values = _config.Values();
-                if (values == null)
-                {
-                    throw new InvalidOperationException(
-                        "An enum type must have at least one value.");
-                }
-                _nameTovalues = values.ToDictionary(t => t.Name);
-                _valueToValues = values.ToDictionary(t => t.Value);
-            }
-        }
-
         public bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal is EnumValueNode ev)
+            {
+                return _nameToValues.ContainsKey(ev.Value);
+            }
+            return false;
         }
 
         public object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is EnumValueNode evn
+                && _nameToValues.TryGetValue(evn.Value, out EnumValue ev))
+            {
+                return ev.Value;
+            }
+
+            throw new ArgumentException(
+                "The specified value cannot be handled " +
+                $"by the EnumType {Name}.");
+        }
+
+        public object Serialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (NativeType.IsInstanceOfType(value)
+                && _valueToValues.TryGetValue(value, out EnumValue enumValue))
+            {
+                return enumValue.Name;
+            }
+
+            throw new ArgumentException(
+                $"The specified value cannot be handled by the EnumType `{Name}`.");
         }
 
         #region TypeSystemNode
@@ -114,15 +141,34 @@ namespace HotChocolate.Types
     }
 
     public class EnumTypeConfig
+        : INamedTypeConfig
     {
+        public EnumTypeDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public EnumTypeDefinitionNode SyntaxNode { get; set; }
+        public bool IsIntrospection { get; set; }
 
-        public Func<IEnumerable<EnumValue>> Values { get; set; }
+        public IEnumerable<EnumValue> Values { get; set; }
 
-        public Func<Type> NativeType { get; set; }
+        public virtual Type NativeType { get; set; }
+    }
+
+    public class EnumTypeConfig<T>
+        : EnumTypeConfig
+    {
+        public new IEnumerable<EnumValue<T>> Values
+        {
+            get => base.Values.Cast<EnumValue<T>>();
+            set => base.Values = value;
+        }
+
+        public override Type NativeType
+        {
+            get => typeof(T);
+            set => throw new NotSupportedException();
+        }
     }
 }

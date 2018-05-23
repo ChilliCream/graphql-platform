@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
 
             Data = new Dictionary<string, object>();
             Fragments = new FragmentCollection(schema, queryDocument);
-            FieldResolver = new FieldResolver(variables, Fragments);
+            FieldResolver = new FieldResolver(schema, variables, Fragments);
             Errors = new List<IQueryError>();
             NextBatch = new List<FieldResolverTask>();
         }

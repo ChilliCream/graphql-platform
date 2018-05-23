@@ -7,14 +7,16 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : IOutputType
-        , INamedType
+        : INamedType
+        , IOutputType
         , INullableType
         , ITypeSystemNode
+        , ITypeInitializer
+        , IHasFields
     {
-        private readonly InterfaceTypeConfig _config;
         private readonly ResolveType _typeResolver;
-        private IReadOnlyDictionary<string, Field> _fields;
+        private readonly Dictionary<string, Field> _fieldMap =
+            new Dictionary<string, Field>();
 
         public InterfaceType(InterfaceTypeConfig config)
         {
@@ -30,8 +32,32 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _config = config;
+            Field[] fields = config.Fields?.ToArray()
+                ?? Array.Empty<Field>();
+            if (fields.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.",
+                    nameof(config));
+            }
+
+            foreach (Field field in fields)
+            {
+                if (_fieldMap.ContainsKey(field.Name))
+                {
+                    throw new ArgumentException(
+                        $"The field name `{field.Name}` " +
+                        $"is not unique within `{Name}`.",
+                        nameof(config));
+                }
+                else
+                {
+                    _fieldMap.Add(field.Name, field);
+                }
+            }
+
             _typeResolver = config.TypeResolver;
+
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
@@ -43,23 +69,7 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, Field> Fields
-        {
-            get
-            {
-                if (_fields == null)
-                {
-                    var fields = _config.Fields();
-                    if (fields == null)
-                    {
-                        throw new InvalidOperationException(
-                            "The fields collection mustn't be null.");
-                    }
-                    _fields = fields;
-                }
-                return _fields;
-            }
-        }
+        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
@@ -71,12 +81,29 @@ namespace HotChocolate.Types
             return _typeResolver.Invoke(context, resolverResult);
         }
 
+        #region TypeSystemNode
+
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Fields.Values;
+
+        #endregion
+
+        #region Initialization
+
+        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        {
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.CompleteInitialization(reportError, this);
+            }
+        }
+
+        #endregion
     }
 
     public class InterfaceTypeConfig
+        : INamedTypeConfig
     {
         public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
 
@@ -84,7 +111,7 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public Func<IReadOnlyDictionary<string, Field>> Fields { get; set; }
+        public IEnumerable<Field> Fields { get; set; }
 
         public ResolveType TypeResolver { get; set; }
     }

@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
@@ -14,6 +15,7 @@ namespace HotChocolate
         private readonly SchemaContext _context;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
+        private readonly UnionTypeFactory _unionTypeFactory = new UnionTypeFactory();
 
         public SchemaSyntaxVisitor(SchemaContext context)
         {
@@ -40,6 +42,12 @@ namespace HotChocolate
             InterfaceTypeDefinitionNode node)
         {
             _context.RegisterType(_interfaceTypeFactory.Create(_context, node));
+        }
+
+        protected override void VisitUnionTypeDefinition(
+            UnionTypeDefinitionNode node)
+        {
+            _context.RegisterType(_unionTypeFactory.Create(_context, node));
         }
     }
 }

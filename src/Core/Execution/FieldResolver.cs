@@ -9,13 +9,20 @@ namespace HotChocolate.Execution
     // TODO : Rename this class or Resolvers.FieldResolver
     internal class FieldResolver
     {
+        private readonly Schema _schema;
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldResolver(
+            Schema schema,
             VariableCollection variables,
             FragmentCollection fragments)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
             if (variables == null)
             {
                 throw new ArgumentNullException(nameof(variables));
@@ -26,6 +33,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(fragments));
             }
 
+            _schema = schema;
             _variables = variables;
             _fragments = fragments;
         }
@@ -65,31 +73,32 @@ namespace HotChocolate.Execution
             if (selection is FieldNode fs)
             {
                 string fieldName = fs.Name.Value;
-                if (!type.Fields.TryGetValue(fieldName, out Field field))
+                if (fieldName.StartsWith("__"))
+                {
+                    ResolveIntrospectionField(type, fs, reportError, fields);
+                }
+                else if (type.Fields.TryGetValue(fieldName, out Field field))
+                {
+                    string name = fs.Alias == null ? fs.Name.Value : fs.Alias.Value;
+                    fields[name] = new FieldSelection(fs, field, name);
+                }
+                else
                 {
                     reportError(new FieldError(
                         "Could not resolve the specified field.",
                         fs));
-                    return;
                 }
-
-                string name = fs.Alias == null ? fs.Name.Value : fs.Alias.Value;
-                fields[name] = new FieldSelection(fs, field, name);
             }
-
-            if (selection is FragmentSpreadNode fragmentSpread)
+            else if (selection is FragmentSpreadNode fragmentSpread)
             {
                 Fragment fragment = _fragments.GetFragments(fragmentSpread.Name.Value)
                     .FirstOrDefault(t => DoesFragmentTypeApply(type, t.TypeCondition));
-                if (fragment == null)
+                if (fragment != null)
                 {
-                    return;
+                    CollectFields(type, fragment.SelectionSet, reportError, fields);
                 }
-
-                CollectFields(type, fragment.SelectionSet, reportError, fields);
             }
-
-            if (selection is InlineFragmentNode inlineFragment)
+            else if (selection is InlineFragmentNode inlineFragment)
             {
                 Fragment fragment = _fragments.GetFragment(inlineFragment);
                 if (DoesFragmentTypeApply(type, fragment.TypeCondition))
@@ -98,6 +107,45 @@ namespace HotChocolate.Execution
                 }
             }
         }
+
+        private void ResolveIntrospectionField(
+           ObjectType type,
+           FieldNode fieldNode,
+           Action<QueryError> reportError,
+           Dictionary<string, FieldSelection> fields)
+        {
+            string name = fieldNode.Alias == null
+                ? fieldNode.Name.Value
+                : fieldNode.Alias.Value;
+
+            if (_schema.TypeNameField.Name
+                .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
+            {
+                fields[name] = new FieldSelection(
+                    fieldNode, _schema.TypeNameField, name);
+            }
+            else if (_schema.QueryType == type
+                && _schema.TypeField.Name
+                    .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
+            {
+                fields[name] = new FieldSelection(
+                    fieldNode, _schema.TypeField, name);
+            }
+            else if (_schema.QueryType == type
+                && _schema.SchemaField.Name
+                    .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
+            {
+                fields[name] = new FieldSelection(
+                    fieldNode, _schema.SchemaField, name);
+            }
+            else
+            {
+                reportError(new FieldError(
+                    "The specified introspection field does not exist.",
+                    fieldNode));
+            }
+        }
+
 
         private bool ShouldBeIncluded(ISelectionNode selection)
         {

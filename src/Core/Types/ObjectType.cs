@@ -10,15 +10,20 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class ObjectType
-        : IOutputType
-        , INamedType
+        : INamedType
+        , IOutputType
         , INullableType
         , ITypeSystemNode
+        , ITypeInitializer
+        , IHasFields
     {
-        private readonly ObjectTypeConfig _config;
+
         private readonly IsOfType _isOfType;
-        private IReadOnlyDictionary<string, InterfaceType> _interfaces;
-        private IReadOnlyDictionary<string, Field> _fields;
+        private readonly Func<IEnumerable<InterfaceType>> _interfaceFactory;
+        private Dictionary<string, InterfaceType> _interfaceMap =
+            new Dictionary<string, InterfaceType>();
+        private readonly Dictionary<string, Field> _fieldMap =
+            new Dictionary<string, Field>();
 
         public ObjectType(ObjectTypeConfig config)
         {
@@ -34,11 +39,37 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _config = config;
+            Field[] fields = config.Fields?.ToArray()
+                 ?? Array.Empty<Field>();
+            if (fields.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.",
+                    nameof(config));
+            }
+
+            foreach (Field field in fields)
+            {
+                if (_fieldMap.ContainsKey(field.Name))
+                {
+                    throw new ArgumentException(
+                        $"The field name `{field.Name}` " +
+                        $"is not unique within `{Name}`.",
+                        nameof(config));
+                }
+                else
+                {
+                    _fieldMap.Add(field.Name, field);
+                }
+            }
+
             _isOfType = config.IsOfType;
+            _interfaceFactory = config.Interfaces;
+
+            SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
-            SyntaxNode = config.SyntaxNode;
+            IsIntrospection = config.IsIntrospection;
         }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; }
@@ -47,48 +78,14 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, InterfaceType> Interfaces
-        {
-            get
-            {
-                if (_interfaces == null)
-                {
-                    var interfaces = _config.Interfaces();
-                    _interfaces = (interfaces == null)
-                        ? new Dictionary<string, InterfaceType>()
-                        : interfaces;
-                }
-                return _interfaces;
-            }
-        }
+        internal bool IsIntrospection { get; }
 
-        public IReadOnlyDictionary<string, Field> Fields
-        {
-            get
-            {
-                if (_fields == null)
-                {
-                    var fields = _config.Fields();
-                    if (fields == null)
-                    {
-                        throw new InvalidOperationException(
-                            "The fields collection mustn't be null.");
-                    }
-                    _fields = fields;
-                }
-                return _fields;
-            }
-        }
+        public IReadOnlyDictionary<string, InterfaceType> Interfaces => _interfaceMap;
+
+        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
         public bool IsOfType(IResolverContext context, object resolverResult)
-        {
-            if (_isOfType == null)
-            {
-                throw new NotImplementedException(
-                    "The fallback resolver logic is not yet implemented.");
-            }
-            return _isOfType(context, resolverResult);
-        }
+            => _isOfType(context, resolverResult);
 
         #region ITypeSystemNode
 
@@ -108,18 +105,82 @@ namespace HotChocolate.Types
         }
 
         #endregion
+
+        #region Initialization
+
+        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        {
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.CompleteInitialization(reportError, this);
+            }
+
+            InterfaceType[] interfaces = _interfaceFactory?.Invoke()?.ToArray()
+                ?? Array.Empty<InterfaceType>();
+            foreach (InterfaceType interfaceType in interfaces)
+            {
+                if (_interfaceMap.TryGetValue(
+                    interfaceType.Name, out InterfaceType type)
+                    && interfaceType != type)
+                {
+                    reportError(new SchemaError(
+                        "The interfaces that this object type implements are not unique.",
+                        this));
+                }
+                else
+                {
+                    _interfaceMap[interfaceType.Name] = interfaceType;
+                }
+            }
+
+            foreach (InterfaceType interfaceType in _interfaceMap.Values)
+            {
+                foreach (Field interfaceField in interfaceType.Fields.Values)
+                {
+                    if (Fields.TryGetValue(interfaceField.Name, out Field field))
+                    {
+                        foreach (InputField interfaceArgument in interfaceField.Arguments.Values)
+                        {
+                            if (!field.Arguments.ContainsKey(
+                                interfaceArgument.Name))
+                            {
+                                reportError(new SchemaError(
+                                    $"Object type {Name} does not implement the " +
+                                    $"field all arguments of field {interfaceField.Name} " +
+                                    $"from interface {interfaceType.Name}.",
+                                    this));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        reportError(new SchemaError(
+                            $"Object type {Name} does not implement the " +
+                            $"field {interfaceField.Name} " +
+                            $"from interface {interfaceType.Name}.",
+                            this));
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 
     public class ObjectTypeConfig
+        : INamedTypeConfig
     {
         public ObjectTypeDefinitionNode SyntaxNode { get; set; }
+
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public Func<IReadOnlyDictionary<string, InterfaceType>> Interfaces { get; set; }
+        internal bool IsIntrospection { get; set; }
 
-        public Func<IReadOnlyDictionary<string, Field>> Fields { get; set; }
+        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
+
+        public IEnumerable<Field> Fields { get; set; }
 
         public IsOfType IsOfType { get; set; }
     }

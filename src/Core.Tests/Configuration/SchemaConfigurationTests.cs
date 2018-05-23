@@ -20,10 +20,10 @@ namespace HotChocolate.Configuration
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "TestObjectA",
-                Fields = () => new Dictionary<string, Field>
+                Fields = new[]
                 {
-                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) },
-                    { "b", new Field(new FieldConfig{ Name= "a", Type = () => stringType }) }
+                    new Field(new FieldConfig{ Name= "a", Type = () => stringType }),
+                    new Field(new FieldConfig{ Name= "b", Type = () => stringType })
                 }
             });
 
@@ -38,8 +38,7 @@ namespace HotChocolate.Configuration
             // assert
             Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "a"));
             Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "b"));
-            Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("Dummy", "x"));
+            Assert.Null(schemaContext.CreateResolver("Dummy", "x"));
         }
 
         [Fact]
@@ -55,17 +54,17 @@ namespace HotChocolate.Configuration
             SchemaContext schemaContext = new SchemaContext();
 
             StringType stringType = new StringType();
-            Func<Dictionary<string, InputField>> arguments = () => new Dictionary<string, InputField>
+            InputField[] arguments = new[]
             {
-                { "a", new InputField(new InputFieldConfig { Name = "a", Type = () => stringType }) }
+                new InputField(new InputFieldConfig { Name = "a", Type = () => stringType })
             };
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "TestObjectA",
-                Fields = () => new Dictionary<string, Field>
+                Fields = new[]
                 {
-                    { "a", new Field(new FieldConfig{ Name= "a", Type = () => stringType, Arguments = arguments}) },
-                    { "b", new Field(new FieldConfig{ Name= "b", Type = () => stringType}) }
+                    new Field(new FieldConfig{ Name= "a", Type = () => stringType, Arguments = arguments}),
+                    new Field(new FieldConfig{ Name= "b", Type = () => stringType})
                 }
             });
 
@@ -86,8 +85,7 @@ namespace HotChocolate.Configuration
             FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
             Assert.Equal("a_dummy_a", resolver(resolverContext.Object, CancellationToken.None));
-            Assert.Throws<InvalidOperationException>(
-                () => schemaContext.CreateResolver("TestObjectA", "b"));
+            Assert.Null(schemaContext.CreateResolver("TestObjectA", "b"));
         }
 
         [Fact]
@@ -107,16 +105,13 @@ namespace HotChocolate.Configuration
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "Dummy",
-                Fields = () => new Dictionary<string, Field>
+                Fields = new[]
                 {
+                    new Field(new FieldConfig
                     {
-                        "bar",
-                        new Field(new FieldConfig
-                        {
-                            Name = "bar",
-                            Type = () => stringType
-                        })
-                    }
+                        Name = "bar",
+                        Type = () => stringType
+                    })
                 }
             });
 
@@ -151,16 +146,13 @@ namespace HotChocolate.Configuration
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "Dummy",
-                Fields = () => new Dictionary<string, Field>
+                Fields = new[]
                 {
+                    new Field(new FieldConfig
                     {
-                        "bar",
-                        new Field(new FieldConfig
-                        {
-                            Name = "bar",
-                            Type = () => stringType
-                        })
-                    }
+                        Name = "bar",
+                        Type = () => stringType
+                    })
                 }
             });
 
@@ -192,16 +184,13 @@ namespace HotChocolate.Configuration
             ObjectType objectType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "Dummy",
-                Fields = () => new Dictionary<string, Field>
+                Fields = new[]
                 {
+                    new Field(new FieldConfig
                     {
-                        "bar2",
-                        new Field(new FieldConfig
-                        {
-                            Name = "bar2",
-                            Type = () => stringType
-                        })
-                    }
+                        Name = "bar2",
+                        Type = () => stringType
+                    })
                 }
             });
 

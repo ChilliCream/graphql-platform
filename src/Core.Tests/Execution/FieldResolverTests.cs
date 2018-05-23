@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { errorRaised = true; });
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { errorRaised = true; });
@@ -115,7 +115,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -225,7 +225,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -274,7 +274,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -296,7 +296,7 @@ namespace HotChocolate.Execution
         }
 
         // TODO : enable when schema supports unions
-        [Fact(Skip = "Schema does not support unions yet.")]
+        [Fact]
         public void FieldsAndFragmentDefinitionsUnionType()
         {
             // arrange
@@ -320,7 +320,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -376,7 +376,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -435,7 +435,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -477,7 +477,7 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldResolver fieldResolver = new FieldResolver(variables, fragments);
+            FieldResolver fieldResolver = new FieldResolver(schema, variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -515,7 +515,7 @@ namespace HotChocolate.Execution
 
                 union FooUnion = Foo | Fa
 
-                type Query { }
+                type Query { a: String }
                 ", c => { });
         }
     }

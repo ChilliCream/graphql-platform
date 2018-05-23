@@ -10,9 +10,11 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly FieldConfig _config;
+        private readonly Func<IOutputType> _typeFactory;
+        private readonly Func<FieldResolverDelegate> _resolverFactory;
+        private readonly Dictionary<string, InputField> _argumentMap =
+            new Dictionary<string, InputField>();
         private IOutputType _type;
-        private IReadOnlyDictionary<string, InputField> _arguments;
         private FieldResolverDelegate _resolver;
 
         public Field(FieldConfig config)
@@ -29,10 +31,39 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            _config = config;
+            if (config.Type == null)
+            {
+                throw new ArgumentException(
+                    "A field type must not be null or empty.",
+                    nameof(config));
+            }
+
+            if (config.Arguments != null)
+            {
+                foreach (InputField argument in config.Arguments)
+                {
+                    if (_argumentMap.ContainsKey(argument.Name))
+                    {
+                        throw new ArgumentException(
+                            $"The argument names are not unique -> argument: `{argument.Name}`.",
+                            nameof(config));
+                    }
+                    else
+                    {
+                        _argumentMap.Add(argument.Name, argument);
+                    }
+                }
+            }
+
+            _typeFactory = config.Type;
+            _resolverFactory = config.Resolver;
+
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
+            IsIntrospection = config.IsIntrospection;
+            IsDeprecated = !string.IsNullOrEmpty(config.DeprecationReason);
+            DeprecationReason = config.DeprecationReason;
         }
 
         public FieldDefinitionNode SyntaxNode { get; }
@@ -41,53 +72,68 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IOutputType Type
-        {
-            get
-            {
-                if (_type == null)
-                {
-                    _type = _config.Type();
-                    if (_type == null)
-                    {
-                        throw new InvalidOperationException(
-                            "The field return type mustn't be null.");
-                    }
-                }
-                return _type;
-            }
-        }
+        internal bool IsIntrospection { get; }
 
-        public IReadOnlyDictionary<string, InputField> Arguments
-        {
-            get
-            {
-                if (_arguments == null)
-                {
-                    var arguments = _config.Arguments?.Invoke();
-                    _arguments = (arguments == null)
-                        ? new Dictionary<string, InputField>()
-                        : arguments;
-                }
-                return _arguments;
-            }
-        }
+        public bool IsDeprecated { get; }
 
-        public FieldResolverDelegate Resolver
-        {
-            get
-            {
-                if (_resolver == null)
-                {
-                    _resolver = _config.Resolver();
-                }
-                return _resolver;
-            }
-        }
+        public string DeprecationReason { get; }
+
+        public IOutputType Type => _type;
+
+        public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
+
+        public FieldResolverDelegate Resolver => _resolver;
+
+        #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-            => Enumerable.Empty<ITypeSystemNode>();
+            => _argumentMap.Values;
+
+        #endregion
+
+        #region Initialization
+
+        internal void CompleteInitialization(
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory();
+            if (_type == null)
+            {
+                reportError(new SchemaError(
+                    $"The type of field `{Name}` is null.",
+                    parentType));
+            }
+
+            foreach (InputField argument in _argumentMap.Values)
+            {
+                argument.CompleteInitialization(reportError, parentType);
+            }
+
+
+            if (parentType is ObjectType)
+            {
+                if (_resolverFactory == null)
+                {
+                    reportError(new SchemaError(
+                        $"The field `{Name}` of object type `{parentType.Name}` " +
+                        "has no resolver factory.", parentType));
+                }
+                else
+                {
+                    _resolver = _resolverFactory();
+                    if (_resolver == null)
+                    {
+                        reportError(new SchemaError(
+                            $"The field `{Name}` of object type `{parentType.Name}` " +
+                            "has no resolver.", parentType));
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 
     public class FieldConfig
@@ -98,9 +144,13 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
+        internal bool IsIntrospection { get; set; }
+
+        public string DeprecationReason { get; set; }
+
         public Func<IOutputType> Type { get; set; }
 
-        public Func<IReadOnlyDictionary<string, InputField>> Arguments { get; set; }
+        public IEnumerable<InputField> Arguments { get; set; }
 
         public Func<FieldResolverDelegate> Resolver { get; set; }
     }

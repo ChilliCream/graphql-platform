@@ -17,6 +17,8 @@ namespace HotChocolate.Configuration
             new List<ResolverBindingInfo>();
         private readonly List<TypeBindingInfo> _typeBindings =
             new List<TypeBindingInfo>();
+        private readonly List<Func<ISchemaContext, INamedType>> _typeFactories =
+            new List<Func<ISchemaContext, INamedType>>();
 
         public IBindResolverDelegate BindResolver(
             AsyncFieldResolverDelegate fieldResolver)
@@ -97,7 +99,53 @@ namespace HotChocolate.Configuration
             RegisterScalar(new T());
         }
 
-        public void Commit(SchemaContext schemaContext)
+        public void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)
+            where T : INamedTypeConfig
+        {
+            if (typeFactory == null)
+            {
+                throw new ArgumentNullException(nameof(typeFactory));
+            }
+
+            foreach (Func<ISchemaContext, T> factory in typeFactory)
+            {
+                Func<ISchemaContext, INamedType> namedTypeFactory;
+                if (typeof(EnumTypeConfig).IsAssignableFrom(typeof(T)))
+                {
+                    namedTypeFactory = c => new EnumType(
+                        (EnumTypeConfig)(object)factory(c));
+                }
+                else if (typeof(InputObjectTypeConfig).IsAssignableFrom(typeof(T)))
+                {
+                    namedTypeFactory = c => new InputObjectType(
+                        (InputObjectTypeConfig)(object)factory(c));
+                }
+                else if (typeof(InterfaceTypeConfig).IsAssignableFrom(typeof(T)))
+                {
+                    namedTypeFactory = c => new InterfaceType(
+                        (InterfaceTypeConfig)(object)factory(c));
+                }
+                else if (typeof(ObjectTypeConfig).IsAssignableFrom(typeof(T)))
+                {
+                    namedTypeFactory = c => new ObjectType(
+                        (ObjectTypeConfig)(object)factory(c));
+                }
+                else if (typeof(UnionTypeConfig).IsAssignableFrom(typeof(T)))
+                {
+                    namedTypeFactory = c => new UnionType(
+                        (UnionTypeConfig)(object)factory(c));
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        $"The {typeof(T).Name} type configuration " +
+                        "is not yet supported.");
+                }
+                _typeFactories.Add(namedTypeFactory);
+            }
+        }
+
+        internal void Commit(SchemaContext schemaContext)
         {
             if (schemaContext == null)
             {
@@ -106,6 +154,7 @@ namespace HotChocolate.Configuration
 
             // register custom scalars and enums
             RegisterCustomScalarTypes(schemaContext);
+            RegisterCustomTypes(schemaContext);
 
             // create type bindings
             Dictionary<string, ObjectTypeBinding> objectTypeBindings =
@@ -132,6 +181,14 @@ namespace HotChocolate.Configuration
             foreach (ScalarType scalarType in _scalarTypes.Values)
             {
                 schemaContext.RegisterType(scalarType);
+            }
+        }
+
+        private void RegisterCustomTypes(SchemaContext schemaContext)
+        {
+            foreach (Func<ISchemaContext, INamedType> factory in _typeFactories)
+            {
+                schemaContext.RegisterType(factory(schemaContext));
             }
         }
 
@@ -322,7 +379,6 @@ namespace HotChocolate.Configuration
                 if (binding.ObjectType == null && typeBindings
                     .TryGetValue(binding.ObjectTypeName, out typeBinding))
                 {
-
                     binding.ObjectType = typeBinding.Type;
                 }
 

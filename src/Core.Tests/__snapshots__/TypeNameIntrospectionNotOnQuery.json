@@ -1,0 +1,8 @@
+{
+  "Data": {
+    "b": {
+      "__typename": "Foo"
+    }
+  },
+  "Errors": null
+}

@@ -1,0 +1,1646 @@
+{
+  "Kind": "Document",
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": "SchemaDefinition",
+      "Location": null,
+      "Directives": [],
+      "OperationTypes": [
+        {
+          "Kind": "OperationTypeDefinition",
+          "Location": null,
+          "Operation": "Query",
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "QueryType"
+            }
+          }
+        },
+        {
+          "Kind": "OperationTypeDefinition",
+          "Location": null,
+          "Operation": "Mutation",
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "MutationType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Kind": "ObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Description": {
+        "Kind": "StringValue",
+        "Location": null,
+        "Value": "This is a description\nof the `Foo` type.",
+        "Block": true
+      },
+      "Directives": [],
+      "Interfaces": [
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Bar"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Baz"
+          }
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "one"
+          },
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "two"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NonNullType",
+                "Location": null,
+                "Type": {
+                  "Kind": "NamedType",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "InputType"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "three"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "InputType"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            },
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "other"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Int"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "four"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "string",
+                "Block": false
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "five"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "ListType",
+                "Location": null,
+                "Type": {
+                  "Kind": "NamedType",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "String"
+                  }
+                }
+              },
+              "DefaultValue": {
+                "Kind": "ListValue",
+                "Location": null,
+                "Items": [
+                  {
+                    "Kind": "StringValue",
+                    "Location": null,
+                    "Value": "string",
+                    "Block": false
+                  },
+                  {
+                    "Kind": "StringValue",
+                    "Location": null,
+                    "Value": "string",
+                    "Block": false
+                  }
+                ]
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "six"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "InputType"
+                }
+              },
+              "DefaultValue": {
+                "Kind": "ObjectValue",
+                "Location": null,
+                "Fields": [
+                  {
+                    "Kind": "ObjectField",
+                    "Location": null,
+                    "Name": {
+                      "Kind": "Name",
+                      "Location": null,
+                      "Value": "key"
+                    },
+                    "Value": {
+                      "Kind": "StringValue",
+                      "Location": null,
+                      "Value": "value",
+                      "Block": false
+                    }
+                  }
+                ]
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "seven"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "Int"
+                }
+              },
+              "DefaultValue": {
+                "Kind": "NullValue",
+                "Location": null
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "ObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedObject"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onObject"
+          },
+          "Arguments": [
+            {
+              "Kind": "Argument",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "arg"
+              },
+              "Value": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "value",
+                "Block": false
+              }
+            }
+          ]
+        }
+      ],
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "arg"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "Type"
+                }
+              },
+              "DefaultValue": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "default",
+                "Block": false
+              },
+              "Directives": [
+                {
+                  "Kind": "Directive",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "onArg"
+                  },
+                  "Arguments": []
+                }
+              ]
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": [
+            {
+              "Kind": "Directive",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "ObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "UndefinedType"
+      },
+      "Description": null,
+      "Directives": [],
+      "Interfaces": [],
+      "Fields": []
+    },
+    {
+      "Kind": "ObjectTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Directives": [],
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "seven"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "ListType",
+                "Location": null,
+                "Type": {
+                  "Kind": "NamedType",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "String"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "ObjectTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onType"
+          },
+          "Arguments": []
+        }
+      ],
+      "Interfaces": [],
+      "Fields": []
+    },
+    {
+      "Kind": "InterfaceTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "one"
+          },
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "four"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "string",
+                "Block": false
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "InterfaceTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedInterface"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onInterface"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "arg"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NamedType",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "Type"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": [
+                {
+                  "Kind": "Directive",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "onArg"
+                  },
+                  "Arguments": []
+                }
+              ]
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": [
+            {
+              "Kind": "Directive",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "InterfaceTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "UndefinedInterface"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": []
+    },
+    {
+      "Kind": "InterfaceTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": "FieldDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "two"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": "InputValueDefinition",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": "NonNullType",
+                "Location": null,
+                "Type": {
+                  "Kind": "NamedType",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "InputType"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "InterfaceTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onInterface"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": []
+    },
+    {
+      "Kind": "UnionTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Description": null,
+      "Directives": [],
+      "Types": [
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Story"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Article"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Advert"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": "UnionTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedUnion"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": [
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "A"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "B"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": "UnionTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedUnionTwo"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": [
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "A"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "B"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": "UnionTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "UndefinedUnion"
+      },
+      "Description": null,
+      "Directives": [],
+      "Types": []
+    },
+    {
+      "Kind": "UnionTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Directives": [],
+      "Types": [
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Photo"
+          }
+        },
+        {
+          "Kind": "NamedType",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "Video"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": "UnionTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": []
+    },
+    {
+      "Kind": "ScalarTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "CustomScalar"
+      },
+      "Description": null,
+      "Directives": []
+    },
+    {
+      "Kind": "ScalarTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedScalar"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onScalar"
+          },
+          "Arguments": []
+        }
+      ]
+    },
+    {
+      "Kind": "ScalarTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "CustomScalar"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onScalar"
+          },
+          "Arguments": []
+        }
+      ]
+    },
+    {
+      "Kind": "EnumTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Site"
+      },
+      "Description": null,
+      "Directives": [],
+      "Values": [
+        {
+          "Kind": "EnumValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "DESKTOP"
+          },
+          "Description": null,
+          "Directives": []
+        },
+        {
+          "Kind": "EnumValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "MOBILE"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "EnumTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedEnum"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onEnum"
+          },
+          "Arguments": []
+        }
+      ],
+      "Values": [
+        {
+          "Kind": "EnumValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "ANNOTATED_VALUE"
+          },
+          "Description": null,
+          "Directives": [
+            {
+              "Kind": "Directive",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "onEnumValue"
+              },
+              "Arguments": []
+            }
+          ]
+        },
+        {
+          "Kind": "EnumValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "OTHER_VALUE"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "EnumTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "UndefinedEnum"
+      },
+      "Description": null,
+      "Directives": [],
+      "Values": []
+    },
+    {
+      "Kind": "EnumTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Site"
+      },
+      "Directives": [],
+      "Values": [
+        {
+          "Kind": "EnumValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "VR"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "EnumTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Site"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onEnum"
+          },
+          "Arguments": []
+        }
+      ],
+      "Values": []
+    },
+    {
+      "Kind": "InputObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "key"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": null,
+            "Type": {
+              "Kind": "NamedType",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "String"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        },
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "answer"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Int"
+            }
+          },
+          "DefaultValue": {
+            "Kind": "IntValue",
+            "Location": null,
+            "Value": "4"
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "InputObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "AnnotatedInput"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onInputObject"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": [
+            {
+              "Kind": "Directive",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": "InputObjectTypeDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "UndefinedInput"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": []
+    },
+    {
+      "Kind": "InputObjectTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "other"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Float"
+            }
+          },
+          "DefaultValue": {
+            "Kind": "FloatValue",
+            "Location": null,
+            "Value": "1.23e"
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": "InputObjectTypeExtension",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onInputObject"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": []
+    },
+    {
+      "Kind": "DirectiveDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "skip"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": null,
+            "Type": {
+              "Kind": "NamedType",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": "DirectiveDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "include"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": null,
+            "Type": {
+              "Kind": "NamedType",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": "DirectiveDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "include2"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": "InputValueDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": null,
+            "Type": {
+              "Kind": "NamedType",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    }
+  ]
+}

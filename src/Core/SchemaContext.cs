@@ -6,7 +6,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    // TODO : move under configuration?
     internal sealed class SchemaContext
+        : ISchemaContext
     {
         private readonly Dictionary<string, List<ObjectType>> _implementsLookup =
             new Dictionary<string, List<ObjectType>>();
@@ -55,11 +57,18 @@ namespace HotChocolate
             _customIsOfTypeFunctions = customIsOfTypeFunctions;
         }
 
+        public bool AreTypesFinal { get; private set; }
+
         public void RegisterType(INamedType type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             _types.Add(type.Name, type);
@@ -70,6 +79,11 @@ namespace HotChocolate
             if (fieldResolvers == null)
             {
                 throw new ArgumentNullException(nameof(fieldResolvers));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             foreach (FieldResolver fieldResolver in fieldResolvers)
@@ -84,6 +98,11 @@ namespace HotChocolate
             if (typeMappings == null)
             {
                 throw new ArgumentNullException(nameof(typeMappings));
+            }
+
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException("All types are finalized.");
             }
 
             foreach (KeyValuePair<string, Type> typeMapping in typeMappings)
@@ -106,6 +125,17 @@ namespace HotChocolate
             types.Add(objectType);
         }
 
+        public bool TypeExists<T>(string typeName)
+            where T : INamedType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public INamedType GetType(string typeName)
         {
             if (_types.TryGetValue(typeName, out var t))
@@ -115,6 +145,19 @@ namespace HotChocolate
             throw new ArgumentException(
                 "The specified type does not exist.");
         }
+
+        public bool TryGetType(string typeName, out INamedType type)
+        {
+            if (_types.TryGetValue(typeName, out var t))
+            {
+                type = t;
+                return true;
+            }
+
+            type = null;
+            return false;
+        }
+
         public T GetType<T>(string typeName)
             where T : INamedType
         {
@@ -125,6 +168,20 @@ namespace HotChocolate
             }
             throw new ArgumentException(
                 "The specified type does not exist or is not of the specified type.");
+        }
+
+        public bool TryGetType<T>(string typeName, out T type)
+            where T : INamedType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T it)
+            {
+                type = it;
+                return true;
+            }
+
+            type = default(T);
+            return false;
         }
 
         public IReadOnlyCollection<INamedType> GetAllTypes()
@@ -203,8 +260,7 @@ namespace HotChocolate
             {
                 return resolver;
             }
-            throw new InvalidOperationException(
-                "The configuration is missing a resolver.");
+            return null;
         }
 
         public IsOfType CreateIsOfType(string typeName)
@@ -260,6 +316,44 @@ namespace HotChocolate
 
             throw new InvalidOperationException(
                 "At least one type must match.");
+        }
+
+        internal List<SchemaError> Seal()
+        {
+            if (AreTypesFinal)
+            {
+                throw new InvalidOperationException(
+                    "Types are already in a final state.");
+            }
+            AreTypesFinal = true;
+
+            List<SchemaError> errors = new List<SchemaError>();
+
+            // Initialize types in correct order
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<InterfaceType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<InputObjectType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<ObjectType>(),
+                error => errors.Add(error));
+            CompleteTypeInitialization(
+                GetAllTypes().OfType<UnionType>(),
+                error => errors.Add(error));
+
+            return errors;
+        }
+
+        private void CompleteTypeInitialization(
+           IEnumerable<ITypeInitializer> initializers,
+           Action<SchemaError> reportError)
+        {
+            foreach (ITypeInitializer initializer in initializers)
+            {
+                initializer.CompleteInitialization(reportError);
+            }
         }
     }
 }

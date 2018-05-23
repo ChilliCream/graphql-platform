@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
             {
                 case OperationType.Query:
                     List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
-                        executionContext, schema.Query);
+                        executionContext, schema.QueryType);
                     executionContext.NextBatch.AddRange(tasks);
                     await ExecuteFieldResolversAsync(executionContext, cancellationToken);
                     break;
@@ -67,10 +67,12 @@ namespace HotChocolate.Execution
             Schema schema, DocumentNode queryDocument, string operationName,
             Dictionary<string, IValueNode> variableValues, object initialValue)
         {
+            Dictionary<string, IValueNode> vars = variableValues
+                ?? new Dictionary<string, IValueNode>();
             OperationDefinitionNode operation = GetOperation(queryDocument, operationName);
             VariableCollection variables = new VariableCollection(
                 _variableValueResolver.CoerceVariableValues(
-                    schema, operation, variableValues));
+                    schema, operation, vars));
             ExecutionContext executionContext = new ExecutionContext(
                 schema, queryDocument, operation, variables, _services,
                 initialValue, null);
@@ -182,6 +184,7 @@ namespace HotChocolate.Execution
             }
         }
 
+        // TODO : refactor this
         private bool TryCompleteValue(
             ExecutionContext executionContext,
             ImmutableStack<object> source,
@@ -205,6 +208,7 @@ namespace HotChocolate.Execution
                         fieldSelection.Node));
                     return false;
                 }
+                return true;
             }
 
             if (completedValue == null)
@@ -213,14 +217,14 @@ namespace HotChocolate.Execution
                 return false;
             }
 
-            if (fieldSelection.Field.Type.IsListType())
+            if (fieldType.IsListType())
             {
                 return TryCompleteListValue(executionContext, source,
                     fieldSelection, fieldType, path, completedValue, setValue);
             }
 
-            if (fieldSelection.Field.Type.IsScalarType()
-                || fieldSelection.Field.Type.IsEnumType())
+            if (fieldType.IsScalarType()
+                || fieldType.IsEnumType())
             {
                 return TryCompleteScalarValue(executionContext, source,
                     fieldSelection, fieldType, path, completedValue, setValue);
@@ -239,7 +243,7 @@ namespace HotChocolate.Execution
             object fieldValue,
             Action<object> setValue)
         {
-            IType elementType = fieldSelection.Field.Type.ElementType();
+            IType elementType = fieldType.ElementType();
             bool isNonNullElement = elementType.IsNonNullType();
             List<object> list = new List<object>();
             int i = 0;
@@ -277,17 +281,19 @@ namespace HotChocolate.Execution
         {
             try
             {
-                // TODO :   include enums
-                setValue(((ScalarType)fieldType).Serialize(fieldValue));
+                setValue(((ISerializableType)fieldType).Serialize(fieldValue));
                 return true;
             }
             catch (ArgumentException ex)
             {
-                executionContext.Errors.Add(new FieldError(ex.Message, fieldSelection.Node));
+                executionContext.Errors.Add(new FieldError(
+                    ex.Message, fieldSelection.Node));
             }
             catch (Exception)
             {
-                executionContext.Errors.Add(new FieldError("Undefined field serialization error.", fieldSelection.Node));
+                executionContext.Errors.Add(new FieldError(
+                    "Undefined field serialization error.",
+                    fieldSelection.Node));
             }
 
             setValue(null);

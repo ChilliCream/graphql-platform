@@ -4,12 +4,12 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public abstract class ScalarType
-        : IOutputType
+        : INamedType
+        , IOutputType
         , IInputType
-        , INamedType
         , INullableType
         , ISerializableType
-
+        // TODO : ITypeSystemNode
     {
         protected ScalarType(string name)
             : this(name, null)

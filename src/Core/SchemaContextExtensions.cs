@@ -4,9 +4,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal static class SchemaContextExtensions
+    public static class SchemaContextExtensions
     {
-        public static IOutputType GetOutputType(
+        internal static IOutputType GetOutputType(
             this SchemaContext context, ITypeNode type)
         {
             if (type.Kind == NodeKind.NonNullType)
@@ -30,7 +30,7 @@ namespace HotChocolate
             throw new NotSupportedException();
         }
 
-        public static IInputType GetInputType(
+        internal static IInputType GetInputType(
             this SchemaContext context, ITypeNode type)
         {
             if (type.Kind == NodeKind.NonNullType)
@@ -52,6 +52,36 @@ namespace HotChocolate
             }
 
             throw new NotSupportedException();
+        }
+
+        public static ScalarType StringType(this ISchemaContext context)
+        {
+            return context.GetOutputType<StringType>(WellKnownTypes.StringType);
+        }
+
+        public static NonNullType NonNullStringType(this ISchemaContext context)
+        {
+            return new NonNullType(context.StringType());
+        }
+
+        public static ScalarType BooleanType(this ISchemaContext context)
+        {
+            return context.GetOutputType<BooleanType>(WellKnownTypes.BooleanType);
+        }
+
+        public static NonNullType NonNullBooleanType(this ISchemaContext context)
+        {
+            return new NonNullType(context.BooleanType());
+        }
+
+        public static ScalarType IntegerType(this ISchemaContext context)
+        {
+            return context.GetOutputType<IntegerType>(WellKnownTypes.IntType);
+        }
+
+        public static NonNullType NonNullIntegerType(this ISchemaContext context)
+        {
+            return new NonNullType(context.IntegerType());
         }
     }
 }

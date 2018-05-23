@@ -12,11 +12,6 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
-            if (typeCondition == null)
-            {
-                throw new ArgumentNullException(nameof(typeCondition));
-            }
-
             if (directives == null)
             {
                 throw new ArgumentNullException(nameof(directives));

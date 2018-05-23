@@ -4,6 +4,86 @@ namespace HotChocolate.Types
 {
     public static class TypeExtensions
     {
+        public static TypeKind GetKind(this IType type)
+        {
+            if (IsNonNullType(type))
+            {
+                return TypeKind.NonNull;
+            }
+            else if (IsListType(type))
+            {
+                return TypeKind.List;
+            }
+            else if (IsObjectType(type))
+            {
+                return TypeKind.List;
+            }
+            else if (IsInterfaceType(type))
+            {
+                return TypeKind.Interface;
+            }
+            else if (IsUnionType(type))
+            {
+                return TypeKind.Union;
+            }
+            else if (IsEnumType(type))
+            {
+                return TypeKind.Enum;
+            }
+            else if (IsInputType(type))
+            {
+                return TypeKind.InputObject;
+            }
+            else
+            {
+                throw new NotSupportedException("Unknown type kind.");
+            }
+        }
+
+        public static bool TryGetKind(this IType type, out TypeKind kind)
+        {
+            if (IsNonNullType(type))
+            {
+                kind = TypeKind.NonNull;
+                return true;
+            }
+            else if (IsListType(type))
+            {
+                kind = TypeKind.List;
+                return true;
+            }
+            else if (IsObjectType(type))
+            {
+                kind = TypeKind.Object;
+                return true;
+            }
+            else if (IsInterfaceType(type))
+            {
+                kind = TypeKind.Interface;
+                return true;
+            }
+            else if (IsUnionType(type))
+            {
+                kind = TypeKind.Union;
+                return true;
+            }
+            else if (IsEnumType(type))
+            {
+                kind = TypeKind.Enum;
+                return true;
+            }
+            else if (IsInputType(type))
+            {
+                kind = TypeKind.InputObject;
+                return true;
+            }
+            else
+            {
+                kind = default(TypeKind);
+                return false;
+            }
+        }
+
         public static bool IsNonNullType(this IType type)
         {
             return (type is NonNullType);
