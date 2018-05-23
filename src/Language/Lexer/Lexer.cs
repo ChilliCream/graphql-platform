@@ -363,7 +363,6 @@ namespace HotChocolate.Language
             string[] lines = rawString.Split('\n');
             string[] trimmedLines = new string[lines.Length];
 
-
             int commonIndent = DetermineCommonIdentation(lines, trimmedLines);
             RemoveCommonIndetation(lines, in commonIndent);
 
@@ -380,8 +379,7 @@ namespace HotChocolate.Language
             {
                 trimmedLines[i] = lines[i].TrimStart(' ', '\t');
                 int indent = lines[i].Length - trimmedLines[i].Length;
-                if (indent < trimmedLines[i].Length
-                    && indent < commonIndent)
+                if (indent >= 0 && indent < commonIndent)
                 {
                     commonIndent = indent;
                 }
