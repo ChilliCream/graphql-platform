@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>HotChocolate.AspNet.Core.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.AspNet.Core</RootNamespace>
+    <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="Microsoft.CodeCoverage" Version="1.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.0.1" />
     <PackageReference Include="coverlet.msbuild" Version="1.1.1" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
@@ -26,7 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNet.Core\AspNet.Core.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
   </ItemGroup>
 
