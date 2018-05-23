@@ -25,6 +25,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
+            Assert.Null(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
@@ -41,6 +42,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
+            Assert.Null(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
@@ -58,6 +60,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
+            Assert.Null(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
@@ -75,6 +78,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
+            Assert.Null(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
@@ -92,6 +96,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
+            Assert.Null(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 

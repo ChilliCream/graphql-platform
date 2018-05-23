@@ -32,7 +32,8 @@ namespace HotChocolate.Language
             // act
             Parser parser = new Parser();
             DocumentNode document = parser.Parse(
-                querySource, new ParserOptions(noLocations: true));
+                querySource, new ParserOptions(
+                    noLocations: true, allowFragmentVariables: true));
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(document));
