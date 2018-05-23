@@ -1,0 +1,841 @@
+{
+  "Kind": "Document",
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "queryName"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": null,
+          "Variable": {
+            "Kind": "Variable",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "foo"
+            }
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "ComplexType"
+            }
+          },
+          "DefaultValue": null
+        },
+        {
+          "Kind": "VariableDefinition",
+          "Location": null,
+          "Variable": {
+            "Kind": "Variable",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "site"
+            }
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "Site"
+            }
+          },
+          "DefaultValue": {
+            "Kind": "EnumValue",
+            "Location": null,
+            "Value": "MOBILE"
+          }
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "node"
+            },
+            "Alias": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "whoever123is"
+            },
+            "Directives": [],
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "id"
+                },
+                "Value": {
+                  "Kind": "ListValue",
+                  "Location": null,
+                  "Items": [
+                    {
+                      "Kind": "IntValue",
+                      "Location": null,
+                      "Value": "12"
+                    },
+                    {
+                      "Kind": "IntValue",
+                      "Location": null,
+                      "Value": "45"
+                    }
+                  ]
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "id"
+                  },
+                  "Alias": null,
+                  "Directives": [],
+                  "Arguments": [],
+                  "SelectionSet": null
+                },
+                {
+                  "Kind": "InlineFragment",
+                  "Location": null,
+                  "TypeCondition": {
+                    "Kind": "NamedType",
+                    "Location": null,
+                    "Name": {
+                      "Kind": "Name",
+                      "Location": null,
+                      "Value": "User"
+                    }
+                  },
+                  "Directives": [
+                    {
+                      "Kind": "Directive",
+                      "Location": null,
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": null,
+                        "Value": "defer"
+                      },
+                      "Arguments": []
+                    }
+                  ],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "field2"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": null,
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "id"
+                              },
+                              "Alias": null,
+                              "Directives": [],
+                              "Arguments": [],
+                              "SelectionSet": null
+                            },
+                            {
+                              "Kind": "Field",
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "field1"
+                              },
+                              "Alias": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "alias"
+                              },
+                              "Directives": [
+                                {
+                                  "Kind": "Directive",
+                                  "Location": null,
+                                  "Name": {
+                                    "Kind": "Name",
+                                    "Location": null,
+                                    "Value": "include"
+                                  },
+                                  "Arguments": [
+                                    {
+                                      "Kind": "Argument",
+                                      "Location": null,
+                                      "Name": {
+                                        "Kind": "Name",
+                                        "Location": null,
+                                        "Value": "if"
+                                      },
+                                      "Value": {
+                                        "Kind": "Variable",
+                                        "Location": null,
+                                        "Name": {
+                                          "Kind": "Name",
+                                          "Location": null,
+                                          "Value": "foo"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ],
+                              "Arguments": [
+                                {
+                                  "Kind": "Argument",
+                                  "Location": null,
+                                  "Name": {
+                                    "Kind": "Name",
+                                    "Location": null,
+                                    "Value": "first"
+                                  },
+                                  "Value": {
+                                    "Kind": "IntValue",
+                                    "Location": null,
+                                    "Value": "1"
+                                  }
+                                },
+                                {
+                                  "Kind": "Argument",
+                                  "Location": null,
+                                  "Name": {
+                                    "Kind": "Name",
+                                    "Location": null,
+                                    "Value": "after"
+                                  },
+                                  "Value": {
+                                    "Kind": "Variable",
+                                    "Location": null,
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": null,
+                                      "Value": "foo"
+                                    }
+                                  }
+                                }
+                              ],
+                              "SelectionSet": {
+                                "Kind": "SelectionSet",
+                                "Location": null,
+                                "Selections": [
+                                  {
+                                    "Kind": "Field",
+                                    "Location": null,
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": null,
+                                      "Value": "id"
+                                    },
+                                    "Alias": null,
+                                    "Directives": [],
+                                    "Arguments": [],
+                                    "SelectionSet": null
+                                  },
+                                  {
+                                    "Kind": "FragmentSpread",
+                                    "Location": null,
+                                    "Name": {
+                                      "Kind": "Name",
+                                      "Location": null,
+                                      "Value": "frag"
+                                    },
+                                    "Directives": []
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "Kind": "InlineFragment",
+                  "Location": null,
+                  "TypeCondition": null,
+                  "Directives": [
+                    {
+                      "Kind": "Directive",
+                      "Location": null,
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": null,
+                        "Value": "skip"
+                      },
+                      "Arguments": [
+                        {
+                          "Kind": "Argument",
+                          "Location": null,
+                          "Name": {
+                            "Kind": "Name",
+                            "Location": null,
+                            "Value": "unless"
+                          },
+                          "Value": {
+                            "Kind": "Variable",
+                            "Location": null,
+                            "Name": {
+                              "Kind": "Name",
+                              "Location": null,
+                              "Value": "foo"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "id"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": null
+                      }
+                    ]
+                  }
+                },
+                {
+                  "Kind": "InlineFragment",
+                  "Location": null,
+                  "TypeCondition": null,
+                  "Directives": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "id"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "likeStory"
+      },
+      "Operation": "Mutation",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "like"
+            },
+            "Alias": null,
+            "Directives": [
+              {
+                "Kind": "Directive",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "defer"
+                },
+                "Arguments": []
+              }
+            ],
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "story"
+                },
+                "Value": {
+                  "Kind": "IntValue",
+                  "Location": null,
+                  "Value": "12"
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "story"
+                  },
+                  "Alias": null,
+                  "Directives": [],
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "id"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "StoryLikeSubscription"
+      },
+      "Operation": "Subscription",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": null,
+          "Variable": {
+            "Kind": "Variable",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "input"
+            }
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "StoryLikeSubscribeInput"
+            }
+          },
+          "DefaultValue": null
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "storyLikeSubscribe"
+            },
+            "Alias": null,
+            "Directives": [],
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "input"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "input"
+                  }
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "story"
+                  },
+                  "Alias": null,
+                  "Directives": [],
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "likers"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": null,
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "count"
+                              },
+                              "Alias": null,
+                              "Directives": [],
+                              "Arguments": [],
+                              "SelectionSet": null
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "likeSentence"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": null,
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "text"
+                              },
+                              "Alias": null,
+                              "Directives": [],
+                              "Arguments": [],
+                              "SelectionSet": null
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "Kind": "FragmentDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "frag"
+      },
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "Friend"
+        }
+      },
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "foo"
+            },
+            "Alias": null,
+            "Directives": [],
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "size"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "size"
+                  }
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "bar"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "b"
+                  }
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "obj"
+                },
+                "Value": {
+                  "Kind": "ObjectValue",
+                  "Location": null,
+                  "Fields": [
+                    {
+                      "Kind": "ObjectField",
+                      "Location": null,
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": null,
+                        "Value": "key"
+                      },
+                      "Value": {
+                        "Kind": "StringValue",
+                        "Location": null,
+                        "Value": "value",
+                        "Block": false
+                      }
+                    },
+                    {
+                      "Kind": "ObjectField",
+                      "Location": null,
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": null,
+                        "Value": "block"
+                      },
+                      "Value": {
+                        "Kind": "StringValue",
+                        "Location": null,
+                        "Value": "      block string uses \"\"\"",
+                        "Block": true
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "SelectionSet": null
+          }
+        ]
+      }
+    },
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "unnamed"
+            },
+            "Alias": null,
+            "Directives": [],
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "truthy"
+                },
+                "Value": {
+                  "Kind": "BooleanValue",
+                  "Location": null,
+                  "Value": true
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "falsey"
+                },
+                "Value": {
+                  "Kind": "BooleanValue",
+                  "Location": null,
+                  "Value": false
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "nullish"
+                },
+                "Value": {
+                  "Kind": "NullValue",
+                  "Location": null
+                }
+              }
+            ],
+            "SelectionSet": null
+          },
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "query"
+            },
+            "Alias": null,
+            "Directives": [],
+            "Arguments": [],
+            "SelectionSet": null
+          }
+        ]
+      }
+    }
+  ]
+}

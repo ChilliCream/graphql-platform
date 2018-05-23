@@ -1,35 +1,35 @@
 {
-  "Kind": 1,
+  "Kind": "Document",
   "Location": null,
   "Definitions": [
     {
-      "Kind": 23,
+      "Kind": "SchemaDefinition",
       "Location": null,
       "Directives": [],
       "OperationTypes": [
         {
-          "Kind": 24,
+          "Kind": "OperationTypeDefinition",
           "Location": null,
-          "Operation": 0,
+          "Operation": "Query",
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "QueryType"
             }
           }
         },
         {
-          "Kind": 24,
+          "Kind": "OperationTypeDefinition",
           "Location": null,
-          "Operation": 1,
+          "Operation": "Mutation",
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "MutationType"
             }
@@ -38,15 +38,15 @@
       ]
     },
     {
-      "Kind": 26,
+      "Kind": "ObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Foo"
       },
       "Description": {
-        "Kind": 12,
+        "Kind": "StringValue",
         "Location": null,
         "Value": "This is a description\nof the `Foo` type.",
         "Block": true
@@ -54,19 +54,19 @@
       "Directives": [],
       "Interfaces": [
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Bar"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Baz"
           }
@@ -74,20 +74,20 @@
       ],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "one"
           },
           "Description": null,
           "Arguments": [],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -95,32 +95,32 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "two"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 22,
+                "Kind": "NonNullType",
                 "Location": null,
                 "Type": {
-                  "Kind": 20,
+                  "Kind": "NamedType",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "InputType"
                   }
@@ -131,10 +131,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -142,29 +142,29 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "three"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "InputType"
                 }
@@ -173,19 +173,19 @@
               "Directives": []
             },
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "other"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "String"
                 }
@@ -195,10 +195,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Int"
             }
@@ -206,35 +206,35 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "four"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "String"
                 }
               },
               "DefaultValue": {
-                "Kind": 12,
+                "Kind": "StringValue",
                 "Location": null,
                 "Value": "string",
                 "Block": false
@@ -243,10 +243,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "String"
             }
@@ -254,49 +254,49 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "five"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 21,
+                "Kind": "ListType",
                 "Location": null,
                 "Type": {
-                  "Kind": 20,
+                  "Kind": "NamedType",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "String"
                   }
                 }
               },
               "DefaultValue": {
-                "Kind": 16,
+                "Kind": "ListValue",
                 "Location": null,
                 "Items": [
                   {
-                    "Kind": 12,
+                    "Kind": "StringValue",
                     "Location": null,
                     "Value": "string",
                     "Block": false
                   },
                   {
-                    "Kind": 12,
+                    "Kind": "StringValue",
                     "Location": null,
                     "Value": "string",
                     "Block": false
@@ -307,10 +307,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "String"
             }
@@ -318,47 +318,47 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "six"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "InputType"
                 }
               },
               "DefaultValue": {
-                "Kind": 17,
+                "Kind": "ObjectValue",
                 "Location": null,
                 "Fields": [
                   {
-                    "Kind": 18,
+                    "Kind": "ObjectField",
                     "Location": null,
                     "Name": {
-                      "Kind": 0,
+                      "Kind": "Name",
                       "Location": null,
                       "Value": "key"
                     },
                     "Value": {
-                      "Kind": 12,
+                      "Kind": "StringValue",
                       "Location": null,
                       "Value": "value",
                       "Block": false
@@ -370,10 +370,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -381,45 +381,45 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "seven"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "Int"
                 }
               },
               "DefaultValue": {
-                "Kind": 14,
+                "Kind": "NullValue",
                 "Location": null
               },
               "Directives": []
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -429,34 +429,34 @@
       ]
     },
     {
-      "Kind": 26,
+      "Kind": "ObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedObject"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onObject"
           },
           "Arguments": [
             {
-              "Kind": 7,
+              "Kind": "Argument",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "arg"
               },
               "Value": {
-                "Kind": 12,
+                "Kind": "StringValue",
                 "Location": null,
                 "Value": "value",
                 "Block": false
@@ -468,45 +468,45 @@
       "Interfaces": [],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "annotatedField"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "arg"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "Type"
                 }
               },
               "DefaultValue": {
-                "Kind": 12,
+                "Kind": "StringValue",
                 "Location": null,
                 "Value": "default",
                 "Block": false
               },
               "Directives": [
                 {
-                  "Kind": 19,
+                  "Kind": "Directive",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "onArg"
                   },
@@ -516,20 +516,20 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
           },
           "Directives": [
             {
-              "Kind": 19,
+              "Kind": "Directive",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "onField"
               },
@@ -540,10 +540,10 @@
       ]
     },
     {
-      "Kind": 26,
+      "Kind": "ObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "UndefinedType"
       },
@@ -553,10 +553,10 @@
       "Fields": []
     },
     {
-      "Kind": 35,
+      "Kind": "ObjectTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Foo"
       },
@@ -564,32 +564,32 @@
       "Interfaces": [],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "seven"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 21,
+                "Kind": "ListType",
                 "Location": null,
                 "Type": {
-                  "Kind": 20,
+                  "Kind": "NamedType",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "String"
                   }
@@ -600,10 +600,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -613,19 +613,19 @@
       ]
     },
     {
-      "Kind": 35,
+      "Kind": "ObjectTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Foo"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onType"
           },
@@ -636,10 +636,10 @@
       "Fields": []
     },
     {
-      "Kind": 29,
+      "Kind": "InterfaceTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Bar"
       },
@@ -647,20 +647,20 @@
       "Directives": [],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "one"
           },
           "Description": null,
           "Arguments": [],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -668,35 +668,35 @@
           "Directives": []
         },
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "four"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "String"
                 }
               },
               "DefaultValue": {
-                "Kind": 12,
+                "Kind": "StringValue",
                 "Location": null,
                 "Value": "string",
                 "Block": false
@@ -705,10 +705,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "String"
             }
@@ -718,20 +718,20 @@
       ]
     },
     {
-      "Kind": 29,
+      "Kind": "InterfaceTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedInterface"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onInterface"
           },
@@ -740,29 +740,29 @@
       ],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "annotatedField"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "arg"
               },
               "Description": null,
               "Type": {
-                "Kind": 20,
+                "Kind": "NamedType",
                 "Location": null,
                 "Name": {
-                  "Kind": 0,
+                  "Kind": "Name",
                   "Location": null,
                   "Value": "Type"
                 }
@@ -770,10 +770,10 @@
               "DefaultValue": null,
               "Directives": [
                 {
-                  "Kind": 19,
+                  "Kind": "Directive",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "onArg"
                   },
@@ -783,20 +783,20 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
           },
           "Directives": [
             {
-              "Kind": 19,
+              "Kind": "Directive",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "onField"
               },
@@ -807,10 +807,10 @@
       ]
     },
     {
-      "Kind": 29,
+      "Kind": "InterfaceTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "UndefinedInterface"
       },
@@ -819,42 +819,42 @@
       "Fields": []
     },
     {
-      "Kind": 36,
+      "Kind": "InterfaceTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Bar"
       },
       "Directives": [],
       "Fields": [
         {
-          "Kind": 27,
+          "Kind": "FieldDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "two"
           },
           "Description": null,
           "Arguments": [
             {
-              "Kind": 28,
+              "Kind": "InputValueDefinition",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "argument"
               },
               "Description": null,
               "Type": {
-                "Kind": 22,
+                "Kind": "NonNullType",
                 "Location": null,
                 "Type": {
-                  "Kind": 20,
+                  "Kind": "NamedType",
                   "Location": null,
                   "Name": {
-                    "Kind": 0,
+                    "Kind": "Name",
                     "Location": null,
                     "Value": "InputType"
                   }
@@ -865,10 +865,10 @@
             }
           ],
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -878,19 +878,19 @@
       ]
     },
     {
-      "Kind": 36,
+      "Kind": "InterfaceTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Bar"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onInterface"
           },
@@ -900,10 +900,10 @@
       "Fields": []
     },
     {
-      "Kind": 30,
+      "Kind": "UnionTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Feed"
       },
@@ -911,28 +911,28 @@
       "Directives": [],
       "Types": [
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Story"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Article"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Advert"
           }
@@ -940,20 +940,20 @@
       ]
     },
     {
-      "Kind": 30,
+      "Kind": "UnionTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedUnion"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onUnion"
           },
@@ -962,19 +962,19 @@
       ],
       "Types": [
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "A"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "B"
           }
@@ -982,20 +982,20 @@
       ]
     },
     {
-      "Kind": 30,
+      "Kind": "UnionTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedUnionTwo"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onUnion"
           },
@@ -1004,19 +1004,19 @@
       ],
       "Types": [
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "A"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "B"
           }
@@ -1024,10 +1024,10 @@
       ]
     },
     {
-      "Kind": 30,
+      "Kind": "UnionTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "UndefinedUnion"
       },
@@ -1036,29 +1036,29 @@
       "Types": []
     },
     {
-      "Kind": 37,
+      "Kind": "UnionTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Feed"
       },
       "Directives": [],
       "Types": [
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Photo"
           }
         },
         {
-          "Kind": 20,
+          "Kind": "NamedType",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "Video"
           }
@@ -1066,19 +1066,19 @@
       ]
     },
     {
-      "Kind": 37,
+      "Kind": "UnionTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Feed"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onUnion"
           },
@@ -1088,10 +1088,10 @@
       "Types": []
     },
     {
-      "Kind": 25,
+      "Kind": "ScalarTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "CustomScalar"
       },
@@ -1099,20 +1099,20 @@
       "Directives": []
     },
     {
-      "Kind": 25,
+      "Kind": "ScalarTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedScalar"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onScalar"
           },
@@ -1121,19 +1121,19 @@
       ]
     },
     {
-      "Kind": 34,
+      "Kind": "ScalarTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "CustomScalar"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onScalar"
           },
@@ -1142,10 +1142,10 @@
       ]
     },
     {
-      "Kind": 31,
+      "Kind": "EnumTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Site"
       },
@@ -1153,10 +1153,10 @@
       "Directives": [],
       "Values": [
         {
-          "Kind": 32,
+          "Kind": "EnumValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "DESKTOP"
           },
@@ -1164,10 +1164,10 @@
           "Directives": []
         },
         {
-          "Kind": 32,
+          "Kind": "EnumValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "MOBILE"
           },
@@ -1177,20 +1177,20 @@
       ]
     },
     {
-      "Kind": 31,
+      "Kind": "EnumTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedEnum"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onEnum"
           },
@@ -1199,20 +1199,20 @@
       ],
       "Values": [
         {
-          "Kind": 32,
+          "Kind": "EnumValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "ANNOTATED_VALUE"
           },
           "Description": null,
           "Directives": [
             {
-              "Kind": 19,
+              "Kind": "Directive",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "onEnumValue"
               },
@@ -1221,10 +1221,10 @@
           ]
         },
         {
-          "Kind": 32,
+          "Kind": "EnumValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "OTHER_VALUE"
           },
@@ -1234,10 +1234,10 @@
       ]
     },
     {
-      "Kind": 31,
+      "Kind": "EnumTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "UndefinedEnum"
       },
@@ -1246,20 +1246,20 @@
       "Values": []
     },
     {
-      "Kind": 38,
+      "Kind": "EnumTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Site"
       },
       "Directives": [],
       "Values": [
         {
-          "Kind": 32,
+          "Kind": "EnumValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "VR"
           },
@@ -1269,19 +1269,19 @@
       ]
     },
     {
-      "Kind": 38,
+      "Kind": "EnumTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "Site"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onEnum"
           },
@@ -1291,10 +1291,10 @@
       "Values": []
     },
     {
-      "Kind": 33,
+      "Kind": "InputObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "InputType"
       },
@@ -1302,22 +1302,22 @@
       "Directives": [],
       "Fields": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "key"
           },
           "Description": null,
           "Type": {
-            "Kind": 22,
+            "Kind": "NonNullType",
             "Location": null,
             "Type": {
-              "Kind": 20,
+              "Kind": "NamedType",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "String"
               }
@@ -1327,25 +1327,25 @@
           "Directives": []
         },
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "answer"
           },
           "Description": null,
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Int"
             }
           },
           "DefaultValue": {
-            "Kind": 11,
+            "Kind": "IntValue",
             "Location": null,
             "Value": "4"
           },
@@ -1354,20 +1354,20 @@
       ]
     },
     {
-      "Kind": 33,
+      "Kind": "InputObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedInput"
       },
       "Description": null,
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onInputObject"
           },
@@ -1376,19 +1376,19 @@
       ],
       "Fields": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "annotatedField"
           },
           "Description": null,
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Type"
             }
@@ -1396,10 +1396,10 @@
           "DefaultValue": null,
           "Directives": [
             {
-              "Kind": 19,
+              "Kind": "Directive",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "onField"
               },
@@ -1410,10 +1410,10 @@
       ]
     },
     {
-      "Kind": 33,
+      "Kind": "InputObjectTypeDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "UndefinedInput"
       },
@@ -1422,35 +1422,35 @@
       "Fields": []
     },
     {
-      "Kind": 39,
+      "Kind": "InputObjectTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "InputType"
       },
       "Directives": [],
       "Fields": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "other"
           },
           "Description": null,
           "Type": {
-            "Kind": 20,
+            "Kind": "NamedType",
             "Location": null,
             "Name": {
-              "Kind": 0,
+              "Kind": "Name",
               "Location": null,
               "Value": "Float"
             }
           },
           "DefaultValue": {
-            "Kind": 41,
+            "Kind": "FloatValue",
             "Location": null,
             "Value": "1.23e"
           },
@@ -1459,19 +1459,19 @@
       ]
     },
     {
-      "Kind": 39,
+      "Kind": "InputObjectTypeExtension",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "InputType"
       },
       "Directives": [
         {
-          "Kind": 19,
+          "Kind": "Directive",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "onInputObject"
           },
@@ -1481,32 +1481,32 @@
       "Fields": []
     },
     {
-      "Kind": 40,
+      "Kind": "DirectiveDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "skip"
       },
       "Description": null,
       "Arguments": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "if"
           },
           "Description": null,
           "Type": {
-            "Kind": 22,
+            "Kind": "NonNullType",
             "Location": null,
             "Type": {
-              "Kind": 20,
+              "Kind": "NamedType",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "Boolean"
               }
@@ -1518,49 +1518,49 @@
       ],
       "Locations": [
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FIELD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FRAGMENT_SPREAD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "INLINE_FRAGMENT"
         }
       ]
     },
     {
-      "Kind": 40,
+      "Kind": "DirectiveDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "include"
       },
       "Description": null,
       "Arguments": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "if"
           },
           "Description": null,
           "Type": {
-            "Kind": 22,
+            "Kind": "NonNullType",
             "Location": null,
             "Type": {
-              "Kind": 20,
+              "Kind": "NamedType",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "Boolean"
               }
@@ -1572,49 +1572,49 @@
       ],
       "Locations": [
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FIELD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FRAGMENT_SPREAD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "INLINE_FRAGMENT"
         }
       ]
     },
     {
-      "Kind": 40,
+      "Kind": "DirectiveDefinition",
       "Location": null,
       "Name": {
-        "Kind": 0,
+        "Kind": "Name",
         "Location": null,
         "Value": "include2"
       },
       "Description": null,
       "Arguments": [
         {
-          "Kind": 28,
+          "Kind": "InputValueDefinition",
           "Location": null,
           "Name": {
-            "Kind": 0,
+            "Kind": "Name",
             "Location": null,
             "Value": "if"
           },
           "Description": null,
           "Type": {
-            "Kind": 22,
+            "Kind": "NonNullType",
             "Location": null,
             "Type": {
-              "Kind": 20,
+              "Kind": "NamedType",
               "Location": null,
               "Name": {
-                "Kind": 0,
+                "Kind": "Name",
                 "Location": null,
                 "Value": "Boolean"
               }
@@ -1626,17 +1626,17 @@
       ],
       "Locations": [
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FIELD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "FRAGMENT_SPREAD"
         },
         {
-          "Kind": 0,
+          "Kind": "Name",
           "Location": null,
           "Value": "INLINE_FRAGMENT"
         }

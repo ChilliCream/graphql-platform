@@ -1,6 +1,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace HotChocolate
 {
@@ -9,7 +10,11 @@ namespace HotChocolate
         private readonly static JsonSerializerSettings _settings = new JsonSerializerSettings
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            Formatting = Formatting.Indented
+            Formatting = Formatting.Indented,
+            Converters = new[]
+            {
+                new StringEnumConverter()
+            }
         };
 
         public static string Current([CallerMemberNameAttribute]string snapshotName = null)
