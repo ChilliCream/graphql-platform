@@ -1,15 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Types.Factories;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -30,9 +25,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
-            Assert.Null(result.Errors);
-            Assert.True(result.Data.ContainsKey("__typename"));
-            Assert.Equal("Query", result.Data["__typename"]);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
         [Fact]
@@ -48,13 +41,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
-            Assert.Null(result.Errors);
-            Assert.True(result.Data.ContainsKey("b"));
-            Assert.IsType<Dictionary<string, object>>(result.Data["b"]);
-
-            Dictionary<string, object> map = (Dictionary<string, object>)result.Data["b"];
-            Assert.True(map.ContainsKey("__typename"));
-            Assert.Equal("Foo", map["__typename"]);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
         [Fact]
@@ -71,9 +58,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
-            Assert.Equal(
-                "{\"Data\":{\"__type\":{\"name\":\"Foo\"}},\"Errors\":null}",
-                JsonConvert.SerializeObject(result));
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
         [Fact]
@@ -90,11 +75,7 @@ namespace HotChocolate.Types.Factories
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
-            Assert.Equal(
-                "{\"Data\":{\"__type\":{\"name\":\"Foo\"," +
-                "\"fields\":[{\"name\":\"a\",\"type\":{\"name\":\"String\"}}]}}," +
-                "\"Errors\":null}",
-                JsonConvert.SerializeObject(result));
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
         [Fact]
@@ -106,16 +87,12 @@ namespace HotChocolate.Types.Factories
 
             // act
             OperationExecuter operationExecuter = new OperationExecuter();
+            Stopwatch sw = Stopwatch.StartNew();
             QueryResult result = await operationExecuter.ExecuteRequestAsync(
                 schema, query, null, null, null, CancellationToken.None);
 
             // assert
-            string s = JsonConvert.SerializeObject(result);
-            Assert.Equal(
-                "{\"Data\":{\"__type\":{\"name\":\"Foo\"," +
-                "\"fields\":[{\"name\":\"a\",\"type\":{\"name\":\"String\"}}]}}," +
-                "\"Errors\":null}",
-                JsonConvert.SerializeObject(result));
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
         private static Schema CreateSchema()
@@ -160,79 +137,73 @@ namespace HotChocolate.Types.Factories
         {
             return Parser.Default.Parse(@"
                 query IntrospectionQuery {
-                __schema {
-                    queryType { name }
-                    mutationType { name }
-                    subscriptionType { name }
-                    types {
-                    ...FullType
+                    __schema {
+                        queryType { name }
+                        mutationType { name }
+                        subscriptionType { name }
+                        types {
+                        ...FullType
+                        }
+                        directives {
+                        name
+                        description
+                        locations
+                        args {
+                            ...InputValue
+                        }
+                        }
                     }
-                    directives {
-                    name
-                    description
-                    locations
-                    args {
-                        ...InputValue
                     }
-                    }
-                }
-                }
 
-                fragment FullType on __Type {
-                kind
-                name
-                description
-                fields(includeDeprecated: true) {
-                    name
-                    description
-                    args {
-                    ...InputValue
-                    }
-                    type {
-                    ...TypeRef
-                    }
-                    isDeprecated
-                    deprecationReason
-                }
-                inputFields {
-                    ...InputValue
-                }
-                interfaces {
-                    ...TypeRef
-                }
-                enumValues(includeDeprecated: true) {
-                    name
-                    description
-                    isDeprecated
-                    deprecationReason
-                }
-                possibleTypes {
-                    ...TypeRef
-                }
-                }
-
-                fragment InputValue on __InputValue {
-                name
-                description
-                type { ...TypeRef }
-                defaultValue
-                }
-
-                fragment InputValue on __ObjectType {
-                name
-                description
-                type { ...TypeRef }
-                defaultValue
-                Bla
-                }
-
-                fragment TypeRef on __Type {
-                kind
-                name
-                ofType {
+                    fragment FullType on __Type {
                     kind
                     name
-                    ofType {
+                    description
+                    fields(includeDeprecated: true) {
+                        name
+                        description
+                        args {
+                        ...InputValue
+                        }
+                        type {
+                        ...TypeRef
+                        }
+                        isDeprecated
+                        deprecationReason
+                    }
+                    inputFields {
+                        ...InputValue
+                    }
+                    interfaces {
+                        ...TypeRef
+                    }
+                    enumValues(includeDeprecated: true) {
+                        name
+                        description
+                        isDeprecated
+                        deprecationReason
+                    }
+                    possibleTypes {
+                        ...TypeRef
+                    }
+                    }
+
+                    fragment InputValue on __InputValue {
+                    name
+                    description
+                    type { ...TypeRef }
+                    defaultValue
+                    }
+
+                    fragment InputValue on __ObjectType {
+                    name
+                    description
+                    type { ...TypeRef }
+                    defaultValue
+                    Bla
+                    }
+
+                    fragment TypeRef on __Type {
                     kind
                     name
                     ofType {
@@ -250,13 +221,19 @@ namespace HotChocolate.Types.Factories
                             ofType {
                                 kind
                                 name
+                                ofType {
+                                kind
+                                name
+                                ofType {
+                                    kind
+                                    name
+                                }
+                                }
                             }
                             }
                         }
                         }
                     }
-                    }
-                }
                 }
             ");
         }

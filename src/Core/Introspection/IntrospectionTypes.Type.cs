@@ -176,11 +176,11 @@ namespace HotChocolate.Introspection
                         IType type = ctx.Parent<IType>();
                         if(type is ListType lt)
                         {
-                            return lt;
+                            return lt.ElementType;
                         }
                         else if(type is NonNullType nnt)
                         {
-                            return nnt;
+                            return nnt.Type;
                         }
                         else
                         {

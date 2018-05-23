@@ -145,6 +145,19 @@ namespace HotChocolate
             throw new ArgumentException(
                 "The specified type does not exist.");
         }
+
+        public bool TryGetType(string typeName, out INamedType type)
+        {
+            if (_types.TryGetValue(typeName, out var t))
+            {
+                type = t;
+                return true;
+            }
+
+            type = null;
+            return false;
+        }
+
         public T GetType<T>(string typeName)
             where T : INamedType
         {
@@ -155,6 +168,20 @@ namespace HotChocolate
             }
             throw new ArgumentException(
                 "The specified type does not exist or is not of the specified type.");
+        }
+
+        public bool TryGetType<T>(string typeName, out T type)
+            where T : INamedType
+        {
+            if (_types.TryGetValue(typeName, out var t)
+                && t is T it)
+            {
+                type = it;
+                return true;
+            }
+
+            type = default(T);
+            return false;
         }
 
         public IReadOnlyCollection<INamedType> GetAllTypes()

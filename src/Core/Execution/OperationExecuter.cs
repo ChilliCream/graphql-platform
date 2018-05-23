@@ -243,7 +243,7 @@ namespace HotChocolate.Execution
             object fieldValue,
             Action<object> setValue)
         {
-            IType elementType = fieldSelection.Field.Type.ElementType();
+            IType elementType = fieldType.ElementType();
             bool isNonNullElement = elementType.IsNonNullType();
             List<object> list = new List<object>();
             int i = 0;
@@ -281,8 +281,7 @@ namespace HotChocolate.Execution
         {
             try
             {
-                // TODO :   include enums
-                setValue(((ScalarType)fieldType).Serialize(fieldValue));
+                setValue(((ISerializableType)fieldType).Serialize(fieldValue));
                 return true;
             }
             catch (ArgumentException ex)

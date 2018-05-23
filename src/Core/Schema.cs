@@ -71,10 +71,21 @@ namespace HotChocolate
             return _context.GetType(typeName);
         }
 
+        public bool TryGetType(string typeName, out INamedType type)
+        {
+            return _context.TryGetType(typeName, out type);
+        }
+
         public T GetType<T>(string typeName)
             where T : INamedType
         {
             return _context.GetType<T>(typeName);
+        }
+
+        public bool TryGetType<T>(string typeName, out T type)
+            where T : INamedType
+        {
+            return _context.TryGetType<T>(typeName, out type);
         }
 
         public IReadOnlyCollection<INamedType> GetAllTypes()

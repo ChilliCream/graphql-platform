@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             }
             else if (IsObjectType(type))
             {
-                kind = TypeKind.List;
+                kind = TypeKind.Object;
                 return true;
             }
             else if (IsInterfaceType(type))

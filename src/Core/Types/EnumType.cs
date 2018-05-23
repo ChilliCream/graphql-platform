@@ -10,6 +10,7 @@ namespace HotChocolate.Types
         , IOutputType
         , IInputType
         , INullableType
+        , ISerializableType
         , ITypeSystemNode
     {
         private readonly Dictionary<string, EnumValue> _nameToValues;
@@ -112,6 +113,23 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "The specified value cannot be handled " +
                 $"by the EnumType {Name}.");
+        }
+
+        public object Serialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (NativeType.IsInstanceOfType(value)
+                && _valueToValues.TryGetValue(value, out EnumValue enumValue))
+            {
+                return enumValue.Name;
+            }
+
+            throw new ArgumentException(
+                $"The specified value cannot be handled by the EnumType `{Name}`.");
         }
 
         #region TypeSystemNode

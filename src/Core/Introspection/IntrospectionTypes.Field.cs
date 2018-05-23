@@ -34,7 +34,7 @@ namespace HotChocolate.Introspection
                 {
                     Name = "args",
                     Type = () => new NonNullType(new ListType(new NonNullType(c.GetOutputType(_inputValueName)))),
-                    Resolver = () => (ctx, ct) => ctx.Parent<Field>().Arguments
+                    Resolver = () => (ctx, ct) => ctx.Parent<Field>().Arguments.Values
                 }),
                 new Field(new FieldConfig
                 {

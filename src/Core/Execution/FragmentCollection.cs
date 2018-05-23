@@ -54,9 +54,11 @@ namespace HotChocolate.Execution
                     .OfType<FragmentDefinitionNode>()
                     .Where(t => t.Name.Value == fragmentName))
             {
-                // TODO : maybe introdice a tryget to the schema
-                IType type = _schema.GetType(fragmentDefinition.TypeCondition.Name.Value);
-                yield return new Fragment(type, fragmentDefinition.SelectionSet);
+                string typeName = fragmentDefinition.TypeCondition.Name.Value;
+                if (_schema.TryGetType(typeName, out INamedType type))
+                {
+                    yield return new Fragment(type, fragmentDefinition.SelectionSet);
+                }
             }
         }
 

@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         , IInputType
         , INullableType
         , ISerializableType
-
+        // TODO : ITypeSystemNode
     {
         protected ScalarType(string name)
             : this(name, null)
