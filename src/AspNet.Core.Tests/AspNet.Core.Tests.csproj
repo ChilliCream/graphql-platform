@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>HotChocolate.Core.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <AssemblyName>HotChocolate.AspNet.Core.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.AspNet.Core</RootNamespace>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\AspNet.Core\AspNet.Core.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
   </ItemGroup>
 
