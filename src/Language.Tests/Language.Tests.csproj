@@ -26,16 +26,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Language\Language.csproj" />
+    <ProjectReference Include="..\Utilities\Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\schema-kitchen-sink.graphql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Resources\schema-kitchen-sink.graphql">
+    <None Update="__snapshots__\*.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </None>
+    <None Update="__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

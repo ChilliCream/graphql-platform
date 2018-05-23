@@ -6,6 +6,12 @@ namespace HotChocolate
 {
     public static class Snapshot
     {
+        private readonly static JsonSerializerSettings _settings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.Indented
+        };
+
         public static string Current([CallerMemberNameAttribute]string snapshotName = null)
         {
             string fielPath = Path.Combine(
@@ -22,7 +28,7 @@ namespace HotChocolate
         {
             // create snapshot
             string snapshot = JsonConvert.SerializeObject(
-                obj, Formatting.Indented);
+                obj, _settings);
 
             // save new snapshot
             string directoryPath = Path.Combine("__snapshots__", "new");
@@ -42,5 +48,4 @@ namespace HotChocolate
             return snapshot + "\n";
         }
     }
-
 }

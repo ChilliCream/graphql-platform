@@ -1,0 +1,1646 @@
+{
+  "Kind": 1,
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": 23,
+      "Location": null,
+      "Directives": [],
+      "OperationTypes": [
+        {
+          "Kind": 24,
+          "Location": null,
+          "Operation": 0,
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "QueryType"
+            }
+          }
+        },
+        {
+          "Kind": 24,
+          "Location": null,
+          "Operation": 1,
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "MutationType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Kind": 26,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Description": {
+        "Kind": 12,
+        "Location": null,
+        "Value": "This is a description\nof the `Foo` type.",
+        "Block": true
+      },
+      "Directives": [],
+      "Interfaces": [
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Bar"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Baz"
+          }
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "one"
+          },
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "two"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 22,
+                "Location": null,
+                "Type": {
+                  "Kind": 20,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "InputType"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "three"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "InputType"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            },
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "other"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Int"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "four"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": {
+                "Kind": 12,
+                "Location": null,
+                "Value": "string",
+                "Block": false
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "five"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 21,
+                "Location": null,
+                "Type": {
+                  "Kind": 20,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "String"
+                  }
+                }
+              },
+              "DefaultValue": {
+                "Kind": 16,
+                "Location": null,
+                "Items": [
+                  {
+                    "Kind": 12,
+                    "Location": null,
+                    "Value": "string",
+                    "Block": false
+                  },
+                  {
+                    "Kind": 12,
+                    "Location": null,
+                    "Value": "string",
+                    "Block": false
+                  }
+                ]
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "six"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "InputType"
+                }
+              },
+              "DefaultValue": {
+                "Kind": 17,
+                "Location": null,
+                "Fields": [
+                  {
+                    "Kind": 18,
+                    "Location": null,
+                    "Name": {
+                      "Kind": 0,
+                      "Location": null,
+                      "Value": "key"
+                    },
+                    "Value": {
+                      "Kind": 12,
+                      "Location": null,
+                      "Value": "value",
+                      "Block": false
+                    }
+                  }
+                ]
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "seven"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "Int"
+                }
+              },
+              "DefaultValue": {
+                "Kind": 14,
+                "Location": null
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 26,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedObject"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onObject"
+          },
+          "Arguments": [
+            {
+              "Kind": 7,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "arg"
+              },
+              "Value": {
+                "Kind": 12,
+                "Location": null,
+                "Value": "value",
+                "Block": false
+              }
+            }
+          ]
+        }
+      ],
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "arg"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "Type"
+                }
+              },
+              "DefaultValue": {
+                "Kind": 12,
+                "Location": null,
+                "Value": "default",
+                "Block": false
+              },
+              "Directives": [
+                {
+                  "Kind": 19,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "onArg"
+                  },
+                  "Arguments": []
+                }
+              ]
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": [
+            {
+              "Kind": 19,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": 26,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "UndefinedType"
+      },
+      "Description": null,
+      "Directives": [],
+      "Interfaces": [],
+      "Fields": []
+    },
+    {
+      "Kind": 35,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Directives": [],
+      "Interfaces": [],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "seven"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 21,
+                "Location": null,
+                "Type": {
+                  "Kind": 20,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "String"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 35,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Foo"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onType"
+          },
+          "Arguments": []
+        }
+      ],
+      "Interfaces": [],
+      "Fields": []
+    },
+    {
+      "Kind": 29,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "one"
+          },
+          "Description": null,
+          "Arguments": [],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        },
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "four"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": {
+                "Kind": 12,
+                "Location": null,
+                "Value": "string",
+                "Block": false
+              },
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "String"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 29,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedInterface"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onInterface"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "arg"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 20,
+                "Location": null,
+                "Name": {
+                  "Kind": 0,
+                  "Location": null,
+                  "Value": "Type"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": [
+                {
+                  "Kind": 19,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "onArg"
+                  },
+                  "Arguments": []
+                }
+              ]
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": [
+            {
+              "Kind": 19,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": 29,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "UndefinedInterface"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": []
+    },
+    {
+      "Kind": 36,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": 27,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "two"
+          },
+          "Description": null,
+          "Arguments": [
+            {
+              "Kind": 28,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "argument"
+              },
+              "Description": null,
+              "Type": {
+                "Kind": 22,
+                "Location": null,
+                "Type": {
+                  "Kind": 20,
+                  "Location": null,
+                  "Name": {
+                    "Kind": 0,
+                    "Location": null,
+                    "Value": "InputType"
+                  }
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 36,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Bar"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onInterface"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": []
+    },
+    {
+      "Kind": 30,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Description": null,
+      "Directives": [],
+      "Types": [
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Story"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Article"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Advert"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": 30,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedUnion"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": [
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "A"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "B"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": 30,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedUnionTwo"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": [
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "A"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "B"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": 30,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "UndefinedUnion"
+      },
+      "Description": null,
+      "Directives": [],
+      "Types": []
+    },
+    {
+      "Kind": 37,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Directives": [],
+      "Types": [
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Photo"
+          }
+        },
+        {
+          "Kind": 20,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "Video"
+          }
+        }
+      ]
+    },
+    {
+      "Kind": 37,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Feed"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onUnion"
+          },
+          "Arguments": []
+        }
+      ],
+      "Types": []
+    },
+    {
+      "Kind": 25,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "CustomScalar"
+      },
+      "Description": null,
+      "Directives": []
+    },
+    {
+      "Kind": 25,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedScalar"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onScalar"
+          },
+          "Arguments": []
+        }
+      ]
+    },
+    {
+      "Kind": 34,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "CustomScalar"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onScalar"
+          },
+          "Arguments": []
+        }
+      ]
+    },
+    {
+      "Kind": 31,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Site"
+      },
+      "Description": null,
+      "Directives": [],
+      "Values": [
+        {
+          "Kind": 32,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "DESKTOP"
+          },
+          "Description": null,
+          "Directives": []
+        },
+        {
+          "Kind": 32,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "MOBILE"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 31,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedEnum"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onEnum"
+          },
+          "Arguments": []
+        }
+      ],
+      "Values": [
+        {
+          "Kind": 32,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "ANNOTATED_VALUE"
+          },
+          "Description": null,
+          "Directives": [
+            {
+              "Kind": 19,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "onEnumValue"
+              },
+              "Arguments": []
+            }
+          ]
+        },
+        {
+          "Kind": 32,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "OTHER_VALUE"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 31,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "UndefinedEnum"
+      },
+      "Description": null,
+      "Directives": [],
+      "Values": []
+    },
+    {
+      "Kind": 38,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Site"
+      },
+      "Directives": [],
+      "Values": [
+        {
+          "Kind": 32,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "VR"
+          },
+          "Description": null,
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 38,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "Site"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onEnum"
+          },
+          "Arguments": []
+        }
+      ],
+      "Values": []
+    },
+    {
+      "Kind": 33,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "key"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 22,
+            "Location": null,
+            "Type": {
+              "Kind": 20,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "String"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        },
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "answer"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Int"
+            }
+          },
+          "DefaultValue": {
+            "Kind": 11,
+            "Location": null,
+            "Value": "4"
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 33,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "AnnotatedInput"
+      },
+      "Description": null,
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onInputObject"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "annotatedField"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Type"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": [
+            {
+              "Kind": 19,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "onField"
+              },
+              "Arguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Kind": 33,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "UndefinedInput"
+      },
+      "Description": null,
+      "Directives": [],
+      "Fields": []
+    },
+    {
+      "Kind": 39,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Directives": [],
+      "Fields": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "other"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 20,
+            "Location": null,
+            "Name": {
+              "Kind": 0,
+              "Location": null,
+              "Value": "Float"
+            }
+          },
+          "DefaultValue": {
+            "Kind": 41,
+            "Location": null,
+            "Value": "1.23e"
+          },
+          "Directives": []
+        }
+      ]
+    },
+    {
+      "Kind": 39,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "InputType"
+      },
+      "Directives": [
+        {
+          "Kind": 19,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "onInputObject"
+          },
+          "Arguments": []
+        }
+      ],
+      "Fields": []
+    },
+    {
+      "Kind": 40,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "skip"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 22,
+            "Location": null,
+            "Type": {
+              "Kind": 20,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": 40,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "include"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 22,
+            "Location": null,
+            "Type": {
+              "Kind": 20,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": 40,
+      "Location": null,
+      "Name": {
+        "Kind": 0,
+        "Location": null,
+        "Value": "include2"
+      },
+      "Description": null,
+      "Arguments": [
+        {
+          "Kind": 28,
+          "Location": null,
+          "Name": {
+            "Kind": 0,
+            "Location": null,
+            "Value": "if"
+          },
+          "Description": null,
+          "Type": {
+            "Kind": 22,
+            "Location": null,
+            "Type": {
+              "Kind": 20,
+              "Location": null,
+              "Name": {
+                "Kind": 0,
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": 0,
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    }
+  ]
+}
