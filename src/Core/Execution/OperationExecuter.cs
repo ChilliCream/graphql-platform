@@ -39,18 +39,25 @@ namespace HotChocolate.Execution
             ExecutionContext executionContext = CreateExecutionContext(
                 schema, queryDocument, operationName,
                 variableValues, initialValue);
+            List<FieldResolverTask> tasks = null;
 
             switch (executionContext.Operation.Operation)
             {
                 case OperationType.Query:
-                    List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
+                    tasks = CreateInitialFieldResolverBatch(
                         executionContext, schema.QueryType);
                     executionContext.NextBatch.AddRange(tasks);
-                    await ExecuteFieldResolversAsync(executionContext, cancellationToken);
+                    await ExecuteFieldResolversAsync(
+                        executionContext, cancellationToken);
                     break;
 
                 case OperationType.Mutation:
-                    throw new NotSupportedException();
+                    tasks = CreateInitialFieldResolverBatch(
+                        executionContext, schema.MutationType);
+                    executionContext.NextBatch.AddRange(tasks);
+                    await ExecuteFieldResolversSeriallyAsync(
+                        executionContext, cancellationToken);
+                    break;
 
                 case OperationType.Subscription:
                     throw new NotSupportedException();
@@ -147,10 +154,7 @@ namespace HotChocolate.Execution
                 await ExecuteFieldResolverBatchAsync(executionContext,
                     currentBatch, cancellationToken);
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -181,6 +185,52 @@ namespace HotChocolate.Execution
                     fieldSelection, fieldSelection.Field.Type,
                     runningTask.task.Path, fieldValue,
                     runningTask.task.SetValue);
+
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        private async Task ExecuteFieldResolversSeriallyAsync(
+            ExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            List<FieldResolverTask> currentBatch =
+                new List<FieldResolverTask>(executionContext.NextBatch);
+            executionContext.NextBatch.Clear();
+
+            await ExecuteFieldResolverBatchSeriallyAsync(executionContext,
+                currentBatch, cancellationToken);
+        }
+
+        private async Task ExecuteFieldResolverBatchSeriallyAsync(
+            ExecutionContext executionContext,
+            List<FieldResolverTask> batch,
+            CancellationToken cancellationToken)
+        {
+            List<(FieldResolverTask task, object resolverResult)> runningTasks =
+                new List<(FieldResolverTask, object)>();
+
+            foreach (FieldResolverTask task in batch)
+            {
+                // execute resolver
+                IResolverContext resolverContext = new ResolverContext(
+                    executionContext, task);
+                object resolverResult = task.FieldSelection.Field.Resolver(
+                    resolverContext, cancellationToken);
+
+                // complete resolver value
+                FieldSelection fieldSelection = task.FieldSelection;
+                object fieldValue = await CompleteFieldValueAsync(
+                    resolverResult);
+                TryCompleteValue(executionContext, task.Source,
+                    fieldSelection, fieldSelection.Field.Type,
+                    task.Path, fieldValue,
+                    task.SetValue);
+
+                // execute sub-selection fields normally
+                await ExecuteFieldResolversAsync(executionContext, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 

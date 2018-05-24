@@ -1347,7 +1347,7 @@
           "DefaultValue": {
             "Kind": "IntValue",
             "Location": null,
-            "Value": "4"
+            "Value": "42"
           },
           "Directives": []
         }
@@ -1452,7 +1452,7 @@
           "DefaultValue": {
             "Kind": "FloatValue",
             "Location": null,
-            "Value": "1.23e"
+            "Value": "1.23e4"
           },
           "Directives": []
         }

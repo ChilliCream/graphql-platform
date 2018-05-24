@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using Newtonsoft.Json;
 using Xunit;
 

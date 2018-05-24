@@ -31,9 +31,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is IntValueNode boolLiteral)
+            if (literal is IntValueNode intLiteral)
             {
-                return boolLiteral.Value;
+                return int.Parse(intLiteral.Value);
             }
 
             if (literal is NullValueNode)

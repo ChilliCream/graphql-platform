@@ -1,0 +1,11 @@
+mutation {
+  first: changeTheNumber(newNumber: 1) {
+    theNumber
+  }
+  second: changeTheNumber(newNumber: 3) {
+    theNumber
+  }
+  third: changeTheNumber(newNumber: 2) {
+    theNumber
+  }
+}

@@ -16,8 +16,12 @@ namespace HotChocolate.Resolvers
             IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
         {
             FieldResolverDescriptor[] descriptors = fieldResolverDescriptors.ToArray();
-            string sourceText = _codeGenerator.Generate(descriptors);
+            if(descriptors.Length == 0)
+            {
+                yield break;
+            }
 
+            string sourceText = _codeGenerator.Generate(descriptors);
             Assembly assembly = CSharpCompiler.Compile(sourceText);
             Type type = assembly.GetType(FieldResolverSourceCodeGenerator.FullClassName);
 
