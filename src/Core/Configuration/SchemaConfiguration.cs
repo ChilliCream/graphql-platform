@@ -161,7 +161,10 @@ namespace HotChocolate.Configuration
                 CreateObjectTypeBindings(schemaContext);
             Dictionary<string, InputObjectTypeBinding> inputObjectTypeBindings =
                 CreateInputObjectTypeBindings(schemaContext);
-            // todo : register type bindings with context
+
+            // register type bindings
+            schemaContext.RegisterTypeMappings(
+                _typeBindings.ToDictionary(t => t.Name, t => t.Type));
 
             // complete resolver bindings for further processing
             List<ObjectTypeBinding> handledTypeBindings = new List<ObjectTypeBinding>();

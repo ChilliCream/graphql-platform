@@ -109,6 +109,11 @@ namespace HotChocolate
             return _context.GetPossibleTypes(abstractTypeName);
         }
 
+        public bool TryGetNativeType(string typeName, out Type nativeType)
+        {
+            return _context.TryGetNativeType(typeName, out nativeType);
+        }
+
         public static Schema Create(
             string schema,
             Action<ISchemaConfiguration> configure)
