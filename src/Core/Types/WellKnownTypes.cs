@@ -1,4 +1,4 @@
-namespace HotChocolate
+namespace HotChocolate.Types
 {
     internal static class WellKnownTypes
     {

@@ -1,8 +1,9 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     public interface ISchemaConfiguration
         : IFluent
@@ -40,6 +41,7 @@ namespace HotChocolate.Configuration
         void RegisterScalar<T>()
             where T : ScalarType, new();
 
+        // TODO : rename maybe to newtype?
         void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)
             where T : INamedTypeConfig;
     }
