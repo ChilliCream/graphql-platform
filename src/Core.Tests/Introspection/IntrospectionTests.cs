@@ -8,7 +8,7 @@ using HotChocolate.Language;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace HotChocolate.Types.Factories
+namespace HotChocolate.Introspection
 {
     public class IntrospectionTests
     {
