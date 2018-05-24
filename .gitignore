@@ -288,3 +288,4 @@ __pycache__/
 *.xsd.cs
 
 lcov.info
+coverage.json

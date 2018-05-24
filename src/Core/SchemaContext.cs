@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -18,6 +19,10 @@ namespace HotChocolate
         private readonly IReadOnlyDictionary<string, ResolveType> _customTypeResolver;
         private readonly IReadOnlyDictionary<string, IsOfType> _customIsOfTypeFunctions;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
+
+        private string _queryTypeName = WellKnownTypes.Query;
+        private string _mutationTypeName = WellKnownTypes.Mutation;
+        private string _subscriptionTypeName = WellKnownTypes.Subscription;
 
         public SchemaContext()
             : this(Enumerable.Empty<INamedType>())
@@ -59,6 +64,87 @@ namespace HotChocolate
 
         public bool AreTypesFinal { get; private set; }
 
+        public string QueryTypeName
+        {
+            get => _queryTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The query type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _queryTypeName = value;
+            }
+        }
+
+        public string MutationTypeName
+        {
+            get => _mutationTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The mutation type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _mutationTypeName = value;
+            }
+        }
+
+         public string SubscriptionTypeName
+        {
+            get => _subscriptionTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The subscription type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _subscriptionTypeName = value;
+            }
+        }
+
         public void RegisterType(INamedType type)
         {
             if (type == null)
@@ -93,7 +179,8 @@ namespace HotChocolate
             }
         }
 
-        public void RegisterTypeMappings(IEnumerable<KeyValuePair<string, Type>> typeMappings)
+        public void RegisterTypeMappings(
+            IEnumerable<KeyValuePair<string, Type>> typeMappings)
         {
             if (typeMappings == null)
             {
@@ -112,15 +199,15 @@ namespace HotChocolate
         }
 
         private void RegisterLookup(
-            string interfaceOrUnionTypeName,
+            string abstractTypeName,
             ObjectType objectType)
         {
             List<ObjectType> types;
-            if (!_implementsLookup.TryGetValue(interfaceOrUnionTypeName,
+            if (!_implementsLookup.TryGetValue(abstractTypeName,
                 out types))
             {
                 types = new List<ObjectType>();
-                _implementsLookup[interfaceOrUnionTypeName] = types;
+                _implementsLookup[abstractTypeName] = types;
             }
             types.Add(objectType);
         }
@@ -252,6 +339,17 @@ namespace HotChocolate
             return false;
         }
 
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(string abstractTypeName)
+        {
+            if (_implementsLookup.TryGetValue(
+                abstractTypeName, out List<ObjectType> items))
+            {
+                return items;
+            }
+            return Array.Empty<ObjectType>();
+        }
+
+
         public FieldResolverDelegate CreateResolver(
             string typeName, string fieldName)
         {
@@ -318,6 +416,7 @@ namespace HotChocolate
                 "At least one type must match.");
         }
 
+        // TODO : find a better name
         internal List<SchemaError> Seal()
         {
             if (AreTypesFinal)
@@ -342,6 +441,23 @@ namespace HotChocolate
             CompleteTypeInitialization(
                 GetAllTypes().OfType<UnionType>(),
                 error => errors.Add(error));
+
+            foreach (ObjectType objectType in GetAllTypes()
+                .OfType<ObjectType>().Where(t => t.Interfaces.Any()))
+            {
+                foreach (InterfaceType interfaceType in objectType.Interfaces.Values)
+                {
+                    RegisterLookup(interfaceType.Name, objectType);
+                }
+            }
+
+            foreach (UnionType unionType in GetAllTypes().OfType<UnionType>())
+            {
+                foreach (ObjectType objectType in unionType.Types.Values)
+                {
+                    RegisterLookup(unionType.Name, objectType);
+                }
+            }
 
             return errors;
         }

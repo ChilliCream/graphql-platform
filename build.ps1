@@ -39,7 +39,7 @@ if ($RunTests -or $EnableCoverage) {
     $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
     $testAssemblies = ""
 
-    Get-ChildItem ./src/*.Tests | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" --no-build`n" }
+    Get-ChildItem src -Directory -Filter *.Tests  | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`"`n" }
 
     if (!!$testAssemblies) {
         # Has test assemblies {

@@ -16,6 +16,7 @@ namespace HotChocolate
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
         private readonly UnionTypeFactory _unionTypeFactory = new UnionTypeFactory();
+        private readonly InputObjectTypeFactory _inputObjectTypeFactory = new InputObjectTypeFactory();
 
         public SchemaSyntaxVisitor(SchemaContext context)
         {
@@ -48,6 +49,34 @@ namespace HotChocolate
             UnionTypeDefinitionNode node)
         {
             _context.RegisterType(_unionTypeFactory.Create(_context, node));
+        }
+
+        protected override void VisitInputObjectTypeDefinition(
+            InputObjectTypeDefinitionNode node)
+        {
+            _context.RegisterType(_inputObjectTypeFactory.Create(_context, node));
+        }
+
+        protected override void VisitSchemaDefinition(
+            SchemaDefinitionNode node)
+        {
+            foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
+            {
+                switch (operationType.Operation)
+                {
+                    case OperationType.Query:
+                        _context.QueryTypeName = operationType.Type.Name.Value;
+                        break;
+                    case OperationType.Mutation:
+                        _context.MutationTypeName = operationType.Type.Name.Value;
+                        break;
+                    case OperationType.Subscription:
+                        _context.SubscriptionTypeName = operationType.Type.Name.Value;
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown operation type.");
+                }
+            }
         }
     }
 }

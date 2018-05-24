@@ -116,10 +116,10 @@ namespace HotChocolate.Introspection
                     Type = () =>  new ListType(new NonNullType(c.GetOutputType(_directiveName))),
                     Resolver = () => (ctx, ct) =>
                     {
-                        IType type = ctx.Parent<IType>();
+                        INamedType type = ctx.Parent<INamedType>();
                         if(type.IsAbstractType())
                         {
-                            ctx.Schema.GetPossibleTypes(type);
+                            return ctx.Schema.GetPossibleTypes(type);
                         }
                         return null;
                     }

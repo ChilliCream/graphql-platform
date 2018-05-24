@@ -252,7 +252,9 @@ namespace HotChocolate.Language
             else
             {
                 ReadDigits(state, in code);
-                code = state.SourceText[state.Position];
+                code = state.Position < state.SourceText.Length
+                    ? state.SourceText[state.Position]
+                    : ' ';
             }
 
             if (code.IsDot())
@@ -260,7 +262,9 @@ namespace HotChocolate.Language
                 isFloat = true;
                 code = state.SourceText[++state.Position];
                 ReadDigits(state, in code);
-                code = state.SourceText[state.Position];
+                code = state.Position < state.SourceText.Length
+                    ? state.SourceText[state.Position]
+                    : ' ';
             }
 
             code |= (char)0x20;
@@ -277,7 +281,7 @@ namespace HotChocolate.Language
 
             TokenKind kind = isFloat ? TokenKind.Float : TokenKind.Integer;
             return CreateToken(state, previous, kind, start,
-                state.SourceText.Substring(start, state.Position - start - 1));
+                state.SourceText.Substring(start, state.Position - start));
         }
 
         private void ReadDigits(LexerState state, in char firstCode)
@@ -288,7 +292,8 @@ namespace HotChocolate.Language
                     $"Invalid number, expected digit but got: {firstCode}.");
             }
 
-            while (state.SourceText[++state.Position].IsDigit()) { }
+            while (++state.Position < state.SourceText.Length
+                && state.SourceText[state.Position].IsDigit()) { }
         }
 
         /// <summary>

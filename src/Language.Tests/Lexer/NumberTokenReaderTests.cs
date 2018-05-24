@@ -2,7 +2,6 @@ using Xunit;
 
 namespace HotChocolate.Language
 {
-    /* 
     public class NumberTokenReaderTests
     {
         [InlineData("1234.123", true)]
@@ -14,16 +13,16 @@ namespace HotChocolate.Language
         [Theory]
         private void ReadToken(string sourceBody, bool isFloat)
         {
-            // arrange         
+            // arrange
             Source source = new Source(sourceBody);
-            LexerContext context = new LexerContext(source);
-            Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            NumberTokenReader reader = new NumberTokenReader();
 
             // act
-            Token token = reader.ReadToken(context, previous);
+            SyntaxToken token = Lexer.Default.Read(source);
+            token = token.Next;
 
             // assert
+            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
+            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
             Assert.NotNull(token);
             Assert.Equal(isFloat ? TokenKind.Float : TokenKind.Integer, token.Kind);
             Assert.Equal(sourceBody, token.Value);
@@ -33,27 +32,5 @@ namespace HotChocolate.Language
             Assert.Equal(sourceBody.Length, token.End);
             Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
         }
-
-        [InlineData("1234.123", true)]
-        [InlineData("-1234.123", true)]
-        [InlineData("1234", true)]
-        [InlineData("-1234", true)]
-        [InlineData("helloWorld_123", false)]
-        [Theory]
-        private void CanHandle(string sourceBody, bool expectedResult)
-        {
-            // arrange
-            Source source = new Source(sourceBody);
-            LexerContext context = new LexerContext(source);
-            Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            NumberTokenReader reader = new NumberTokenReader();
-
-            // act
-            bool result = reader.CanHandle(context);
-
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
     }
-     */
 }

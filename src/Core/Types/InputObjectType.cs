@@ -108,12 +108,12 @@ namespace HotChocolate.Types
     public class InputObjectTypeConfig
         : INamedTypeConfig
     {
-        public InputObjectTypeDefinitionNode SyntaxNode { get; }
+        public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
 
         public string Name { get; set; }
 
         public string Description { get; set; }
 
-        public IEnumerable<InputField> Fields { get; }
+        public IEnumerable<InputField> Fields { get; set; }
     }
 }
