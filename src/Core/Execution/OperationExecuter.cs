@@ -163,8 +163,8 @@ namespace HotChocolate.Execution
             List<FieldResolverTask> batch,
             CancellationToken cancellationToken)
         {
-            List<(FieldResolverTask task, object resolverResult)> runningTasks =
-                new List<(FieldResolverTask, object)>();
+            List<(FieldResolverTask task, IResolverContext context, object resolverResult)> runningTasks =
+                new List<(FieldResolverTask, IResolverContext, object)>();
 
             foreach (FieldResolverTask task in batch)
             {
@@ -172,7 +172,7 @@ namespace HotChocolate.Execution
                     executionContext, task);
                 object resolverResult = task.FieldSelection.Field.Resolver(
                     resolverContext, cancellationToken);
-                runningTasks.Add((task, resolverResult));
+                runningTasks.Add((task, resolverContext, resolverResult));
             }
 
             foreach (var runningTask in runningTasks)
@@ -181,7 +181,8 @@ namespace HotChocolate.Execution
                 object fieldValue = await CompleteFieldValueAsync(
                     runningTask.resolverResult);
 
-                TryCompleteValue(executionContext, runningTask.task.Source,
+                TryCompleteValue(executionContext, runningTask.context,
+                    runningTask.task.Source,
                     fieldSelection, fieldSelection.Field.Type,
                     runningTask.task.Path, fieldValue,
                     runningTask.task.SetValue);
@@ -222,7 +223,7 @@ namespace HotChocolate.Execution
                 FieldSelection fieldSelection = task.FieldSelection;
                 object fieldValue = await CompleteFieldValueAsync(
                     resolverResult);
-                TryCompleteValue(executionContext, task.Source,
+                TryCompleteValue(executionContext, resolverContext, task.Source,
                     fieldSelection, fieldSelection.Field.Type,
                     task.Path, fieldValue,
                     task.SetValue);
@@ -237,6 +238,7 @@ namespace HotChocolate.Execution
         // TODO : refactor this
         private bool TryCompleteValue(
             ExecutionContext executionContext,
+            IResolverContext resolverContext,
             ImmutableStack<object> source,
             FieldSelection fieldSelection,
             IType fieldType,
@@ -250,7 +252,7 @@ namespace HotChocolate.Execution
             {
                 IType innerType = fieldType.InnerType();
                 if (!TryCompleteValue(
-                    executionContext, source, fieldSelection,
+                    executionContext, resolverContext, source, fieldSelection,
                     innerType, path, completedValue, setValue))
                 {
                     executionContext.Errors.Add(new FieldError(
@@ -269,23 +271,27 @@ namespace HotChocolate.Execution
 
             if (fieldType.IsListType())
             {
-                return TryCompleteListValue(executionContext, source,
-                    fieldSelection, fieldType, path, completedValue, setValue);
+                return TryCompleteListValue(executionContext, resolverContext,
+                    source, fieldSelection, fieldType, path, completedValue,
+                    setValue);
             }
 
             if (fieldType.IsScalarType()
                 || fieldType.IsEnumType())
             {
-                return TryCompleteScalarValue(executionContext, source,
-                    fieldSelection, fieldType, path, completedValue, setValue);
+                return TryCompleteScalarValue(executionContext, resolverContext,
+                    source, fieldSelection, fieldType, path, completedValue,
+                    setValue);
             }
 
-            return TryCompleteObjectValue(executionContext, source,
-                fieldSelection, fieldType, path, completedValue, setValue);
+            return TryCompleteObjectValue(executionContext, resolverContext,
+                source, fieldSelection, fieldType, path, completedValue,
+                setValue);
         }
 
         private bool TryCompleteListValue(
             ExecutionContext executionContext,
+            IResolverContext resolverContext,
             ImmutableStack<object> source,
             FieldSelection fieldSelection,
             IType fieldType,
@@ -302,7 +308,8 @@ namespace HotChocolate.Execution
             {
                 Path elementPath = path.Append(i++);
                 bool hasValue = TryCompleteValue(
-                    executionContext, source, fieldSelection,
+                    executionContext, resolverContext,
+                    source, fieldSelection,
                     elementType, elementPath, element,
                     value => list.Add(value));
 
@@ -322,6 +329,7 @@ namespace HotChocolate.Execution
 
         private bool TryCompleteScalarValue(
             ExecutionContext executionContext,
+            IResolverContext resolverContext,
             ImmutableStack<object> source,
             FieldSelection fieldSelection,
             IType fieldType,
@@ -352,6 +360,7 @@ namespace HotChocolate.Execution
 
         private bool TryCompleteObjectValue(
             ExecutionContext executionContext,
+            IResolverContext resolverContext,
             ImmutableStack<object> source,
             FieldSelection fieldSelection,
             IType fieldType,
@@ -359,8 +368,9 @@ namespace HotChocolate.Execution
             object fieldValue,
             Action<object> setValue)
         {
-            ObjectType objectType = ResolveObjectType(fieldType, fieldValue);
-            Dictionary<string, object> objectResult = new Dictionary<string, object>();
+            ObjectType objectType = ResolveObjectType(
+                resolverContext, fieldType, fieldValue);
+            OrderedDictionary objectResult = new OrderedDictionary();
 
             IReadOnlyCollection<FieldSelection> fields = executionContext
                 .FieldResolver.CollectFields(
@@ -379,7 +389,9 @@ namespace HotChocolate.Execution
         }
 
         private ObjectType ResolveObjectType(
-            IType fieldType, object fieldValue)
+            IResolverContext context,
+            IType fieldType,
+            object fieldValue)
         {
             if (fieldType is ObjectType objectType)
             {
@@ -387,13 +399,11 @@ namespace HotChocolate.Execution
             }
             else if (fieldType is InterfaceType interfaceType)
             {
-                // TODO : Fix context issue
-                return interfaceType.ResolveType(null, fieldValue);
+                return interfaceType.ResolveType(context, fieldValue);
             }
             else if (fieldType is UnionType unionType)
             {
-                // TODO : Fix context issue
-                return unionType.ResolveType(null, fieldValue);
+                return unionType.ResolveType(context, fieldValue);
             }
 
             // TODO : error message
