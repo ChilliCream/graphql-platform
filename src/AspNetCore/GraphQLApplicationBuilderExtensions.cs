@@ -1,3 +1,4 @@
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 
 namespace HotChocolate
