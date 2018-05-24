@@ -33,6 +33,15 @@ if ($DisableBuild -eq $false) {
 }
 
 if ($RunTests -or $EnableCoverage) {
+  # Execute tests with coverage
+  Get-ChildItem src -Directory -Filter *.Tests | ForEach { . dotnet test $_.FullName /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./lcov}
+
+
+
+
+
+
+
     # Test
     $serachDirs = [System.IO.Path]::Combine($PSScriptRoot, "src", "*", "bin", "Debug", "netcoreapp2.0")
     $runTestsCmd = [System.Guid]::NewGuid().ToString("N") + ".cmd"
