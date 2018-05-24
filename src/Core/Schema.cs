@@ -20,16 +20,16 @@ namespace HotChocolate
         private Schema(SchemaContext context)
         {
             _context = context;
-            QueryType = (ObjectType)context.GetType(WellKnownTypes.Query);
+            QueryType = (ObjectType)context.GetType(context.QueryTypeName);
 
             if (context.TryGetOutputType<ObjectType>(
-                WellKnownTypes.Mutation, out ObjectType mutationType))
+                context.MutationTypeName, out ObjectType mutationType))
             {
                 MutationType = mutationType;
             }
 
             if (context.TryGetOutputType<ObjectType>(
-                WellKnownTypes.Mutation, out ObjectType subscriptionType))
+                context.SubscriptionTypeName, out ObjectType subscriptionType))
             {
                 SubscriptionType = subscriptionType;
             }
@@ -214,7 +214,7 @@ namespace HotChocolate
                 throw new SchemaException(errors);
             }
 
-            if (!context.TypeExists<ObjectType>(WellKnownTypes.Query))
+            if (!context.TypeExists<ObjectType>(context.QueryTypeName))
             {
                 throw new SchemaException(new SchemaError(
                     "Schema is missing the mandatory `Query` type."));

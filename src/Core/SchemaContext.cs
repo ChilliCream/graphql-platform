@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -18,6 +19,10 @@ namespace HotChocolate
         private readonly IReadOnlyDictionary<string, ResolveType> _customTypeResolver;
         private readonly IReadOnlyDictionary<string, IsOfType> _customIsOfTypeFunctions;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
+
+        private string _queryTypeName = WellKnownTypes.Query;
+        private string _mutationTypeName = WellKnownTypes.Mutation;
+        private string _subscriptionTypeName = WellKnownTypes.Subscription;
 
         public SchemaContext()
             : this(Enumerable.Empty<INamedType>())
@@ -58,6 +63,87 @@ namespace HotChocolate
         }
 
         public bool AreTypesFinal { get; private set; }
+
+        public string QueryTypeName
+        {
+            get => _queryTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The query type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _queryTypeName = value;
+            }
+        }
+
+        public string MutationTypeName
+        {
+            get => _mutationTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The mutation type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _mutationTypeName = value;
+            }
+        }
+
+         public string SubscriptionTypeName
+        {
+            get => _subscriptionTypeName;
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value[0].IsLetterOrUnderscore()
+                    || (value.Length > 1 && value.Skip(1).Any(t => !t.IsLetterOrDigitOrUnderscore())))
+                {
+                    throw new ArgumentException(
+                        "The subscription type name contains invalid characters.");
+                }
+
+                if (AreTypesFinal)
+                {
+                    throw new InvalidOperationException(
+                        "All types are finalized.");
+                }
+
+                _subscriptionTypeName = value;
+            }
+        }
 
         public void RegisterType(INamedType type)
         {
