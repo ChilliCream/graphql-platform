@@ -99,9 +99,14 @@ namespace HotChocolate
             return Array.Empty<object>();
         }
 
-        public IEnumerable<IType> GetPossibleTypes(IType abstractType)
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType type)
         {
-            throw new NotImplementedException();
+            return GetPossibleTypes(type.Name);
+        }
+
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(string abstractTypeName)
+        {
+            return _context.GetPossibleTypes(abstractTypeName);
         }
 
         public static Schema Create(
