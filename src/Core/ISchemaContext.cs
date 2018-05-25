@@ -10,8 +10,18 @@ namespace HotChocolate
         T GetType<T>(string typeName)
             where T : INamedType;
 
+        // remove from interface
         IReadOnlyCollection<INamedType> GetAllTypes();
 
+        // add to interface
+        //  TryGetType<T>(string typeName, out T type)
+        //      where T is INamedType;
+        IReadOnlyCollection<T> GetTypes<T>()
+            where T : INamedType;
+
+
+
+        // remove from interface -> extensions
         IOutputType GetOutputType(string typeName);
 
         T GetOutputType<T>(string typeName)

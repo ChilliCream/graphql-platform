@@ -79,7 +79,9 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void ITypeInitializer.CompleteInitialization(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             ObjectType[] memberTypes = _typesFactory()?.ToArray()
                 ?? Array.Empty<ObjectType>();

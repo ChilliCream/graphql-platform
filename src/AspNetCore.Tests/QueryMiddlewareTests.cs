@@ -22,7 +22,35 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             Schema schema = CreateSchema();
-            QueryRequest request = CreateRequest();
+            QueryRequest request = new QueryRequest { Query = "{ basic { a } }" };
+            TestServer server = TestServerFactory.Create(schema, null);
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task SendRequestWithArguments()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            QueryRequest request = new QueryRequest
+            {
+                Query = @"
+                query test($a: String) {
+                    withScalarArgument(a: $a) {
+                        a
+                    }
+                }"
+            };
             TestServer server = TestServerFactory.Create(schema, null);
 
             // act
@@ -40,35 +68,54 @@ namespace HotChocolate.AspNetCore
         private Schema CreateSchema()
         {
             return Schema.Create(
-               @"
-                type Foo
-                {
-                    a: String!
-                    b: String
-                    c: Int
-                }
-
-                type Query {
-                    getFoo: Foo
-                }
-                ",
-
+                FileResource.Open("ServerSchema.graphql"),
                 cnf =>
                 {
-                    cnf.BindResolver(() => "something").To("Query", "getFoo");
-                    cnf.BindResolver(() => "hello").To("Foo", "a");
-                    cnf.BindResolver(() => "world").To("Foo", "b");
-                    cnf.BindResolver(() => 123).To("Foo", "c");
+                    cnf.BindType<Query>();
+                    cnf.BindType<Foo>();
+                    cnf.BindType<Foo>().To("FooInput");
                 }
            );
         }
+    }
 
-        private QueryRequest CreateRequest()
+    public class Query
+    {
+        public Foo GetBasic()
         {
-            return new QueryRequest
+            return new Foo
             {
-                Query = "{ getFoo { a } }"
+                A = "1",
+                B = "2",
+                C = "3"
             };
         }
+
+        public Foo GetWithScalarArgument(string a)
+        {
+            return new Foo
+            {
+                A = a,
+                B = "2",
+                C = "3"
+            };
+        }
+
+        public Foo GetWithObjectArgument(Foo b)
+        {
+            return new Foo
+            {
+                A = b.A,
+                B = "2",
+                C = b.C
+            };
+        }
+    }
+
+    public class Foo
+    {
+        public string A { get; set; }
+        public string B { get; set; }
+        public string C { get; set; }
     }
 }

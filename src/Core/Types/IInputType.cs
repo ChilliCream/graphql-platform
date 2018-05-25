@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public interface IInputType
-        : IType
+        : INamedType
     {
         Type NativeType { get; }
         bool IsInstanceOfType(IValueNode literal);

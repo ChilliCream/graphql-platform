@@ -91,7 +91,9 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void ITypeInitializer.CompleteInitialization(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {

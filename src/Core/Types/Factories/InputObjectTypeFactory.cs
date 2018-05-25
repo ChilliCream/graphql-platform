@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -14,7 +15,16 @@ namespace HotChocolate.Types.Factories
                 SyntaxNode = node,
                 Name = node.Name.Value,
                 Description = node.Description?.Value,
-                Fields = CreateFields(context, node)
+                Fields = CreateFields(context, node),
+                NativeType = () =>
+                {
+                    if (context.TryGetNativeType(
+                        node.Name.Value, out Type nativeType))
+                    {
+                        return nativeType;
+                    }
+                    return null;
+                }
             });
         }
 

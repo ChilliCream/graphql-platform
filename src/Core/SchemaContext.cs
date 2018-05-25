@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -8,6 +9,7 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     // TODO : move under configuration?
+    // TODO : split type
     internal sealed class SchemaContext
         : ISchemaContext
     {
@@ -354,6 +356,12 @@ namespace HotChocolate
             return _typeMappings.TryGetValue(typeName, out nativeType);
         }
 
+        public IReadOnlyCollection<TypeMemberBinding> GetNativeTypeMembers(
+            string typeName)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public FieldResolverDelegate CreateResolver(
             string typeName, string fieldName)
@@ -473,8 +481,20 @@ namespace HotChocolate
         {
             foreach (ITypeInitializer initializer in initializers)
             {
-                initializer.CompleteInitialization(reportError);
+                initializer.CompleteInitialization(this, reportError);
             }
         }
+
+        public IReadOnlyCollection<T> GetTypes<T>() where T : INamedType
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class TypeMemberBinding
+    {
+        public INamedType Type { get; }
+        public string FieldName { get; }
+        public MemberInfo Member { get; }
     }
 }
