@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Types;
 
-namespace HotChocolate.Introspection
+namespace HotChocolate.Types.Introspection
 {
     internal static partial class IntrospectionTypes
     {

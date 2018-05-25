@@ -5,7 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Introspection
+namespace HotChocolate.Types.Introspection
 {
     internal static partial class IntrospectionTypes
     {
