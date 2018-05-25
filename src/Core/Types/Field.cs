@@ -111,7 +111,8 @@ namespace HotChocolate.Types
 
             foreach (InputField argument in _argumentMap.Values)
             {
-                argument.CompleteInitialization(reportError, parentType);
+                argument.CompleteInitialization(
+                    schemaContext, reportError, parentType);
             }
 
 

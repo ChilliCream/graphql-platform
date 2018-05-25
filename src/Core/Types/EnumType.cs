@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         private readonly Dictionary<string, EnumValue> _nameToValues;
         private readonly Dictionary<object, EnumValue> _valueToValues;
 
-        public EnumType(EnumTypeConfig config)
+        internal EnumType(EnumTypeConfig config)
         {
             if (config == null)
             {
@@ -138,37 +138,5 @@ namespace HotChocolate.Types
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
 
         #endregion
-    }
-
-    public class EnumTypeConfig
-        : INamedTypeConfig
-    {
-        public EnumTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public bool IsIntrospection { get; set; }
-
-        public IEnumerable<EnumValueConfig> Values { get; set; }
-
-        public virtual Type NativeType { get; set; }
-    }
-
-    public class EnumTypeConfig<T>
-        : EnumTypeConfig
-    {
-        public new IEnumerable<EnumValueConfig<T>> Values
-        {
-            get => base.Values.Cast<EnumValueConfig<T>>();
-            set => base.Values = value;
-        }
-
-        public override Type NativeType
-        {
-            get => typeof(T);
-            set => throw new NotSupportedException();
-        }
     }
 }

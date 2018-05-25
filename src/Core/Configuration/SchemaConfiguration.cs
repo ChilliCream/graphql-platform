@@ -82,7 +82,7 @@ namespace HotChocolate.Configuration
             return new BindType<T>(bindingInfo);
         }
 
-        public void RegisterScalar<T>(T scalarType)
+        public void RegisterType<T>(T scalarType)
             where T : ScalarType
         {
             if (scalarType == null)
@@ -96,7 +96,7 @@ namespace HotChocolate.Configuration
         public void RegisterScalar<T>()
             where T : ScalarType, new()
         {
-            RegisterScalar(new T());
+            RegisterType(new T());
         }
 
         public void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)

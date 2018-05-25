@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
 
-        public UnionType(UnionTypeConfig config)
+        internal UnionType(UnionTypeConfig config)
         {
             if (config == null)
             {
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         void ITypeInitializer.CompleteInitialization(
-            ISchemaContext schemaContext,
+            SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
             ObjectType[] memberTypes = _typesFactory()?.ToArray()
@@ -109,18 +109,5 @@ namespace HotChocolate.Types
         }
 
         #endregion
-    }
-
-    public class UnionTypeConfig
-    {
-        public UnionTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public Func<IEnumerable<ObjectType>> Types { get; set; }
-
-        public ResolveType TypeResolver { get; set; }
     }
 }

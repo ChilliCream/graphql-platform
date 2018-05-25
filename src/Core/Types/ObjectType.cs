@@ -161,7 +161,7 @@ namespace HotChocolate.Types
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(reportError, this);
+                field.CompleteInitialization(schemaContext, reportError, this);
             }
 
             InterfaceType[] interfaces = _interfaceFactory?.Invoke(schemaContext)?.ToArray()

@@ -5,7 +5,6 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InputObjectTypeConfig
-        : INamedTypeConfig
     {
         public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
 

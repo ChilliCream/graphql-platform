@@ -241,16 +241,18 @@ namespace HotChocolate
 
         private static void RegisterIntrospectionTypes(SchemaContext context)
         {
+            /*
             SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.RegisterType(IntrospectionTypes.__Directive);
-            configuration.RegisterType(IntrospectionTypes.__DirectiveLocation);
-            configuration.RegisterType(IntrospectionTypes.__EnumValue);
-            configuration.RegisterType(IntrospectionTypes.__Field);
-            configuration.RegisterType(IntrospectionTypes.__InputValue);
-            configuration.RegisterType(IntrospectionTypes.__Schema);
-            configuration.RegisterType(IntrospectionTypes.__Type);
-            configuration.RegisterType(IntrospectionTypes.__TypeKind);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Directive);
+            configuration.RegisterType<Types.EnumTypeConfig<Types.DirectiveLocation>>(IntrospectionTypes.__DirectiveLocation);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__EnumValue);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Field);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__InputValue);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Schema);
+            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Type);
+            configuration.RegisterType<EnumTypeConfig>(IntrospectionTypes.__TypeKind);
             configuration.Commit(context);
+            */
         }
 
         private static IEnumerable<INamedType> CreateSystemTypes()

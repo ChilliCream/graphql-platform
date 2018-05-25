@@ -9,6 +9,7 @@ namespace HotChocolate
         : IFluent
     {
         IBindResolverDelegate BindResolver(AsyncFieldResolverDelegate fieldResolver);
+
         IBindResolverDelegate BindResolver(FieldResolverDelegate fieldResolver);
 
         IBindResolver<TResolver> BindResolver<TResolver>()
@@ -23,26 +24,19 @@ namespace HotChocolate
         IBindType<T> BindType<T>(BindingBehavior bindingBehavior)
             where T : class;
 
-        /// <summary>
-        /// Registers a custom scalar type.
-        /// </summary>
-        /// <param name="scalarType">The custom scalar type object.</param>
-        /// <typeparam name="T">The custom scalar type.</typeparam>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="scalarType"/> cannot be <c>null</c>.
-        /// </exception>
-        void RegisterScalar<T>(T scalarType)
-            where T : ScalarType;
+        void RegisterType<T>(T type)
+            where T : class, INamedType;
 
-        /// <summary>
-        /// Registers a custom scalar type.
-        /// </summary>
-        /// <typeparam name="T">The custom scalar type.</typeparam>
-        void RegisterScalar<T>()
-            where T : ScalarType, new();
+        void RegisterType<T>()
+            where T : class, INamedType;
 
-        // TODO : rename maybe to newtype?
-        void RegisterType<T>(params Func<ISchemaContext, T>[] typeFactory)
-            where T : INamedTypeConfig;
+        void RegisterQuery<T>()
+            where T : ObjectType;
+
+        void RegisterMutation<T>()
+            where T : ObjectType;
+
+        void RegisterSubscription<T>()
+            where T : ObjectType;
     }
 }

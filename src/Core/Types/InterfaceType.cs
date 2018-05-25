@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
-        public InterfaceType(InterfaceTypeConfig config)
+        internal InterfaceType(InterfaceTypeConfig config)
         {
             if (config == null)
             {
@@ -97,24 +97,10 @@ namespace HotChocolate.Types
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(reportError, this);
+                field.CompleteInitialization(schemaContext, reportError, this);
             }
         }
 
         #endregion
-    }
-
-    public class InterfaceTypeConfig
-        : INamedTypeConfig
-    {
-        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public IEnumerable<Field> Fields { get; set; }
-
-        public ResolveType TypeResolver { get; set; }
     }
 }
