@@ -1,0 +1,20 @@
+using System;
+using System.Collections.Generic;
+using HotChocolate.Language;
+
+namespace HotChocolate.Types
+{
+    internal class InputObjectTypeConfig
+        : INamedTypeConfig
+    {
+        public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public IEnumerable<InputField> Fields { get; set; }
+
+        public Func<SchemaContext, Type> NativeType { get; set; }
+    }
+}

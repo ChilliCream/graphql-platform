@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,14 +12,14 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly Func<IOutputType> _typeFactory;
-        private readonly Func<FieldResolverDelegate> _resolverFactory;
+        private readonly Func<SchemaContext, IOutputType> _typeFactory;
+        private readonly Func<SchemaContext, FieldResolverDelegate> _resolverFactory;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
         private IOutputType _type;
         private FieldResolverDelegate _resolver;
 
-        public Field(FieldConfig config)
+        internal Field(FieldConfig config)
         {
             if (config == null)
             {
@@ -95,10 +97,11 @@ namespace HotChocolate.Types
         #region Initialization
 
         internal void CompleteInitialization(
+            SchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory();
+            _type = _typeFactory(schemaContext);
             if (_type == null)
             {
                 reportError(new SchemaError(
@@ -122,7 +125,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    _resolver = _resolverFactory();
+                    _resolver = _resolverFactory(schemaContext);
                     if (_resolver == null)
                     {
                         reportError(new SchemaError(
@@ -136,22 +139,148 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public class FieldConfig
+    internal static class ValidationHelper
     {
-        public FieldDefinitionNode SyntaxNode { get; set; }
+        public static bool IsTypeNameValid(string typeName)
+        {
+            return true;
+        }
 
-        public string Name { get; set; }
+        public static bool IsFieldNameValid(string typeName)
+        {
+            return true;
+        }
+    }
 
-        public string Description { get; set; }
+    internal class ObjectTypeDescriptor<T>
+        : IObjectTypeDescriptor<T>
+    {
+        private readonly List<IFieldDescriptor> _fields = new List<IFieldDescriptor>();
+        private readonly List<Type> _interfaces = new List<Type>();
 
-        internal bool IsIntrospection { get; set; }
+        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public IReadOnlyCollection<IFieldDescriptor> Fields => _fields;
 
-        public string DeprecationReason { get; set; }
+        #region IObjectTypeDescriptor<T>
 
-        public Func<IOutputType> Type { get; set; }
+        IObjectTypeDescriptor IObjectTypeDescriptor.Name(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
 
-        public IEnumerable<InputField> Arguments { get; set; }
+            if (ValidationHelper.IsTypeNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL type name.",
+                    nameof(name));
+            }
 
-        public Func<FieldResolverDelegate> Resolver { get; set; }
+            Name = name;
+            return this;
+        }
+        IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
+        {
+            Description = description;
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface<TInterface>()
+        {
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.IsOfType(IsOfType isOfType)
+        {
+            return this;
+        }
+
+        IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> property)
+        {
+            throw new NotImplementedException();
+        }
+
+        IFieldDescriptor IObjectTypeDescriptor.Field(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+    }
+
+    internal class FieldDescriptor
+        : IFieldDescriptor
+    {
+        public FieldDescriptor(string name)
+        {
+
+        }
+
+        public FieldDescriptor(PropertyInfo property)
+        {
+
+        }
+
+        public IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFieldDescriptor DeprecationReason(string deprecationReason)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFieldDescriptor Description(string description)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFieldDescriptor Type<IOutputType>()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    public interface IObjectTypeDescriptor<T>
+        : IObjectTypeDescriptor
+    {
+        IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
+    }
+
+    public interface IObjectTypeDescriptor
+    {
+        IObjectTypeDescriptor Name(string name);
+        IObjectTypeDescriptor Description(string description);
+        IObjectTypeDescriptor Interface<T>()
+            where T : InterfaceType;
+        IObjectTypeDescriptor IsOfType(IsOfType isOfType);
+        IFieldDescriptor Field(string name);
+    }
+
+    public interface IFieldDescriptor
+    {
+        IFieldDescriptor Description(string description);
+        IFieldDescriptor DeprecationReason(string deprecationReason);
+        IFieldDescriptor Type<IOutputType>();
+        IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
+        IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
+    }
+
+    public interface IArgumentDescriptor
+    {
+        IArgumentDescriptor Description(string description);
+        IArgumentDescriptor Type<IInputType>();
+        IArgumentDescriptor DefaultValue(IValueNode valueNode);
     }
 }

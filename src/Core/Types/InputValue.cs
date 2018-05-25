@@ -9,12 +9,12 @@ namespace HotChocolate.Types
     public class InputField
         : ITypeSystemNode
     {
-        private readonly Func<IInputType> _typeFactory;
-        private readonly Func<IValueNode> _defaultValueFactory;
+        private readonly Func<SchemaContext, IInputType> _typeFactory;
+        private readonly Func<SchemaContext, IValueNode> _defaultValueFactory;
         private IInputType _type;
         private IValueNode _defaultValue;
 
-        public InputField(InputFieldConfig config)
+        internal InputField(InputFieldConfig config)
         {
             if (config == null)
             {
@@ -65,10 +65,11 @@ namespace HotChocolate.Types
         #region Initialization
 
         internal void CompleteInitialization(
+            SchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory();
+            _type = _typeFactory(schemaContext);
             if (_type == null)
             {
                 reportError(new SchemaError(
@@ -83,23 +84,10 @@ namespace HotChocolate.Types
             }
             else
             {
-                _defaultValue = _defaultValueFactory();
+                _defaultValue = _defaultValueFactory(schemaContext);
             }
         }
 
         #endregion
-    }
-
-    public class InputFieldConfig
-    {
-        public InputValueDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public Func<IInputType> Type { get; set; }
-
-        public Func<IValueNode> DefaultValue { get; set; }
     }
 }

@@ -92,7 +92,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         void ITypeInitializer.CompleteInitialization(
-            ISchemaContext schemaContext,
+            SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)

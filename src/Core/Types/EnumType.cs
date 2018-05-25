@@ -30,8 +30,8 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            EnumValue[] values = config.Values?.ToArray()
-                ?? Array.Empty<EnumValue>();
+            EnumValueConfig[] values = config.Values?.ToArray()
+                ?? Array.Empty<EnumValueConfig>();
             if (values.Length == 0)
             {
                 throw new ArgumentException(
@@ -47,8 +47,8 @@ namespace HotChocolate.Types
                     ?? values.First(t => t.Value != null).Value.GetType();
             }
 
-            _nameToValues = values.ToDictionary(t => t.Name);
-            _valueToValues = values.ToDictionary(t => t.Value);
+            _nameToValues = values.Select(t => new EnumValue(t)).ToDictionary(t => t.Name);
+            _valueToValues = _nameToValues.Values.ToDictionary(t => t.Value);
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -151,7 +151,7 @@ namespace HotChocolate.Types
 
         public bool IsIntrospection { get; set; }
 
-        public IEnumerable<EnumValue> Values { get; set; }
+        public IEnumerable<EnumValueConfig> Values { get; set; }
 
         public virtual Type NativeType { get; set; }
     }
@@ -159,9 +159,9 @@ namespace HotChocolate.Types
     public class EnumTypeConfig<T>
         : EnumTypeConfig
     {
-        public new IEnumerable<EnumValue<T>> Values
+        public new IEnumerable<EnumValueConfig<T>> Values
         {
-            get => base.Values.Cast<EnumValue<T>>();
+            get => base.Values.Cast<EnumValueConfig<T>>();
             set => base.Values = value;
         }
 

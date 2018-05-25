@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +20,17 @@ namespace HotChocolate.Types
     {
 
         private readonly IsOfType _isOfType;
-        private readonly Func<IEnumerable<InterfaceType>> _interfaceFactory;
+        private readonly Func<SchemaContext, IEnumerable<InterfaceType>> _interfaceFactory;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
+        private string _name;
+        private string _description;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
-        public ObjectType(ObjectTypeConfig config)
+        public ObjectType() { }
+
+        internal ObjectType(ObjectTypeConfig config)
         {
             if (config == null)
             {
@@ -64,7 +69,7 @@ namespace HotChocolate.Types
             }
 
             _isOfType = config.IsOfType;
-            _interfaceFactory = config.Interfaces;
+            _interfaceFactory = s => config.Interfaces();
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -74,9 +79,45 @@ namespace HotChocolate.Types
 
         public ObjectTypeDefinitionNode SyntaxNode { get; }
 
-        public string Name { get; }
+        public string Name
+        {
+            get => _name;
+            private set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
 
-        public string Description { get; }
+                if (!string.IsNullOrEmpty(_name))
+                {
+                    throw new InvalidOperationException(
+                        "The name property can only be set once.");
+                }
+
+                _name = value;
+            }
+        }
+
+        public string Description
+        {
+            get => _description;
+            private set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!string.IsNullOrEmpty(_description))
+                {
+                    throw new InvalidOperationException(
+                        "The description property can only be set once.");
+                }
+
+                _description = value;
+            }
+        }
 
         internal bool IsIntrospection { get; }
 
@@ -86,6 +127,12 @@ namespace HotChocolate.Types
 
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
+
+        #region Configuration
+
+        protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
+
+        #endregion
 
         #region ITypeSystemNode
 
@@ -109,7 +156,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         void ITypeInitializer.CompleteInitialization(
-            ISchemaContext schemaContext,
+            SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
@@ -117,8 +164,9 @@ namespace HotChocolate.Types
                 field.CompleteInitialization(reportError, this);
             }
 
-            InterfaceType[] interfaces = _interfaceFactory?.Invoke()?.ToArray()
+            InterfaceType[] interfaces = _interfaceFactory?.Invoke(schemaContext)?.ToArray()
                 ?? Array.Empty<InterfaceType>();
+
             foreach (InterfaceType interfaceType in interfaces)
             {
                 if (_interfaceMap.TryGetValue(
@@ -126,7 +174,8 @@ namespace HotChocolate.Types
                     && interfaceType != type)
                 {
                     reportError(new SchemaError(
-                        "The interfaces that this object type implements are not unique.",
+                        "The interfaces that this object type implements " +
+                        "are not unique.",
                         this));
                 }
                 else
@@ -169,21 +218,20 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public class ObjectTypeConfig
-        : INamedTypeConfig
+    public abstract class ObjectType<T>
+        : ObjectType
     {
-        public ObjectTypeDefinitionNode SyntaxNode { get; set; }
+        public ObjectType()
+        {
+            Configure(default(IObjectTypeDescriptor<T>));
+        }
 
-        public string Name { get; set; }
+        #region Configuration
 
-        public string Description { get; set; }
+        protected abstract void Configure(IObjectTypeDescriptor<T> descriptor);
 
-        internal bool IsIntrospection { get; set; }
+        protected sealed override void Configure(IObjectTypeDescriptor descriptor) { }
 
-        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
-
-        public IEnumerable<Field> Fields { get; set; }
-
-        public IsOfType IsOfType { get; set; }
+        #endregion
     }
 }
