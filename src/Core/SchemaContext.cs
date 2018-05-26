@@ -10,6 +10,10 @@ namespace HotChocolate
 {
     // TODO : move under configuration?
     // TODO : split type
+    // Provides access to the type instance management =>
+    // Type Instance Management
+    // Resolver Manager
+
     internal sealed class SchemaContext
         : ISchemaContext
     {
@@ -21,6 +25,7 @@ namespace HotChocolate
         private readonly IReadOnlyDictionary<string, ResolveType> _customTypeResolver;
         private readonly IReadOnlyDictionary<string, IsOfType> _customIsOfTypeFunctions;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
+        private readonly Dictionary<Type, INamedType> _registeredGraphTypes = new Dictionary<Type, INamedType>();
 
         private string _queryTypeName = WellKnownTypes.Query;
         private string _mutationTypeName = WellKnownTypes.Mutation;
@@ -362,6 +367,30 @@ namespace HotChocolate
             throw new NotImplementedException();
         }
 
+        // type is an inherited graphType
+        public T GetOrCreateType<T>(Type nativeGraphType)
+            where T : INamedType
+        {
+            if (typeof(T).IsAssignableFrom(nativeGraphType))
+            {
+                if (_registeredGraphTypes.TryGetValue(
+                    nativeGraphType, out INamedType namedType)
+                    && namedType is T type)
+                {
+                    return type;
+                }
+                else
+                {
+                    type = (T)Activator.CreateInstance(nativeGraphType);
+                    _registeredGraphTypes[nativeGraphType] = type;
+                    _types[type.Name] = type;
+                    return type;
+                }
+            }
+
+            // TODO : text
+            throw new ArgumentException();
+        }
 
         public FieldResolverDelegate CreateResolver(
             string typeName, string fieldName)
@@ -476,10 +505,10 @@ namespace HotChocolate
         }
 
         private void CompleteTypeInitialization(
-           IEnumerable<ITypeInitializer> initializers,
+           IEnumerable<INeedsInitialization> initializers,
            Action<SchemaError> reportError)
         {
-            foreach (ITypeInitializer initializer in initializers)
+            foreach (INeedsInitialization initializer in initializers)
             {
                 initializer.CompleteInitialization(this, reportError);
             }

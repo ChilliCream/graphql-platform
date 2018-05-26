@@ -119,4 +119,26 @@ namespace HotChocolate.Types
             return Array.CreateInstance(elementType, 0).GetType();
         }
     }
+
+    public sealed class ListType<T>
+        : IOutputType
+        , IInputType
+        where T : IType
+    {
+        private ListType()
+        {
+        }
+
+        public Type NativeType => throw new NotImplementedException();
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

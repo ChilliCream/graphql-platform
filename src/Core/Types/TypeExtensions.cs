@@ -134,7 +134,12 @@ namespace HotChocolate.Types
 
         public static bool IsInputType(this IType type)
         {
-            return IsType<IInputType>(type);
+            return type.InnerType().InnerType().InnerType() is IInputType;
+        }
+
+        public static bool IsOutputType(this IType type)
+        {
+            return type.InnerType().InnerType().InnerType() is IOutputType;
         }
 
         public static bool IsUnionType(this IType type)

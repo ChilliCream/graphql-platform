@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         , IInputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
     {
         public readonly Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(
+        void INeedsInitialization.CompleteInitialization(
             SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {

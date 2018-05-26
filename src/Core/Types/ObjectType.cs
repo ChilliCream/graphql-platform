@@ -15,20 +15,47 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
         , IHasFields
     {
-
+        private readonly ObjectTypeDescriptor _descriptor;
         private readonly IsOfType _isOfType;
         private readonly Func<SchemaContext, IEnumerable<InterfaceType>> _interfaceFactory;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
-        private string _name;
-        private string _description;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
-        public ObjectType() { }
+        public ObjectType()
+        {
+            _descriptor = new ObjectTypeDescriptor();
+            Configure(_descriptor);
+
+            if (string.IsNullOrEmpty(_descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "A type name must not be null or empty.");
+            }
+
+            if (_descriptor.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The object type `{Name}` has no fields.");
+            }
+
+            foreach (Field field in _descriptor.Fields.Select(t => t.CreateField()))
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _isOfType = _descriptor.IsOfType;
+            _interfaceFactory = s => _descriptor.Interfaces
+                .Select(t => s.GetOrCreateType<InterfaceType>(t));
+
+            Name = _descriptor.Name;
+            Description = _descriptor.Description;
+            IsIntrospection = _descriptor.IsIntrospection;
+        }
 
         internal ObjectType(ObjectTypeConfig config)
         {
@@ -40,32 +67,21 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.",
+                    "An object type name must not be null or empty.",
                     nameof(config));
             }
 
-            Field[] fields = config.Fields?.ToArray()
-                 ?? Array.Empty<Field>();
-            if (fields.Length == 0)
+            Field[] fields = config.Fields?.ToArray();
+            if (fields == null || fields.Length == 0)
             {
                 throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.",
+                    $"The object type `{Name}` has no fields.",
                     nameof(config));
             }
 
             foreach (Field field in fields)
             {
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    throw new ArgumentException(
-                        $"The field name `{field.Name}` " +
-                        $"is not unique within `{Name}`.",
-                        nameof(config));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
+                _fieldMap[field.Name] = field;
             }
 
             _isOfType = config.IsOfType;
@@ -79,45 +95,9 @@ namespace HotChocolate.Types
 
         public ObjectTypeDefinitionNode SyntaxNode { get; }
 
-        public string Name
-        {
-            get => _name;
-            private set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
+        public string Name { get; }
 
-                if (!string.IsNullOrEmpty(_name))
-                {
-                    throw new InvalidOperationException(
-                        "The name property can only be set once.");
-                }
-
-                _name = value;
-            }
-        }
-
-        public string Description
-        {
-            get => _description;
-            private set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                if (!string.IsNullOrEmpty(_description))
-                {
-                    throw new InvalidOperationException(
-                        "The description property can only be set once.");
-                }
-
-                _description = value;
-            }
-        }
+        public string Description { get; }
 
         internal bool IsIntrospection { get; }
 
@@ -155,7 +135,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(
+        void INeedsInitialization.CompleteInitialization(
             SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {

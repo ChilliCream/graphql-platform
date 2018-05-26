@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
         , IHasFields
     {
         private readonly ResolveType _typeResolver;
@@ -91,7 +91,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(
+        void INeedsInitialization.CompleteInitialization(
             SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {

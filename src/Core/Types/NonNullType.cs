@@ -73,4 +73,26 @@ namespace HotChocolate.Types
                 "The specified type is not an input type.");
         }
     }
+
+    public sealed class NonNullType<T>
+        : IOutputType
+        , IInputType
+        where T : IType
+    {
+        private NonNullType()
+        {
+        }
+
+        public Type NativeType => throw new NotImplementedException();
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

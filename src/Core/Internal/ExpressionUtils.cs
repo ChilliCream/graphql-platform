@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Internal
 {
     internal static class ExpressionUtils
     {

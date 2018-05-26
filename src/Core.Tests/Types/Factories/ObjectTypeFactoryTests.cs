@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Factories
             // act
             ObjectTypeFactory factory = new ObjectTypeFactory();
             ObjectType objectType = factory.Create(context, objectTypeDefinition);
-            ((ITypeInitializer)objectType).CompleteInitialization(error => { });
+            ((INeedsInitialization)objectType).CompleteInitialization(error => { });
 
             // assert
             Assert.Equal("Simple", objectType.Name);
@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Factories
             // act
             UnionTypeFactory factory = new UnionTypeFactory();
             UnionType unionType = factory.Create(context, unionTypeDefinition);
-            ((ITypeInitializer)unionType).CompleteInitialization(error => { });
+            ((INeedsInitialization)unionType).CompleteInitialization(error => { });
 
             // assert
             Assert.Equal("X", unionType.Name);

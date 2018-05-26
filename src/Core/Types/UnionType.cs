@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
     {
         private readonly ResolveType _typeResolver;
         private readonly Func<IEnumerable<ObjectType>> _typesFactory;
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(
+        void INeedsInitialization.CompleteInitialization(
             SchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
