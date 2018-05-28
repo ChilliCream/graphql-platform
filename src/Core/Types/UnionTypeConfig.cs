@@ -12,8 +12,8 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public Func<IEnumerable<ObjectType>> Types { get; set; }
+        public Func<ITypeRegistry, IEnumerable<ObjectType>> Types { get; set; }
 
-        public ResolveAbstractType TypeResolver { get; set; }
+        public ResolveAbstractType ResolveAbstractType { get; set; }
     }
 }

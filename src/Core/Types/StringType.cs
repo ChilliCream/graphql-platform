@@ -46,6 +46,28 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
+        public override IValueNode ParseValue(object value)
+        {
+            if (value == null)
+            {
+                return new NullValueNode(null);
+            }
+
+            if (value is string s)
+            {
+                return new StringValueNode(null, s, false);
+            }
+
+            if (value is char c)
+            {
+                return new StringValueNode(null, c.ToString(), false);
+            }
+
+            throw new ArgumentException(
+                "The specified value has to be a string or char in order " +
+                "to be parsed by the string type.");
+        }
+
         public override object Serialize(object value)
         {
             if (value == null)

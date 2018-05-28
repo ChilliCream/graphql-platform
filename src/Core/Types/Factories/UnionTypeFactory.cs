@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Factories
                 SyntaxNode = node,
                 Name = node.Name.Value,
                 Description = node.Description?.Value,
-                TypeResolver = context.CreateTypeResolver(node.Name.Value),
+                ResolveAbstractType = context.CreateTypeResolver(node.Name.Value),
                 Types = () => node.Types.Select(t => context.GetOutputType<ObjectType>(t.Name.Value))
             });
         }
