@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         private Dictionary<Type, TypeInfo> _typeInfoCache = new Dictionary<Type, TypeInfo>
         {
             { typeof(string), new TypeInfo(typeof(StringType)) },
-            { typeof(int), new TypeInfo(typeof(IntegerType)) },
+            { typeof(int), new TypeInfo(typeof(IntType)) },
             { typeof(bool), new TypeInfo(typeof(BooleanType)) }
         };
 

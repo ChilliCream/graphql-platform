@@ -3,6 +3,10 @@ namespace HotChocolate.Language
     public sealed class NullValueNode
         : IValueNode
     {
+        public NullValueNode()
+        {
+        }
+
         public NullValueNode(Location location)
         {
             Location = location;

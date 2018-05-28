@@ -46,6 +46,23 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
+        public override IValueNode ParseValue(object value)
+        {
+            if (value == null)
+            {
+                return new NullValueNode();
+            }
+
+            if (value is bool b)
+            {
+                return new BooleanValueNode(b);
+            }
+
+            throw new ArgumentException(
+                "The specified value has to be a boolean" +
+                "to be parsed by the boolean type.");
+        }
+
         public override object Serialize(object value)
         {
             if (value == null)

@@ -259,7 +259,7 @@ namespace HotChocolate
         {
             yield return new StringType();
             yield return new BooleanType();
-            yield return new IntegerType();
+            yield return new IntType();
         }
     }
 }

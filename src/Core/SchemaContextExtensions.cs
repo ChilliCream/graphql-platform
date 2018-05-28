@@ -76,7 +76,7 @@ namespace HotChocolate
 
         public static ScalarType IntegerType(this ISchemaContext context)
         {
-            return context.GetOutputType<IntegerType>(WellKnownTypes.IntType);
+            return context.GetOutputType<IntType>(WellKnownTypes.IntType);
         }
 
         public static NonNullType NonNullIntegerType(this ISchemaContext context)

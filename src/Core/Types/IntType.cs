@@ -3,10 +3,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class IntegerType
+    public sealed class IntType
         : ScalarType
     {
-        public IntegerType()
+        public IntType()
             : base("Int")
         {
         }
@@ -44,6 +44,23 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "The int type can only parse int literals.",
                 nameof(literal));
+        }
+
+        public override IValueNode ParseValue(object value)
+        {
+            if (value == null)
+            {
+                return new NullValueNode();
+            }
+
+            if (value is int i)
+            {
+                return new IntValueNode(i);
+            }
+
+            throw new ArgumentException(
+                "The specified value has to be an integer" +
+                "to be parsed by the int type.");
         }
 
         public override object Serialize(object value)

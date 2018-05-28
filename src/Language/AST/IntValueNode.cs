@@ -1,10 +1,21 @@
 using System;
+using System.Globalization;
 
 namespace HotChocolate.Language
 {
     public sealed class IntValueNode
         : IValueNode
     {
+        public IntValueNode(int value)
+            : this(null, value.ToString(CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(string value)
+            : this(null, value)
+        {
+        }
+
         public IntValueNode(
             Location location,
             string value)
