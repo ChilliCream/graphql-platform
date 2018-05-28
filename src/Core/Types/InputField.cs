@@ -9,9 +9,10 @@ namespace HotChocolate.Types
     public class InputField
         : ITypeSystemNode
     {
-        private readonly Func<SchemaContext, IInputType> _typeFactory;
-        private readonly Func<SchemaContext, IValueNode> _defaultValueFactory;
+        private readonly Func<ITypeRegistry, IInputType> _typeFactory;
+        private readonly Func<ITypeRegistry, IValueNode> _defaultValueFactory;
         private IInputType _type;
+        private Type _nativeNamedType;
         private IValueNode _defaultValue;
 
         internal InputField(InputFieldConfig config)
@@ -36,6 +37,7 @@ namespace HotChocolate.Types
             }
 
             _typeFactory = config.Type;
+            _nativeNamedType = config.NativeNamedType;
             _defaultValueFactory = config.DefaultValue;
 
             SyntaxNode = config.SyntaxNode;
@@ -64,12 +66,23 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        internal void CompleteInitialization(
-            SchemaContext schemaContext,
+        internal void RegisterDependencies(
+            ITypeRegistry typeRegistry,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory(schemaContext);
+            if (_nativeNamedType != null)
+            {
+                typeRegistry.RegisterType(_nativeNamedType);
+            }
+        }
+
+        internal void CompleteInputField(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory(typeRegistry);
             if (_type == null)
             {
                 reportError(new SchemaError(
@@ -77,14 +90,13 @@ namespace HotChocolate.Types
                     parentType));
             }
 
-
             if (_defaultValueFactory == null)
             {
                 _defaultValue = new NullValueNode(null);
             }
             else
             {
-                _defaultValue = _defaultValueFactory(schemaContext);
+                _defaultValue = _defaultValueFactory(typeRegistry);
             }
         }
 

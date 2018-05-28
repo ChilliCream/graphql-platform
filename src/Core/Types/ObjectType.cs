@@ -20,7 +20,8 @@ namespace HotChocolate.Types
     {
         private readonly ObjectTypeDescriptor _descriptor;
         private readonly IsOfType _isOfType;
-        private readonly Func<SchemaContext, IEnumerable<InterfaceType>> _interfaceFactory;
+        private readonly Func<ITypeRegistry, IEnumerable<InterfaceType>> _interfaceFactory;
+        private readonly IReadOnlyCollection<TypeInfo> _interfaceTypeInfos;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
         private readonly Dictionary<string, Field> _fieldMap =
@@ -49,8 +50,10 @@ namespace HotChocolate.Types
             }
 
             _isOfType = _descriptor.IsOfType;
-            _interfaceFactory = s => _descriptor.Interfaces
-                .Select(t => s.GetOrCreateType<InterfaceType>(t));
+            _interfaceFactory = r => _descriptor.Interfaces
+                .Select(t => t.TypeFactory(r))
+                .Cast<InterfaceType>();
+            _interfaceTypeInfos = _descriptor.Interfaces;
 
             Name = _descriptor.Name;
             Description = _descriptor.Description;
@@ -85,7 +88,7 @@ namespace HotChocolate.Types
             }
 
             _isOfType = config.IsOfType;
-            _interfaceFactory = s => config.Interfaces();
+            _interfaceFactory = config.Interfaces;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -135,35 +138,45 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void INeedsInitialization.CompleteInitialization(
-            SchemaContext schemaContext,
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContextR schemaContext,
+            Action<SchemaError> reportError)
+        {
+            foreach (TypeInfo interfaceTypeInfo in _interfaceTypeInfos)
+            {
+                schemaContext.Types.RegisterType(interfaceTypeInfo.NativeNamedType);
+            }
+
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.RegisterDependencies(schemaContext, reportError, this);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(
+            ISchemaContextR schemaContext,
             Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(schemaContext, reportError, this);
+                field.CompleteField(schemaContext, reportError, this);
             }
 
-            InterfaceType[] interfaces = _interfaceFactory?.Invoke(schemaContext)?.ToArray()
-                ?? Array.Empty<InterfaceType>();
-
-            foreach (InterfaceType interfaceType in interfaces)
+            if (_interfaceFactory != null)
             {
-                if (_interfaceMap.TryGetValue(
-                    interfaceType.Name, out InterfaceType type)
-                    && interfaceType != type)
-                {
-                    reportError(new SchemaError(
-                        "The interfaces that this object type implements " +
-                        "are not unique.",
-                        this));
-                }
-                else
+                foreach (InterfaceType interfaceType in
+                    _interfaceFactory(schemaContext.Types))
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
-            }
 
+                CheckIfAllInterfaceFieldsAreImplemented(reportError);
+            }
+        }
+
+        private void CheckIfAllInterfaceFieldsAreImplemented(
+            Action<SchemaError> reportError)
+        {
             foreach (InterfaceType interfaceType in _interfaceMap.Values)
             {
                 foreach (Field interfaceField in interfaceType.Fields.Values)
@@ -193,22 +206,6 @@ namespace HotChocolate.Types
                     }
                 }
             }
-        }
-
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContextR schemaContext,
-            Action<SchemaError> reportError)
-        {
-
-
-
-        }
-
-        void INeedsInitialization.CompleteType(
-            ISchemaContextR schemaContext,
-            Action<SchemaError> reportError)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion

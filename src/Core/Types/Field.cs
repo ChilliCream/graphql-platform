@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,11 +11,13 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly Func<SchemaContext, IOutputType> _typeFactory;
-        private readonly Func<SchemaContext, FieldResolverDelegate> _resolverFactory;
+        private readonly Func<ITypeRegistry, IOutputType> _typeFactory;
+        private readonly Func<IResolverRegistry, FieldResolverDelegate> _resolverFactory;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
+        private MemberInfo _member;
         private IOutputType _type;
+        private Type _nativeNamedType;
         private FieldResolverDelegate _resolver;
 
         internal Field(FieldConfig config)
@@ -55,7 +58,9 @@ namespace HotChocolate.Types
                 }
             }
 
+            _member = config.Member;
             _typeFactory = config.Type;
+            _nativeNamedType = config.NativeNamedType;
             _resolverFactory = config.Resolver;
 
             SyntaxNode = config.SyntaxNode;
@@ -94,12 +99,35 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        internal void CompleteInitialization(
-            SchemaContext schemaContext,
+        internal void RegisterDependencies(
+            ISchemaContextR schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory(schemaContext);
+            if (_member != null)
+            {
+                schemaContext.Resolvers.RegisterResolver(
+                    new MemberResolverBinding(parentType.Name, Name, _member));
+            }
+
+            if (_nativeNamedType != null)
+            {
+                schemaContext.Types.RegisterType(_nativeNamedType);
+            }
+
+            foreach (InputField argument in _argumentMap.Values)
+            {
+                argument.RegisterDependencies(
+                    schemaContext.Types, reportError, parentType);
+            }
+        }
+
+        internal void CompleteField(
+            ISchemaContextR schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory(schemaContext.Types);
             if (_type == null)
             {
                 reportError(new SchemaError(
@@ -109,8 +137,8 @@ namespace HotChocolate.Types
 
             foreach (InputField argument in _argumentMap.Values)
             {
-                argument.CompleteInitialization(
-                    schemaContext, reportError, parentType);
+                argument.CompleteInputField(
+                    schemaContext.Types, reportError, parentType);
             }
 
 
@@ -124,7 +152,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    _resolver = _resolverFactory(schemaContext);
+                    _resolver = _resolverFactory(schemaContext.Resolvers);
                     if (_resolver == null)
                     {
                         reportError(new SchemaError(

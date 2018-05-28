@@ -28,9 +28,4 @@ namespace HotChocolate
     {
 
     }
-
-    public abstract class ResolverBinding
-    {
-
-    }
 }

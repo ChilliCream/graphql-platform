@@ -14,7 +14,7 @@ namespace HotChocolate.Types
 
         internal bool IsIntrospection { get; set; }
 
-        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
+        public Func<ITypeRegistry, IEnumerable<InterfaceType>> Interfaces { get; set; }
 
         public IEnumerable<Field> Fields { get; set; }
 

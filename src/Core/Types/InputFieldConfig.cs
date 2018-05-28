@@ -11,8 +11,10 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public Func<SchemaContext, IInputType> Type { get; set; }
+        public Func<ITypeRegistry, IInputType> Type { get; set; }
 
-        public Func<SchemaContext, IValueNode> DefaultValue { get; set; }
+        public Type NativeNamedType { get; set; }
+
+        public Func<ITypeRegistry, IValueNode> DefaultValue { get; set; }
     }
 }

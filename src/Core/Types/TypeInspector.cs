@@ -13,6 +13,11 @@ namespace HotChocolate.Types
             { typeof(bool), new TypeInfo(typeof(BooleanType)) }
         };
 
+        public TypeInfo CreateTypeInfo(Type nativeType)
+        {
+            return GetOrCreateTypeInfo(nativeType);
+        }
+
         public Type ExtractNamedType(Type nativeType)
         {
             TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
@@ -218,25 +223,6 @@ namespace HotChocolate.Types
         private static bool IsNamedType(Type type)
         {
             return type is INamedType;
-        }
-
-        private readonly struct TypeInfo
-        {
-            public TypeInfo(Type nativeNamedType)
-            {
-                NativeNamedType = nativeNamedType;
-                TypeFactory = r => r.GetType<IType>(nativeNamedType);
-            }
-
-            public TypeInfo(Type nativeNamedType,
-                Func<ITypeRegistry, IType> typeFactory)
-            {
-                NativeNamedType = nativeNamedType;
-                TypeFactory = typeFactory;
-            }
-
-            public Type NativeNamedType { get; }
-            public Func<ITypeRegistry, IType> TypeFactory { get; }
         }
 
         internal static TypeInspector Default { get; } = new TypeInspector();

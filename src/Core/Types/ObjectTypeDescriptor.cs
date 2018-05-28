@@ -17,8 +17,8 @@ namespace HotChocolate.Types
         public IsOfType IsOfType { get; protected set; }
         public ImmutableList<FieldDescriptor> Fields { get; protected set; }
             = ImmutableList<FieldDescriptor>.Empty;
-        public ImmutableList<Type> Interfaces { get; protected set; }
-            = ImmutableList<Type>.Empty;
+        public ImmutableList<TypeInfo> Interfaces { get; protected set; }
+            = ImmutableList<TypeInfo>.Empty;
 
         #region IObjectTypeDescriptor<T>
 
@@ -55,7 +55,8 @@ namespace HotChocolate.Types
                     "The interface type has to be inherited.");
             }
 
-            Interfaces = Interfaces.Add(typeof(TInterface));
+            TypeInfo typeInfo = TypeInspector.Default.CreateTypeInfo(typeof(TInterface));
+            Interfaces = Interfaces.Add(typeInfo);
             return this;
         }
 

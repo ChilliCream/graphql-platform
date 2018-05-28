@@ -78,7 +78,7 @@ namespace HotChocolate.Types
                 Name = Name,
                 Description = Description,
                 DeprecationReason = DeprecationReason,
-                Property = Property,
+                Member = Property,
                 Type = CreateType,
                 NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
                 Arguments = CreateArguments(),

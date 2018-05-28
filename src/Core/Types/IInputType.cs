@@ -9,5 +9,6 @@ namespace HotChocolate.Types
         Type NativeType { get; }
         bool IsInstanceOfType(IValueNode literal);
         object ParseLiteral(IValueNode literal);
+        IValueNode ParseValue(object value);
     }
 }

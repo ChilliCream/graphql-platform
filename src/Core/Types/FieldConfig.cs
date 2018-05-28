@@ -18,7 +18,7 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; set; }
 
-        public PropertyInfo Property { get; set; }
+        public MemberInfo Member { get; set; }
 
         public Func<ITypeRegistry, IOutputType> Type { get; set; }
 
