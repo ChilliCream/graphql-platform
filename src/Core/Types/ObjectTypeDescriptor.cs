@@ -55,7 +55,8 @@ namespace HotChocolate.Types
                     "The interface type has to be inherited.");
             }
 
-            TypeInfo typeInfo = TypeInspector.Default.CreateTypeInfo(typeof(TInterface));
+            TypeInfo typeInfo = TypeInspector.Default.CreateTypeInfo(
+                typeof(TInterface));
             Interfaces = Interfaces.Add(typeInfo);
             return this;
         }

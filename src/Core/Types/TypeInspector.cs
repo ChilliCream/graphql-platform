@@ -62,7 +62,7 @@ namespace HotChocolate.Types
                 {
                     if (typeof(IType).IsAssignableFrom(nativeType))
                     {
-                        typeInfo = CreateTypeInfo(nativeType);
+                        typeInfo = CreateTypeInfoInternal(nativeType);
                         _typeInfoCache[nativeType] = typeInfo;
                     }
                 }
@@ -70,7 +70,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private static TypeInfo CreateTypeInfo(Type nativeType)
+        private static TypeInfo CreateTypeInfoInternal(Type nativeType)
         {
             List<Type> types = DecomposeType(nativeType);
 

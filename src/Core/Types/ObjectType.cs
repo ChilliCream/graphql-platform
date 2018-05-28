@@ -18,7 +18,6 @@ namespace HotChocolate.Types
         , INeedsInitialization
         , IHasFields
     {
-        private readonly ObjectTypeDescriptor _descriptor;
         private readonly IsOfType _isOfType;
         private readonly Func<ITypeRegistry, IEnumerable<InterfaceType>> _interfaceFactory;
         private readonly IReadOnlyCollection<TypeInfo> _interfaceTypeInfos;
@@ -29,35 +28,35 @@ namespace HotChocolate.Types
 
         public ObjectType()
         {
-            _descriptor = new ObjectTypeDescriptor();
-            Configure(_descriptor);
+            ObjectTypeDescriptor descriptor = new ObjectTypeDescriptor();
+            Configure(descriptor);
 
-            if (string.IsNullOrEmpty(_descriptor.Name))
+            if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.");
+                    "The type name must not be null or empty.");
             }
 
-            if (_descriptor.Fields.Count == 0)
+            if (descriptor.Fields.Count == 0)
             {
                 throw new ArgumentException(
                     $"The object type `{Name}` has no fields.");
             }
 
-            foreach (Field field in _descriptor.Fields.Select(t => t.CreateField()))
+            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
             {
                 _fieldMap[field.Name] = field;
             }
 
-            _isOfType = _descriptor.IsOfType;
-            _interfaceFactory = r => _descriptor.Interfaces
+            _isOfType = descriptor.IsOfType;
+            _interfaceFactory = r => descriptor.Interfaces
                 .Select(t => t.TypeFactory(r))
                 .Cast<InterfaceType>();
-            _interfaceTypeInfos = _descriptor.Interfaces;
+            _interfaceTypeInfos = descriptor.Interfaces;
 
-            Name = _descriptor.Name;
-            Description = _descriptor.Description;
-            IsIntrospection = _descriptor.IsIntrospection;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            IsIntrospection = descriptor.IsIntrospection;
         }
 
         internal ObjectType(ObjectTypeConfig config)

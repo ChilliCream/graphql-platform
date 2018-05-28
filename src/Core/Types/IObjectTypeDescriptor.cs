@@ -8,9 +8,7 @@ namespace HotChocolate.Types
     {
         IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
     }
-}
-namespace HotChocolate.Types
-{
+
     public interface IObjectTypeDescriptor
     {
         IObjectTypeDescriptor Name(string name);

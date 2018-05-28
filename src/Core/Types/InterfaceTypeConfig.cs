@@ -13,6 +13,6 @@ namespace HotChocolate.Types
 
         public IEnumerable<Field> Fields { get; set; }
 
-        public ResolveType TypeResolver { get; set; }
+        public ResolveAbstractType ResolveAbstractType { get; set; }
     }
 }

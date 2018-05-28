@@ -22,7 +22,7 @@ namespace HotChocolate
         private readonly Dictionary<string, INamedType> _types;
         private readonly Dictionary<string, FieldResolverDelegate> _fieldResolvers
             = new Dictionary<string, FieldResolverDelegate>();
-        private readonly IReadOnlyDictionary<string, ResolveType> _customTypeResolver;
+        private readonly IReadOnlyDictionary<string, ResolveAbstractType> _customTypeResolver;
         private readonly IReadOnlyDictionary<string, IsOfType> _customIsOfTypeFunctions;
         private readonly Dictionary<string, Type> _typeMappings = new Dictionary<string, Type>();
         private readonly Dictionary<Type, INamedType> _registeredGraphTypes = new Dictionary<Type, INamedType>();
@@ -39,14 +39,14 @@ namespace HotChocolate
         public SchemaContext(
             IEnumerable<INamedType> systemTypes)
             : this(systemTypes,
-                new Dictionary<string, ResolveType>(),
+                new Dictionary<string, ResolveAbstractType>(),
                 new Dictionary<string, IsOfType>())
         {
         }
 
         public SchemaContext(
             IEnumerable<INamedType> systemTypes,
-            IReadOnlyDictionary<string, ResolveType> customTypeResolvers,
+            IReadOnlyDictionary<string, ResolveAbstractType> customTypeResolvers,
             IReadOnlyDictionary<string, IsOfType> customIsOfTypeFunctions)
         {
             if (systemTypes == null)
@@ -427,14 +427,14 @@ namespace HotChocolate
             return isOfType;
         }
 
-        public ResolveType CreateTypeResolver(string typeName)
+        public ResolveAbstractType CreateTypeResolver(string typeName)
         {
             if (_customTypeResolver.TryGetValue(typeName, out var rt))
             {
                 return rt;
             }
 
-            return new ResolveType((c, r) =>
+            return new ResolveAbstractType((c, r) =>
                 FallbackTypeResolver(typeName, c, r));
         }
 

@@ -14,9 +14,37 @@ namespace HotChocolate.Types
         , INeedsInitialization
         , IHasFields
     {
-        private readonly ResolveType _typeResolver;
+        private readonly ResolveAbstractType _resolveAbstractType;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
+
+        public InterfaceType()
+        {
+            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor();
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "The type name must not be null or empty.");
+            }
+
+            if (descriptor.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.");
+            }
+
+            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _resolveAbstractType = descriptor.ResolveAbstractType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
 
         internal InterfaceType(InterfaceTypeConfig config)
         {
@@ -56,7 +84,7 @@ namespace HotChocolate.Types
                 }
             }
 
-            _typeResolver = config.TypeResolver;
+            _resolveAbstractType = config.ResolveAbstractType;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -78,8 +106,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return _typeResolver.Invoke(context, resolverResult);
+            return _resolveAbstractType.Invoke(context, resolverResult);
         }
+
+        #region Configuration
+
+        protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
+
+        #endregion
 
         #region TypeSystemNode
 
@@ -91,13 +125,21 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void INeedsInitialization.CompleteInitialization(
-            SchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContextR schemaContext, Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(schemaContext, reportError, this);
+                field.RegisterDependencies(schemaContext, reportError, this);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(
+            ISchemaContextR schemaContext, Action<SchemaError> reportError)
+        {
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.CompleteField(schemaContext, reportError, this);
             }
         }
 

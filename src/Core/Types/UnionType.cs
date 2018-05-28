@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         , ITypeSystemNode
         , INeedsInitialization
     {
-        private readonly ResolveType _typeResolver;
+        private readonly ResolveAbstractType _typeResolver;
         private readonly Func<IEnumerable<ObjectType>> _typesFactory;
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
