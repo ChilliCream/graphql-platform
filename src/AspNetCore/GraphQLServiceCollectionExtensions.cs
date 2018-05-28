@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate
 {
     public static class GraphQLServiceCollectionExtensions
     {

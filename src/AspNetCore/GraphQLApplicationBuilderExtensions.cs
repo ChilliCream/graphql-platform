@@ -1,6 +1,7 @@
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate
 {
     public static class GraphQLApplicationBuilderExtensions
     {

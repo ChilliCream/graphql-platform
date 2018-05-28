@@ -76,14 +76,45 @@ namespace HotChocolate.Execution
         {
             Dictionary<string, IValueNode> vars = variableValues
                 ?? new Dictionary<string, IValueNode>();
-            OperationDefinitionNode operation = GetOperation(queryDocument, operationName);
+            OperationDefinitionNode operation = GetOperation(
+                queryDocument, operationName);
+            ObjectType operationType = GetOperationType(schema, operation);
+
+            if (initialValue == null && schema.TryGetNativeType(
+                operationType.Name, out Type nativeType))
+            {
+                initialValue = _services.GetService(nativeType);
+            }
+
             VariableCollection variables = new VariableCollection(
                 _variableValueResolver.CoerceVariableValues(
                     schema, operation, vars));
+
             ExecutionContext executionContext = new ExecutionContext(
                 schema, queryDocument, operation, variables, _services,
                 initialValue, null);
+
             return executionContext;
+        }
+
+        private ObjectType GetOperationType(
+            Schema schema, OperationDefinitionNode operation)
+        {
+            switch (operation.Operation)
+            {
+                case OperationType.Query:
+                    return schema.QueryType;
+
+                case OperationType.Mutation:
+                    return schema.MutationType;
+
+                case OperationType.Subscription:
+                    return schema.SubscriptionType;
+
+                default:
+                    throw new NotSupportedException(
+                        "The specified operation type is not supported.");
+            }
         }
 
         private OperationDefinitionNode GetOperation(

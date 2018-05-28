@@ -118,7 +118,7 @@ namespace HotChocolate
             }
         }
 
-         public string SubscriptionTypeName
+        public string SubscriptionTypeName
         {
             get => _subscriptionTypeName;
             set
@@ -347,6 +347,11 @@ namespace HotChocolate
                 return items;
             }
             return Array.Empty<ObjectType>();
+        }
+
+        public bool TryGetNativeType(string typeName, out Type nativeType)
+        {
+            return _typeMappings.TryGetValue(typeName, out nativeType);
         }
 
 
