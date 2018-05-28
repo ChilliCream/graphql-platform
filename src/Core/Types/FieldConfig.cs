@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -17,10 +18,14 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; set; }
 
-        public Func<SchemaContext, IOutputType> Type { get; set; }
+        public PropertyInfo Property { get; set; }
+
+        public Func<ITypeRegistry, IOutputType> Type { get; set; }
+
+        public Type NativeNamedType { get; set; }
 
         public IEnumerable<InputField> Arguments { get; set; }
 
-        public Func<SchemaContext, FieldResolverDelegate> Resolver { get; set; }
+        public Func<IResolverRegistry, FieldResolverDelegate> Resolver { get; set; }
     }
 }

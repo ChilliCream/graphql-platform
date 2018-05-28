@@ -18,10 +18,10 @@ namespace HotChocolate.Types
         /// implementing type with the schema context.
         /// This will be called before the type is completed.
         /// </summary>
-        /// <param name="schemaConfiguration"></param>
+        /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
         void RegisterDependencies(
-            SchemaConfiguration schemaConfiguration,
+            ISchemaContextR schemaContext,
             Action<SchemaError> reportError);
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
         /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
         void CompleteType(
-            SchemaContext schemaContext,
+            ISchemaContextR schemaContext,
             Action<SchemaError> reportError);
     }
 }

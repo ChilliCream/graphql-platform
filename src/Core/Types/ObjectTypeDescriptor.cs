@@ -86,7 +86,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(name);
+            FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
             Fields = Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
             MemberInfo member = property.ExtractMember();
             if (member is PropertyInfo p)
             {
-                FieldDescriptor fieldDescriptor = new FieldDescriptor(p);
+                FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, p);
                 Fields = Fields.Add(fieldDescriptor);
             }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -10,32 +11,36 @@ namespace HotChocolate.Types
     internal class FieldDescriptor
         : IFieldDescriptor
     {
-        public FieldDescriptor(string name)
+        private readonly string _typeName;
+
+        public FieldDescriptor(string typeName, string fieldName)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(fieldName))
             {
                 throw new ArgumentException(
                     "The field name cannot be null or empty.",
-                    nameof(name));
+                    nameof(fieldName));
             }
 
-            if (ValidationHelper.IsFieldNameValid(name))
+            if (ValidationHelper.IsFieldNameValid(fieldName))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL field name.",
-                    nameof(name));
+                    nameof(fieldName));
             }
 
-            Name = name;
+            _typeName = typeName;
+            Name = fieldName;
         }
 
-        public FieldDescriptor(PropertyInfo property)
+        public FieldDescriptor(string typeName, PropertyInfo property)
         {
             if (property == null)
             {
                 throw new ArgumentNullException(nameof(property));
             }
 
+            _typeName = typeName;
             Property = property;
             Name = property.GetGraphQLName();
         }
@@ -62,6 +67,7 @@ namespace HotChocolate.Types
         public string DeprecationReason { get; protected set; }
 
         public ImmutableList<ArgumentDescriptor> Arguments { get; protected set; }
+            = ImmutableList<ArgumentDescriptor>.Empty;
 
         public FieldResolverDelegate Resolver { get; protected set; }
 
@@ -72,67 +78,90 @@ namespace HotChocolate.Types
                 Name = Name,
                 Description = Description,
                 DeprecationReason = DeprecationReason,
+                Property = Property,
                 Type = CreateType,
+                NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
                 Arguments = CreateArguments(),
                 Resolver = CreateResolver
             });
         }
 
-        private IOutputType CreateType(SchemaContext context)
+        private IOutputType CreateType(ITypeRegistry typeRegistry)
         {
-            return TypeConverter.CreateOutputType(context, NativeType);
+            return TypeInspector.Default.CreateOutputType(
+                typeRegistry, NativeType);
         }
 
         private IEnumerable<InputField> CreateArguments()
         {
-
+            return Arguments.Select(t => t.CreateArgument());
         }
 
-        private FieldResolverDelegate CreateResolver(ISchemaContext context)
+        private FieldResolverDelegate CreateResolver(
+            IResolverRegistry resolverRegistry)
         {
-            throw new NotImplementedException();
+            return Resolver ?? resolverRegistry.GetResolver(_typeName, Name);
         }
 
         #region IFieldDescriptor
 
         IFieldDescriptor IFieldDescriptor.Description(string description)
         {
+            Description = description;
+            return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Type<IOutputType>()
+        IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
-            throw new NotImplementedException();
+            NativeType = typeof(TOutputType);
+            return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.DeprecationReason(string deprecationReason)
+        IFieldDescriptor IFieldDescriptor.DeprecationReason(
+            string deprecationReason)
         {
-            throw new NotImplementedException();
+            DeprecationReason = deprecationReason;
+            return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Argument(string name, Action<IArgumentDescriptor> argument)
+        IFieldDescriptor IFieldDescriptor.Argument(
+            string name, Action<IArgumentDescriptor> argument)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The argument name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL argument name.",
+                    nameof(name));
+            }
+
+            if (argument == null)
+            {
+                throw new ArgumentNullException(nameof(argument));
+            }
+
+            ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
+            Arguments = Arguments.Add(descriptor);
+            return this;
         }
 
         IFieldDescriptor IFieldDescriptor.Resolver(FieldResolverDelegate fieldResolver)
         {
-            throw new NotImplementedException();
+            if (fieldResolver == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolver));
+            }
+
+            Resolver = fieldResolver;
+            return this;
         }
 
         #endregion
-    }
-
-    public class MyFooType
-        : ObjectType<Foo>
-    {
-        protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
-        {
-            descriptor.Field(t => t.GetType()).Type<ListType<MyFooType>>();
-        }
-    }
-
-    public class Foo
-    {
-
     }
 }

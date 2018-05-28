@@ -15,6 +15,11 @@ namespace HotChocolate.Types
         public IValueNode DefaultValue { get; protected set; }
         public object NativeDefaultValue { get; protected set; }
 
+        public InputField CreateArgument()
+        {
+
+        }
+
         #region IArgumentDescriptor
 
         IArgumentDescriptor IArgumentDescriptor.Description(string description)

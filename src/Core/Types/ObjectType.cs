@@ -195,6 +195,22 @@ namespace HotChocolate.Types
             }
         }
 
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContextR schemaContext,
+            Action<SchemaError> reportError)
+        {
+
+
+
+        }
+
+        void INeedsInitialization.CompleteType(
+            ISchemaContextR schemaContext,
+            Action<SchemaError> reportError)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 
