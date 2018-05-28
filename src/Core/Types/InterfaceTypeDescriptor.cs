@@ -7,6 +7,21 @@ namespace HotChocolate.Types
     internal class InterfaceTypeDescriptor
         : IInterfaceTypeDescriptor
     {
+        public InterfaceTypeDescriptor(Type interfaceType)
+        {
+            if (interfaceType == null)
+            {
+                throw new ArgumentNullException(nameof(interfaceType));
+            }
+
+            // TODO : move name resolution to utilities
+            Name = interfaceType.GetGraphQLName();
+            if (Name == interfaceType.Name && Name.EndsWith("Type"))
+            {
+                Name = Name.Substring(0, Name.Length - 4);
+            }
+        }
+
         public string Name { get; protected set; }
         public string Description { get; protected set; }
         public ResolveAbstractType ResolveAbstractType { get; protected set; }

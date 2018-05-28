@@ -7,6 +7,21 @@ namespace HotChocolate.Types
     internal class UnionTypeDescriptor
         : IUnionTypeDescriptor
     {
+        public UnionTypeDescriptor(Type unionType)
+        {
+            if (unionType == null)
+            {
+                throw new ArgumentNullException(nameof(unionType));
+            }
+
+            // TODO : move name resolution to utilities
+            Name = unionType.GetGraphQLName();
+            if (Name == unionType.Name && Name.EndsWith("Type"))
+            {
+                Name = Name.Substring(0, Name.Length - 4);
+            }
+        }
+
         public string Name { get; protected set; }
         public string Description { get; protected set; }
         public ImmutableList<TypeInfo> Types { get; protected set; }

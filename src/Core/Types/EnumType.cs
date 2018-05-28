@@ -13,8 +13,47 @@ namespace HotChocolate.Types
         , ISerializableType
         , ITypeSystemNode
     {
-        private readonly Dictionary<string, EnumValue> _nameToValues;
-        private readonly Dictionary<object, EnumValue> _valueToValues;
+        private readonly Dictionary<string, EnumValue> _nameToValues =
+            new Dictionary<string, EnumValue>();
+        private readonly Dictionary<object, EnumValue> _valueToValues =
+            new Dictionary<object, EnumValue>();
+
+        public EnumType()
+        {
+            EnumTypeDescriptor descriptor = new EnumTypeDescriptor(GetType());
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "Am enum type name must not be null or empty.");
+            }
+
+            if (descriptor.Items == null)
+            {
+                throw new ArgumentException(
+                    $"The enum type {descriptor.Name} has no values.");
+            }
+
+            foreach (EnumValueConfig enumValueConfig in config.Values)
+            {
+                if (NativeType == null && enumValueConfig.Value != null)
+                {
+                    // TODO : what to do if:
+                    // - values are not of the same type
+                    // - one or more values are null
+                    NativeType = enumValueConfig.Value.GetType();
+                }
+
+                EnumValue enumValue = new EnumValue(enumValueConfig);
+                _nameToValues[enumValueConfig.Name] = enumValue;
+                _valueToValues[enumValueConfig.Value] = enumValue;
+            }
+
+            SyntaxNode = config.SyntaxNode;
+            Name = config.Name;
+            Description = config.Description;
+        }
 
         internal EnumType(EnumTypeConfig config)
         {
@@ -30,25 +69,27 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            EnumValueConfig[] values = config.Values?.ToArray()
-                ?? Array.Empty<EnumValueConfig>();
-            if (values.Length == 0)
+            if (config.Values == null)
             {
                 throw new ArgumentException(
                     $"The enum type {config.Name} has no values.",
                     nameof(config));
             }
-            else
-            {
-                // TODO : what to do if:
-                // - values are not of the same type
-                // - one or more values are null
-                NativeType = config.NativeType
-                    ?? values.First(t => t.Value != null).Value.GetType();
-            }
 
-            _nameToValues = values.Select(t => new EnumValue(t)).ToDictionary(t => t.Name);
-            _valueToValues = _nameToValues.Values.ToDictionary(t => t.Value);
+            foreach (EnumValueConfig enumValueConfig in config.Values)
+            {
+                if (NativeType == null && enumValueConfig.Value != null)
+                {
+                    // TODO : what to do if:
+                    // - values are not of the same type
+                    // - one or more values are null
+                    NativeType = enumValueConfig.Value.GetType();
+                }
+
+                EnumValue enumValue = new EnumValue(enumValueConfig);
+                _nameToValues[enumValueConfig.Name] = enumValue;
+                _valueToValues[enumValueConfig.Value] = enumValue;
+            }
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -62,7 +103,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public Type NativeType { get; internal set; }
+        public Type NativeType { get; }
 
         public bool TryGetValue(string name, out object value)
         {
@@ -132,6 +173,12 @@ namespace HotChocolate.Types
                 $"The specified value cannot be handled by the EnumType `{Name}`.");
         }
 
+        #region Configuration
+
+        protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
+
+        #endregion
+
         #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
@@ -139,4 +186,6 @@ namespace HotChocolate.Types
 
         #endregion
     }
+
+
 }

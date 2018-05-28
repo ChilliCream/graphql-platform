@@ -20,7 +20,7 @@ namespace HotChocolate.Types
 
         public InterfaceType()
         {
-            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor();
+            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor(GetType());
             Configure(descriptor);
 
             if (string.IsNullOrEmpty(descriptor.Name))
