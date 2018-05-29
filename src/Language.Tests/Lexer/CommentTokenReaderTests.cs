@@ -2,50 +2,28 @@ using Xunit;
 
 namespace HotChocolate.Language
 {
-    /*
     public class CommentTokenReaderTests
     {
-        [Fact]
-        private void ReadToken()
+        [InlineData("# my comment foo bar")]
+        [InlineData("# my comment foo bar\n   ")]
+        [InlineData("     \n# my comment foo bar")]
+        [InlineData("     \n# my comment foo bar\n    ")]
+        [Theory]
+        private void ReadToken(string sourceText)
         {
             // arrange
-            string sourceBody = "# my comment foo bar";
-            Source source = new Source(sourceBody);
-            LexerContext context = new LexerContext(source);
-            Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            CommentTokenReader reader = new CommentTokenReader();
+            Source source = new Source(sourceText);
 
             // act
-            Token token = reader.ReadToken(context, previous);
+            SyntaxToken token = Lexer.Default.Read(source);
+            token = token.Next;
 
             // assert
             Assert.NotNull(token);
             Assert.Equal(TokenKind.Comment, token.Kind);
-            Assert.Equal(sourceBody.Substring(2), token.Value);
-            Assert.Equal(1, token.Line);
-            Assert.Equal(1, token.Column);
-            Assert.Equal(0, token.Start);
-            Assert.Equal(sourceBody.Length, token.End);
+            Assert.Equal("my comment foo bar", token.Value);
             Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
-        }
-
-        [InlineData("not a comment", false)]
-        [InlineData("# this is a valid comment", true)]
-        [Theory]
-        private void CanHandle(string sourceBody, bool expectedResult)
-        {
-            // arrange
-            Source source = new Source(sourceBody);
-            LexerContext context = new LexerContext(source);
-            Token previous = new Token(TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            CommentTokenReader reader = new CommentTokenReader();
-
-            // act
-            bool result = reader.CanHandle(context);
-
-            // assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
         }
     }
-     */
 }
