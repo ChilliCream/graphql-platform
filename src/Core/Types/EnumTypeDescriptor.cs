@@ -7,6 +7,17 @@ namespace HotChocolate.Types
     internal class EnumTypeDescriptor
         : IEnumTypeDescriptor
     {
+        public EnumTypeDescriptor(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+            Name = name;
+        }
+
         public EnumTypeDescriptor(Type enumType)
         {
             if (enumType == null)
@@ -23,10 +34,13 @@ namespace HotChocolate.Types
         }
 
         public string Name { get; protected set; }
+
         public string Description { get; protected set; }
-        public Type Type { get; protected set; }
-        public ImmutableDictionary<string, object> Items { get; protected set; }
-            = ImmutableDictionary<string, object>.Empty;
+
+        public Type NativeType { get; protected set; }
+
+        public ImmutableList<EnumValueDescriptor> Items { get; protected set; } =
+            ImmutableList<EnumValueDescriptor>.Empty;
 
         #region IEnumTypeDescriptor
 
@@ -56,12 +70,29 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Item(string name)
+        IEnumValueDescriptor IEnumTypeDescriptor.Item<T>(T value)
         {
-            // TODO : name validation
-            string upperCaseName = Name.ToUpperInvariant();
-            Items = Items.Add(upperCaseName, upperCaseName);
-            return this;
+            if (ReferenceEquals(value, null))
+            {
+                throw new ArgumentNullException(
+                    "An enum value mustn't be null.");
+            }
+
+            if (NativeType == null)
+            {
+                NativeType = typeof(T);
+            }
+
+            if (NativeType != typeof(T))
+            {
+                throw new ArgumentException(
+                    "The item type has to be " +
+                    $"{NativeType.FullName}.");
+            }
+
+            EnumValueDescriptor descriptor = new EnumValueDescriptor(value);
+            Items = Items.Add(descriptor);
+            return descriptor;
         }
 
         #endregion
@@ -71,26 +102,27 @@ namespace HotChocolate.Types
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor(Type enumType)
-            : base(enumType)
+        public EnumTypeDescriptor()
+            : base(typeof(T).GetGraphQLName())
         {
+            NativeType = typeof(T);
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Item(T value)
+        #region IEnumTypeDescriptor<T>
+
+        IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
         {
-            // TODO : handle null values
-            string upperCaseName = value.ToString().ToUpperInvariant();
-            Items = Items.Add(upperCaseName, value);
-            return this;
+            if (ReferenceEquals(value, null))
+            {
+                throw new ArgumentNullException(
+                    "An enum value mustn't be null.");
+            }
+
+            EnumValueDescriptor descriptor = new EnumValueDescriptor(value);
+            Items = Items.Add(descriptor);
+            return descriptor;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Item(string name, T value)
-        {
-            // TODO : name validation
-
-            string upperCaseName = name.ToUpperInvariant();
-            Items = Items.Add(upperCaseName, value);
-            return this;
-        }
+        #endregion
     }
 }

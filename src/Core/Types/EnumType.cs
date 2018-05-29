@@ -35,24 +35,23 @@ namespace HotChocolate.Types
                     $"The enum type {descriptor.Name} has no values.");
             }
 
-            foreach (EnumValueConfig enumValueConfig in config.Values)
+            foreach (EnumValueDescriptor value in descriptor.Items)
             {
-                if (NativeType == null && enumValueConfig.Value != null)
+                EnumValue enumValue = new EnumValue(new EnumValueConfig
                 {
-                    // TODO : what to do if:
-                    // - values are not of the same type
-                    // - one or more values are null
-                    NativeType = enumValueConfig.Value.GetType();
-                }
+                    Name = value.Name,
+                    Description = value.Description,
+                    DeprecationReason = value.DeprecationReason,
+                    Value = value.Value
+                });
 
-                EnumValue enumValue = new EnumValue(enumValueConfig);
-                _nameToValues[enumValueConfig.Name] = enumValue;
-                _valueToValues[enumValueConfig.Value] = enumValue;
+                _nameToValues[enumValue.Name] = enumValue;
+                _valueToValues[enumValue.Value] = enumValue;
             }
 
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            NativeType = descriptor.NativeType;
         }
 
         internal EnumType(EnumTypeConfig config)
@@ -154,6 +153,23 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "The specified value cannot be handled " +
                 $"by the EnumType {Name}.");
+        }
+
+        public IValueNode ParseValue(object value)
+        {
+            if (value == null)
+            {
+                return new NullValueNode();
+            }
+
+            if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
+            {
+                return new EnumValueNode(enumValue.Name);
+            }
+
+            throw new ArgumentException(
+                "The specified value has to be a defined enum value of the type " +
+                $"{NativeType.FullName} to be parsed by this enum type.");
         }
 
         public object Serialize(object value)

@@ -4,14 +4,12 @@ namespace HotChocolate.Types
     {
         IEnumTypeDescriptor Name(string name);
         IEnumTypeDescriptor Description(string description);
-        IEnumTypeDescriptor Item(string name);
+        IEnumValueDescriptor Item<T>(T value);
     }
 
     public interface IEnumTypeDescriptor<T>
         : IEnumTypeDescriptor
     {
-
-        IEnumTypeDescriptor<T> Item(T value);
-        IEnumTypeDescriptor<T> Item(string name, T value);
+        IEnumValueDescriptor Item(T value);
     }
 }

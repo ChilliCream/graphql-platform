@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
         public UnionType()
         {
-            UnionTypeDescriptor descriptor = new UnionTypeDescriptor();
+            UnionTypeDescriptor descriptor = new UnionTypeDescriptor(GetType());
             Configure(descriptor);
 
             if (string.IsNullOrEmpty(descriptor.Name))
