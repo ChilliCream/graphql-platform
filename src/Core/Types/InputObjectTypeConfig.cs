@@ -12,8 +12,8 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public IEnumerable<InputField> Fields { get; set; }
-
         public Func<SchemaContext, Type> NativeType { get; set; }
+
+        public IEnumerable<InputField> Fields { get; set; }
     }
 }
