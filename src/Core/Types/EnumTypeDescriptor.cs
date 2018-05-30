@@ -102,8 +102,8 @@ namespace HotChocolate.Types
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor()
-            : base(typeof(T).GetGraphQLName())
+        public EnumTypeDescriptor(Type enumType)
+            : base(enumType)
         {
             NativeType = typeof(T);
         }

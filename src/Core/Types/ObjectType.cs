@@ -28,7 +28,7 @@ namespace HotChocolate.Types
 
         public ObjectType()
         {
-            ObjectTypeDescriptor descriptor = new ObjectTypeDescriptor();
+            ObjectTypeDescriptor descriptor = CreateDescriptor();
             Configure(descriptor);
 
             if (string.IsNullOrEmpty(descriptor.Name))
@@ -111,6 +111,8 @@ namespace HotChocolate.Types
             => _isOfType(context, resolverResult);
 
         #region Configuration
+
+        internal virtual ObjectTypeDescriptor CreateDescriptor() => new ObjectTypeDescriptor();
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
@@ -215,14 +217,19 @@ namespace HotChocolate.Types
     {
         public ObjectType()
         {
-            Configure(default(IObjectTypeDescriptor<T>));
         }
 
         #region Configuration
 
-        protected abstract void Configure(IObjectTypeDescriptor<T> descriptor);
+        internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
+            new ObjectTypeDescriptor<T>();
 
-        protected sealed override void Configure(IObjectTypeDescriptor descriptor) { }
+        protected sealed override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            Configure((IObjectTypeDescriptor<T>)descriptor);
+        }
+
+        protected abstract void Configure(IObjectTypeDescriptor<T> descriptor);
 
         #endregion
     }

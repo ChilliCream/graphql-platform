@@ -203,5 +203,21 @@ namespace HotChocolate.Types
         #endregion
     }
 
+    public abstract class EnumType<T>
+        : EnumType
+    {
+        public EnumType()
+        {
+_
+        }
+
+        #region Configuration
+
+        protected abstract void Configure(IEnumTypeDescriptor<T> descriptor);
+
+        protected sealed override void Configure(IEnumTypeDescriptor descriptor) { }
+
+        #endregion
+    }
 
 }

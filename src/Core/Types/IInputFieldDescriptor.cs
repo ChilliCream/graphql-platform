@@ -4,6 +4,7 @@ namespace HotChocolate.Types
 {
     public interface IInputFieldDescriptor
     {
+        IInputFieldDescriptor Name(string name);
         IInputFieldDescriptor Description(string description);
         IInputFieldDescriptor Type<TInputType>()
             where TInputType : IInputType;

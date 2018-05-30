@@ -20,6 +20,34 @@ namespace HotChocolate.Types
         private Func<ObjectValueNode, object> _deserialize;
         private bool _hasDeserializer;
 
+        internal InputObjectType()
+        {
+            InputObjectTypeDescriptor descriptor = CreateDescriptor();
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "An input object type name must not be null or empty.");
+            }
+
+            if (!descriptor.Fields.Any())
+            {
+                throw new ArgumentException(
+                    $"The input object `{descriptor.Name}` must at least " +
+                    "provide one field.");
+            }
+
+            foreach (InputFieldDescriptor fieldDescriptor in descriptor.Fields)
+            {
+                _fieldMap[fieldDescriptor.]
+            }
+
+            SyntaxNode = config.SyntaxNode;
+            Name = config.Name;
+            Description = config.Description;
+        }
+
         internal InputObjectType(InputObjectTypeConfig config)
         {
             if (config == null)
@@ -137,6 +165,14 @@ namespace HotChocolate.Types
                 "The string type can only parse string literals.",
                 nameof(literal));
         }
+
+        #region Configuration
+
+        internal virtual InputObjectTypeDescriptor CreateDescriptor() => new InputObjectTypeDescriptor();
+
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
+
+        #endregion
 
         #region TypeSystemNode
 
