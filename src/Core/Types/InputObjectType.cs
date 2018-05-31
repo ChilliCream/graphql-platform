@@ -15,7 +15,7 @@ namespace HotChocolate.Types
     {
         public readonly Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
-        private readonly Func<SchemaContext, Type> _nativeTypeFactory;
+        private readonly Func<ITypeRegistry, Type> _nativeTypeFactory;
         private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
         private bool _hasDeserializer;
@@ -40,12 +40,13 @@ namespace HotChocolate.Types
 
             foreach (InputFieldDescriptor fieldDescriptor in descriptor.Fields)
             {
-                _fieldMap[fieldDescriptor.]
+                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
             }
 
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            _nativeType = descriptor.NativeType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
         }
 
         internal InputObjectType(InputObjectTypeConfig config)
@@ -88,6 +89,7 @@ namespace HotChocolate.Types
                 }
             }
 
+            _nativeTypeFactory = config.NativeType;
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
@@ -102,6 +104,8 @@ namespace HotChocolate.Types
         public IReadOnlyDictionary<string, InputField> Fields => _fieldMap;
 
         public Type NativeType => _nativeType;
+
+        #region IInputType
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -166,9 +170,17 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
+        public IValueNode ParseValue(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
         #region Configuration
 
-        internal virtual InputObjectTypeDescriptor CreateDescriptor() => new InputObjectTypeDescriptor();
+        internal virtual InputObjectTypeDescriptor CreateDescriptor() =>
+            new InputObjectTypeDescriptor();
 
         protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
 
@@ -187,11 +199,17 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void INeedsInitialization.CompleteInitialization(
-            SchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(ISchemaContextR schemaContext, Action<SchemaError> reportError)
         {
-            _nativeType = _nativeTypeFactory(schemaContext);
+            foreach (InputField field in _fieldMap.Values)
+            {
+                field.RegisterDependencies(schemaContext.Types, reportError, this);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(ISchemaContextR schemaContext, Action<SchemaError> reportError)
+        {
+            _nativeType = _nativeTypeFactory(schemaContext.Types);
             if (_nativeType == null)
             {
                 reportError(new SchemaError(
@@ -201,15 +219,33 @@ namespace HotChocolate.Types
             }
             else
             {
-                _deserialize = InputObjectDeserializerDiscoverer.Discover(
-                    schemaContext, reportError, this, _nativeType);
+                _deserialize = InputObjectDeserializerFactory.Create(
+                    reportError, this, _nativeType);
             }
 
             foreach (InputField field in _fieldMap.Values)
             {
-                field.CompleteInitialization(schemaContext, reportError, this);
+                field.CompleteInputField(schemaContext.Types, reportError, this);
             }
         }
+
+        #endregion
+    }
+
+    public abstract class InputObjectType<T>
+        : InputObjectType
+    {
+        #region Configuration
+
+        internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
+            new InputObjectTypeDescriptor<T>();
+
+        protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            Configure((IInputObjectTypeDescriptor<T>)descriptor);
+        }
+
+        protected abstract void Configure(IInputObjectTypeDescriptor<T> descriptor);
 
         #endregion
     }

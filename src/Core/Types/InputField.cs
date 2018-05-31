@@ -13,7 +13,6 @@ namespace HotChocolate.Types
         private readonly Func<ITypeRegistry, IValueNode> _defaultValueFactory;
         private IInputType _type;
         private Type _nativeNamedType;
-        private IValueNode _defaultValue;
 
         internal InputField(InputFieldConfig config)
         {
@@ -43,6 +42,7 @@ namespace HotChocolate.Types
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
+            Property = config.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
@@ -53,7 +53,9 @@ namespace HotChocolate.Types
 
         public IInputType Type => _type;
 
-        public IValueNode DefaultValue => _defaultValue;
+        public IValueNode DefaultValue { get; private set; }
+
+        public PropertyInfo Property { get; private set; }
 
         #region TypeSystemNode
 
@@ -92,11 +94,20 @@ namespace HotChocolate.Types
 
             if (_defaultValueFactory == null)
             {
-                _defaultValue = new NullValueNode(null);
+                DefaultValue = new NullValueNode(null);
             }
             else
             {
-                _defaultValue = _defaultValueFactory(typeRegistry);
+                DefaultValue = _defaultValueFactory(typeRegistry);
+            }
+
+            if (parentType is InputObjectType
+                && Property == null
+                && typeRegistry.TryGetTypeBinding(parentType, out TypeBinding binding)
+                && binding.Members.TryGetValue(Name, out TypeMemberBinding memberBinding)
+                && memberBinding.Member is PropertyInfo p)
+            {
+                Property = p;
             }
         }
 

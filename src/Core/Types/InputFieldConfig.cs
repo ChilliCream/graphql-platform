@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -10,6 +11,8 @@ namespace HotChocolate.Types
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public PropertyInfo Property { get; set; }
 
         public Func<ITypeRegistry, IInputType> Type { get; set; }
 

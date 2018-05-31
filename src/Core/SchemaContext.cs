@@ -361,7 +361,7 @@ namespace HotChocolate
             return _typeMappings.TryGetValue(typeName, out nativeType);
         }
 
-        public IReadOnlyCollection<TypeMemberBinding> GetNativeTypeMembers(
+        public IReadOnlyCollection<TypeMemberBinding_old> GetNativeTypeMembers(
             string typeName)
         {
             throw new NotImplementedException();
@@ -520,7 +520,7 @@ namespace HotChocolate
         }
     }
 
-    public class TypeMemberBinding
+    public class TypeMemberBinding_old
     {
         public INamedType Type { get; }
         public string FieldName { get; }

@@ -1,14 +1,13 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal static class InputObjectDeserializerDiscoverer
+    internal static class InputObjectDeserializerFactory
     {
-        public static Func<ObjectValueNode, object> Discover(
-           SchemaContext schemaContext,
+        public static Func<ObjectValueNode, object> Create(
            Action<SchemaError> reportError,
            InputObjectType inputObjectType,
            Type nativeType)
@@ -19,7 +18,7 @@ namespace HotChocolate.Types
                 && !TryCreateNativeConstructorDeserializer(
                     nativeType, out _deserialize)
                 && !TryCreateNativeReflectionDeserializer(
-                    schemaContext, inputObjectType, nativeType, out _deserialize))
+                    inputObjectType, nativeType, out _deserialize))
             {
                 reportError(new SchemaError(
                     "Could not create a literal parser for input " +
@@ -80,7 +79,6 @@ namespace HotChocolate.Types
         }
 
         private static bool TryCreateNativeReflectionDeserializer(
-            SchemaContext schemaContext,
             InputObjectType inputObjectType,
             Type nativeType,
             out Func<ObjectValueNode, object> deserializer)
@@ -92,7 +90,7 @@ namespace HotChocolate.Types
             if (nativeTypeConstructor != null)
             {
                 deserializer = literal => InputObjectDefaultDeserializer
-                    .ParseLiteral(schemaContext, inputObjectType, literal);
+                    .ParseLiteral(inputObjectType, literal);
                 return true;
             }
 

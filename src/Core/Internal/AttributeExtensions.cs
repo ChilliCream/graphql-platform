@@ -31,6 +31,11 @@ namespace HotChocolate.Internal
                 return NormalizeName(member.Name);
             }
 
+            if (member is Type && member.Name.EndsWith("Type"))
+            {
+                return member.Name.Substring(0, member.Name.Length - 4);
+            }
+
             return member.Name;
         }
 

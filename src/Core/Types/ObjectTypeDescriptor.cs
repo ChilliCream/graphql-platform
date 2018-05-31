@@ -10,9 +10,29 @@ namespace HotChocolate.Types
     internal class ObjectTypeDescriptor
         : IObjectTypeDescriptor
     {
+        public ObjectTypeDescriptor(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+            Name = name;
+        }
+
+        public ObjectTypeDescriptor(Type objectType)
+        {
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+            Name = objectType.GetGraphQLName();
+        }
+
         public string Name { get; protected set; }
         public string Description { get; protected set; }
-        public Type Type { get; protected set; }
+        public Type NativeType { get; protected set; }
         public bool IsIntrospection { get; protected set; }
         public IsOfType IsOfType { get; protected set; }
         public ImmutableList<FieldDescriptor> Fields { get; protected set; }
@@ -100,9 +120,10 @@ namespace HotChocolate.Types
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
     {
-        public ObjectTypeDescriptor()
+        public ObjectTypeDescriptor(Type objectType)
+            : base(objectType)
         {
-            Type = typeof(T);
+            NativeType = typeof(T);
         }
 
         #region IObjectTypeDescriptor<T>

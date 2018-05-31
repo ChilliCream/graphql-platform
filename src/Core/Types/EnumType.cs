@@ -191,6 +191,9 @@ namespace HotChocolate.Types
 
         #region Configuration
 
+        internal virtual EnumTypeDescriptor CreateDescriptor() =>
+            new EnumTypeDescriptor(GetType());
+
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
         #endregion
@@ -208,16 +211,21 @@ namespace HotChocolate.Types
     {
         public EnumType()
         {
-_
+
         }
 
         #region Configuration
 
-        protected abstract void Configure(IEnumTypeDescriptor<T> descriptor);
+        internal sealed override EnumTypeDescriptor CreateDescriptor() =>
+            new EnumTypeDescriptor<T>(GetType());
 
-        protected sealed override void Configure(IEnumTypeDescriptor descriptor) { }
+        protected sealed override void Configure(IEnumTypeDescriptor descriptor)
+        {
+            Configure((IEnumTypeDescriptor<T>)descriptor);
+        }
+
+        protected abstract void Configure(IEnumTypeDescriptor<T> descriptor);
 
         #endregion
     }
-
 }

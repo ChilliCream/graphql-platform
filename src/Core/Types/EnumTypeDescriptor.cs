@@ -25,12 +25,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(enumType));
             }
 
-            // TODO : move name resolution to utilities
             Name = enumType.GetGraphQLName();
-            if (Name == enumType.Name && Name.EndsWith("Type"))
-            {
-                Name = Name.Substring(0, Name.Length - 4);
-            }
         }
 
         public string Name { get; protected set; }

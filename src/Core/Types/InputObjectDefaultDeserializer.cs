@@ -9,16 +9,11 @@ namespace HotChocolate.Types
     internal static class InputObjectDefaultDeserializer
     {
         public static object ParseLiteral(
-            SchemaContext schemaContext,
             InputObjectType inputObjectType,
             ObjectValueNode literal)
         {
             Dictionary<string, IValueNode> fieldValues = literal.Fields
                 .ToDictionary(t => t.Name.Value, t => t.Value);
-
-            Dictionary<string, PropertyInfo> properties = schemaContext
-                .GetNativeTypeMembers(inputObjectType.Name)
-                .ToDictionary(t => t.FieldName, t => (PropertyInfo)t.Member);
 
             object nativeInputObject = Activator.CreateInstance(
                 inputObjectType.NativeType);
@@ -27,7 +22,7 @@ namespace HotChocolate.Types
             {
                 if (fieldValues.TryGetValue(field.Name, out IValueNode value))
                 {
-                    DeserializeProperty(properties, field, literal, nativeInputObject);
+                    DeserializeProperty(field.Property, field, literal, nativeInputObject);
                 }
                 else if (field.DefaultValue != null)
                 {
@@ -35,7 +30,7 @@ namespace HotChocolate.Types
                     {
                         // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
                     }
-                    DeserializeProperty(properties, field, literal, nativeInputObject);
+                    DeserializeProperty(field.Property, field, literal, nativeInputObject);
                 }
                 else if (field.Type.IsNonNullType())
                 {
@@ -47,12 +42,12 @@ namespace HotChocolate.Types
         }
 
         private static void DeserializeProperty(
-            Dictionary<string, PropertyInfo> properties,
+            PropertyInfo property,
             InputField field,
             IValueNode literal,
             object nativeInputObject)
         {
-            if (properties.TryGetValue(field.Name, out PropertyInfo property))
+            if (property != null)
             {
                 if (property.PropertyType.IsAssignableFrom(field.Type.NativeType))
                 {

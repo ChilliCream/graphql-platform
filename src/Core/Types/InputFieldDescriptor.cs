@@ -17,6 +17,7 @@ namespace HotChocolate.Types
 
             Property = property;
             Name = property.GetGraphQLName();
+            NativeType = property.PropertyType;
         }
 
         public PropertyInfo Property { get; }
@@ -31,6 +32,44 @@ namespace HotChocolate.Types
 
         public object NativeDefaultValue { get; protected set; }
 
+        public InputField CreateField()
+        {
+            return new InputField(new InputFieldConfig
+            {
+                Name = Name,
+                Description = Description,
+                Property = Property,
+                NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
+                Type = CreateType,
+                DefaultValue = CreateDefaultValue
+            });
+        }
+
+        private IInputType CreateType(ITypeRegistry typeRegistry)
+        {
+            return TypeInspector.Default.CreateInputType(
+                typeRegistry, NativeType);
+        }
+
+        private IValueNode CreateDefaultValue(ITypeRegistry typeRegistry)
+        {
+            if (DefaultValue != null)
+            {
+                return DefaultValue;
+            }
+
+            if (NativeDefaultValue != null)
+            {
+                Type nativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType);
+                IType type = typeRegistry.GetType<IType>(nativeNamedType);
+                if (type is IInputType inputType)
+                {
+                    return inputType.ParseValue(NativeDefaultValue);
+                }
+            }
+
+            return new NullValueNode();
+        }
 
         #region IInputFieldDescriptor
 
@@ -56,27 +95,29 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor IInputFieldDescriptor.Description(string description)
         {
-            throw new System.NotImplementedException();
+            Description = description;
+            return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
         {
-            throw new System.NotImplementedException();
+            NativeType = typeof(TInputType);
+            return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(IValueNode defaultValue)
         {
-            throw new System.NotImplementedException();
+            DefaultValue = defaultValue;
+            NativeDefaultValue = null;
+            return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(object defaultValue)
         {
-            throw new System.NotImplementedException();
+            DefaultValue = null;
+            NativeDefaultValue = defaultValue;
+            return this;
         }
-
-
-
-
 
         #endregion
     }

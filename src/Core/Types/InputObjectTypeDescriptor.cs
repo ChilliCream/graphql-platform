@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Types
@@ -45,5 +47,22 @@ namespace HotChocolate.Types
         }
 
         #endregion
+    }
+
+    internal class InputObjectTypeDescriptor<T>
+        : InputObjectTypeDescriptor
+        , IInputObjectTypeDescriptor<T>
+    {
+        IInputFieldDescriptor IInputObjectTypeDescriptor<T>.Field<TValue>(
+            Expression<Func<T, TValue>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                return new InputFieldDescriptor(p);
+            }
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
     }
 }
