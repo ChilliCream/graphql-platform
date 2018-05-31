@@ -6,6 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Configuration
 {
     internal class ObjectTypeBinding
+        : ITypeBinding
     {
         public ObjectTypeBinding(string name, Type type,
             ObjectType objectType, IEnumerable<FieldBinding> fields)

@@ -9,7 +9,8 @@ namespace HotChocolate.Configuration
     internal interface IResolverBindingHandler
     {
         // TODO : Create an object ResolverBinding that shall be passed in which extends more guaranties.
-        IEnumerable<Resolvers.FieldResolver> ApplyBinding(
+        void ApplyBinding(
+            ISchemaContextR schemaContext,
             ResolverBindingInfo resolverBindingInfo);
     }
 }

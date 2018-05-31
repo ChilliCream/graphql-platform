@@ -103,7 +103,7 @@ namespace HotChocolate.Types
 
             if (parentType is InputObjectType
                 && Property == null
-                && typeRegistry.TryGetTypeBinding(parentType, out TypeBinding binding)
+                && typeRegistry.TryGetTypeBinding(parentType, out ITypeBinding binding)
                 && binding.Members.TryGetValue(Name, out TypeMemberBinding memberBinding)
                 && memberBinding.Member is PropertyInfo p)
             {

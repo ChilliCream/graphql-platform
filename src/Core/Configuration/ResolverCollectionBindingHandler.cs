@@ -13,31 +13,35 @@ namespace HotChocolate.Configuration
             new FieldResolverDiscoverer();
         private readonly FieldResolverBuilder _fieldResolverBuilder =
             new FieldResolverBuilder();
-        private readonly IResolverBindingContext _bindingContext;
+        private readonly ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
 
         public ResolverCollectionBindingHandler(
-            IResolverBindingContext bindingContext)
+            IEnumerable<ResolverCollectionBindingInfo> resolverBindings)
         {
-            if (bindingContext == null)
+            if (resolverBindings == null)
             {
-                throw new ArgumentNullException(nameof(bindingContext));
+                throw new ArgumentNullException(nameof(resolverBindings));
             }
-
-            _bindingContext = bindingContext;
+            _resolverBindings = resolverBindings.ToLookup(t => t.ObjectTypeName);
         }
 
-        public IEnumerable<Resolvers.FieldResolver> ApplyBinding(
+        public void ApplyBinding(
+            ISchemaContextR schemaContext,
             ResolverBindingInfo resolverBindingInfo)
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)
             {
                 List<FieldResolverDescriptor> descriptors =
-                    CollectPossibleDescriptors(b);
+                    CollectPossibleDescriptors(schemaContext.Types, b);
 
                 IEnumerable<FieldResolverDescriptor> mostSpecificFieldResolvers =
-                    GetMostSpecificFieldResolvers(descriptors);
+                    GetMostSpecificFieldResolvers(schemaContext.Types, descriptors);
 
-                return _fieldResolverBuilder.Build(mostSpecificFieldResolvers);
+                foreach (FieldResolverDescriptor descriptor in
+                    mostSpecificFieldResolvers)
+                {
+                    schemaContext.Resolvers.RegisterResolver(descriptor);
+                }
             }
 
             throw new NotSupportedException(
@@ -45,6 +49,7 @@ namespace HotChocolate.Configuration
         }
 
         private List<FieldResolverDescriptor> CollectPossibleDescriptors(
+            ITypeRegistry typeRegistry,
             ResolverCollectionBindingInfo resolverBinding)
         {
             List<FieldResolverDescriptor> descriptors =
@@ -58,7 +63,7 @@ namespace HotChocolate.Configuration
                     .GetPossibleResolvers(resolverBinding.ResolverType,
                         resolverBinding.ObjectType,
                         resolverBinding.ObjectTypeName,
-                        _bindingContext.LookupFieldName));
+                        m => LookupFieldName(typeRegistry, m)));
             }
 
             if (resolverBinding.Fields.Any())
@@ -101,13 +106,13 @@ namespace HotChocolate.Configuration
         }
 
         private IEnumerable<FieldResolverDescriptor> GetMostSpecificFieldResolvers(
+            ITypeRegistry typeRegistry,
             IEnumerable<FieldResolverDescriptor> resolverDescriptors)
         {
             foreach (var resolverGroup in resolverDescriptors.GroupBy(r => r.Field))
             {
                 FieldReference fieldReference = resolverGroup.Key;
-                Field field = _bindingContext.LookupField(fieldReference);
-                if (field != null)
+                if (typeRegistry.TryGetObjectTypeField(fieldReference, out Field field))
                 {
                     foreach (FieldResolverDescriptor resolverDescriptor in
                         resolverGroup.OrderByDescending(t => t.ArgumentCount()))
@@ -135,6 +140,32 @@ namespace HotChocolate.Configuration
                 // TODO : Check that argument types are type compatible.
             }
             return true;
+        }
+
+        private string LookupFieldName(ITypeRegistry typeRegistry, FieldResolverMember fieldResolverMember)
+        {
+            foreach (ResolverCollectionBindingInfo resolverBinding in
+                _resolverBindings[fieldResolverMember.TypeName])
+            {
+                FieldResolverBindungInfo fieldBinding = resolverBinding.Fields
+                    .FirstOrDefault(t => t.FieldMember == fieldResolverMember.Member);
+                if (fieldBinding != null)
+                {
+                    return fieldBinding.FieldName;
+                }
+            }
+
+            if (typeRegistry.TryGetTypeBinding(fieldResolverMember.TypeName, out ObjectTypeBinding binding))
+            {
+                FieldBinding fieldBinding = binding.Fields.Values
+                    .FirstOrDefault(t => t.Member == fieldResolverMember.Member);
+                if (fieldBinding != null)
+                {
+                    return fieldBinding.Name;
+                }
+            }
+
+            return fieldResolverMember.FieldName;
         }
     }
 }

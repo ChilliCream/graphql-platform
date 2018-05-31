@@ -6,25 +6,27 @@ namespace HotChocolate.Configuration
     internal class ResolverDelegateBindingHandler
         : IResolverBindingHandler
     {
-        public IEnumerable<Resolvers.FieldResolver> ApplyBinding(
+        public void ApplyBinding(
+            ISchemaContextR schemaContext,
             ResolverBindingInfo resolverBindingInfo)
         {
             if (resolverBindingInfo is ResolverDelegateBindingInfo b)
             {
                 if (b.AsyncFieldResolver == null)
                 {
-                    yield return new Resolvers.FieldResolver(
-                        b.ObjectTypeName, b.FieldName, b.FieldResolver);
+                    schemaContext.Resolvers.RegisterResolver(
+                        new DelegateResolverBinding(
+                            b.ObjectTypeName, b.FieldName, b.FieldResolver));
                 }
                 else
                 {
                     FieldResolverDelegate fieldResolverDelegate =
                         (ctx, ct) => b.AsyncFieldResolver(ctx, ct);
-                    yield return new Resolvers.FieldResolver(
-                        b.ObjectTypeName, b.FieldName, fieldResolverDelegate);
+                    schemaContext.Resolvers.RegisterResolver(
+                        new DelegateResolverBinding(
+                            b.ObjectTypeName, b.FieldName, fieldResolverDelegate));
                 }
             }
         }
     }
-
 }

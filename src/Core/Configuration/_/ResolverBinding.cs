@@ -1,11 +1,11 @@
 using System;
 using HotChocolate.Internal;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public abstract class ResolverBinding
     {
-        public ResolverBinding(string typeName)
+        public ResolverBinding(string typeName, string fieldName)
         {
             if (typeName == null)
             {
@@ -21,9 +21,25 @@ namespace HotChocolate
                     nameof(typeName));
             }
 
+            if (fieldName == null)
+            {
+                throw new ArgumentException(
+                    "The field name cannot be null or empty.",
+                    nameof(typeName));
+            }
+
+            if (ValidationHelper.IsTypeNameValid(fieldName))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(typeName));
+            }
+
             TypeName = typeName;
+            FieldName = fieldName;
         }
 
         public string TypeName { get; }
+        public string FieldName { get; }
     }
 }
