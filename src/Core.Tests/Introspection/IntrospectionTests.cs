@@ -104,40 +104,33 @@ namespace HotChocolate.Introspection
 
         private static Schema CreateSchema()
         {
-            return Schema.Create(cnf =>
-            {
-                cnf.RegisterType(c => new ObjectTypeConfig
-                {
-                    Name = "Query",
-                    Fields = new[]
-                    {
-                        new Field(new FieldConfig
-                        {
-                            Name = "a",
-                            Type = c.StringType
-                        }),
-                        new Field(new FieldConfig
-                        {
-                            Name = "b",
-                            Type = () => c.GetOutputType("Foo"),
-                            Resolver = () => (ctx, ct) => new object()
-                        })
-                    }
-                });
+            return Schema.Create(c => c.RegisterType<Query>());
+        }
 
-                cnf.RegisterType(c => new ObjectTypeConfig
-                {
-                    Name = "Foo",
-                    Fields = new[]
-                    {
-                        new Field(new FieldConfig
-                        {
-                            Name = "a",
-                            Type = c.StringType
-                        }),
-                    }
-                });
-            });
+        private class Query
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Field("a")
+                    .Type<StringType>()
+                    .Resolver(() => "a");
+
+                descriptor.Field("b")
+                    .Type<Foo>()
+                    .Resolver(() => new object());
+            }
+        }
+
+        private class Foo
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Field("a")
+                    .Type<StringType>()
+                    .Resolver(() => "foo.a");
+            }
         }
     }
 }

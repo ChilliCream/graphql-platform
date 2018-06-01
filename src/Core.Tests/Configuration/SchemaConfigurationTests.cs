@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -22,23 +23,26 @@ namespace HotChocolate.Configuration
                 Name = "TestObjectA",
                 Fields = new[]
                 {
-                    new Field(new FieldConfig{ Name= "a", Type = () => stringType }),
-                    new Field(new FieldConfig{ Name= "b", Type = () => stringType })
+                    new Field(new FieldConfig{ Name= "a", Type = t => stringType }),
+                    new Field(new FieldConfig{ Name= "b", Type = t => stringType })
                 }
             });
 
-            schemaContext.RegisterType(stringType);
-            schemaContext.RegisterType(dummyType);
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Types.RegisterType(dummyType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
-            configuration.Commit(schemaContext);
+            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
+            configuration.RegisterResolvers(schemaContext);
+            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
 
             // assert
-            Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "a"));
-            Assert.NotNull(schemaContext.CreateResolver("TestObjectA", "b"));
-            Assert.Null(schemaContext.CreateResolver("Dummy", "x"));
+            Assert.False(hasErrors);
+            Assert.NotNull(schemaContext.Resolvers.GetResolver("TestObjectA", "a"));
+            Assert.NotNull(schemaContext.Resolvers.GetResolver("TestObjectA", "b"));
+            Assert.Null(schemaContext.Resolvers.GetResolver("Dummy", "x"));
         }
 
         [Fact]
@@ -56,20 +60,20 @@ namespace HotChocolate.Configuration
             StringType stringType = new StringType();
             InputField[] arguments = new[]
             {
-                new InputField(new InputFieldConfig { Name = "a", Type = () => stringType })
+                new InputField(new InputFieldConfig { Name = "a", Type = t => stringType })
             };
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
             {
                 Name = "TestObjectA",
                 Fields = new[]
                 {
-                    new Field(new FieldConfig{ Name= "a", Type = () => stringType, Arguments = arguments}),
-                    new Field(new FieldConfig{ Name= "b", Type = () => stringType})
+                    new Field(new FieldConfig{ Name= "a", Type = t => stringType, Arguments = arguments}),
+                    new Field(new FieldConfig{ Name= "b", Type = t => stringType})
                 }
             });
 
-            schemaContext.RegisterType(stringType);
-            schemaContext.RegisterType(dummyType);
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Types.RegisterType(dummyType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
@@ -79,13 +83,17 @@ namespace HotChocolate.Configuration
                 .Resolve(t => t.A)
                 .With(t => t.GetA(default, default));
 
-            configuration.Commit(schemaContext);
+            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
+            configuration.RegisterResolvers(schemaContext);
+            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
 
             // assert
-            FieldResolverDelegate resolver = schemaContext.CreateResolver("TestObjectA", "a");
+            Assert.False(hasErrors);
+
+            FieldResolverDelegate resolver = schemaContext.Resolvers.GetResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
             Assert.Equal("a_dummy_a", resolver(resolverContext.Object, CancellationToken.None));
-            Assert.Null(schemaContext.CreateResolver("TestObjectA", "b"));
+            Assert.Null(schemaContext.Resolvers.GetResolver("TestObjectA", "b"));
         }
 
         [Fact]
@@ -110,23 +118,29 @@ namespace HotChocolate.Configuration
                     new Field(new FieldConfig
                     {
                         Name = "bar",
-                        Type = () => stringType
+                        Type = t => stringType
                     })
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { stringType, objectType });
+            SchemaContext schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
                 .Resolve("bar").With(t => t.GetFooBar(It.Is<TestObjectB>()));
-            configuration.Commit(schemaContext);
+
+            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
+            configuration.RegisterResolvers(schemaContext);
+            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
 
             // assert
-            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            Assert.False(hasErrors);
+
+            FieldResolverDelegate fieldResolver = schemaContext.Resolvers.GetResolver("Dummy", "bar");
             object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.Bar, result);
         }
@@ -151,21 +165,27 @@ namespace HotChocolate.Configuration
                     new Field(new FieldConfig
                     {
                         Name = "bar",
-                        Type = () => stringType
+                        Type = t => stringType
                     })
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { stringType, objectType });
+            SchemaContext schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindType<TestObjectB>().To("Dummy");
-            configuration.Commit(schemaContext);
+
+            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
+            configuration.RegisterResolvers(schemaContext);
+            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
 
             // assert
-            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar");
+            Assert.False(hasErrors);
+
+            FieldResolverDelegate fieldResolver = schemaContext.Resolvers.GetResolver("Dummy", "bar");
             object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.Bar, result);
         }
@@ -189,21 +209,27 @@ namespace HotChocolate.Configuration
                     new Field(new FieldConfig
                     {
                         Name = "bar2",
-                        Type = () => stringType
+                        Type = t => stringType
                     })
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext(
-                new INamedType[] { stringType, objectType });
+            SchemaContext schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindType<TestObjectB>().To("Dummy");
-            configuration.Commit(schemaContext);
+
+            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
+            configuration.RegisterResolvers(schemaContext);
+            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
 
             // assert
-            FieldResolverDelegate fieldResolver = schemaContext.CreateResolver("Dummy", "bar2");
+            Assert.False(hasErrors);
+
+            FieldResolverDelegate fieldResolver = schemaContext.Resolvers.GetResolver("Dummy", "bar2");
             object result = fieldResolver(resolverContext.Object, CancellationToken.None);
             Assert.Equal(dummyObjectType.GetBar2(), result);
         }
