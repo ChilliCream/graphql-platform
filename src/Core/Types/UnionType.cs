@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -13,11 +14,11 @@ namespace HotChocolate.Types
         , ITypeSystemNode
         , INeedsInitialization
     {
-        private readonly ResolveAbstractType _typeResolver;
         private readonly Func<ITypeRegistry, IEnumerable<ObjectType>> _typesFactory;
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
         private readonly IReadOnlyCollection<TypeInfo> _typeInfos;
+        private ResolveAbstractType _typeResolver;
 
         public UnionType()
         {
@@ -141,6 +142,23 @@ namespace HotChocolate.Types
                 {
                     _typeMap[memberType.Name] = memberType;
                 }
+            }
+
+            if (_typeResolver == null)
+            {
+                // if there is now custom type resolver we will use this default
+                // abstract type resolver.
+                _typeResolver = (c, r) =>
+                {
+                    foreach (ObjectType type in _typeMap.Values)
+                    {
+                        if (type.IsOfType(c, r))
+                        {
+                            return type;
+                        }
+                    }
+                    return null; // todo: should we throw instead?
+                };
             }
         }
 

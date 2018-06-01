@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {

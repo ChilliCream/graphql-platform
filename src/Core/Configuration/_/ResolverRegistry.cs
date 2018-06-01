@@ -9,7 +9,7 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly FieldResolverBuilder _fieldResolverBuilder =
+        private readonly FieldResolverBuilder _resolverBuilder =
             new FieldResolverBuilder();
         private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
             new Dictionary<FieldReference, FieldResolverDelegate>();
@@ -37,13 +37,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolverDescriptor));
             }
 
-            _registeredResolvers.Add(resolverDescriptor.Field);
-            _resolverDescriptors.Add(resolverDescriptor);
+            _resolverDescriptors[resolverDescriptor.Field] = resolverDescriptor;
         }
 
         public bool ContainsResolver(FieldReference fieldReference)
         {
-            throw new NotImplementedException();
+            if (fieldReference == null)
+            {
+                throw new ArgumentNullException(nameof(fieldReference));
+            }
+
+            return _resolverDescriptors.ContainsKey(fieldReference)
+                || _resolverBindings.ContainsKey(fieldReference);
         }
 
         public FieldResolverDelegate GetResolver(string typeName, string fieldName)
@@ -57,12 +62,13 @@ namespace HotChocolate.Configuration
                 "No resolver was configured for `{typeName}.{fieldName}`.");
         }
 
-
-
         internal void BuildResolvers()
         {
             List<FieldResolver> fieldResolvers = new List<FieldResolver>();
             fieldResolvers.AddRange(CompileResolvers());
+            fieldResolvers.AddRange(_resolverBindings
+                .OfType<DelegateResolverBinding>()
+                .Select(CreateDelegateResolver));
 
             foreach (FieldResolver resolver in fieldResolvers)
             {
@@ -84,12 +90,18 @@ namespace HotChocolate.Configuration
                     resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceProperty(fieldReference, p.ReflectedType, p));
                 }
             }
+            resolverDescriptors.AddRange(_resolverDescriptors.Values);
 
             if (resolverDescriptors.Any())
             {
-                return _fieldResolverBuilder.Build(resolverDescriptors);
+                return _resolverBuilder.Build(resolverDescriptors);
             }
             return Enumerable.Empty<FieldResolver>();
+        }
+
+        private FieldResolver CreateDelegateResolver(DelegateResolverBinding binding)
+        {
+            return new FieldResolver(binding.TypeName, binding.FieldName, binding.FieldResolver);
         }
     }
 }

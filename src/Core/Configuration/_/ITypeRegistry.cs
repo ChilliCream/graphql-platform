@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -23,6 +24,8 @@ namespace HotChocolate.Configuration
             where T : ITypeBinding;
         bool TryGetTypeBinding<T>(Type nativeType, out T typeBinding)
             where T : ITypeBinding;
+
+        IEnumerable<ITypeBinding> GetTypeBindings();
     }
 
     public static class TypeRegistryExtensions
@@ -36,6 +39,59 @@ namespace HotChocolate.Configuration
             return typeRegistry.TryGetType<ObjectType>(
                     fieldReference.TypeName, out ObjectType ot)
                 && ot.Fields.TryGetValue(fieldReference.FieldName, out field);
+        }
+
+        public static IOutputType GetOutputType(
+            this ITypeRegistry typeRegistry, ITypeNode typeNode)
+        {
+            IType type = GetType(typeRegistry, typeNode);
+            if (type is IOutputType outputType)
+            {
+                return outputType;
+            }
+
+            throw new ArgumentException(
+                "The specified type is not an output type.",
+                nameof(typeNode));
+        }
+
+        public static IInputType GetInputType(
+            this ITypeRegistry typeRegistry, ITypeNode typeNode)
+        {
+            IType type = GetType(typeRegistry, typeNode);
+            if (type is IInputType inputType)
+            {
+                return inputType;
+            }
+
+            throw new ArgumentException(
+                "The specified type is not an output type.",
+                nameof(typeNode));
+        }
+
+        public static IType GetType(
+            this ITypeRegistry typeRegistry, ITypeNode typeNode)
+        {
+            if (typeNode.Kind == NodeKind.NonNullType)
+            {
+                return new NonNullType(
+                    GetType(typeRegistry,
+                        ((NonNullTypeNode)typeNode).Type));
+            }
+
+            if (typeNode.Kind == NodeKind.ListType)
+            {
+                return new ListType(GetType(
+                    typeRegistry, ((ListTypeNode)typeNode).Type));
+            }
+
+            if (typeNode.Kind == NodeKind.NamedType)
+            {
+                return typeRegistry.GetType<IType>(
+                    ((NamedTypeNode)typeNode).Name.Value);
+            }
+
+            throw new NotSupportedException();
         }
     }
 }

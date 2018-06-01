@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 

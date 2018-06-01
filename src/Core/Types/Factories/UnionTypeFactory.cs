@@ -6,9 +6,7 @@ namespace HotChocolate.Types.Factories
     internal sealed class UnionTypeFactory
         : ITypeFactory<UnionTypeDefinitionNode, UnionType>
     {
-        public UnionType Create(
-            SchemaContext context,
-            UnionTypeDefinitionNode node)
+        public UnionType Create(UnionTypeDefinitionNode node)
         {
             return new UnionType(new UnionTypeConfig
             {
@@ -16,7 +14,7 @@ namespace HotChocolate.Types.Factories
                 Name = node.Name.Value,
                 Description = node.Description?.Value,
                 ResolveAbstractType = context.CreateTypeResolver(node.Name.Value),
-                Types = () => node.Types.Select(t => context.GetOutputType<ObjectType>(t.Name.Value))
+                Types = t => node.Types.Select(tn => t.GetOutputType(tn))
             });
         }
     }

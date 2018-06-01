@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -6,26 +7,30 @@ using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
-    internal delegate AsyncFieldResolverDelegate FieldResolverFactory(
-        ObjectType objectType, Field field);
+    //internal delegate AsyncFieldResolverDelegate FieldResolverFactory(
+    //    ObjectType objectType, Field field);
 
     internal class SchemaSyntaxVisitor
         : SyntaxNodeVisitor
     {
-        private readonly SchemaContext _context;
+        private readonly ITypeRegistry _typeRegistry;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
         private readonly UnionTypeFactory _unionTypeFactory = new UnionTypeFactory();
         private readonly InputObjectTypeFactory _inputObjectTypeFactory = new InputObjectTypeFactory();
 
-        public SchemaSyntaxVisitor(SchemaContext context)
+        public string QueryTypeName { get; private set; }
+        public string MutationTypeName { get; private set; }
+        public string SubscriptionTypeName { get; private set; }
+
+        public SchemaSyntaxVisitor(ITypeRegistry typeRegistry)
         {
-            if (context == null)
+            if (typeRegistry == null)
             {
-                throw new ArgumentNullException(nameof(context));
+                throw new ArgumentNullException(nameof(typeRegistry));
             }
 
-            _context = context;
+            _typeRegistry = typeRegistry;
         }
 
         protected override void VisitDocument(DocumentNode node)
@@ -36,25 +41,25 @@ namespace HotChocolate
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node)
         {
-            _context.RegisterType(_objectTypeFactory.Create(_context, node));
+            _typeRegistry.RegisterType(_objectTypeFactory.Create(node));
         }
 
         protected override void VisitInterfaceTypeDefinition(
             InterfaceTypeDefinitionNode node)
         {
-            _context.RegisterType(_interfaceTypeFactory.Create(_context, node));
+            _typeRegistry.RegisterType(_interfaceTypeFactory.Create(node));
         }
 
         protected override void VisitUnionTypeDefinition(
             UnionTypeDefinitionNode node)
         {
-            _context.RegisterType(_unionTypeFactory.Create(_context, node));
+            _typeRegistry.RegisterType(_unionTypeFactory.Create(node));
         }
 
         protected override void VisitInputObjectTypeDefinition(
             InputObjectTypeDefinitionNode node)
         {
-            _context.RegisterType(_inputObjectTypeFactory.Create(_context, node));
+            _typeRegistry.RegisterType(_inputObjectTypeFactory.Create(node));
         }
 
         protected override void VisitSchemaDefinition(
@@ -65,13 +70,13 @@ namespace HotChocolate
                 switch (operationType.Operation)
                 {
                     case OperationType.Query:
-                        _context.QueryTypeName = operationType.Type.Name.Value;
+                        QueryTypeName = operationType.Type.Name.Value;
                         break;
                     case OperationType.Mutation:
-                        _context.MutationTypeName = operationType.Type.Name.Value;
+                        MutationTypeName = operationType.Type.Name.Value;
                         break;
                     case OperationType.Subscription:
-                        _context.SubscriptionTypeName = operationType.Type.Name.Value;
+                        SubscriptionTypeName = operationType.Type.Name.Value;
                         break;
                     default:
                         throw new InvalidOperationException("Unknown operation type.");

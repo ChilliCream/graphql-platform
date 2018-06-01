@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -103,11 +104,10 @@ namespace HotChocolate.Types
 
             if (parentType is InputObjectType
                 && Property == null
-                && typeRegistry.TryGetTypeBinding(parentType, out ITypeBinding binding)
-                && binding.Members.TryGetValue(Name, out TypeMemberBinding memberBinding)
-                && memberBinding.Member is PropertyInfo p)
+                && typeRegistry.TryGetTypeBinding(parentType, out InputObjectTypeBinding binding)
+                && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
             {
-                Property = p;
+                Property = fieldBinding.Property;
             }
         }
 

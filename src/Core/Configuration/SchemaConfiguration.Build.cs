@@ -21,17 +21,9 @@ namespace HotChocolate.Configuration
 
             HashSet<FieldReference> registeredResolvers = new HashSet<FieldReference>();
             RegisterKnownFieldResolvers(schemaContext);
-
+            TryRegisterMissingResolvers(schemaContext);
         }
 
-        internal void Commit(ISchemaContextR schemaContext)
-        {
-            // create field resolvers and register them
-            List<FieldResolver> fieldResolvers = new List<FieldResolver>();
-            fieldResolvers.AddRange(CreateMissingResolvers(
-                schemaContext, fieldResolvers, objectTypeBindings));
-            schemaContext.RegisterResolvers(fieldResolvers);
-        }
         private void CompleteDelegateBindings(ITypeRegistry typeRegistry)
         {
             foreach (ResolverDelegateBindingInfo binding in _resolverBindings
@@ -147,31 +139,32 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private IEnumerable<FieldResolver> CreateMissingResolvers(
-            ISchemaContextR schemaContext,
-            IEnumerable<FieldResolver> fieldResolvers,
-            Dictionary<string, ObjectTypeBinding> typeBindings)
+        // tries to register resolvers for type bindings that at this point have no explicite resolver.
+        private void TryRegisterMissingResolvers(
+            ISchemaContextR schemaContext)
         {
-            Dictionary<FieldReference, FieldResolver> lookupField =
-                fieldResolvers.ToDictionary(
-                    t => new FieldReference(t.TypeName, t.FieldName));
-
             FieldResolverDiscoverer discoverer = new FieldResolverDiscoverer();
-            List<FieldResolverDescriptor> descriptors = new List<FieldResolverDescriptor>();
-            foreach (ObjectTypeBinding typeBinding in typeBindings.Values)
+            foreach (ObjectTypeBinding typeBinding in schemaContext.Types.GetTypeBindings())
             {
                 List<FieldResolverMember> missingResolvers = new List<FieldResolverMember>();
                 foreach (FieldBinding field in typeBinding.Fields.Values)
                 {
-                    missingResolvers.Add(new FieldResolverMember(
-                        typeBinding.Name, field.Name, field.Member));
+                    FieldReference fieldReference = new FieldReference(
+                        typeBinding.Name, field.Name);
+                    if (schemaContext.Resolvers.ContainsResolver(fieldReference))
+                    {
+                        missingResolvers.Add(new FieldResolverMember(
+                            typeBinding.Name, field.Name, field.Member));
+                    }
                 }
-                descriptors.AddRange(discoverer.GetSelectedResolvers(
-                    typeBinding.Type, typeBinding.Type, missingResolvers));
-            }
 
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-            return fieldResolverBuilder.Build(descriptors);
+                foreach (FieldResolverDescriptor descriptor in discoverer
+                    .GetSelectedResolvers(typeBinding.Type, typeBinding.Type,
+                        missingResolvers))
+                {
+                    schemaContext.Resolvers.RegisterResolver(descriptor);
+                }
+            }
         }
 
         private Dictionary<string, MemberInfo> GetMembers(Type type)
