@@ -58,8 +58,7 @@ namespace HotChocolate.Configuration
             {
                 return resolver;
             }
-            throw new ArgumentException(
-                "No resolver was configured for `{typeName}.{fieldName}`.");
+            return null;
         }
 
         internal void BuildResolvers()

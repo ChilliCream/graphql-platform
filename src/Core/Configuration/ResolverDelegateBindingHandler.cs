@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
@@ -26,6 +27,11 @@ namespace HotChocolate.Configuration
                         new DelegateResolverBinding(
                             b.ObjectTypeName, b.FieldName, fieldResolverDelegate));
                 }
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    "The binding type is not supported by this handler.");
             }
         }
     }

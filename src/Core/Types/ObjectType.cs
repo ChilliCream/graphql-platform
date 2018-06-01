@@ -145,9 +145,12 @@ namespace HotChocolate.Types
             ISchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
-            foreach (TypeInfo interfaceTypeInfo in _interfaceTypeInfos)
+            if (_interfaceTypeInfos != null)
             {
-                schemaContext.Types.RegisterType(interfaceTypeInfo.NativeNamedType);
+                foreach (TypeInfo interfaceTypeInfo in _interfaceTypeInfos)
+                {
+                    schemaContext.Types.RegisterType(interfaceTypeInfo.NativeNamedType);
+                }
             }
 
             foreach (Field field in _fieldMap.Values)

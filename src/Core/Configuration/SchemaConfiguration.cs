@@ -87,6 +87,4 @@ namespace HotChocolate.Configuration
             _types[type.Name] = type;
         }
     }
-
-
 }

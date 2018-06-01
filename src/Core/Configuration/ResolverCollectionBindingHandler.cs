@@ -43,9 +43,11 @@ namespace HotChocolate.Configuration
                     schemaContext.Resolvers.RegisterResolver(descriptor);
                 }
             }
-
-            throw new NotSupportedException(
-                "The binding type is not supported by this handler.");
+            else
+            {
+                throw new NotSupportedException(
+                    "The binding type is not supported by this handler.");
+            }
         }
 
         private List<FieldResolverDescriptor> CollectPossibleDescriptors(

@@ -12,6 +12,11 @@ namespace HotChocolate.Configuration
     {
         internal IEnumerable<SchemaError> RegisterTypes(ISchemaContext schemaContext)
         {
+            if (schemaContext == null)
+            {
+                throw new ArgumentNullException(nameof(schemaContext));
+            }
+
             IEnumerable<SchemaError> errors = RegisterTypesAndDependencies(schemaContext);
             RegisterTypeBindings(schemaContext.Types);
             return errors;
@@ -25,7 +30,8 @@ namespace HotChocolate.Configuration
             }
 
             List<SchemaError> errors = new List<SchemaError>();
-            Queue<INamedType> currentBatch = new Queue<INamedType>(_types.Values);
+            Queue<INamedType> currentBatch = new Queue<INamedType>(
+                _types.Values.Concat(schemaContext.Types.GetTypes()));
             HashSet<string> registered = new HashSet<string>();
 
             // register types intil there are no new registrations of types.

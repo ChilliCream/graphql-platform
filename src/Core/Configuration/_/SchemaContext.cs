@@ -22,6 +22,10 @@ namespace HotChocolate.Configuration
 
         public IEnumerable<SchemaError> CompleteTypes()
         {
+            // compile resolvers
+            _resolverRegistry.BuildResolvers();
+
+            // complete types
             List<SchemaError> errors = new List<SchemaError>();
             foreach (INeedsInitialization initializer in _typeRegistry.GetTypes()
                 .OfType<INeedsInitialization>())

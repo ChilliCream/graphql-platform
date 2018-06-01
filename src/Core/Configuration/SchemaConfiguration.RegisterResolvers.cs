@@ -78,7 +78,6 @@ namespace HotChocolate.Configuration
                 }
 
                 // TODO : error handling if object type cannot be resolverd
-
                 CompleteFieldResolverBindungs(binding, typeBinding, binding.Fields);
             }
         }
@@ -118,8 +117,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void RegisterKnownFieldResolvers(
-            ISchemaContext schemaContext)
+        private void RegisterKnownFieldResolvers(ISchemaContext schemaContext)
         {
             ResolverCollectionBindingInfo[] collectionBindings = _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>().ToArray();
@@ -151,7 +149,7 @@ namespace HotChocolate.Configuration
                 {
                     FieldReference fieldReference = new FieldReference(
                         typeBinding.Name, field.Name);
-                    if (schemaContext.Resolvers.ContainsResolver(fieldReference))
+                    if (!schemaContext.Resolvers.ContainsResolver(fieldReference))
                     {
                         missingResolvers.Add(new FieldResolverMember(
                             typeBinding.Name, field.Name, field.Member));

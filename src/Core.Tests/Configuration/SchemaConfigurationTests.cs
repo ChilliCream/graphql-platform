@@ -23,8 +23,16 @@ namespace HotChocolate.Configuration
                 Name = "TestObjectA",
                 Fields = new[]
                 {
-                    new Field(new FieldConfig{ Name= "a", Type = t => stringType }),
-                    new Field(new FieldConfig{ Name= "b", Type = t => stringType })
+                    new Field(new FieldConfig
+                    {
+                        Name= "a", Type =
+                        t => stringType
+                    }),
+                    new Field(new FieldConfig
+                    {
+                        Name= "b",
+                        Type = t => stringType
+                    })
                 }
             });
 
@@ -34,9 +42,10 @@ namespace HotChocolate.Configuration
             // act
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
+
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
+            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
 
             // assert
             Assert.False(hasErrors);
@@ -85,10 +94,10 @@ namespace HotChocolate.Configuration
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
+            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
 
             // assert
-            Assert.False(hasErrors);
+            Assert.True(hasErrors);
 
             FieldResolverDelegate resolver = schemaContext.Resolvers.GetResolver("TestObjectA", "a");
             Assert.NotNull(resolver);
@@ -135,7 +144,7 @@ namespace HotChocolate.Configuration
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
+            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
 
             // assert
             Assert.False(hasErrors);
@@ -180,7 +189,7 @@ namespace HotChocolate.Configuration
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
+            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
 
             // assert
             Assert.False(hasErrors);
@@ -224,7 +233,7 @@ namespace HotChocolate.Configuration
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() && hasErrors;
+            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
 
             // assert
             Assert.False(hasErrors);

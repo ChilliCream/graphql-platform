@@ -13,9 +13,9 @@ namespace HotChocolate.Types
         : ITypeSystemNode
     {
         private readonly Func<ITypeRegistry, IOutputType> _typeFactory;
-        private readonly Func<IResolverRegistry, FieldResolverDelegate> _resolverFactory;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
+        private Func<IResolverRegistry, FieldResolverDelegate> _resolverFactory;
         private MemberInfo _member;
         private IOutputType _type;
         private Type _nativeNamedType;
@@ -143,24 +143,21 @@ namespace HotChocolate.Types
             }
 
 
-            if (parentType is ObjectType)
+            if (parentType is ObjectType ot)
             {
                 if (_resolverFactory == null)
                 {
+                    _resolverFactory = r => r.GetResolver(ot.Name, Name);
+                }
+
+                _resolver = _resolverFactory(schemaContext.Resolvers);
+                if (_resolver == null)
+                {
                     reportError(new SchemaError(
                         $"The field `{Name}` of object type `{parentType.Name}` " +
-                        "has no resolver factory.", parentType));
+                        "has no resolver.", parentType));
                 }
-                else
-                {
-                    _resolver = _resolverFactory(schemaContext.Resolvers);
-                    if (_resolver == null)
-                    {
-                        reportError(new SchemaError(
-                            $"The field `{Name}` of object type `{parentType.Name}` " +
-                            "has no resolver.", parentType));
-                    }
-                }
+
             }
         }
 
