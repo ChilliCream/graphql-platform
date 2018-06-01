@@ -20,7 +20,7 @@ namespace HotChocolate.Types
 
         public EnumType()
         {
-            EnumTypeDescriptor descriptor = new EnumTypeDescriptor(GetType());
+            EnumTypeDescriptor descriptor = CreateDescriptor();
             Configure(descriptor);
 
             if (string.IsNullOrEmpty(descriptor.Name))

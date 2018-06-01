@@ -30,7 +30,7 @@ namespace HotChocolate.Types
         {
             TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
             IType type = typeInfo.TypeFactory(typeRegistry);
-            if (type.IsObjectType())
+            if (type.IsOutputType())
             {
                 return (IOutputType)type;
             }
@@ -96,7 +96,7 @@ namespace HotChocolate.Types
             do
             {
                 types.Add(current);
-                current = GetInnerType(type);
+                current = GetInnerType(current);
             } while (current != null && types.Count < 4);
 
             return types;
@@ -223,7 +223,7 @@ namespace HotChocolate.Types
 
         private static bool IsNamedType(Type type)
         {
-            return type is INamedType;
+            return typeof(INamedType).IsAssignableFrom(type);
         }
 
         internal static TypeInspector Default { get; } = new TypeInspector();

@@ -39,7 +39,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsTypeNameValid(name))
+            if (!ValidationHelper.IsTypeNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL type name.",
@@ -64,7 +64,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsFieldNameValid(name))
+            if (!ValidationHelper.IsFieldNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL field name.",

@@ -10,17 +10,6 @@ namespace HotChocolate.Types
     internal class ObjectTypeDescriptor
         : IObjectTypeDescriptor
     {
-        public ObjectTypeDescriptor(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-            Name = name;
-        }
-
         public ObjectTypeDescriptor(Type objectType)
         {
             if (objectType == null)
@@ -51,7 +40,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsTypeNameValid(name))
+            if (!ValidationHelper.IsTypeNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL type name.",
@@ -101,7 +90,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsFieldNameValid(name))
+            if (!ValidationHelper.IsFieldNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL field name.",
@@ -128,23 +117,25 @@ namespace HotChocolate.Types
 
         #region IObjectTypeDescriptor<T>
 
-        IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> property)
+        IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
-            if (property == null)
+            if (methodOrProperty == null)
             {
-                throw new ArgumentNullException(nameof(property));
+                throw new ArgumentNullException(nameof(methodOrProperty));
             }
 
-            MemberInfo member = property.ExtractMember();
-            if (member is PropertyInfo p)
+            MemberInfo member = methodOrProperty.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
             {
-                FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, p);
+                FieldDescriptor fieldDescriptor = new FieldDescriptor(
+                    Name, member, typeof(TValue));
                 Fields = Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
             }
 
             throw new ArgumentException(
-                "A field of an entity can only be a property.",
-                nameof(property));
+                "A field of an entity can only be a property or a method.",
+                nameof(member));
         }
 
         #endregion

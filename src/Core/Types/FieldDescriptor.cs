@@ -23,7 +23,7 @@ namespace HotChocolate.Types
                     nameof(fieldName));
             }
 
-            if (ValidationHelper.IsFieldNameValid(fieldName))
+            if (!ValidationHelper.IsFieldNameValid(fieldName))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL field name.",
@@ -34,34 +34,24 @@ namespace HotChocolate.Types
             Name = fieldName;
         }
 
-        public FieldDescriptor(string typeName, PropertyInfo property)
+        public FieldDescriptor(string typeName, MemberInfo member, Type nativeType)
         {
-            if (property == null)
+            if (member == null)
             {
-                throw new ArgumentNullException(nameof(property));
+                throw new ArgumentNullException(nameof(member));
             }
 
             _typeName = typeName;
-            Property = property;
-            Name = property.GetGraphQLName();
-        }
-
-        public FieldDescriptor(PropertyInfo property, string name)
-        {
-            if (property == null)
-            {
-                throw new ArgumentNullException(nameof(property));
-            }
-
-            Property = property;
-            Name = name;
+            Member = member;
+            Name = member.GetGraphQLName();
+            NativeType = nativeType;
         }
 
         public string Name { get; protected set; }
 
         public string Description { get; protected set; }
 
-        public PropertyInfo Property { get; protected set; }
+        public MemberInfo Member { get; protected set; }
 
         public Type NativeType { get; protected set; }
 
@@ -79,7 +69,7 @@ namespace HotChocolate.Types
                 Name = Name,
                 Description = Description,
                 DeprecationReason = DeprecationReason,
-                Member = Property,
+                Member = Member,
                 Type = CreateType,
                 NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
                 Arguments = CreateArguments(),
@@ -135,7 +125,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsFieldNameValid(name))
+            if (!ValidationHelper.IsFieldNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL argument name.",
@@ -148,6 +138,7 @@ namespace HotChocolate.Types
             }
 
             ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
+            argument(descriptor);
             Arguments = Arguments.Add(descriptor);
             return this;
         }

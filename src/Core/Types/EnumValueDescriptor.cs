@@ -36,7 +36,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            if (ValidationHelper.IsTypeNameValid(name))
+            if (!ValidationHelper.IsTypeNameValid(name))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL enum value name.",

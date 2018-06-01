@@ -17,7 +17,7 @@ namespace HotChocolate.Types
                     nameof(argumentName));
             }
 
-            if (ValidationHelper.IsFieldNameValid(argumentName))
+            if (!ValidationHelper.IsFieldNameValid(argumentName))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL argument name.",

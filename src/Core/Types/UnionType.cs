@@ -74,13 +74,6 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.ResolveAbstractType == null)
-            {
-                throw new ArgumentException(
-                    "A Union type must define one or more unique member types.",
-                    nameof(config));
-            }
-
             _typesFactory = config.Types;
             _typeResolver = config.ResolveAbstractType;
 
@@ -122,9 +115,12 @@ namespace HotChocolate.Types
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
-            foreach (TypeInfo typeInfo in _typeInfos)
+            if (_typeInfos != null)
             {
-                schemaContext.Types.RegisterType(typeInfo.NativeNamedType);
+                foreach (TypeInfo typeInfo in _typeInfos)
+                {
+                    schemaContext.Types.RegisterType(typeInfo.NativeNamedType);
+                }
             }
         }
 
