@@ -9,7 +9,7 @@ using HotChocolate.Types;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace HotChocolate.Introspection
+namespace HotChocolate.Types
 {
     public class IntrospectionTests
     {
