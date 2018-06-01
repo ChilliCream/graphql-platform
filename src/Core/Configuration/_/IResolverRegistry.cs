@@ -2,7 +2,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
 {
-    public interface IResolverRegistry
+    internal interface IResolverRegistry
     {
         void RegisterResolver(ResolverBinding resolverBinding);
         void RegisterResolver(FieldResolverDescriptor resolverDescriptor);

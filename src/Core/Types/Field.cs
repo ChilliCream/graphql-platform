@@ -101,7 +101,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         internal void RegisterDependencies(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
@@ -124,7 +124,7 @@ namespace HotChocolate.Types
         }
 
         internal void CompleteField(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {

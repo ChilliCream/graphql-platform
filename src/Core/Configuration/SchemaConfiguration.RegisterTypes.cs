@@ -10,13 +10,13 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        internal void RegisterType(ISchemaContextR schemaContext)
+        internal void RegisterType(ISchemaContext schemaContext)
         {
             RegisterTypesAndDependencies(schemaContext);
             RegisterTypeBindings(schemaContext.Types);
         }
 
-        private void RegisterTypesAndDependencies(ISchemaContextR schemaContext)
+        private void RegisterTypesAndDependencies(ISchemaContext schemaContext)
         {
             if (schemaContext == null)
             {

@@ -3,7 +3,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Configuration
 {
-    public abstract class ResolverBinding
+    internal abstract class ResolverBinding
     {
         public ResolverBinding(string typeName, string fieldName)
         {

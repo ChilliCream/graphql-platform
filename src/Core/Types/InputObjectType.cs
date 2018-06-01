@@ -200,7 +200,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void INeedsInitialization.RegisterDependencies(ISchemaContextR schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (InputField field in _fieldMap.Values)
             {
@@ -208,7 +208,7 @@ namespace HotChocolate.Types
             }
         }
 
-        void INeedsInitialization.CompleteType(ISchemaContextR schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             _nativeType = _nativeTypeFactory(schemaContext.Types);
             if (_nativeType == null)

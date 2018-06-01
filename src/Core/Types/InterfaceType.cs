@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -126,7 +127,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         void INeedsInitialization.RegisterDependencies(
-            ISchemaContextR schemaContext, Action<SchemaError> reportError)
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
@@ -135,7 +136,7 @@ namespace HotChocolate.Types
         }
 
         void INeedsInitialization.CompleteType(
-            ISchemaContextR schemaContext, Action<SchemaError> reportError)
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {

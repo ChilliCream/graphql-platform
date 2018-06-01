@@ -9,7 +9,7 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        internal void RegisterResolvers(ISchemaContextR schemaContext)
+        internal void RegisterResolvers(ISchemaContext schemaContext)
         {
             if (schemaContext == null)
             {
@@ -119,7 +119,7 @@ namespace HotChocolate.Configuration
         }
 
         private void RegisterKnownFieldResolvers(
-            ISchemaContextR schemaContext)
+            ISchemaContext schemaContext)
         {
             ResolverCollectionBindingInfo[] collectionBindings = _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>().ToArray();
@@ -141,7 +141,7 @@ namespace HotChocolate.Configuration
 
         // tries to register resolvers for type bindings that at this point have no explicite resolver.
         private void TryRegisterMissingResolvers(
-            ISchemaContextR schemaContext)
+            ISchemaContext schemaContext)
         {
             FieldResolverDiscoverer discoverer = new FieldResolverDiscoverer();
             foreach (ObjectTypeBinding typeBinding in schemaContext.Types.GetTypeBindings())

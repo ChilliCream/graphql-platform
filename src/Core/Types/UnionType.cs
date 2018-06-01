@@ -120,7 +120,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         void INeedsInitialization.RegisterDependencies(
-            ISchemaContextR schemaContext, Action<SchemaError> reportError)
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (TypeInfo typeInfo in _typeInfos)
             {
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
             }
         }
 
-        void INeedsInitialization.CompleteType(ISchemaContextR schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             if (_typesFactory == null)
             {

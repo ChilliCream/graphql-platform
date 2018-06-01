@@ -21,7 +21,7 @@ namespace HotChocolate.Types
         /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
         void RegisterDependencies(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             Action<SchemaError> reportError);
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
         /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
         void CompleteType(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             Action<SchemaError> reportError);
     }
 }

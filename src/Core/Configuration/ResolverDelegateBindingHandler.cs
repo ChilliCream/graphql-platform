@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
         : IResolverBindingHandler
     {
         public void ApplyBinding(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             ResolverBindingInfo resolverBindingInfo)
         {
             if (resolverBindingInfo is ResolverDelegateBindingInfo b)

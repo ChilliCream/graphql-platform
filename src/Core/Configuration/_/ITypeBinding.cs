@@ -1,6 +1,6 @@
 namespace HotChocolate.Configuration
 {
-    public interface ITypeBinding
+    internal interface ITypeBinding
     {
     }
 }

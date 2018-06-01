@@ -26,7 +26,7 @@ namespace HotChocolate.Configuration
         }
 
         public void ApplyBinding(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             ResolverBindingInfo resolverBindingInfo)
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)

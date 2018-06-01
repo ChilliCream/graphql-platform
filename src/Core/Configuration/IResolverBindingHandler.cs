@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration
     {
         // TODO : Create an object ResolverBinding that shall be passed in which extends more guaranties.
         void ApplyBinding(
-            ISchemaContextR schemaContext,
+            ISchemaContext schemaContext,
             ResolverBindingInfo resolverBindingInfo);
     }
 }

@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
 {
-    public class DelegateResolverBinding
+    internal class DelegateResolverBinding
         : ResolverBinding
     {
         public DelegateResolverBinding(

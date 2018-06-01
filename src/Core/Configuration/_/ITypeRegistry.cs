@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    public interface ITypeRegistry
+    internal interface ITypeRegistry
     {
         void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
         void RegisterType(Type nativeType);
@@ -28,7 +28,7 @@ namespace HotChocolate.Configuration
         IEnumerable<ITypeBinding> GetTypeBindings();
     }
 
-    public static class TypeRegistryExtensions
+    internal static class TypeRegistryExtensions
     {
         public static bool TryGetObjectTypeField(
             this ITypeRegistry typeRegistry,

@@ -1,9 +1,9 @@
-using System.Reflection;
+﻿using System.Reflection;
 using HotChocolate.Configuration;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
-    public interface ISchemaContextR
+    internal interface ISchemaContext
     {
         ITypeRegistry Types { get; }
         IResolverRegistry Resolvers { get; }
