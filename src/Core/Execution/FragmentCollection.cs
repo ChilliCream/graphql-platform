@@ -83,8 +83,9 @@ namespace HotChocolate.Execution
 
         private Fragment CreateFragment(InlineFragmentNode inlineFragment)
         {
-            // TODO : maybe introdice a tryget to the schema
-            IType type = _schema.GetType(inlineFragment.TypeCondition.Name.Value);
+            // TODO : maybe introduce a tryget to the schema
+            INamedType type = _schema.GetType<INamedType>(
+                inlineFragment.TypeCondition.Name.Value);
             return new Fragment(type, inlineFragment.SelectionSet);
         }
 

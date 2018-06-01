@@ -88,7 +88,7 @@ namespace HotChocolate.Execution
 
             if (typeNode is NamedTypeNode namedType)
             {
-                return schema.GetType(namedType.Name.Value);
+                return schema.GetType<INamedType>(namedType.Name.Value);
             }
 
             throw new NotSupportedException(

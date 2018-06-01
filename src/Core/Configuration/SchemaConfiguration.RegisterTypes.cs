@@ -10,13 +10,14 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        internal void RegisterType(ISchemaContext schemaContext)
+        internal IEnumerable<SchemaError> RegisterTypes(ISchemaContext schemaContext)
         {
-            RegisterTypesAndDependencies(schemaContext);
+            IEnumerable<SchemaError> errors = RegisterTypesAndDependencies(schemaContext);
             RegisterTypeBindings(schemaContext.Types);
+            return errors;
         }
 
-        private void RegisterTypesAndDependencies(ISchemaContext schemaContext)
+        private IEnumerable<SchemaError> RegisterTypesAndDependencies(ISchemaContext schemaContext)
         {
             if (schemaContext == null)
             {
@@ -52,6 +53,8 @@ namespace HotChocolate.Configuration
                     }
                 }
             }
+
+            return errors;
         }
 
         private void RegisterTypeBindings(ITypeRegistry typeRegistry)

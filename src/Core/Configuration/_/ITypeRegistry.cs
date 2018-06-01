@@ -9,10 +9,10 @@ namespace HotChocolate.Configuration
     internal interface ITypeRegistry
     {
         void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
-        void RegisterType(Type nativeType);
+        void RegisterType(Type nativeNamedType);
 
         T GetType<T>(string typeName) where T : IType;
-        T GetType<T>(Type nativeType) where T : IType;
+        T GetType<T>(Type nativeNamedType) where T : IType;
 
         bool TryGetType<T>(string typeName, out T type) where T : IType;
 
@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
             where T : ITypeBinding;
         bool TryGetTypeBinding<T>(INamedType namedType, out T typeBinding)
             where T : ITypeBinding;
-        bool TryGetTypeBinding<T>(Type nativeType, out T typeBinding)
+        bool TryGetTypeBinding<T>(Type nativeNamedType, out T typeBinding)
             where T : ITypeBinding;
 
         IEnumerable<ITypeBinding> GetTypeBindings();

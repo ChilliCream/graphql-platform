@@ -18,33 +18,33 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field("name")
                 .Type<NonNullType<StringType>>()
-                .Resolver((ctx, ct) => ctx.Parent<Directive>().Name);
+                .Resolver(c => c.Parent<Directive>().Name);
 
             descriptor.Field("description")
                 .Type<StringType>()
-                .Resolver((ctx, ct) => ctx.Parent<Directive>().Description);
+                .Resolver(c => c.Parent<Directive>().Description);
 
             descriptor.Field("locations")
                 .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
-                .Resolver((ctx, ct) => ctx.Parent<Directive>().Locations);
+                .Resolver(c => c.Parent<Directive>().Locations);
 
             descriptor.Field("args")
                 .Type<NonNullType<ListType<NonNullType<__Type>>>>()
-                .Resolver((ctx, ct) => ctx.Parent<Directive>().Arguments);
+                .Resolver(c => c.Parent<Directive>().Arguments);
 
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
-                .Resolver((ctx, ct) => GetOnOperation(ctx))
+                .Resolver(c => GetOnOperation(c))
                 .DeprecationReason("Use `locations`.");
 
             descriptor.Field("onFragment")
                 .Type<NonNullType<BooleanType>>()
-                .Resolver((ctx, ct) => GetOnFragment(ctx))
+                .Resolver(c => GetOnFragment(c))
                 .DeprecationReason("Use `locations`.");
 
             descriptor.Field("onField")
                 .Type<NonNullType<BooleanType>>()
-                .Resolver((ctx, ct) => GetOnField(ctx))
+                .Resolver(c => GetOnField(c))
                 .DeprecationReason("Use `locations`.");
         }
 

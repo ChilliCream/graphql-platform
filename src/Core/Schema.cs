@@ -15,103 +15,70 @@ namespace HotChocolate
     /// </summary>
     public class Schema
     {
-        private readonly SchemaContext _context;
+        private readonly SchemaTypes _types;
+        private readonly IntrospectionFields _introspectionFields;
 
-        private Schema(SchemaContext context)
+        private Schema(SchemaTypes types, IntrospectionFields introspectionFields)
         {
-            _context = context;
-            QueryType = (ObjectType)context.GetType(context.QueryTypeName);
-
-            if (context.TryGetOutputType<ObjectType>(
-                context.MutationTypeName, out ObjectType mutationType))
-            {
-                MutationType = mutationType;
-            }
-
-            if (context.TryGetOutputType<ObjectType>(
-                context.SubscriptionTypeName, out ObjectType subscriptionType))
-            {
-                SubscriptionType = subscriptionType;
-            }
-
-            SchemaField = IntrospectionTypes.CreateSchemaField(context);
-            TypeField = IntrospectionTypes.CreateTypeField(context);
-            TypeNameField = IntrospectionTypes.CreateTypeNameField(context);
-
-            SchemaField.CompleteInitialization(error => { }, QueryType);
-            TypeField.CompleteInitialization(error => { }, QueryType);
-            TypeNameField.CompleteInitialization(error => { }, QueryType);
+            _types = types;
+            _introspectionFields = introspectionFields;
         }
 
         /// <summary>
         /// The type that query operations will be rooted at.
         /// </summary>
-        public ObjectType QueryType { get; }
+        public ObjectType QueryType => _types.QueryType;
 
         /// <summary>
         /// If this server supports mutation, the type that
         /// mutation operations will be rooted at.
         /// </summary>
-        public ObjectType MutationType { get; }
+        public ObjectType MutationType => _types.MutationType;
 
         /// <summary>
         /// If this server support subscription, the type that
         /// subscription operations will be rooted at.
         /// </summary>
-        public ObjectType SubscriptionType { get; }
+        public ObjectType SubscriptionType => _types.SubscriptionType;
 
-        internal Field SchemaField { get; }
+        internal __SchemaField SchemaField => _introspectionFields.SchemaField;
 
-        internal Field TypeField { get; }
+        internal __TypeField TypeField => _introspectionFields.TypeField;
 
-        internal Field TypeNameField { get; }
-
-        public INamedType GetType(string typeName)
-        {
-            return _context.GetType(typeName);
-        }
-
-        public bool TryGetType(string typeName, out INamedType type)
-        {
-            return _context.TryGetType(typeName, out type);
-        }
+        internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
 
         public T GetType<T>(string typeName)
             where T : INamedType
         {
-            return _context.GetType<T>(typeName);
+            return _types.GetType<T>(typeName);
         }
 
         public bool TryGetType<T>(string typeName, out T type)
             where T : INamedType
         {
-            return _context.TryGetType<T>(typeName, out type);
+            return _types.TryGetType<T>(typeName, out type);
         }
 
         public IReadOnlyCollection<INamedType> GetAllTypes()
         {
-            return _context.GetAllTypes();
+            return _types.GetTypes();
         }
 
         // TODO : Introduce directive type
-        public IReadOnlyCollection<object> GetDirectives()
+        internal IReadOnlyCollection<object> GetDirectives()
         {
             return Array.Empty<object>();
         }
 
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType type)
+        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(IType abstractType)
         {
-            return GetPossibleTypes(type.Name);
+            return Array.Empty<ObjectType>();
         }
 
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(string abstractTypeName)
+        internal bool TryGetNativeType(string typeName, out Type nativeType)
         {
-            return _context.GetPossibleTypes(abstractTypeName);
-        }
-
-        public bool TryGetNativeType(string typeName, out Type nativeType)
-        {
-            return _context.TryGetNativeType(typeName, out nativeType);
+            nativeType = null;
+            return false;
         }
 
         public static Schema Create(
@@ -164,10 +131,15 @@ namespace HotChocolate
             SchemaContext context = CreateSchemaContext();
 
             // deserialize schema objects
-            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
+            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context.Types);
             visitor.Visit(schemaDocument);
 
-            return CreateSchema(context, configure, strict);
+            SchemaNames names = new SchemaNames(
+                visitor.QueryTypeName,
+                visitor.MutationTypeName,
+                visitor.SubscriptionTypeName);
+
+            return CreateSchema(context, names, configure, strict);
         }
 
         public static Schema Create(
@@ -186,20 +158,29 @@ namespace HotChocolate
             }
 
             SchemaContext context = CreateSchemaContext();
-            return CreateSchema(context, configure, strict);
+            return CreateSchema(context, default(SchemaNames), configure, strict);
         }
 
         private static Schema CreateSchema(
             SchemaContext context,
+            SchemaNames names,
             Action<ISchemaConfiguration> configure,
             bool strict)
         {
+            List<SchemaError> errors = new List<SchemaError>();
+
+            // setup introspection fields
+            IntrospectionFields introspectionFields =
+                new IntrospectionFields(context, e => errors.Add(e));
+
             try
             {
                 // configure resolvers, custom types and type mappings.
                 SchemaConfiguration configuration = new SchemaConfiguration();
                 configure(configuration);
-                configuration.Commit(context);
+                errors.AddRange(configuration.RegisterTypes(context));
+                configuration.RegisterResolvers(context);
+                errors.AddRange(context.CompleteTypes());
             }
             catch (ArgumentException ex)
             {
@@ -211,55 +192,178 @@ namespace HotChocolate
                 });
             }
 
-            // finalize objects and seal the schema context
-            List<SchemaError> errors = context.Seal();
-
             if (strict && errors.Any())
             {
                 throw new SchemaException(errors);
             }
 
-            if (!context.TypeExists<ObjectType>(context.QueryTypeName))
+            SchemaNames n = string.IsNullOrEmpty(names.QueryTypeName)
+                ? new SchemaNames(null, null, null)
+                : names;
+
+            if (strict && !context.Types.TryGetType<ObjectType>(
+                n.QueryTypeName, out ObjectType ot))
             {
                 throw new SchemaException(new SchemaError(
                     "Schema is missing the mandatory `Query` type."));
             }
 
-            return new Schema(context);
+            return new Schema(
+                SchemaTypes.Create(context.Types.GetTypes(), n),
+                introspectionFields);
         }
 
         private static SchemaContext CreateSchemaContext()
         {
             // create context with system types
-            SchemaContext context = new SchemaContext(CreateSystemTypes());
+            SchemaContext context = new SchemaContext();
+            context.Types.RegisterType(typeof(StringType));
+            context.Types.RegisterType(typeof(BooleanType));
+            context.Types.RegisterType(typeof(IntType));
 
             // register introspection types
-            RegisterIntrospectionTypes(context);
+            context.Types.RegisterType(typeof(__Directive));
+            context.Types.RegisterType(typeof(__DirectiveLocation));
+            context.Types.RegisterType(typeof(__EnumValue));
+            context.Types.RegisterType(typeof(__Field));
+            context.Types.RegisterType(typeof(__InputValue));
+            context.Types.RegisterType(typeof(__Schema));
+            context.Types.RegisterType(typeof(__Type));
+            context.Types.RegisterType(typeof(__TypeKind));
 
             return context;
         }
 
-        private static void RegisterIntrospectionTypes(SchemaContext context)
+        private sealed class SchemaTypes
         {
-            /*
-            SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Directive);
-            configuration.RegisterType<Types.EnumTypeConfig<Types.DirectiveLocation>>(IntrospectionTypes.__DirectiveLocation);
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__EnumValue);
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Field);
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__InputValue);
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Schema);
-            configuration.RegisterType<ObjectTypeConfig>(IntrospectionTypes.__Type);
-            configuration.RegisterType<EnumTypeConfig>(IntrospectionTypes.__TypeKind);
-            configuration.Commit(context);
-            */
+            public Dictionary<string, INamedType> _types;
+
+            private SchemaTypes(
+                IEnumerable<INamedType> types,
+                string queryTypeName,
+                string mutationTypeName,
+                string subscriptionTypeName)
+            {
+                _types = types.ToDictionary(t => t.Name);
+
+                INamedType namedType;
+                if (_types.TryGetValue(queryTypeName, out namedType)
+                    && namedType is ObjectType queryType)
+                {
+                    QueryType = queryType;
+                }
+
+                if (_types.TryGetValue(mutationTypeName, out namedType)
+                   && namedType is ObjectType mutationType)
+                {
+                    MutationType = mutationType;
+                }
+
+                if (_types.TryGetValue(subscriptionTypeName, out namedType)
+                   && namedType is ObjectType subscriptionType)
+                {
+                    SubscriptionType = subscriptionType;
+                }
+            }
+
+            public ObjectType QueryType { get; }
+            public ObjectType MutationType { get; }
+            public ObjectType SubscriptionType { get; }
+
+            public T GetType<T>(string typeName) where T : IType
+            {
+                if (_types.TryGetValue(typeName, out INamedType namedType)
+                    && namedType is T type)
+                {
+                    return type;
+                }
+
+                throw new ArgumentException(
+                    "The specified type does not exist or " +
+                    "is not of the specified kind.",
+                    nameof(typeName));
+            }
+
+            public bool TryGetType<T>(string typeName, out T type) where T : IType
+            {
+                if (_types.TryGetValue(typeName, out INamedType namedType)
+                    && namedType is T t)
+                {
+                    type = t;
+                    return true;
+                }
+
+                type = default(T);
+                return false;
+            }
+
+            public IReadOnlyCollection<INamedType> GetTypes()
+            {
+                return _types.Values;
+            }
+
+            public static SchemaTypes Create(
+                IEnumerable<INamedType> types,
+                SchemaNames names)
+            {
+                if (types == null)
+                {
+                    throw new ArgumentNullException(nameof(types));
+                }
+
+                SchemaNames n = string.IsNullOrEmpty(names.QueryTypeName)
+                    ? new SchemaNames(null, null, null)
+                    : names;
+
+                return new SchemaTypes(types,
+                    n.QueryTypeName,
+                    n.MutationTypeName,
+                    n.SubscriptionTypeName);
+            }
         }
 
-        private static IEnumerable<INamedType> CreateSystemTypes()
+        private sealed class IntrospectionFields
         {
-            yield return new StringType();
-            yield return new BooleanType();
-            yield return new IntType();
+            public IntrospectionFields(SchemaContext context, Action<SchemaError> reportError)
+            {
+                SchemaField = new __SchemaField();
+                TypeField = new __TypeField();
+                TypeNameField = new __TypeNameField();
+
+                SchemaField.RegisterDependencies(context, reportError, null);
+                TypeField.RegisterDependencies(context, reportError, null);
+                TypeNameField.RegisterDependencies(context, reportError, null);
+
+                SchemaField.CompleteField(context, reportError, null);
+                TypeField.CompleteField(context, reportError, null);
+                TypeNameField.CompleteField(context, reportError, null);
+            }
+
+            internal __SchemaField SchemaField { get; }
+
+            internal __TypeField TypeField { get; }
+
+            internal __TypeNameField TypeNameField { get; }
+        }
+
+        private readonly struct SchemaNames
+        {
+            public SchemaNames(
+                string queryTypeName,
+                string mutationTypeName,
+                string subscriptionTypeName)
+            {
+                QueryTypeName = string.IsNullOrEmpty(queryTypeName)
+                    ? "Query" : queryTypeName;
+                MutationTypeName = string.IsNullOrEmpty(mutationTypeName)
+                    ? "Mutation" : mutationTypeName;
+                SubscriptionTypeName = string.IsNullOrEmpty(subscriptionTypeName)
+                    ? "Subscription" : subscriptionTypeName;
+            }
+
+            public string QueryTypeName { get; }
+            public string MutationTypeName { get; }
+            public string SubscriptionTypeName { get; }
         }
     }
 }
