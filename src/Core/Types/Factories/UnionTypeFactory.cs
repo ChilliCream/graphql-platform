@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -13,8 +14,7 @@ namespace HotChocolate.Types.Factories
                 SyntaxNode = node,
                 Name = node.Name.Value,
                 Description = node.Description?.Value,
-                ResolveAbstractType = context.CreateTypeResolver(node.Name.Value),
-                Types = t => node.Types.Select(tn => t.GetOutputType(tn))
+                Types = t => node.Types.Select(tn => t.GetType<ObjectType>(tn.Name.Value))
             });
         }
     }
