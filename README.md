@@ -59,6 +59,32 @@ type {
 }
 ```
 
+Moreover, we bound a resolver to the field that returns a fixed value *world*. A reasolver is basically a function that resolves the data of field.
+
+Now that the schema is setup we can serve up a query against it.
+
+```graphql
+{
+  hello
+}
+```
+
+```csharp
+var result = schema.ExecuteAsync(
+    @"
+    {
+      hello
+    }");
+
+// Prints
+// {
+//   data: { hello: "world" }
+// }
+Console.WriteLine(result);
+```
+
+
+
 
 
 Then, serve the result of a query against that type schema.
