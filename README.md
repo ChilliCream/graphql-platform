@@ -84,19 +84,19 @@ This runs a query fetching the one field defined. The graphql function will firs
 var result = schema.Execute("{ hello }");
 
 // Prints
-  // {
-  //   errors: [
-  //     {
-  //        message: 'Could not resolve the specified field.',
-  //        locations: [
-  //          {
-  //            line: 1,
-  //            column: 3
-  //          }
-  //        ]
-  //     }
-  //   ]
-  // }
+// {
+//   errors: [
+//     {
+//        message: 'Could not resolve the specified field.',
+//        locations: [
+//          {
+//            line: 1,
+//            column: 3
+//          }
+//        ]
+//     }
+//   ]
+// }
 Console.WriteLine(result);
 ```
 
