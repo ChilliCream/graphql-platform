@@ -10,8 +10,66 @@ _Hot Chocolate_ is a GraphQL server and parser implementation based on the curre
 
 ## Getting Started
 
-If you are just getting started with GraphQL a good way to learn is visiting the [GraphQL.org](https://graphql.org).
+If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 The GraphQL specification and more is available in the [Facebook GraphQL repository](https://github.com/facebook/graphql).
+
+## Using Hot Chocolate
+
+The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
+
+_We use for our examples .net core which you can download [here](https://dot.net)._
+
+```bash
+mkdir graphql-demo
+cd graphql-demo
+dotnet new web
+```
+
+Hot Chocoloate provides two important capabilities: building a type schema, and serving queries against that type schema.
+
+First, we will setup a GraphQL type schema which maps to your code base.
+You can do that code-first meaning you define the GraohQL types as .net classes.
+
+```csharp
+public class Query
+    : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
+    {
+        descriptor.Field("hello")
+          .Resolver(() => "world");
+    }
+}
+
+public class Startup 
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        var schema = Schema.Create(c => c.RegisterQuery<Query>()); 
+    }
+
+}
+```
+
+Or, you can do that schema-first. This means you specify the schema in GraphQL and bind .net types to it.
+
+```csharp
+public class Query 
+{
+    public string GetHello() => "World";
+}
+
+public class Startup 
+{
+    protected override void ConfigureServices(IServiceCollection services)
+    {
+        var schema = Schema.Create(
+          "type Query { hello: String }",
+          c => c.BindType<Query>());
+    }
+
+}
+```
 
 ## Documentation
 
