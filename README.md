@@ -27,8 +27,7 @@ dotnet new console -n graphql-console
 
 _Hot Chocolate_ can build a GraphQL type schema, serve queries against that type schema and host that time schema for web requests.
 
-First, we will setup a GraphQL type schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that 
-code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bidning types or just simple methods to it. Our walkthrough shows you the code-first approache.
+First, we will setup a GraphQL type schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bidning types or just simple methods to it. Our walkthrough shows you the code-first approache.
 
 ```csharp
 public class Query
@@ -40,7 +39,7 @@ public class Query
     }
 }
 
-public class Programm 
+public class Programm
 {
     public static Main(string[] args)
     {
@@ -59,7 +58,7 @@ type {
 }
 ```
 
-Moreover, we bound a resolver to the field that returns a fixed value *world*. A reasolver is basically a function that resolves the data of field.
+Moreover, we bound a resolver to the field that returns a fixed value _world_. A reasolver is basically a function that resolves the data of field.
 
 Now that the schema is setup we can serve up a query against it.
 
@@ -70,11 +69,7 @@ Now that the schema is setup we can serve up a query against it.
 ```
 
 ```csharp
-var result = schema.ExecuteAsync(
-    @"
-    {
-      hello
-    }");
+var result = schema.Execute("{ hello }");
 
 // Prints
 // {
@@ -83,12 +78,58 @@ var result = schema.ExecuteAsync(
 Console.WriteLine(result);
 ```
 
+This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
 
+```csharp
+var result = schema.Execute("{ hello }");
 
+// Prints
+  // {
+  //   errors: [
+  //     {
+  //        message: 'Could not resolve the specified field.',
+  //        locations: [
+  //          {
+  //            line: 1,
+  //            column: 3
+  //          }
+  //        ]
+  //     }
+  //   ]
+  // }
+Console.WriteLine(result);
+```
 
+In order to setup a GraphQL HTTP endpoint that can be used by a web application or other application we have to first create an empty web project with the dotnet CLI.
 
-Then, serve the result of a query against that type schema.
+```bash
+dotnet new web -n graphql-web
+```
+
+Open the Startup.cs and add the following code.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services)
+{
+    services.AddGraphQL(c => c.RegisterQuery<Query>());
+}
+```
+
+```csharp
+protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    app.UseGraphQL();
+}
+```
+
+This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
+In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+
 
 ## Documentation
 
-Click [here](http://hotchocolate.io) for the documentation.
+For more examples and a detailed documentation click [here](http://hotchocolate.io).
