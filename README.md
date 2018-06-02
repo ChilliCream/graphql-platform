@@ -22,13 +22,13 @@ _We use for our examples .net core which you can download [here](https://dot.net
 ```bash
 mkdir graphql-demo
 cd graphql-demo
-dotnet new web
+dotnet new console -n graphql-console
 ```
 
-Hot Chocoloate provides two important capabilities: building a type schema, and serving queries against that type schema.
+_Hot Chocolate_ can build a GraphQL type schema, serve queries against that type schema and host that time schema for web requests.
 
-First, we will setup a GraphQL type schema which maps to your code base.
-You can do that code-first meaning you define the GraohQL types as .net classes.
+First, we will setup a GraphQL type schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that 
+code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bidning types or just simple methods to it. Our walkthrough shows you the code-first approache.
 
 ```csharp
 public class Query
@@ -36,40 +36,32 @@ public class Query
 {
     protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
     {
-        descriptor.Field("hello")
-          .Resolver(() => "world");
+        descriptor.Field("hello").Resolver(() => "world");
     }
 }
 
-public class Startup 
+public class Programm 
 {
-    protected override void ConfigureServices(IServiceCollection services)
+    public static Main(string[] args)
     {
-        var schema = Schema.Create(c => c.RegisterQuery<Query>()); 
+        var schema = Schema.Create(c => c.RegisterQuery<Query>());
     }
 
 }
 ```
 
-Or, you can do that schema-first. This means you specify the schema in GraphQL and bind .net types to it.
+The code above defines a simple schema with one type and one field that returns a string.
+The schema would look like this:
 
-```csharp
-public class Query 
-{
-    public string GetHello() => "World";
-}
-
-public class Startup 
-{
-    protected override void ConfigureServices(IServiceCollection services)
-    {
-        var schema = Schema.Create(
-          "type Query { hello: String }",
-          c => c.BindType<Query>());
-    }
-
+```graphql
+type {
+  hello: String
 }
 ```
+
+
+
+Then, serve the result of a query against that type schema.
 
 ## Documentation
 
