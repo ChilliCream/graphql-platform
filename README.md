@@ -8,7 +8,7 @@
 
 _Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [draft specification](http://facebook.github.io/graphql/draft/) defined by facebook.
 
-## Getting Started
+# Getting Started
 
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 The GraphQL specification and more is available in the [Facebook GraphQL repository](https://github.com/facebook/graphql).
@@ -17,7 +17,11 @@ The GraphQL specification and more is available in the [Facebook GraphQL reposit
 
 The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
 
-_We use for our examples .net core which you can download [here](https://dot.net)._
+_Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
+
+_For our examples we use .net core and the dotnet CLI which you can download [here](https://dot.net)._
+
+Lets get started by setting up a new console application that we will use to showcase how to setup a GraphQL schema and execute queries against it.
 
 ```bash
 mkdir graphql-demo
@@ -25,9 +29,7 @@ cd graphql-demo
 dotnet new console -n graphql-console
 ```
 
-_Hot Chocolate_ can build a GraphQL type schema, serve queries against that type schema and host that time schema for web requests.
-
-First, we will setup a GraphQL type schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bidning types or just simple methods to it. Our walkthrough shows you the code-first approache.
+First, we will setup a GraphQL schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bind resolvers to it. Our README walkthrough shows you the code-first approache.
 
 ```csharp
 public class Query
@@ -49,8 +51,9 @@ public class Programm
 }
 ```
 
-The code above defines a simple schema with one type and one field that returns a string.
-The schema would look like this:
+The code above defines a simple schema with one type `Query` and one field `hello` that returns a string.
+
+If you would write that schema down in the GraphQL syntax it would look like the following.
 
 ```graphql
 type {
