@@ -29,7 +29,9 @@ cd graphql-demo
 dotnet new console -n graphql-console
 ```
 
-First, we will setup a GraphQL schema which describes the capabilities of your API. _Hot Chocolate_ allows you to do that code-first by defining .net classes or schema-first by defining the schema in the GraphQL syntax and bind resolvers to it. Our README walkthrough shows you the code-first approache.
+The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and bind resolvers to it. Our README walkthrough shows you the code-first approache.
+
+The following example ....
 
 ```csharp
 public class Query
@@ -56,7 +58,7 @@ The code above defines a simple schema with one type `Query` and one field `hell
 If you would write that schema down in the GraphQL syntax it would look like the following.
 
 ```graphql
-type {
+type Query {
   hello: String
 }
 ```
