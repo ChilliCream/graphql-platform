@@ -13,7 +13,7 @@ _Hot Chocolate_ is a GraphQL server and parser implementation based on the curre
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 The GraphQL specification and more is available in the [Facebook GraphQL repository](https://github.com/facebook/graphql).
 
-## Using Hot Chocolate
+## Using Hot Chocolate
 
 The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
 
