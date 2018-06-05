@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Introspection
 {
@@ -21,136 +22,144 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field("kind")
                 .Type<NonNullType<__TypeKind>>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (!type.TryGetKind(out TypeKind kind))
-                    {
-                        return new QueryError("Unknown kind of type: " + type);
-                    }
-                    return kind;
-                });
+                .Resolver(c => GetKind(c.Parent<IType>()));
 
             descriptor.Field("name")
                 .Type<StringType>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (type is INamedType n)
-                    {
-                        return n.Name;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetName(c.Parent<IType>()));
 
             descriptor.Field("description")
                 .Type<StringType>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (type is INamedType n)
-                    {
-                        return n.Description;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetDescription(c.Parent<IType>()));
 
             descriptor.Field("fields")
                 .Type<ListType<NonNullType<__Field>>>()
                 .Argument("includeDeprecated",
                     a => a.Type<BooleanType>().DefaultValue(false))
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    bool includeDeprecated = c.Argument<bool>("includeDeprecated");
-                    if (type.IsObjectType() || type.IsInterfaceType())
-                    {
-                        IReadOnlyDictionary<string, Field> fields =
-                            ((IHasFields)type).Fields;
-                        if (!includeDeprecated)
-                        {
-                            return fields.Values.Where(t => !t.IsDeprecated);
-                        }
-                        return fields.Values;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetFields(c.Parent<IType>(),
+                    c.Argument<bool>("includeDeprecated")));
 
             descriptor.Field("interfaces")
                 .Type<ListType<NonNullType<__Type>>>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (type is ObjectType ot)
-                    {
-                        return ot.Interfaces.Values;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetInterfaces(c.Parent<IType>()));
 
             descriptor.Field("possibleTypes")
-                .Type<ListType<NonNullType<__Directive>>>()
-                .Resolver(c =>
-                {
-                    INamedType type = c.Parent<INamedType>();
-                    if (type.IsAbstractType())
-                    {
-                        return c.Schema.GetPossibleTypes(type);
-                    }
-                    return null;
-                });
+                .Type<ListType<NonNullType<__Type>>>()
+                .Resolver(c => GetPossibleTypes(c.Schema, c.Parent<INamedType>()));
 
             descriptor.Field("enumValues")
                 .Type<ListType<NonNullType<__EnumValue>>>()
                 .Argument("includeDeprecated",
                     a => a.Type<BooleanType>().DefaultValue(false))
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    bool includeDeprecated = c.Argument<bool>("includeDeprecated");
-                    if (type is EnumType et)
-                    {
-                        IReadOnlyCollection<EnumValue> values = et.Values;
-                        if (!includeDeprecated)
-                        {
-                            return values.Where(t => !t.IsDeprecated);
-                        }
-                        return values;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetEnumValues(c.Parent<IType>(),
+                    c.Argument<bool>("includeDeprecated")));
 
             descriptor.Field("inputFields")
                 .Type<ListType<NonNullType<__InputValue>>>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (type is InputObjectType iot)
-                    {
-                        return iot.Fields.Values;
-                    }
-                    return null;
-                });
+                .Resolver(c => GetInputFields(c.Parent<IType>()));
 
             descriptor.Field("ofType")
                 .Type<__Type>()
-                .Resolver(c =>
-                {
-                    IType type = c.Parent<IType>();
-                    if (type is ListType lt)
-                    {
-                        return lt.ElementType;
-                    }
-                    else if (type is NonNullType nnt)
-                    {
-                        return nnt.Type;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                });
+                .Resolver(c => GetOfType(c.Parent<IType>()));
         }
 
+        private object GetKind(IType type)
+        {
+            if (!type.TryGetKind(out TypeKind kind))
+            {
+                return new QueryError("Unknown kind of type: " + type);
+            }
+            return kind;
+        }
+
+        private string GetName(IType type)
+        {
+            if (type is INamedType n)
+            {
+                return n.Name;
+            }
+            return null;
+        }
+
+        private string GetDescription(IType type)
+        {
+            if (type is INamedType n)
+            {
+                return n.Description;
+            }
+            return null;
+        }
+
+        private IEnumerable<Field> GetFields(IType type, bool includeDeprecated)
+        {
+            if (type.IsObjectType() || type.IsInterfaceType())
+            {
+                IReadOnlyDictionary<string, Field> fields =
+                    ((IHasFields)type).Fields;
+                if (!includeDeprecated)
+                {
+                    return fields.Values.Where(t => !t.IsDeprecated);
+                }
+                return fields.Values;
+            }
+            return null;
+        }
+
+        private IEnumerable<InterfaceType> GetInterfaces(IType type)
+        {
+            if (type is ObjectType ot)
+            {
+                return ot.Interfaces.Values;
+            }
+            return null;
+        }
+
+        private IEnumerable<IType> GetPossibleTypes(Schema schema, INamedType type)
+        {
+            if (type.IsAbstractType())
+            {
+                return schema.GetPossibleTypes(type);
+            }
+            return null;
+        }
+
+        private IEnumerable<EnumValue> GetEnumValues(IType type, bool includeDeprecated)
+        {
+            if (type is EnumType et)
+            {
+                IReadOnlyCollection<EnumValue> values = et.Values;
+                if (!includeDeprecated)
+                {
+                    return values.Where(t => !t.IsDeprecated);
+                }
+                return values;
+            }
+            return null;
+        }
+
+        private IEnumerable<InputField> GetInputFields(IType type)
+        {
+            if (type is InputObjectType iot)
+            {
+                return iot.Fields.Values;
+            }
+            return null;
+        }
+
+        private IType GetOfType(IType type)
+        {
+            if (type is ListType lt)
+            {
+                return lt.ElementType;
+            }
+            else if (type is NonNullType nnt)
+            {
+                return nnt.Type;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
