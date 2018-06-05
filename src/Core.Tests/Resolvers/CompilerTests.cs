@@ -42,7 +42,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             string sourceText = @"
-                using HotChocolate.Resolvers.CodeGeneration;
+                using HotChocolate.Resolvers;
 
                 namespace FS
                 {
