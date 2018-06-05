@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
@@ -22,7 +23,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             Schema schema = CreateSchema();
-            QueryRequest request = new QueryRequest { Query = "{ basic { a } }" };
+            QueryRequestDto request = new QueryRequestDto { Query = "{ basic { a } }" };
             TestServer server = TestServerFactory.Create(schema, null);
 
             // act
@@ -42,14 +43,18 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             Schema schema = CreateSchema();
-            QueryRequest request = new QueryRequest
+            QueryRequestDto request = new QueryRequestDto
             {
                 Query = @"
                 query test($a: String) {
                     withScalarArgument(a: $a) {
                         a
                     }
-                }"
+                }",
+                Variables = new Dictionary<string, object>
+                {
+                    { "a", "a" }
+                }
             };
             TestServer server = TestServerFactory.Create(schema, null);
 
@@ -117,5 +122,13 @@ namespace HotChocolate.AspNetCore
         public string A { get; set; }
         public string B { get; set; }
         public string C { get; set; }
+    }
+
+    internal class QueryRequestDto
+    {
+        public string OperationName { get; set; }
+        public string NamedQuery { get; set; }
+        public string Query { get; set; }
+        public Dictionary<string, object> Variables { get; set; }
     }
 }

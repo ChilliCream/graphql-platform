@@ -443,6 +443,5 @@ namespace HotChocolate.Execution
                     return resolverResult;
             }
         }
-
     }
 }

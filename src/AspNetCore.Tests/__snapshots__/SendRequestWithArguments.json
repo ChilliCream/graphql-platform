@@ -1,7 +1,7 @@
 {
   "Data": {
-    "basic": {
-      "a": "1"
+    "withScalarArgument": {
+      "a": "a"
     }
   },
   "Errors": null

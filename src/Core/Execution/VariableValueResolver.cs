@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
                     if (!variableValues.TryGetValue(variableName,
                         out IValueNode variableValue))
                     {
-                        variableValue = defaultValue;
+                        variableValue = defaultValue ?? new NullValueNode();
                     }
 
                     if (type.IsNonNullType() && IsNulValue(variableValue))

@@ -5,6 +5,11 @@ namespace HotChocolate.Language
     public sealed class StringValueNode
         : IValueNode
     {
+        public StringValueNode(string value)
+            : this(null, value, false)
+        {
+        }
+
         public StringValueNode(
             Location location,
             string value,

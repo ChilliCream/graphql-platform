@@ -6,6 +6,11 @@ namespace HotChocolate.Language
         : IValueNode
     {
         public FloatValueNode(
+            string value)
+            : this(null, value)
+        {
+        }
+        public FloatValueNode(
             Location location,
             string value)
         {

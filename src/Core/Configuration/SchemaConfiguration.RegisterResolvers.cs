@@ -142,7 +142,8 @@ namespace HotChocolate.Configuration
             ISchemaContext schemaContext)
         {
             FieldResolverDiscoverer discoverer = new FieldResolverDiscoverer();
-            foreach (ObjectTypeBinding typeBinding in schemaContext.Types.GetTypeBindings())
+            foreach (ObjectTypeBinding typeBinding in schemaContext.Types
+                .GetTypeBindings().OfType<ObjectTypeBinding>())
             {
                 List<FieldResolverMember> missingResolvers = new List<FieldResolverMember>();
                 foreach (FieldBinding field in typeBinding.Fields.Values)
