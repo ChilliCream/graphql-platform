@@ -1,0 +1,13 @@
+{
+  "Data": {
+    "fooOrBar": [
+      {
+        "nameFoo": "foo"
+      },
+      {
+        "nameBar": "bar"
+      }
+    ]
+  },
+  "Errors": null
+}
