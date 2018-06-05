@@ -96,6 +96,26 @@ namespace HotChocolate.Types
 
         #region IFieldDescriptor
 
+        IFieldDescriptor IFieldDescriptor.Name(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (!ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(name));
+            }
+
+            Name = name;
+            return this;
+        }
+
         IFieldDescriptor IFieldDescriptor.Description(string description)
         {
             Description = description;

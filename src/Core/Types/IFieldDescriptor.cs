@@ -6,6 +6,7 @@ namespace HotChocolate.Types
 {
     public interface IFieldDescriptor
     {
+        IFieldDescriptor Name(string name);
         IFieldDescriptor Description(string description);
         IFieldDescriptor DeprecationReason(string deprecationReason);
         IFieldDescriptor Type<TOutputType>()

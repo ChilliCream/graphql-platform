@@ -28,6 +28,7 @@ namespace HotChocolate.Types.Introspection
                     "`enumValues` is a valid field.");
 
             descriptor.Item(TypeKind.InputObject)
+                .Name("INPUT_OBJECT")
                 .Description("Indicates this type is an input object. " +
                     "`inputFields` is a valid field.");
 
@@ -36,6 +37,7 @@ namespace HotChocolate.Types.Introspection
                     "`ofType` is a valid field.");
 
             descriptor.Item(TypeKind.NonNull)
+                .Name("NON_NULL")
                 .Description("Indicates this type is a non-null. " +
                     "`ofType` is a valid field.");
         }

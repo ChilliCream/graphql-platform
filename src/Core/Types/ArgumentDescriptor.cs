@@ -53,15 +53,18 @@ namespace HotChocolate.Types
 
         private IValueNode CreateValue(ITypeRegistry typeRegistry)
         {
-            if (DefaultValue == null)
+            if (DefaultValue != null)
             {
                 return DefaultValue;
             }
-            else
+
+            if(NativeDefaultValue != null)
             {
                 IInputType type = CreateType(typeRegistry);
                 return type.ParseValue(NativeDefaultValue);
             }
+
+            return new NullValueNode();
         }
 
         #region IArgumentDescriptor

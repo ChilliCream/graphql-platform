@@ -50,6 +50,7 @@ namespace HotChocolate.Types
             Name = name;
             return this;
         }
+
         IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
         {
             Description = description;

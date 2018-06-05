@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field(t => t.Description);
 
             descriptor.Field(t => t.Arguments)
+                .Name("args")
                 .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
                 .Resolver(c => c.Parent<Field>().Arguments.Values);
 

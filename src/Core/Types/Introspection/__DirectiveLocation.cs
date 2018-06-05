@@ -12,18 +12,6 @@ namespace HotChocolate.Types.Introspection
             descriptor.Item(DirectiveLocation.Query)
                 .Description("Location adjacent to a query operation.");
 
-            descriptor.Item(DirectiveLocation.Query)
-                .Description("Location adjacent to a query operation.");
-
-            descriptor.Item(DirectiveLocation.Query)
-                .Description("Location adjacent to a query operation.");
-
-            descriptor.Item(DirectiveLocation.Query)
-                .Description("Location adjacent to a query operation.");
-
-            descriptor.Item(DirectiveLocation.Query)
-                .Description("Location adjacent to a query operation.");
-
             descriptor.Item(DirectiveLocation.Mutation)
                 .Description("Location adjacent to a mutation operation.");
 

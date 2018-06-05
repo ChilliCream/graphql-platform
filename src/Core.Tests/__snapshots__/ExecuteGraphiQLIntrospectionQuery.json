@@ -8,7 +8,7 @@
       "subscriptionType": null,
       "types": [
         {
-          "kind": "INPUT_OBJECT",
+          "kind": "SCALAR",
           "name": "String",
           "description": null,
           "fields": null,
@@ -18,7 +18,7 @@
           "possibleTypes": null
         },
         {
-          "kind": "INPUT_OBJECT",
+          "kind": "SCALAR",
           "name": "Boolean",
           "description": null,
           "fields": null,
@@ -28,7 +28,7 @@
           "possibleTypes": null
         },
         {
-          "kind": "INPUT_OBJECT",
+          "kind": "SCALAR",
           "name": "Int",
           "description": null,
           "fields": null,
@@ -50,7 +50,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "String",
                   "ofType": null
                 }
@@ -63,7 +63,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -126,7 +126,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "Boolean",
                   "ofType": null
                 }
@@ -142,8 +142,8 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "__Directive",
+                  "kind": "SCALAR",
+                  "name": "Boolean",
                   "ofType": null
                 }
               },
@@ -158,8 +158,8 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "__Directive",
+                  "kind": "SCALAR",
+                  "name": "Boolean",
                   "ofType": null
                 }
               },
@@ -248,7 +248,7 @@
             },
             {
               "name": "ARGUMENT_DEFINITION",
-              "description": "Location adjacent to an argument definition.",
+              "description": "Location adjacent to an argument definition",
               "isDeprecated": false,
               "deprecationReason": null
             },
@@ -304,7 +304,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "String",
                   "ofType": null
                 }
@@ -317,7 +317,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -332,7 +332,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "Boolean",
                   "ofType": null
                 }
@@ -345,7 +345,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -371,7 +371,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "String",
                   "ofType": null
                 }
@@ -384,7 +384,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -439,7 +439,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "Boolean",
                   "ofType": null
                 }
@@ -452,7 +452,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -478,7 +478,7 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "INPUT_OBJECT",
+                  "kind": "SCALAR",
                   "name": "String",
                   "ofType": null
                 }
@@ -491,7 +491,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -519,7 +519,7 @@
               "description": "A GraphQL-formatted string representing the default value for this input value.",
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -657,7 +657,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -669,7 +669,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -684,11 +684,11 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "INPUT_OBJECT",
+                    "kind": "SCALAR",
                     "name": "Boolean",
                     "ofType": null
                   },
-                  "defaultValue": null
+                  "defaultValue": "False"
                 }
               ],
               "type": {
@@ -755,11 +755,11 @@
                   "name": "includeDeprecated",
                   "description": null,
                   "type": {
-                    "kind": "INPUT_OBJECT",
+                    "kind": "SCALAR",
                     "name": "Boolean",
                     "ofType": null
                   },
-                  "defaultValue": null
+                  "defaultValue": "False"
                 }
               ],
               "type": {
@@ -885,7 +885,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
@@ -920,7 +920,7 @@
               "description": null,
               "args": [],
               "type": {
-                "kind": "INPUT_OBJECT",
+                "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
