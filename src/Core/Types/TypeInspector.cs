@@ -163,8 +163,8 @@ namespace HotChocolate.Types
                     && IsNamedType(types[1]))
                 {
                     Func<ITypeRegistry, IType> factory = r =>
-                        new ListType(new NonNullType(
-                            r.GetType<INamedType>(types[1])));
+                        new NonNullType(
+                            r.GetType<INamedType>(types[1]));
                     typeInfo = new TypeInfo(types[1], factory);
                     return true;
                 }
@@ -173,8 +173,8 @@ namespace HotChocolate.Types
                     && IsNamedType(types[1]))
                 {
                     Func<ITypeRegistry, IType> factory = r =>
-                        new NonNullType(new ListType(
-                            r.GetType<INamedType>(types[1])));
+                        new ListType(
+                            r.GetType<INamedType>(types[1]));
                     typeInfo = new TypeInfo(types[1], factory);
                     return true;
                 }

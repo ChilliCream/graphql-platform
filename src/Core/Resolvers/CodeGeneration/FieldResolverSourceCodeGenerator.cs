@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -52,6 +53,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             source.AppendLine("}");
             source.AppendLine("}");
+
+            File.WriteAllText(Guid.NewGuid().ToString("N") + ".cs", source.ToString());
 
             return source.ToString();
         }

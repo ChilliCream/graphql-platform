@@ -22,12 +22,12 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field(t => t.MutationType)
                 .Description("If this server supports mutation, the type that " +
                     "mutation operations will be rooted at.")
-                .Type<NonNullType<__Type>>();
+                .Type<__Type>();
 
             descriptor.Field(t => t.SubscriptionType)
                 .Description("If this server support subscription, the type that " +
                     "subscription operations will be rooted at.")
-                .Type<NonNullType<__Type>>();
+                .Type<__Type>();
 
             descriptor.Field("directives")
                 .Description("A list of all directives supported by this server.")

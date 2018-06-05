@@ -79,14 +79,24 @@ namespace HotChocolate.Configuration
 
         private IEnumerable<FieldResolver> CompileResolvers()
         {
-            List<FieldResolverDescriptor> resolverDescriptors = new List<FieldResolverDescriptor>();
-            foreach (MemberResolverBinding binding in _resolverBindings
+            List<FieldResolverDescriptor> resolverDescriptors =
+                new List<FieldResolverDescriptor>();
+
+            foreach (MemberResolverBinding binding in _resolverBindings.Values
                 .OfType<MemberResolverBinding>())
             {
                 if (binding.FieldMember is PropertyInfo p)
                 {
+                    FieldReference fieldReference = new FieldReference(
+                        binding.TypeName, binding.FieldName);
+                    resolverDescriptors.Add(FieldResolverDescriptor
+                        .CreateSourceProperty(fieldReference, p.ReflectedType, p));
+                }
+
+                if (binding.FieldMember is MethodInfo m)
+                {
                     FieldReference fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
-                    resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceProperty(fieldReference, p.ReflectedType, p));
+                    //resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(fieldReference, m.ReflectedType, m));
                 }
             }
             resolverDescriptors.AddRange(_resolverDescriptors.Values);

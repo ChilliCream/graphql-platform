@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -12,15 +13,20 @@ namespace HotChocolate
     {
         private sealed class SchemaTypes
         {
-            public Dictionary<string, INamedType> _types;
+            private readonly Dictionary<string, INamedType> _types;
+            private readonly Dictionary<string, ITypeBinding> _typeBindings;
+            private readonly Dictionary<string, ImmutableList<ObjectType>> _possibleTypes;
 
             private SchemaTypes(
                 IEnumerable<INamedType> types,
+                IEnumerable<ITypeBinding> typeBindings,
                 string queryTypeName,
                 string mutationTypeName,
                 string subscriptionTypeName)
             {
                 _types = types.ToDictionary(t => t.Name);
+                _typeBindings = typeBindings.ToDictionary(t => t.Name);
+                _possibleTypes = CreatePossibleTypeLookup(_types.Values);
 
                 INamedType namedType;
                 if (_types.TryGetValue(queryTypeName, out namedType)
@@ -78,8 +84,77 @@ namespace HotChocolate
                 return _types.Values;
             }
 
+            public bool TryGetNativeType(string typeName, out Type nativeType)
+            {
+                if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding))
+                {
+                    if (binding is ObjectTypeBinding otb)
+                    {
+                        nativeType = otb.Type;
+                        return true;
+                    }
+
+                    if (binding is InputObjectTypeBinding iotb)
+                    {
+                        nativeType = iotb.Type;
+                        return true;
+                    }
+                }
+
+                nativeType = null;
+                return false;
+            }
+
+            public bool TryGetPossibleTypes(
+                string abstractTypeName,
+                out ImmutableList<ObjectType> types)
+            {
+                return _possibleTypes.TryGetValue(abstractTypeName, out types);
+            }
+
+            private static Dictionary<string, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
+                IReadOnlyCollection<INamedType> types)
+            {
+                Dictionary<string, List<ObjectType>> possibleTypes =
+                    new Dictionary<string, List<ObjectType>>();
+
+                foreach (ObjectType objectType in types.OfType<ObjectType>())
+                {
+                    foreach (InterfaceType interfaceType in objectType.Interfaces.Values)
+                    {
+                        if (!possibleTypes.TryGetValue(
+                            interfaceType.Name, out List<ObjectType> pt))
+                        {
+                            pt = new List<ObjectType>();
+                            possibleTypes[interfaceType.Name] = pt;
+                        }
+
+                        pt.Add(objectType);
+                    }
+                }
+
+                foreach (UnionType unionType in types.OfType<UnionType>())
+                {
+                    foreach (ObjectType objectType in unionType.Types.Values)
+                    {
+                        if (!possibleTypes.TryGetValue(
+                            unionType.Name, out List<ObjectType> pt))
+                        {
+                            pt = new List<ObjectType>();
+                            possibleTypes[unionType.Name] = pt;
+                        }
+
+                        pt.Add(objectType);
+                    }
+                }
+
+                return possibleTypes.ToDictionary(
+                    t => t.Key, t => t.Value.ToImmutableList());
+            }
+
             public static SchemaTypes Create(
                 IEnumerable<INamedType> types,
+                IEnumerable<ITypeBinding> typeBindings,
                 SchemaNames names)
             {
                 if (types == null)
@@ -87,11 +162,17 @@ namespace HotChocolate
                     throw new ArgumentNullException(nameof(types));
                 }
 
+                if (typeBindings == null)
+                {
+                    throw new ArgumentNullException(nameof(typeBindings));
+                }
+
                 SchemaNames n = string.IsNullOrEmpty(names.QueryTypeName)
                     ? new SchemaNames(null, null, null)
                     : names;
 
                 return new SchemaTypes(types,
+                    typeBindings,
                     n.QueryTypeName,
                     n.MutationTypeName,
                     n.SubscriptionTypeName);

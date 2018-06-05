@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Introspection
                 "types, Union and Interface, provide the Object types possible " +
                 "at runtime. List and NonNull types compose other types.");
 
-            descriptor.Field("Kind")
+            descriptor.Field("kind")
                 .Type<NonNullType<__TypeKind>>()
                 .Resolver(c =>
                 {

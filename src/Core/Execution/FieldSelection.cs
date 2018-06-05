@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+    [DebuggerDisplay("{Field.Name}: {Field.Type}")]
     public class FieldSelection
     {
         public FieldSelection(FieldNode node, Field field, string responseName)

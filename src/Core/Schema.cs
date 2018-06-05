@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -70,15 +71,26 @@ namespace HotChocolate
             return Array.Empty<object>();
         }
 
-        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
+        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(
+            INamedType abstractType)
         {
+            if (abstractType == null)
+            {
+                throw new ArgumentNullException(nameof(abstractType));
+            }
+
+            if (_types.TryGetPossibleTypes(
+                abstractType.Name,
+                out ImmutableList<ObjectType> types))
+            {
+                return types;
+            }
             return Array.Empty<ObjectType>();
         }
 
         internal bool TryGetNativeType(string typeName, out Type nativeType)
         {
-            nativeType = null;
-            return false;
+            return _types.TryGetNativeType(typeName, out nativeType);
         }
     }
 }

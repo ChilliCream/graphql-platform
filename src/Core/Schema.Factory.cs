@@ -138,7 +138,10 @@ namespace HotChocolate
             }
 
             return new Schema(
-                SchemaTypes.Create(context.Types.GetTypes(), n),
+                SchemaTypes.Create(
+                    context.Types.GetTypes(),
+                    context.Types.GetTypeBindings(),
+                    n),
                 introspectionFields);
         }
 
