@@ -53,9 +53,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             source.AppendLine("}");
             source.AppendLine("}");
-
-            File.WriteAllText(Guid.NewGuid().ToString("N") + ".cs", source.ToString());
-
             return source.ToString();
         }
 

@@ -29,8 +29,10 @@ namespace HotChocolate.Types
             DelegateResolverBinding resolverBinding = new DelegateResolverBinding(
                 "Simple", "a",
                 (c, r) => "hello");
+
             SchemaContext context = new SchemaContext();
             context.Types.RegisterType(scalarType);
+            context.Resolvers.RegisterResolver(resolverBinding);
 
             // act
             ObjectTypeFactory factory = new ObjectTypeFactory();
@@ -57,56 +59,56 @@ namespace HotChocolate.Types
                 .Resolver(null, CancellationToken.None)));
         }
 
-            /*
-        [Fact]
-        public void CreateUnion()
+        /*
+    [Fact]
+    public void CreateUnion()
+    {
+        // arrange
+        DocumentNode document = Parser.Default.Parse(
+            "union X = A | B");
+        UnionTypeDefinitionNode unionTypeDefinition = document
+            .Definitions.OfType<UnionTypeDefinitionNode>().First();
+
+        SchemaContext context = new SchemaContext(
+            new[] { new StringType() });
+        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
+        schemaConfiguration.RegisterType(c => new ObjectTypeConfig
         {
-            // arrange
-            DocumentNode document = Parser.Default.Parse(
-                "union X = A | B");
-            UnionTypeDefinitionNode unionTypeDefinition = document
-                .Definitions.OfType<UnionTypeDefinitionNode>().First();
-
-            SchemaContext context = new SchemaContext(
-                new[] { new StringType() });
-            SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
-            schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+            Name = "A",
+            Fields = new[]
             {
-                Name = "A",
-                Fields = new[]
+                new Field(new FieldConfig
                 {
-                    new Field(new FieldConfig
-                    {
-                        Name = "a",
-                        Type = () => c.StringType()
-                    })
-                }
-            });
-            schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+                    Name = "a",
+                    Type = () => c.StringType()
+                })
+            }
+        });
+        schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+        {
+            Name = "B",
+            Fields = new[]
             {
-                Name = "B",
-                Fields = new[]
+                new Field(new FieldConfig
                 {
-                    new Field(new FieldConfig
-                    {
-                        Name = "a",
-                        Type = () => c.StringType()
-                    })
-                }
-            });
-            schemaConfiguration.Commit(context);
+                    Name = "a",
+                    Type = () => c.StringType()
+                })
+            }
+        });
+        schemaConfiguration.Commit(context);
 
-            // act
-            UnionTypeFactory factory = new UnionTypeFactory();
-            UnionType unionType = factory.Create(context, unionTypeDefinition);
-            ((INeedsInitialization)unionType).CompleteInitialization(error => { });
+        // act
+        UnionTypeFactory factory = new UnionTypeFactory();
+        UnionType unionType = factory.Create(context, unionTypeDefinition);
+        ((INeedsInitialization)unionType).CompleteInitialization(error => { });
 
-            // assert
-            Assert.Equal("X", unionType.Name);
-            Assert.Equal(2, unionType.Types.Count);
-            Assert.Equal("A", unionType.Types.First().Key);
-            Assert.Equal("B", unionType.Types.Last().Key);
-        }
-         */
+        // assert
+        Assert.Equal("X", unionType.Name);
+        Assert.Equal(2, unionType.Types.Count);
+        Assert.Equal("A", unionType.Types.First().Key);
+        Assert.Equal("B", unionType.Types.Last().Key);
+    }
+     */
     }
 }

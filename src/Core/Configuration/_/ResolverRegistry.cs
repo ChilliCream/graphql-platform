@@ -65,7 +65,7 @@ namespace HotChocolate.Configuration
         {
             List<FieldResolver> fieldResolvers = new List<FieldResolver>();
             fieldResolvers.AddRange(CompileResolvers());
-            fieldResolvers.AddRange(_resolverBindings
+            fieldResolvers.AddRange(_resolverBindings.Values
                 .OfType<DelegateResolverBinding>()
                 .Select(CreateDelegateResolver));
 

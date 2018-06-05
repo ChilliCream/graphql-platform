@@ -1,13 +1,14 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate
 {
-    public class SchemaTests
+    public class SchemaFirstTests
     {
         [Fact]
-        public async Task ExecuteQueryWithSourceResolver()
+        public async Task ExecuteOneFieldQuery()
         {
             // arrange
             Schema schema = Schema.Create(
@@ -32,5 +33,9 @@ namespace HotChocolate
         {
             return "Hello World!";
         }
+
+        public string TestProp => "Hello World!";
     }
+
+    
 }
