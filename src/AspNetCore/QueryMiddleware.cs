@@ -105,45 +105,75 @@ namespace HotChocolate.AspNetCore
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
         }
 
-        private Dictionary<string, object> DeserializeVariables(
-            Dictionary<string, object> input)
+        private Dictionary<string, IValueNode> DeserializeVariables(
+            Dictionary<string, JToken> input)
         {
             if (input == null)
             {
                 return null;
             }
 
+            Dictionary<string, IValueNode> values =
+                new Dictionary<string, IValueNode>();
             foreach (string key in input.Keys.ToArray())
             {
-                input[key] = DeserializeVariableValue(input[key]);
+                values[key] = DeserializeVariableValue(input[key]);
             }
-            return input;
+            return values;
         }
 
-        private object DeserializeVariableValue(object value)
+        private ObjectValueNode DeserializeObjectValue(
+           Dictionary<string, JToken> input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+
+            List<ObjectFieldNode> fields = new List<ObjectFieldNode>();
+            foreach (string key in input.Keys.ToArray())
+            {
+                fields.Add(new ObjectFieldNode(null,
+                    new NameNode(null, key),
+                    DeserializeVariableValue(input[key])));
+            }
+            return new ObjectValueNode(null, fields);
+        }
+
+        private IValueNode DeserializeVariableValue(object value)
         {
             if (value is JObject jo)
             {
-                return DeserializeVariables(
-                    jo.ToObject<Dictionary<string, object>>());
+                return DeserializeObjectValue(
+                    jo.ToObject<Dictionary<string, JToken>>());
             }
 
             if (value is JArray ja)
             {
-                List<object> list = new List<object>();
+                List<IValueNode> list = new List<IValueNode>();
                 foreach (JToken token in ja.Children())
                 {
                     list.Add(DeserializeVariableValue(token));
                 }
-                return list;
+                return new ListValueNode(null, list);
             }
 
             if (value is JValue jv)
             {
-                return jv.Value<object>();
+                switch (jv.Type)
+                {
+                    case JTokenType.Boolean:
+                        return new BooleanValueNode(jv.Value<bool>());
+                    case JTokenType.Integer:
+                        return new IntValueNode(jv.Value<string>());
+                    case JTokenType.Float:
+                        return new FloatValueNode(jv.Value<string>());
+                    default:
+                        return new StringValueNode(jv.Value<string>());
+                }
             }
 
-            return value;
+            throw new NotSupportedException();
         }
     }
 }

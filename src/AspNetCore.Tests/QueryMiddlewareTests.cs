@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             Schema schema = CreateSchema();
-            QueryRequest request = new QueryRequest { Query = "{ basic { a } }" };
+            QueryRequestDto request = new QueryRequestDto { Query = "{ basic { a } }" };
             TestServer server = TestServerFactory.Create(schema, null);
 
             // act
@@ -43,7 +43,7 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             Schema schema = CreateSchema();
-            QueryRequest request = new QueryRequest
+            QueryRequestDto request = new QueryRequestDto
             {
                 Query = @"
                 query test($a: String) {
@@ -122,5 +122,13 @@ namespace HotChocolate.AspNetCore
         public string A { get; set; }
         public string B { get; set; }
         public string C { get; set; }
+    }
+
+    internal class QueryRequestDto
+    {
+        public string OperationName { get; set; }
+        public string NamedQuery { get; set; }
+        public string Query { get; set; }
+        public Dictionary<string, object> Variables { get; set; }
     }
 }

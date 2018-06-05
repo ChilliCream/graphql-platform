@@ -18,12 +18,12 @@ namespace HotChocolate.Execution
 
         public async Task<QueryResult> ExecuteRequestAsync(
             Schema schema, DocumentNode queryDocument, string operationName,
-            Dictionary<string, object> variableValues, object initialValue,
+            Dictionary<string, IValueNode> variableValues, object initialValue,
             CancellationToken cancellationToken)
         {
             ExecutionContext executionContext = CreateExecutionContext(
                 schema, queryDocument, operationName,
-                null, initialValue);
+                variableValues, initialValue);
             List<FieldResolverTask> tasks = null;
 
             switch (executionContext.Operation.Operation)
