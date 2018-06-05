@@ -151,7 +151,7 @@ namespace HotChocolate
                     .Resolver(() => "foo");
                 descriptor.Field("bar")
                     .Type<NonNullType<BarType>>()
-                    .Resolver(() => "bar");
+                    .Resolver(c => "bar");
                 descriptor.Field("fooOrBar")
                     .Type<NonNullType<ListType<NonNullType<FooBarUnionType>>>>()
                     .Resolver(() => new object[] { "foo", "bar" });

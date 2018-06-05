@@ -19,10 +19,14 @@ namespace HotChocolate
         private readonly SchemaTypes _types;
         private readonly IntrospectionFields _introspectionFields;
 
-        private Schema(SchemaTypes types, IntrospectionFields introspectionFields)
+        private Schema(
+            IServiceProvider services,
+            SchemaTypes types,
+            IntrospectionFields introspectionFields)
         {
             _types = types;
             _introspectionFields = introspectionFields;
+            Services = services;
         }
 
         /// <summary>
@@ -47,6 +51,8 @@ namespace HotChocolate
         internal __TypeField TypeField => _introspectionFields.TypeField;
 
         internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
+
+        internal IServiceProvider Services { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType

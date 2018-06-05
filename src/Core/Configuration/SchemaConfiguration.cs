@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -17,6 +18,28 @@ namespace HotChocolate.Configuration
             new List<ResolverBindingInfo>();
         private readonly List<TypeBindingInfo> _typeBindings =
             new List<TypeBindingInfo>();
+        private readonly IServiceProvider _services;
+
+        public SchemaConfiguration()
+            : this(new DefaultServiceProvider())
+        {
+        }
+
+        public SchemaConfiguration(IServiceProvider services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            _services = services;
+        }
+
+        public string QueryTypeName { get; private set; }
+
+        public string MutationTypeName { get; private set; }
+
+        public string SubscriptionTypeName { get; private set; }
 
         public IBindResolverDelegate BindResolver(
             AsyncFieldResolverDelegate fieldResolver)
@@ -81,9 +104,33 @@ namespace HotChocolate.Configuration
         }
 
         public void RegisterType<T>()
-            where T : INamedType, new()
+            where T : INamedType
         {
-            T type = new T();
+            T type = (T)_services.GetService(typeof(T));
+            _types[type.Name] = type;
+        }
+
+        public void RegisterQueryType<T>()
+            where T : ObjectType
+        {
+            T type = (T)_services.GetService(typeof(T));
+            QueryTypeName = type.Name;
+            _types[type.Name] = type;
+        }
+
+        public void RegisterMutationType<T>()
+            where T : ObjectType
+        {
+            T type = (T)_services.GetService(typeof(T));
+            MutationTypeName = type.Name;
+            _types[type.Name] = type;
+        }
+
+        public void RegisterSubscriptionType<T>()
+            where T : ObjectType
+        {
+            T type = (T)_services.GetService(typeof(T));
+            SubscriptionTypeName = type.Name;
             _types[type.Name] = type;
         }
     }
