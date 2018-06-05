@@ -22,6 +22,7 @@ namespace HotChocolate.Types
         private readonly IsOfType _isOfType;
         private readonly Func<ITypeRegistry, IEnumerable<InterfaceType>> _interfaceFactory;
         private readonly IReadOnlyCollection<TypeInfo> _interfaceTypeInfos;
+        private readonly ObjectTypeBinding _typeBinding;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
         private readonly Dictionary<string, Field> _fieldMap =
@@ -44,9 +45,23 @@ namespace HotChocolate.Types
                     $"The object type `{Name}` has no fields.");
             }
 
-            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
+            List<FieldBinding> fieldBindings = new List<FieldBinding>();
+            foreach (FieldDescriptor fieldDescriptor in descriptor.Fields)
             {
-                _fieldMap[field.Name] = field;
+                Field field = fieldDescriptor.CreateField();
+                _fieldMap[fieldDescriptor.Name] = field;
+
+                if (fieldDescriptor.Member != null)
+                {
+                    fieldBindings.Add(new FieldBinding(
+                        fieldDescriptor.Name, fieldDescriptor.Member, field));
+                }
+            }
+
+            if (descriptor.NativeType != null)
+            {
+                _typeBinding = new ObjectTypeBinding(
+                    descriptor.Name, descriptor.NativeType, this, fieldBindings);
             }
 
             _isOfType = descriptor.IsOfType;
@@ -58,6 +73,7 @@ namespace HotChocolate.Types
             Name = descriptor.Name;
             Description = descriptor.Description;
             IsIntrospection = descriptor.IsIntrospection;
+
         }
 
         internal ObjectType(ObjectTypeConfig config)
@@ -156,6 +172,11 @@ namespace HotChocolate.Types
             foreach (Field field in _fieldMap.Values)
             {
                 field.RegisterDependencies(schemaContext, reportError, this);
+            }
+
+            if (_typeBinding != null)
+            {
+                schemaContext.Types.RegisterType(this, _typeBinding);
             }
         }
 
