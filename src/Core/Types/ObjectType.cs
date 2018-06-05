@@ -73,7 +73,6 @@ namespace HotChocolate.Types
             Name = descriptor.Name;
             Description = descriptor.Description;
             IsIntrospection = descriptor.IsIntrospection;
-
         }
 
         internal ObjectType(ObjectTypeConfig config)

@@ -14,6 +14,19 @@ namespace HotChocolate.Types
             { typeof(bool), new TypeInfo(typeof(BooleanType)) }
         };
 
+        public bool IsSupported(Type nativeType)
+        {
+            try
+            {
+                GetOrCreateTypeInfo(nativeType);
+                return true;
+            }
+            catch (NotSupportedException)
+            {
+                return false;
+            }
+        }
+
         public TypeInfo CreateTypeInfo(Type nativeType)
         {
             return GetOrCreateTypeInfo(nativeType);

@@ -3,7 +3,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using Xunit;
 
-namespace HotChocolate.Resolvers.CodeGeneration
+namespace HotChocolate.Resolvers
 {
     public class CompilerTests
     {
@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 {
                     public class Foo
                     {
-                        public string Bar() 
+                        public string Bar()
                         {
                             return ""Hello World"";
                         }
@@ -48,7 +48,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 {
                     public class DynamicFoo
                     {
-                        public string Bar(Foo foo) 
+                        public string Bar(Foo foo)
                         {
                             return foo.Bar;
                         }

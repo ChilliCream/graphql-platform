@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Types
@@ -36,6 +38,25 @@ namespace HotChocolate.Types
 
         public ImmutableList<EnumValueDescriptor> Items { get; protected set; } =
             ImmutableList<EnumValueDescriptor>.Empty;
+
+        public IEnumerable<EnumValue> CreateEnumValues()
+        {
+            if (NativeType != null && NativeType.IsEnum && !Items.Any())
+            {
+                foreach (object o in Enum.GetValues(NativeType))
+                {
+                    Items = Items.Add(new EnumValueDescriptor(o));
+                }
+            }
+
+            return Items.Select(t => new EnumValue(new EnumValueConfig
+            {
+                Name = t.Name,
+                Description = t.Description,
+                DeprecationReason = t.DeprecationReason,
+                Value = t.Value
+            }));
+        }
 
         #region IEnumTypeDescriptor
 

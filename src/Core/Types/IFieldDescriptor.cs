@@ -11,6 +11,7 @@ namespace HotChocolate.Types
         IFieldDescriptor DeprecationReason(string deprecationReason);
         IFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
+        IFieldDescriptor Type(Type type, bool overwrite);
         IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
         IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
     }
@@ -28,7 +29,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, TResult> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) => fieldResolver(ctx));
+            return descriptor.Type(typeof(TResult), false)
+                .Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
         public static IFieldDescriptor Resolver(
@@ -42,7 +44,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<TResult> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) => fieldResolver());
+            return descriptor.Type(typeof(TResult), false)
+                .Resolver((ctx, ct) => fieldResolver());
         }
 
         public static IFieldDescriptor Resolver(
@@ -63,7 +66,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) => fieldResolver(ctx));
+            return descriptor.Type(typeof(TResult), false)
+                .Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
         public static IFieldDescriptor Resolver(
@@ -77,7 +81,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<Task<TResult>> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) => fieldResolver());
+            return descriptor.Type(typeof(TResult), false)
+                .Resolver((ctx, ct) => fieldResolver());
         }
     }
 }

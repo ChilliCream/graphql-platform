@@ -29,22 +29,8 @@ namespace HotChocolate.Types
                     "Am enum type name must not be null or empty.");
             }
 
-            if (descriptor.Items == null)
+            foreach (EnumValue enumValue in descriptor.CreateEnumValues())
             {
-                throw new ArgumentException(
-                    $"The enum type {descriptor.Name} has no values.");
-            }
-
-            foreach (EnumValueDescriptor value in descriptor.Items)
-            {
-                EnumValue enumValue = new EnumValue(new EnumValueConfig
-                {
-                    Name = value.Name,
-                    Description = value.Description,
-                    DeprecationReason = value.DeprecationReason,
-                    Value = value.Value
-                });
-
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
             }

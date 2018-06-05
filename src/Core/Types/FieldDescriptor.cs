@@ -128,6 +128,24 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IFieldDescriptor IFieldDescriptor.Type(Type outputType, bool overwrite)
+        {
+
+            if (overwrite == true || NativeType == null)
+            {
+                if (TypeInspector.Default.IsSupported(outputType))
+                {
+                    NativeType = outputType;
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        "The specified is not a supported output type.");
+                }
+            }
+            return this;
+        }
+
         IFieldDescriptor IFieldDescriptor.DeprecationReason(
             string deprecationReason)
         {

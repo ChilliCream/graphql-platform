@@ -37,12 +37,6 @@ namespace HotChocolate.Types
                     "A union type must have a set of types.");
             }
 
-            if (descriptor.ResolveAbstractType == null)
-            {
-                throw new ArgumentException(
-                    "A Union type must define one or more unique member types.");
-            }
-
             _typesFactory = r => descriptor.Types
                 .Select(t => t.TypeFactory(r))
                 .Cast<ObjectType>();

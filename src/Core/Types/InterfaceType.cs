@@ -15,9 +15,9 @@ namespace HotChocolate.Types
         , INeedsInitialization
         , IHasFields
     {
-        private readonly ResolveAbstractType _resolveAbstractType;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
+        private ResolveAbstractType _resolveAbstractType;
 
         public InterfaceType()
         {
@@ -141,6 +141,33 @@ namespace HotChocolate.Types
             foreach (Field field in _fieldMap.Values)
             {
                 field.CompleteField(schemaContext, reportError, this);
+            }
+
+            if (_resolveAbstractType == null)
+            {
+                // if there is now custom type resolver we will use this default
+                // abstract type resolver.
+                List<ObjectType> types = null;
+                _resolveAbstractType = (c, r) =>
+                {
+                    if (types == null)
+                    {
+                        types = schemaContext.Types.GetTypes()
+                            .OfType<ObjectType>()
+                            .Where(t => t.Interfaces.ContainsKey(Name))
+                            .ToList();
+                    }
+
+                    foreach (ObjectType type in types)
+                    {
+                        if (type.IsOfType(c, r))
+                        {
+                            return type;
+                        }
+                    }
+
+                    return null; // todo: should we throw instead?
+                };
             }
         }
 

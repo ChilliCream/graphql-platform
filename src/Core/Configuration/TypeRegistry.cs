@@ -18,7 +18,11 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            _namedTypes[namedType.Name] = namedType;
+            if (!_namedTypes.ContainsKey(namedType.Name))
+            {
+                _namedTypes[namedType.Name] = namedType;
+            }
+
             if (typeBinding != null)
             {
                 _typeBindings[namedType.Name] = typeBinding;
@@ -36,7 +40,7 @@ namespace HotChocolate.Configuration
             {
                 INamedType namedType = (INamedType)Activator.CreateInstance(nativeNamedType);
                 RegisterType(namedType);
-                _typesToNamedTypes[nativeNamedType] = namedType;
+                _typesToNamedTypes[nativeNamedType] = _namedTypes[namedType.Name];
             }
         }
 
