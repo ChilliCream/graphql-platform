@@ -739,7 +739,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "__Directive",
+                    "name": "__Type",
                     "ofType": null
                   }
                 }
