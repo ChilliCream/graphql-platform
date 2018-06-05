@@ -92,7 +92,7 @@ namespace HotChocolate.Resolvers
             throw new NotSupportedException();
         }
 
-        private IReadOnlyCollection<FieldResolverArgumentDescriptor> CreateResolverArgumentDescriptors(
+        internal static IReadOnlyCollection<FieldResolverArgumentDescriptor> CreateResolverArgumentDescriptors(
             MethodInfo method, Type resolverType, Type sourceType)
         {
             List<FieldResolverArgumentDescriptor> arguments =

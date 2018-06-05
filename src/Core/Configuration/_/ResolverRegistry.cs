@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
@@ -96,7 +97,13 @@ namespace HotChocolate.Configuration
                 if (binding.FieldMember is MethodInfo m)
                 {
                     FieldReference fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
-                    //resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(fieldReference, m.ReflectedType, m));
+                    bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
+                    IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
+                        FieldResolverDiscoverer.CreateResolverArgumentDescriptors(
+                            m, m.ReflectedType, m.ReflectedType);
+                    resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(
+                        fieldReference, m.ReflectedType, m, isAsync,
+                        argumentDescriptors));
                 }
             }
             resolverDescriptors.AddRange(_resolverDescriptors.Values);
