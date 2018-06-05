@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
@@ -49,7 +50,11 @@ namespace HotChocolate.AspNetCore
                     withScalarArgument(a: $a) {
                         a
                     }
-                }"
+                }",
+                Variables = new Dictionary<string, object>
+                {
+                    { "a", "a" }
+                }
             };
             TestServer server = TestServerFactory.Create(schema, null);
 

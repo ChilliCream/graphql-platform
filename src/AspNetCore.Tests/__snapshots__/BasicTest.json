@@ -1,7 +1,7 @@
 {
   "Data": {
-    "getFoo": {
-      "a": "hello"
+    "basic": {
+      "a": "1"
     }
   },
   "Errors": null

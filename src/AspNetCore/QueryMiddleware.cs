@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
 {
@@ -65,11 +67,10 @@ namespace HotChocolate.AspNetCore
 
             DocumentNode queryDocument = _parser.Parse(request.Query);
 
-            // TODO : serialize variables
             QueryResult result = await operationExecuter.ExecuteRequestAsync(
                 schema, queryDocument, request.OperationName,
-                /*TODO: request.Variables*/ null, null, CancellationToken.None)
-                .ConfigureAwait(false);
+                DeserializeVariables(request.Variables), null,
+                CancellationToken.None).ConfigureAwait(false);
 
             await WriteResponseAsync(context.Response, result)
                 .ConfigureAwait(false);
@@ -102,6 +103,47 @@ namespace HotChocolate.AspNetCore
             string json = JsonConvert.SerializeObject(internalResult);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        private Dictionary<string, object> DeserializeVariables(
+            Dictionary<string, object> input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+
+            foreach (string key in input.Keys.ToArray())
+            {
+                input[key] = DeserializeVariableValue(input[key]);
+            }
+            return input;
+        }
+
+        private object DeserializeVariableValue(object value)
+        {
+            if (value is JObject jo)
+            {
+                return DeserializeVariables(
+                    jo.ToObject<Dictionary<string, object>>());
+            }
+
+            if (value is JArray ja)
+            {
+                List<object> list = new List<object>();
+                foreach (JToken token in ja.Children())
+                {
+                    list.Add(DeserializeVariableValue(token));
+                }
+                return list;
+            }
+
+            if (value is JValue jv)
+            {
+                return jv.Value<object>();
+            }
+
+            return value;
         }
     }
 }
