@@ -5,6 +5,11 @@ namespace HotChocolate.Language
     public sealed class EnumValueNode
         : IValueNode
     {
+        public EnumValueNode(string value)
+            : this(null, value)
+        {
+        }
+
         public EnumValueNode(
             Location location,
             string value)

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Introspection;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -13,251 +14,89 @@ namespace HotChocolate
     /// exposes all available types and directives on the server, as well as
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
-    public class Schema
+    public partial class Schema
     {
-        private readonly SchemaContext _context;
+        private readonly SchemaTypes _types;
+        private readonly IntrospectionFields _introspectionFields;
 
-        private Schema(SchemaContext context)
+        private Schema(
+            IServiceProvider services,
+            SchemaTypes types,
+            IntrospectionFields introspectionFields)
         {
-            _context = context;
-            QueryType = (ObjectType)context.GetType(context.QueryTypeName);
-
-            if (context.TryGetOutputType<ObjectType>(
-                context.MutationTypeName, out ObjectType mutationType))
-            {
-                MutationType = mutationType;
-            }
-
-            if (context.TryGetOutputType<ObjectType>(
-                context.SubscriptionTypeName, out ObjectType subscriptionType))
-            {
-                SubscriptionType = subscriptionType;
-            }
-
-            SchemaField = IntrospectionTypes.CreateSchemaField(context);
-            TypeField = IntrospectionTypes.CreateTypeField(context);
-            TypeNameField = IntrospectionTypes.CreateTypeNameField(context);
-
-            SchemaField.CompleteInitialization(error => { }, QueryType);
-            TypeField.CompleteInitialization(error => { }, QueryType);
-            TypeNameField.CompleteInitialization(error => { }, QueryType);
+            _types = types;
+            _introspectionFields = introspectionFields;
+            Services = services;
         }
 
         /// <summary>
         /// The type that query operations will be rooted at.
         /// </summary>
-        public ObjectType QueryType { get; }
+        public ObjectType QueryType => _types.QueryType;
 
         /// <summary>
         /// If this server supports mutation, the type that
         /// mutation operations will be rooted at.
         /// </summary>
-        public ObjectType MutationType { get; }
+        public ObjectType MutationType => _types.MutationType;
 
         /// <summary>
         /// If this server support subscription, the type that
         /// subscription operations will be rooted at.
         /// </summary>
-        public ObjectType SubscriptionType { get; }
+        public ObjectType SubscriptionType => _types.SubscriptionType;
 
-        internal Field SchemaField { get; }
+        internal __SchemaField SchemaField => _introspectionFields.SchemaField;
 
-        internal Field TypeField { get; }
+        internal __TypeField TypeField => _introspectionFields.TypeField;
 
-        internal Field TypeNameField { get; }
+        internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
 
-        public INamedType GetType(string typeName)
-        {
-            return _context.GetType(typeName);
-        }
-
-        public bool TryGetType(string typeName, out INamedType type)
-        {
-            return _context.TryGetType(typeName, out type);
-        }
+        internal IServiceProvider Services { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType
         {
-            return _context.GetType<T>(typeName);
+            return _types.GetType<T>(typeName);
         }
 
         public bool TryGetType<T>(string typeName, out T type)
             where T : INamedType
         {
-            return _context.TryGetType<T>(typeName, out type);
+            return _types.TryGetType<T>(typeName, out type);
         }
 
         public IReadOnlyCollection<INamedType> GetAllTypes()
         {
-            return _context.GetAllTypes();
+            return _types.GetTypes();
         }
 
         // TODO : Introduce directive type
-        public IReadOnlyCollection<object> GetDirectives()
+        internal IReadOnlyCollection<object> GetDirectives()
         {
             return Array.Empty<object>();
         }
 
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType type)
+        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(
+            INamedType abstractType)
         {
-            return GetPossibleTypes(type.Name);
-        }
-
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(string abstractTypeName)
-        {
-            return _context.GetPossibleTypes(abstractTypeName);
-        }
-
-        public bool TryGetNativeType(string typeName, out Type nativeType)
-        {
-            return _context.TryGetNativeType(typeName, out nativeType);
-        }
-
-        public static Schema Create(
-            string schema,
-            Action<ISchemaConfiguration> configure)
-        {
-            return Create(schema, configure, false);
-        }
-
-        public static Schema Create(
-            string schema,
-            Action<ISchemaConfiguration> configure,
-            bool strict)
-        {
-            if (string.IsNullOrEmpty(schema))
+            if (abstractType == null)
             {
-                throw new ArgumentNullException(nameof(schema));
+                throw new ArgumentNullException(nameof(abstractType));
             }
 
-            if (configure == null)
+            if (_types.TryGetPossibleTypes(
+                abstractType.Name,
+                out ImmutableList<ObjectType> types))
             {
-                throw new ArgumentNullException(nameof(configure));
+                return types;
             }
-
-            return Create(Parser.Default.Parse(schema), configure, strict);
+            return Array.Empty<ObjectType>();
         }
 
-        public static Schema Create(
-            DocumentNode schemaDocument,
-            Action<ISchemaConfiguration> configure)
+        internal bool TryGetNativeType(string typeName, out Type nativeType)
         {
-            return Create(schemaDocument, configure, false);
-        }
-
-        public static Schema Create(
-            DocumentNode schemaDocument,
-            Action<ISchemaConfiguration> configure,
-            bool strict)
-        {
-            if (schemaDocument == null)
-            {
-                throw new ArgumentNullException(nameof(schemaDocument));
-            }
-
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            SchemaContext context = CreateSchemaContext();
-
-            // deserialize schema objects
-            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context);
-            visitor.Visit(schemaDocument);
-
-            return CreateSchema(context, configure, strict);
-        }
-
-        public static Schema Create(
-            Action<ISchemaConfiguration> configure)
-        {
-            return Create(configure, false);
-        }
-
-        public static Schema Create(
-            Action<ISchemaConfiguration> configure,
-            bool strict)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            SchemaContext context = CreateSchemaContext();
-            return CreateSchema(context, configure, strict);
-        }
-
-        private static Schema CreateSchema(
-            SchemaContext context,
-            Action<ISchemaConfiguration> configure,
-            bool strict)
-        {
-            try
-            {
-                // configure resolvers, custom types and type mappings.
-                SchemaConfiguration configuration = new SchemaConfiguration();
-                configure(configuration);
-                configuration.Commit(context);
-            }
-            catch (ArgumentException ex)
-            {
-                // TODO : maybe we should throw a more specific
-                // argument exception that at least contains the config object.
-                throw new SchemaException(new[]
-                {
-                    new SchemaError(ex.Message, null)
-                });
-            }
-
-            // finalize objects and seal the schema context
-            List<SchemaError> errors = context.Seal();
-
-            if (strict && errors.Any())
-            {
-                throw new SchemaException(errors);
-            }
-
-            if (!context.TypeExists<ObjectType>(context.QueryTypeName))
-            {
-                throw new SchemaException(new SchemaError(
-                    "Schema is missing the mandatory `Query` type."));
-            }
-
-            return new Schema(context);
-        }
-
-        private static SchemaContext CreateSchemaContext()
-        {
-            // create context with system types
-            SchemaContext context = new SchemaContext(CreateSystemTypes());
-
-            // register introspection types
-            RegisterIntrospectionTypes(context);
-
-            return context;
-        }
-
-        private static void RegisterIntrospectionTypes(SchemaContext context)
-        {
-            SchemaConfiguration configuration = new SchemaConfiguration();
-            configuration.RegisterType(IntrospectionTypes.__Directive);
-            configuration.RegisterType(IntrospectionTypes.__DirectiveLocation);
-            configuration.RegisterType(IntrospectionTypes.__EnumValue);
-            configuration.RegisterType(IntrospectionTypes.__Field);
-            configuration.RegisterType(IntrospectionTypes.__InputValue);
-            configuration.RegisterType(IntrospectionTypes.__Schema);
-            configuration.RegisterType(IntrospectionTypes.__Type);
-            configuration.RegisterType(IntrospectionTypes.__TypeKind);
-            configuration.Commit(context);
-        }
-
-        private static IEnumerable<INamedType> CreateSystemTypes()
-        {
-            yield return new StringType();
-            yield return new BooleanType();
-            yield return new IntegerType();
+            return _types.TryGetNativeType(typeName, out nativeType);
         }
     }
 }

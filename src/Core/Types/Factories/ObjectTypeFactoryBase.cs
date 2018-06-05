@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -7,7 +8,6 @@ namespace HotChocolate.Types.Factories
     internal abstract class ObjectTypeFactoryBase
     {
         protected IEnumerable<Field> GetFields(
-            SchemaContext context,
             string typeName,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
@@ -21,9 +21,9 @@ namespace HotChocolate.Types.Factories
                     SyntaxNode = fieldDefinition,
                     Name = fieldDefinition.Name.Value,
                     Description = fieldDefinition.Description?.Value,
-                    Arguments = GetFieldArguments(context, fieldDefinition),
-                    Type = () => context.GetOutputType(fieldDefinition.Type),
-                    Resolver = () => context.CreateResolver(
+                    Arguments = GetFieldArguments(fieldDefinition),
+                    Type = t => t.GetOutputType(fieldDefinition.Type),
+                    Resolver = r => r.GetResolver(
                         typeName, fieldDefinition.Name.Value)
                 });
             }
@@ -32,7 +32,6 @@ namespace HotChocolate.Types.Factories
         }
 
         private IEnumerable<InputField> GetFieldArguments(
-            SchemaContext context,
             FieldDefinitionNode fieldDefinition)
         {
             int i = 0;
@@ -47,8 +46,8 @@ namespace HotChocolate.Types.Factories
                     SyntaxNode = inputFieldDefinition,
                     Name = inputFieldDefinition.Name.Value,
                     Description = inputFieldDefinition.Description?.Value,
-                    Type = () => context.GetInputType(inputFieldDefinition.Type),
-                    DefaultValue = () => inputFieldDefinition.DefaultValue
+                    Type = t => t.GetInputType(inputFieldDefinition.Type),
+                    DefaultValue = t => inputFieldDefinition.DefaultValue
                 };
 
                 inputFields[i++] = new InputField(config);

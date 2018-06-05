@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    public delegate ObjectType ResolveType(
-        IResolverContext context, 
+    public delegate ObjectType ResolveAbstractType(
+        IResolverContext context,
         object resolverResult);
 }

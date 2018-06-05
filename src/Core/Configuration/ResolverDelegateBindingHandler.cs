@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
@@ -6,25 +7,32 @@ namespace HotChocolate.Configuration
     internal class ResolverDelegateBindingHandler
         : IResolverBindingHandler
     {
-        public IEnumerable<Resolvers.FieldResolver> ApplyBinding(
+        public void ApplyBinding(
+            ISchemaContext schemaContext,
             ResolverBindingInfo resolverBindingInfo)
         {
             if (resolverBindingInfo is ResolverDelegateBindingInfo b)
             {
                 if (b.AsyncFieldResolver == null)
                 {
-                    yield return new Resolvers.FieldResolver(
-                        b.ObjectTypeName, b.FieldName, b.FieldResolver);
+                    schemaContext.Resolvers.RegisterResolver(
+                        new DelegateResolverBinding(
+                            b.ObjectTypeName, b.FieldName, b.FieldResolver));
                 }
                 else
                 {
                     FieldResolverDelegate fieldResolverDelegate =
                         (ctx, ct) => b.AsyncFieldResolver(ctx, ct);
-                    yield return new Resolvers.FieldResolver(
-                        b.ObjectTypeName, b.FieldName, fieldResolverDelegate);
+                    schemaContext.Resolvers.RegisterResolver(
+                        new DelegateResolverBinding(
+                            b.ObjectTypeName, b.FieldName, fieldResolverDelegate));
                 }
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    "The binding type is not supported by this handler.");
             }
         }
     }
-
 }

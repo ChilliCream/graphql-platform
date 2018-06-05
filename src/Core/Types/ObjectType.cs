@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -14,18 +16,66 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
         , IHasFields
     {
-
         private readonly IsOfType _isOfType;
-        private readonly Func<IEnumerable<InterfaceType>> _interfaceFactory;
+        private readonly Func<ITypeRegistry, IEnumerable<InterfaceType>> _interfaceFactory;
+        private readonly IReadOnlyCollection<TypeInfo> _interfaceTypeInfos;
+        private readonly ObjectTypeBinding _typeBinding;
         private Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
-        public ObjectType(ObjectTypeConfig config)
+        public ObjectType()
+        {
+            ObjectTypeDescriptor descriptor = CreateDescriptor();
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "The type name must not be null or empty.");
+            }
+
+            if (descriptor.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The object type `{Name}` has no fields.");
+            }
+
+            List<FieldBinding> fieldBindings = new List<FieldBinding>();
+            foreach (FieldDescriptor fieldDescriptor in descriptor.Fields)
+            {
+                Field field = fieldDescriptor.CreateField();
+                _fieldMap[fieldDescriptor.Name] = field;
+
+                if (fieldDescriptor.Member != null)
+                {
+                    fieldBindings.Add(new FieldBinding(
+                        fieldDescriptor.Name, fieldDescriptor.Member, field));
+                }
+            }
+
+            if (descriptor.NativeType != null)
+            {
+                _typeBinding = new ObjectTypeBinding(
+                    descriptor.Name, descriptor.NativeType, this, fieldBindings);
+            }
+
+            _isOfType = descriptor.IsOfType;
+            _interfaceFactory = r => descriptor.Interfaces
+                .Select(t => t.TypeFactory(r))
+                .Cast<InterfaceType>();
+            _interfaceTypeInfos = descriptor.Interfaces;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            IsIntrospection = descriptor.IsIntrospection;
+        }
+
+        internal ObjectType(ObjectTypeConfig config)
         {
             if (config == null)
             {
@@ -35,32 +85,21 @@ namespace HotChocolate.Types
             if (string.IsNullOrEmpty(config.Name))
             {
                 throw new ArgumentException(
-                    "A type name must not be null or empty.",
+                    "An object type name must not be null or empty.",
                     nameof(config));
             }
 
-            Field[] fields = config.Fields?.ToArray()
-                 ?? Array.Empty<Field>();
-            if (fields.Length == 0)
+            Field[] fields = config.Fields?.ToArray();
+            if (fields == null || fields.Length == 0)
             {
                 throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.",
+                    $"The object type `{Name}` has no fields.",
                     nameof(config));
             }
 
             foreach (Field field in fields)
             {
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    throw new ArgumentException(
-                        $"The field name `{field.Name}` " +
-                        $"is not unique within `{Name}`.",
-                        nameof(config));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
+                _fieldMap[field.Name] = field;
             }
 
             _isOfType = config.IsOfType;
@@ -87,6 +126,15 @@ namespace HotChocolate.Types
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
 
+        #region Configuration
+
+        internal virtual ObjectTypeDescriptor CreateDescriptor() =>
+            new ObjectTypeDescriptor(GetType());
+
+        protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
+
+        #endregion
+
         #region ITypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
@@ -108,31 +156,53 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
+        {
+            if (_interfaceTypeInfos != null)
+            {
+                foreach (TypeInfo interfaceTypeInfo in _interfaceTypeInfos)
+                {
+                    schemaContext.Types.RegisterType(interfaceTypeInfo.NativeNamedType);
+                }
+            }
+
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.RegisterDependencies(schemaContext, reportError, this);
+            }
+
+            if (_typeBinding != null)
+            {
+                schemaContext.Types.RegisterType(this, _typeBinding);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(reportError, this);
+                field.CompleteField(schemaContext, reportError, this);
             }
 
-            InterfaceType[] interfaces = _interfaceFactory?.Invoke()?.ToArray()
-                ?? Array.Empty<InterfaceType>();
-            foreach (InterfaceType interfaceType in interfaces)
+            if (_interfaceFactory != null)
             {
-                if (_interfaceMap.TryGetValue(
-                    interfaceType.Name, out InterfaceType type)
-                    && interfaceType != type)
-                {
-                    reportError(new SchemaError(
-                        "The interfaces that this object type implements are not unique.",
-                        this));
-                }
-                else
+                foreach (InterfaceType interfaceType in
+                    _interfaceFactory(schemaContext.Types))
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
-            }
 
+                CheckIfAllInterfaceFieldsAreImplemented(reportError);
+            }
+        }
+
+        private void CheckIfAllInterfaceFieldsAreImplemented(
+            Action<SchemaError> reportError)
+        {
             foreach (InterfaceType interfaceType in _interfaceMap.Values)
             {
                 foreach (Field interfaceField in interfaceType.Fields.Values)
@@ -167,21 +237,25 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public class ObjectTypeConfig
-        : INamedTypeConfig
+    public abstract class ObjectType<T>
+        : ObjectType
     {
-        public ObjectTypeDefinitionNode SyntaxNode { get; set; }
+        public ObjectType()
+        {
+        }
 
-        public string Name { get; set; }
+        #region Configuration
 
-        public string Description { get; set; }
+        internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
+            new ObjectTypeDescriptor<T>(GetType());
 
-        internal bool IsIntrospection { get; set; }
+        protected sealed override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            Configure((IObjectTypeDescriptor<T>)descriptor);
+        }
 
-        public Func<IEnumerable<InterfaceType>> Interfaces { get; set; }
+        protected abstract void Configure(IObjectTypeDescriptor<T> descriptor);
 
-        public IEnumerable<Field> Fields { get; set; }
-
-        public IsOfType IsOfType { get; set; }
+        #endregion
     }
 }

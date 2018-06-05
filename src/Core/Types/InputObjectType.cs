@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -10,12 +12,45 @@ namespace HotChocolate.Types
         , IInputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
     {
         public readonly Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
+        private readonly Func<ITypeRegistry, Type> _nativeTypeFactory;
+        private Type _nativeType;
+        private Func<ObjectValueNode, object> _deserialize;
+        private bool _hasDeserializer;
 
-        public InputObjectType(InputObjectTypeConfig config)
+        internal InputObjectType()
+        {
+            InputObjectTypeDescriptor descriptor = CreateDescriptor();
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "An input object type name must not be null or empty.");
+            }
+
+            if (!descriptor.Fields.Any())
+            {
+                throw new ArgumentException(
+                    $"The input object `{descriptor.Name}` must at least " +
+                    "provide one field.");
+            }
+
+            foreach (InputFieldDescriptor fieldDescriptor in descriptor.Fields)
+            {
+                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
+            }
+
+            _nativeType = descriptor.NativeType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
+
+        internal InputObjectType(InputObjectTypeConfig config)
         {
             if (config == null)
             {
@@ -55,6 +90,7 @@ namespace HotChocolate.Types
                 }
             }
 
+            _nativeTypeFactory = config.NativeType;
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
             Description = config.Description;
@@ -66,20 +102,90 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IReadOnlyDictionary<string, InputField> Fields { get; }
+        public IReadOnlyDictionary<string, InputField> Fields => _fieldMap;
 
-        // TODO : provide native type resolver with config.
-        public Type NativeType => throw new NotImplementedException();
+        public Type NativeType => _nativeType;
+
+        #region IInputType
 
         public bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            return literal is ObjectValueNode
+                || literal is NullValueNode;
         }
 
         public object ParseLiteral(IValueNode literal)
         {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (_deserialize == null)
+            {
+                throw new InvalidOperationException(
+                    "No deserializer was configured for " +
+                    $"input object type `{Name}`.");
+            }
+
+            if (literal is ObjectValueNode ov)
+            {
+                return _deserialize(ov);
+            }
+
+            throw new ArgumentException(
+                "The input object type can only parse object value literals.",
+                nameof(literal));
+        }
+
+        private object ParseLiteralWithParser(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is ObjectValueNode objectLiteral)
+            {
+                if (!_hasDeserializer)
+                {
+                    throw new InvalidOperationException(
+                        "There is no deserializer availabel for input " +
+                        $"object type `{Name}`");
+                }
+                return _deserialize(objectLiteral);
+            }
+
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new ArgumentException(
+                "The string type can only parse string literals.",
+                nameof(literal));
+        }
+
+        public IValueNode ParseValue(object value)
+        {
             throw new NotImplementedException();
         }
+
+        #endregion
+
+        #region Configuration
+
+        internal virtual InputObjectTypeDescriptor CreateDescriptor() =>
+            new InputObjectTypeDescriptor();
+
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
+
+        #endregion
 
         #region TypeSystemNode
 
@@ -94,26 +200,54 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (InputField field in _fieldMap.Values)
             {
-                field.CompleteInitialization(reportError, this);
+                field.RegisterDependencies(schemaContext.Types, reportError, this);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        {
+            _nativeType = _nativeTypeFactory(schemaContext.Types);
+            if (_nativeType == null)
+            {
+                reportError(new SchemaError(
+                    "Could not resolve the native type associated with " +
+                    $"input object type `{Name}`.",
+                    this));
+            }
+            else
+            {
+                _deserialize = InputObjectDeserializerFactory.Create(
+                    reportError, this, _nativeType);
+            }
+
+            foreach (InputField field in _fieldMap.Values)
+            {
+                field.CompleteInputField(schemaContext.Types, reportError, this);
             }
         }
 
         #endregion
     }
 
-    public class InputObjectTypeConfig
-        : INamedTypeConfig
+    public abstract class InputObjectType<T>
+        : InputObjectType
     {
-        public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
+        #region Configuration
 
-        public string Name { get; set; }
+        internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
+            new InputObjectTypeDescriptor<T>();
 
-        public string Description { get; set; }
+        protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            Configure((IInputObjectTypeDescriptor<T>)descriptor);
+        }
 
-        public IEnumerable<InputField> Fields { get; set; }
+        protected abstract void Configure(IInputObjectTypeDescriptor<T> descriptor);
+
+        #endregion
     }
 }

@@ -37,6 +37,8 @@ namespace HotChocolate.Types
 
         public abstract object ParseLiteral(IValueNode literal);
 
+        public abstract IValueNode ParseValue(object value);
+
         public abstract object Serialize(object value);
     }
 }

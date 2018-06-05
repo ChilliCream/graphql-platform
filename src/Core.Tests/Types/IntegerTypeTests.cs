@@ -12,7 +12,7 @@ namespace HotChocolate.Types
             IntValueNode literal = new IntValueNode(null, "12345");
 
             // act
-            IntegerType integerType = new IntegerType();
+            IntType integerType = new IntType();
             object result = integerType.ParseLiteral(literal);
 
             // assert
@@ -29,7 +29,7 @@ namespace HotChocolate.Types
             NullValueNode nullLiteral = new NullValueNode(null);
 
             // act
-            IntegerType integerType = new IntegerType();
+            IntType integerType = new IntType();
             bool isIntLiteralInstanceOf = integerType.IsInstanceOfType(intLiteral);
             bool isStringLiteralInstanceOf = integerType.IsInstanceOfType(stringLiteral);
             bool isNullLiteralInstanceOf = integerType.IsInstanceOfType(nullLiteral);

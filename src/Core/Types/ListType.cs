@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 
@@ -114,9 +115,61 @@ namespace HotChocolate.Types
             return array;
         }
 
+        public IValueNode ParseValue(object value)
+        {
+            if (_isInputType)
+            {
+                if (value == null)
+                {
+                    return new NullValueNode(null);
+                }
+
+                if (value is IEnumerable e)
+                {
+                    List<IValueNode> items = new List<IValueNode>();
+                    foreach (object v in e)
+                    {
+                        items.Add(_inputType.ParseValue(value));
+                    }
+                    return new ListValueNode(null, items);
+                }
+            }
+
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
         private static Type CreateListType(Type elementType)
         {
             return Array.CreateInstance(elementType, 0).GetType();
+        }
+    }
+
+    // this is just a marker type for the fluent code-first api.
+    public sealed class ListType<T>
+        : IOutputType
+        , IInputType
+        where T : IType
+    {
+        private ListType()
+        {
+        }
+
+        public Type NativeType => throw new NotImplementedException();
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IValueNode ParseValue(object value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

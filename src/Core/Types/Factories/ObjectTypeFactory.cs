@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,7 +10,6 @@ namespace HotChocolate.Types.Factories
         , ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
         public ObjectType Create(
-            SchemaContext context,
             ObjectTypeDefinitionNode objectTypeDefinition)
         {
             return new ObjectType(new ObjectTypeConfig
@@ -17,26 +17,26 @@ namespace HotChocolate.Types.Factories
                 SyntaxNode = objectTypeDefinition,
                 Name = objectTypeDefinition.Name.Value,
                 Description = objectTypeDefinition.Description?.Value,
-                Fields = GetFields(context,
+                Fields = GetFields(
                     objectTypeDefinition.Name.Value,
                     objectTypeDefinition.Fields),
-                Interfaces = () => GetInterfaces(context,
+                Interfaces = t => GetInterfaces(t,
                     objectTypeDefinition.Interfaces)
             });
         }
 
         private IEnumerable<InterfaceType> GetInterfaces(
-            SchemaContext context,
+            ITypeRegistry typeRegistry,
             IReadOnlyCollection<NamedTypeNode> interfaceReferences)
         {
             int i = 0;
             InterfaceType[] interfaces =
                 new InterfaceType[interfaceReferences.Count];
 
-            foreach (NamedTypeNode type in interfaceReferences)
+            foreach (NamedTypeNode typeNode in interfaceReferences)
             {
-                interfaces[i++] = context
-                    .GetOutputType<InterfaceType>(type.Name.Value);
+                interfaces[i++] = typeRegistry.GetType<InterfaceType>(
+                    typeNode.Name.Value);
             }
 
             return interfaces;

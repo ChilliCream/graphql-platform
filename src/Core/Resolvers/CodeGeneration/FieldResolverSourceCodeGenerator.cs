@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -52,7 +53,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             source.AppendLine("}");
             source.AppendLine("}");
-
             return source.ToString();
         }
 

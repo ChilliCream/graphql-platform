@@ -7,7 +7,7 @@ namespace HotChocolate.Types
     public class EnumValue
          : ITypeSystemNode
     {
-        public EnumValue(EnumValueConfig config)
+        internal EnumValue(EnumValueConfig config)
         {
             if (config == null)
             {
@@ -50,49 +50,6 @@ namespace HotChocolate.Types
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
         {
             yield break;
-        }
-    }
-
-    public class EnumValue<T>
-        : EnumValue
-    {
-        public EnumValue(EnumValueConfig<T> config)
-            : base(config)
-        {
-        }
-    }
-
-    public class EnumValueConfig
-    {
-        private object _value;
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public string DeprecationReason { get; set; }
-
-        public virtual object Value
-        {
-            get => _value;
-            set
-            {
-                _value = value;
-                if (string.IsNullOrEmpty(Name))
-                {
-                    Name = value.ToString().ToUpperInvariant();
-                }
-            }
-        }
-    }
-
-    public class EnumValueConfig<T>
-        : EnumValueConfig
-    {
-        public new T Value
-        {
-            get => (T)base.Value;
-            set => base.Value = value;
         }
     }
 }

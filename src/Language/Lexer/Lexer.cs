@@ -178,11 +178,12 @@ namespace HotChocolate.Language
         {
             int start = state.Position;
 
-            while (!state.SourceText[++state.Position].IsControlCharacter()) { }
+            while (++state.Position < state.SourceText.Length
+                && !state.SourceText[state.Position].IsControlCharacter()) { }
 
-            string comment = state.SourceText.Substring(start, state.Position - start - 1);
+            string comment = state.SourceText.Substring(start, state.Position - start);
             return CreateToken(state, previous, TokenKind.Comment,
-                start, comment.TrimStart(' ', '\t'));
+                start, comment.TrimStart('#', ' ', '\t'));
         }
 
         /// <summary>

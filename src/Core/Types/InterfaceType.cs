@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -11,14 +12,42 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
         , IHasFields
     {
-        private readonly ResolveType _typeResolver;
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
+        private ResolveAbstractType _resolveAbstractType;
 
-        public InterfaceType(InterfaceTypeConfig config)
+        public InterfaceType()
+        {
+            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor(GetType());
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "The type name must not be null or empty.");
+            }
+
+            if (descriptor.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.");
+            }
+
+            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _resolveAbstractType = descriptor.ResolveAbstractType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
+
+        internal InterfaceType(InterfaceTypeConfig config)
         {
             if (config == null)
             {
@@ -56,7 +85,7 @@ namespace HotChocolate.Types
                 }
             }
 
-            _typeResolver = config.TypeResolver;
+            _resolveAbstractType = config.ResolveAbstractType;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -78,8 +107,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(context));
             }
 
-            return _typeResolver.Invoke(context, resolverResult);
+            return _resolveAbstractType.Invoke(context, resolverResult);
         }
+
+        #region Configuration
+
+        protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
+
+        #endregion
 
         #region TypeSystemNode
 
@@ -91,28 +126,51 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
-                field.CompleteInitialization(reportError, this);
+                field.RegisterDependencies(schemaContext, reportError, this);
+            }
+        }
+
+        void INeedsInitialization.CompleteType(
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
+        {
+            foreach (Field field in _fieldMap.Values)
+            {
+                field.CompleteField(schemaContext, reportError, this);
+            }
+
+            if (_resolveAbstractType == null)
+            {
+                // if there is now custom type resolver we will use this default
+                // abstract type resolver.
+                List<ObjectType> types = null;
+                _resolveAbstractType = (c, r) =>
+                {
+                    if (types == null)
+                    {
+                        types = schemaContext.Types.GetTypes()
+                            .OfType<ObjectType>()
+                            .Where(t => t.Interfaces.ContainsKey(Name))
+                            .ToList();
+                    }
+
+                    foreach (ObjectType type in types)
+                    {
+                        if (type.IsOfType(c, r))
+                        {
+                            return type;
+                        }
+                    }
+
+                    return null; // todo: should we throw instead?
+                };
             }
         }
 
         #endregion
-    }
-
-    public class InterfaceTypeConfig
-        : INamedTypeConfig
-    {
-        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public IEnumerable<Field> Fields { get; set; }
-
-        public ResolveType TypeResolver { get; set; }
     }
 }

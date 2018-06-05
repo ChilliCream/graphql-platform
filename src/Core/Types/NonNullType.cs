@@ -72,5 +72,50 @@ namespace HotChocolate.Types
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
+
+        public IValueNode ParseValue(object value)
+        {
+            if (_isInputType)
+            {
+                if (value == null)
+                {
+                    throw new ArgumentException(
+                        "A non null type cannot parse null values.");
+                }
+
+                return _inputType.ParseValue(value);
+            }
+
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+    }
+
+    // this is just a marker type for the fluent code-first api.
+    public sealed class NonNullType<T>
+        : IOutputType
+        , IInputType
+        where T : IType
+    {
+        private NonNullType()
+        {
+        }
+
+        public Type NativeType => throw new NotImplementedException();
+
+        public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ParseLiteral(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IValueNode ParseValue(object value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

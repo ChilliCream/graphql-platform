@@ -4,42 +4,6 @@ namespace HotChocolate.Types
 {
     public static class TypeExtensions
     {
-        public static TypeKind GetKind(this IType type)
-        {
-            if (IsNonNullType(type))
-            {
-                return TypeKind.NonNull;
-            }
-            else if (IsListType(type))
-            {
-                return TypeKind.List;
-            }
-            else if (IsObjectType(type))
-            {
-                return TypeKind.List;
-            }
-            else if (IsInterfaceType(type))
-            {
-                return TypeKind.Interface;
-            }
-            else if (IsUnionType(type))
-            {
-                return TypeKind.Union;
-            }
-            else if (IsEnumType(type))
-            {
-                return TypeKind.Enum;
-            }
-            else if (IsInputType(type))
-            {
-                return TypeKind.InputObject;
-            }
-            else
-            {
-                throw new NotSupportedException("Unknown type kind.");
-            }
-        }
-
         public static bool TryGetKind(this IType type, out TypeKind kind)
         {
             if (IsNonNullType(type))
@@ -72,7 +36,12 @@ namespace HotChocolate.Types
                 kind = TypeKind.Enum;
                 return true;
             }
-            else if (IsInputType(type))
+            else if (IsScalarType(type))
+            {
+                kind = TypeKind.Scalar;
+                return true;
+            }
+            else if (IsInputObjectType(type))
             {
                 kind = TypeKind.InputObject;
                 return true;
@@ -132,9 +101,19 @@ namespace HotChocolate.Types
             return IsType<InterfaceType>(type);
         }
 
+        public static bool IsInputObjectType(this IType type)
+        {
+            return IsType<InputObjectType>(type);
+        }
+
         public static bool IsInputType(this IType type)
         {
-            return IsType<IInputType>(type);
+            return type.InnerType().InnerType().InnerType() is IInputType;
+        }
+
+        public static bool IsOutputType(this IType type)
+        {
+            return type.InnerType().InnerType().InnerType() is IOutputType;
         }
 
         public static bool IsUnionType(this IType type)

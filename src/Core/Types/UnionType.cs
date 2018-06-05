@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -11,14 +12,42 @@ namespace HotChocolate.Types
         , IOutputType
         , INullableType
         , ITypeSystemNode
-        , ITypeInitializer
+        , INeedsInitialization
     {
-        private readonly ResolveType _typeResolver;
-        private readonly Func<IEnumerable<ObjectType>> _typesFactory;
+        private readonly Func<ITypeRegistry, IEnumerable<ObjectType>> _typesFactory;
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
+        private readonly IReadOnlyCollection<TypeInfo> _typeInfos;
+        private ResolveAbstractType _typeResolver;
 
-        public UnionType(UnionTypeConfig config)
+        public UnionType()
+        {
+            UnionTypeDescriptor descriptor = new UnionTypeDescriptor(GetType());
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "A union type name must not be null or empty.");
+            }
+
+            if (descriptor.Types == null)
+            {
+                throw new ArgumentException(
+                    "A union type must have a set of types.");
+            }
+
+            _typesFactory = r => descriptor.Types
+                .Select(t => t.TypeFactory(r))
+                .Cast<ObjectType>();
+            _typeInfos = descriptor.Types;
+            _typeResolver = descriptor.ResolveAbstractType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
+
+        internal UnionType(UnionTypeConfig config)
         {
             if (config == null)
             {
@@ -39,15 +68,8 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.TypeResolver == null)
-            {
-                throw new ArgumentException(
-                    "A Union type must define one or more unique member types.",
-                    nameof(config));
-            }
-
             _typesFactory = config.Types;
-            _typeResolver = config.TypeResolver;
+            _typeResolver = config.ResolveAbstractType;
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -65,10 +87,15 @@ namespace HotChocolate.Types
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
             => _typeResolver(context, resolverResult);
 
+        #region Configuration
+
+        protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
+
+        #endregion
+
         #region ITypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
 
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
         {
@@ -79,46 +106,52 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void ITypeInitializer.CompleteInitialization(Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
-            ObjectType[] memberTypes = _typesFactory()?.ToArray()
-                ?? Array.Empty<ObjectType>();
+            if (_typeInfos != null)
+            {
+                foreach (TypeInfo typeInfo in _typeInfos)
+                {
+                    schemaContext.Types.RegisterType(typeInfo.NativeNamedType);
+                }
+            }
+        }
 
-            if (memberTypes.Length == 0)
+        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        {
+            if (_typesFactory == null)
             {
                 reportError(new SchemaError(
                     "A Union type must define one or more unique member types.",
                     this));
             }
-
-            foreach (ObjectType memberType in memberTypes)
+            else
             {
-                if (_typeMap.ContainsKey(memberType.Name))
-                {
-                    reportError(new SchemaError(
-                        "The set of member types of the union type {Name} is not unique.",
-                        this));
-                }
-                else
+                foreach (ObjectType memberType in _typesFactory(schemaContext.Types))
                 {
                     _typeMap[memberType.Name] = memberType;
                 }
             }
+
+            if (_typeResolver == null)
+            {
+                // if there is now custom type resolver we will use this default
+                // abstract type resolver.
+                _typeResolver = (c, r) =>
+                {
+                    foreach (ObjectType type in _typeMap.Values)
+                    {
+                        if (type.IsOfType(c, r))
+                        {
+                            return type;
+                        }
+                    }
+                    return null; // todo: should we throw instead?
+                };
+            }
         }
 
         #endregion
-    }
-
-    public class UnionTypeConfig
-    {
-        public UnionTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public Func<IEnumerable<ObjectType>> Types { get; set; }
-
-        public ResolveType TypeResolver { get; set; }
     }
 }

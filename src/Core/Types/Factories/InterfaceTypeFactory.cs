@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Factories
         , ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(
-            SchemaContext context,
             InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
             return new InterfaceType(new InterfaceTypeConfig
@@ -17,7 +16,7 @@ namespace HotChocolate.Types.Factories
                 SyntaxNode = interfaceTypeDefinition,
                 Name = interfaceTypeDefinition.Name.Value,
                 Description = interfaceTypeDefinition.Description?.Value,
-                Fields = GetFields(context,
+                Fields = GetFields(
                     interfaceTypeDefinition.Name.Value,
                     interfaceTypeDefinition.Fields),
             });

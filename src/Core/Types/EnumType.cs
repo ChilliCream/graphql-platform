@@ -13,10 +13,34 @@ namespace HotChocolate.Types
         , ISerializableType
         , ITypeSystemNode
     {
-        private readonly Dictionary<string, EnumValue> _nameToValues;
-        private readonly Dictionary<object, EnumValue> _valueToValues;
+        private readonly Dictionary<string, EnumValue> _nameToValues =
+            new Dictionary<string, EnumValue>();
+        private readonly Dictionary<object, EnumValue> _valueToValues =
+            new Dictionary<object, EnumValue>();
 
-        public EnumType(EnumTypeConfig config)
+        public EnumType()
+        {
+            EnumTypeDescriptor descriptor = CreateDescriptor();
+            Configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "Am enum type name must not be null or empty.");
+            }
+
+            foreach (EnumValue enumValue in descriptor.CreateEnumValues())
+            {
+                _nameToValues[enumValue.Name] = enumValue;
+                _valueToValues[enumValue.Value] = enumValue;
+            }
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            NativeType = descriptor.NativeType;
+        }
+
+        internal EnumType(EnumTypeConfig config)
         {
             if (config == null)
             {
@@ -30,25 +54,27 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            EnumValue[] values = config.Values?.ToArray()
-                ?? Array.Empty<EnumValue>();
-            if (values.Length == 0)
+            if (config.Values == null)
             {
                 throw new ArgumentException(
                     $"The enum type {config.Name} has no values.",
                     nameof(config));
             }
-            else
-            {
-                // TODO : what to do if:
-                // - values are not of the same type
-                // - one or more values are null
-                NativeType = config.NativeType
-                    ?? values.First(t => t.Value != null).Value.GetType();
-            }
 
-            _nameToValues = values.ToDictionary(t => t.Name);
-            _valueToValues = values.ToDictionary(t => t.Value);
+            foreach (EnumValueConfig enumValueConfig in config.Values)
+            {
+                if (NativeType == null && enumValueConfig.Value != null)
+                {
+                    // TODO : what to do if:
+                    // - values are not of the same type
+                    // - one or more values are null
+                    NativeType = enumValueConfig.Value.GetType();
+                }
+
+                EnumValue enumValue = new EnumValue(enumValueConfig);
+                _nameToValues[enumValueConfig.Name] = enumValue;
+                _valueToValues[enumValueConfig.Value] = enumValue;
+            }
 
             SyntaxNode = config.SyntaxNode;
             Name = config.Name;
@@ -62,7 +88,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public Type NativeType { get; internal set; }
+        public Type NativeType { get; }
 
         public bool TryGetValue(string name, out object value)
         {
@@ -115,6 +141,23 @@ namespace HotChocolate.Types
                 $"by the EnumType {Name}.");
         }
 
+        public IValueNode ParseValue(object value)
+        {
+            if (value == null)
+            {
+                return new NullValueNode();
+            }
+
+            if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
+            {
+                return new EnumValueNode(enumValue.Name);
+            }
+
+            throw new ArgumentException(
+                "The specified value has to be a defined enum value of the type " +
+                $"{NativeType.FullName} to be parsed by this enum type.");
+        }
+
         public object Serialize(object value)
         {
             if (value == null)
@@ -132,6 +175,15 @@ namespace HotChocolate.Types
                 $"The specified value cannot be handled by the EnumType `{Name}`.");
         }
 
+        #region Configuration
+
+        internal virtual EnumTypeDescriptor CreateDescriptor() =>
+            new EnumTypeDescriptor(GetType());
+
+        protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
+
+        #endregion
+
         #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
@@ -140,35 +192,26 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public class EnumTypeConfig
-        : INamedTypeConfig
+    public abstract class EnumType<T>
+        : EnumType
     {
-        public EnumTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public bool IsIntrospection { get; set; }
-
-        public IEnumerable<EnumValue> Values { get; set; }
-
-        public virtual Type NativeType { get; set; }
-    }
-
-    public class EnumTypeConfig<T>
-        : EnumTypeConfig
-    {
-        public new IEnumerable<EnumValue<T>> Values
+        public EnumType()
         {
-            get => base.Values.Cast<EnumValue<T>>();
-            set => base.Values = value;
+
         }
 
-        public override Type NativeType
+        #region Configuration
+
+        internal sealed override EnumTypeDescriptor CreateDescriptor() =>
+            new EnumTypeDescriptor<T>(GetType());
+
+        protected sealed override void Configure(IEnumTypeDescriptor descriptor)
         {
-            get => typeof(T);
-            set => throw new NotSupportedException();
+            Configure((IEnumTypeDescriptor<T>)descriptor);
         }
+
+        protected abstract void Configure(IEnumTypeDescriptor<T> descriptor);
+
+        #endregion
     }
 }

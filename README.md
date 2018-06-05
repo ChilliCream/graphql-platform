@@ -1,102 +1,140 @@
-![React Rasta](https://cdn.rawgit.com/ChilliCream/react-rasta-logo/master/img/react-rasta-banner-light.svg)
+![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/master/img/hotchocolate-banner-light.svg)
 
-[![release](https://img.shields.io/github/release/ChilliCream/react-rasta.svg)](https://github.com/ChilliCream/react-rasta/releases) [
-![package](https://img.shields.io/npm/v/react-rasta.svg)](https://www.npmjs.com/package/react-rasta) [![license](https://img.shields.io/github/license/ChilliCream/react-rasta.svg)](https://github.com/ChilliCream/react-rasta/blob/master/LICENSE)
-[![build](https://img.shields.io/circleci/project/github/ChilliCream/react-rasta.svg)](https://circleci.com/gh/ChilliCream/react-rasta/tree/master) [![coverage](https://img.shields.io/coveralls/ChilliCream/prometheus.svg)](https://coveralls.io/github/ChilliCream/prometheus?branch=master) [![better code](https://bettercodehub.com/edge/badge/ChilliCream/react-rasta)](https://bettercodehub.com/results/ChilliCream/react-rasta) [![code prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Build](https://img.shields.io/appveyor/ci/rstaib/prometheus/master.svg)](https://ci.appveyor.com/project/rstaib/prometheus) [![Tests](https://img.shields.io/appveyor/tests/rstaib/prometheus/master.svg)](https://ci.appveyor.com/project/rstaib/prometheus) [![coverage](https://img.shields.io/coveralls/ChilliCream/prometheus.svg)](https://coveralls.io/github/ChilliCream/prometheus?branch=master)
 
 ---
 
-**The most powerful and flexible grid system for _React_**
+**Hot Chocolate is a GraphQL Server for _.net core_ and _.net classic_**
 
-_React Rasta_ is a 12 column grid system built on top of the _CSS flexbox_ layout and `styled-components`.
+_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [draft specification](http://facebook.github.io/graphql/draft/) defined by facebook.
 
-## Getting Started
+# Getting Started
 
-Here you will find all you need to get started quickly.
+If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
+The GraphQL specification and more is available in the [Facebook GraphQL repository](https://github.com/facebook/graphql).
 
-### Install Package
+## Using Hot Chocolate
 
-First things first. Install the package `react-rasta` with _yarn_ or _npm_.
+The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
 
-When using _yarn_ it looks like this.
+_Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
 
-```powershell
-yarn add react-rasta
+_For our examples we use .net core and the dotnet CLI which you can download [here](https://dot.net)._
+
+Lets get started by setting up a new console application that we will use to showcase how to setup a GraphQL schema and execute queries against it.
+
+```bash
+mkdir graphql-demo
+cd graphql-demo
+dotnet new console -n graphql-console
 ```
 
-And when using _npm_ it looks like this.
+The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and bind resolvers to it. Our README walkthrough shows you the code-first approache.
 
-```powershell
-npm install react-rasta --save
-```
+The following example ....
 
-#### Required Dependencies
+```csharp
+public class Query
+    : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
+    {
+        descriptor.Field("hello").Resolver(() => "world");
+    }
+}
 
-_React Rasta_ depends on the following packages which need to be installed manually.
+public class Programm
+{
+    public static Main(string[] args)
+    {
+        var schema = Schema.Create(c => c.RegisterQuery<Query>());
+    }
 
-| Package             | Version      |
-| ------------------- | ------------ |
-| `react`             | 16 or higher |
-| `styled-components` | 3 or higher  |
-
-### Code Examples
-
-```tsx
-import React, {Component} from "react";
-import {Column, Container, Row} from "react-rasta";
-
-export default class App extends Component {
-  render() {
-    return (
-      <Container>
-        <Row>
-          <Column size={3}>Left</Column>
-          <Column size={{xs: 9, md: 3}}>Middle 1</Column>
-          <Column size={{xs: 9, md: 3}}>Middle 2</Column>
-          <Column size={3}>Right</Column>
-        </Row>
-      </Container>
-    );
-  }
 }
 ```
 
-Breakpoints (which will end up in media queries) could be redefined via `ThemeProvider`.
+The code above defines a simple schema with one type `Query` and one field `hello` that returns a string.
 
-```tsx
-import React, {Component} from "react";
-import {Column, Container, Row, ThemeProvider} from "react-rasta";
+If you would write that schema down in the GraphQL syntax it would look like the following.
 
-const breakpoints = {
-  phone: 0,
-  tablet: 600,
-  desktop: 800,
-};
-
-const containerWidth = {
-  // do not specify phone here
-  tablet: 560,
-  desktop: 760,
-};
-
-export default class App extends Component {
-  render() {
-    return (
-      <ThemeProvider theme={{breakpoints, containerWidth}}>
-        <Container>
-          <Row>
-            <Column size={3}>Left</Column>
-            <Column size={{phone: 9, tablet: 3}}>Middle 1</Column>
-            <Column size={{phone: 9, tablet: 3}}>Middle 2</Column>
-            <Column size={3}>Right</Column>
-          </Row>
-        </Container>
-      </ThemeProvider>
-    );
-  }
+```graphql
+type Query {
+  hello: String
 }
 ```
+
+Moreover, we bound a resolver to the field that returns a fixed value _world_. A reasolver is basically a function that resolves the data of field.
+
+Now that the schema is setup we can serve up a query against it.
+
+```graphql
+{
+  hello
+}
+```
+
+```csharp
+var result = schema.Execute("{ hello }");
+
+// Prints
+// {
+//   data: { hello: "world" }
+// }
+Console.WriteLine(result);
+```
+
+This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
+
+```csharp
+var result = schema.Execute("{ hello }");
+
+// Prints
+// {
+//   errors: [
+//     {
+//        message: 'Could not resolve the specified field.',
+//        locations: [
+//          {
+//            line: 1,
+//            column: 3
+//          }
+//        ]
+//     }
+//   ]
+// }
+Console.WriteLine(result);
+```
+
+In order to setup a GraphQL HTTP endpoint that can be used by a web application or other application we have to first create an empty web project with the dotnet CLI.
+
+```bash
+dotnet new web -n graphql-web
+```
+
+Open the Startup.cs and add the following code.
+
+```csharp
+protected override void ConfigureServices(IServiceCollection services)
+{
+    services.AddGraphQL(c => c.RegisterQuery<Query>());
+}
+```
+
+```csharp
+protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    app.UseGraphQL();
+}
+```
+
+This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
+In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+
 
 ## Documentation
 
-Click [here](http://react-rasta.com) for the documentation.
+For more examples and a detailed documentation click [here](http://hotchocolate.io).

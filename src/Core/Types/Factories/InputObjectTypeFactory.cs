@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -7,19 +9,28 @@ namespace HotChocolate.Types.Factories
         : ITypeFactory<InputObjectTypeDefinitionNode, InputObjectType>
     {
         public InputObjectType Create(
-            SchemaContext context, InputObjectTypeDefinitionNode node)
+            InputObjectTypeDefinitionNode node)
         {
             return new InputObjectType(new InputObjectTypeConfig
             {
                 SyntaxNode = node,
                 Name = node.Name.Value,
                 Description = node.Description?.Value,
-                Fields = CreateFields(context, node)
+                Fields = CreateFields(node),
+                NativeType = t =>
+                {
+                    if (t.TryGetTypeBinding(
+                        node.Name.Value, out InputObjectTypeBinding binding))
+                    {
+                        return binding.Type;
+                    }
+                    return null;
+                }
             });
         }
 
         private IEnumerable<InputField> CreateFields(
-            SchemaContext context, InputObjectTypeDefinitionNode node)
+            InputObjectTypeDefinitionNode node)
         {
             foreach (InputValueDefinitionNode inputField in node.Fields)
             {
@@ -28,8 +39,8 @@ namespace HotChocolate.Types.Factories
                     SyntaxNode = inputField,
                     Name = inputField.Name.Value,
                     Description = inputField.Description?.Value,
-                    Type = () => context.GetInputType(inputField.Type),
-                    DefaultValue = () => inputField.DefaultValue
+                    Type = t => t.GetInputType(inputField.Type),
+                    DefaultValue = t => inputField.DefaultValue
                 });
             }
         }

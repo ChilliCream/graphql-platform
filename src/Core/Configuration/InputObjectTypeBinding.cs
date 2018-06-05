@@ -6,6 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Configuration
 {
     internal class InputObjectTypeBinding
+        : ITypeBinding
     {
         public InputObjectTypeBinding(string name, Type type,
             InputObjectType inputObjectType, IEnumerable<InputFieldBinding> fields)

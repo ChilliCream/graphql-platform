@@ -15,21 +15,6 @@ namespace HotChocolate.Execution
     {
         private static readonly VariableValueResolver _variableValueResolver =
             new VariableValueResolver();
-        private readonly IServiceProvider _services;
-
-        public OperationExecuter()
-            : this(new DefaultServiceProvider())
-        { }
-
-        public OperationExecuter(IServiceProvider services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            _services = services;
-        }
 
         public async Task<QueryResult> ExecuteRequestAsync(
             Schema schema, DocumentNode queryDocument, string operationName,
@@ -83,7 +68,7 @@ namespace HotChocolate.Execution
             if (initialValue == null && schema.TryGetNativeType(
                 operationType.Name, out Type nativeType))
             {
-                initialValue = _services.GetService(nativeType);
+                initialValue = schema.Services.GetService(nativeType);
             }
 
             VariableCollection variables = new VariableCollection(
@@ -91,7 +76,7 @@ namespace HotChocolate.Execution
                     schema, operation, vars));
 
             ExecutionContext executionContext = new ExecutionContext(
-                schema, queryDocument, operation, variables, _services,
+                schema, queryDocument, operation, variables, schema.Services,
                 initialValue, null);
 
             return executionContext;

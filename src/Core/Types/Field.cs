@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -10,14 +12,16 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly Func<IOutputType> _typeFactory;
-        private readonly Func<FieldResolverDelegate> _resolverFactory;
+        private readonly Func<ITypeRegistry, IOutputType> _typeFactory;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
+        private Func<IResolverRegistry, FieldResolverDelegate> _resolverFactory;
+        private MemberInfo _member;
         private IOutputType _type;
+        private Type _nativeNamedType;
         private FieldResolverDelegate _resolver;
 
-        public Field(FieldConfig config)
+        internal Field(FieldConfig config)
         {
             if (config == null)
             {
@@ -55,7 +59,9 @@ namespace HotChocolate.Types
                 }
             }
 
+            _member = config.Member;
             _typeFactory = config.Type;
+            _nativeNamedType = config.NativeNamedType;
             _resolverFactory = config.Resolver;
 
             SyntaxNode = config.SyntaxNode;
@@ -94,11 +100,35 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        internal void CompleteInitialization(
+        internal void RegisterDependencies(
+            ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory();
+            if (_member != null)
+            {
+                schemaContext.Resolvers.RegisterResolver(
+                    new MemberResolverBinding(parentType.Name, Name, _member));
+            }
+
+            if (_nativeNamedType != null)
+            {
+                schemaContext.Types.RegisterType(_nativeNamedType);
+            }
+
+            foreach (InputField argument in _argumentMap.Values)
+            {
+                argument.RegisterDependencies(
+                    schemaContext.Types, reportError, parentType);
+            }
+        }
+
+        internal void CompleteField(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            _type = _typeFactory(schemaContext.Types);
             if (_type == null)
             {
                 reportError(new SchemaError(
@@ -108,50 +138,29 @@ namespace HotChocolate.Types
 
             foreach (InputField argument in _argumentMap.Values)
             {
-                argument.CompleteInitialization(reportError, parentType);
+                argument.CompleteInputField(
+                    schemaContext.Types, reportError, parentType);
             }
 
 
-            if (parentType is ObjectType)
+            if (parentType is ObjectType ot)
             {
                 if (_resolverFactory == null)
                 {
+                    _resolverFactory = r => r.GetResolver(ot.Name, Name);
+                }
+
+                _resolver = _resolverFactory(schemaContext.Resolvers);
+                if (_resolver == null)
+                {
                     reportError(new SchemaError(
                         $"The field `{Name}` of object type `{parentType.Name}` " +
-                        "has no resolver factory.", parentType));
+                        "has no resolver.", parentType));
                 }
-                else
-                {
-                    _resolver = _resolverFactory();
-                    if (_resolver == null)
-                    {
-                        reportError(new SchemaError(
-                            $"The field `{Name}` of object type `{parentType.Name}` " +
-                            "has no resolver.", parentType));
-                    }
-                }
+
             }
         }
 
         #endregion
-    }
-
-    public class FieldConfig
-    {
-        public FieldDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        internal bool IsIntrospection { get; set; }
-
-        public string DeprecationReason { get; set; }
-
-        public Func<IOutputType> Type { get; set; }
-
-        public IEnumerable<InputField> Arguments { get; set; }
-
-        public Func<FieldResolverDelegate> Resolver { get; set; }
     }
 }

@@ -7,6 +7,6 @@ namespace HotChocolate.Types.Factories
         where TNode : ISyntaxNode
         where TType : IType
     {
-        TType Create(SchemaContext context, TNode node);
+        TType Create(TNode node);
     }
 }
