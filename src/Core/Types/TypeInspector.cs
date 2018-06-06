@@ -10,8 +10,12 @@ namespace HotChocolate.Types
         private Dictionary<Type, TypeInfo> _typeInfoCache = new Dictionary<Type, TypeInfo>
         {
             { typeof(string), new TypeInfo(typeof(StringType)) },
-            { typeof(int), new TypeInfo(typeof(IntType)) },
-            { typeof(bool), new TypeInfo(typeof(BooleanType)) }
+            { typeof(int), new TypeInfo(typeof(IntType),
+                t => new NonNullType(new IntType())) },
+            { typeof(int?), new TypeInfo(typeof(IntType)) },
+            { typeof(bool), new TypeInfo(typeof(BooleanType),
+                t => new NonNullType(new BooleanType())) },
+            { typeof(bool?), new TypeInfo(typeof(BooleanType)) }
         };
 
         public bool IsSupported(Type nativeType)
