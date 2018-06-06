@@ -34,6 +34,15 @@ namespace HotChocolate.Internal
             return member.Name;
         }
 
+        public static string GetGraphQLName(this ParameterInfo parameter)
+        {
+            if (parameter.IsDefined(typeof(GraphQLNameAttribute), false))
+            {
+                return parameter.GetCustomAttribute<GraphQLNameAttribute>().Name;
+            }
+            return NormalizeName(parameter.Name);
+        }
+
         private static string NormalizeName(string name)
         {
             if (name.Length > 1)

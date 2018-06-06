@@ -85,7 +85,39 @@ namespace HotChocolate.Types
 
         private IEnumerable<InputField> CreateArguments()
         {
-            return Arguments.Select(t => t.CreateArgument());
+            Dictionary<string, ArgumentDescriptor> descriptors =
+                new Dictionary<string, ArgumentDescriptor>();
+
+            foreach (ArgumentDescriptor descriptor in Arguments)
+            {
+                descriptors[descriptor.Name] = descriptor;
+            }
+
+            if (Member != null && Member is MethodInfo m)
+            {
+                foreach (ParameterInfo parameter in m.GetParameters())
+                {
+                    string argumentName = parameter.GetGraphQLName();
+                    if (!descriptors.ContainsKey(argumentName)
+                        && IsArgumentType(parameter.ParameterType))
+                    {
+                        ArgumentDescriptor argumentDescriptor =
+                            new ArgumentDescriptor(
+                                argumentName, parameter.ParameterType);
+                        descriptors[argumentName] = argumentDescriptor;
+                    }
+                }
+            }
+
+            return descriptors.Values.Select(t => t.CreateArgument());
+        }
+
+        private bool IsArgumentType(Type argumentType)
+        {
+            return (FieldResolverArgumentDescriptor
+                .LookupKind(argumentType, Member.ReflectedType) ==
+                    FieldResolverArgumentKind.Argument)
+                && TypeInspector.Default.IsSupported(argumentType);
         }
 
         private FieldResolverDelegate CreateResolver(

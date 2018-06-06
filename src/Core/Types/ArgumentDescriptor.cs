@@ -8,6 +8,16 @@ namespace HotChocolate.Types
     internal class ArgumentDescriptor
         : IArgumentDescriptor
     {
+        public ArgumentDescriptor(string argumentName, Type argumentType)
+            : this(argumentName)
+        {
+            if (argumentType == null)
+            {
+                throw new ArgumentNullException(nameof(argumentType));
+            }
+            NativeType = argumentType;
+        }
+
         public ArgumentDescriptor(string argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))

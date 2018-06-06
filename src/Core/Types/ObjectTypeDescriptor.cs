@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Types
@@ -24,10 +26,21 @@ namespace HotChocolate.Types
         public Type NativeType { get; protected set; }
         public bool IsIntrospection { get; protected set; }
         public IsOfType IsOfType { get; protected set; }
-        public ImmutableList<FieldDescriptor> Fields { get; protected set; }
+        protected ImmutableList<FieldDescriptor> Fields { get; set; }
             = ImmutableList<FieldDescriptor>.Empty;
         public ImmutableList<TypeInfo> Interfaces { get; protected set; }
             = ImmutableList<TypeInfo>.Empty;
+
+        public virtual IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
+        {
+            Dictionary<string, FieldDescriptor> descriptors =
+                new Dictionary<string, FieldDescriptor>();
+            foreach (FieldDescriptor descriptor in Fields)
+            {
+                descriptors[descriptor.Name] = descriptor;
+            }
+            return descriptors.Values;
+        }
 
         #region IObjectTypeDescriptor<T>
 
@@ -110,10 +123,55 @@ namespace HotChocolate.Types
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
     {
+        private BindingBehavior _bindingBehavior = BindingBehavior.Implicit;
+
         public ObjectTypeDescriptor(Type objectType)
             : base(objectType)
         {
             NativeType = typeof(T);
+        }
+
+        public override IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
+        {
+            Dictionary<string, FieldDescriptor> descriptors =
+                new Dictionary<string, FieldDescriptor>();
+            foreach (FieldDescriptor descriptor in Fields)
+            {
+                descriptors[descriptor.Name] = descriptor;
+            }
+
+            if (_bindingBehavior == BindingBehavior.Implicit)
+            {
+                Dictionary<MemberInfo, string> members = GetMembers(NativeType);
+                foreach (FieldDescriptor descriptor in descriptors.Values
+                    .Where(t => t.Member != null))
+                {
+                    members.Remove(descriptor.Member);
+                }
+
+                foreach (KeyValuePair<MemberInfo, string> member in members)
+                {
+
+                }
+            }
+        }
+
+        private Dictionary<MemberInfo, string> GetMembers(Type type)
+        {
+            Dictionary<MemberInfo, string> members =
+                new Dictionary<MemberInfo, string>();
+
+            foreach (PropertyInfo property in type.GetProperties())
+            {
+                members[property] = property.GetGraphQLName();
+            }
+
+            foreach (MethodInfo method in type.GetMethods())
+            {
+                members[method] = method.GetGraphQLName();
+            }
+
+            return members;
         }
 
         #region IObjectTypeDescriptor<T>
@@ -137,6 +195,12 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "A field of an entity can only be a property or a method.",
                 nameof(member));
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
+        {
+            _bindingBehavior = bindingBehavior;
+            return this;
         }
 
         #endregion
