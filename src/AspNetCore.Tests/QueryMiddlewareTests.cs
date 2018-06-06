@@ -123,12 +123,4 @@ namespace HotChocolate.AspNetCore
         public string B { get; set; }
         public string C { get; set; }
     }
-
-    internal class QueryRequestDto
-    {
-        public string OperationName { get; set; }
-        public string NamedQuery { get; set; }
-        public string Query { get; set; }
-        public Dictionary<string, object> Variables { get; set; }
-    }
 }

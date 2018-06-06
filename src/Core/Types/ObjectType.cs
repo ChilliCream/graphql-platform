@@ -247,7 +247,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
-            new ObjectTypeDescriptor<T>(GetType());
+            new ObjectTypeDescriptor<T>(typeof(T));
 
         protected sealed override void Configure(IObjectTypeDescriptor descriptor)
         {

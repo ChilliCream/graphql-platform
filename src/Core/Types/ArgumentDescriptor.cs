@@ -25,6 +25,7 @@ namespace HotChocolate.Types
             }
 
             Name = argumentName;
+            DefaultValue = new NullValueNode();
         }
 
         public string Name { get; protected set; }
@@ -58,7 +59,7 @@ namespace HotChocolate.Types
                 return DefaultValue;
             }
 
-            if(NativeDefaultValue != null)
+            if (NativeDefaultValue != null)
             {
                 IInputType type = CreateType(typeRegistry);
                 return type.ParseValue(NativeDefaultValue);
