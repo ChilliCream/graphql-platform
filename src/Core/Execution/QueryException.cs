@@ -1,25 +1,43 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace HotChocolate.Execution
 {
-    // TODO : finalize type
     public class QueryException
         : Exception
     {
-        public QueryException(QueryError error)
+        public QueryException(IQueryError error)
         {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
 
+            Errors = ImmutableList<IQueryError>.Empty.Add(error);
         }
 
-        public QueryException(params QueryError[] errors)
+        public QueryException(params IQueryError[] errors)
         {
+            if (errors == null)
+            {
+                throw new ArgumentNullException(nameof(errors));
+            }
 
+            Errors = errors.ToImmutableList(); ;
         }
 
-        public QueryException(IEnumerable<QueryError> errors)
+        public QueryException(IEnumerable<IQueryError> errors)
         {
+            if (errors == null)
+            {
+                throw new ArgumentNullException(nameof(errors));
+            }
 
+            Errors = errors.ToImmutableList();
         }
+
+        public IReadOnlyCollection<IQueryError> Errors { get; }
     }
 }

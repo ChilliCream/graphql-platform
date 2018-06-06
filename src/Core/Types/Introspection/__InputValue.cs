@@ -1,3 +1,5 @@
+using HotChocolate.Configuration;
+
 namespace HotChocolate.Types.Introspection
 {
     internal sealed class __InputValue
@@ -5,10 +7,14 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor<InputField> descriptor)
         {
+            descriptor.Name("__InputValue");
+
             descriptor.Description(
                 "Arguments provided to Fields or Directives and the input fields of an " +
                 "InputObject are represented as Input Values which describe their type " +
                 "and optionally a default value.");
+
+            descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field(t => t.Name)
                 .Type<NonNullType<StringType>>();

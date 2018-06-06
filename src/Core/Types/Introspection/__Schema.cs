@@ -1,3 +1,5 @@
+using HotChocolate.Configuration;
+
 namespace HotChocolate.Types.Introspection
 {
     internal sealed class __Schema
@@ -5,10 +7,14 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor<Schema> descriptor)
         {
+            descriptor.Name("__Schema");
+
             descriptor.Description(
                 "A GraphQL Schema defines the capabilities of a GraphQL server. It " +
                 "exposes all available types and directives on the server, as well as " +
                 "the entry points for query, mutation, and subscription operations.");
+
+            descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field("types")
                 .Description("A list of all types supported by this server.")

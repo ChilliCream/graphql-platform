@@ -5,6 +5,8 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IEnumTypeDescriptor<TypeKind> descriptor)
         {
+            descriptor.Name("__TypeKind");
+
             descriptor.Description(
                 "An enum describing what kind of type a given `__Type` is.");
 

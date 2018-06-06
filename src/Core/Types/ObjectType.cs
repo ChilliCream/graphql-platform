@@ -39,14 +39,8 @@ namespace HotChocolate.Types
                     "The type name must not be null or empty.");
             }
 
-            if (descriptor.Fields.Count == 0)
-            {
-                throw new ArgumentException(
-                    $"The object type `{Name}` has no fields.");
-            }
-
             List<FieldBinding> fieldBindings = new List<FieldBinding>();
-            foreach (FieldDescriptor fieldDescriptor in descriptor.Fields)
+            foreach (FieldDescriptor fieldDescriptor in descriptor.GetFieldDescriptors())
             {
                 Field field = fieldDescriptor.CreateField();
                 _fieldMap[fieldDescriptor.Name] = field;

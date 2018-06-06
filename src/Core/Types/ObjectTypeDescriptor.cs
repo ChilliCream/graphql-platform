@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 
@@ -125,16 +126,17 @@ namespace HotChocolate.Types
     {
         private BindingBehavior _bindingBehavior = BindingBehavior.Implicit;
 
-        public ObjectTypeDescriptor(Type objectType)
-            : base(objectType)
+        public ObjectTypeDescriptor(Type pocoType)
+            : base(pocoType)
         {
-            NativeType = typeof(T);
+            NativeType = pocoType;
         }
 
         public override IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
         {
             Dictionary<string, FieldDescriptor> descriptors =
                 new Dictionary<string, FieldDescriptor>();
+
             foreach (FieldDescriptor descriptor in Fields)
             {
                 descriptors[descriptor.Name] = descriptor;
@@ -151,9 +153,41 @@ namespace HotChocolate.Types
 
                 foreach (KeyValuePair<MemberInfo, string> member in members)
                 {
-
+                    if (!descriptors.ContainsKey(member.Value)
+                        && TryCreateFieldDescriptorFromMember(
+                            member.Value, member.Key, out FieldDescriptor descriptor))
+                    {
+                        descriptors[descriptor.Name] = descriptor;
+                    }
                 }
             }
+
+            return descriptors.Values;
+        }
+
+        private bool TryCreateFieldDescriptorFromMember(
+            string name, MemberInfo member,
+            out FieldDescriptor descriptor)
+        {
+            Type type = null;
+            if (member is PropertyInfo p)
+            {
+                type = p.PropertyType;
+            }
+
+            if (member is MethodInfo m
+                && (m.ReturnType != typeof(void)
+                    || m.ReturnType != typeof(Task)))
+            {
+                type = m.ReturnType;
+            }
+
+            descriptor = null;
+            if (type != null && TypeInspector.Default.IsSupported(type))
+            {
+                descriptor = new FieldDescriptor(Name, member, type);
+            }
+            return descriptor != null;
         }
 
         private Dictionary<MemberInfo, string> GetMembers(Type type)
@@ -161,12 +195,16 @@ namespace HotChocolate.Types
             Dictionary<MemberInfo, string> members =
                 new Dictionary<MemberInfo, string>();
 
-            foreach (PropertyInfo property in type.GetProperties())
+            foreach (PropertyInfo property in type.GetProperties(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(t => t.DeclaringType != typeof(object)))
             {
                 members[property] = property.GetGraphQLName();
             }
 
-            foreach (MethodInfo method in type.GetMethods())
+            foreach (MethodInfo method in type.GetMethods(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(m => !m.IsSpecialName && m.DeclaringType != typeof(object)))
             {
                 members[method] = method.GetGraphQLName();
             }

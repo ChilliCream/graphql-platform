@@ -158,6 +158,23 @@ namespace HotChocolate.Types
             IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
 
             // assert
+            Assert.IsType<NonNullType>(type);
+            Assert.IsType<IntType>(((NonNullType)type).Type);
+        }
+
+        [Fact]
+        public void DotNetNullableIntType()
+        {
+            // arrange
+            TypeRegistry typeRegistry = new TypeRegistry();
+            typeRegistry.RegisterType(typeof(IntType));
+            Type nativeType = typeof(int?);
+
+            // act
+            TypeInspector typeInspector = new TypeInspector();
+            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+
+            // assert
             Assert.IsType<IntType>(type);
         }
 
@@ -168,6 +185,23 @@ namespace HotChocolate.Types
             TypeRegistry typeRegistry = new TypeRegistry();
             typeRegistry.RegisterType(typeof(BooleanType));
             Type nativeType = typeof(bool);
+
+            // act
+            TypeInspector typeInspector = new TypeInspector();
+            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+
+            // assert
+            Assert.IsType<NonNullType>(type);
+            Assert.IsType<BooleanType>(((NonNullType)type).Type);
+        }
+
+        [Fact]
+        public void DotNetNullableBoolType()
+        {
+            // arrange
+            TypeRegistry typeRegistry = new TypeRegistry();
+            typeRegistry.RegisterType(typeof(BooleanType));
+            Type nativeType = typeof(bool?);
 
             // act
             TypeInspector typeInspector = new TypeInspector();

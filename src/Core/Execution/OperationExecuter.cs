@@ -264,6 +264,20 @@ namespace HotChocolate.Execution
         {
             object completedValue = fieldValue;
 
+            if (completedValue is IQueryError error)
+            {
+                setValue(null);
+                executionContext.Errors.Add(error);
+                return false;
+            }
+
+            if (completedValue is IEnumerable<IQueryError> errors)
+            {
+                setValue(null);
+                executionContext.Errors.AddRange(errors);
+                return false;
+            }
+
             if (fieldType.IsNonNullType())
             {
                 IType innerType = fieldType.InnerType();
@@ -433,12 +447,6 @@ namespace HotChocolate.Execution
             {
                 case Task<object> task:
                     return await task;
-                case Task<Func<object>> taskFunc:
-                    return (await taskFunc)();
-                case Func<Task<object>> funcTask:
-                    return await funcTask();
-                case Func<object> func:
-                    return func();
                 default:
                     return resolverResult;
             }

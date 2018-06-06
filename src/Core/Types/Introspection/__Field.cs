@@ -1,3 +1,5 @@
+using HotChocolate.Configuration;
+
 namespace HotChocolate.Types.Introspection
 {
     internal sealed class __Field
@@ -5,9 +7,13 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor<Field> descriptor)
         {
+            descriptor.Name("__Field");
+
             descriptor.Description(
                 "Object and Interface types are described by a list of Fields, each of " +
                 "which has a name, potentially a list of arguments, and a return type.");
+
+            descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field(t => t.Name)
                 .Type<NonNullType<StringType>>();
