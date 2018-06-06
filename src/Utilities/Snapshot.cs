@@ -32,8 +32,8 @@ namespace HotChocolate
             [CallerMemberNameAttribute]string snapshotName = null)
         {
             // create snapshot
-            string snapshot = JsonConvert.SerializeObject(
-                obj, _settings);
+            string snapshot = NormalizeLineBreaks(
+                JsonConvert.SerializeObject(obj, _settings));
 
             // save new snapshot
             string directoryPath = Path.Combine("__snapshots__", "new");
@@ -47,10 +47,15 @@ namespace HotChocolate
             }
             File.WriteAllText(
                 Path.Combine(directoryPath, snapshotName + ".json"),
-                snapshot + "\n");
+                snapshot);
 
             // return new snapshot
-            return snapshot + "\n";
+            return snapshot;
+        }
+
+        private static string NormalizeLineBreaks(string snapshot)
+        {
+            return snapshot.Replace("\r", string.Empty) + "\n";
         }
     }
 }
