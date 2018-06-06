@@ -9,17 +9,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override void GenerateResolverInvocation(
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return resolver.{resolverDescriptor.Member.Name} (");
-
-            if (resolverDescriptor.ArgumentDescriptors.Any())
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            HandleExceptions(source, s =>
             {
-                string arguments = string.Join(", ",
+                s.AppendLine($"return resolver.{resolverDescriptor.Member.Name} (");
+                if (resolverDescriptor.ArgumentDescriptors.Any())
+                {
+                    string arguments = string.Join(", ",
                     resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
-                source.AppendLine(arguments);
-            }
-
-            source.Append(");");
+                    s.AppendLine(arguments);
+                }
+                s.Append(");");
+            });
         }
 
         public override bool CanGenerate(

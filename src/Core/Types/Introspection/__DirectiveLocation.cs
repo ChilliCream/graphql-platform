@@ -5,6 +5,8 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IEnumTypeDescriptor<DirectiveLocation> descriptor)
         {
+            descriptor.Name("__DirectiveLocation");
+
             descriptor.Description(
                 "A Directive can be adjacent to many parts of the GraphQL language, a " +
                 "__DirectiveLocation describes one such possible adjacencies.");

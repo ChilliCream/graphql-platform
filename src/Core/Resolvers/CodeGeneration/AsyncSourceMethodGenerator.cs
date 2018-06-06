@@ -9,17 +9,23 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override void GenerateResolverInvocation(
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
-            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.ResolverType.FullName}>();");
-            source.AppendLine($"return source.{resolverDescriptor.Member.Name} (");
+            source.AppendLine("Func<Task<object>> f = async () => {");
+            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
 
-            if (resolverDescriptor.ArgumentDescriptors.Any())
+            HandleExceptions(source, s =>
             {
-                string arguments = string.Join(", ",
-                    resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
-                source.Append(arguments);
-            }
+                s.Append($"return await source.{resolverDescriptor.Member.Name} (");
+                if (resolverDescriptor.ArgumentDescriptors.Any())
+                {
+                    string arguments = string.Join(", ",
+                        resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
+                    s.Append(arguments);
+                }
+                s.AppendLine(");");
+            });
 
-            source.Append(");");
+            source.AppendLine("};");
+            source.Append("return f();");
         }
 
         public override bool CanGenerate(

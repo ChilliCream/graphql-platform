@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
@@ -10,16 +11,28 @@ namespace HotChocolate.Types
         private Dictionary<Type, TypeInfo> _typeInfoCache = new Dictionary<Type, TypeInfo>
         {
             { typeof(string), new TypeInfo(typeof(StringType)) },
-            { typeof(int), new TypeInfo(typeof(IntType)) },
-            { typeof(bool), new TypeInfo(typeof(BooleanType)) }
+            { typeof(Task<string>), new TypeInfo(typeof(StringType)) },
+            { typeof(int), new TypeInfo(typeof(IntType),
+                t => new NonNullType(new IntType())) },
+            { typeof(int?), new TypeInfo(typeof(IntType)) },
+            { typeof(Task<int>), new TypeInfo(typeof(IntType),
+                t => new NonNullType(new IntType())) },
+            { typeof(Task<int?>), new TypeInfo(typeof(IntType)) },
+            { typeof(bool), new TypeInfo(typeof(BooleanType),
+                t => new NonNullType(new BooleanType())) },
+            { typeof(bool?), new TypeInfo(typeof(BooleanType)) },
+
+            { typeof(Task<bool>), new TypeInfo(typeof(BooleanType),
+                t => new NonNullType(new BooleanType())) },
+            { typeof(Task<bool?>), new TypeInfo(typeof(BooleanType)) }
         };
 
         public bool IsSupported(Type nativeType)
         {
             try
             {
-                GetOrCreateTypeInfo(nativeType);
-                return true;
+                TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
+                return typeInfo.NativeNamedType != null;
             }
             catch (NotSupportedException)
             {

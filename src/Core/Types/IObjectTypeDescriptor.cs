@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {
@@ -16,6 +17,7 @@ namespace HotChocolate.Types
     public interface IObjectTypeDescriptor<T>
         : IObjectTypeDescriptor
     {
+        IObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
         IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
     }
 }

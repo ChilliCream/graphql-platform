@@ -186,15 +186,16 @@ namespace HotChocolate.Execution
             {
                 IResolverContext resolverContext = new ResolverContext(
                     executionContext, task);
-                object resolverResult = task.FieldSelection.Field.Resolver(
-                    resolverContext, cancellationToken);
+                object resolverResult = ExecuteFieldResolver(
+                    resolverContext, task.FieldSelection.Field,
+                    cancellationToken);
                 runningTasks.Add((task, resolverContext, resolverResult));
             }
 
             foreach (var runningTask in runningTasks)
             {
                 FieldSelection fieldSelection = runningTask.task.FieldSelection;
-                object fieldValue = await CompleteFieldValueAsync(
+                object fieldValue = await HandleFieldValueAsync(
                     runningTask.resolverResult);
 
                 TryCompleteValue(executionContext, runningTask.context,
@@ -232,12 +233,13 @@ namespace HotChocolate.Execution
                 // execute resolver
                 IResolverContext resolverContext = new ResolverContext(
                     executionContext, task);
-                object resolverResult = task.FieldSelection.Field.Resolver(
-                    resolverContext, cancellationToken);
+                object resolverResult = ExecuteFieldResolver(
+                    resolverContext, task.FieldSelection.Field,
+                    cancellationToken);
 
                 // complete resolver value
                 FieldSelection fieldSelection = task.FieldSelection;
-                object fieldValue = await CompleteFieldValueAsync(
+                object fieldValue = await HandleFieldValueAsync(
                     resolverResult);
                 TryCompleteValue(executionContext, resolverContext, task.Source,
                     fieldSelection, fieldSelection.Field.Type,
@@ -248,6 +250,25 @@ namespace HotChocolate.Execution
                 await ExecuteFieldResolversAsync(executionContext, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        private object ExecuteFieldResolver(
+            IResolverContext resolverContext,
+            Field field,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return field.Resolver(resolverContext, cancellationToken);
+            }
+            catch (QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (Exception)
+            {
+                return new QueryError("Internal resolver error.");
             }
         }
 
@@ -263,6 +284,20 @@ namespace HotChocolate.Execution
             Action<object> setValue)
         {
             object completedValue = fieldValue;
+
+            if (completedValue is IQueryError error)
+            {
+                setValue(null);
+                executionContext.Errors.Add(error);
+                return false;
+            }
+
+            if (completedValue is IEnumerable<IQueryError> errors)
+            {
+                setValue(null);
+                executionContext.Errors.AddRange(errors);
+                return false;
+            }
 
             if (fieldType.IsNonNullType())
             {
@@ -427,20 +462,30 @@ namespace HotChocolate.Execution
         }
 
         // todo: rework ....
-        private async Task<object> CompleteFieldValueAsync(object resolverResult)
+        private async Task<object> HandleFieldValueAsync(object resolverResult)
         {
             switch (resolverResult)
             {
                 case Task<object> task:
-                    return await task;
-                case Task<Func<object>> taskFunc:
-                    return (await taskFunc)();
-                case Func<Task<object>> funcTask:
-                    return await funcTask();
-                case Func<object> func:
-                    return func();
+                    return await HandleFieldValueTaskAsync(task);
                 default:
                     return resolverResult;
+            }
+        }
+
+        private async Task<object> HandleFieldValueTaskAsync(Task<object> task)
+        {
+            try
+            {
+                return await task;
+            }
+            catch (QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (Exception)
+            {
+                return new QueryError("Internal resolver error.");
             }
         }
     }

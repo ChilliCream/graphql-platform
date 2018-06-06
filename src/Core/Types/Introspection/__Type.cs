@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
@@ -10,6 +11,8 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
         {
+            descriptor.Name("__Type");
+
             descriptor.Description(
                 "The fundamental unit of any GraphQL Schema is the type. There are " +
                 "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
@@ -19,6 +22,8 @@ namespace HotChocolate.Types.Introspection
                 "Object and Interface types provide the fields they describe. Abstract " +
                 "types, Union and Interface, provide the Object types possible " +
                 "at runtime. List and NonNull types compose other types.");
+
+            descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field("kind")
                 .Type<NonNullType<__TypeKind>>()

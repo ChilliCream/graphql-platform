@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -82,5 +83,27 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         public abstract bool CanGenerate(
             FieldResolverDescriptor resolverDescriptor);
+
+        protected string GetTypeName(Type type)
+        {
+            return type.FullName.Replace("+", ".");
+        }
+
+        protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch({GetTypeName(typeof(QueryException))} ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return ex.{nameof(QueryException.Errors)};");
+            source.AppendLine("}");
+            source.AppendLine($"catch({GetTypeName(typeof(Exception))} ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return new {GetTypeName(typeof(QueryError))}(\"Internal resolver error\");");
+            source.Append("}");
+        }
     }
 }

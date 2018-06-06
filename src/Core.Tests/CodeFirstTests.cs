@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -93,7 +94,6 @@ namespace HotChocolate
         {
             // arrange
             Schema schema = CreateSchema();
-
             Mock<IResolverContext> context = new Mock<IResolverContext>(
                 MockBehavior.Strict);
 
@@ -107,6 +107,51 @@ namespace HotChocolate
             Assert.Null(barType);
         }
 
+        [Fact]
+        public async Task ExecuteImplicitField()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            QueryResult result = await schema.ExecuteAsync(
+                "{ dog { name } }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteImplicitAsyncField()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            QueryResult result = await schema.ExecuteAsync(
+                "{ dog { name2 } }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteExplicitAsyncField()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            QueryResult result = await schema.ExecuteAsync(
+                "{ dog { names } }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -117,6 +162,7 @@ namespace HotChocolate
                 c.RegisterType<FooBarUnionType>();
                 c.RegisterType<DrinkType>();
                 c.RegisterType<TeaType>();
+                c.RegisterType<DogType>();
             });
         }
 
@@ -159,8 +205,11 @@ namespace HotChocolate
                     .Type<TeaType>()
                     .Resolver(() => "black_tea");
                 descriptor.Field("drink")
-                   .Type<DrinkType>()
-                   .Resolver(() => "black_tea");
+                    .Type<DrinkType>()
+                    .Resolver(() => "black_tea");
+                descriptor.Field("dog")
+                    .Type<DogType>()
+                    .Resolver(() => new Dog());
             }
         }
 
@@ -240,6 +289,30 @@ namespace HotChocolate
                 descriptor.Name("FooBar");
                 descriptor.Type<BarType>();
                 descriptor.Type<FooType>();
+            }
+        }
+
+        public class Dog
+        {
+            public string Name { get; } = "a";
+
+            public Task<string> GetName2()
+            {
+                return Task.FromResult("b");
+            }
+
+            public Task<IEnumerable<string>> GetNames()
+            {
+                return Task.FromResult<IEnumerable<string>>(new[] { "a", "b" });
+            }
+        }
+
+        public class DogType
+            : ObjectType<Dog>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
+            {
+                descriptor.Field(t => t.GetNames()).Type<ListType<StringType>>();
             }
         }
 

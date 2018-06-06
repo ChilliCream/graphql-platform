@@ -203,7 +203,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor<T>(GetType());
+            new EnumTypeDescriptor<T>(typeof(T));
 
         protected sealed override void Configure(IEnumTypeDescriptor descriptor)
         {

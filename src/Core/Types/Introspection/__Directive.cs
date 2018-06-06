@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
+            descriptor.Name("__Directive");
+
             descriptor.Description(
                 "A Directive provides a way to describe alternate runtime execution and " +
                 "type validation behavior in a GraphQL document.\n\n" +

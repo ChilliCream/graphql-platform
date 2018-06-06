@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -74,7 +75,7 @@ namespace HotChocolate.Configuration
 
                 if (binding.ObjectTypeName == null)
                 {
-                    binding.ObjectTypeName = GetNameFromType(binding.ObjectType);
+                    binding.ObjectTypeName = binding.ObjectType.GetGraphQLName();
                 }
 
                 // TODO : error handling if object type cannot be resolverd
@@ -112,7 +113,7 @@ namespace HotChocolate.Configuration
                 // todo : error handling
                 if (binding.FieldName == null)
                 {
-                    binding.FieldName = GetNameFromMember(binding.FieldMember);
+                    binding.FieldName = binding.FieldMember.GetGraphQLName();
                 }
             }
         }
@@ -174,12 +175,12 @@ namespace HotChocolate.Configuration
 
             foreach (PropertyInfo property in type.GetProperties())
             {
-                members[GetNameFromMember(property)] = property;
+                members[property.GetGraphQLName()] = property;
             }
 
             foreach (MethodInfo method in type.GetMethods())
             {
-                members[GetNameFromMember(method)] = method;
+                members[method.GetGraphQLName()] = method;
                 if (method.Name.Length > 3 && method.Name
                     .StartsWith("Get", StringComparison.OrdinalIgnoreCase))
                 {
@@ -198,34 +199,10 @@ namespace HotChocolate.Configuration
 
             foreach (PropertyInfo property in type.GetProperties())
             {
-                members[GetNameFromMember(property)] = property;
+                members[property.GetGraphQLName()] = property;
             }
 
             return members;
-        }
-
-        private string GetNameFromType(Type type)
-        {
-            if (type.IsDefined(typeof(GraphQLNameAttribute)))
-            {
-                return type.GetCustomAttribute<GraphQLNameAttribute>().Name;
-            }
-            return type.Name;
-        }
-
-        private string GetNameFromMember(MemberInfo member)
-        {
-            if (member.IsDefined(typeof(GraphQLNameAttribute)))
-            {
-                return member.GetCustomAttribute<GraphQLNameAttribute>().Name;
-            }
-
-            if (member.Name.Length == 1)
-            {
-                return member.Name.ToLowerInvariant();
-            }
-
-            return member.Name.Substring(0, 1).ToLowerInvariant() + member.Name.Substring(1);
         }
     }
 }

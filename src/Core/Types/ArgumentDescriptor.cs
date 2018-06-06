@@ -8,6 +8,16 @@ namespace HotChocolate.Types
     internal class ArgumentDescriptor
         : IArgumentDescriptor
     {
+        public ArgumentDescriptor(string argumentName, Type argumentType)
+            : this(argumentName)
+        {
+            if (argumentType == null)
+            {
+                throw new ArgumentNullException(nameof(argumentType));
+            }
+            NativeType = argumentType;
+        }
+
         public ArgumentDescriptor(string argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))
@@ -25,6 +35,7 @@ namespace HotChocolate.Types
             }
 
             Name = argumentName;
+            DefaultValue = new NullValueNode();
         }
 
         public string Name { get; protected set; }
@@ -58,7 +69,7 @@ namespace HotChocolate.Types
                 return DefaultValue;
             }
 
-            if(NativeDefaultValue != null)
+            if (NativeDefaultValue != null)
             {
                 IInputType type = CreateType(typeRegistry);
                 return type.ParseValue(NativeDefaultValue);
