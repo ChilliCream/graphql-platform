@@ -19,8 +19,6 @@ namespace HotChocolate.Resolvers
 
         public static Assembly Compile(string sourceText)
         {
-            File.WriteAllText(Guid.NewGuid().ToString("n") + ".cs", sourceText);
-
             SyntaxTree syntaxTree = ParseSource(sourceText);
             return Compile(syntaxTree);
         }
