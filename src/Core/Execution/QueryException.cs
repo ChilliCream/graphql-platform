@@ -8,6 +8,17 @@ namespace HotChocolate.Execution
     public class QueryException
         : Exception
     {
+        public QueryException(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            Errors = ImmutableList<IQueryError>.Empty.Add(new QueryError(message));
+        }
+
+
         public QueryException(IQueryError error)
         {
             if (error == null)
