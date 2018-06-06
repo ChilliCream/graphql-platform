@@ -123,6 +123,21 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task ExecuteImplicitFieldWithNameAttribute()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            QueryResult result = await schema.ExecuteAsync(
+                "{ dog { desc } }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public async Task ExecuteImplicitAsyncField()
         {
             // arrange
@@ -295,6 +310,9 @@ namespace HotChocolate
         public class Dog
         {
             public string Name { get; } = "a";
+
+            [GraphQLName("desc")]
+            public string Descriptor { get; } = "desc";
 
             public Task<string> GetName2()
             {
