@@ -7,8 +7,8 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            FieldValueCompletionContext context,
-            Action<FieldValueCompletionContext> nextHandler)
+            IFieldValueCompletionContext context,
+            Action<IFieldValueCompletionContext> nextHandler)
         {
             if (context.Value is IQueryError error)
             {

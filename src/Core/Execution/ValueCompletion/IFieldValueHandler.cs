@@ -5,7 +5,7 @@ namespace HotChocolate.Execution
     internal interface IFieldValueHandler
     {
         void CompleteValue(
-            FieldValueCompletionContext context,
-            Action<FieldValueCompletionContext> nextHandler);
+            IFieldValueCompletionContext completionContext,
+            Action<IFieldValueCompletionContext> nextHandler);
     }
 }

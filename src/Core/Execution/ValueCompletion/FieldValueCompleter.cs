@@ -14,11 +14,11 @@ namespace HotChocolate.Execution
             new ObjectFieldValueHandler()
         };
 
-        private readonly Action<FieldValueCompletionContext> _completeValue;
+        private readonly Action<IFieldValueCompletionContext> _completeValue;
 
         public FieldValueCompleter()
         {
-            Action<FieldValueCompletionContext> completeValue = null;
+            Action<IFieldValueCompletionContext> completeValue = null;
             for (int i = _handlers.Length - 1; i >= 0; i--)
             {
                 completeValue = CreateValueCompleter(_handlers[i], completeValue);
@@ -26,14 +26,14 @@ namespace HotChocolate.Execution
             _completeValue = completeValue;
         }
 
-        private static Action<FieldValueCompletionContext> CreateValueCompleter(
+        private static Action<IFieldValueCompletionContext> CreateValueCompleter(
             IFieldValueHandler handler,
-            Action<FieldValueCompletionContext> completeValue)
+            Action<IFieldValueCompletionContext> completeValue)
         {
             return c => handler.CompleteValue(c, completeValue);
         }
 
-        public void CompleteValue(FieldValueCompletionContext context)
+        public void CompleteValue(IFieldValueCompletionContext context)
         {
             _completeValue(context);
         }

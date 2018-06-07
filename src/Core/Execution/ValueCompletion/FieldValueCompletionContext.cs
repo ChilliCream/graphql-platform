@@ -8,6 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     internal readonly struct FieldValueCompletionContext
+        : IFieldValueCompletionContext
     {
         private readonly Action<object> _setResult;
 
@@ -145,7 +146,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public FieldValueCompletionContext AsNonNullValueContext()
+        public IFieldValueCompletionContext AsNonNullValueContext()
         {
             if (Type.IsNonNullType())
             {
@@ -156,7 +157,7 @@ namespace HotChocolate.Execution
                 "The current type is not a non-null type.");
         }
 
-        public FieldValueCompletionContext AsElementValueContext(
+        public IFieldValueCompletionContext AsElementValueContext(
             Path elementPath, IType elementType,
             object element, Action<object> addElementToList)
         {

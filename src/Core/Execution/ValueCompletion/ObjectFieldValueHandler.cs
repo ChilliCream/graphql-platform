@@ -9,8 +9,8 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            FieldValueCompletionContext context,
-            Action<FieldValueCompletionContext> nextHandler)
+            IFieldValueCompletionContext context,
+            Action<IFieldValueCompletionContext> nextHandler)
         {
             if (context.Type.IsObjectType()
                 || context.Type.IsInterfaceType()
