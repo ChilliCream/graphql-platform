@@ -19,19 +19,19 @@ namespace HotChocolate.Internal
             if (memberExpression.Body is MemberExpression m)
             {
                 if (m.Member is PropertyInfo pi
-                    && type == pi.ReflectedType)
+                    && pi.DeclaringType.IsAssignableFrom(type))
                 {
                     return pi;
                 }
                 else if (m.Member is MethodInfo mi
-                    && type == mi.ReflectedType)
+                    && mi.DeclaringType.IsAssignableFrom(type))
                 {
                     return mi;
                 }
             }
 
             if (memberExpression.Body is MethodCallExpression mc
-                && type == mc.Method.ReflectedType)
+                && mc.Method.DeclaringType.IsAssignableFrom(type))
             {
                 return mc.Method;
             }

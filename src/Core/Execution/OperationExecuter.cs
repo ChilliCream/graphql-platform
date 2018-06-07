@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,6 +14,8 @@ namespace HotChocolate.Execution
     {
         private static readonly VariableValueResolver _variableValueResolver =
             new VariableValueResolver();
+        private static readonly FieldValueCompleter _valueCompleter =
+            new FieldValueCompleter();
 
         public async Task<QueryResult> ExecuteRequestAsync(
             Schema schema, DocumentNode queryDocument, string operationName,
@@ -142,9 +143,8 @@ namespace HotChocolate.Execution
             List<FieldResolverTask> batch = new List<FieldResolverTask>();
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.FieldResolver.CollectFields(objectType,
-                    executionContext.Operation.SelectionSet,
-                    error => executionContext.Errors.Add(error));
+                executionContext.CollectFields(objectType,
+                    executionContext.Operation.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
@@ -188,21 +188,22 @@ namespace HotChocolate.Execution
                     executionContext, task);
                 object resolverResult = ExecuteFieldResolver(
                     resolverContext, task.FieldSelection.Field,
-                    cancellationToken);
+                    task.FieldSelection.Node, cancellationToken);
                 runningTasks.Add((task, resolverContext, resolverResult));
             }
 
             foreach (var runningTask in runningTasks)
             {
-                FieldSelection fieldSelection = runningTask.task.FieldSelection;
                 object fieldValue = await HandleFieldValueAsync(
                     runningTask.resolverResult);
 
-                TryCompleteValue(executionContext, runningTask.context,
-                    runningTask.task.Source,
-                    fieldSelection, fieldSelection.Field.Type,
-                    runningTask.task.Path, fieldValue,
-                    runningTask.task.SetValue);
+                FieldValueCompletionContext completionContext =
+                    new FieldValueCompletionContext(
+                        executionContext, runningTask.context,
+                        runningTask.task.FieldSelection,
+                        runningTask.task.SetValue,
+                        fieldValue);
+                CompleteValue(completionContext);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -231,20 +232,23 @@ namespace HotChocolate.Execution
             foreach (FieldResolverTask task in batch)
             {
                 // execute resolver
-                IResolverContext resolverContext = new ResolverContext(
+                ResolverContext resolverContext = new ResolverContext(
                     executionContext, task);
                 object resolverResult = ExecuteFieldResolver(
                     resolverContext, task.FieldSelection.Field,
-                    cancellationToken);
+                    task.FieldSelection.Node, cancellationToken);
 
-                // complete resolver value
-                FieldSelection fieldSelection = task.FieldSelection;
-                object fieldValue = await HandleFieldValueAsync(
+                // handle async results
+                resolverResult = await HandleFieldValueAsync(
                     resolverResult);
-                TryCompleteValue(executionContext, resolverContext, task.Source,
-                    fieldSelection, fieldSelection.Field.Type,
-                    task.Path, fieldValue,
-                    task.SetValue);
+
+                FieldValueCompletionContext completionContext =
+                    new FieldValueCompletionContext(
+                        executionContext, resolverContext,
+                        task.FieldSelection, task.SetValue,
+                        resolverResult);
+
+                CompleteValue(completionContext);
 
                 // execute sub-selection fields normally
                 await ExecuteFieldResolversAsync(executionContext, cancellationToken);
@@ -256,6 +260,7 @@ namespace HotChocolate.Execution
         private object ExecuteFieldResolver(
             IResolverContext resolverContext,
             Field field,
+            FieldNode fieldSelection,
             CancellationToken cancellationToken)
         {
             try
@@ -268,175 +273,8 @@ namespace HotChocolate.Execution
             }
             catch (Exception)
             {
-                return new QueryError("Internal resolver error.");
+                return new FieldError("Internal resolver error.", fieldSelection);
             }
-        }
-
-        // TODO : refactor this
-        private bool TryCompleteValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            object completedValue = fieldValue;
-
-            if (completedValue is IQueryError error)
-            {
-                setValue(null);
-                executionContext.Errors.Add(error);
-                return false;
-            }
-
-            if (completedValue is IEnumerable<IQueryError> errors)
-            {
-                setValue(null);
-                executionContext.Errors.AddRange(errors);
-                return false;
-            }
-
-            if (fieldType.IsNonNullType())
-            {
-                IType innerType = fieldType.InnerType();
-                if (!TryCompleteValue(
-                    executionContext, resolverContext, source, fieldSelection,
-                    innerType, path, completedValue, setValue))
-                {
-                    executionContext.Errors.Add(new FieldError(
-                        "Cannot return null for non-nullable field.",
-                        fieldSelection.Node));
-                    return false;
-                }
-                return true;
-            }
-
-            if (completedValue == null)
-            {
-                setValue(null);
-                return false;
-            }
-
-            if (fieldType.IsListType())
-            {
-                return TryCompleteListValue(executionContext, resolverContext,
-                    source, fieldSelection, fieldType, path, completedValue,
-                    setValue);
-            }
-
-            if (fieldType.IsScalarType()
-                || fieldType.IsEnumType())
-            {
-                return TryCompleteScalarValue(executionContext, resolverContext,
-                    source, fieldSelection, fieldType, path, completedValue,
-                    setValue);
-            }
-
-            return TryCompleteObjectValue(executionContext, resolverContext,
-                source, fieldSelection, fieldType, path, completedValue,
-                setValue);
-        }
-
-        private bool TryCompleteListValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            IType elementType = fieldType.ElementType();
-            bool isNonNullElement = elementType.IsNonNullType();
-            List<object> list = new List<object>();
-            int i = 0;
-
-            foreach (object element in ((IEnumerable)fieldValue))
-            {
-                Path elementPath = path.Append(i++);
-                bool hasValue = TryCompleteValue(
-                    executionContext, resolverContext,
-                    source, fieldSelection,
-                    elementType, elementPath, element,
-                    value => list.Add(value));
-
-                if (isNonNullElement && !hasValue)
-                {
-                    executionContext.Errors.Add(new FieldError(
-                        "The list does not allow null elements",
-                        fieldSelection.Node));
-                    setValue(null);
-                    return false;
-                }
-            }
-
-            setValue(list);
-            return true;
-        }
-
-        private bool TryCompleteScalarValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            try
-            {
-                setValue(((ISerializableType)fieldType).Serialize(fieldValue));
-                return true;
-            }
-            catch (ArgumentException ex)
-            {
-                executionContext.Errors.Add(new FieldError(
-                    ex.Message, fieldSelection.Node));
-            }
-            catch (Exception)
-            {
-                executionContext.Errors.Add(new FieldError(
-                    "Undefined field serialization error.",
-                    fieldSelection.Node));
-            }
-
-            setValue(null);
-            return false;
-        }
-
-        private bool TryCompleteObjectValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            ObjectType objectType = ResolveObjectType(
-                resolverContext, fieldType, fieldValue);
-            OrderedDictionary objectResult = new OrderedDictionary();
-
-            IReadOnlyCollection<FieldSelection> fields = executionContext
-                .FieldResolver.CollectFields(
-                    objectType, fieldSelection.Node.SelectionSet,
-                    executionContext.Errors.Add);
-
-            foreach (FieldSelection field in fields)
-            {
-                executionContext.NextBatch.Add(new FieldResolverTask(
-                    source.Push(fieldValue), objectType, field,
-                    path.Append(field.ResponseName), objectResult));
-            }
-
-            setValue(objectResult);
-            return true;
         }
 
         private ObjectType ResolveObjectType(
@@ -487,6 +325,11 @@ namespace HotChocolate.Execution
             {
                 return new QueryError("Internal resolver error.");
             }
+        }
+
+        private void CompleteValue(FieldValueCompletionContext completionContext)
+        {
+            _valueCompleter.CompleteValue(completionContext);
         }
     }
 }
