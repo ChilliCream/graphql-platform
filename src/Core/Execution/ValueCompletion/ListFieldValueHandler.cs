@@ -18,10 +18,10 @@ namespace HotChocolate.Execution
                 IType elementType = context.Type.ElementType();
                 bool isNonNullElement = elementType.IsNonNullType();
                 elementType = elementType.InnerType();
-                List<object> list = new List<object>();
 
                 if (context.Value is IEnumerable enumerable)
                 {
+                    List<object> list = new List<object>();
                     foreach (object element in enumerable)
                     {
                         if (isNonNullElement && element == null)

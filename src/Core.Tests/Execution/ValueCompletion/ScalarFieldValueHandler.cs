@@ -108,10 +108,5 @@ namespace HotChocolate.Execution
             Assert.Null(result);
             Assert.True(nextHandlerIsRaised);
         }
-
-
-
     }
-
-
 }
