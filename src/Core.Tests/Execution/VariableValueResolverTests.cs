@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.Equal(null, coercedVariableValues["test"]);
+            Assert.Null(coercedVariableValues["test"]);
         }
 
         private Schema CreateSchema()
