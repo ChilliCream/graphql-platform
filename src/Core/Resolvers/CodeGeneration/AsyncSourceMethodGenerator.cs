@@ -9,12 +9,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override void GenerateResolverInvocation(
             FieldResolverDescriptor resolverDescriptor, StringBuilder source)
         {
-            source.AppendLine("Func<Task<object>> f = async () => {");
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine("Func<Task<object>> f = async () => {");
 
             HandleExceptions(source, s =>
             {
-                s.Append($"return await source.{resolverDescriptor.Member.Name} (");
+                s.Append($"return await source.{resolverDescriptor.Member.Name}(");
                 if (resolverDescriptor.ArgumentDescriptors.Any())
                 {
                     string arguments = string.Join(", ",

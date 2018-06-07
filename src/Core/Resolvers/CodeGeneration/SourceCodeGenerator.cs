@@ -100,7 +100,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine("{");
             source.AppendLine($"return ex.{nameof(QueryException.Errors)};");
             source.AppendLine("}");
-            source.AppendLine($"catch({GetTypeName(typeof(Exception))} ex)");
+            source.AppendLine($"catch({GetTypeName(typeof(Exception))})");
             source.AppendLine("{");
             source.AppendLine($"return new {GetTypeName(typeof(QueryError))}(\"Internal resolver error\");");
             source.Append("}");

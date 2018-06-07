@@ -1,0 +1,20 @@
+public static FieldResolverDelegate abc  = (ctx, ct) => {
+var a = ctx.Argument<System.String>("a");
+var b = ctx.Argument<System.Int32>("b");
+var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
+Func<Task<object>> f = async () => {
+try
+{
+return await source.GetFooAsync(a, b);
+
+}
+catch(HotChocolate.Execution.QueryException ex)
+{
+return ex.Errors;
+}
+catch(System.Exception)
+{
+return new HotChocolate.Execution.QueryError("Internal resolver error");
+}};
+return f();
+};

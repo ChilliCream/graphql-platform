@@ -12,12 +12,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
             HandleExceptions(source, s =>
             {
-                s.AppendLine($"return source.{resolverDescriptor.Member.Name} (");
+                s.Append($"return source.{resolverDescriptor.Member.Name}(");
                 if (resolverDescriptor.ArgumentDescriptors.Any())
                 {
                     string arguments = string.Join(", ",
                         resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
-                    s.AppendLine(arguments);
+                    s.Append(arguments);
                 }
                 s.Append(");");
             });

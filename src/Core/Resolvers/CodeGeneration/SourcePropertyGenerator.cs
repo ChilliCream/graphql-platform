@@ -5,12 +5,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal sealed class SourcePropertyGenerator
        : SourceCodeGenerator
     {
-        protected override void GenerateResolverInvocation(FieldResolverDescriptor resolverDescriptor, StringBuilder source)
+        protected override void GenerateResolverInvocation(
+            FieldResolverDescriptor resolverDescriptor,
+            StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
             HandleExceptions(source, s =>
             {
-                s.AppendLine($"return source.{resolverDescriptor.Member.Name};");
+                s.Append($"return source.{resolverDescriptor.Member.Name};");
             });
         }
 
