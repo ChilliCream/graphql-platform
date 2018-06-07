@@ -19,12 +19,14 @@ namespace HotChocolate.Internal
             if (memberExpression.Body is MemberExpression m && m.Member.IsPublic())
             {
                 if (m.Member is PropertyInfo pi
-                    && pi.DeclaringType.IsAssignableFrom(type))
+                    && pi.DeclaringType.IsAssignableFrom(type)
+                    && !pi.IsSpecialName)
                 {
                     return pi;
                 }
                 else if (m.Member is MethodInfo mi
-                    && mi.DeclaringType.IsAssignableFrom(type))
+                    && mi.DeclaringType.IsAssignableFrom(type)
+                    && !mi.IsSpecialName)
                 {
                     return mi;
                 }
@@ -32,7 +34,8 @@ namespace HotChocolate.Internal
 
             if (memberExpression.Body is MethodCallExpression mc
                 && mc.Method.IsPublic()
-                && mc.Method.DeclaringType.IsAssignableFrom(type))
+                && mc.Method.DeclaringType.IsAssignableFrom(type)
+                && !mc.Method.IsSpecialName)
             {
                 return mc.Method;
             }
