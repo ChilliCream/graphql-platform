@@ -25,15 +25,21 @@ namespace HotChocolate
             {
                 return File.ReadAllText(fielPath);
             }
+
+            fielPath = Path.Combine(
+                "__snapshots__", snapshotName + ".txt");
+            if (File.Exists(fielPath))
+            {
+                return File.ReadAllText(fielPath);
+            }
+
             return null;
         }
 
         public static string New(object obj,
             [CallerMemberNameAttribute]string snapshotName = null)
         {
-            // create snapshot
-            string snapshot = NormalizeLineBreaks(
-                JsonConvert.SerializeObject(obj, _settings));
+            string snapshot = null;
 
             // save new snapshot
             string directoryPath = Path.Combine("__snapshots__", "new");
@@ -45,9 +51,24 @@ namespace HotChocolate
                 }
                 catch { }
             }
-            File.WriteAllText(
-                Path.Combine(directoryPath, snapshotName + ".json"),
-                snapshot);
+
+            if (obj is string s)
+            {
+                snapshot = NormalizeLineBreaks(s);
+
+                File.WriteAllText(
+                    Path.Combine(directoryPath, snapshotName + ".txt"),
+                    snapshot);
+            }
+            else
+            {
+                snapshot = NormalizeLineBreaks(
+                   JsonConvert.SerializeObject(obj, _settings));
+
+                File.WriteAllText(
+                    Path.Combine(directoryPath, snapshotName + ".json"),
+                    snapshot);
+            }
 
             // return new snapshot
             return snapshot;

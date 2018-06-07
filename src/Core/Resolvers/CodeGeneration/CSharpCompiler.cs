@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
         public static Assembly Compile(string sourceText)
         {
             SyntaxTree syntaxTree = ParseSource(sourceText);
-            return Compile(syntaxTree);
+            return Compile(sourceText, syntaxTree);
         }
 
         public static SyntaxTree ParseSource(string sourceText)
@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers
                 SourceText.From(sourceText));
         }
 
-        private static Assembly Compile(SyntaxTree syntaxTree)
+        private static Assembly Compile(string sourceText, SyntaxTree syntaxTree)
         {
             string assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
                 $"._{Guid.NewGuid().ToString("N")}.dll";
@@ -49,7 +49,8 @@ namespace HotChocolate.Resolvers
 
                 // TODO : EXCEPTION
                 throw new Exception(string.Join(Environment.NewLine,
-                    result.Diagnostics.Select(t => t.ToString())));
+                    result.Diagnostics.Select(t => t.ToString())) +
+                    Environment.NewLine + sourceText);
             }
         }
 

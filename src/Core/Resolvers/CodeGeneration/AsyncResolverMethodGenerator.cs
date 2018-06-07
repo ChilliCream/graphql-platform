@@ -7,7 +7,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : SourceCodeGenerator
     {
         protected override void GenerateResolverInvocation(
-            FieldResolverDescriptor resolverDescriptor, StringBuilder source)
+            FieldResolverDescriptor resolverDescriptor,
+            StringBuilder source)
         {
             source.AppendLine("Func<Task<object>> f = async () => {");
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");

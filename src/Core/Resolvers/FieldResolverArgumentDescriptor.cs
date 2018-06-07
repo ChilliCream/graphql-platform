@@ -45,7 +45,8 @@ namespace HotChocolate.Resolvers
             return new FieldResolverArgumentDescriptor(name, kind, type);
         }
 
-        internal static FieldResolverArgumentKind LookupKind(Type argumentType, Type sourceType)
+        internal static FieldResolverArgumentKind LookupKind(
+            Type argumentType, Type sourceType)
         {
             if (argumentType == sourceType)
             {
