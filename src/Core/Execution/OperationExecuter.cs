@@ -15,6 +15,8 @@ namespace HotChocolate.Execution
     {
         private static readonly VariableValueResolver _variableValueResolver =
             new VariableValueResolver();
+        private static readonly FieldValueCompleter _valueCompleter =
+            new FieldValueCompleter();
 
         public async Task<QueryResult> ExecuteRequestAsync(
             Schema schema, DocumentNode queryDocument, string operationName,
@@ -142,9 +144,8 @@ namespace HotChocolate.Execution
             List<FieldResolverTask> batch = new List<FieldResolverTask>();
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.FieldResolver.CollectFields(objectType,
-                    executionContext.Operation.SelectionSet,
-                    error => executionContext.Errors.Add(error));
+                executionContext.CollectFields(objectType,
+                    executionContext.Operation.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
@@ -188,21 +189,22 @@ namespace HotChocolate.Execution
                     executionContext, task);
                 object resolverResult = ExecuteFieldResolver(
                     resolverContext, task.FieldSelection.Field,
-                    cancellationToken);
+                    task.FieldSelection.Node, cancellationToken);
                 runningTasks.Add((task, resolverContext, resolverResult));
             }
 
             foreach (var runningTask in runningTasks)
             {
-                FieldSelection fieldSelection = runningTask.task.FieldSelection;
                 object fieldValue = await HandleFieldValueAsync(
                     runningTask.resolverResult);
 
-                TryCompleteValue(executionContext, runningTask.context,
-                    runningTask.task.Source,
-                    fieldSelection, fieldSelection.Field.Type,
-                    runningTask.task.Path, fieldValue,
-                    runningTask.task.SetValue);
+                FieldValueCompletionContext completionContext =
+                    new FieldValueCompletionContext(
+                        executionContext, runningTask.context,
+                        runningTask.task.FieldSelection,
+                        runningTask.task.SetValue,
+                        fieldValue);
+                CompleteValue(completionContext);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -231,20 +233,23 @@ namespace HotChocolate.Execution
             foreach (FieldResolverTask task in batch)
             {
                 // execute resolver
-                IResolverContext resolverContext = new ResolverContext(
+                ResolverContext resolverContext = new ResolverContext(
                     executionContext, task);
                 object resolverResult = ExecuteFieldResolver(
                     resolverContext, task.FieldSelection.Field,
-                    cancellationToken);
+                    task.FieldSelection.Node, cancellationToken);
 
-                // complete resolver value
-                FieldSelection fieldSelection = task.FieldSelection;
-                object fieldValue = await HandleFieldValueAsync(
+                // handle async results
+                resolverResult = await HandleFieldValueAsync(
                     resolverResult);
-                TryCompleteValue(executionContext, resolverContext, task.Source,
-                    fieldSelection, fieldSelection.Field.Type,
-                    task.Path, fieldValue,
-                    task.SetValue);
+
+                FieldValueCompletionContext completionContext =
+                    new FieldValueCompletionContext(
+                        executionContext, resolverContext,
+                        task.FieldSelection, task.SetValue,
+                        resolverResult);
+
+                CompleteValue(completionContext);
 
                 // execute sub-selection fields normally
                 await ExecuteFieldResolversAsync(executionContext, cancellationToken);
@@ -256,6 +261,7 @@ namespace HotChocolate.Execution
         private object ExecuteFieldResolver(
             IResolverContext resolverContext,
             Field field,
+            FieldNode fieldSelection,
             CancellationToken cancellationToken)
         {
             try
@@ -268,175 +274,8 @@ namespace HotChocolate.Execution
             }
             catch (Exception)
             {
-                return new QueryError("Internal resolver error.");
+                return new FieldError("Internal resolver error.", fieldSelection);
             }
-        }
-
-        // TODO : refactor this
-        private bool TryCompleteValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            object completedValue = fieldValue;
-
-            if (completedValue is IQueryError error)
-            {
-                setValue(null);
-                executionContext.Errors.Add(error);
-                return false;
-            }
-
-            if (completedValue is IEnumerable<IQueryError> errors)
-            {
-                setValue(null);
-                executionContext.Errors.AddRange(errors);
-                return false;
-            }
-
-            if (fieldType.IsNonNullType())
-            {
-                IType innerType = fieldType.InnerType();
-                if (!TryCompleteValue(
-                    executionContext, resolverContext, source, fieldSelection,
-                    innerType, path, completedValue, setValue))
-                {
-                    executionContext.Errors.Add(new FieldError(
-                        "Cannot return null for non-nullable field.",
-                        fieldSelection.Node));
-                    return false;
-                }
-                return true;
-            }
-
-            if (completedValue == null)
-            {
-                setValue(null);
-                return false;
-            }
-
-            if (fieldType.IsListType())
-            {
-                return TryCompleteListValue(executionContext, resolverContext,
-                    source, fieldSelection, fieldType, path, completedValue,
-                    setValue);
-            }
-
-            if (fieldType.IsScalarType()
-                || fieldType.IsEnumType())
-            {
-                return TryCompleteScalarValue(executionContext, resolverContext,
-                    source, fieldSelection, fieldType, path, completedValue,
-                    setValue);
-            }
-
-            return TryCompleteObjectValue(executionContext, resolverContext,
-                source, fieldSelection, fieldType, path, completedValue,
-                setValue);
-        }
-
-        private bool TryCompleteListValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            IType elementType = fieldType.ElementType();
-            bool isNonNullElement = elementType.IsNonNullType();
-            List<object> list = new List<object>();
-            int i = 0;
-
-            foreach (object element in ((IEnumerable)fieldValue))
-            {
-                Path elementPath = path.Append(i++);
-                bool hasValue = TryCompleteValue(
-                    executionContext, resolverContext,
-                    source, fieldSelection,
-                    elementType, elementPath, element,
-                    value => list.Add(value));
-
-                if (isNonNullElement && !hasValue)
-                {
-                    executionContext.Errors.Add(new FieldError(
-                        "The list does not allow null elements",
-                        fieldSelection.Node));
-                    setValue(null);
-                    return false;
-                }
-            }
-
-            setValue(list);
-            return true;
-        }
-
-        private bool TryCompleteScalarValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            try
-            {
-                setValue(((ISerializableType)fieldType).Serialize(fieldValue));
-                return true;
-            }
-            catch (ArgumentException ex)
-            {
-                executionContext.Errors.Add(new FieldError(
-                    ex.Message, fieldSelection.Node));
-            }
-            catch (Exception)
-            {
-                executionContext.Errors.Add(new FieldError(
-                    "Undefined field serialization error.",
-                    fieldSelection.Node));
-            }
-
-            setValue(null);
-            return false;
-        }
-
-        private bool TryCompleteObjectValue(
-            ExecutionContext executionContext,
-            IResolverContext resolverContext,
-            ImmutableStack<object> source,
-            FieldSelection fieldSelection,
-            IType fieldType,
-            Path path,
-            object fieldValue,
-            Action<object> setValue)
-        {
-            ObjectType objectType = ResolveObjectType(
-                resolverContext, fieldType, fieldValue);
-            OrderedDictionary objectResult = new OrderedDictionary();
-
-            IReadOnlyCollection<FieldSelection> fields = executionContext
-                .FieldResolver.CollectFields(
-                    objectType, fieldSelection.Node.SelectionSet,
-                    executionContext.Errors.Add);
-
-            foreach (FieldSelection field in fields)
-            {
-                executionContext.NextBatch.Add(new FieldResolverTask(
-                    source.Push(fieldValue), objectType, field,
-                    path.Append(field.ResponseName), objectResult));
-            }
-
-            setValue(objectResult);
-            return true;
         }
 
         private ObjectType ResolveObjectType(
@@ -487,6 +326,426 @@ namespace HotChocolate.Execution
             {
                 return new QueryError("Internal resolver error.");
             }
+        }
+
+        private void CompleteValue(FieldValueCompletionContext completionContext)
+        {
+            _valueCompleter.CompleteValue(completionContext);
+        }
+    }
+
+    internal readonly struct FieldValueCompletionContext
+    {
+        private readonly Action<object> _setResult;
+
+        public FieldValueCompletionContext(
+            ExecutionContext executionContext,
+            IResolverContext resolverContext,
+            FieldSelection selection,
+            Action<object> setResult,
+            object value)
+        {
+            if (executionContext == null)
+            {
+                throw new ArgumentNullException(nameof(executionContext));
+            }
+
+            if (resolverContext == null)
+            {
+                throw new ArgumentNullException(nameof(resolverContext));
+            }
+
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            if (setResult == null)
+            {
+                throw new ArgumentNullException(nameof(setResult));
+            }
+
+            _setResult = setResult;
+
+            ExecutionContext = executionContext;
+            ResolverContext = resolverContext;
+            Source = resolverContext.Source;
+            Selection = selection;
+            SelectionSet = selection.Node.SelectionSet;
+            Type = resolverContext.Field.Type;
+            Path = resolverContext.Path;
+            Value = value;
+            IsNullable = true;
+        }
+
+        private FieldValueCompletionContext(
+            FieldValueCompletionContext context,
+            IType type, bool isNullable)
+        {
+            _setResult = context._setResult;
+            ExecutionContext = context.ExecutionContext;
+            ResolverContext = context.ResolverContext;
+            Source = context.Source;
+            Selection = context.Selection;
+            SelectionSet = context.SelectionSet;
+            Path = context.Path;
+            Value = context.Value;
+
+            Type = type;
+            IsNullable = isNullable;
+        }
+
+        private FieldValueCompletionContext(
+            FieldValueCompletionContext context,
+            Path elementPath, IType elementType,
+            object element, Action<object> addElementToList)
+        {
+            ExecutionContext = context.ExecutionContext;
+            ResolverContext = context.ResolverContext;
+            Source = context.Source;
+            Selection = context.Selection;
+            SelectionSet = context.SelectionSet;
+            IsNullable = context.IsNullable;
+
+            Path = elementPath;
+            Type = elementType;
+            Value = element;
+            _setResult = addElementToList;
+        }
+
+        public ExecutionContext ExecutionContext { get; }
+        public IResolverContext ResolverContext { get; }
+        public ImmutableStack<object> Source { get; }
+        public FieldSelection Selection { get; }
+        public SelectionSetNode SelectionSet { get; }
+        public IType Type { get; }
+        public Path Path { get; }
+        public object Value { get; }
+        public bool IsNullable { get; }
+
+        public void AddErrors(IEnumerable<IQueryError> errors)
+        {
+            if (errors == null)
+            {
+                throw new ArgumentNullException(nameof(errors));
+            }
+
+            ExecutionContext.Errors.AddRange(errors);
+            _setResult(null);
+        }
+
+        public void AddError(IQueryError error)
+        {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
+            ExecutionContext.Errors.Add(error);
+            _setResult(null);
+        }
+
+        public void AddError(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            ExecutionContext.Errors.Add(new FieldError(message, Selection.Node));
+            _setResult(null);
+        }
+
+        private void AddNonNullError()
+        {
+            AddError(new FieldError(
+                "Cannot return null for non-nullable field.",
+                Selection.Node));
+        }
+
+        public void SetResult(object value)
+        {
+            _setResult(value);
+            if (!IsNullable && value == null)
+            {
+                AddNonNullError();
+            }
+        }
+
+        public FieldValueCompletionContext AsNonNullValueContext()
+        {
+            if (Type.IsNonNullType())
+            {
+                return new FieldValueCompletionContext(this, Type.InnerType(), true);
+            }
+
+            throw new InvalidOperationException(
+                "The current type is not a non-null type.");
+        }
+
+        public FieldValueCompletionContext AsElementValueContext(
+            Path elementPath, IType elementType,
+            object element, Action<object> addElementToList)
+        {
+            if (elementPath == null)
+            {
+                throw new ArgumentNullException(nameof(elementPath));
+            }
+
+            if (elementType == null)
+            {
+                throw new ArgumentNullException(nameof(elementType));
+            }
+
+            if (addElementToList == null)
+            {
+                throw new ArgumentNullException(nameof(addElementToList));
+            }
+
+            return new FieldValueCompletionContext(
+                this, elementPath, elementType, element, addElementToList);
+        }
+    }
+
+    internal interface IFieldValueHandler
+    {
+        void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler);
+    }
+
+
+    internal class FieldValueCompleter
+    {
+        private static readonly IFieldValueHandler[] _handlers = new IFieldValueHandler[]
+        {
+            new QueryErrorFieldValueHandler(),
+            new NonNullFieldValueHandler(),
+            new NullFieldValueHandler(),
+            new ListFieldValueHandler(),
+            new ScalarFieldValueHandler(),
+            new ObjectFieldValueHandler()
+        };
+
+        private readonly Action<FieldValueCompletionContext> _completeValue;
+
+        public FieldValueCompleter()
+        {
+            Action<FieldValueCompletionContext> completeValue = null;
+            for (int i = _handlers.Length - 1; i >= 0; i--)
+            {
+                completeValue = CreateValueCompleter(_handlers[i], completeValue);
+            }
+            _completeValue = completeValue;
+        }
+
+        private static Action<FieldValueCompletionContext> CreateValueCompleter(
+            IFieldValueHandler handler,
+            Action<FieldValueCompletionContext> completeValue)
+        {
+            return c => handler.CompleteValue(c, completeValue);
+        }
+
+        public void CompleteValue(FieldValueCompletionContext context)
+        {
+            _completeValue(context);
+        }
+    }
+
+    internal class NonNullFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Type.IsNonNullType())
+            {
+                nextHandler?.Invoke(context.AsNonNullValueContext());
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+    }
+
+    internal class NullFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Value == null)
+            {
+                context.SetResult(null);
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+    }
+
+    internal class QueryErrorFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Value is IQueryError error)
+            {
+                context.AddError(error);
+            }
+            else if (context.Value is IEnumerable<IQueryError> errors)
+            {
+                context.AddErrors(errors);
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+    }
+
+    internal class ListFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Type.IsListType())
+            {
+                int i = 0;
+                IType elementType = context.Type.ElementType();
+                bool isNonNullElement = elementType.IsNonNullType();
+                elementType = elementType.InnerType();
+                List<object> list = new List<object>();
+
+                if (context.Value is IEnumerable enumerable)
+                {
+                    foreach (object element in enumerable)
+                    {
+                        if (isNonNullElement && element == null)
+                        {
+                            context.AddError(
+                                "The list does not allow null elements");
+                            return;
+                        }
+
+                        nextHandler?.Invoke(context.AsElementValueContext(
+                            context.Path.Append(i++), elementType,
+                            element, item => list.Add(item)));
+                    }
+                    context.SetResult(list);
+                }
+                else
+                {
+                    context.AddError(
+                        "A list value must implement " +
+                        $"{typeof(IEnumerable).FullName}.");
+                }
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+    }
+
+    internal class ScalarFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Type.IsScalarType() || context.Type.IsEnumType())
+            {
+                if (context.Type is ISerializableType serializable)
+                {
+                    try
+                    {
+                        context.SetResult(serializable.Serialize(context.Value));
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        context.AddError(ex.Message);
+                    }
+                    catch (Exception)
+                    {
+                        context.AddError(
+                            "Undefined field serialization error.");
+                    }
+                }
+                else
+                {
+                    context.AddError(
+                        "Scalar types and enum types must be serializable.");
+                }
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+    }
+
+    internal class ObjectFieldValueHandler
+        : IFieldValueHandler
+    {
+        public void CompleteValue(
+            FieldValueCompletionContext context,
+            Action<FieldValueCompletionContext> nextHandler)
+        {
+            if (context.Type.IsObjectType()
+                || context.Type.IsInterfaceType()
+                || context.Type.IsUnionType())
+            {
+                ObjectType objectType = ResolveObjectType(
+                    context.ResolverContext, context.Type, context.Value);
+
+                OrderedDictionary objectResult = new OrderedDictionary();
+                context.SetResult(objectResult);
+
+                IReadOnlyCollection<FieldSelection> fields = context.ExecutionContext
+                    .CollectFields(objectType, context.SelectionSet);
+
+                foreach (FieldSelection field in fields)
+                {
+                    context.ExecutionContext.NextBatch.Add(new FieldResolverTask(
+                        context.Source.Push(context.Value), objectType, field,
+                        context.Path.Append(field.ResponseName), objectResult));
+                }
+            }
+            else
+            {
+                nextHandler?.Invoke(context);
+            }
+        }
+
+        private ObjectType ResolveObjectType(
+            IResolverContext context,
+            IType type, object value)
+        {
+            if (type is ObjectType objectType)
+            {
+                return objectType;
+            }
+            else if (type is InterfaceType interfaceType)
+            {
+                return interfaceType.ResolveType(context, value);
+            }
+            else if (type is UnionType unionType)
+            {
+                return unionType.ResolveType(context, value);
+            }
+
+            throw new NotSupportedException(
+                "The specified type is not supported.");
         }
     }
 }

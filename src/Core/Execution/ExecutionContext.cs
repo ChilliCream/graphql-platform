@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -8,6 +9,7 @@ namespace HotChocolate.Execution
         : IServiceProvider
     {
         private readonly IServiceProvider _services;
+        private readonly FieldCollector _fieldCollector;
 
         public ExecutionContext(Schema schema, DocumentNode queryDocument,
             OperationDefinitionNode operation, VariableCollection variables,
@@ -38,17 +40,21 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(services));
             }
 
+            FragmentCollection fragments =
+                new FragmentCollection(schema, queryDocument);
+
+            _services = services;
+            _fieldCollector = new FieldCollector(schema, variables, fragments);
+
             Schema = schema;
             QueryDocument = queryDocument;
             Operation = operation;
             Variables = variables;
             RootValue = rootValue;
             UserContext = userContext;
-            _services = services;
 
             Data = new OrderedDictionary();
-            Fragments = new FragmentCollection(schema, queryDocument);
-            FieldResolver = new FieldResolver(schema, variables, Fragments);
+            Fragments = fragments;
             Errors = new List<IQueryError>();
             NextBatch = new List<FieldResolverTask>();
         }
@@ -63,10 +69,31 @@ namespace HotChocolate.Execution
         public OrderedDictionary Data { get; }
         public List<IQueryError> Errors { get; }
         public List<FieldResolverTask> NextBatch { get; }
-        public FieldResolver FieldResolver { get; }
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType objectType, SelectionSetNode selectionSet)
+        {
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            if (selectionSet == null)
+            {
+                throw new ArgumentNullException(nameof(selectionSet));
+            }
+
+            return _fieldCollector.CollectFields(
+                objectType, selectionSet, Errors.Add);
+        }
 
         public object GetService(Type serviceType)
         {
+            if (serviceType == null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
+
             return _services.GetService(serviceType);
         }
     }

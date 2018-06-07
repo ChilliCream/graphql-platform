@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -6,14 +6,13 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    // TODO : Rename this class or Resolvers.FieldResolver
-    internal class FieldResolver
+    internal class FieldCollector
     {
         private readonly Schema _schema;
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
-        public FieldResolver(
+        public FieldCollector(
             Schema schema,
             VariableCollection variables,
             FragmentCollection fragments)
@@ -145,7 +144,6 @@ namespace HotChocolate.Execution
                     fieldNode));
             }
         }
-
 
         private bool ShouldBeIncluded(ISelectionNode selection)
         {
