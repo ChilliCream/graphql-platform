@@ -15,14 +15,15 @@ namespace HotChocolate.Execution
     public class AsyncResolverMethodGeneratorTests
     {
         [Fact]
-        public void GenerateWithoutArguments()
+        public void AsyncResolverMethodGenerator_GenerateWithoutArguments()
         {
             // arrange
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 0);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, true,
+                    method.ReflectedType, sourceType, method, true,
                     Enumerable.Empty<FieldResolverArgumentDescriptor>());
 
             // act
@@ -36,19 +37,20 @@ namespace HotChocolate.Execution
 
 
         [Fact]
-        public void GenerateWithOneArgument()
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor =
                 FieldResolverArgumentDescriptor.Create("a",
-                    FieldResolverArgumentKind.Argument,
-                    typeof(string));
+                    FieldResolverArgumentKind.Source,
+                    typeof(GeneratorTestDummy));
 
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, true,
+                    method.ReflectedType, sourceType, method, true,
                     new[] { argumentDescriptor });
 
             // act
@@ -61,25 +63,62 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void GenerateWithTwoArgument()
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
                 FieldResolverArgumentDescriptor.Create("a",
-                    FieldResolverArgumentKind.Argument,
-                    typeof(string));
+                    FieldResolverArgumentKind.Source,
+                    typeof(GeneratorTestDummy));
 
             FieldResolverArgumentDescriptor argumentDescriptor2 =
                 FieldResolverArgumentDescriptor.Create("b",
                     FieldResolverArgumentKind.Argument,
-                    typeof(int));
+                    typeof(string));
 
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 2);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, true,
+                    method.ReflectedType, sourceType, method, true,
                     new[] { argumentDescriptor1, argumentDescriptor2 });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgumentAndTwoArguments()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor1 =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.Source,
+                    typeof(GeneratorTestDummy));
+
+            FieldResolverArgumentDescriptor argumentDescriptor2 =
+                FieldResolverArgumentDescriptor.Create("b",
+                    FieldResolverArgumentKind.Argument,
+                    typeof(string));
+
+            FieldResolverArgumentDescriptor argumentDescriptor3 =
+                FieldResolverArgumentDescriptor.Create("c",
+                    FieldResolverArgumentKind.Argument,
+                    typeof(int));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 2);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor1, argumentDescriptor2, argumentDescriptor3 });
 
             // act
             StringBuilder source = new StringBuilder();
@@ -104,6 +143,29 @@ namespace HotChocolate.Execution
         }
 
         public Task<string> GetFooAsync(string a, int b)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class GeneratorTestDummyResolver
+    {
+        public Task<string> GetFooAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetFooAsync(GeneratorTestDummy a)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetFooAsync(GeneratorTestDummy a, string b)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetFooAsync(GeneratorTestDummy a, string b, int c)
         {
             throw new NotImplementedException();
         }
