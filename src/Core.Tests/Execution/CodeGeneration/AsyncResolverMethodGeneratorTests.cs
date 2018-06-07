@@ -114,7 +114,7 @@ namespace HotChocolate.Execution
 
             Type sourceType = typeof(GeneratorTestDummy);
             MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 2);
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 3);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, sourceType, method, true,

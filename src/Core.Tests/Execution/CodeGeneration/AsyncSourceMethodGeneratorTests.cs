@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
     public class AsyncSourceMethodGeneratorTests
     {
         [Fact]
-        public void GenerateWithoutArguments()
+        public void AsyncSourceMethodGenerator_GenerateWithoutArguments()
         {
             // arrange
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
 
 
         [Fact]
-        public void GenerateWithOneArgument()
+        public void AsyncSourceMethodGenerator_GenerateWithOneArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor =
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void GenerateWithTwoArgument()
+        public void AsyncSourceMethodGenerator_GenerateWithTwoArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
