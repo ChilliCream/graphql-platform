@@ -1,5 +1,5 @@
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var source = ctx.Parent<HotChocolate.Execution.GeneratorTestDummy>();
+var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 try
 {
 return source.GetFoo();

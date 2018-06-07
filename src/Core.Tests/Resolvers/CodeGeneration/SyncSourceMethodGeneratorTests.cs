@@ -10,7 +10,7 @@ using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
     public class SyncSourceMethodGeneratorTests
     {
@@ -21,8 +21,8 @@ namespace HotChocolate.Execution
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 0);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, false,
+                .CreateSourceMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, method, false,
                     Enumerable.Empty<FieldResolverArgumentDescriptor>());
 
             // act
@@ -47,8 +47,8 @@ namespace HotChocolate.Execution
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 1);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, false,
+                .CreateSourceMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, method, false,
                     new[] { argumentDescriptor });
 
             // act
@@ -77,8 +77,8 @@ namespace HotChocolate.Execution
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 2);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method.ReflectedType, method, false,
+                .CreateSourceMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, method, false,
                     new[] { argumentDescriptor1, argumentDescriptor2 });
 
             // act

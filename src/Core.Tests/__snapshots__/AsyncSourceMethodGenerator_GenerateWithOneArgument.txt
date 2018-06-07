@@ -1,10 +1,11 @@
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
-var resolver = ctx.Service<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
+var a = ctx.Argument<System.String>("a");
+var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 Func<Task<object>> f = async () => {
 try
 {
-return await resolver.GetFooAsync(a);
+return await source.GetFooAsync(a);
+
 }
 catch(HotChocolate.Execution.QueryException ex)
 {

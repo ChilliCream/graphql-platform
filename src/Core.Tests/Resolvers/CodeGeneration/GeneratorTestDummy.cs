@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
     public class GeneratorTestDummy
     {
@@ -34,5 +34,7 @@ namespace HotChocolate.Execution
         {
             throw new NotImplementedException();
         }
+
+        public string Bar => throw new NotImplementedException();
     }
 }

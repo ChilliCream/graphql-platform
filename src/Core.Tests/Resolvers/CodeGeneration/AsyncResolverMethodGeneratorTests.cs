@@ -3,32 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
-    public class SyncResolverMethodGeneratorTests
+    public class AsyncResolverMethodGeneratorTests
     {
         [Fact]
-        public void SyncResolverMethodGenerator_GenerateWithoutArguments()
+        public void AsyncResolverMethodGenerator_GenerateWithoutArguments()
         {
             // arrange
             Type sourceType = typeof(GeneratorTestDummy);
             MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 0);
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 0);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, false,
+                    method.ReflectedType, sourceType, method, true,
                     Enumerable.Empty<FieldResolverArgumentDescriptor>());
 
             // act
             StringBuilder source = new StringBuilder();
-            SyncResolverMethodGenerator generator = new SyncResolverMethodGenerator();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -37,7 +36,7 @@ namespace HotChocolate.Execution
 
 
         [Fact]
-        public void SyncResolverMethodGenerator_GenerateWithSourceArgument()
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor =
@@ -47,15 +46,15 @@ namespace HotChocolate.Execution
 
             Type sourceType = typeof(GeneratorTestDummy);
             MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 1);
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, false,
+                    method.ReflectedType, sourceType, method, true,
                     new[] { argumentDescriptor });
 
             // act
             StringBuilder source = new StringBuilder();
-            SyncResolverMethodGenerator generator = new SyncResolverMethodGenerator();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -63,7 +62,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
@@ -78,15 +77,15 @@ namespace HotChocolate.Execution
 
             Type sourceType = typeof(GeneratorTestDummy);
             MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 2);
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 2);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, false,
+                    method.ReflectedType, sourceType, method, true,
                     new[] { argumentDescriptor1, argumentDescriptor2 });
 
             // act
             StringBuilder source = new StringBuilder();
-            SyncResolverMethodGenerator generator = new SyncResolverMethodGenerator();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -94,7 +93,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndTwoArguments()
+        public void AsyncResolverMethodGenerator_GenerateWithSourceArgumentAndTwoArguments()
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
@@ -114,15 +113,15 @@ namespace HotChocolate.Execution
 
             Type sourceType = typeof(GeneratorTestDummy);
             MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 3);
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 3);
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, false,
+                    method.ReflectedType, sourceType, method, true,
                     new[] { argumentDescriptor1, argumentDescriptor2, argumentDescriptor3 });
 
             // act
             StringBuilder source = new StringBuilder();
-            SyncResolverMethodGenerator generator = new SyncResolverMethodGenerator();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert

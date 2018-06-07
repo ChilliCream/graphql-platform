@@ -1,6 +1,6 @@
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var a = ctx.Parent<HotChocolate.Execution.GeneratorTestDummy>();
-var resolver = ctx.Service<HotChocolate.Execution.GeneratorTestDummyResolver>();
+var a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
+var resolver = ctx.Service<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
 try
 {
 return resolver.GetFoo(a);
