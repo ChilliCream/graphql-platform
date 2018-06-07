@@ -1,0 +1,15 @@
+public static FieldResolverDelegate abc  = (ctx, ct) => {
+var source = ctx.Parent<HotChocolate.Execution.GeneratorTestDummy>();
+try
+{
+return source.GetFoo();
+}
+catch(HotChocolate.Execution.QueryException ex)
+{
+return ex.Errors;
+}
+catch(System.Exception)
+{
+return new HotChocolate.Execution.QueryError("Internal resolver error");
+}
+};
