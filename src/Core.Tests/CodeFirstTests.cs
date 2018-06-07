@@ -307,7 +307,13 @@ namespace HotChocolate
             }
         }
 
+        public class Pet
+        {
+            public bool WithTail { get; set; }
+        }
+
         public class Dog
+            : Pet
         {
             public string Name { get; } = "a";
 
@@ -330,6 +336,7 @@ namespace HotChocolate
         {
             protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
             {
+                descriptor.Field(t => t.WithTail).Type<NonNullType<BooleanType>>();
                 descriptor.Field(t => t.GetNames()).Type<ListType<StringType>>();
             }
         }
