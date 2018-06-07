@@ -16,7 +16,7 @@ namespace HotChocolate.Internal
 
             Type type = typeof(T);
 
-            if (memberExpression.Body is MemberExpression m)
+            if (memberExpression.Body is MemberExpression m && m.Member.IsPublic())
             {
                 if (m.Member is PropertyInfo pi
                     && pi.DeclaringType.IsAssignableFrom(type))
@@ -31,14 +31,32 @@ namespace HotChocolate.Internal
             }
 
             if (memberExpression.Body is MethodCallExpression mc
+                && mc.Method.IsPublic()
                 && mc.Method.DeclaringType.IsAssignableFrom(type))
             {
                 return mc.Method;
             }
 
             throw new ArgumentException(
-                "The specied expression does not refer to a property.",
+                "The member expression must specify a property or method " +
+                "that is public and that belongs to the " +
+                $"type {typeof(T).FullName}",
                 nameof(memberExpression));
+        }
+
+        private static bool IsPublic(this MemberInfo member)
+        {
+            if (member is PropertyInfo p)
+            {
+                return p.GetGetMethod()?.IsPublic ?? false;
+            }
+
+            if (member is MethodInfo m)
+            {
+                return m.IsPublic;
+            }
+
+            return false;
         }
     }
 }
