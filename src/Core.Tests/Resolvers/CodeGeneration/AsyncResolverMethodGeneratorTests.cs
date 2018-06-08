@@ -127,5 +127,239 @@ namespace HotChocolate.Resolvers
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithCancellationToken()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.CancellationToken,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithContext()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.Context,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithField()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.Field,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithFieldSelection()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.FieldSelection,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithObjectType()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.ObjectType,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithOperationDefinition()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.OperationDefinition,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithQueryDocument()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.QueryDocument,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithQuerySchema()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.Schema,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void AsyncResolverMethodGenerator_GenerateWithQueryService()
+        {
+            // arrange
+            FieldResolverArgumentDescriptor argumentDescriptor =
+                FieldResolverArgumentDescriptor.Create("a",
+                    FieldResolverArgumentKind.Service,
+                    typeof(GeneratorTestDummy));
+
+            Type sourceType = typeof(GeneratorTestDummy);
+            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
+                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
+            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
+                    method.ReflectedType, sourceType, method, true,
+                    new[] { argumentDescriptor });
+
+            // act
+            StringBuilder source = new StringBuilder();
+            AsyncResolverMethodGenerator generator = new AsyncResolverMethodGenerator();
+            string result = generator.Generate("abc", descriptor);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
     }
 }
