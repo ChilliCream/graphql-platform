@@ -155,14 +155,16 @@ namespace HotChocolate.Types
                     "An input object type name must not be null or empty.");
             }
 
-            if (!descriptor.Fields.Any())
+            IReadOnlyCollection<InputFieldDescriptor> fields =
+                descriptor.GetFieldDescriptors();
+            if (!fields.Any())
             {
                 throw new ArgumentException(
                     $"The input object `{descriptor.Name}` must at least " +
                     "provide one field.");
             }
 
-            foreach (InputFieldDescriptor fieldDescriptor in descriptor.Fields)
+            foreach (InputFieldDescriptor fieldDescriptor in fields)
             {
                 _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
             }
@@ -218,7 +220,10 @@ namespace HotChocolate.Types
 
         void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
-            _nativeType = _nativeTypeFactory(schemaContext.Types);
+            _nativeType = _nativeType == null
+                ? _nativeTypeFactory?.Invoke(schemaContext.Types)
+                : _nativeType;
+
             if (_nativeType == null)
             {
                 reportError(new SchemaError(
@@ -256,7 +261,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>();
+            new InputObjectTypeDescriptor<T>(typeof(T));
 
         protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
         {

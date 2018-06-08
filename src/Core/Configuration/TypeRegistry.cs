@@ -13,7 +13,6 @@ namespace HotChocolate.Configuration
         private Dictionary<Type, INamedType> _typesToNamedTypes = new Dictionary<Type, INamedType>();
         private readonly IServiceProvider _serviceProvider;
 
-
         public TypeRegistry(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
@@ -54,14 +53,8 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(nativeNamedType));
             }
 
-            if (BaseTypes.IsBaseType(nativeNamedType))
-            {
-                throw new ArgumentException(
-                    "Base types cannot be registered.",
-                    nameof(nativeNamedType));
-            }
-
-            if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
+            if (!BaseTypes.IsBaseType(nativeNamedType)
+                && !_typesToNamedTypes.ContainsKey(nativeNamedType))
             {
                 INamedType namedType = (INamedType)_serviceProvider
                     .GetService(nativeNamedType);

@@ -8,12 +8,19 @@ namespace HotChocolate.Types
         : IFluent
     {
         IInputObjectTypeDescriptor Name(string name);
-        IInputObjectTypeDescriptor Description(string name);
+
+        IInputObjectTypeDescriptor Description(string description);
     }
 
     public interface IInputObjectTypeDescriptor<T>
         : IInputObjectTypeDescriptor
     {
+        new IInputObjectTypeDescriptor<T> Name(string name);
+
+        new IInputObjectTypeDescriptor<T> Description(string description);
+
+        IInputObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
+
         IInputFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
     }
 }

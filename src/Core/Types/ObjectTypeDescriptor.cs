@@ -23,12 +23,18 @@ namespace HotChocolate.Types
         }
 
         public string Name { get; protected set; }
+
         public string Description { get; protected set; }
+
         public Type NativeType { get; protected set; }
+
         public bool IsIntrospection { get; protected set; }
+
         public IsOfType IsOfType { get; protected set; }
+
         protected ImmutableList<FieldDescriptor> Fields { get; set; }
             = ImmutableList<FieldDescriptor>.Empty;
+
         public ImmutableList<TypeInfo> Interfaces { get; protected set; }
             = ImmutableList<TypeInfo>.Empty;
 
@@ -190,7 +196,7 @@ namespace HotChocolate.Types
             return descriptor != null;
         }
 
-        private Dictionary<MemberInfo, string> GetMembers(Type type)
+        private static Dictionary<MemberInfo, string> GetMembers(Type type)
         {
             Dictionary<MemberInfo, string> members =
                 new Dictionary<MemberInfo, string>();

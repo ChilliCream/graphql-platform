@@ -10,7 +10,7 @@ namespace HotChocolate.Types
 {
     internal static class InputObjectDefaultSerializer
     {
-        public static IValueNode ParseLiteral(
+        public static IValueNode ParseValue(
             InputObjectType inputObjectType,
             object obj)
         {

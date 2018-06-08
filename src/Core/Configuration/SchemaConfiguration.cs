@@ -134,5 +134,29 @@ namespace HotChocolate.Configuration
             SubscriptionTypeName = type.Name;
             _types[type.Name] = type;
         }
+
+        public void RegisterType<T>(T namedType)
+            where T : INamedType
+        {
+            _types[namedType.Name] = namedType;
+        }
+
+        public void RegisterQueryType<T>(T objectType) where T : ObjectType
+        {
+            QueryTypeName = objectType.Name;
+            _types[objectType.Name] = objectType;
+        }
+
+        public void RegisterMutationType<T>(T objectType) where T : ObjectType
+        {
+            MutationTypeName = objectType.Name;
+            _types[objectType.Name] = objectType;
+        }
+
+        public void RegisterSubscriptionType<T>(T objectType) where T : ObjectType
+        {
+            SubscriptionTypeName = objectType.Name;
+            _types[objectType.Name] = objectType;
+        }
     }
 }
