@@ -1,8 +1,8 @@
 using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Internal
 {
-    internal class DefaultServiceProvider
+    internal sealed class DefaultServiceProvider
         : IServiceProvider
     {
         public object GetService(Type serviceType)

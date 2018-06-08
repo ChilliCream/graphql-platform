@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -137,7 +138,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            SchemaContext context = CreateSchemaContext();
+            ServiceManager serviceManager = new ServiceManager(services);
+            SchemaContext context = CreateSchemaContext(serviceManager);
 
             // deserialize schema objects
             SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context.Types);
@@ -148,7 +150,7 @@ namespace HotChocolate
                 visitor.MutationTypeName,
                 visitor.SubscriptionTypeName);
 
-            return CreateSchema(services, context, names, configure, strict);
+            return CreateSchema(serviceManager, context, names, configure, strict);
         }
 
         public static Schema Create(
@@ -206,13 +208,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            SchemaContext context = CreateSchemaContext();
-            return CreateSchema(services, context,
+            ServiceManager serviceManager = new ServiceManager(services);
+            SchemaContext context = CreateSchemaContext(serviceManager);
+            return CreateSchema(serviceManager, context,
                 default(SchemaNames), configure, strict);
         }
 
         private static Schema CreateSchema(
-            IServiceProvider services,
+            ServiceManager serviceManager,
             SchemaContext context,
             SchemaNames names,
             Action<ISchemaConfiguration> configure,
@@ -226,10 +229,45 @@ namespace HotChocolate
 
             SchemaNames internalNames = names;
 
+            ExecuteSchemaConfiguration(serviceManager, context,
+                ref names, configure, errors);
+
+            internalNames = string.IsNullOrEmpty(names.QueryTypeName)
+                ? new SchemaNames(null, null, null)
+                : names;
+
+            if (!context.Types.TryGetType<ObjectType>(
+                internalNames.QueryTypeName, out ObjectType ot))
+            {
+                errors.Add(new SchemaError(
+                    "Schema is missing the mandatory `Query` type."));
+            }
+
+            if (strict && errors.Any())
+            {
+                throw new SchemaException(errors);
+            }
+
+            return new Schema(
+                serviceManager,
+                SchemaTypes.Create(
+                    context.Types.GetTypes(),
+                    context.Types.GetTypeBindings(),
+                    internalNames),
+                introspectionFields);
+        }
+
+        private static void ExecuteSchemaConfiguration(
+            ServiceManager serviceManager,
+            SchemaContext context,
+            ref SchemaNames names,
+            Action<ISchemaConfiguration> configure,
+            List<SchemaError> errors)
+        {
             try
             {
                 // configure resolvers, custom types and type mappings.
-                SchemaConfiguration configuration = new SchemaConfiguration(services);
+                SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
                 configure(configuration);
                 errors.AddRange(configuration.RegisterTypes(context));
                 configuration.RegisterResolvers(context);
@@ -239,7 +277,7 @@ namespace HotChocolate
                 string mutationTypeName = configuration.MutationTypeName ?? names.MutationTypeName;
                 string subscriptionTypeName = configuration.SubscriptionTypeName ?? names.SubscriptionTypeName;
 
-                internalNames = new SchemaNames(queryTypeName, mutationTypeName, subscriptionTypeName);
+                names = new SchemaNames(queryTypeName, mutationTypeName, subscriptionTypeName);
             }
             catch (ArgumentException ex)
             {
@@ -250,36 +288,12 @@ namespace HotChocolate
                     new SchemaError(ex.Message, null)
                 });
             }
-
-            if (strict && errors.Any())
-            {
-                throw new SchemaException(errors);
-            }
-
-            internalNames = string.IsNullOrEmpty(names.QueryTypeName)
-                ? new SchemaNames(null, null, null)
-                : names;
-
-            if (strict && !context.Types.TryGetType<ObjectType>(
-                internalNames.QueryTypeName, out ObjectType ot))
-            {
-                throw new SchemaException(new SchemaError(
-                    "Schema is missing the mandatory `Query` type."));
-            }
-
-            return new Schema(
-                services,
-                SchemaTypes.Create(
-                    context.Types.GetTypes(),
-                    context.Types.GetTypeBindings(),
-                    internalNames),
-                introspectionFields);
         }
 
-        private static SchemaContext CreateSchemaContext()
+        private static SchemaContext CreateSchemaContext(ServiceManager serviceManager)
         {
             // create context with system types
-            SchemaContext context = new SchemaContext();
+            SchemaContext context = new SchemaContext(serviceManager);
             context.Types.RegisterType(typeof(StringType));
             context.Types.RegisterType(typeof(BooleanType));
             context.Types.RegisterType(typeof(IntType));

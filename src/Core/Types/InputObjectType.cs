@@ -14,93 +14,37 @@ namespace HotChocolate.Types
         , ITypeSystemNode
         , INeedsInitialization
     {
-        public readonly Dictionary<string, InputField> _fieldMap =
+        private Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
-        private readonly Func<ITypeRegistry, Type> _nativeTypeFactory;
+        private Func<ITypeRegistry, Type> _nativeTypeFactory;
         private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
         private bool _hasDeserializer;
 
+        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+            Initialize(configure);
+        }
+
         internal InputObjectType()
         {
-            InputObjectTypeDescriptor descriptor = CreateDescriptor();
-            Configure(descriptor);
-
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.");
-            }
-
-            if (!descriptor.Fields.Any())
-            {
-                throw new ArgumentException(
-                    $"The input object `{descriptor.Name}` must at least " +
-                    "provide one field.");
-            }
-
-            foreach (InputFieldDescriptor fieldDescriptor in descriptor.Fields)
-            {
-                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
-            }
-
-            _nativeType = descriptor.NativeType;
-
-            Name = descriptor.Name;
-            Description = descriptor.Description;
+            Initialize(Configure);
         }
 
         internal InputObjectType(InputObjectTypeConfig config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            InputField[] fields = config.Fields?.ToArray()
-                ?? Array.Empty<InputField>();
-
-            if (fields.Length == 0)
-            {
-                throw new ArgumentException(
-                   $"The input object `{config.Name}` must at least " +
-                   "provide one field.",
-                   nameof(config));
-            }
-
-            foreach (InputField field in fields)
-            {
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    throw new ArgumentException(
-                        $"The input field name `{field.Name}` " +
-                        $"is not unique within `{config.Name}`.",
-                        nameof(config));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
-            }
-
-            _nativeTypeFactory = config.NativeType;
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            Initialize(config);
         }
 
-        public InputObjectTypeDefinitionNode SyntaxNode { get; }
+        public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; }
+        public string Name { get; private set; }
 
-        public string Description { get; }
+        public string Description { get; private set; }
 
         public IReadOnlyDictionary<string, InputField> Fields => _fieldMap;
 
@@ -173,7 +117,7 @@ namespace HotChocolate.Types
 
         public IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            return InputObjectDefaultSerializer.ParseValue(this, value);
         }
 
         #endregion
@@ -200,6 +144,72 @@ namespace HotChocolate.Types
 
         #region Initialization
 
+        private void Initialize(Action<IInputObjectTypeDescriptor> configure)
+        {
+            InputObjectTypeDescriptor descriptor = CreateDescriptor();
+            configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "An input object type name must not be null or empty.");
+            }
+
+            IReadOnlyCollection<InputFieldDescriptor> fields =
+                descriptor.GetFieldDescriptors();
+            if (!fields.Any())
+            {
+                throw new ArgumentException(
+                    $"The input object `{descriptor.Name}` must at least " +
+                    "provide one field.");
+            }
+
+            foreach (InputFieldDescriptor fieldDescriptor in fields)
+            {
+                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
+            }
+
+            _nativeType = descriptor.NativeType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
+
+        private void Initialize(InputObjectTypeConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            if (string.IsNullOrEmpty(config.Name))
+            {
+                throw new ArgumentException(
+                    "An input object type name must not be null or empty.",
+                    nameof(config));
+            }
+
+            InputField[] fields = config.Fields?.ToArray();
+            if (fields?.Length == 0)
+            {
+                throw new ArgumentException(
+                   $"The input object `{config.Name}` must at least " +
+                   "provide one field.",
+                   nameof(config));
+            }
+
+            foreach (InputField field in fields)
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _nativeTypeFactory = config.NativeType;
+
+            SyntaxNode = config.SyntaxNode;
+            Name = config.Name;
+            Description = config.Description;
+        }
+
         void INeedsInitialization.RegisterDependencies(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
             foreach (InputField field in _fieldMap.Values)
@@ -210,7 +220,10 @@ namespace HotChocolate.Types
 
         void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
-            _nativeType = _nativeTypeFactory(schemaContext.Types);
+            _nativeType = _nativeType == null
+                ? _nativeTypeFactory?.Invoke(schemaContext.Types)
+                : _nativeType;
+
             if (_nativeType == null)
             {
                 reportError(new SchemaError(
@@ -233,20 +246,29 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public abstract class InputObjectType<T>
+    public class InputObjectType<T>
         : InputObjectType
     {
+        public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
+            : base(d => configure((IInputObjectTypeDescriptor<T>)d))
+        {
+        }
+
+        public InputObjectType()
+        {
+        }
+
         #region Configuration
 
         internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>();
+            new InputObjectTypeDescriptor<T>(typeof(T));
 
         protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
         {
             Configure((IInputObjectTypeDescriptor<T>)descriptor);
         }
 
-        protected abstract void Configure(IInputObjectTypeDescriptor<T> descriptor);
+        protected virtual void Configure(IInputObjectTypeDescriptor<T> descriptor) { }
 
         #endregion
     }

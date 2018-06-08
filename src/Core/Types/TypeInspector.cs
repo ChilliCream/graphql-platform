@@ -228,10 +228,16 @@ namespace HotChocolate.Types
 
         private static Type GetInnerType(Type type)
         {
+            if (typeof(INamedType).IsAssignableFrom(type))
+            {
+                return null;
+            }
+
             if (type.IsGenericType)
             {
                 return type.GetGenericArguments().First();
             }
+
             return null;
         }
 

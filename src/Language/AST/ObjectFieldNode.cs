@@ -6,6 +6,13 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public ObjectFieldNode(
+            string name,
+            IValueNode value)
+            : this(null, new NameNode(name), value)
+        {
+        }
+
+        public ObjectFieldNode(
             Location location,
             NameNode name,
             IValueNode value)

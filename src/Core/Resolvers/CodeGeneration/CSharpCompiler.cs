@@ -57,7 +57,8 @@ namespace HotChocolate.Resolvers
         private static IEnumerable<MetadataReference> ResolveReferences()
         {
             List<MetadataReference> references = new List<MetadataReference>();
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (Assembly assembly in AppDomain.CurrentDomain
+                .GetAssemblies().Where(t => !t.IsDynamic))
             {
                 try
                 {

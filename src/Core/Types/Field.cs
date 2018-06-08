@@ -157,7 +157,6 @@ namespace HotChocolate.Types
                         $"The field `{Name}` of object type `{parentType.Name}` " +
                         "has no resolver.", parentType));
                 }
-
             }
         }
 

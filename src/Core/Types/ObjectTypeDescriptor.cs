@@ -23,12 +23,18 @@ namespace HotChocolate.Types
         }
 
         public string Name { get; protected set; }
+
         public string Description { get; protected set; }
+
         public Type NativeType { get; protected set; }
+
         public bool IsIntrospection { get; protected set; }
+
         public IsOfType IsOfType { get; protected set; }
+
         protected ImmutableList<FieldDescriptor> Fields { get; set; }
             = ImmutableList<FieldDescriptor>.Empty;
+
         public ImmutableList<TypeInfo> Interfaces { get; protected set; }
             = ImmutableList<TypeInfo>.Empty;
 
@@ -190,7 +196,7 @@ namespace HotChocolate.Types
             return descriptor != null;
         }
 
-        private Dictionary<MemberInfo, string> GetMembers(Type type)
+        private static Dictionary<MemberInfo, string> GetMembers(Type type)
         {
             Dictionary<MemberInfo, string> members =
                 new Dictionary<MemberInfo, string>();
@@ -214,6 +220,36 @@ namespace HotChocolate.Types
 
         #region IObjectTypeDescriptor<T>
 
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(string name)
+        {
+            ((IObjectTypeDescriptor)this).Name(name);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Description(string description)
+        {
+            ((IObjectTypeDescriptor)this).Description(description);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
+        {
+            _bindingBehavior = bindingBehavior;
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Interface<TInterface>()
+        {
+            ((IObjectTypeDescriptor)this).Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.IsOfType(IsOfType isOfType)
+        {
+            ((IObjectTypeDescriptor)this).IsOfType(isOfType);
+            return this;
+        }
+
         IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
             if (methodOrProperty == null)
@@ -233,12 +269,6 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "A field of an entity can only be a property or a method.",
                 nameof(member));
-        }
-
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
-        {
-            _bindingBehavior = bindingBehavior;
-            return this;
         }
 
         #endregion

@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             {
                 if (fieldValues.TryGetValue(field.Name, out IValueNode value))
                 {
-                    DeserializeProperty(field.Property, field, literal, nativeInputObject);
+                    DeserializeProperty(field.Property, field, value, nativeInputObject);
                 }
                 else if (field.DefaultValue != null)
                 {
@@ -30,7 +30,7 @@ namespace HotChocolate.Types
                     {
                         // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
                     }
-                    DeserializeProperty(field.Property, field, literal, nativeInputObject);
+                    DeserializeProperty(field.Property, field, value, nativeInputObject);
                 }
                 else if (field.Type.IsNonNullType())
                 {

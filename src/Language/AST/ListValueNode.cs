@@ -7,8 +7,14 @@ namespace HotChocolate.Language
         : IValueNode
     {
         public ListValueNode(
+            IReadOnlyList<IValueNode> items)
+            : this(null, items)
+        {
+        }
+
+        public ListValueNode(
             Location location,
-            IReadOnlyCollection<IValueNode> items)
+            IReadOnlyList<IValueNode> items)
         {
             if (items == null)
             {
@@ -21,6 +27,6 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ListValue;
         public Location Location { get; }
-        public IReadOnlyCollection<IValueNode> Items { get; }
+        public IReadOnlyList<IValueNode> Items { get; }
     }
 }

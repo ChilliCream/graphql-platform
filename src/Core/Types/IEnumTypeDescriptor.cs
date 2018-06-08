@@ -1,6 +1,9 @@
+using HotChocolate.Configuration;
+
 namespace HotChocolate.Types
 {
     public interface IEnumTypeDescriptor
+        : IFluent
     {
         IEnumTypeDescriptor Name(string name);
         IEnumTypeDescriptor Description(string description);

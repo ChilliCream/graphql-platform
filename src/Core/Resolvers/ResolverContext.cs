@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -11,11 +12,16 @@ namespace HotChocolate.Resolvers
     internal class ResolverContext
         : IResolverContext
     {
+        private static readonly List<IInputValueConverter> _converters =
+            new List<IInputValueConverter>
+            {
+                new ListValueConverter()
+            };
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
         private readonly ExecutionContext _executionContext;
         private readonly FieldResolverTask _fieldResolverTask;
-        private Dictionary<string, object> _arguments;
+        private Dictionary<string, ArgumentValue> _arguments;
 
         public ResolverContext(
             ExecutionContext executionContext,
@@ -61,12 +67,25 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (!_arguments.TryGetValue(name, out object argumentValue))
+            if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
-                return default(T);
+                if (argumentValue.Value is T v)
+                {
+                    return v;
+                }
+
+                foreach (IInputValueConverter converter in _converters
+                    .Where(t => t.CanConvert(argumentValue.Type)))
+                {
+                    if (converter.TryConvert(argumentValue.NativeType, typeof(T),
+                        argumentValue.Value, out object cv))
+                    {
+                        return (T)cv;
+                    }
+                }
             }
 
-            return (T)argumentValue;
+            return default(T);
         }
 
         public T Parent<T>()
