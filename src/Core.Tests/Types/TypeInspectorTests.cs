@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -19,7 +20,8 @@ namespace HotChocolate.Types
         public void Case4()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
@@ -41,7 +43,8 @@ namespace HotChocolate.Types
         public void Case3_1()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(ListType<NonNullType<StringType>>);
 
@@ -61,7 +64,8 @@ namespace HotChocolate.Types
         public void Case3_2()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(NonNullType<ListType<StringType>>);
 
@@ -81,7 +85,8 @@ namespace HotChocolate.Types
         public void Case2_1()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(NonNullType<StringType>);
 
@@ -99,7 +104,8 @@ namespace HotChocolate.Types
         public void Case2_2()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(ListType<StringType>);
 
@@ -117,7 +123,8 @@ namespace HotChocolate.Types
         public void Case1()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(StringType);
 
@@ -133,7 +140,8 @@ namespace HotChocolate.Types
         public void DotNetStringType()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(StringType));
             Type nativeType = typeof(string);
 
@@ -149,7 +157,8 @@ namespace HotChocolate.Types
         public void DotNetIntType()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(IntType));
             Type nativeType = typeof(int);
 
@@ -166,7 +175,8 @@ namespace HotChocolate.Types
         public void DotNetNullableIntType()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(IntType));
             Type nativeType = typeof(int?);
 
@@ -182,7 +192,8 @@ namespace HotChocolate.Types
         public void DotNetBoolType()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(BooleanType));
             Type nativeType = typeof(bool);
 
@@ -199,7 +210,8 @@ namespace HotChocolate.Types
         public void DotNetNullableBoolType()
         {
             // arrange
-            TypeRegistry typeRegistry = new TypeRegistry();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
             typeRegistry.RegisterType(typeof(BooleanType));
             Type nativeType = typeof(bool?);
 

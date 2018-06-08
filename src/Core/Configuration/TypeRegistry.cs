@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -10,6 +11,17 @@ namespace HotChocolate.Configuration
         private Dictionary<string, INamedType> _namedTypes = new Dictionary<string, INamedType>();
         private Dictionary<string, ITypeBinding> _typeBindings = new Dictionary<string, ITypeBinding>();
         private Dictionary<Type, INamedType> _typesToNamedTypes = new Dictionary<Type, INamedType>();
+        private readonly IServiceProvider _serviceProvider;
+
+
+        public TypeRegistry(IServiceProvider serviceProvider)
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+            _serviceProvider = serviceProvider;
+        }
 
         public void RegisterType(INamedType namedType, ITypeBinding typeBinding = null)
         {
@@ -21,6 +33,12 @@ namespace HotChocolate.Configuration
             if (!_namedTypes.ContainsKey(namedType.Name))
             {
                 _namedTypes[namedType.Name] = namedType;
+            }
+
+            Type nativeNamedType = namedType.GetType();
+            if (!BaseTypes.IsNonGenericBaseType(nativeNamedType))
+            {
+                _typesToNamedTypes[nativeNamedType] = namedType;
             }
 
             if (typeBinding != null)
@@ -36,11 +54,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(nativeNamedType));
             }
 
+            if (BaseTypes.IsBaseType(nativeNamedType))
+            {
+                throw new ArgumentException(
+                    "Base types cannot be registered.",
+                    nameof(nativeNamedType));
+            }
+
             if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
             {
-                INamedType namedType = (INamedType)Activator.CreateInstance(nativeNamedType);
+                INamedType namedType = (INamedType)_serviceProvider
+                    .GetService(nativeNamedType);
                 RegisterType(namedType);
-                _typesToNamedTypes[nativeNamedType] = _namedTypes[namedType.Name];
             }
         }
 

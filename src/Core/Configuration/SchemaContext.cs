@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -10,9 +11,9 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
-        public SchemaContext()
+        public SchemaContext(IServiceProvider serviceProvider)
         {
-            _typeRegistry = new TypeRegistry();
+            _typeRegistry = new TypeRegistry(serviceProvider);
             _resolverRegistry = new ResolverRegistry();
         }
 

@@ -6,6 +6,12 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public NameNode(
+            string value)
+            : this(null, value)
+        {
+        }
+
+        public NameNode(
             Location location,
             string value)
         {

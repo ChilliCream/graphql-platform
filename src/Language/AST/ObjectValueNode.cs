@@ -7,6 +7,12 @@ namespace HotChocolate.Language
         : IValueNode
     {
         public ObjectValueNode(
+            IReadOnlyCollection<ObjectFieldNode> fields)
+            : this(null, fields)
+        {
+        }
+
+        public ObjectValueNode(
             Location location,
             IReadOnlyCollection<ObjectFieldNode> fields)
         {

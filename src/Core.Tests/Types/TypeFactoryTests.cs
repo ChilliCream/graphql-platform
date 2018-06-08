@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -30,7 +31,8 @@ namespace HotChocolate.Types
                 "Simple", "a",
                 (c, r) => "hello");
 
-            SchemaContext context = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext context = new SchemaContext(serviceManager);
             context.Types.RegisterType(scalarType);
             context.Resolvers.RegisterResolver(resolverBinding);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
@@ -15,7 +16,8 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeImplicitly()
         {
             // arrange
-            SchemaContext schemaContext = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
 
             StringType stringType = new StringType();
             ObjectType dummyType = new ObjectType(new ObjectTypeConfig
@@ -64,7 +66,8 @@ namespace HotChocolate.Configuration
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
-            SchemaContext schemaContext = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
 
             StringType stringType = new StringType();
             InputField[] arguments = new[]
@@ -132,7 +135,8 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
@@ -179,7 +183,8 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
@@ -223,7 +228,8 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            SchemaContext schemaContext = new SchemaContext();
+            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
