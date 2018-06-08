@@ -1,0 +1,645 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate;
+using HotChocolate.Resolvers;
+namespace HotChocolate.Resolvers.CodeGeneration
+{
+    public static class ___CompiledResolvers
+    {
+        public static FieldResolverDelegate _0 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.User>();
+            try
+            {
+                return source.ContractIds;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _1 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.User>();
+            try
+            {
+                return source.Id;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _2 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.User>();
+            try
+            {
+                return source.LastName;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _3 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.User>();
+            try
+            {
+                return source.FirstName;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _4 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Number;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _5 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Begin;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _6 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.End;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _7 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Status;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _8 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.EvContract>();
+            try
+            {
+                return source.Id;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _9 = (ctx, ct) =>
+        {
+            var obj = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.EvContract>();
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.EvContract>();
+            try
+            {
+                return source.Equals(obj);
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _10 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.EvContract>();
+            try
+            {
+                return source.GetHashCode();
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _11 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Number;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _12 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Begin;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _13 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.End;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _14 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractBase>();
+            try
+            {
+                return source.Status;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _15 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.NvsContract>();
+            try
+            {
+                return source.Id;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _16 = (ctx, ct) =>
+        {
+            var obj = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.NvsContract>();
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.NvsContract>();
+            try
+            {
+                return source.Equals(obj);
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _17 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<SwissLife.F2c.ContractService.Data.Abstractions.Models.NvsContract>();
+            try
+            {
+                return source.GetHashCode();
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _18 = (ctx, ct) =>
+        {
+            var contractId = ctx.Argument<System.String>("contractId");
+            var cancellationToken = ctx.Argument<System.Threading.CancellationToken>("cancellationToken");
+            var source = ctx.Parent<SwissLife.F2c.ContractService.GraphQl.Resolvers.Query>();
+            Func<Task<object>> f = async () =>
+            {
+                try
+                {
+                    return await source.GetContract(contractId, cancellationToken);
+
+                }
+                catch (HotChocolate.Execution.QueryException ex)
+                {
+                    return ex.Errors;
+                }
+                catch (System.Exception)
+                {
+                    return new HotChocolate.Execution.QueryError("Internal resolver error");
+                }
+            };
+            return f();
+        };
+        public static FieldResolverDelegate _19 = (ctx, ct) =>
+        {
+            var contractIds = ctx.Argument < System.Collections.Generic.IList`1[[SwissLife.F2c.ContractService.Data.Abstractions.Models.ContractId, SwissLife.F2c.ContractService.Data.Abstractions, Version = 0.0.0.0, Culture = neutral, PublicKeyToken = null]]> ("contractIds");
+            var source = ctx.Parent<SwissLife.F2c.ContractService.GraphQl.Resolvers.Query>();
+            Func<Task<object>> f = async () =>
+            {
+                try
+                {
+                    return await source.GetContracts(contractIds, ct);
+
+                }
+                catch (HotChocolate.Execution.QueryException ex)
+                {
+                    return ex.Errors;
+                }
+                catch (System.Exception)
+                {
+                    return new HotChocolate.Execution.QueryError("Internal resolver error");
+                }
+            };
+            return f();
+        };
+        public static FieldResolverDelegate _20 = (ctx, ct) =>
+        {
+            var userId = ctx.Argument<System.String>("userId");
+            var cancellationToken = ctx.Argument<System.Threading.CancellationToken>("cancellationToken");
+            var source = ctx.Parent<SwissLife.F2c.ContractService.GraphQl.Resolvers.Query>();
+            Func<Task<object>> f = async () =>
+            {
+                try
+                {
+                    return await source.GetUserContracts(userId, cancellationToken);
+
+                }
+                catch (HotChocolate.Execution.QueryException ex)
+                {
+                    return ex.Errors;
+                }
+                catch (System.Exception)
+                {
+                    return new HotChocolate.Execution.QueryError("Internal resolver error");
+                }
+            };
+            return f();
+        };
+        public static FieldResolverDelegate _21 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.EnumValue>();
+            try
+            {
+                return source.Name;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _22 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.EnumValue>();
+            try
+            {
+                return source.Description;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _23 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.EnumValue>();
+            try
+            {
+                return source.IsDeprecated;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _24 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.EnumValue>();
+            try
+            {
+                return source.DeprecationReason;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _25 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.Name;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _26 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.Description;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _27 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.Arguments;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _28 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.Type;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _29 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.IsDeprecated;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _30 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.Field>();
+            try
+            {
+                return source.DeprecationReason;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _31 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.InputField>();
+            try
+            {
+                return source.Name;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _32 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.InputField>();
+            try
+            {
+                return source.Description;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _33 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.InputField>();
+            try
+            {
+                return source.Type;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _34 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Types.InputField>();
+            try
+            {
+                return source.DefaultValue;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _35 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Schema>();
+            try
+            {
+                return source.QueryType;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _36 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Schema>();
+            try
+            {
+                return source.MutationType;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+        public static FieldResolverDelegate _37 = (ctx, ct) =>
+        {
+            var source = ctx.Parent<HotChocolate.Schema>();
+            try
+            {
+                return source.SubscriptionType;
+            }
+            catch (HotChocolate.Execution.QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (System.Exception)
+            {
+                return new HotChocolate.Execution.QueryError("Internal resolver error");
+            }
+        };
+    }
+}

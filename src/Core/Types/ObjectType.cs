@@ -258,7 +258,7 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    public abstract class ObjectType<T>
+    public class ObjectType<T>
         : ObjectType
     {
         public ObjectType()
@@ -280,7 +280,10 @@ namespace HotChocolate.Types
             Configure((IObjectTypeDescriptor<T>)descriptor);
         }
 
-        protected abstract void Configure(IObjectTypeDescriptor<T> descriptor);
+        protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
+        {
+
+        }
 
         #endregion
     }

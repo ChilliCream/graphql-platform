@@ -268,7 +268,7 @@ namespace HotChocolate.Types
             Configure((IInputObjectTypeDescriptor<T>)descriptor);
         }
 
-        protected void Configure(IInputObjectTypeDescriptor<T> descriptor) { }
+        protected virtual void Configure(IInputObjectTypeDescriptor<T> descriptor) { }
 
         #endregion
     }
