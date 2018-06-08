@@ -1,0 +1,11 @@
+{
+  "Foo": {
+    "FooList": [
+      {
+        "Foo": null,
+        "Bar": "Bar"
+      }
+    ]
+  },
+  "Bar": "123"
+}

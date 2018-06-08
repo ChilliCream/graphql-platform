@@ -220,6 +220,36 @@ namespace HotChocolate.Types
 
         #region IObjectTypeDescriptor<T>
 
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(string name)
+        {
+            ((IObjectTypeDescriptor)this).Name(name);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Description(string description)
+        {
+            ((IObjectTypeDescriptor)this).Description(description);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
+        {
+            _bindingBehavior = bindingBehavior;
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Interface<TInterface>()
+        {
+            ((IObjectTypeDescriptor)this).Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.IsOfType(IsOfType isOfType)
+        {
+            ((IObjectTypeDescriptor)this).IsOfType(isOfType);
+            return this;
+        }
+
         IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
             if (methodOrProperty == null)
@@ -239,12 +269,6 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "A field of an entity can only be a property or a method.",
                 nameof(member));
-        }
-
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
-        {
-            _bindingBehavior = bindingBehavior;
-            return this;
         }
 
         #endregion

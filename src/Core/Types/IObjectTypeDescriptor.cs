@@ -18,7 +18,13 @@ namespace HotChocolate.Types
     public interface IObjectTypeDescriptor<T>
         : IObjectTypeDescriptor
     {
+
+        new IObjectTypeDescriptor<T> Name(string name);
+        new IObjectTypeDescriptor<T> Description(string description);
         IObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
+        new IObjectTypeDescriptor<T> Interface<TInterface>()
+            where TInterface : InterfaceType;
+        new IObjectTypeDescriptor<T> IsOfType(IsOfType isOfType);
         IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
     }
 }

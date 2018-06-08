@@ -24,7 +24,7 @@ namespace HotChocolate.Types
                     "Could not create a literal parser for input " +
                     $"object type `{inputObjectType.Name}`", inputObjectType));
             }
-            return null;
+            return _deserialize;
         }
 
         private static bool TryCreateNativeTypeParserDeserializer(
@@ -84,8 +84,7 @@ namespace HotChocolate.Types
             out Func<ObjectValueNode, object> deserializer)
         {
             ConstructorInfo nativeTypeConstructor =
-                nativeType.GetConstructors(
-                    BindingFlags.Public | BindingFlags.NonPublic)
+                nativeType.GetConstructors()
                 .FirstOrDefault(t => t.GetParameters().Length == 0);
             if (nativeTypeConstructor != null)
             {

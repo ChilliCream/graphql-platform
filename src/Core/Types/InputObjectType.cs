@@ -117,7 +117,7 @@ namespace HotChocolate.Types
 
         public IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            return InputObjectDefaultSerializer.ParseValue(this, value);
         }
 
         #endregion

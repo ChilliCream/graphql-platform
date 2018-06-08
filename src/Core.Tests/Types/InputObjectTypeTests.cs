@@ -1,11 +1,27 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class InputObjectDefaultSerializerTests
+    public class InputObjectTypeTests
     {
+        [Fact]
+        public void ParseLiteral()
+        {
+            // arrange
+            Schema schema = Create();
+            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
+            ObjectValueNode literal = CreateObjectLiteral();
+
+            // act
+            object obj = object1Type.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<SerializationInputObject1>(obj);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(obj));
+        }
+
         [Fact]
         public void ParseValue()
         {
@@ -43,6 +59,15 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<ObjectValueNode>(value);
             Assert.Equal(Snapshot.Current(), Snapshot.New(value));
+        }
+
+        private static ObjectValueNode CreateObjectLiteral()
+        {
+            return new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("foo", new ObjectValueNode(new List<ObjectFieldNode>())),
+                new ObjectFieldNode("bar", new StringValueNode("123"))
+            });
         }
 
         public Schema Create()
