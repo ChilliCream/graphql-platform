@@ -11,6 +11,7 @@ namespace HotChocolate.Types
 {
     internal class FieldDescriptor
         : IFieldDescriptor
+        , IInterfaceFieldDescriptor
     {
         private readonly string _typeName;
 
@@ -221,6 +222,40 @@ namespace HotChocolate.Types
             }
 
             Resolver = fieldResolver;
+            return this;
+        }
+
+        #endregion
+
+        #region IInterfaceFieldDescriptor
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Name(string name)
+        {
+            ((IFieldDescriptor)this).Name(name);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Description(string description)
+        {
+            ((IFieldDescriptor)this).Description(description);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.DeprecationReason(string deprecationReason)
+        {
+            ((IFieldDescriptor)this).DeprecationReason(deprecationReason);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Type<TOutputType>()
+        {
+            ((IFieldDescriptor)this).Type<TOutputType>();
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(string name, Action<IArgumentDescriptor> argument)
+        {
+            ((IFieldDescriptor)this).Argument(name, argument);
             return this;
         }
 

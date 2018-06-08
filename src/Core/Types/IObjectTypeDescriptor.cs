@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 namespace HotChocolate.Types
 {
     public interface IObjectTypeDescriptor
+        : IFluent
     {
         IObjectTypeDescriptor Name(string name);
         IObjectTypeDescriptor Description(string description);

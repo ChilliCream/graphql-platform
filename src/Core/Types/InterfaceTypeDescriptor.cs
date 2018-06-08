@@ -55,7 +55,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {

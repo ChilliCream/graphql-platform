@@ -1,18 +1,28 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
     public interface IFieldDescriptor
+        : IFluent
     {
         IFieldDescriptor Name(string name);
+
         IFieldDescriptor Description(string description);
+
         IFieldDescriptor DeprecationReason(string deprecationReason);
+
         IFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IFieldDescriptor Type(Type type, bool overwrite);
+
         IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
+
         IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
     }
 
