@@ -7,13 +7,13 @@ namespace HotChocolate.Execution
 {
     internal class ArgumentResolver
     {
-        public Dictionary<string, object> CoerceArgumentValues(
+        public Dictionary<string, ArgumentValue> CoerceArgumentValues(
             ObjectType objectType,
             FieldSelection fieldSelection,
             VariableCollection variables)
         {
-            Dictionary<string, object> coercedArgumentValues =
-                new Dictionary<string, object>();
+            Dictionary<string, ArgumentValue> coercedArgumentValues =
+                new Dictionary<string, ArgumentValue>();
 
             Dictionary<string, IValueNode> argumentValues =
                 fieldSelection.Node.Arguments
@@ -36,7 +36,8 @@ namespace HotChocolate.Execution
                         argumentName, fieldSelection.Node));
                 }
 
-                coercedArgumentValues[argumentName] = argumentValue;
+                coercedArgumentValues[argumentName] = new ArgumentValue(
+                    argumentType, argumentType.NativeType, argumentValue);
             }
 
             return coercedArgumentValues;

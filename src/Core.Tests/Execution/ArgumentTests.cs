@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                     d.BindFields(BindingBehavior.Explicit);
                     d.Field(t => t.ListOfInt(default))
                         .Name("a")
-                        .Type<ObjectType<Bar>>()
+                        .Type<ListType<ObjectType<Bar>>>()
                         .Argument("foo", a => a.Type<ListType<IntType>>());
                 }));
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
             // act
             OperationExecuter operationExecuter = new OperationExecuter();
             QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:[Int]) { a(foo:$x) { Foo } }"), null,
+                Parser.Default.Parse("query x($x:[Int]) { a(foo:$x) { foo } }"), null,
                 new Dictionary<string, IValueNode> { { "x", list } },
                 null, CancellationToken.None);
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Execution
                     d.BindFields(BindingBehavior.Explicit);
                     d.Field(t => t.ListOfFoo(default))
                         .Name("a")
-                        .Type<ObjectType<Bar>>()
+                        .Type<ListType<ObjectType<Bar>>>()
                         .Argument("foo", a => a.Type<ListType<InputObjectType<Foo>>>());
                 }));
 
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
             // act
             OperationExecuter operationExecuter = new OperationExecuter();
             QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:[Foo]) { a(foo:$x) { Foo } }"), null,
+                Parser.Default.Parse("query x($x:[Foo]) { a(foo:$x) { foo } }"), null,
                 new Dictionary<string, IValueNode> { { "x", list } },
                 null, CancellationToken.None);
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
             // act
             OperationExecuter operationExecuter = new OperationExecuter();
             QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:Int) { a(foo:$x) { Foo } }"), null,
+                Parser.Default.Parse("query x($x:Int) { a(foo:$x) { foo } }"), null,
                 new Dictionary<string, IValueNode> { { "x", value } },
                 null, CancellationToken.None);
 
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution
             // act
             OperationExecuter operationExecuter = new OperationExecuter();
             QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:Foo) { a(foo:$x) { Foo } }"), null,
+                Parser.Default.Parse("query x($x:Foo) { a(foo:$x) { foo } }"), null,
                 new Dictionary<string, IValueNode> { { "x", obj } },
                 null, CancellationToken.None);
 
