@@ -35,7 +35,8 @@ namespace HotChocolate.Configuration
             }
 
             Type nativeNamedType = namedType.GetType();
-            if (!BaseTypes.IsNonGenericBaseType(nativeNamedType))
+            if (!_typesToNamedTypes.ContainsKey(nativeNamedType)
+                && !BaseTypes.IsNonGenericBaseType(nativeNamedType))
             {
                 _typesToNamedTypes[nativeNamedType] = namedType;
             }
@@ -56,9 +57,12 @@ namespace HotChocolate.Configuration
             if (!BaseTypes.IsBaseType(nativeNamedType)
                 && !_typesToNamedTypes.ContainsKey(nativeNamedType))
             {
-                INamedType namedType = (INamedType)_serviceProvider
-                    .GetService(nativeNamedType);
-                RegisterType(namedType);
+                if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
+                {
+                    INamedType namedType = (INamedType)_serviceProvider
+                        .GetService(nativeNamedType);
+                    RegisterType(namedType);
+                }
             }
         }
 

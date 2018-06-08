@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +44,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             switch (argumentDescriptor.Kind)
             {
                 case FieldResolverArgumentKind.Argument:
-                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{argumentDescriptor.Type.FullName}>(\"{argumentDescriptor.Name}\")");
+                    source.Append($"ctx.{nameof(IResolverContext.Argument)}<{GetTypeName(argumentDescriptor.Type)}>(\"{argumentDescriptor.Name}\")");
                     break;
                 case FieldResolverArgumentKind.Field:
                     source.Append($"ctx.{nameof(IResolverContext.Field)}");
@@ -63,13 +65,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     source.Append($"ctx.{nameof(IResolverContext.Schema)}");
                     break;
                 case FieldResolverArgumentKind.Service:
-                    source.Append($"ctx.{nameof(IResolverContext.Service)}<{argumentDescriptor.Type.FullName}>()");
+                    source.Append($"ctx.{nameof(IResolverContext.Service)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 case FieldResolverArgumentKind.Source:
-                    source.Append($"ctx.{nameof(IResolverContext.Parent)}<{argumentDescriptor.Type.FullName}>()");
+                    source.Append($"ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 case FieldResolverArgumentKind.Context:
                     source.Append($"ctx");
+                    break;
+                case FieldResolverArgumentKind.CancellationToken:
+                    source.Append($"ct");
                     break;
                 default:
                     throw new NotSupportedException();
@@ -86,7 +91,20 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected string GetTypeName(Type type)
         {
-            return type.FullName.Replace("+", ".");
+            string name = type.FullName;
+            if (type.IsGenericType)
+            {
+                name = CreateGenericName(type);
+            }
+            return name.Replace("+", ".");
+        }
+
+        private string CreateGenericName(Type type)
+        {
+            string name = type.Name.Substring(0, type.Name.Length - 2);
+            IEnumerable<string> arguments = type.GetGenericArguments()
+                .Select(GetTypeName);
+            return $"{name}<{string.Join(", ", arguments)}>";
         }
 
         protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)

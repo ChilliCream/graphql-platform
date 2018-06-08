@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
@@ -71,6 +72,11 @@ namespace HotChocolate.Resolvers
             if (argumentType == typeof(Field))
             {
                 return FieldResolverArgumentKind.Field;
+            }
+
+             if (argumentType == typeof(CancellationToken))
+            {
+                return FieldResolverArgumentKind.CancellationToken;
             }
 
             // TODO:

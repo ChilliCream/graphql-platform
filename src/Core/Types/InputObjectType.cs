@@ -254,7 +254,7 @@ namespace HotChocolate.Types
         {
         }
 
-        protected InputObjectType()
+        public InputObjectType()
         {
         }
 

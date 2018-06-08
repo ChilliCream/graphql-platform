@@ -108,7 +108,7 @@ namespace HotChocolate.Types
 
             for (int i = 0; i < listValueLiteral.Items.Count; i++)
             {
-                object element = _inputType.ParseLiteral(literal);
+                object element = _inputType.ParseLiteral(listValueLiteral.Items[i]);
                 array.SetValue(element, i);
             }
 
