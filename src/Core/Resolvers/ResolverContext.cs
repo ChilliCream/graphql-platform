@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

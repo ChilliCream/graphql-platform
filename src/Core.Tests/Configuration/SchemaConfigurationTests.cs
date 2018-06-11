@@ -144,7 +144,7 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration();
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
-                .Resolve("bar").With(t => t.GetFooBar(It.Is<TestObjectB>()));
+                .Resolve("bar").With(t => t.GetFooBar(default));
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
             configuration.RegisterResolvers(schemaContext);
