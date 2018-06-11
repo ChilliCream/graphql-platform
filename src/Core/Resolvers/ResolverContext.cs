@@ -16,7 +16,9 @@ namespace HotChocolate.Resolvers
         private static readonly List<IInputValueConverter> _converters =
             new List<IInputValueConverter>
             {
-                new ListValueConverter()
+                new ListValueConverter(),
+                new FloatValueConverter(),
+                new DateTimeValueConverter()
             };
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
