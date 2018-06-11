@@ -31,8 +31,8 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c => c.Parent<Directive>().Locations);
 
             descriptor.Field("args")
-                .Type<NonNullType<ListType<NonNullType<__Type>>>>()
-                .Resolver(c => c.Parent<Directive>().Arguments);
+                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
+                .Resolver(c => c.Parent<Directive>().Arguments.Values);
 
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
