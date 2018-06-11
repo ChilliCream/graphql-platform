@@ -28,30 +28,18 @@ namespace HotChocolate.Types
         private Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
 
-        public ObjectType()
+        protected ObjectType()
         {
-            ObjectTypeDescriptor descriptor = CreateDescriptor();
             Initialize(Configure);
         }
 
         public ObjectType(Action<IObjectTypeDescriptor> configure)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            ObjectTypeDescriptor descriptor = CreateDescriptor();
             Initialize(configure);
         }
 
         internal ObjectType(ObjectTypeConfig config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
             Initialize(config);
         }
 
@@ -102,6 +90,11 @@ namespace HotChocolate.Types
 
         private void Initialize(Action<IObjectTypeDescriptor> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             ObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 

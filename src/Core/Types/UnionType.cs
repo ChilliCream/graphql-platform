@@ -14,16 +14,66 @@ namespace HotChocolate.Types
         , ITypeSystemNode
         , INeedsInitialization
     {
-        private readonly Func<ITypeRegistry, IEnumerable<ObjectType>> _typesFactory;
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
-        private readonly IReadOnlyCollection<TypeInfo> _typeInfos;
+        private Func<ITypeRegistry, IEnumerable<ObjectType>> _typesFactory;
+        private IReadOnlyCollection<TypeInfo> _typeInfos;
         private ResolveAbstractType _typeResolver;
 
-        public UnionType()
+        protected UnionType()
         {
+            Initialize(Configure);
+        }
+
+        public UnionType(Action<IUnionTypeDescriptor> configure)
+        {
+            Initialize(configure);
+        }
+
+        internal UnionType(UnionTypeConfig config)
+        {
+            Initialize(config);
+        }
+
+        public UnionTypeDefinitionNode SyntaxNode { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
+
+        public ObjectType ResolveType(IResolverContext context, object resolverResult)
+            => _typeResolver(context, resolverResult);
+
+        #region Configuration
+
+        protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
+
+        #endregion
+
+        #region ITypeSystemNode
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
+        {
+            return Types.Values;
+        }
+
+        #endregion
+
+        #region Initialization
+
+        private void Initialize(Action<IUnionTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             UnionTypeDescriptor descriptor = new UnionTypeDescriptor(GetType());
-            Configure(descriptor);
+            configure(descriptor);
 
             if (string.IsNullOrEmpty(descriptor.Name))
             {
@@ -47,7 +97,7 @@ namespace HotChocolate.Types
             Description = descriptor.Description;
         }
 
-        internal UnionType(UnionTypeConfig config)
+        private void Initialize(UnionTypeConfig config)
         {
             if (config == null)
             {
@@ -75,36 +125,6 @@ namespace HotChocolate.Types
             Name = config.Name;
             Description = config.Description;
         }
-
-        public UnionTypeDefinitionNode SyntaxNode { get; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
-
-        public ObjectType ResolveType(IResolverContext context, object resolverResult)
-            => _typeResolver(context, resolverResult);
-
-        #region Configuration
-
-        protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region ITypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            return Types.Values;
-        }
-
-        #endregion
-
-        #region Initialization
 
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext, Action<SchemaError> reportError)

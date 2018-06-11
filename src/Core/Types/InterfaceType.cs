@@ -19,84 +19,26 @@ namespace HotChocolate.Types
             new Dictionary<string, Field>();
         private ResolveAbstractType _resolveAbstractType;
 
-        public InterfaceType()
+        protected InterfaceType()
         {
-            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor(GetType());
-            Configure(descriptor);
+            Initialize(Configure);
+        }
 
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "The type name must not be null or empty.");
-            }
-
-            if (descriptor.Fields.Count == 0)
-            {
-                throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.");
-            }
-
-            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _resolveAbstractType = descriptor.ResolveAbstractType;
-
-            Name = descriptor.Name;
-            Description = descriptor.Description;
+        public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
+        {
+            Initialize(configure);
         }
 
         internal InterfaceType(InterfaceTypeConfig config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "An interface type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            Field[] fields = config.Fields?.ToArray()
-                ?? Array.Empty<Field>();
-            if (fields.Length == 0)
-            {
-                throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.",
-                    nameof(config));
-            }
-
-            foreach (Field field in fields)
-            {
-                if (_fieldMap.ContainsKey(field.Name))
-                {
-                    throw new ArgumentException(
-                        $"The field name `{field.Name}` " +
-                        $"is not unique within `{Name}`.",
-                        nameof(config));
-                }
-                else
-                {
-                    _fieldMap.Add(field.Name, field);
-                }
-            }
-
-            _resolveAbstractType = config.ResolveAbstractType;
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            Initialize(config);
         }
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; }
+        public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; }
+        public string Name { get; private set; }
 
-        public string Description { get; }
+        public string Description { get; private set; }
 
         public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
@@ -125,6 +67,74 @@ namespace HotChocolate.Types
         #endregion
 
         #region Initialization
+
+        private void Initialize(Action<IInterfaceTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            InterfaceTypeDescriptor descriptor =
+                new InterfaceTypeDescriptor(GetType());
+            configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "The type name must not be null or empty.");
+            }
+
+            if (descriptor.Fields.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.");
+            }
+
+            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _resolveAbstractType = descriptor.ResolveAbstractType;
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+        }
+
+        private void Initialize(InterfaceTypeConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            if (string.IsNullOrEmpty(config.Name))
+            {
+                throw new ArgumentException(
+                    "An interface type name must not be null or empty.",
+                    nameof(config));
+            }
+
+            Field[] fields = config.Fields?.ToArray();
+            if (fields?.Length == 0)
+            {
+                throw new ArgumentException(
+                    $"The interface type `{Name}` has no fields.",
+                    nameof(config));
+            }
+
+            foreach (Field field in fields)
+            {
+                _fieldMap[field.Name] = field;
+            }
+
+            _resolveAbstractType = config.ResolveAbstractType;
+
+            SyntaxNode = config.SyntaxNode;
+            Name = config.Name;
+            Description = config.Description;
+        }
 
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext, Action<SchemaError> reportError)
