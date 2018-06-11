@@ -29,27 +29,22 @@ cd graphql-demo
 dotnet new console -n graphql-console
 ```
 
-The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and bind resolvers to it. Our README walkthrough shows you the code-first approache.
+The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walkthrough shows you the code-first approache.
 
-The following example ....
+The following example shows the code-first approach.
 
 ```csharp
-public class Query
-    : ObjectType
+public class Program
 {
-    protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
+    public static void Main(string[] args)
     {
-        descriptor.Field("hello").Resolver(() => "world");
+        var schema = Schema.Create(c => c.RegisterType<ObjectType<Query>>());
     }
 }
 
-public class Programm
+public class Query
 {
-    public static Main(string[] args)
-    {
-        var schema = Schema.Create(c => c.RegisterQuery<Query>());
-    }
-
+    public string Hello() => "world";
 }
 ```
 
@@ -63,7 +58,7 @@ type Query {
 }
 ```
 
-Moreover, we bound a resolver to the field that returns a fixed value _world_. A reasolver is basically a function that resolves the data of field.
+Moreover, we bound a resolver to the field that returns a fixed value _world_. A resolver is basically a function that resolves the data for the specified field.
 
 Now that the schema is setup we can serve up a query against it.
 
@@ -74,35 +69,31 @@ Now that the schema is setup we can serve up a query against it.
 ```
 
 ```csharp
-var result = schema.Execute("{ hello }");
-
 // Prints
 // {
 //   data: { hello: "world" }
 // }
-Console.WriteLine(result);
+Console.WriteLine(schema.Execute("{ hello }"));
 ```
 
 This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
 
 ```csharp
-var result = schema.Execute("{ hello }");
-
-// Prints
 // {
-//   errors: [
+//   "errors": [
 //     {
-//        message: 'Could not resolve the specified field.',
-//        locations: [
-//          {
-//            line: 1,
-//            column: 3
-//          }
-//        ]
+//       "FieldName": "foo",
+//       "Locations": [
+//         {
+//           "Line": 1,
+//           "Column": 3
+//         }
+//       ],
+//       "Message": "Could not resolve the specified field."
 //     }
 //   ]
 // }
-Console.WriteLine(result);
+Console.WriteLine(schema.Execute("{ foo }"));
 ```
 
 In order to setup a GraphQL HTTP endpoint that can be used by a web application or other application we have to first create an empty web project with the dotnet CLI.
@@ -116,7 +107,7 @@ Open the Startup.cs and add the following code.
 ```csharp
 protected override void ConfigureServices(IServiceCollection services)
 {
-    services.AddGraphQL(c => c.RegisterQuery<Query>());
+    services.AddGraphQL(c => c.RegisterQuery<ObjectType<Query>>());
 }
 ```
 

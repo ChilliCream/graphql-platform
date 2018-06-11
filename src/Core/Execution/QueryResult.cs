@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
                 internalResult[_errors] = Errors;
             }
 
-            if (Data != null)
+            if (Data != null && Data.Count > 0)
             {
                 internalResult[_data] = Data;
             }

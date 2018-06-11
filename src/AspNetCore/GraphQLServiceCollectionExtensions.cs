@@ -7,7 +7,7 @@ namespace HotChocolate
 {
     public static class GraphQLServiceCollectionExtensions
     {
-        public static IServiceCollection AddGraphQLSchema(
+        public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
             Schema schema)
         {
@@ -16,7 +16,7 @@ namespace HotChocolate
             return serviceCollection;
         }
 
-        public static IServiceCollection AddGraphQLSchema(
+        public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
             Action<ISchemaConfiguration> configure)
         {
@@ -26,7 +26,7 @@ namespace HotChocolate
             return serviceCollection;
         }
 
-        public static IServiceCollection AddGraphQLSchema(
+        public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
             string schemaSource,
             Action<ISchemaConfiguration> configure)

@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore
                 .Configure(app => app.UseGraphQL(route))
                 .ConfigureServices(services =>
                 {
-                    services.AddGraphQLSchema(schema);
+                    services.AddGraphQL(schema);
                 });
 
             TestServer server = new TestServer(builder);
