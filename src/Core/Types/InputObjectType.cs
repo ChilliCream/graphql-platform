@@ -19,7 +19,6 @@ namespace HotChocolate.Types
         private Func<ITypeRegistry, Type> _nativeTypeFactory;
         private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
-        private bool _hasDeserializer;
 
         internal InputObjectType()
         {
@@ -92,7 +91,7 @@ namespace HotChocolate.Types
 
             if (literal is ObjectValueNode objectLiteral)
             {
-                if (!_hasDeserializer)
+                if (_deserialize == null)
                 {
                     throw new InvalidOperationException(
                         "There is no deserializer availabel for input " +
