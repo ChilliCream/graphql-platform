@@ -13,22 +13,30 @@ namespace HotChocolate.Execution.ValueConverters
 
         public bool TryConvert(Type from, Type to, object value, out object convertedValue)
         {
-            if (value == null)
-            {
-                convertedValue = null;
-                return true;
-            }
-
             if (from == typeof(double)
-                && to == typeof(float)
-                && value is double d)
+                && (to == typeof(float) || to == typeof(float?)))
             {
-                convertedValue = (float)d;
-                return true;
+                if (value is double d)
+                {
+                    convertedValue = (float)d;
+                    return true;
+                }
+
+                if (value == null && to == typeof(float))
+                {
+                    convertedValue = default(float);
+                    return true;
+                }
+
+                if (value == null && to == typeof(float?))
+                {
+                    convertedValue = default(float?);
+                    return true;
+                }
             }
 
             convertedValue = null;
-            return true;
+            return false;
         }
     }
 }
