@@ -1,17 +1,19 @@
 using System;
+using System.Collections.Immutable;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class StringType
+    public class DateType
         : ScalarType
     {
-        public StringType()
-            : base("String")
+        public DateType()
+            : base("Date", "ISO-8601 compliant date type.")
         {
         }
 
-        public override Type NativeType { get; } = typeof(string);
+        public override Type NativeType => typeof(DateTime);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -31,9 +33,11 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is StringValueNode stringLiteral)
+            if (literal is StringValueNode stringLiteral
+                && DateTime.TryParse(
+                    stringLiteral.Value, out DateTime dateTime))
             {
-                return stringLiteral.Value;
+                return dateTime;
             }
 
             if (literal is NullValueNode)
@@ -42,7 +46,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The string type can only parse string literals.",
+                "The date type can only parse string literals.",
                 nameof(literal));
         }
 
@@ -53,19 +57,19 @@ namespace HotChocolate.Types
                 return new NullValueNode(null);
             }
 
-            if (value is string s)
+            if (value is DateTimeOffset dateTimeOffset)
             {
-                return new StringValueNode(null, s, false);
+                return new StringValueNode(Serialize(dateTimeOffset));
             }
 
-            if (value is char c)
+            if (value is DateTime dateTime)
             {
-                return new StringValueNode(null, c.ToString(), false);
+                return new StringValueNode(Serialize(dateTime));
             }
 
             throw new ArgumentException(
-                "The specified value has to be a string or char in order " +
-                "to be parsed by the string type.");
+                "The specified value has to be a DateTime in order " +
+                "to be parsed by the date time type.");
         }
 
         public override object Serialize(object value)
@@ -75,18 +79,28 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is string s)
+            if (value is DateTimeOffset dateTimeOffset)
             {
-                return s;
+                return Serialize(dateTimeOffset);
             }
 
-            if(value is char c)
+            if (value is DateTime dateTime)
             {
-                return c;
+                return Serialize(dateTime);
             }
 
             throw new ArgumentException(
-                "The specified value cannot be serialized by the StringType.");
+                "The specified value cannot be serialized by the DateTimeType.");
+        }
+
+        private string Serialize(DateTime value)
+        {
+            return value.ToString("yyyy-MM-dd");
+        }
+
+        private string Serialize(DateTimeOffset value)
+        {
+            return value.ToString("yyyy-MM-dd");
         }
     }
 }

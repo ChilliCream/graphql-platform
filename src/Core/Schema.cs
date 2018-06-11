@@ -16,6 +16,12 @@ namespace HotChocolate
     /// </summary>
     public partial class Schema
     {
+        private static readonly Directive[] _directives = new Directive[]
+        {
+            new IncludeDirective(),
+            new SkipDirective()
+        };
+
         private readonly SchemaTypes _types;
         private readonly IntrospectionFields _introspectionFields;
 
@@ -71,10 +77,9 @@ namespace HotChocolate
             return _types.GetTypes();
         }
 
-        // TODO : Introduce directive type
-        internal IReadOnlyCollection<object> GetDirectives()
+        internal IReadOnlyCollection<Directive> GetDirectives()
         {
-            return Array.Empty<object>();
+            return _directives;
         }
 
         internal IReadOnlyCollection<ObjectType> GetPossibleTypes(

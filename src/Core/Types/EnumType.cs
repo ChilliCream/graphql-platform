@@ -18,77 +18,30 @@ namespace HotChocolate.Types
         private readonly Dictionary<object, EnumValue> _valueToValues =
             new Dictionary<object, EnumValue>();
 
-        public EnumType()
+        protected EnumType()
         {
-            EnumTypeDescriptor descriptor = CreateDescriptor();
-            Configure(descriptor);
+            Initialize(Configure);
+        }
 
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "Am enum type name must not be null or empty.");
-            }
-
-            foreach (EnumValue enumValue in descriptor.CreateEnumValues())
-            {
-                _nameToValues[enumValue.Name] = enumValue;
-                _valueToValues[enumValue.Value] = enumValue;
-            }
-
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            NativeType = descriptor.NativeType;
+        public EnumType(Action<IEnumTypeDescriptor> configure)
+        {
+            Initialize(configure);
         }
 
         internal EnumType(EnumTypeConfig config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "Am enum type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            if (config.Values == null)
-            {
-                throw new ArgumentException(
-                    $"The enum type {config.Name} has no values.",
-                    nameof(config));
-            }
-
-            foreach (EnumValueConfig enumValueConfig in config.Values)
-            {
-                if (NativeType == null && enumValueConfig.Value != null)
-                {
-                    // TODO : what to do if:
-                    // - values are not of the same type
-                    // - one or more values are null
-                    NativeType = enumValueConfig.Value.GetType();
-                }
-
-                EnumValue enumValue = new EnumValue(enumValueConfig);
-                _nameToValues[enumValueConfig.Name] = enumValue;
-                _valueToValues[enumValueConfig.Value] = enumValue;
-            }
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            Initialize(config);
         }
-        public EnumTypeDefinitionNode SyntaxNode { get; }
 
-        public string Name { get; }
+        public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Description { get; }
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public Type NativeType { get; }
+        public Type NativeType { get; private set; }
 
         public bool TryGetValue(string name, out object value)
         {
@@ -113,6 +66,8 @@ namespace HotChocolate.Types
             name = null;
             return false;
         }
+
+        #region Serialization
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -175,6 +130,8 @@ namespace HotChocolate.Types
                 $"The specified value cannot be handled by the EnumType `{Name}`.");
         }
 
+        #endregion
+
         #region Configuration
 
         internal virtual EnumTypeDescriptor CreateDescriptor() =>
@@ -190,14 +147,90 @@ namespace HotChocolate.Types
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
 
         #endregion
+
+        #region  Initialization
+
+        private void Initialize(Action<IEnumTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            EnumTypeDescriptor descriptor = CreateDescriptor();
+            configure(descriptor);
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "Am enum type name must not be null or empty.");
+            }
+
+            foreach (EnumValue enumValue in descriptor.CreateEnumValues())
+            {
+                _nameToValues[enumValue.Name] = enumValue;
+                _valueToValues[enumValue.Value] = enumValue;
+            }
+
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            NativeType = descriptor.NativeType;
+        }
+
+        private void Initialize(EnumTypeConfig config)
+        {
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            if (string.IsNullOrEmpty(config.Name))
+            {
+                throw new ArgumentException(
+                    "Am enum type name must not be null or empty.",
+                    nameof(config));
+            }
+
+            if (config.Values == null)
+            {
+                throw new ArgumentException(
+                    $"The enum type {config.Name} has no values.",
+                    nameof(config));
+            }
+
+            foreach (EnumValueConfig enumValueConfig in config.Values)
+            {
+                if (NativeType == null && enumValueConfig.Value != null)
+                {
+                    // TODO : what to do if:
+                    // - values are not of the same type
+                    // - one or more values are null
+                    NativeType = enumValueConfig.Value.GetType();
+                }
+
+                EnumValue enumValue = new EnumValue(enumValueConfig);
+                _nameToValues[enumValueConfig.Name] = enumValue;
+                _valueToValues[enumValueConfig.Value] = enumValue;
+            }
+
+            SyntaxNode = config.SyntaxNode;
+            Name = config.Name;
+            Description = config.Description;
+        }
+
+        #endregion
     }
 
-    public abstract class EnumType<T>
+    public class EnumType<T>
         : EnumType
     {
         public EnumType()
         {
+        }
 
+        public EnumType(Action<IEnumTypeDescriptor<T>> configure)
+            : base(d => configure((IEnumTypeDescriptor<T>)d))
+        {
         }
 
         #region Configuration
@@ -210,7 +243,10 @@ namespace HotChocolate.Types
             Configure((IEnumTypeDescriptor<T>)descriptor);
         }
 
-        protected abstract void Configure(IEnumTypeDescriptor<T> descriptor);
+        protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
+        {
+
+        }
 
         #endregion
     }

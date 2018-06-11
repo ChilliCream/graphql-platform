@@ -21,18 +21,14 @@ namespace HotChocolate.Types
         private Func<ObjectValueNode, object> _deserialize;
         private bool _hasDeserializer;
 
-        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-            Initialize(configure);
-        }
-
         internal InputObjectType()
         {
             Initialize(Configure);
+        }
+
+        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        {
+            Initialize(configure);
         }
 
         internal InputObjectType(InputObjectTypeConfig config)
@@ -146,6 +142,11 @@ namespace HotChocolate.Types
 
         private void Initialize(Action<IInputObjectTypeDescriptor> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             InputObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
@@ -249,12 +250,12 @@ namespace HotChocolate.Types
     public class InputObjectType<T>
         : InputObjectType
     {
-        public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IInputObjectTypeDescriptor<T>)d))
+        public InputObjectType()
         {
         }
 
-        public InputObjectType()
+        public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
+            : base(d => configure((IInputObjectTypeDescriptor<T>)d))
         {
         }
 

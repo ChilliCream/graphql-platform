@@ -7,6 +7,11 @@
     <PackageId>HotChocolate.AspNetCore</PackageId>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.1.2" />
   </ItemGroup>

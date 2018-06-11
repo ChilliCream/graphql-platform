@@ -297,6 +297,7 @@ namespace HotChocolate
             context.Types.RegisterType(typeof(StringType));
             context.Types.RegisterType(typeof(BooleanType));
             context.Types.RegisterType(typeof(IntType));
+            context.Types.RegisterType(typeof(FloatType));
 
             // register introspection types
             context.Types.RegisterType(typeof(__Directive));

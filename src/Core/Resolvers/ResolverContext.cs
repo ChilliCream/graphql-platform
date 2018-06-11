@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -15,7 +16,9 @@ namespace HotChocolate.Resolvers
         private static readonly List<IInputValueConverter> _converters =
             new List<IInputValueConverter>
             {
-                new ListValueConverter()
+                new ListValueConverter(),
+                new FloatValueConverter(),
+                new DateTimeValueConverter()
             };
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
@@ -69,23 +72,36 @@ namespace HotChocolate.Resolvers
 
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
-                if (argumentValue.Value is T v)
+                if (argumentValue.Value is T v
+                    || TryConvertValue(argumentValue, out v))
                 {
                     return v;
                 }
 
-                foreach (IInputValueConverter converter in _converters
-                    .Where(t => t.CanConvert(argumentValue.Type)))
-                {
-                    if (converter.TryConvert(argumentValue.NativeType, typeof(T),
-                        argumentValue.Value, out object cv))
-                    {
-                        return (T)cv;
-                    }
-                }
+                throw new QueryException(
+                    $"Could not convert argument {name} from " +
+                    $"{argumentValue.NativeType.FullName} to " +
+                    $"{typeof(T).FullName}.");
             }
 
             return default(T);
+        }
+
+        private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)
+        {
+            foreach (IInputValueConverter converter in _converters
+                .Where(t => t.CanConvert(argumentValue.Type)))
+            {
+                if (converter.TryConvert(argumentValue.NativeType, typeof(T),
+                    argumentValue.Value, out object cv))
+                {
+                    value = (T)cv;
+                    return true;
+                }
+            }
+
+            value = default(T);
+            return false;
         }
 
         public T Parent<T>()

@@ -3,15 +3,15 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class StringType
+    public sealed class FloatType
         : ScalarType
     {
-        public StringType()
-            : base("String")
+        public FloatType()
+            : base("Float")
         {
         }
 
-        public override Type NativeType { get; } = typeof(string);
+        public override Type NativeType { get; } = typeof(double);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -20,7 +20,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
+            return literal is FloatValueNode
                 || literal is NullValueNode;
         }
 
@@ -31,9 +31,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is StringValueNode stringLiteral)
+            if (literal is FloatValueNode floatLiteral)
             {
-                return stringLiteral.Value;
+                return double.Parse(floatLiteral.Value);
             }
 
             if (literal is NullValueNode)
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The string type can only parse string literals.",
+                "The int type can only parse int literals.",
                 nameof(literal));
         }
 
@@ -50,22 +50,22 @@ namespace HotChocolate.Types
         {
             if (value == null)
             {
-                return new NullValueNode(null);
+                return new NullValueNode();
             }
 
-            if (value is string s)
+            if (value is double d)
             {
-                return new StringValueNode(null, s, false);
+                return new FloatValueNode(d.ToString("e"));
             }
 
-            if (value is char c)
+            if (value is float f)
             {
-                return new StringValueNode(null, c.ToString(), false);
+                return new FloatValueNode(f.ToString("e"));
             }
 
             throw new ArgumentException(
-                "The specified value has to be a string or char in order " +
-                "to be parsed by the string type.");
+                "The specified value has to be an integer" +
+                "to be parsed by the int type.");
         }
 
         public override object Serialize(object value)
@@ -75,18 +75,13 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is string s)
+            if (value is double || value is float)
             {
-                return s;
-            }
-
-            if(value is char c)
-            {
-                return c;
+                return value;
             }
 
             throw new ArgumentException(
-                "The specified value cannot be serialized by the StringType.");
+                "The specified value cannot be handled by the IntType.");
         }
     }
 }
