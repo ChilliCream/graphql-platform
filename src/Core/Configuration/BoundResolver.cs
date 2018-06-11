@@ -52,7 +52,7 @@ namespace HotChocolate.Configuration
             _bindingInfo = bindingInfo;
         }
 
-        public new IBindFieldResolver<TResolver> Resolve<TPropertyType>(
+        public IBindFieldResolver<TResolver> Resolve<TPropertyType>(
             Expression<Func<TObjectType, TPropertyType>> field)
         {
             if (field == null)

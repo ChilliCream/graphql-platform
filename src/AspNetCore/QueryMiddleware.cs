@@ -88,19 +88,7 @@ namespace HotChocolate.AspNetCore
 
         private async Task WriteResponseAsync(HttpResponse response, QueryResult queryResult)
         {
-            Dictionary<string, object> internalResult = new Dictionary<string, object>();
-
-            if (queryResult.Data != null)
-            {
-                internalResult["data"] = queryResult.Data;
-            }
-
-            if (queryResult.Errors != null)
-            {
-                internalResult["errors"] = queryResult.Errors;
-            }
-
-            string json = JsonConvert.SerializeObject(internalResult);
+            string json = queryResult.ToString(false);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
         }

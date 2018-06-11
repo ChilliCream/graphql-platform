@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
     public class QueryResult
     {
+        private const string _data = "data";
+        private const string _errors = "errors";
+
         public QueryResult(OrderedDictionary data)
         {
             if (data == null)
@@ -42,5 +47,28 @@ namespace HotChocolate.Execution
 
         public OrderedDictionary Data { get; }
         public ImmutableList<IQueryError> Errors { get; }
+
+        public string ToString(bool indented)
+        {
+            Dictionary<string, object> internalResult = new Dictionary<string, object>();
+
+            if (Errors != null)
+            {
+                internalResult[_errors] = Errors;
+            }
+
+            if (Data != null)
+            {
+                internalResult[_data] = Data;
+            }
+
+            return JsonConvert.SerializeObject(internalResult,
+                indented ? Formatting.Indented : Formatting.None);
+        }
+
+        public override string ToString()
+        {
+            return ToString(true);
+        }
     }
 }
