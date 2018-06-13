@@ -24,7 +24,7 @@ namespace HotChocolate
             where T : class;
 
         void RegisterType<T>()
-            where T : INamedType;
+            where T : class, INamedType;
 
         void RegisterQueryType<T>()
             where T : ObjectType;
@@ -36,7 +36,7 @@ namespace HotChocolate
             where T : ObjectType;
 
         void RegisterType<T>(T namedType)
-            where T : INamedType;
+            where T : class, INamedType;
 
         void RegisterQueryType<T>(T objectType)
             where T : ObjectType;

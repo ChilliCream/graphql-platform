@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Types
@@ -39,13 +40,18 @@ namespace HotChocolate.Types
         public ImmutableList<EnumValueDescriptor> Items { get; protected set; } =
             ImmutableList<EnumValueDescriptor>.Empty;
 
-        public IEnumerable<EnumValue> CreateEnumValues()
+        public BindingBehavior BindingBehavior { get; protected set; }
+
+        public virtual IEnumerable<EnumValue> CreateEnumValues()
         {
-            if (NativeType != null && NativeType.IsEnum && !Items.Any())
+            if (BindingBehavior == BindingBehavior.Implicit)
             {
-                foreach (object o in Enum.GetValues(NativeType))
+                if (NativeType != null && NativeType.IsEnum && !Items.Any())
                 {
-                    Items = Items.Add(new EnumValueDescriptor(o));
+                    foreach (object o in Enum.GetValues(NativeType))
+                    {
+                        Items = Items.Add(new EnumValueDescriptor(o));
+                    }
                 }
             }
 
@@ -111,6 +117,12 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
+        IEnumTypeDescriptor IEnumTypeDescriptor.BindItems(BindingBehavior bindingBehavior)
+        {
+            BindingBehavior = bindingBehavior;
+            return this;
+        }
+
         #endregion
     }
 
@@ -122,6 +134,12 @@ namespace HotChocolate.Types
             : base(enumType)
         {
             NativeType = typeof(T);
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(BindingBehavior bindingBehavior)
+        {
+            BindingBehavior = bindingBehavior;
+            return this;
         }
 
         #region IEnumTypeDescriptor<T>

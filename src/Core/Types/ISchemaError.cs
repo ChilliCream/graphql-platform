@@ -5,7 +5,9 @@ namespace HotChocolate.Types
 {
     public class SchemaError
     {
-        public SchemaError(string message)
+        public SchemaError(
+            string message,
+            Exception associatedException = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -15,7 +17,9 @@ namespace HotChocolate.Types
             Message = message;
         }
 
-        public SchemaError(string message, INamedType type)
+        public SchemaError(
+            string message, INamedType type,
+            Exception associatedException = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -26,7 +30,10 @@ namespace HotChocolate.Types
             Type = type;
         }
 
-        public SchemaError(string message, INamedType type, ISyntaxNode syntaxNode)
+        public SchemaError(
+            string message, INamedType type,
+            ISyntaxNode syntaxNode,
+            Exception associatedException = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -41,5 +48,6 @@ namespace HotChocolate.Types
         public string Message { get; }
         public INamedType Type { get; }
         public ISyntaxNode SyntaxNode { get; }
+        public Exception AssociatedException { get; }
     }
 }

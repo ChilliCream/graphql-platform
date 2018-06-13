@@ -104,39 +104,56 @@ namespace HotChocolate.Configuration
             return new BindType<T>(bindingInfo);
         }
 
+        #region RegisterType - Type
+
         public void RegisterType<T>()
-            where T : INamedType
+            where T : class, INamedType
         {
-            T type = (T)_services.GetService(typeof(T));
-            _types[type.Name] = type;
+            CreateAndRegisterType<T>();
         }
 
         public void RegisterQueryType<T>()
             where T : ObjectType
         {
-            T type = (T)_services.GetService(typeof(T));
+            T type = CreateAndRegisterType<T>();
             QueryTypeName = type.Name;
-            _types[type.Name] = type;
         }
 
         public void RegisterMutationType<T>()
             where T : ObjectType
         {
-            T type = (T)_services.GetService(typeof(T));
+            T type = CreateAndRegisterType<T>();
             MutationTypeName = type.Name;
-            _types[type.Name] = type;
         }
 
         public void RegisterSubscriptionType<T>()
             where T : ObjectType
         {
-            T type = (T)_services.GetService(typeof(T));
+            T type = CreateAndRegisterType<T>();
             SubscriptionTypeName = type.Name;
-            _types[type.Name] = type;
         }
 
+        private T CreateAndRegisterType<T>()
+            where T : class, INamedType
+        {
+            if (BaseTypes.IsNonGenericBaseType(typeof(T)))
+            {
+                throw new SchemaException(new SchemaError(
+                    "You cannot add a type without specifing its " +
+                    "name and attributes."));
+            }
+
+            T type = (T)_services.GetService(typeof(T));
+            _types[type.Name] = type;
+            return type;
+        }
+
+        #endregion
+
+        #region RegisterType - Instance
+
         public void RegisterType<T>(T namedType)
-            where T : INamedType
+            where T : class, INamedType
         {
             _types[namedType.Name] = namedType;
         }
@@ -158,5 +175,7 @@ namespace HotChocolate.Configuration
             SubscriptionTypeName = objectType.Name;
             _types[objectType.Name] = objectType;
         }
+
+        #endregion
     }
 }

@@ -279,13 +279,11 @@ namespace HotChocolate
 
                 names = new SchemaNames(queryTypeName, mutationTypeName, subscriptionTypeName);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex)
             {
-                // TODO : maybe we should throw a more specific
-                // argument exception that at least contains the config object.
                 throw new SchemaException(new[]
                 {
-                    new SchemaError(ex.Message, null)
+                    new SchemaError(ex.Message, null, associatedException: ex)
                 });
             }
         }
