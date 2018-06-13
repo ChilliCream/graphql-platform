@@ -129,81 +129,75 @@ In order to run a query against your schema startup your web host and get [Graph
 
 We currently support the following parts of the current draft spec of GraphQL.
 
-Types
+### Types
+
 - [x] Object Type
--[x] Interface Type
--[x] Union Type
--[x] Enum Type
--[x] Input Object Type
+- [x] Interface Type
+- [x] Union Type
+- [x] Enum Type
+- [x] Input Object Type
 
-Scalar Types
--[x] Int
--[x] Float
--[x] String
--[x] Boolean
--[ ] ID
+### Scalar Types
 
-Directives
--[x] Skip
--[x] Continue
--[ ] Depricated
+- [x] Int
+- [x] Float
+- [x] String
+- [x] Boolean
+- [ ] ID
 
-Execution
--[x] Query
--[x] Mutation
--[ ] Subscription
+### Directives
 
-Introspection
--Fields
-   -[x] __typename
-   -[x] __type
-   -[x] __schema
+- [x] Skip
+- [x] Continue
+- [ ] Depricated
 
--__Schema
-   -[x] types
-   -[x] queryType
-   -[x] mutationType
-   -[x] subscriptionType
-   -[ ] directives
+### Execution
 
--__Type
-   -[x] kind
-   -[x] name
-   -[x] fields
-   -[x] interfaces
-   -[x] possibleTypes
-   -[x] enumValues
-   -[x] inputFields
-   -[x] ofType
+- [x] Query
+- [x] Mutation
+- [ ] Subscription
 
-_ 
--[x] Query
--[x] Mutation
--[ ] Subscription
--[x] Query
--[x] Mutation
--[ ] Subscription
--[x] Query
--[x] Mutation
--[ ] Subscription
+### Introspection
+
+- Fields
+  - [x] __typename
+  - [x] __type
+  - [x] __schema
+
+- __Schema
+  - [x] types
+  - [x] queryType
+  _ [x] mutationType
+  - [x] subscriptionType
+  - [ ] directives
+
+- __Type
+  - [x] kind
+  - [x] name
+  - [x] fields
+  - [x] interfaces
+  - [x] possibleTypes
+  - [x] enumValues
+  - [x] inputFields
+  - [x] ofType
 
 Moreoreover, we are working on the following parts that are not defined in the spec.
 
-Scalar Types
--[x] DateTime
--[x] Date
--[ ] Time
--[ ] URL
--[x] Custom Scalars
+### Additional Scalar Types
 
-Directives
--[ ] Export
--[ ] Defer
--[ ] Stream
--[ ] Custom Schema Directives
--[ ] Custom Execution Directives
+- [x] DateTime
+- [x] Date
+- [ ] Time
+- [ ] URL
+- [x] Custom Scalars
 
+### Additional Directives
 
+- [ ] Export
+- [ ] Defer
+- [ ] Stream
+- [ ] Custom Schema Directives
+- [ ] Custom Execution Directives
 
 ## Documentation
 
