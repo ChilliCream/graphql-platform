@@ -125,6 +125,85 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
 In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
 
+## Features
+
+We currently support the following parts of the current draft spec of GraphQL.
+
+Types
+-[x] Object Type
+-[x] Interface Type
+-[x] Union Type
+-[x] Enum Type
+-[x] Input Object Type
+
+Scalar Types
+-[x] Int
+-[x] Float
+-[x] String
+-[x] Boolean
+-[ ] ID
+
+Directives
+-[x] Skip
+-[x] Continue
+-[ ] Depricated
+
+Execution
+-[x] Query
+-[x] Mutation
+-[ ] Subscription
+
+Introspection
+-Fields
+   -[x] __typename
+   -[x] __type
+   -[x] __schema
+
+-__Schema
+   -[x] types
+   -[x] queryType
+   -[x] mutationType
+   -[x] subscriptionType
+   -[ ] directives
+
+-__Type
+   -[x] kind
+   -[x] name
+   -[x] fields
+   -[x] interfaces
+   -[x] possibleTypes
+   -[x] enumValues
+   -[x] inputFields
+   -[x] ofType
+
+_ 
+-[x] Query
+-[x] Mutation
+-[ ] Subscription
+-[x] Query
+-[x] Mutation
+-[ ] Subscription
+-[x] Query
+-[x] Mutation
+-[ ] Subscription
+
+Moreoreover, we are working on the following parts that are not defined in the spec.
+
+Scalar Types
+-[x] DateTime
+-[x] Date
+-[ ] Time
+-[ ] URL
+-[x] Custom Scalars
+
+Directives
+-[ ] Export
+-[ ] Defer
+-[ ] Stream
+-[ ] Custom Schema Directives
+-[ ] Custom Execution Directives
+
+
 
 ## Documentation
 
