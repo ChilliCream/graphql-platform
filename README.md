@@ -127,7 +127,7 @@ In order to run a query against your schema startup your web host and get [Graph
 
 ## Features
 
-We currently support the following parts of the current draft spec of GraphQL.
+We currently support the following parts of the current [draft spec](http://facebook.github.io/graphql/draft/) of GraphQL.
 
 ### Types
 
@@ -167,7 +167,7 @@ We currently support the following parts of the current draft spec of GraphQL.
 - __Schema
   - [x] types
   - [x] queryType
-  _ [x] mutationType
+  - [x] mutationType
   - [x] subscriptionType
   - [ ] directives
 
@@ -198,6 +198,11 @@ Moreoreover, we are working on the following parts that are not defined in the s
 - [ ] Stream
 - [ ] Custom Schema Directives
 - [ ] Custom Execution Directives
+
+### Schema Creation
+
+- [x] Schema-First approach
+- [x] Code-First approach
 
 ## Documentation
 
