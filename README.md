@@ -130,7 +130,7 @@ In order to run a query against your schema startup your web host and get [Graph
 We currently support the following parts of the current draft spec of GraphQL.
 
 Types
--[x] Object Type
+- [x] Object Type
 -[x] Interface Type
 -[x] Union Type
 -[x] Enum Type
