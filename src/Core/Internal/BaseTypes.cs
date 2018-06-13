@@ -39,6 +39,5 @@ namespace HotChocolate.Internal
             }
             return false;
         }
-
     }
 }

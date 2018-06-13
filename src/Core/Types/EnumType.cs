@@ -172,6 +172,13 @@ namespace HotChocolate.Types
                 _valueToValues[enumValue.Value] = enumValue;
             }
 
+            if (_nameToValues.Count == 0)
+            {
+                throw new ArgumentException(
+                    $"The enum type {descriptor.Name} has no values.",
+                    nameof(descriptor));
+            }
+
             Name = descriptor.Name;
             Description = descriptor.Description;
             NativeType = descriptor.NativeType;
@@ -191,26 +198,29 @@ namespace HotChocolate.Types
                     nameof(config));
             }
 
-            if (config.Values == null)
+            if (config.Values != null)
+            {
+                foreach (EnumValueConfig enumValueConfig in config.Values)
+                {
+                    if (NativeType == null && enumValueConfig.Value != null)
+                    {
+                        // TODO : what to do if:
+                        // - values are not of the same type
+                        // - one or more values are null
+                        NativeType = enumValueConfig.Value.GetType();
+                    }
+
+                    EnumValue enumValue = new EnumValue(enumValueConfig);
+                    _nameToValues[enumValueConfig.Name] = enumValue;
+                    _valueToValues[enumValueConfig.Value] = enumValue;
+                }
+            }
+
+            if (_nameToValues.Count == 0)
             {
                 throw new ArgumentException(
                     $"The enum type {config.Name} has no values.",
                     nameof(config));
-            }
-
-            foreach (EnumValueConfig enumValueConfig in config.Values)
-            {
-                if (NativeType == null && enumValueConfig.Value != null)
-                {
-                    // TODO : what to do if:
-                    // - values are not of the same type
-                    // - one or more values are null
-                    NativeType = enumValueConfig.Value.GetType();
-                }
-
-                EnumValue enumValue = new EnumValue(enumValueConfig);
-                _nameToValues[enumValueConfig.Name] = enumValue;
-                _valueToValues[enumValueConfig.Value] = enumValue;
             }
 
             SyntaxNode = config.SyntaxNode;

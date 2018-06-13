@@ -279,7 +279,7 @@ namespace HotChocolate
 
                 names = new SchemaNames(queryTypeName, mutationTypeName, subscriptionTypeName);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex)
             {
                 throw new SchemaException(new[]
                 {

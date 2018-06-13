@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -66,6 +67,19 @@ namespace HotChocolate.Types
             Assert.Equal(Foo.Bar1, value);
             Assert.False(type.TryGetValue("BAR2", out value));
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void EnumType_WithNoValues()
+        {
+            // act
+            Action a = () => Schema.Create(c =>
+            {
+                c.RegisterType<EnumType>();
+            });
+
+            // assert
+            Assert.Throws<SchemaException>(a);
         }
 
         public enum Foo
