@@ -119,7 +119,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "OBJECT",
-                      "name": "__Type",
+                      "name": "__InputValue",
                       "ofType": null
                     }
                   }
@@ -698,7 +698,7 @@
                     "name": "Boolean",
                     "ofType": null
                   },
-                  "defaultValue": "False"
+                  "defaultValue": "false"
                 }
               ],
               "type": {
@@ -769,7 +769,7 @@
                     "name": "Boolean",
                     "ofType": null
                   },
-                  "defaultValue": "False"
+                  "defaultValue": "false"
                 }
               ],
               "type": {
@@ -944,32 +944,7 @@
           "possibleTypes": null
         }
       ],
-      "directives": [
-        {
-          "name": "include",
-          "description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "locations": [
-            "FIELD",
-            "FRAGMENT_SPREAD",
-            "INLINE_FRAGMENT"
-          ],
-          "args": [
-            {}
-          ]
-        },
-        {
-          "name": "skip",
-          "description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "locations": [
-            "FIELD",
-            "FRAGMENT_SPREAD",
-            "INLINE_FRAGMENT"
-          ],
-          "args": [
-            {}
-          ]
-        }
-      ]
+      "directives": []
     }
   },
   "Errors": null

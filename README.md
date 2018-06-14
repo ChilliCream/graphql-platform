@@ -189,6 +189,7 @@ Moreoreover, we are working on the following parts that are not defined in the s
 - [x] Date
 - [ ] Time
 - [ ] URL
+- [x] Decimal
 - [x] Custom Scalars
 
 ### Additional Directives

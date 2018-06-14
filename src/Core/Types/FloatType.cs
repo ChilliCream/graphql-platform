@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -42,7 +43,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The int type can only parse int literals.",
+                $"The {nameof(FloatType)} can only parse float literals.",
                 nameof(literal));
         }
 
@@ -64,8 +65,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be an integer" +
-                "to be parsed by the int type.");
+                $"The specified value has to be a {nameof(System.Single)} " +
+                $"or a {nameof(System.Double)} to be parsed " +
+                $"by the {nameof(FloatType)}.");
         }
 
         public override object Serialize(object value)
@@ -81,7 +83,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value cannot be handled by the IntType.");
+                "The specified value cannot be handled by the " +
+                $"{nameof(FloatType)}.");
         }
     }
 }

@@ -173,7 +173,7 @@ namespace HotChocolate.Types
                 else
                 {
                     throw new ArgumentException(
-                        "The specified is not a supported output type.");
+                        "The specified type is not a supported output type.");
                 }
             }
             return this;
