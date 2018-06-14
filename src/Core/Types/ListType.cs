@@ -35,6 +35,8 @@ namespace HotChocolate.Types
             NativeType = _isInputType ? CreateListType(_inputType.NativeType) : null;
         }
 
+        public TypeKind Kind { get; } = TypeKind.List;
+
         public IType ElementType { get; }
 
         public Type NativeType { get; }
@@ -156,6 +158,8 @@ namespace HotChocolate.Types
         }
 
         public Type NativeType => throw new NotImplementedException();
+
+        public TypeKind Kind => throw new NotImplementedException();
 
         public bool IsInstanceOfType(IValueNode literal)
         {

@@ -33,6 +33,8 @@ namespace HotChocolate.Types
             Initialize(config);
         }
 
+        public TypeKind Kind { get; } = TypeKind.Enum;
+
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
         public string Name { get; private set; }

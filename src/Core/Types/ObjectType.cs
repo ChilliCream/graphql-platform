@@ -43,6 +43,8 @@ namespace HotChocolate.Types
             Initialize(config);
         }
 
+        public TypeKind Kind { get; } = TypeKind.Object;
+
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
         public string Name { get; private set; }

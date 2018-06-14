@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field("kind")
                 .Type<NonNullType<__TypeKind>>()
-                .Resolver(c => GetKind(c.Parent<IType>()));
+                .Resolver(c => c.Parent<IType>().Kind);
 
             descriptor.Field("name")
                 .Type<StringType>()
@@ -66,15 +66,6 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("ofType")
                 .Type<__Type>()
                 .Resolver(c => GetOfType(c.Parent<IType>()));
-        }
-
-        private object GetKind(IType type)
-        {
-            if (!type.TryGetKind(out TypeKind kind))
-            {
-                return new QueryError("Unknown kind of type: " + type);
-            }
-            return kind;
         }
 
         private string GetName(IType type)

@@ -123,5 +123,18 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<NullValueNode>(output);
         }
+
+        [Fact]
+        public void EnsureFloatTypeKindIsCorret()
+        {
+            // arrange
+            FloatType type = new FloatType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
     }
 }

@@ -61,6 +61,20 @@ namespace HotChocolate.Types
             Assert.Equal(Snapshot.Current(), Snapshot.New(value));
         }
 
+        [Fact]
+        public void EnsureInputObjectTypeKindIsCorret()
+        {
+            // arrange
+            Schema schema = Create();
+            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
+
+            // act
+            TypeKind kind = object1Type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.InputObject, kind);
+        }
+
         private static ObjectValueNode CreateObjectLiteral()
         {
             return new ObjectValueNode(new List<ObjectFieldNode>

@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType()
         {
             // arrange
-             BooleanValueNode boolLiteral = new BooleanValueNode(null, true);
+            BooleanValueNode boolLiteral = new BooleanValueNode(null, true);
             StringValueNode stringLiteral = new StringValueNode(null, "12345", false);
             NullValueNode nullLiteral = new NullValueNode(null);
 
@@ -38,6 +38,19 @@ namespace HotChocolate.Types
             Assert.True(isIntLiteralInstanceOf);
             Assert.False(isStringLiteralInstanceOf);
             Assert.True(isNullLiteralInstanceOf);
+        }
+
+        [Fact]
+        public void EnsureBooleanTypeKindIsCorret()
+        {
+            // arrange
+            BooleanType type = new BooleanType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
         }
     }
 }

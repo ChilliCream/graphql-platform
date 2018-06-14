@@ -39,5 +39,18 @@ namespace HotChocolate.Types
             Assert.False(isStringLiteralInstanceOf);
             Assert.True(isNullLiteralInstanceOf);
         }
+
+        [Fact]
+        public void EnsureIntTypeKindIsCorret()
+        {
+            // arrange
+            IntType type = new IntType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         , IInputType
         , INullableType
         , ISerializableType
-        // TODO : ITypeSystemNode
+    // TODO : ITypeSystemNode
     {
         protected ScalarType(string name)
             : this(name, null)
@@ -26,6 +26,8 @@ namespace HotChocolate.Types
             Name = name;
             Description = description;
         }
+
+        public TypeKind Kind { get; } = TypeKind.Scalar;
 
         public string Name { get; }
 
