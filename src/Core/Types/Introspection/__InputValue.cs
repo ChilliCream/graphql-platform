@@ -1,4 +1,6 @@
 using HotChocolate.Configuration;
+using HotChocolate.Language;
+using Newtonsoft.Json;
 
 namespace HotChocolate.Types.Introspection
 {
@@ -32,8 +34,21 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c =>
                 {
                     InputField field = c.Parent<InputField>();
-                    object obj = field.Type.ParseLiteral(field.DefaultValue);
-                    return obj.ToString(); // TODO : fix this... check what the reference impl does.
+                    if (field.Type.IsNonNullType() && field.DefaultValue is NullValueNode)
+                    {
+                        return null;
+                    }
+
+                    if (field.DefaultValue != null)
+                    {
+                        object nativeValue = field.Type.ParseLiteral(field.DefaultValue);
+                        if (field.Type is ISerializableType serializableType)
+                        {
+                            return JsonConvert.SerializeObject(serializableType.Serialize(nativeValue));
+                        }
+                    }
+
+                    return null;
                 });
         }
     }
