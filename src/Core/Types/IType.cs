@@ -1,4 +1,7 @@
 namespace HotChocolate.Types
 {
-    public interface IType { }
+    public interface IType
+    {
+        TypeKind Kind { get; }
+    }
 }

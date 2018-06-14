@@ -133,5 +133,18 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal(expectedLiteralValue, stringLiteral.Value);
         }
+
+        [Fact]
+        public void EnsureDateTypeKindIsCorret()
+        {
+            // arrange
+            DateType type = new DateType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
     }
 }

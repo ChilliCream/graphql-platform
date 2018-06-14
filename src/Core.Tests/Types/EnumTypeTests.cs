@@ -82,6 +82,20 @@ namespace HotChocolate.Types
             Assert.Throws<SchemaException>(a);
         }
 
+        [Fact]
+        public void EnsureEnumTypeKindIsCorrect()
+        {
+            // act
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<Foo>());
+            }, strict: false);
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Equal(TypeKind.Enum, type.Kind);
+        }
+
         public enum Foo
         {
             Bar1,

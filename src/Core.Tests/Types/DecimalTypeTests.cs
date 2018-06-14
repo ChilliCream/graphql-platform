@@ -108,5 +108,18 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<NullValueNode>(output);
         }
+
+        [Fact]
+        public void EnsureDecimalTypeKindIsCorret()
+        {
+            // arrange
+            DecimalType type = new DecimalType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
     }
 }
