@@ -11,30 +11,28 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        internal IEnumerable<SchemaError> RegisterTypes(ISchemaContext schemaContext)
+        internal IEnumerable<SchemaError> RegisterTypes(
+            ISchemaContext schemaContext)
         {
             if (schemaContext == null)
             {
                 throw new ArgumentNullException(nameof(schemaContext));
             }
 
-            IEnumerable<SchemaError> errors = RegisterTypesAndDependencies(schemaContext);
+            RegisterAllTypes(schemaContext);
+            IEnumerable<SchemaError> errors =
+                RegisterTypeDependencies(schemaContext);
             RegisterTypeBindings(schemaContext.Types);
             return errors;
         }
 
-        private IEnumerable<SchemaError> RegisterTypesAndDependencies(ISchemaContext schemaContext)
+        private IEnumerable<SchemaError> RegisterTypeDependencies(
+            ISchemaContext schemaContext)
         {
-            if (schemaContext == null)
-            {
-                throw new ArgumentNullException(nameof(schemaContext));
-            }
-
             List<SchemaError> errors = new List<SchemaError>();
             Queue<INamedType> currentBatch = new Queue<INamedType>(
                 _types.Values.Concat(schemaContext.Types.GetTypes()));
             HashSet<string> registered = new HashSet<string>();
-
             // register types intil there are no new registrations of types.
             while (currentBatch.Any())
             {
@@ -47,7 +45,8 @@ namespace HotChocolate.Configuration
 
                     if (type is INeedsInitialization initializer)
                     {
-                        initializer.RegisterDependencies(schemaContext, e => errors.Add(e));
+                        initializer.RegisterDependencies(
+                            schemaContext, e => errors.Add(e));
                     }
                 }
 
@@ -62,6 +61,14 @@ namespace HotChocolate.Configuration
             }
 
             return errors;
+        }
+
+        private void RegisterAllTypes(ISchemaContext schemaContext)
+        {
+            foreach (INamedType type in _types.Values)
+            {
+                schemaContext.Types.RegisterType(type);
+            }
         }
 
         private void RegisterTypeBindings(ITypeRegistry typeRegistry)
