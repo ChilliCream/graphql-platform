@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -91,21 +92,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected string GetTypeName(Type type)
         {
-            string name = type.FullName;
-            if (type.IsGenericType)
-            {
-                name = CreateGenericName(type);
-            }
-            return name.Replace("+", ".");
-        }
-
-        private string CreateGenericName(Type type)
-        {
-            string name = type.Name.Substring(0, type.Name.Length - 2);
-            IEnumerable<string> arguments = type.GetGenericArguments()
-                .Select(GetTypeName);
-            return $"{name}<{string.Join(", ", arguments)}>";
-        }
+            return type.GetTypeName();
+        }        
 
         protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
         {

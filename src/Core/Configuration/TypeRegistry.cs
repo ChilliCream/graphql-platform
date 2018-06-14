@@ -54,8 +54,14 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(nativeNamedType));
             }
 
-            if (!BaseTypes.IsBaseType(nativeNamedType)
-                && !_typesToNamedTypes.ContainsKey(nativeNamedType))
+            if (BaseTypes.IsNonGenericBaseType(nativeNamedType))
+            {
+                throw new ArgumentException(
+                    $"The {nativeNamedType.GetTypeName()} type must be defined explicit",
+                    nameof(nativeNamedType));
+            }
+
+            if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
             {
                 if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
                 {
@@ -99,7 +105,7 @@ namespace HotChocolate.Configuration
             }
 
             throw new ArgumentException(
-                "The specified type does not exist or " +
+                $"The {nativeNamedType.GetTypeName()} type does not exist or " +
                 "is not of the specified kind.",
                 nameof(nativeNamedType));
         }

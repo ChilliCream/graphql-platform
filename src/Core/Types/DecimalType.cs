@@ -1,18 +1,18 @@
 using System;
-using HotChocolate.Internal;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class FloatType
+    public sealed class DecimalType
         : ScalarType
     {
-        public FloatType()
-            : base("Float")
+        public DecimalType()
+            : base("Decimal")
         {
         }
 
-        public override Type NativeType { get; } = typeof(double);
+        public override Type NativeType { get; } = typeof(decimal);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -34,7 +34,8 @@ namespace HotChocolate.Types
 
             if (literal is FloatValueNode floatLiteral)
             {
-                return double.Parse(floatLiteral.Value);
+                return decimal.Parse(floatLiteral.Value,
+                    NumberStyles.Float, CultureInfo.InvariantCulture);
             }
 
             if (literal is NullValueNode)
@@ -43,7 +44,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The {nameof(FloatType)} can only parse float literals.",
+                "The decimal type can only parse float literals.",
                 nameof(literal));
         }
 
@@ -54,20 +55,14 @@ namespace HotChocolate.Types
                 return new NullValueNode();
             }
 
-            if (value is double d)
+            if (value is decimal d)
             {
-                return new FloatValueNode(d.ToString("e"));
-            }
-
-            if (value is float f)
-            {
-                return new FloatValueNode(f.ToString("e"));
+                return new FloatValueNode(d.ToString("e", CultureInfo.InvariantCulture));
             }
 
             throw new ArgumentException(
-                $"The specified value has to be a {nameof(System.Single)} " +
-                $"or a {nameof(System.Double)} to be parsed " +
-                $"by the {nameof(FloatType)}.");
+                "The specified value has to be an decimal" +
+                "to be parsed by the decimal type.");
         }
 
         public override object Serialize(object value)
@@ -77,14 +72,13 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is double || value is float)
+            if (value is decimal)
             {
                 return value;
             }
 
             throw new ArgumentException(
-                "The specified value cannot be handled by the " +
-                $"{nameof(FloatType)}.");
+                "The specified value cannot be handled by the DecimalType.");
         }
     }
 }
