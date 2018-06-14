@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace HotChocolate.Internal
 {
-    internal static class ExpressionUtils
+    internal static class ReflectionUtils
     {
         public static MemberInfo ExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
@@ -60,6 +62,32 @@ namespace HotChocolate.Internal
             }
 
             return false;
+        }
+
+
+        internal static string GetTypeName(this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            string name = type.FullName ?? type.Name;
+
+            if (type.IsGenericType)
+            {
+                name = CreateGenericName(type);
+            }
+
+            return name.Replace("+", ".");
+        }
+
+        private static string CreateGenericName(Type type)
+        {
+            string name = type.Name.Substring(0, type.Name.Length - 2);
+            IEnumerable<string> arguments = type.GetGenericArguments()
+                .Select(GetTypeName);
+            return $"{name}<{string.Join(", ", arguments)}>";
         }
     }
 }
