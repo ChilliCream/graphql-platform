@@ -67,15 +67,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            ServiceManager serviceManager = new ServiceManager(services);
-            SchemaContext context = CreateSchemaContext(serviceManager);
-            return CreateSchema(serviceManager, context,
-                default(SchemaNames), configure, strict);
+            SchemaContext context = CreateSchemaContext();
+            return CreateSchema(context, configure);
         }
 
         private static Schema CreateSchema(

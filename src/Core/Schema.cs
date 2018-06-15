@@ -25,6 +25,7 @@ namespace HotChocolate
             new SkipDirective()
         };
 
+        private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
         private readonly IntrospectionFields _introspectionFields;
 
@@ -34,6 +35,7 @@ namespace HotChocolate
             IReadOnlySchemaOptions options,
             IntrospectionFields introspectionFields)
         {
+            _serviceManager= serviceManager;
             _types = types;
             Options = options;
             _introspectionFields = introspectionFields;
@@ -120,7 +122,12 @@ namespace HotChocolate
 
         public object GetService(Type serviceType)
         {
+            if (serviceType == null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
 
+            return _serviceManager.GetService(serviceType);
         }
     }
 }

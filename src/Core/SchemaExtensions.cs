@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -17,6 +18,8 @@ namespace HotChocolate
         public static Task<QueryResult> ExecuteAsync(
             this Schema schema, string query,
             string operationName = null,
+            Dictionary<string, IValueNode> variableValues = null,
+            object initialValue = null,
             CancellationToken cancellationToken = default)
         {
             return schema.OperationExecuter.ExecuteRequestAsync(
@@ -38,6 +41,8 @@ namespace HotChocolate
         public static QueryResult Execute(
             this Schema schema, string query,
             string operationName = null,
+            Dictionary<string, IValueNode> variableValues = null,
+            object initialValue = null,
             CancellationToken cancellationToken = default)
         {
             return Task.Factory.StartNew(
