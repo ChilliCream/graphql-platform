@@ -19,5 +19,7 @@ namespace HotChocolate.Configuration
         public TimeSpan ExecutionTimeout { get; set; }
 
         public IServiceProvider Services { get; set; }
+
+        public bool StrictValidation { get; set; }
     }
 }

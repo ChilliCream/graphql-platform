@@ -10,6 +10,7 @@ namespace HotChocolate.Configuration
         new string SubscriptionTypeName { get; set; }
         new int MaxExecutionDepth { get; set; }
         new TimeSpan ExecutionTimeout { get; set; }
+        new bool StrictValidation { get; set; }
     }
 
     public interface IReadOnlySchemaOptions
@@ -19,5 +20,6 @@ namespace HotChocolate.Configuration
         string SubscriptionTypeName { get; }
         int MaxExecutionDepth { get; }
         TimeSpan ExecutionTimeout { get; }
+        bool StrictValidation { get; }
     }
 }

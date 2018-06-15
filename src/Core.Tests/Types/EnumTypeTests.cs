@@ -15,7 +15,8 @@ namespace HotChocolate.Types
             Schema schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>());
-            }, strict: false);
+                c.Options.StrictValidation = false;
+            });
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -37,7 +38,8 @@ namespace HotChocolate.Types
                     d.BindItems(BindingBehavior.Explicit);
                     d.Item(Foo.Bar1);
                 }));
-            }, strict: false);
+                c.Options.StrictValidation = false;
+            });
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -58,7 +60,8 @@ namespace HotChocolate.Types
                 {
                     d.Item(Foo.Bar1).Name("FOOBAR");
                 }));
-            }, strict: false);
+                c.Options.StrictValidation = false;
+            });
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -89,7 +92,8 @@ namespace HotChocolate.Types
             Schema schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>());
-            }, strict: false);
+                c.Options.StrictValidation = false;
+            });
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");

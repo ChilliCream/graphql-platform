@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         public void EnsureObjectTypeKindIsCorret()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
