@@ -19,7 +19,20 @@ namespace HotChocolate.Types
             {
                 throw new ArgumentNullException(nameof(objectType));
             }
+
             Name = objectType.GetGraphQLName();
+        }
+
+         public ObjectTypeDescriptor(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            Name = name;
         }
 
         public string Name { get; protected set; }
