@@ -516,7 +516,7 @@ namespace HotChocolate.Execution
                 union FooUnion = Foo | Fa
 
                 type Query { a: String }
-                ", c => { });
+                ", c => { c.Options.StrictValidation = false; });
         }
     }
 }

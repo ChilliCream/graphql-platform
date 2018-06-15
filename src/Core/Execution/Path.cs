@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
             Name = name;
             Index = index;
             IsIndexer = true;
-            Depth = parent.Depth + 1;
+            Depth = parent == null ? 0 : parent.Depth + 1;
         }
 
         public Path Parent { get; }
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
 
         internal Path Append(int index)
         {
-            return new Path(this.Parent, this.Name, index);
+            return new Path(Parent, Name, index);
         }
 
         internal Path Append(string name)

@@ -92,7 +92,7 @@ namespace HotChocolate
                     "Schema is missing the mandatory `Query` type."));
             }
 
-            if (errors.Any())
+            if (options.StrictValidation && errors.Any())
             {
                 throw new SchemaException(errors);
             }
