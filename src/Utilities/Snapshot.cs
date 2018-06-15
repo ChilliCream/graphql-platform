@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -7,7 +8,7 @@ namespace HotChocolate
 {
     public static class Snapshot
     {
-        private readonly static JsonSerializerSettings _settings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.Indented,
@@ -23,14 +24,14 @@ namespace HotChocolate
                 "__snapshots__", snapshotName + ".json");
             if (File.Exists(fielPath))
             {
-                return File.ReadAllText(fielPath);
+                return NormalizeLineBreaks(File.ReadAllText(fielPath));
             }
 
             fielPath = Path.Combine(
                 "__snapshots__", snapshotName + ".txt");
             if (File.Exists(fielPath))
             {
-                return File.ReadAllText(fielPath);
+                return NormalizeLineBreaks(File.ReadAllText(fielPath));
             }
 
             return null;
@@ -76,7 +77,12 @@ namespace HotChocolate
 
         private static string NormalizeLineBreaks(string snapshot)
         {
-            return snapshot.Replace("\r", string.Empty) + "\n";
+            string s = snapshot.Replace("\r", string.Empty);
+            if (s.Last() == '\n')
+            {
+                return s;
+            }
+            return s + "\n";
         }
     }
 }
