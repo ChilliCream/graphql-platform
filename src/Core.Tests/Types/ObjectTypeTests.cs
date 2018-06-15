@@ -68,11 +68,46 @@ namespace HotChocolate.Types
             Assert.Equal(TypeKind.Object, kind);
         }
 
+        /// <summary>
+        /// For the type detection the order of the resolver or type descriptor function should not matter.
+        /// 
+        /// descriptor.Field("test")
+        ///   .Resolver<List<string>>(() => new List<string>())
+        ///   .Type<ListType<StringType>>();
+        /// 
+        /// descriptor.Field("test")
+        ///   .Type<ListType<StringType>>();
+        ///   .Resolver<List<string>>(() => new List<string>())
+        /// </summary>
+        [Fact]
+        public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
+        {
+            // act
+            Schema schema = Schema.Create(c => c.RegisterType<FooType>());
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            bool hasDynamicField = type.Fields.TryGetValue("test", out Field field);
+            Assert.True(hasDynamicField);
+            Assert.IsType<ListType>(field.Type);
+            Assert.IsType<StringType>(((ListType)field.Type).ElementType);
+        }
+
         public class Foo
         {
             public string Description { get; } = "hello";
         }
+
+        public class FooType
+            : ObjectType<Foo>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Field(t => t.Description);
+                descriptor.Field("test")                    
+                    .Resolver<List<string>>(() => new List<string>())
+                    .Type<ListType<StringType>>();
+            }
+        }
     }
-
-
 }
