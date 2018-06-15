@@ -26,13 +26,13 @@ namespace HotChocolate
         private readonly IntrospectionFields _introspectionFields;
 
         private Schema(
-            IServiceProvider services,
             SchemaTypes types,
+            IReadOnlySchemaOptions options,
             IntrospectionFields introspectionFields)
         {
             _types = types;
+            Options = options;
             _introspectionFields = introspectionFields;
-            Services = services;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace HotChocolate
 
         internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
 
-        internal IServiceProvider Services { get; }
+        public IReadOnlySchemaOptions Options { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType
@@ -83,7 +83,7 @@ namespace HotChocolate
             return new List<Directive>();
         }
 
-        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType)
         {
             if (abstractType == null)
@@ -97,11 +97,17 @@ namespace HotChocolate
             {
                 return types;
             }
+
             return Array.Empty<ObjectType>();
         }
 
-        internal bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetNativeType(string typeName, out Type nativeType)
         {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
             return _types.TryGetNativeType(typeName, out nativeType);
         }
     }

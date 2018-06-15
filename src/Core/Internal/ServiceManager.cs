@@ -21,6 +21,11 @@ namespace HotChocolate.Internal
             _serviceProvider = serviceProvider;
         }
 
+        public T GetService<T>()
+        {
+
+        }
+
         public object GetService(Type serviceType)
         {
             if (serviceType == null)
