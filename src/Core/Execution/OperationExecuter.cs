@@ -18,14 +18,12 @@ namespace HotChocolate.Execution
             new FieldValueCompleter();
 
         private readonly Schema _schema;
-        private readonly IServiceProvider _services;
         private int _maxExecutionDepth;
         private TimeSpan _executionTimeout;
 
         public OperationExecuter(Schema schema)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-            _services = schema.Options.Services;
             _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
         }
@@ -63,7 +61,7 @@ namespace HotChocolate.Execution
             if (initialValue == null && _schema.TryGetNativeType(
                 operationType.Name, out Type nativeType))
             {
-                initialValue = _services.GetService(nativeType);
+                initialValue = _schema.GetService(nativeType);
             }
 
             VariableCollection variables = new VariableCollection(
@@ -71,7 +69,7 @@ namespace HotChocolate.Execution
                     _schema, operation, vars));
 
             ExecutionContext executionContext = new ExecutionContext(
-                _schema, queryDocument, operation, variables, _services,
+                _schema, queryDocument, operation, variables,
                 initialValue, null);
 
             return executionContext;

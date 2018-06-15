@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -11,15 +12,18 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
-        public SchemaContext(IServiceProvider serviceProvider)
+        public SchemaContext(ServiceManager serviceManager)
         {
-            _typeRegistry = new TypeRegistry(serviceProvider);
+            ServiceManager = serviceManager;
+            _typeRegistry = new TypeRegistry(serviceManager);
             _resolverRegistry = new ResolverRegistry();
         }
 
         public ITypeRegistry Types => _typeRegistry;
 
         public IResolverRegistry Resolvers => _resolverRegistry;
+
+        public ServiceManager ServiceManager { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {

@@ -7,11 +7,9 @@ namespace HotChocolate
 {
     public static class SchemaExtensions
     {
-        private static readonly OperationExecuter _operationExecuter = new OperationExecuter();
-
         public static Task<QueryResult> ExecuteAsync(this Schema schema, string query)
         {
-            return _operationExecuter.ExecuteRequestAsync(schema,
+            return schema.OperationExecuter.ExecuteRequestAsync(
                 Parser.Default.Parse(query), null, null, null,
                 CancellationToken.None);
         }
@@ -21,7 +19,7 @@ namespace HotChocolate
             string operationName = null,
             CancellationToken cancellationToken = default)
         {
-            return _operationExecuter.ExecuteRequestAsync(schema,
+            return schema.OperationExecuter.ExecuteRequestAsync(
                 Parser.Default.Parse(query), operationName, null, null,
                 CancellationToken.None);
         }
@@ -29,7 +27,7 @@ namespace HotChocolate
         public static QueryResult Execute(this Schema schema, string query)
         {
             return Task.Factory.StartNew(
-                () => _operationExecuter.ExecuteRequestAsync(schema,
+                () => schema.OperationExecuter.ExecuteRequestAsync(
                     Parser.Default.Parse(query), null, null, null,
                     CancellationToken.None))
                 .Unwrap()
@@ -43,7 +41,7 @@ namespace HotChocolate
             CancellationToken cancellationToken = default)
         {
             return Task.Factory.StartNew(
-                () => _operationExecuter.ExecuteRequestAsync(schema,
+                () => schema.OperationExecuter.ExecuteRequestAsync(
                     Parser.Default.Parse(query), operationName, null, null,
                     CancellationToken.None))
                 .Unwrap()

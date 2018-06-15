@@ -50,37 +50,18 @@ namespace HotChocolate
             return schemaConfiguration.BindResolver((ctx, ct) => resolver());
         }
 
-        public IBindType<T> BindType<T>()
+        public static IBindType<T> BindType<T>(
+            this ISchemaFirstConfiguration configuration)
             where T : class
         {
-            return BindType<T>(BindingBehavior.Implicit);
+            return configuration.BindType<T>(BindingBehavior.Implicit);
         }
 
-         public IBindResolver<TResolver> BindResolver<TResolver>()
+        public static IBindResolver<TResolver> BindResolver<TResolver>(
+            this ISchemaFirstConfiguration configuration)
             where TResolver : class
         {
-            return BindResolver<TResolver>(BindingBehavior.Implicit);
+            return configuration.BindResolver<TResolver>(BindingBehavior.Implicit);
         }
-
     }
-
-    void RegisterQueryType<T>()
-            where T : ObjectType;
-
-        void RegisterMutationType<T>()
-            where T : ObjectType;
-
-        void RegisterSubscriptionType<T>()
-            where T : ObjectType;
-
-
-            void RegisterQueryType<T>(T objectType)
-            where T : ObjectType;
-
-        void RegisterMutationType<T>(T objectType)
-            where T : ObjectType;
-
-        void RegisterSubscriptionType<T>(T objectType)
-            where T : ObjectType;
-
 }

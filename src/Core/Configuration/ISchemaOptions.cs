@@ -10,7 +10,6 @@ namespace HotChocolate.Configuration
         new string SubscriptionTypeName { get; set; }
         new int MaxExecutionDepth { get; set; }
         new TimeSpan ExecutionTimeout { get; set; }
-        new IServiceProvider Services { get; set; }
     }
 
     public interface IReadOnlySchemaOptions
@@ -20,6 +19,5 @@ namespace HotChocolate.Configuration
         string SubscriptionTypeName { get; }
         int MaxExecutionDepth { get; }
         TimeSpan ExecutionTimeout { get; }
-        IServiceProvider Services { get; }
     }
 }

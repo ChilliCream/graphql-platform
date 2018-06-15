@@ -6,14 +6,13 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     internal class ExecutionContext
-        : IServiceProvider
     {
         private readonly IServiceProvider _services;
         private readonly FieldCollector _fieldCollector;
 
         public ExecutionContext(Schema schema, DocumentNode queryDocument,
             OperationDefinitionNode operation, VariableCollection variables,
-            IServiceProvider services, object rootValue, object userContext)
+            object rootValue, object userContext)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -23,8 +22,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
             Variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
             RootValue = rootValue;
             UserContext = userContext;
 
@@ -67,16 +64,6 @@ namespace HotChocolate.Execution
 
             return _fieldCollector.CollectFields(
                 objectType, selectionSet, Errors.Add);
-        }
-
-        public object GetService(Type serviceType)
-        {
-            if (serviceType == null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
-
-            return _services.GetService(serviceType);
         }
     }
 }

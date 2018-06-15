@@ -28,5 +28,10 @@ namespace HotChocolate.Configuration
         }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
+
+        public void RegisterServiceProvider(IServiceProvider serviceProvider)
+        {
+            _serviceManager.RegisterServiceProvider(serviceProvider);
+        }
     }
 }

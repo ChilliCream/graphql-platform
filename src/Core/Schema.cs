@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -15,6 +17,7 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public partial class Schema
+        : IServiceProvider
     {
         private readonly Directive[] _directives = new Directive[]
         {
@@ -26,6 +29,7 @@ namespace HotChocolate
         private readonly IntrospectionFields _introspectionFields;
 
         private Schema(
+            ServiceManager serviceManager,
             SchemaTypes types,
             IReadOnlySchemaOptions options,
             IntrospectionFields introspectionFields)
@@ -33,6 +37,7 @@ namespace HotChocolate
             _types = types;
             Options = options;
             _introspectionFields = introspectionFields;
+            OperationExecuter = new OperationExecuter(this);
         }
 
         /// <summary>
@@ -57,6 +62,8 @@ namespace HotChocolate
         internal __TypeField TypeField => _introspectionFields.TypeField;
 
         internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
+
+        internal OperationExecuter OperationExecuter { get; }
 
         public IReadOnlySchemaOptions Options { get; }
 
@@ -109,6 +116,11 @@ namespace HotChocolate
             }
 
             return _types.TryGetNativeType(typeName, out nativeType);
+        }
+
+        public object GetService(Type serviceType)
+        {
+
         }
     }
 }

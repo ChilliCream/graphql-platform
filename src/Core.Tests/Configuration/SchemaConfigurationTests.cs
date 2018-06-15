@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeImplicitly()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
 
             StringType stringType = new StringType();
