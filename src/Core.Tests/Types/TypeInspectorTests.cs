@@ -222,5 +222,25 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<BooleanType>(type);
         }
+
+        [Fact]
+        public void IsListInterfaceTypeSupported()
+        {                        
+            // act
+            bool result = TypeInspector.Default.IsSupported(typeof(ListType<FooInterface>));
+
+            // assert
+            Assert.True(result);
+        }
+
+        public class FooInterface
+            : InterfaceType
+        {
+            protected override void Configure(IInterfaceTypeDescriptor descriptor)
+            {
+                descriptor.Name("Foo");
+                descriptor.Field("bar").Type<StringType>();
+            }
+        }
     }
 }
