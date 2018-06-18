@@ -5,21 +5,56 @@ using HotChocolate.Types;
 namespace HotChocolate.Types.Factories
 {
     internal sealed class InterfaceTypeFactory
-        : ObjectTypeFactoryBase
-        , ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
+        : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(
             InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
-            return new InterfaceType(new InterfaceTypeConfig
+            return new InterfaceType(d =>
             {
-                SyntaxNode = interfaceTypeDefinition,
-                Name = interfaceTypeDefinition.Name.Value,
-                Description = interfaceTypeDefinition.Description?.Value,
-                Fields = GetFields(
+                d.SyntaxNode(interfaceTypeDefinition)
+                    .Name(interfaceTypeDefinition.Name.Value)
+                    .Description(interfaceTypeDefinition.Description?.Value);
+
+                DeclareFields(d,
                     interfaceTypeDefinition.Name.Value,
-                    interfaceTypeDefinition.Fields),
+                    interfaceTypeDefinition.Fields);
             });
+        }
+
+        private void DeclareFields(
+            IInterfaceTypeDescriptor typeDescriptor,
+            string typeName,
+            IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
+        {
+            foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
+            {
+                IFieldDescriptor fieldDescriptor = typeDescriptor
+                    .Field(fieldDefinition.Name.Value)
+                    .Description(fieldDefinition.Description?.Value)
+                    .Type(fieldDefinition.Type)
+                    .SyntaxNode(fieldDefinition);
+
+                DeclareFieldArguments(fieldDescriptor, fieldDefinition);
+            }
+        }
+
+        private void DeclareFieldArguments(
+            IFieldDescriptor fieldDescriptor,
+            FieldDefinitionNode fieldDefinition)
+        {
+            foreach (InputValueDefinitionNode inputFieldDefinition in
+                fieldDefinition.Arguments)
+            {
+                fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
+                    a =>
+                    {
+                        a.Description(inputFieldDefinition.Description?.Value)
+                            .Type(inputFieldDefinition.Type)
+                            .DefaultValue(inputFieldDefinition.DefaultValue)
+                            .SyntaxNode(inputFieldDefinition);
+                    });
+            }
         }
     }
 }

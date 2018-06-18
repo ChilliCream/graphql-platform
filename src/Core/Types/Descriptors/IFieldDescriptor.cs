@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -9,6 +10,8 @@ namespace HotChocolate.Types
     public interface IFieldDescriptor
         : IFluent
     {
+        IFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
+
         IFieldDescriptor Name(string name);
 
         IFieldDescriptor Description(string description);
@@ -18,8 +21,7 @@ namespace HotChocolate.Types
         IFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IFieldDescriptor Type(Type type, bool overwrite);
+        IFieldDescriptor Type(ITypeNode type);
 
         IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
 

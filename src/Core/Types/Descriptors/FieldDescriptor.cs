@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -47,6 +48,8 @@ namespace HotChocolate.Types
             Name = member.GetGraphQLName();
             NativeType = nativeType;
         }
+
+        public FieldDefinitionNode SyntaxNode { get; protected set; }
 
         public string Name { get; protected set; }
 
@@ -129,6 +132,12 @@ namespace HotChocolate.Types
 
         #region IFieldDescriptor
 
+        IFieldDescriptor IFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
+
         IFieldDescriptor IFieldDescriptor.Name(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -158,24 +167,6 @@ namespace HotChocolate.Types
         IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
             NativeType = typeof(TOutputType);
-            return this;
-        }
-
-        IFieldDescriptor IFieldDescriptor.Type(Type outputType, bool overwrite)
-        {
-
-            if (overwrite == true || NativeType == null)
-            {
-                if (TypeInspector.Default.IsSupported(outputType))
-                {
-                    NativeType = outputType;
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        "The specified type is not a supported output type.");
-                }
-            }
             return this;
         }
 
@@ -225,9 +216,17 @@ namespace HotChocolate.Types
             return this;
         }
 
+
+
         #endregion
 
         #region IInterfaceFieldDescriptor
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
+        {
+            ((IFieldDescriptor)this).SyntaxNode(syntaxNode);
+            return this;
+        }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Name(string name)
         {
@@ -258,6 +257,8 @@ namespace HotChocolate.Types
             ((IFieldDescriptor)this).Argument(name, argument);
             return this;
         }
+
+
 
         #endregion
     }

@@ -38,11 +38,6 @@ namespace HotChocolate.Types
             Initialize(configure);
         }
 
-        internal ObjectType(ObjectTypeConfig config)
-        {
-            Initialize(config);
-        }
-
         public TypeKind Kind { get; } = TypeKind.Object;
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
@@ -99,7 +94,11 @@ namespace HotChocolate.Types
 
             ObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
+            Initialize(descriptor);
+        }
 
+        private void Initialize(ObjectTypeDescriptor descriptor)
+        {
             if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
@@ -134,42 +133,6 @@ namespace HotChocolate.Types
             Name = descriptor.Name;
             Description = descriptor.Description;
             IsIntrospection = descriptor.IsIntrospection;
-        }
-
-        private void Initialize(ObjectTypeConfig config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "An object type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            Field[] fields = config.Fields?.ToArray();
-            if (fields?.Length == 0)
-            {
-                throw new ArgumentException(
-                    $"The object type `{Name}` has no fields.",
-                    nameof(config));
-            }
-
-            foreach (Field field in fields)
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _isOfType = config.IsOfType;
-            _interfaceFactory = config.Interfaces;
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
-            IsIntrospection = config.IsIntrospection;
         }
 
         void INeedsInitialization.RegisterDependencies(

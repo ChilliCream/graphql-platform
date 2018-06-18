@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -23,7 +24,7 @@ namespace HotChocolate.Types
             Name = objectType.GetGraphQLName();
         }
 
-         public ObjectTypeDescriptor(string name)
+        public ObjectTypeDescriptor(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -34,6 +35,8 @@ namespace HotChocolate.Types
 
             Name = name;
         }
+
+        public ObjectTypeDefinitionNode SyntaxNode { get; protected set; }
 
         public string Name { get; protected set; }
 
@@ -134,6 +137,12 @@ namespace HotChocolate.Types
             FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
             Fields = Fields.Add(fieldDescriptor);
             return fieldDescriptor;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(ObjectTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
         }
 
         #endregion
