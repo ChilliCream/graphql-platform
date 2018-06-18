@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -16,9 +17,8 @@ namespace HotChocolate.Types
     {
         private readonly Dictionary<string, ObjectType> _typeMap =
             new Dictionary<string, ObjectType>();
-        private Func<ITypeRegistry, IEnumerable<ObjectType>> _typesFactory;
-        private IReadOnlyCollection<TypeInfo> _typeInfos;
-        private ResolveAbstractType _typeResolver;
+        private ImmutableList<TypeReference> _types;
+        private ResolveAbstractType _resolveAbstractType;
 
         protected UnionType()
         {
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
-            => _typeResolver(context, resolverResult);
+            => _resolveAbstractType(context, resolverResult);
 
         #region Configuration
 
@@ -87,11 +87,8 @@ namespace HotChocolate.Types
                     "A union type name must not be null or empty.");
             }
 
-            _typesFactory = r => descriptor.Types
-                .Select(t => t.TypeFactory(r))
-                .Cast<ObjectType_>();
-            _typeInfos = descriptor.Types;
-            _typeResolver = descriptor.ResolveAbstractType;
+            _types = descriptor.Types;
+            _resolveAbstractType = descriptor.ResolveAbstractType;
 
             Name = descriptor.Name;
             Description = descriptor.Description;
@@ -100,36 +97,52 @@ namespace HotChocolate.Types
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext, Action<SchemaError> reportError)
         {
-            if (_typeInfos != null)
+            if (_types != null)
             {
-                foreach (TypeInfo typeInfo in _typeInfos)
+                foreach (TypeReference typeReference in _types)
                 {
-                    schemaContext.Types.RegisterType(typeInfo.NativeNamedType);
+                    schemaContext.Types.RegisterType(typeReference);
                 }
             }
         }
 
-        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.CompleteType(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
-            if (_typesFactory == null)
+            CompleteTypes(schemaContext.Types, reportError);
+            CompleteResolveAbstractType();
+        }
+
+        private void CompleteTypes(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError)
+        {
+            if (_types != null)
             {
-                reportError(new SchemaError(
-                    "A Union type must define one or more unique member types.",
-                    this));
-            }
-            else
-            {
-                foreach (ObjectType memberType in _typesFactory(schemaContext.Types))
+                foreach (ObjectType memberType in _types
+                    .Select(t => typeRegistry.GetType<ObjectType>(t))
+                    .Where(t => t != null))
                 {
                     _typeMap[memberType.Name] = memberType;
                 }
             }
 
-            if (_typeResolver == null)
+            if (_typeMap.Count == 0)
+            {
+                reportError(new SchemaError(
+                    "A Union type must define one or more unique member types.",
+                    this));
+            }
+        }
+
+        private void CompleteResolveAbstractType()
+        {
+            if (_resolveAbstractType == null)
             {
                 // if there is now custom type resolver we will use this default
                 // abstract type resolver.
-                _typeResolver = (c, r) =>
+                _resolveAbstractType = (c, r) =>
                 {
                     foreach (ObjectType type in _typeMap.Values)
                     {

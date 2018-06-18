@@ -91,7 +91,8 @@ namespace HotChocolate.Types
                     "The type name must not be null or empty.");
             }
 
-            foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
+            foreach (Field field in descriptor.Fields
+                .Select(t => new Field(t)))
             {
                 _fieldMap[field.Name] = field;
             }

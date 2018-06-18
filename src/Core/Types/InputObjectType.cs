@@ -160,10 +160,11 @@ namespace HotChocolate.Types
                     "An input object type name must not be null or empty.");
             }
 
-            foreach (InputFieldDescriptor fieldDescriptor in
-                descriptor.GetFieldDescriptors())
+            foreach (InputField field in
+                descriptor.GetFieldDescriptors()
+                .Select(t => new InputField(t)))
             {
-                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
+                _fieldMap[field.Name] = field;
             }
 
             _nativeType = descriptor.NativeType;
@@ -173,7 +174,9 @@ namespace HotChocolate.Types
             Description = descriptor.Description;
         }
 
-        void INeedsInitialization.RegisterDependencies(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             foreach (InputField field in _fieldMap.Values)
             {

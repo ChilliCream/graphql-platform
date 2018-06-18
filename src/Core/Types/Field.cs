@@ -15,8 +15,7 @@ namespace HotChocolate.Types
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
         private MemberInfo _member;
-        private Type _nativeNamedType;
-        private ITypeNode _type;
+        private TypeReference _typeReference;
         private FieldResolverDelegate _resolver;
 
         internal Field(FieldDescriptor descriptor)
@@ -33,15 +32,14 @@ namespace HotChocolate.Types
                     nameof(descriptor));
             }
 
-            foreach (InputField argument in descriptor.Arguments
+            foreach (InputField argument in descriptor.GetArguments()
                 .Select(t => new InputField(t)))
             {
                 _argumentMap[argument.Name] = argument;
             }
 
             _member = descriptor.Member;
-            _nativeNamedType = descriptor.NativeType;
-            _type = descriptor.Type;
+            _typeReference = descriptor.TypeReference;
 
             SyntaxNode = descriptor.SyntaxNode;
             Name = descriptor.Name;
@@ -81,13 +79,9 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (_nativeNamedType != null)
+            if (_typeReference != null)
             {
-                schemaContext.Types.RegisterType(_nativeNamedType);
-            }
-            else if (_type != null)
-            {
-                schemaContext.Types.RegisterType(_type);
+                schemaContext.Types.RegisterType(_typeReference);
             }
 
             if (_member != null)
@@ -124,13 +118,9 @@ namespace HotChocolate.Types
             INamedType parentType)
         {
 
-            if (_nativeNamedType != null)
+            if (_typeReference != null)
             {
-                Type = typeRegistry.GetType<IOutputType>(_nativeNamedType);
-            }
-            else if (_type != null)
-            {
-                Type = typeRegistry.GetOutputType(_type);
+                Type = typeRegistry.GetType<IOutputType>(_typeReference);
             }
 
             if (Type == null)

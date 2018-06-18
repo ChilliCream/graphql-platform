@@ -175,7 +175,8 @@ namespace HotChocolate.Types
                     "Am enum type name must not be null or empty.");
             }
 
-            foreach (EnumValue enumValue in descriptor.CreateEnumValues())
+            foreach (EnumValue enumValue in descriptor.GetItems()
+                .Select(t => new EnumValue(t)))
             {
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
@@ -231,7 +232,6 @@ namespace HotChocolate.Types
 
         protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
         {
-
         }
 
         #endregion

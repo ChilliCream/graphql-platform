@@ -10,8 +10,7 @@ namespace HotChocolate.Types
     public class InputField
         : ITypeSystemNode
     {
-        private Type _nativeNamedType;
-        private ITypeNode _type;
+        private readonly TypeReference _typeReference;
         private object _nativeDefaultValue;
 
         internal InputField(ArgumentDescriptor descriptor)
@@ -28,8 +27,30 @@ namespace HotChocolate.Types
                     nameof(descriptor));
             }
 
-            _nativeNamedType = descriptor.NativeType;
-            _type = descriptor.Type;
+            _typeReference = descriptor.TypeReference;
+            _nativeDefaultValue = descriptor.NativeDefaultValue;
+
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            DefaultValue = descriptor.DefaultValue;
+        }
+
+        internal InputField(InputFieldDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "An input value name must not be null or empty.",
+                    nameof(descriptor));
+            }
+
+            _typeReference = descriptor.TypeReference;
             _nativeDefaultValue = descriptor.NativeDefaultValue;
 
             SyntaxNode = descriptor.SyntaxNode;
@@ -66,13 +87,9 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (_nativeNamedType != null)
+            if (_typeReference != null)
             {
-                typeRegistry.RegisterType(_nativeNamedType);
-            }
-            else if (_type != null)
-            {
-                typeRegistry.RegisterType(_type);
+                typeRegistry.RegisterType(_typeReference);
             }
         }
 
@@ -98,13 +115,9 @@ namespace HotChocolate.Types
            Action<SchemaError> reportError,
            INamedType parentType)
         {
-            if (_nativeNamedType != null)
+            if (_typeReference != null)
             {
-                Type = typeRegistry.GetType<IInputType>(_nativeNamedType);
-            }
-            else if (_type != null)
-            {
-                Type = typeRegistry.GetInputType(_type);
+                Type = typeRegistry.GetType<IInputType>(_typeReference);
             }
 
             if (Type == null)

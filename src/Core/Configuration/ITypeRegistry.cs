@@ -31,6 +31,50 @@ namespace HotChocolate.Configuration
 
     internal static class TypeRegistryExtensions
     {
+        public static void RegisterType(
+            this ITypeRegistry typeRegistry,
+            TypeReference typeReference)
+        {
+            if (typeReference == null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
+            if (typeReference.IsNativeTypeReference())
+            {
+                typeRegistry.RegisterType(typeReference.NativeType);
+            }
+            else
+            {
+                typeRegistry.RegisterType(typeReference.Type);
+            }
+        }
+
+        public static T GetType<T>(
+           this ITypeRegistry typeRegistry,
+           TypeReference typeReference)
+           where T : IType
+        {
+            if (typeReference == null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
+            if (typeReference.IsNativeTypeReference())
+            {
+                return typeRegistry.GetType<T>(typeReference.NativeType);
+            }
+            else
+            {
+                IType type = GetType(typeRegistry, typeReference.Type);
+                if (type is T t)
+                {
+                    return t;
+                }
+                return default(T);
+            }
+        }
+
         public static bool TryGetObjectTypeField(
             this ITypeRegistry typeRegistry,
             FieldReference fieldReference,
@@ -40,34 +84,6 @@ namespace HotChocolate.Configuration
             return typeRegistry.TryGetType<ObjectType>(
                     fieldReference.TypeName, out ObjectType ot)
                 && ot.Fields.TryGetValue(fieldReference.FieldName, out field);
-        }
-
-        public static IOutputType GetOutputType(
-            this ITypeRegistry typeRegistry, ITypeNode typeNode)
-        {
-            IType type = GetType(typeRegistry, typeNode);
-            if (type is IOutputType outputType)
-            {
-                return outputType;
-            }
-
-            throw new ArgumentException(
-                "The specified type is not an output type.",
-                nameof(typeNode));
-        }
-
-        public static IInputType GetInputType(
-            this ITypeRegistry typeRegistry, ITypeNode typeNode)
-        {
-            IType type = GetType(typeRegistry, typeNode);
-            if (type is IInputType inputType)
-            {
-                return inputType;
-            }
-
-            throw new ArgumentException(
-                "The specified type is not an output type.",
-                nameof(typeNode));
         }
 
         public static IType GetType(
