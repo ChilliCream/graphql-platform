@@ -9,12 +9,16 @@ namespace HotChocolate.Types.Factories
     {
         public UnionType Create(UnionTypeDefinitionNode node)
         {
-            return new UnionType(new UnionTypeConfig
+            return new UnionType(d =>
             {
-                SyntaxNode = node,
-                Name = node.Name.Value,
-                Description = node.Description?.Value,
-                Types = t => node.Types.Select(tn => t.GetType<ObjectType>(tn.Name.Value))
+                d.SyntaxNode(node)
+                    .Name(node.Name.Value)
+                    .Description(node.Description?.Value);
+
+                foreach (NamedTypeNode namedType in node.Types)
+                {
+                    d.Type(namedType);
+                }
             });
         }
     }

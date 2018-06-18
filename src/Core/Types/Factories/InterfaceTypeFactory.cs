@@ -8,17 +8,17 @@ namespace HotChocolate.Types.Factories
         : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
     {
         public InterfaceType Create(
-            InterfaceTypeDefinitionNode interfaceTypeDefinition)
+            InterfaceTypeDefinitionNode node)
         {
             return new InterfaceType(d =>
             {
-                d.SyntaxNode(interfaceTypeDefinition)
-                    .Name(interfaceTypeDefinition.Name.Value)
-                    .Description(interfaceTypeDefinition.Description?.Value);
+                d.SyntaxNode(node)
+                    .Name(node.Name.Value)
+                    .Description(node.Description?.Value);
 
                 DeclareFields(d,
-                    interfaceTypeDefinition.Name.Value,
-                    interfaceTypeDefinition.Fields);
+                    node.Name.Value,
+                    node.Fields);
             });
         }
 

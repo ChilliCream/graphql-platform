@@ -9,20 +9,20 @@ namespace HotChocolate.Types.Factories
         : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
         public ObjectType Create(
-            ObjectTypeDefinitionNode objectTypeDefinition)
+            ObjectTypeDefinitionNode node)
         {
             return new ObjectType(d =>
             {
-                d.SyntaxNode(objectTypeDefinition)
-                    .Name(objectTypeDefinition.Name.Value)
-                    .Description(objectTypeDefinition.Description?.Value);
+                d.SyntaxNode(node)
+                    .Name(node.Name.Value)
+                    .Description(node.Description?.Value);
 
                 DeclareInterfaces(d,
-                    objectTypeDefinition.Interfaces);
+                    node.Interfaces);
 
                 DeclareFields(d,
-                    objectTypeDefinition.Name.Value,
-                    objectTypeDefinition.Fields);
+                    node.Name.Value,
+                    node.Fields);
             });
         }
 
