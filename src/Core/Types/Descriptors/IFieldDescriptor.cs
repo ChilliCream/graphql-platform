@@ -41,7 +41,7 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, TResult> fieldResolver)
         {
-            return descriptor.Type(typeof(TResult), false)
+            return descriptor.Type<NativeType<TResult>>()
                 .Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<TResult> fieldResolver)
         {
-            return descriptor.Type(typeof(TResult), false)
+            return descriptor.Type<NativeType<TResult>>()
                 .Resolver((ctx, ct) => fieldResolver());
         }
 
@@ -78,7 +78,7 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> fieldResolver)
         {
-            return descriptor.Type(typeof(TResult), false)
+            return descriptor.Type<NativeType<TResult>>()
                 .Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<Task<TResult>> fieldResolver)
         {
-            return descriptor.Type(typeof(TResult), false)
+            return descriptor.Type<NativeType<TResult>>()
                 .Resolver((ctx, ct) => fieldResolver());
         }
     }

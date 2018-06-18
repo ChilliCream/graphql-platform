@@ -9,6 +9,11 @@ namespace HotChocolate.Types
     internal class InputFieldDescriptor
         : IInputFieldDescriptor
     {
+        public InputFieldDescriptor(string name)
+        {
+            Name = name;
+        }
+
         public InputFieldDescriptor(PropertyInfo property)
         {
             if (property == null)
@@ -23,11 +28,15 @@ namespace HotChocolate.Types
 
         public PropertyInfo Property { get; }
 
+        public InputValueDefinitionNode SyntaxNode { get; protected set; }
+
         public string Name { get; protected set; }
 
         public string Description { get; protected set; }
 
         public Type NativeType { get; protected set; }
+
+        public ITypeNode Type { get; protected set; }
 
         public IValueNode DefaultValue { get; protected set; }
 
@@ -74,6 +83,12 @@ namespace HotChocolate.Types
 
         #region IInputFieldDescriptor
 
+        IInputFieldDescriptor IInputFieldDescriptor.SyntaxNode(InputValueDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
+
         IInputFieldDescriptor IInputFieldDescriptor.Name(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -103,6 +118,12 @@ namespace HotChocolate.Types
         IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
         {
             NativeType = typeof(TInputType);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
+        {
+            Type = type;
             return this;
         }
 

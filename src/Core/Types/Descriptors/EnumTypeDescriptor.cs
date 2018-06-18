@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -30,6 +31,8 @@ namespace HotChocolate.Types
 
             Name = enumType.GetGraphQLName();
         }
+
+        public EnumTypeDefinitionNode SyntaxNode { get; protected set; }
 
         public string Name { get; protected set; }
 
@@ -65,6 +68,13 @@ namespace HotChocolate.Types
         }
 
         #region IEnumTypeDescriptor
+
+        IEnumTypeDescriptor IEnumTypeDescriptor.SyntaxNode(
+            EnumTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IEnumTypeDescriptor IEnumTypeDescriptor.Name(string name)
         {
@@ -136,13 +146,31 @@ namespace HotChocolate.Types
             NativeType = typeof(T);
         }
 
+        #region IEnumTypeDescriptor<T>
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.SyntaxNode(EnumTypeDefinitionNode syntaxNode)
+        {
+            ((IEnumTypeDescriptor)this).SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(string name)
+        {
+            ((IEnumTypeDescriptor)this).Name(name);
+            return this;
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Description(string description)
+        {
+            ((IEnumTypeDescriptor)this).Description(description);
+            return this;
+        }
+
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(BindingBehavior bindingBehavior)
         {
             BindingBehavior = bindingBehavior;
             return this;
         }
-
-        #region IEnumTypeDescriptor<T>
 
         IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
         {

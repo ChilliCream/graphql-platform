@@ -35,6 +35,10 @@ namespace HotChocolate.Types
             NativeType = _isInputType ? CreateListType(_inputType.NativeType) : null;
         }
 
+        public ListType()
+        {
+        }
+
         public TypeKind Kind { get; } = TypeKind.List;
 
         public IType ElementType { get; }

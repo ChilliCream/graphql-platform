@@ -13,7 +13,6 @@ namespace HotChocolate.Types
 
         IInputObjectTypeDescriptor Name(string name);
 
-
         IInputObjectTypeDescriptor Description(string description);
 
         IInputFieldDescriptor Field(string name);

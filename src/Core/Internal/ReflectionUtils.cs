@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Types;
 
 namespace HotChocolate.Internal
 {
@@ -88,6 +89,21 @@ namespace HotChocolate.Internal
             IEnumerable<string> arguments = type.GetGenericArguments()
                 .Select(GetTypeName);
             return $"{name}<{string.Join(", ", arguments)}>";
+        }
+
+        public static bool IsNativeTypeWrapper<T>()
+        {
+            Type type = typeof(T);
+            if (type.IsGenericType)
+            {
+                return (typeof(NativeType<>) == typeof(T).GetGenericTypeDefinition());
+            }
+            return false;
+        }
+
+        public static bool IsNativeTypeWrapper(Type type)
+        {
+            return (typeof(NativeType<>) == type.GetGenericTypeDefinition());
         }
     }
 }

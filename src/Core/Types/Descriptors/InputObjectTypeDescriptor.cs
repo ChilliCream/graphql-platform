@@ -6,12 +6,15 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     internal class InputObjectTypeDescriptor
         : IInputObjectTypeDescriptor
     {
+        public InputObjectTypeDefinitionNode SyntaxNode { get; protected set; }
+
         public string Name { get; protected set; }
 
         public string Description { get; protected set; }
@@ -33,6 +36,13 @@ namespace HotChocolate.Types
         }
 
         #region IInputObjectTypeDescriptor
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.SyntaxNode(
+            InputObjectTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
         {
@@ -58,6 +68,27 @@ namespace HotChocolate.Types
         {
             Description = description;
             return this;
+        }
+
+        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (!ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(name));
+            }
+
+            InputFieldDescriptor field = new InputFieldDescriptor(name);
+            Fields = Fields.Add(field);
+            return field;
         }
 
         #endregion
@@ -144,19 +175,29 @@ namespace HotChocolate.Types
 
         #region IInputObjectTypeDescriptor<T>
 
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(string name)
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.SyntaxNode(
+            InputObjectTypeDefinitionNode syntaxNode)
         {
-            Name = name;
+            ((IInputObjectTypeDescriptor)this).SyntaxNode(syntaxNode);
             return this;
         }
 
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Description(string description)
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
+            string name)
         {
-            Description = description;
+            ((IInputObjectTypeDescriptor)this).Name(name);
             return this;
         }
 
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Description(
+            string description)
+        {
+            ((IInputObjectTypeDescriptor)this).Description(description);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.BindFields(
+            BindingBehavior bindingBehavior)
         {
             _bindingBehavior = bindingBehavior;
             return this;

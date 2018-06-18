@@ -8,12 +8,18 @@ namespace HotChocolate.Types
         : IFluent
     {
         IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
+
         IInterfaceFieldDescriptor Name(string name);
+
         IInterfaceFieldDescriptor Description(string description);
+
         IInterfaceFieldDescriptor DeprecationReason(string deprecationReason);
+
         IInterfaceFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
+
         IFieldDescriptor Type(ITypeNode type);
+
         IInterfaceFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
     }
 }

@@ -6,7 +6,9 @@ namespace HotChocolate.Types
         : IFluent
     {
         IEnumValueDescriptor Name(string name);
+
         IEnumValueDescriptor Description(string description);
+
         IEnumValueDescriptor DeprecationReason(string deprecationReason);
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Immutable;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -22,13 +24,25 @@ namespace HotChocolate.Types
             }
         }
 
+        public InterfaceTypeDefinitionNode SyntaxNode { get; protected set; }
+
         public string Name { get; protected set; }
+
         public string Description { get; protected set; }
+
         public ResolveAbstractType ResolveAbstractType { get; protected set; }
+
         public ImmutableList<FieldDescriptor> Fields { get; protected set; }
             = ImmutableList<FieldDescriptor>.Empty;
 
         #region IObjectTypeDescriptor<T>
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
         {

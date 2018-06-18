@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -58,6 +58,8 @@ namespace HotChocolate.Types
         public MemberInfo Member { get; protected set; }
 
         public Type NativeType { get; protected set; }
+
+        public ITypeNode Type { get; protected set; }
 
         public string DeprecationReason { get; protected set; }
 
@@ -166,7 +168,17 @@ namespace HotChocolate.Types
 
         IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
-            NativeType = typeof(TOutputType);
+            if (NativeType == null
+                && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
+            {
+                NativeType = typeof(TOutputType);
+            }
+            return this;
+        }
+
+        IFieldDescriptor IFieldDescriptor.Type(ITypeNode type)
+        {
+            Type = type;
             return this;
         }
 
@@ -216,8 +228,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-
-
         #endregion
 
         #region IInterfaceFieldDescriptor
@@ -252,13 +262,17 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IFieldDescriptor IInterfaceFieldDescriptor.Type(ITypeNode type)
+        {
+            ((IFieldDescriptor)this).Type(type);
+            return this;
+        }
+
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(string name, Action<IArgumentDescriptor> argument)
         {
             ((IFieldDescriptor)this).Argument(name, argument);
             return this;
         }
-
-
 
         #endregion
     }

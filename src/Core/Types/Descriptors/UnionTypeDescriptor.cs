@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Immutable;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -22,13 +24,25 @@ namespace HotChocolate.Types
             }
         }
 
+        public UnionTypeDefinitionNode SyntaxNode { get; protected set; }
+
         public string Name { get; protected set; }
+
         public string Description { get; protected set; }
+
         public ImmutableList<TypeInfo> Types { get; protected set; }
             = ImmutableList<TypeInfo>.Empty;
+
         public ResolveAbstractType ResolveAbstractType { get; protected set; }
 
         #region IUnionTypeDescriptor
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.SyntaxNode(
+            UnionTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Name(string name)
         {
@@ -64,6 +78,11 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IUnionTypeDescriptor IUnionTypeDescriptor.Type(NamedTypeNode objectType)
+        {
+
+        }
+
         IUnionTypeDescriptor IUnionTypeDescriptor.ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
@@ -75,6 +94,10 @@ namespace HotChocolate.Types
             ResolveAbstractType = resolveAbstractType;
             return this;
         }
+
+
+
+
 
         #endregion
     }

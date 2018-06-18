@@ -38,9 +38,11 @@ namespace HotChocolate.Types
             DefaultValue = new NullValueNode();
         }
 
+        public InputValueDefinitionNode SyntaxNode { get; protected set; }
         public string Name { get; protected set; }
         public string Description { get; protected set; }
         public Type NativeType { get; protected set; }
+        public ITypeNode Type { get; protected set; }
         public IValueNode DefaultValue { get; protected set; }
         public object NativeDefaultValue { get; protected set; }
 
@@ -80,6 +82,13 @@ namespace HotChocolate.Types
 
         #region IArgumentDescriptor
 
+        IArgumentDescriptor IArgumentDescriptor.SyntaxNode(
+            InputValueDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
+
         IArgumentDescriptor IArgumentDescriptor.Description(string description)
         {
             Description = description;
@@ -89,6 +98,12 @@ namespace HotChocolate.Types
         IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
         {
             NativeType = typeof(TInputType);
+            return this;
+        }
+
+        IArgumentDescriptor IArgumentDescriptor.Type(ITypeNode type)
+        {
+            Type = type;
             return this;
         }
 

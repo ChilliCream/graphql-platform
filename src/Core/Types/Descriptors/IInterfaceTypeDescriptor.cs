@@ -7,10 +7,14 @@ namespace HotChocolate.Types
         : IFluent
     {
         IInterfaceTypeDescriptor SyntaxNode(InterfaceTypeDefinitionNode syntaxNode);
+
         IInterfaceTypeDescriptor Name(string name);
+
         IInterfaceTypeDescriptor Description(string description);
+
         IInterfaceTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType);
+
         IInterfaceFieldDescriptor Field(string name);
     }
 }

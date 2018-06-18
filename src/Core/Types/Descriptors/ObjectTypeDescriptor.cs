@@ -44,6 +44,8 @@ namespace HotChocolate.Types
 
         public Type NativeType { get; protected set; }
 
+        public NamedTypeNode Type { get; protected set; }
+
         public bool IsIntrospection { get; protected set; }
 
         public IsOfType IsOfType { get; protected set; }
@@ -66,6 +68,13 @@ namespace HotChocolate.Types
         }
 
         #region IObjectTypeDescriptor<T>
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(
+            ObjectTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IObjectTypeDescriptor IObjectTypeDescriptor.Name(string name)
         {
@@ -107,6 +116,12 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
+        {
+            Type = type;
+            return this;
+        }
+
         IObjectTypeDescriptor IObjectTypeDescriptor.IsOfType(IsOfType isOfType)
         {
             if (isOfType == null)
@@ -137,12 +152,6 @@ namespace HotChocolate.Types
             FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
             Fields = Fields.Add(fieldDescriptor);
             return fieldDescriptor;
-        }
-
-        IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(ObjectTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode = syntaxNode;
-            return this;
         }
 
         #endregion
