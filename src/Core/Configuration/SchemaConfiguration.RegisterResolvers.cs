@@ -166,43 +166,5 @@ namespace HotChocolate.Configuration
                 }
             }
         }
-
-        private Dictionary<string, MemberInfo> GetMembers(Type type)
-        {
-            Dictionary<string, MemberInfo> members =
-                new Dictionary<string, MemberInfo>(
-                    StringComparer.OrdinalIgnoreCase);
-
-            foreach (PropertyInfo property in type.GetProperties())
-            {
-                members[property.GetGraphQLName()] = property;
-            }
-
-            foreach (MethodInfo method in type.GetMethods())
-            {
-                members[method.GetGraphQLName()] = method;
-                if (method.Name.Length > 3 && method.Name
-                    .StartsWith("Get", StringComparison.OrdinalIgnoreCase))
-                {
-                    members[method.Name.Substring(3)] = method;
-                }
-            }
-
-            return members;
-        }
-
-        private Dictionary<string, PropertyInfo> GetProperties(Type type)
-        {
-            Dictionary<string, PropertyInfo> members =
-                new Dictionary<string, PropertyInfo>(
-                    StringComparer.OrdinalIgnoreCase);
-
-            foreach (PropertyInfo property in type.GetProperties())
-            {
-                members[property.GetGraphQLName()] = property;
-            }
-
-            return members;
-        }
     }
 }

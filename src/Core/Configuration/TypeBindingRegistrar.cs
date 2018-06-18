@@ -4,74 +4,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal partial class SchemaConfiguration
+    /// <summary>
+    /// Registers and finalizes .net type to schema type bindings.
+    /// </summary>
+    internal class TypeBindingRegistrar
     {
-        internal IEnumerable<SchemaError> RegisterTypes(
-            ISchemaContext schemaContext)
+        private List<TypeBindingInfo> _typeBindings;
+
+        public TypeBindingRegistrar(IEnumerable<TypeBindingInfo> typeBindings)
         {
-            if (schemaContext == null)
+            if (typeBindings == null)
             {
-                throw new ArgumentNullException(nameof(schemaContext));
+                throw new ArgumentNullException(nameof(typeBindings));
             }
 
-            RegisterAllTypes(schemaContext);
-            IEnumerable<SchemaError> errors =
-                RegisterTypeDependencies(schemaContext);
-            RegisterTypeBindings(schemaContext.Types);
-            return errors;
+            _typeBindings = new List<TypeBindingInfo>(typeBindings);
         }
 
-        private IEnumerable<SchemaError> RegisterTypeDependencies(
-            ISchemaContext schemaContext)
-        {
-            List<SchemaError> errors = new List<SchemaError>();
-            Queue<INamedType> currentBatch = new Queue<INamedType>(
-                _types.Values.Concat(schemaContext.Types.GetTypes()));
-            HashSet<string> registered = new HashSet<string>();
-            // register types intil there are no new registrations of types.
-            while (currentBatch.Any())
-            {
-                // process current batch of types.
-                while (currentBatch.Any())
-                {
-                    INamedType type = currentBatch.Dequeue();
-                    schemaContext.Types.RegisterType(type);
-                    registered.Add(type.Name);
-
-                    if (type is INeedsInitialization initializer)
-                    {
-                        initializer.RegisterDependencies(
-                            schemaContext, e => errors.Add(e));
-                    }
-                }
-
-                // check if there are new types that have to be processed.
-                foreach (INamedType type in schemaContext.Types.GetTypes())
-                {
-                    if (!registered.Contains(type.Name))
-                    {
-                        currentBatch.Enqueue(type);
-                    }
-                }
-            }
-
-            return errors;
-        }
-
-        private void RegisterAllTypes(ISchemaContext schemaContext)
-        {
-            foreach (INamedType type in _types.Values)
-            {
-                schemaContext.Types.RegisterType(type);
-            }
-        }
-
-        private void RegisterTypeBindings(ITypeRegistry typeRegistry)
+        public void RegisterTypeBindings(ITypeRegistry typeRegistry)
         {
             // bind object types
             foreach (KeyValuePair<ObjectType, ObjectTypeBinding> item in
@@ -116,7 +70,6 @@ namespace HotChocolate.Configuration
             return typeBindings;
         }
 
-
         private IEnumerable<FieldBinding> CreateFieldBindings(
             TypeBindingInfo typeBindingInfo,
             IReadOnlyDictionary<string, Field> fields)
@@ -144,7 +97,7 @@ namespace HotChocolate.Configuration
             if (typeBindingInfo.Behavior == BindingBehavior.Implicit)
             {
                 Dictionary<string, MemberInfo> members =
-                    GetMembers(typeBindingInfo.Type);
+                    ReflectionUtils.GetMembers(typeBindingInfo.Type);
                 foreach (Field field in fields.Values
                     .Where(t => !fieldBindings.ContainsKey(t.Name)))
                 {
@@ -220,7 +173,7 @@ namespace HotChocolate.Configuration
             if (typeBindingInfo.Behavior == BindingBehavior.Implicit)
             {
                 Dictionary<string, PropertyInfo> properties =
-                    GetProperties(typeBindingInfo.Type);
+                    ReflectionUtils.GetProperties(typeBindingInfo.Type);
                 foreach (InputField field in fields.Values
                     .Where(t => !fieldBindings.ContainsKey(t.Name)))
                 {
