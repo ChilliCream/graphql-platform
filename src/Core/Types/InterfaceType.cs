@@ -29,11 +29,6 @@ namespace HotChocolate.Types
             Initialize(configure);
         }
 
-        internal InterfaceType(InterfaceTypeConfig config)
-        {
-            Initialize(config);
-        }
-
         public TypeKind Kind { get; } = TypeKind.Interface;
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
@@ -80,17 +75,20 @@ namespace HotChocolate.Types
             InterfaceTypeDescriptor descriptor =
                 new InterfaceTypeDescriptor(GetType());
             configure(descriptor);
+            Initialize(descriptor);
+        }
+
+        private void Initialize(InterfaceTypeDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
             if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
                     "The type name must not be null or empty.");
-            }
-
-            if (descriptor.Fields.Count == 0)
-            {
-                throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.");
             }
 
             foreach (Field field in descriptor.Fields.Select(t => t.CreateField()))
@@ -100,46 +98,14 @@ namespace HotChocolate.Types
 
             _resolveAbstractType = descriptor.ResolveAbstractType;
 
+            SyntaxNode = descriptor.SyntaxNode;
             Name = descriptor.Name;
             Description = descriptor.Description;
         }
 
-        private void Initialize(InterfaceTypeConfig config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "An interface type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            Field[] fields = config.Fields?.ToArray();
-            if (fields?.Length == 0)
-            {
-                throw new ArgumentException(
-                    $"The interface type `{Name}` has no fields.",
-                    nameof(config));
-            }
-
-            foreach (Field field in fields)
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _resolveAbstractType = config.ResolveAbstractType;
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
-        }
-
         void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext, Action<SchemaError> reportError)
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             foreach (Field field in _fieldMap.Values)
             {
@@ -148,13 +114,20 @@ namespace HotChocolate.Types
         }
 
         void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext, Action<SchemaError> reportError)
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
+            CompleteAbstractTypeResolver(schemaContext.Types);
+
             foreach (Field field in _fieldMap.Values)
             {
                 field.CompleteField(schemaContext, reportError, this);
             }
+        }
 
+        private void CompleteAbstractTypeResolver(
+            ITypeRegistry typeRegistry)
+        {
             if (_resolveAbstractType == null)
             {
                 // if there is now custom type resolver we will use this default
@@ -164,7 +137,7 @@ namespace HotChocolate.Types
                 {
                     if (types == null)
                     {
-                        types = schemaContext.Types.GetTypes()
+                        types = typeRegistry.GetTypes()
                             .OfType<ObjectType>()
                             .Where(t => t.Interfaces.ContainsKey(Name))
                             .ToList();

@@ -1,5 +1,7 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -17,6 +19,8 @@ namespace HotChocolate.Types
             Value = value;
         }
 
+        public EnumValueDefinitionNode SyntaxNode { get; protected set; }
+
         public string Name { get; protected set; }
 
         public string Description { get; protected set; }
@@ -26,6 +30,12 @@ namespace HotChocolate.Types
         public object Value { get; protected set; }
 
         #region IEnumValueDescriptor
+
+        IEnumValueDescriptor IEnumValueDescriptor.SyntaxNode(EnumValueDefinitionNode syntaxNode)
+        {
+            SyntaxNode = syntaxNode;
+            return this;
+        }
 
         IEnumValueDescriptor IEnumValueDescriptor.Name(string name)
         {

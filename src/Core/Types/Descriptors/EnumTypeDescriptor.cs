@@ -11,6 +11,8 @@ namespace HotChocolate.Types
     internal class EnumTypeDescriptor
         : IEnumTypeDescriptor
     {
+        private bool _valuesInitialized;
+
         public EnumTypeDescriptor(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -30,6 +32,7 @@ namespace HotChocolate.Types
             }
 
             Name = enumType.GetGraphQLName();
+            NativeType = enumType;
         }
 
         public EnumTypeDefinitionNode SyntaxNode { get; protected set; }
@@ -40,31 +43,28 @@ namespace HotChocolate.Types
 
         public Type NativeType { get; protected set; }
 
-        public ImmutableList<EnumValueDescriptor> Items { get; protected set; } =
+        protected ImmutableList<EnumValueDescriptor> Items { get; set; } =
             ImmutableList<EnumValueDescriptor>.Empty;
 
         public BindingBehavior BindingBehavior { get; protected set; }
 
-        public virtual IEnumerable<EnumValue> CreateEnumValues()
+        public virtual IEnumerable<EnumValueDescriptor> GetItems()
         {
             if (BindingBehavior == BindingBehavior.Implicit)
             {
-                if (NativeType != null && NativeType.IsEnum && !Items.Any())
+                if (!_valuesInitialized
+                    && NativeType != null
+                    && NativeType.IsEnum
+                    && !Items.Any())
                 {
+                    _valuesInitialized = true;
                     foreach (object o in Enum.GetValues(NativeType))
                     {
                         Items = Items.Add(new EnumValueDescriptor(o));
                     }
                 }
             }
-
-            return Items.Select(t => new EnumValue(new EnumValueConfig
-            {
-                Name = t.Name,
-                Description = t.Description,
-                DeprecationReason = t.DeprecationReason,
-                Value = t.Value
-            }));
+            return Items;
         }
 
         #region IEnumTypeDescriptor
@@ -104,22 +104,9 @@ namespace HotChocolate.Types
 
         IEnumValueDescriptor IEnumTypeDescriptor.Item<T>(T value)
         {
-            if (ReferenceEquals(value, null))
-            {
-                throw new ArgumentNullException(
-                    "An enum value mustn't be null.");
-            }
-
             if (NativeType == null)
             {
                 NativeType = typeof(T);
-            }
-
-            if (NativeType != typeof(T))
-            {
-                throw new ArgumentException(
-                    "The item type has to be " +
-                    $"{NativeType.FullName}.");
             }
 
             EnumValueDescriptor descriptor = new EnumValueDescriptor(value);

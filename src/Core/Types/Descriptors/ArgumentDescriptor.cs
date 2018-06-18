@@ -15,7 +15,9 @@ namespace HotChocolate.Types
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }
-            NativeType = argumentType;
+
+            TypeReference = new TypeReference(argumentType);
+            DefaultValue = new NullValueNode();
         }
 
         public ArgumentDescriptor(string argumentName)
@@ -41,44 +43,9 @@ namespace HotChocolate.Types
         public InputValueDefinitionNode SyntaxNode { get; protected set; }
         public string Name { get; protected set; }
         public string Description { get; protected set; }
-        public Type NativeType { get; protected set; }
-        public ITypeNode Type { get; protected set; }
+        public TypeReference TypeReference { get; protected set; }
         public IValueNode DefaultValue { get; protected set; }
         public object NativeDefaultValue { get; protected set; }
-
-        public InputField CreateArgument()
-        {
-            return new InputField(new InputFieldConfig
-            {
-                Name = Name,
-                Description = Description,
-                NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
-                Type = CreateType,
-                DefaultValue = CreateValue
-            });
-        }
-
-        private IInputType CreateType(ITypeRegistry typeRegistry)
-        {
-            return TypeInspector.Default.CreateInputType(
-                typeRegistry, NativeType);
-        }
-
-        private IValueNode CreateValue(ITypeRegistry typeRegistry)
-        {
-            if (DefaultValue != null)
-            {
-                return DefaultValue;
-            }
-
-            if (NativeDefaultValue != null)
-            {
-                IInputType type = CreateType(typeRegistry);
-                return type.ParseValue(NativeDefaultValue);
-            }
-
-            return new NullValueNode();
-        }
 
         #region IArgumentDescriptor
 
@@ -97,13 +64,20 @@ namespace HotChocolate.Types
 
         IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
         {
-            NativeType = typeof(TInputType);
+            if (TypeReference == null
+                && !ReflectionUtils.IsNativeTypeWrapper<TInputType>())
+            {
+                TypeReference = new TypeReference(typeof(TInputType));
+            }
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.Type(ITypeNode type)
         {
-            Type = type;
+            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
+            {
+                TypeReference = new TypeReference(type);
+            }
             return this;
         }
 

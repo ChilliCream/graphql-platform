@@ -30,11 +30,6 @@ namespace HotChocolate.Types
             Initialize(configure);
         }
 
-        internal UnionType(UnionTypeConfig config)
-        {
-            Initialize(config);
-        }
-
         public TypeKind Kind { get; } = TypeKind.Union;
 
         public UnionTypeDefinitionNode SyntaxNode { get; private set; }
@@ -76,6 +71,15 @@ namespace HotChocolate.Types
 
             UnionTypeDescriptor descriptor = new UnionTypeDescriptor(GetType());
             configure(descriptor);
+            Initialize(descriptor);
+        }
+
+        private void Initialize(UnionTypeDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
             if (string.IsNullOrEmpty(descriptor.Name))
             {
@@ -83,49 +87,14 @@ namespace HotChocolate.Types
                     "A union type name must not be null or empty.");
             }
 
-            if (descriptor.Types == null)
-            {
-                throw new ArgumentException(
-                    "A union type must have a set of types.");
-            }
-
             _typesFactory = r => descriptor.Types
                 .Select(t => t.TypeFactory(r))
-                .Cast<ObjectType>();
+                .Cast<ObjectType_>();
             _typeInfos = descriptor.Types;
             _typeResolver = descriptor.ResolveAbstractType;
 
             Name = descriptor.Name;
             Description = descriptor.Description;
-        }
-
-        private void Initialize(UnionTypeConfig config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "A union type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            if (config.Types == null)
-            {
-                throw new ArgumentException(
-                    "A union type must have a set of types.",
-                    nameof(config));
-            }
-
-            _typesFactory = config.Types;
-            _typeResolver = config.ResolveAbstractType;
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
         }
 
         void INeedsInitialization.RegisterDependencies(

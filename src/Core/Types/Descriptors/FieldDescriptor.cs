@@ -15,6 +15,7 @@ namespace HotChocolate.Types
         , IInterfaceFieldDescriptor
     {
         private readonly string _typeName;
+        private bool _argumentsInitialized;
 
         public FieldDescriptor(string typeName, string fieldName)
         {
@@ -46,7 +47,7 @@ namespace HotChocolate.Types
             _typeName = typeName;
             Member = member;
             Name = member.GetGraphQLName();
-            NativeType = nativeType;
+            TypeReference = new TypeReference(nativeType);
         }
 
         public FieldDefinitionNode SyntaxNode { get; protected set; }
@@ -57,39 +58,26 @@ namespace HotChocolate.Types
 
         public MemberInfo Member { get; protected set; }
 
-        public Type NativeType { get; protected set; }
-
-        public ITypeNode Type { get; protected set; }
+        public TypeReference TypeReference { get; protected set; }
 
         public string DeprecationReason { get; protected set; }
 
-        public ImmutableList<ArgumentDescriptor> Arguments { get; protected set; }
+        protected ImmutableList<ArgumentDescriptor> Arguments { get; set; }
             = ImmutableList<ArgumentDescriptor>.Empty;
 
         public FieldResolverDelegate Resolver { get; protected set; }
 
-        public Field CreateField()
+        public IEnumerable<ArgumentDescriptor> GetArguments()
         {
-            return new Field(new FieldConfig
+            if (!_argumentsInitialized)
             {
-                Name = Name,
-                Description = Description,
-                DeprecationReason = DeprecationReason,
-                Member = Member,
-                Type = CreateType,
-                NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
-                Arguments = CreateArguments(),
-                Resolver = CreateResolver
-            });
+                _argumentsInitialized = true;
+                Arguments = CreateArguments().ToImmutableList();
+            }
+            return Arguments;
         }
 
-        private IOutputType CreateType(ITypeRegistry typeRegistry)
-        {
-            return TypeInspector.Default.CreateOutputType(
-                typeRegistry, NativeType);
-        }
-
-        private IEnumerable<InputField> CreateArguments()
+        private IEnumerable<ArgumentDescriptor> CreateArguments()
         {
             Dictionary<string, ArgumentDescriptor> descriptors =
                 new Dictionary<string, ArgumentDescriptor>();
@@ -115,15 +103,14 @@ namespace HotChocolate.Types
                 }
             }
 
-            return descriptors.Values.Select(t => t.CreateArgument());
+            return descriptors.Values;
         }
 
         private bool IsArgumentType(Type argumentType)
         {
             return (FieldResolverArgumentDescriptor
                 .LookupKind(argumentType, Member.ReflectedType) ==
-                    FieldResolverArgumentKind.Argument)
-                && TypeInspector.Default.IsSupported(argumentType);
+                    FieldResolverArgumentKind.Argument);
         }
 
         private FieldResolverDelegate CreateResolver(
@@ -168,17 +155,20 @@ namespace HotChocolate.Types
 
         IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
-            if (NativeType == null
-                && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
+            if (TypeReference == null
+               && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
             {
-                NativeType = typeof(TOutputType);
+                TypeReference = new TypeReference(typeof(TOutputType));
             }
             return this;
         }
 
         IFieldDescriptor IFieldDescriptor.Type(ITypeNode type)
         {
-            Type = type;
+            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
+            {
+                TypeReference = new TypeReference(type);
+            }
             return this;
         }
 

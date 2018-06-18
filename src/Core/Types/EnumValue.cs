@@ -7,33 +7,31 @@ namespace HotChocolate.Types
     public class EnumValue
          : ITypeSystemNode
     {
-        internal EnumValue(EnumValueConfig config)
+        internal EnumValue(EnumValueDescriptor descriptor)
         {
-            if (config == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "A enum value name must not be null or empty.",
-                    nameof(config));
-            }
-
-            if (config.Value == null)
+            if (descriptor.Value == null)
             {
                 throw new ArgumentException(
                     "The inner value of enum value cannot be null or empty.",
-                    nameof(config));
+                    nameof(descriptor));
             }
 
-            Name = config.Name;
-            Description = config.Description;
-            DeprecationReason = config.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(config.DeprecationReason);
-            Value = config.Value;
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = string.IsNullOrEmpty(descriptor.Name)
+                ? descriptor.Value.ToString()
+                : descriptor.Name;
+            Description = descriptor.Description;
+            DeprecationReason = descriptor.DeprecationReason;
+            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
+            Value = descriptor.Value;
         }
+
+        public EnumValueDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
 
@@ -45,7 +43,7 @@ namespace HotChocolate.Types
 
         public object Value { get; }
 
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => throw new NotImplementedException();
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
         {

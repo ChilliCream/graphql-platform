@@ -23,7 +23,7 @@ namespace HotChocolate.Types
 
             Property = property;
             Name = property.GetGraphQLName();
-            NativeType = property.PropertyType;
+            TypeReference = new TypeReference(property.PropertyType);
         }
 
         public PropertyInfo Property { get; }
@@ -34,52 +34,11 @@ namespace HotChocolate.Types
 
         public string Description { get; protected set; }
 
-        public Type NativeType { get; protected set; }
-
-        public ITypeNode Type { get; protected set; }
+        public TypeReference TypeReference { get; protected set; }
 
         public IValueNode DefaultValue { get; protected set; }
 
         public object NativeDefaultValue { get; protected set; }
-
-        public InputField CreateField()
-        {
-            return new InputField(new InputFieldConfig
-            {
-                Name = Name,
-                Description = Description,
-                Property = Property,
-                NativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType),
-                Type = CreateType,
-                DefaultValue = CreateDefaultValue
-            });
-        }
-
-        private IInputType CreateType(ITypeRegistry typeRegistry)
-        {
-            return TypeInspector.Default.CreateInputType(
-                typeRegistry, NativeType);
-        }
-
-        private IValueNode CreateDefaultValue(ITypeRegistry typeRegistry)
-        {
-            if (DefaultValue != null)
-            {
-                return DefaultValue;
-            }
-
-            if (NativeDefaultValue != null)
-            {
-                Type nativeNamedType = TypeInspector.Default.ExtractNamedType(NativeType);
-                IType type = typeRegistry.GetType<IType>(nativeNamedType);
-                if (type is IInputType inputType)
-                {
-                    return inputType.ParseValue(NativeDefaultValue);
-                }
-            }
-
-            return new NullValueNode();
-        }
 
         #region IInputFieldDescriptor
 
@@ -117,13 +76,20 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
         {
-            NativeType = typeof(TInputType);
+            if (TypeReference == null
+                && !ReflectionUtils.IsNativeTypeWrapper<TInputType>())
+            {
+                TypeReference = new TypeReference(typeof(TInputType));
+            }
             return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
-            Type = type;
+            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
+            {
+                TypeReference = new TypeReference(type);
+            }
             return this;
         }
 
