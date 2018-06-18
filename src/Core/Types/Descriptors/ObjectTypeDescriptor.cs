@@ -44,8 +44,6 @@ namespace HotChocolate.Types
 
         public Type NativeType { get; protected set; }
 
-        public NamedTypeNode Type { get; protected set; }
-
         public bool IsIntrospection { get; protected set; }
 
         public IsOfType IsOfType { get; protected set; }
@@ -53,8 +51,8 @@ namespace HotChocolate.Types
         protected ImmutableList<FieldDescriptor> Fields { get; set; }
             = ImmutableList<FieldDescriptor>.Empty;
 
-        public ImmutableList<TypeInfo> Interfaces { get; protected set; }
-            = ImmutableList<TypeInfo>.Empty;
+        public ImmutableList<TypeReference> Interfaces { get; protected set; }
+            = ImmutableList<TypeReference>.Empty;
 
         public virtual IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
         {
@@ -110,15 +108,18 @@ namespace HotChocolate.Types
                     "The interface type has to be inherited.");
             }
 
-            TypeInfo typeInfo = TypeInspector.Default.CreateTypeInfo(
-                typeof(TInterface));
-            Interfaces = Interfaces.Add(typeInfo);
+            Interfaces = Interfaces.Add(new TypeReference(typeof(TInterface)));
             return this;
         }
 
         IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
         {
-            Type = type;
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            Interfaces = Interfaces.Add(new TypeReference(type));
             return this;
         }
 
@@ -190,41 +191,19 @@ namespace HotChocolate.Types
 
                 foreach (KeyValuePair<MemberInfo, string> member in members)
                 {
-                    if (!descriptors.ContainsKey(member.Value)
-                        && TryCreateFieldDescriptorFromMember(
-                            member.Value, member.Key, out FieldDescriptor descriptor))
+                    if (!descriptors.ContainsKey(member.Value))
                     {
-                        descriptors[descriptor.Name] = descriptor;
+                        Type returnType = member.Key.GetReturnType();
+                        if (returnType != null)
+                        {
+                            descriptors[member.Value] =
+                                new FieldDescriptor(Name, member.Key, returnType);
+                        }
                     }
                 }
             }
 
             return descriptors.Values;
-        }
-
-        private bool TryCreateFieldDescriptorFromMember(
-            string name, MemberInfo member,
-            out FieldDescriptor descriptor)
-        {
-            Type type = null;
-            if (member is PropertyInfo p)
-            {
-                type = p.PropertyType;
-            }
-
-            if (member is MethodInfo m
-                && (m.ReturnType != typeof(void)
-                    || m.ReturnType != typeof(Task)))
-            {
-                type = m.ReturnType;
-            }
-
-            descriptor = null;
-            if (type != null && TypeInspector.Default.IsSupported(type))
-            {
-                descriptor = new FieldDescriptor(Name, member, type);
-            }
-            return descriptor != null;
         }
 
         private static Dictionary<MemberInfo, string> GetMembers(Type type)

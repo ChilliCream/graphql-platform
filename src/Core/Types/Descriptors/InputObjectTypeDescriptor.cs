@@ -132,30 +132,15 @@ namespace HotChocolate.Types
 
                 foreach (KeyValuePair<PropertyInfo, string> property in properties)
                 {
-                    if (!descriptors.ContainsKey(property.Value)
-                        && TryCreateFieldDescriptorFromProperty(
-                            property.Value, property.Key,
-                            out InputFieldDescriptor descriptor))
+                    if (!descriptors.ContainsKey(property.Value))
                     {
-                        descriptors[descriptor.Name] = descriptor;
+                        descriptors[property.Value] =
+                            new InputFieldDescriptor(property.Key);
                     }
                 }
             }
 
             return descriptors.Values;
-        }
-
-        private bool TryCreateFieldDescriptorFromProperty(
-            string name, PropertyInfo property,
-            out InputFieldDescriptor descriptor)
-        {
-            descriptor = null;
-            Type type = property.PropertyType;
-            if (type != null && TypeInspector.Default.IsSupported(type))
-            {
-                descriptor = new InputFieldDescriptor(property);
-            }
-            return descriptor != null;
         }
 
         private static Dictionary<PropertyInfo, string> GetProperties(Type type)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.Internal
@@ -104,6 +105,23 @@ namespace HotChocolate.Internal
         public static bool IsNativeTypeWrapper(Type type)
         {
             return (typeof(NativeType<>) == type.GetGenericTypeDefinition());
+        }
+
+        public static Type GetReturnType(this MemberInfo member)
+        {
+            if (member is PropertyInfo p)
+            {
+                return p.PropertyType;
+            }
+
+            if (member is MethodInfo m
+                && (m.ReturnType != typeof(void)
+                    || m.ReturnType != typeof(Task)))
+            {
+                return m.ReturnType;
+            }
+
+            return null;
         }
     }
 }

@@ -30,8 +30,8 @@ namespace HotChocolate.Types
 
         public string Description { get; protected set; }
 
-        public ImmutableList<TypeInfo> Types { get; protected set; }
-            = ImmutableList<TypeInfo>.Empty;
+        public ImmutableList<TypeReference> Types { get; protected set; }
+            = ImmutableList<TypeReference>.Empty;
 
         public ResolveAbstractType ResolveAbstractType { get; protected set; }
 
@@ -72,15 +72,14 @@ namespace HotChocolate.Types
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>()
         {
-            TypeInfo typeInfo = TypeInspector.Default.CreateTypeInfo(
-                typeof(TObjectType));
-            Types = Types.Add(typeInfo);
+            Types = Types.Add(new TypeReference(typeof(TObjectType)));
             return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Type(NamedTypeNode objectType)
         {
-
+            Types = Types.Add(new TypeReference(objectType));
+            return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.ResolveAbstractType(
@@ -94,10 +93,6 @@ namespace HotChocolate.Types
             ResolveAbstractType = resolveAbstractType;
             return this;
         }
-
-
-
-
 
         #endregion
     }
