@@ -1,7 +1,8 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate
 {
     public class SchemaError
     {

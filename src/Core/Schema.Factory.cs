@@ -118,9 +118,10 @@ namespace HotChocolate
                 SchemaConfiguration configuration = new SchemaConfiguration(
                     context.ServiceManager);
                 configure(configuration);
-                errors.AddRange(configuration.RegisterTypes(context));
-                configuration.RegisterResolvers(context);
-                errors.AddRange(context.CompleteTypes());
+
+                TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+                typeFinalizer.FinalizeTypes(context);
+
                 return new ReadOnlySchemaOptions(configuration.Options);
             }
             catch (Exception ex)

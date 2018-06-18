@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,8 +8,20 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal partial class SchemaConfiguration
+    internal class ResolverRegistrar
     {
+        private readonly List<ResolverBindingInfo> _resolverBindings;
+
+        public ResolverRegistrar(IEnumerable<ResolverBindingInfo> resolverBindings)
+        {
+            if (resolverBindings == null)
+            {
+                throw new ArgumentNullException(nameof(resolverBindings));
+            }
+
+            _resolverBindings = new List<ResolverBindingInfo>(resolverBindings);
+        }
+
         internal void RegisterResolvers(ISchemaContext schemaContext)
         {
             if (schemaContext == null)

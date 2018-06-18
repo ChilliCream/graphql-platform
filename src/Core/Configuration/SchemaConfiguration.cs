@@ -29,6 +29,12 @@ namespace HotChocolate.Configuration
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
+        internal IReadOnlyCollection<INamedType> Types => _types.Values;
+
+        internal IReadOnlyCollection<TypeBindingInfo> TypeBindings => _typeBindings;
+
+        internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings => _resolverBindings;
+
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {
             _serviceManager.RegisterServiceProvider(serviceProvider);
