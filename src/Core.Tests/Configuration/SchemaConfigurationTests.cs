@@ -32,9 +32,9 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(new ServiceManager());
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -72,9 +72,9 @@ namespace HotChocolate.Configuration
                 .Resolve(t => t.A)
                 .With(t => t.GetA(default, default));
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.True(hasErrors);
@@ -113,9 +113,9 @@ namespace HotChocolate.Configuration
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
                 .Resolve("bar").With(t => t.GetFooBar(default));
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -149,9 +149,9 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
             configuration.BindType<TestObjectB>().To("Dummy");
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -185,9 +185,9 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
             configuration.BindType<TestObjectB>().To("Dummy");
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
