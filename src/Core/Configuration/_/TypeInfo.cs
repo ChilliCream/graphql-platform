@@ -1,7 +1,8 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Configuration
 {
     internal readonly struct TypeInfo
     {

@@ -3,98 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Configuration
 {
     internal class _TypeInspector
     {
-        private Dictionary<Type, TypeInfo> _typeInfoCache = new Dictionary<Type, TypeInfo>
-        {
-            { typeof(string), new TypeInfo(typeof(StringType)) },
-            { typeof(Task<string>), new TypeInfo(typeof(StringType)) },
-            { typeof(int), new TypeInfo(typeof(IntType),
-                t => new NonNullType(new IntType())) },
-            { typeof(int?), new TypeInfo(typeof(IntType)) },
-            { typeof(Task<int>), new TypeInfo(typeof(IntType),
-                t => new NonNullType(new IntType())) },
-            { typeof(Task<int?>), new TypeInfo(typeof(IntType)) },
-            { typeof(bool), new TypeInfo(typeof(BooleanType),
-                t => new NonNullType(new BooleanType())) },
-            { typeof(bool?), new TypeInfo(typeof(BooleanType)) },
-
-            { typeof(Task<bool>), new TypeInfo(typeof(BooleanType),
-                t => new NonNullType(new BooleanType())) },
-            { typeof(Task<bool?>), new TypeInfo(typeof(BooleanType)) }
-        };
-
-        public bool IsSupported(Type nativeType)
-        {
-            try
-            {
-                TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
-                return typeInfo.NativeNamedType != null;
-            }
-            catch (NotSupportedException)
-            {
-                return false;
-            }
-        }
+        private readonly Dictionary<Type, TypeInfo> _typeInfoCache
+            = new Dictionary<Type, TypeInfo>();
 
         public TypeInfo CreateTypeInfo(Type nativeType)
         {
             return GetOrCreateTypeInfo(nativeType);
         }
 
-        public Type ExtractNamedType(Type nativeType)
+        public TypeInfo GetOrCreateTypeInfo(Type nativeType)
         {
-            TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
-            return typeInfo.NativeNamedType;
-        }
-
-        public IOutputType CreateOutputType(
-            ITypeRegistry typeRegistry, Type nativeType)
-        {
-            TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-            if (type.IsOutputType())
+            if (!_typeInfoCache.TryGetValue(nativeType, out TypeInfo typeInfo))
             {
-                return (IOutputType)type;
-            }
-
-            throw new ArgumentException(
-                "The specified type is not an output type.",
-                nameof(nativeType));
-        }
-
-        public IInputType CreateInputType(
-            ITypeRegistry typeRegistry, Type nativeType)
-        {
-            TypeInfo typeInfo = GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-            if (type.IsInputType())
-            {
-                return (IInputType)type;
-            }
-
-            throw new ArgumentException(
-                "The specified type is not an input type.",
-                nameof(nativeType));
-        }
-
-        private TypeInfo GetOrCreateTypeInfo(Type nativeType)
-        {
-            lock (_typeInfoCache)
-            {
-                if (!_typeInfoCache.TryGetValue(nativeType, out TypeInfo typeInfo))
+                lock (_typeInfoCache)
                 {
-                    if (typeof(IType).IsAssignableFrom(nativeType))
+                    if (!_typeInfoCache.TryGetValue(nativeType, out typeInfo))
                     {
-                        typeInfo = CreateTypeInfoInternal(nativeType);
-                        _typeInfoCache[nativeType] = typeInfo;
+                        if (typeof(IType).IsAssignableFrom(nativeType))
+                        {
+                            typeInfo = CreateTypeInfoInternal(nativeType);
+                            _typeInfoCache[nativeType] = typeInfo;
+                        }
                     }
                 }
-                return typeInfo;
             }
+            return typeInfo;
         }
 
         private static TypeInfo CreateTypeInfoInternal(Type nativeType)

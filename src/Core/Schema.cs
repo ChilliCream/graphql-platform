@@ -19,12 +19,6 @@ namespace HotChocolate
     public partial class Schema
         : IServiceProvider
     {
-        private readonly Directive[] _directives = new Directive[]
-        {
-            new IncludeDirective(),
-            new SkipDirective()
-        };
-
         private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
         private readonly IntrospectionFields _introspectionFields;

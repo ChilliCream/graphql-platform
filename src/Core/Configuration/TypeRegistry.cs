@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -70,6 +71,34 @@ namespace HotChocolate.Configuration
                     RegisterType(namedType);
                 }
             }
+        }
+
+        public void RegisterType(ITypeNode type)
+        {
+
+        }
+
+         private string ExtractTypeName(ITypeNode typeNode)
+        {
+            ITypeNode current = typeNode;
+            for (int i = 0; i < 4; i++)
+            {
+                if (current.Kind == NodeKind.NonNullType)
+                {
+                    current = ((NonNullTypeNode)current).Type;
+                }
+
+                if (current.Kind == NodeKind.ListType)
+                {
+                    current = ((ListTypeNode)current).Type;
+                }
+
+                if (current.Kind == NodeKind.NamedType)
+                {
+                    return ((NamedTypeNode)current).Name.Value;
+                }
+            }
+            return null;
         }
 
         public T GetType<T>(string typeName) where T : IType
