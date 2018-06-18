@@ -9,7 +9,7 @@ namespace HotChocolate.Configuration
     internal interface ITypeRegistry
     {
         void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
-        void RegisterType(Type nativeNamedType);
+        void RegisterType(Type nativeType);
         void RegisterType(ITypeNode type);
 
         T GetType<T>(string typeName) where T : IType;

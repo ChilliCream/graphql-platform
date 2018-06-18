@@ -49,16 +49,10 @@ namespace HotChocolate.Execution
             object result = null;
             bool nextHandlerIsRaised = false;
 
-            EnumType enumType = new EnumType(new EnumTypeConfig
+            EnumType enumType = new EnumType(d =>
             {
-                Name = "Foo",
-                Values = new List<EnumValueConfig>
-                {
-                    new EnumValueConfig
-                    {
-                        Value = "ABC"
-                    }
-                }
+                d.Name("Foo");
+                d.Item("ABC");
             });
 
             Mock<IFieldValueCompletionContext> context =

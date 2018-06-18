@@ -27,7 +27,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<NonNullType>(type);
@@ -50,7 +51,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<ListType>(type);
@@ -71,7 +73,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<NonNullType>(type);
@@ -92,7 +95,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<NonNullType>(type);
@@ -111,7 +115,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<ListType>(type);
@@ -130,7 +135,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<StringType>(type);
@@ -147,7 +153,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<StringType>(type);
@@ -164,7 +171,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<NonNullType>(type);
@@ -182,7 +190,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<IntType>(type);
@@ -199,7 +208,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<NonNullType>(type);
@@ -217,7 +227,8 @@ namespace HotChocolate.Types
 
             // act
             TypeInspector typeInspector = new TypeInspector();
-            IOutputType type = typeInspector.CreateOutputType(typeRegistry, nativeType);
+            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
+            IType type = typeInfo.TypeFactory(typeRegistry);
 
             // assert
             Assert.IsType<BooleanType>(type);

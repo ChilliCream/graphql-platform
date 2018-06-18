@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,9 +10,10 @@ namespace HotChocolate.Configuration
     internal class TypeRegistry
         : ITypeRegistry
     {
-        private Dictionary<string, INamedType> _namedTypes = new Dictionary<string, INamedType>();
-        private Dictionary<string, ITypeBinding> _typeBindings = new Dictionary<string, ITypeBinding>();
-        private Dictionary<Type, INamedType> _typesToNamedTypes = new Dictionary<Type, INamedType>();
+        private readonly Dictionary<string, INamedType> _namedTypes = new Dictionary<string, INamedType>();
+        private readonly Dictionary<string, ITypeBinding> _typeBindings = new Dictionary<string, ITypeBinding>();
+        private readonly Dictionary<Type, INamedType> _typesToNamedTypes = new Dictionary<Type, INamedType>();
+        private readonly List<Type> _nativeTypes = new List<Type>();
         private readonly IServiceProvider _serviceProvider;
 
         public TypeRegistry(IServiceProvider serviceProvider)
@@ -48,13 +50,50 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void RegisterType(Type nativeNamedType)
+        public void RegisterType(Type type)
         {
-            if (nativeNamedType == null)
+            if (type == null)
             {
-                throw new ArgumentNullException(nameof(nativeNamedType));
+                throw new ArgumentNullException(nameof(type));
             }
 
+            if (TryExtractNativeType(type, out Type nativeType))
+            {
+                _nativeTypes.Add(nativeType);
+            }
+            else if (typeof(IType).IsAssignableFrom(type))
+            {
+                TypeInfo typeInfo = TypeInspector.Default.GetOrCreateTypeInfo(type);
+                RegisterNamedType(typeInfo.NativeNamedType);
+            }
+        }
+
+        private bool TryExtractNativeType(Type type, out Type nativeType)
+        {
+            if (type.IsGenericType
+                && typeof(NativeType<>) == type.GetGenericTypeDefinition())
+            {
+                nativeType = type.GetGenericArguments().First();
+                return true;
+            }
+            else if (!typeof(IType).IsAssignableFrom(type))
+            {
+                nativeType = type;
+                return true;
+            }
+
+            nativeType = null;
+            return false;
+        }
+
+        private void RegisterNativeTypeDependency(Type nativeType)
+        {
+            Type type = nativeType.GetGenericArguments().First();
+            _nativeTypes.Add(type);
+        }
+
+        private void RegisterNamedType(Type nativeNamedType)
+        {
             if (BaseTypes.IsNonGenericBaseType(nativeNamedType))
             {
                 throw new ArgumentException(
@@ -78,7 +117,7 @@ namespace HotChocolate.Configuration
 
         }
 
-         private string ExtractTypeName(ITypeNode typeNode)
+        private string ExtractTypeName(ITypeNode typeNode)
         {
             ITypeNode current = typeNode;
             for (int i = 0; i < 4; i++)

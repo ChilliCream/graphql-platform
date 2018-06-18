@@ -19,26 +19,13 @@ namespace HotChocolate.Configuration
             ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
 
-            StringType stringType = new StringType();
-            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
+            ObjectType dummyType = new ObjectType(d =>
             {
-                Name = "TestObjectA",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name= "a", Type =
-                        t => stringType
-                    }),
-                    new Field(new FieldConfig
-                    {
-                        Name= "b",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("TestObjectA");
+                d.Field("a").Type<StringType>();
+                d.Field("b").Type<StringType>();
             });
 
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(dummyType);
 
             // act
@@ -68,22 +55,13 @@ namespace HotChocolate.Configuration
 
             SchemaContext schemaContext = new SchemaContext(new ServiceManager());
 
-            StringType stringType = new StringType();
-            InputField[] arguments = new[]
+            ObjectType dummyType = new ObjectType(d =>
             {
-                new InputField(new InputFieldConfig { Name = "a", Type = t => stringType })
-            };
-            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
-            {
-                Name = "TestObjectA",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig{ Name= "a", Type = t => stringType, Arguments = arguments}),
-                    new Field(new FieldConfig{ Name= "b", Type = t => stringType})
-                }
+                d.Name("TestObjectA");
+                d.Field("a").Type<StringType>().Argument("a", a => a.Type<StringType>());
+                d.Field("b").Type<StringType>();
             });
 
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(dummyType);
 
             // act
@@ -119,24 +97,14 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            StringType stringType = new StringType();
-
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar").Type<StringType>();
             });
 
             ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
@@ -167,24 +135,14 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            StringType stringType = new StringType();
-
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar").Type<StringType>();
             });
 
             ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
@@ -213,23 +171,14 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            ScalarType stringType = new StringType();
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar2",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar2").Type<StringType>();
             });
 
             ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act

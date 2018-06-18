@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal class _TypeInspector
+    internal class TypeInspector
     {
         private readonly Dictionary<Type, TypeInfo> _typeInfoCache
             = new Dictionary<Type, TypeInfo>();
