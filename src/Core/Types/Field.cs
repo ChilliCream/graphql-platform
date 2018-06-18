@@ -18,6 +18,39 @@ namespace HotChocolate.Types
         private TypeReference _typeReference;
         private FieldResolverDelegate _resolver;
 
+        internal Field(string name, Action<IFieldDescriptor> configure)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "A field name must not be null or empty.",
+                    nameof(name));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            FieldDescriptor descriptor = new FieldDescriptor(null, name);
+            configure(descriptor);
+
+            foreach (InputField argument in descriptor.GetArguments()
+                .Select(t => new InputField(t)))
+            {
+                _argumentMap[argument.Name] = argument;
+            }
+
+            _member = descriptor.Member;
+            _typeReference = descriptor.TypeReference;
+
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            DeprecationReason = descriptor.DeprecationReason;
+            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
+        }
+
         internal Field(FieldDescriptor descriptor)
         {
             if (descriptor == null)
