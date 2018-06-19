@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using HotChocolate;
@@ -128,20 +128,20 @@ namespace HotChocolate.Types
             Assert.IsType<StringType>(type);
         }
 
-        [Fact]
-        public void NotSupportedCases()
+        [InlineData(typeof(string))]
+        [InlineData(typeof(NativeType<StringType>))]
+        [InlineData(typeof(NativeType<string>))]
+        [Theory]
+        public void NotSupportedCases(Type nativeType)
         {
             // arrange
             NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
-            Type nativeType = typeof(NativeType<StringType>);
 
             // act
             bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
-            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
-            Assert.True(success);
-            Assert.IsType<StringType>(type);
+            Assert.False(success);
         }
     }
 }

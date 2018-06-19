@@ -10,14 +10,18 @@ namespace HotChocolate.Configuration
     {
         public bool TryCreate(Type type, out TypeInfo typeInfo)
         {
-            List<Type> components = DecomposeType(type);
-
-            if (TryCreate4ComponentType(components, out typeInfo)
-                || TryCreate3ComponentType(components, out typeInfo)
-                || TryCreate2ComponentType(components, out typeInfo)
-                || TryCreate1ComponentType(components, out typeInfo))
+            if (CanHandle(type))
             {
-                return true;
+                List<Type> components = DecomposeType(type);
+
+                if (components.Any()
+                    && (TryCreate4ComponentType(components, out typeInfo)
+                    || TryCreate3ComponentType(components, out typeInfo)
+                    || TryCreate2ComponentType(components, out typeInfo)
+                    || TryCreate1ComponentType(components, out typeInfo)))
+                {
+                    return true;
+                }
             }
 
             typeInfo = default;
@@ -35,7 +39,23 @@ namespace HotChocolate.Configuration
                 current = GetInnerType(current);
             } while (current != null && components.Count < 4);
 
-            return components;
+            if (IsTypeStackValid(components))
+            {
+                return components;
+            }
+            return new List<Type>();
+        }
+
+        private static bool IsTypeStackValid(List<Type> components)
+        {
+            foreach (Type type in components)
+            {
+                if (!CanHandle(type))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static bool TryCreate4ComponentType(
@@ -152,6 +172,19 @@ namespace HotChocolate.Configuration
         private static bool IsNamedType(Type type)
         {
             return typeof(INamedType).IsAssignableFrom(type);
+        }
+
+        private static bool CanHandle(Type type)
+        {
+            return typeof(ScalarType).IsAssignableFrom(type)
+                || typeof(ObjectType).IsAssignableFrom(type)
+                || typeof(InterfaceType).IsAssignableFrom(type)
+                || typeof(EnumType).IsAssignableFrom(type)
+                || typeof(UnionType).IsAssignableFrom(type)
+                || typeof(InputObjectType).IsAssignableFrom(type)
+                || type.IsGenericType
+                    && (typeof(ListType<>) == type.GetGenericTypeDefinition()
+                    || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
         }
     }
 }
