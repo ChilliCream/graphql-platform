@@ -5,8 +5,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal partial class TypeRegistry2
-        : ITypeRegistry2
+    internal partial class TypeRegistry
+        : ITypeRegistry
     {
         public void RegisterType(INamedType namedType,
             ITypeBinding typeBinding = null)
@@ -29,7 +29,10 @@ namespace HotChocolate.Configuration
 
             if (typeReference.IsNativeTypeReference())
             {
-                RegisterNativeType(typeReference.NativeType);
+                if (!BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
+                {
+                    RegisterNativeType(typeReference.NativeType);
+                }
             }
         }
 
@@ -43,7 +46,10 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    _nativeTypes.Add(type, null);
+                    if (!_nativeTypes.ContainsKey(type))
+                    {
+                        _nativeTypes.Add(type, new List<INamedType>());
+                    }
                 }
             }
         }

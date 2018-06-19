@@ -16,7 +16,6 @@ namespace HotChocolate.Types
             new Dictionary<string, InputField>();
         private MemberInfo _member;
         private TypeReference _typeReference;
-        private FieldResolverDelegate _resolver;
 
         internal Field(string name, Action<IFieldDescriptor> configure)
         {
@@ -32,23 +31,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            FieldDescriptor descriptor = new FieldDescriptor(null, name);
-            configure(descriptor);
-
-            foreach (InputField argument in descriptor.GetArguments()
-                .Select(t => new InputField(t)))
-            {
-                _argumentMap[argument.Name] = argument;
-            }
-
-            _member = descriptor.Member;
-            _typeReference = descriptor.TypeReference;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DeprecationReason = descriptor.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
+            Initialize(name, configure);
         }
 
         internal Field(FieldDescriptor descriptor)
@@ -58,6 +41,44 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            Initialize(descriptor);
+        }
+
+        public FieldDefinitionNode SyntaxNode { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string Description { get; private set; }
+
+        public bool IsDeprecated { get; private set; }
+
+        public string DeprecationReason { get; private set; }
+
+        public IOutputType Type { get; private set; }
+
+        public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
+
+        public FieldResolverDelegate Resolver { get; private set; }
+
+        #region TypeSystemNode
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
+            => _argumentMap.Values;
+
+        #endregion
+
+        #region Initialization
+
+        private void Initialize(string name, Action<IFieldDescriptor> configure)
+        {
+            FieldDescriptor descriptor = new FieldDescriptor(null, name);
+            configure(descriptor);
+            Initialize(descriptor);
+        }
+
+        private void Initialize(FieldDescriptor descriptor)
+        {
             if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
@@ -79,33 +100,8 @@ namespace HotChocolate.Types
             Description = descriptor.Description;
             DeprecationReason = descriptor.DeprecationReason;
             IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
+            Resolver = descriptor.Resolver;
         }
-
-        public FieldDefinitionNode SyntaxNode { get; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public bool IsDeprecated { get; }
-
-        public string DeprecationReason { get; }
-
-        public IOutputType Type { get; private set; }
-
-        public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
-
-        public FieldResolverDelegate Resolver => _resolver;
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-            => _argumentMap.Values;
-
-        #endregion
-
-        #region Initialization
 
         internal void RegisterDependencies(
             ISchemaContext schemaContext,
@@ -169,10 +165,10 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (parentType is ObjectType ot)
+            if (parentType is ObjectType ot && Resolver == null)
             {
-                _resolver = resolverRegistry.GetResolver(parentType.Name, Name);
-                if (_resolver == null)
+                Resolver = resolverRegistry.GetResolver(parentType.Name, Name);
+                if (Resolver == null)
                 {
                     reportError(new SchemaError(
                         $"The field `{parentType.Name}.{Name}` " +

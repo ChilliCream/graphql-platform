@@ -186,7 +186,12 @@ namespace HotChocolate.Execution
 
         private Schema CreateSchema()
         {
-            return Schema.Create(c => c.RegisterQueryType<QueryType>());
+
+            return Schema.Create(c =>
+            {
+                c.Options.StrictValidation = true;
+                c.RegisterQueryType<QueryType>();
+            });
         }
 
         public class QueryType

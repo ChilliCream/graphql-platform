@@ -4,8 +4,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal partial class TypeRegistry2
-        : ITypeRegistry2
+    internal partial class TypeRegistry
+        : ITypeRegistry
     {
         public bool TryGetTypeBinding<T>(string typeName, out T typeBinding)
             where T : ITypeBinding
@@ -43,7 +43,5 @@ namespace HotChocolate.Configuration
         {
             return _typeBindings.Values;
         }
-
-
     }
 }

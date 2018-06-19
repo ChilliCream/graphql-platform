@@ -5,8 +5,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal partial class TypeRegistry2
-        : ITypeRegistry2
+    internal partial class TypeRegistry
+        : ITypeRegistry
     {
         public T GetType<T>(string typeName)
             where T : IType
@@ -72,13 +72,47 @@ namespace HotChocolate.Configuration
         {
             if (_typeInspector.TryCreate(nativeType, out TypeInfo typeInfo))
             {
-                if (_dotnetTypeToSchemaType.TryGetValue(
-                    typeInfo.NativeNamedType, out INamedType namedType)
-                    || (_nativeTypes.TryGetValue(nativeType, out namedType)
-                        && namedType != null))
+                return TryGetTypeFromNativeNamedType(typeInfo, out type)
+                    || TryGetTypeFromNativeTypeBinding(typeInfo, out type);
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryGetTypeFromNativeNamedType<T>(TypeInfo typeInfo, out T type)
+        {
+            if (_dotnetTypeToSchemaType.TryGetValue(
+                typeInfo.NativeNamedType, out INamedType namedType))
+            {
+                IType internalType = typeInfo.TypeFactory(namedType);
+                if (internalType is T t)
+                {
+                    type = t;
+                    return true;
+                }
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryGetTypeFromNativeTypeBinding<T>(TypeInfo typeInfo, out T type)
+        {
+            if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType, out List<INamedType> namedTypes))
+            {
+                foreach (INamedType namedType in namedTypes)
                 {
                     IType internalType = typeInfo.TypeFactory(namedType);
-                    if (internalType is T t)
+                    if (typeof(T) == typeof(IInputType))
+                    {
+
+                    }
+                    else if (typeof(T) == typeof(IOutputType))
+                    {
+
+                    }
+                    else if (internalType is T t)
                     {
                         type = t;
                         return true;

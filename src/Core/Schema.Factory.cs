@@ -138,20 +138,20 @@ namespace HotChocolate
             SchemaContext context = new SchemaContext(new ServiceManager());
 
             // create context with system types
-            context.Types.RegisterType(typeof(StringType));
-            context.Types.RegisterType(typeof(BooleanType));
-            context.Types.RegisterType(typeof(IntType));
-            context.Types.RegisterType(typeof(FloatType));
+            context.Types.RegisterType(new TypeReference(typeof(StringType)));
+            context.Types.RegisterType(new TypeReference(typeof(BooleanType)));
+            context.Types.RegisterType(new TypeReference(typeof(IntType)));
+            context.Types.RegisterType(new TypeReference(typeof(FloatType)));
 
             // register introspection types
-            context.Types.RegisterType(typeof(__Directive));
-            context.Types.RegisterType(typeof(__DirectiveLocation));
-            context.Types.RegisterType(typeof(__EnumValue));
-            context.Types.RegisterType(typeof(__Field));
-            context.Types.RegisterType(typeof(__InputValue));
-            context.Types.RegisterType(typeof(__Schema));
-            context.Types.RegisterType(typeof(__Type));
-            context.Types.RegisterType(typeof(__TypeKind));
+            context.Types.RegisterType(new TypeReference(typeof(__Directive)));
+            context.Types.RegisterType(new TypeReference(typeof(__DirectiveLocation)));
+            context.Types.RegisterType(new TypeReference(typeof(__EnumValue)));
+            context.Types.RegisterType(new TypeReference(typeof(__Field)));
+            context.Types.RegisterType(new TypeReference(typeof(__InputValue)));
+            context.Types.RegisterType(new TypeReference(typeof(__Schema)));
+            context.Types.RegisterType(new TypeReference(typeof(__Type)));
+            context.Types.RegisterType(new TypeReference(typeof(__TypeKind)));
 
             return context;
         }

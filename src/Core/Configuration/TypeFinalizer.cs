@@ -40,6 +40,7 @@ namespace HotChocolate.Configuration
                     _schemaConfiguration.Types));
             typeRegistrar.RegisterTypes(context);
             _errors.AddRange(typeRegistrar.Errors);
+            ((TypeRegistry)context.Types).CompleteRegistartion();
         }
 
         private void RegisterTypeBindings(ITypeRegistry typeRegistry)
