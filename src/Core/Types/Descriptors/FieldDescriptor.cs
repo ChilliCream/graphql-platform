@@ -156,7 +156,7 @@ namespace HotChocolate.Types
         IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
             if (TypeReference == null
-               && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
+                && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
             {
                 TypeReference = new TypeReference(typeof(TOutputType));
             }

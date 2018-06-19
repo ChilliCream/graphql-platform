@@ -61,7 +61,8 @@ namespace HotChocolate.Execution
             if (initialValue == null && _schema.TryGetNativeType(
                 operationType.Name, out Type nativeType))
             {
-                initialValue = _schema.GetService(nativeType);
+                initialValue = _schema.GetService(nativeType)
+                    ?? Activator.CreateInstance(nativeType);
             }
 
             VariableCollection variables = new VariableCollection(

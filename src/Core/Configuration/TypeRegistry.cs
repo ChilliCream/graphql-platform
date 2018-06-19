@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
         {
             lock (_sync)
             {
-                if (_sealed)
+                if (!_sealed)
                 {
                     CreateNativeTypeLookup();
                     _sealed = true;

@@ -95,11 +95,17 @@ namespace HotChocolate.Internal
         public static bool IsNativeTypeWrapper<T>()
         {
             Type type = typeof(T);
-            if (type.IsGenericType)
+            if (BaseTypes.IsBaseType(type))
             {
-                return (typeof(NativeType<>) == typeof(T).GetGenericTypeDefinition());
+                return false;
             }
-            return false;
+            else if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                return typeDefinition != typeof(ListType<>)
+                   && typeDefinition != typeof(NonNullType<>);
+            }
+            return true;
         }
 
         public static bool IsNativeTypeWrapper(Type type)

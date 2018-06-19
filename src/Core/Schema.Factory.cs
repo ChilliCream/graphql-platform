@@ -121,6 +121,7 @@ namespace HotChocolate
 
                 TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
                 typeFinalizer.FinalizeTypes(context);
+                errors.AddRange(typeFinalizer.Errors);
 
                 return new ReadOnlySchemaOptions(configuration.Options);
             }

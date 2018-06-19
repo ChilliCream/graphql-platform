@@ -146,7 +146,6 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-
             if (_typeReference != null)
             {
                 Type = typeRegistry.GetType<IOutputType>(_typeReference);

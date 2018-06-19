@@ -16,8 +16,11 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            TryUpdateNamedType(namedType);
-            UpdateTypeBinding(namedType.Name, typeBinding);
+            if (!_sealed)
+            {
+                TryUpdateNamedType(namedType);
+                UpdateTypeBinding(namedType.Name, typeBinding);
+            }
         }
 
         public void RegisterType(TypeReference typeReference)
@@ -27,11 +30,14 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (typeReference.IsNativeTypeReference())
+            if (!_sealed)
             {
-                if (!BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
+                if (typeReference.IsNativeTypeReference())
                 {
-                    RegisterNativeType(typeReference.NativeType);
+                    if (!BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
+                    {
+                        RegisterNativeType(typeReference.NativeType);
+                    }
                 }
             }
         }

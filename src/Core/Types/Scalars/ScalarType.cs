@@ -4,9 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public abstract class ScalarType
-        : INamedType
-        , IOutputType
-        , IInputType
+        : INamedOutputType
+        , INamedInputType
         , INullableType
         , ISerializableType
     // TODO : ITypeSystemNode

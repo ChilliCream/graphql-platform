@@ -8,8 +8,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : INamedType
-        , IInputType
+        : INamedInputType
         , INullableType
         , ITypeSystemNode
         , INeedsInitialization

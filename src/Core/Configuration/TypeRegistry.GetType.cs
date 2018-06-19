@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -101,18 +102,17 @@ namespace HotChocolate.Configuration
         {
             if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType, out List<INamedType> namedTypes))
             {
+                if (typeof(T) == typeof(IInputType) || typeof(T) == typeof(IOutputType))
+                {
+                    type = namedTypes.OfType<T>().FirstOrDefault();
+                    type = (T)typeInfo.TypeFactory((INamedType)type);
+                    return true;
+                }
+
                 foreach (INamedType namedType in namedTypes)
                 {
                     IType internalType = typeInfo.TypeFactory(namedType);
-                    if (typeof(T) == typeof(IInputType))
-                    {
-
-                    }
-                    else if (typeof(T) == typeof(IOutputType))
-                    {
-
-                    }
-                    else if (internalType is T t)
+                    if (internalType is T t)
                     {
                         type = t;
                         return true;

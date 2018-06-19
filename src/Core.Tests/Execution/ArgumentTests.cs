@@ -17,6 +17,8 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = Schema.Create(c =>
             {
+                c.Options.StrictValidation = true;
+
                 c.RegisterQueryType(new ObjectType<Query>(d =>
                 {
                     d.BindFields(BindingBehavior.Explicit);
