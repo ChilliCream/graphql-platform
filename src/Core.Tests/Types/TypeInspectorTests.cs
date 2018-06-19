@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -14,23 +12,21 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class TypeInspectorTests
+    public class NamedTypeInfoFactoryTests
     {
         [Fact]
         public void Case4()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<NonNullType>(type);
             type = ((NonNullType)type).Type as IOutputType;
             Assert.IsType<ListType>(type);
@@ -44,17 +40,15 @@ namespace HotChocolate.Types
         public void Case3_1()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(ListType<NonNullType<StringType>>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<ListType>(type);
             type = ((ListType)type).ElementType as IOutputType;
             Assert.IsType<NonNullType>(type);
@@ -66,17 +60,15 @@ namespace HotChocolate.Types
         public void Case3_2()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<ListType<StringType>>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<NonNullType>(type);
             type = ((NonNullType)type).Type as IOutputType;
             Assert.IsType<ListType>(type);
@@ -88,17 +80,15 @@ namespace HotChocolate.Types
         public void Case2_1()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<StringType>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<NonNullType>(type);
             type = ((NonNullType)type).Type as IOutputType;
             Assert.IsType<StringType>(type);
@@ -108,17 +98,15 @@ namespace HotChocolate.Types
         public void Case2_2()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(ListType<StringType>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<ListType>(type);
             type = ((ListType)type).ElementType as IOutputType;
             Assert.IsType<StringType>(type);
@@ -128,110 +116,32 @@ namespace HotChocolate.Types
         public void Case1()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(StringType);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<StringType>(type);
         }
 
         [Fact]
-        public void DotNetStringType()
+        public void NotSupportedCases()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(StringType));
-            Type nativeType = typeof(string);
+            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            Type nativeType = typeof(NativeType<StringType>);
 
             // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            IType type = typeInfo.TypeFactory(new StringType());
 
             // assert
+            Assert.True(success);
             Assert.IsType<StringType>(type);
-        }
-
-        [Fact]
-        public void DotNetIntType()
-        {
-            // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(IntType));
-            Type nativeType = typeof(int);
-
-            // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-
-            // assert
-            Assert.IsType<NonNullType>(type);
-            Assert.IsType<IntType>(((NonNullType)type).Type);
-        }
-
-        [Fact]
-        public void DotNetNullableIntType()
-        {
-            // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(IntType));
-            Type nativeType = typeof(int?);
-
-            // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-
-            // assert
-            Assert.IsType<IntType>(type);
-        }
-
-        [Fact]
-        public void DotNetBoolType()
-        {
-            // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(BooleanType));
-            Type nativeType = typeof(bool);
-
-            // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-
-            // assert
-            Assert.IsType<NonNullType>(type);
-            Assert.IsType<BooleanType>(((NonNullType)type).Type);
-        }
-
-        [Fact]
-        public void DotNetNullableBoolType()
-        {
-            // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            TypeRegistry typeRegistry = new TypeRegistry(serviceManager);
-            typeRegistry.RegisterType(typeof(BooleanType));
-            Type nativeType = typeof(bool?);
-
-            // act
-            TypeInspector typeInspector = new TypeInspector();
-            TypeInfo typeInfo = typeInspector.GetOrCreateTypeInfo(nativeType);
-            IType type = typeInfo.TypeFactory(typeRegistry);
-
-            // assert
-            Assert.IsType<BooleanType>(type);
         }
     }
 }

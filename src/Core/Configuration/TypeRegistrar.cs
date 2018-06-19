@@ -12,8 +12,8 @@ namespace HotChocolate.Configuration
     internal class TypeRegistrar
     {
         private readonly Queue<INamedType> _queue;
-        private readonly HashSet<string> _registered;
-        private readonly List<SchemaError> _errors;
+        private readonly HashSet<string> _registered = new HashSet<string>();
+        private readonly List<SchemaError> _errors = new List<SchemaError>();
 
         public TypeRegistrar(IEnumerable<INamedType> types)
         {
