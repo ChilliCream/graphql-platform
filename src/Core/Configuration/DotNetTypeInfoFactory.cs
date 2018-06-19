@@ -57,16 +57,16 @@ namespace HotChocolate.Configuration
             if (components.Count == 2)
             {
                 if (IsListType(components[0])
-                    && IsPossibleNamedType(components[1]))
+                    && components[1].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
+                    typeInfo = new TypeInfo(components[1], t => new ListType(new NonNullType(t)));
                     return true;
                 }
 
                 if (IsListType(components[0])
-                    && components[1].IsValueType)
+                    && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(new NonNullType(t)));
+                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
                     return true;
                 }
 
