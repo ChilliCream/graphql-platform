@@ -7,42 +7,47 @@ using HotChocolate.Types;
 namespace HotChocolate.Configuration
 {
     internal class TypeInspector
+        : ITypeInfoFactory
     {
-        private readonly Dictionary<Type, TypeInfo> _typeInfoCache
-            = new Dictionary<Type, TypeInfo>();
-
-        public TypeInfo CreateTypeInfo(Type nativeType)
+        private static readonly ITypeInfoFactory[] _factories = new ITypeInfoFactory[]
         {
-            return GetOrCreateTypeInfo(nativeType);
-        }
+            new NamedTypeInfoFactory(),
+            new DotNetTypeInfoFactory()
+        };
 
-        public TypeInfo GetOrCreateTypeInfo(Type nativeType)
+        private ImmutableDictionary<Type, TypeInfo> _typeInfoCache
+            = ImmutableDictionary<Type, TypeInfo>.Empty;
+
+        public bool TryCreate(Type type, out TypeInfo typeInfo)
         {
-            if (!_typeInfoCache.TryGetValue(nativeType, out TypeInfo typeInfo))
+            if (!_typeInfoCache.TryGetValue(type, out typeInfo))
             {
+                if (!TryCreateInternal(type, out typeInfo))
+                {
+                    typeInfo = default;
+                    return false;
+                }
+
                 lock (_typeInfoCache)
                 {
-                    if (!_typeInfoCache.TryGetValue(nativeType, out typeInfo))
-                    {
-                        if (typeof(IType).IsAssignableFrom(nativeType))
-                        {
-                            // typeInfo = CreateTypeInfoInternal(nativeType);
-                            // _typeInfoCache[nativeType] = typeInfo;
-                        }
-                    }
+                    _typeInfoCache = _typeInfoCache.SetItem(type, typeInfo);
                 }
             }
-            return typeInfo;
+            return true;
         }
 
+        private bool TryCreateInternal(Type type, out TypeInfo typeInfo)
+        {
+            foreach (ITypeInfoFactory factory in _factories)
+            {
+                if (factory.TryCreate(type, out typeInfo))
+                {
+                    return true;
+                }
+            }
 
-
-        internal static TypeInspector Default { get; } = new TypeInspector();
-    }
-
-
-    internal interface ITypeInfoFactory
-    {
-        bool TryCreate(Type type, out TypeInfo typeInfo);
+            typeInfo = default;
+            return false;
+        }
     }
 }
