@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;

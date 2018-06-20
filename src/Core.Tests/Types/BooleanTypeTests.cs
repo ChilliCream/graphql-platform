@@ -17,7 +17,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<bool>(result);
-            Assert.Equal(true, result);
+            Assert.True((bool)result);
         }
 
         [Fact]

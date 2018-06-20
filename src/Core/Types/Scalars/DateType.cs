@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Immutable;
-using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -23,6 +21,19 @@ namespace HotChocolate.Types
         protected override string Serialize(DateTimeOffset value)
         {
             return value.ToString("yyyy-MM-dd");
+        }
+
+        protected override bool TryParseLiteral(
+            StringValueNode literal, out object obj)
+        {
+            if (DateTime.TryParse(literal.Value, out DateTime dateTime))
+            {
+                obj = dateTime;
+                return true;
+            }
+
+            obj = null;
+            return false;
         }
     }
 }

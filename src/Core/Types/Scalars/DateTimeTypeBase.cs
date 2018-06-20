@@ -30,10 +30,9 @@ namespace HotChocolate.Types
             }
 
             if (literal is StringValueNode stringLiteral
-                && DateTimeOffset.TryParse(
-                    stringLiteral.Value, out DateTimeOffset dateTime))
+                && TryParseLiteral(stringLiteral, out object obj))
             {
-                return dateTime;
+                return obj;
             }
 
             if (literal is NullValueNode)
@@ -88,6 +87,8 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "The specified value cannot be serialized by the DateTimeType.");
         }
+
+        protected abstract bool TryParseLiteral(StringValueNode literal, out object obj);
 
         protected abstract string Serialize(DateTime value);
 

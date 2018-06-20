@@ -17,6 +17,6 @@ namespace HotChocolate.Configuration
 
         public IServiceProvider Services { get; set; }
 
-        public bool StrictValidation { get; set; }
+        public bool StrictValidation { get; set; } = true;
     }
 }

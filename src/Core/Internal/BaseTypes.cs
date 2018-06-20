@@ -32,6 +32,30 @@ namespace HotChocolate.Internal
             return false;
         }
 
+        public static bool IsSchemaType<T>()
+        {
+            return IsSchemaType(typeof(T));
+        }
+
+        public static bool IsSchemaType(Type type)
+        {
+            foreach (Type baseType in _baseTypes)
+            {
+                if (baseType.IsAssignableFrom(type))
+                {
+                    return true;
+                }
+            }
+
+            if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                return typeDefinition == typeof(ListType<>) || typeDefinition == typeof(NonNullType<>);
+            }
+
+            return false;
+        }
+
         public static bool IsNonGenericBaseType(Type type)
         {
             if (_baseTypes.Contains(type))

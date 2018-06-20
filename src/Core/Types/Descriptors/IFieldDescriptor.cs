@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -26,6 +25,9 @@ namespace HotChocolate.Types
         IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
 
         IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
+
+        IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver, Type resultType);
+
     }
 
     public static class FieldDescriptorExtensions
@@ -41,8 +43,10 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, TResult> fieldResolver)
         {
-            return descriptor.Type<NativeType<TResult>>()
-                .Resolver((ctx, ct) => fieldResolver(ctx));
+            return descriptor
+                .Type<NativeType<TResult>>()
+                .Resolver((ctx, ct) => fieldResolver(ctx),
+                typeof(NativeType<TResult>));
         }
 
         public static IFieldDescriptor Resolver(
@@ -56,8 +60,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<TResult> fieldResolver)
         {
-            return descriptor.Type<NativeType<TResult>>()
-                .Resolver((ctx, ct) => fieldResolver());
+            return descriptor.Resolver((ctx, ct) => fieldResolver(),
+               typeof(NativeType<TResult>));
         }
 
         public static IFieldDescriptor Resolver(
@@ -78,8 +82,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> fieldResolver)
         {
-            return descriptor.Type<NativeType<TResult>>()
-                .Resolver((ctx, ct) => fieldResolver(ctx));
+            return descriptor.Resolver((ctx, ct) => fieldResolver(ctx),
+               typeof(NativeType<TResult>));
         }
 
         public static IFieldDescriptor Resolver(
@@ -93,8 +97,8 @@ namespace HotChocolate.Types
             this IFieldDescriptor descriptor,
             Func<Task<TResult>> fieldResolver)
         {
-            return descriptor.Type<NativeType<TResult>>()
-                .Resolver((ctx, ct) => fieldResolver());
+            return descriptor.Resolver((ctx, ct) => fieldResolver(),
+                typeof(NativeType<TResult>));
         }
     }
 }

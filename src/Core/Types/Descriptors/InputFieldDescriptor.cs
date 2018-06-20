@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -76,20 +75,13 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
         {
-            if (TypeReference == null
-                && !ReflectionUtils.IsNativeTypeWrapper<TInputType>())
-            {
-                TypeReference = new TypeReference(typeof(TInputType));
-            }
+            TypeReference = TypeReference.GetMoreSpecific(typeof(TInputType));
             return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
-            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
-            {
-                TypeReference = new TypeReference(type);
-            }
+            TypeReference = TypeReference.GetMoreSpecific(type);
             return this;
         }
 

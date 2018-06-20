@@ -7,7 +7,6 @@ namespace HotChocolate.Execution
 {
     internal class ExecutionContext
     {
-        private readonly IServiceProvider _services;
         private readonly FieldCollector _fieldCollector;
 
         public ExecutionContext(Schema schema, DocumentNode queryDocument,

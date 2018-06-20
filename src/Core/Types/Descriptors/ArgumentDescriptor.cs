@@ -64,20 +64,13 @@ namespace HotChocolate.Types
 
         IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
         {
-            if (TypeReference == null
-                && !ReflectionUtils.IsNativeTypeWrapper<TInputType>())
-            {
-                TypeReference = new TypeReference(typeof(TInputType));
-            }
+            TypeReference = TypeReference.GetMoreSpecific(typeof(TInputType));
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.Type(ITypeNode type)
         {
-            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
-            {
-                TypeReference = new TypeReference(type);
-            }
+            TypeReference = TypeReference.GetMoreSpecific(type);
             return this;
         }
 

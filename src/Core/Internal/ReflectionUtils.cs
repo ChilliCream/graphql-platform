@@ -92,27 +92,6 @@ namespace HotChocolate.Internal
             return $"{name}<{string.Join(", ", arguments)}>";
         }
 
-        public static bool IsNativeTypeWrapper<T>()
-        {
-            Type type = typeof(T);
-            if (BaseTypes.IsBaseType(type))
-            {
-                return false;
-            }
-            else if (type.IsGenericType)
-            {
-                Type typeDefinition = type.GetGenericTypeDefinition();
-                return typeDefinition != typeof(ListType<>)
-                   && typeDefinition != typeof(NonNullType<>);
-            }
-            return true;
-        }
-
-        public static bool IsNativeTypeWrapper(Type type)
-        {
-            return (typeof(NativeType<>) == type.GetGenericTypeDefinition());
-        }
-
         public static Type GetReturnType(this MemberInfo member)
         {
             if (member is PropertyInfo p)

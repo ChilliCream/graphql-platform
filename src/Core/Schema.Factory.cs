@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -85,7 +84,7 @@ namespace HotChocolate
                 context, configure, errors);
 
 
-            if (!context.Types.TryGetType<ObjectType>(
+            if (!context.Types.TryGetType(
                 options.QueryTypeName, out ObjectType ot))
             {
                 errors.Add(new SchemaError(
@@ -129,7 +128,7 @@ namespace HotChocolate
             {
                 throw new SchemaException(new[]
                 {
-                    new SchemaError(ex.Message, null, associatedException: ex)
+                    new SchemaError(ex.Message, null, ex)
                 });
             }
         }

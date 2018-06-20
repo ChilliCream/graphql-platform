@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 

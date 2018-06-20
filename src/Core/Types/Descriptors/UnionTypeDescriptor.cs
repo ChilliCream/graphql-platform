@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -16,12 +15,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(unionType));
             }
 
-            // TODO : move name resolution to utilities
             Name = unionType.GetGraphQLName();
-            if (Name == unionType.Name && Name.EndsWith("Type"))
-            {
-                Name = Name.Substring(0, Name.Length - 4);
-            }
         }
 
         public UnionTypeDefinitionNode SyntaxNode { get; protected set; }

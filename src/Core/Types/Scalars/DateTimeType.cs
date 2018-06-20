@@ -22,5 +22,18 @@ namespace HotChocolate.Types
         {
             return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
         }
+
+        protected override bool TryParseLiteral(
+            StringValueNode literal, out object obj)
+        {
+            if (DateTimeOffset.TryParse(literal.Value, out DateTimeOffset dateTime))
+            {
+                obj = dateTime;
+                return true;
+            }
+
+            obj = null;
+            return false;
+        }
     }
 }

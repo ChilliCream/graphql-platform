@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -37,7 +36,7 @@ namespace HotChocolate.Types
             Name = fieldName;
         }
 
-        public FieldDescriptor(string typeName, MemberInfo member, Type nativeType)
+        public FieldDescriptor(string typeName, MemberInfo member, Type nativeFieldType)
         {
             if (member == null)
             {
@@ -47,7 +46,7 @@ namespace HotChocolate.Types
             _typeName = typeName;
             Member = member;
             Name = member.GetGraphQLName();
-            TypeReference = new TypeReference(nativeType);
+            TypeReference = new TypeReference(nativeFieldType);
         }
 
         public FieldDefinitionNode SyntaxNode { get; protected set; }
@@ -155,20 +154,13 @@ namespace HotChocolate.Types
 
         IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
         {
-            if (TypeReference == null
-                && !ReflectionUtils.IsNativeTypeWrapper<TOutputType>())
-            {
-                TypeReference = new TypeReference(typeof(TOutputType));
-            }
+            TypeReference = TypeReference.GetMoreSpecific(typeof(TOutputType));
             return this;
         }
 
         IFieldDescriptor IFieldDescriptor.Type(ITypeNode type)
         {
-            if (TypeReference == null || !TypeReference.IsNativeTypeReference())
-            {
-                TypeReference = new TypeReference(type);
-            }
+            TypeReference = TypeReference.GetMoreSpecific(type);
             return this;
         }
 
@@ -207,7 +199,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Resolver(FieldResolverDelegate fieldResolver)
+        IFieldDescriptor IFieldDescriptor.Resolver(
+            FieldResolverDelegate fieldResolver)
         {
             if (fieldResolver == null)
             {
@@ -215,6 +208,19 @@ namespace HotChocolate.Types
             }
 
             Resolver = fieldResolver;
+            return this;
+        }
+
+        IFieldDescriptor IFieldDescriptor.Resolver(
+            FieldResolverDelegate fieldResolver, Type resultType)
+        {
+            if (fieldResolver == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolver));
+            }
+
+            Resolver = fieldResolver;
+            TypeReference = TypeReference.GetMoreSpecific(resultType);
             return this;
         }
 

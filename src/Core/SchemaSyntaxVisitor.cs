@@ -1,8 +1,6 @@
 using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Factories;
 
 namespace HotChocolate
