@@ -37,9 +37,8 @@ namespace HotChocolate.Execution
             });
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:[Int]) { a(foo:$x) { foo } }"), null,
+            QueryResult result = await schema.ExecuteAsync(
+                "query x($x:[Int]) { a(foo:$x) { foo } }", null,
                 new Dictionary<string, IValueNode> { { "x", list } },
                 null, CancellationToken.None);
 
@@ -75,9 +74,8 @@ namespace HotChocolate.Execution
             });
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:[Foo]) { a(foo:$x) { foo } }"), null,
+            QueryResult result = await schema.ExecuteAsync(
+                "query x($x:[Foo]) { a(foo:$x) { foo } }", null,
                 new Dictionary<string, IValueNode> { { "x", list } },
                 null, CancellationToken.None);
 
@@ -105,10 +103,10 @@ namespace HotChocolate.Execution
             });
 
             IntValueNode value = new IntValueNode(123);
+
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:Int) { a(foo:$x) { foo } }"), null,
+            QueryResult result = await schema.ExecuteAsync(
+                "query x($x:Int) { a(foo:$x) { foo } }", null,
                 new Dictionary<string, IValueNode> { { "x", value } },
                 null, CancellationToken.None);
 
@@ -142,9 +140,8 @@ namespace HotChocolate.Execution
             });
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(schema,
-                Parser.Default.Parse("query x($x:Foo) { a(foo:$x) { foo } }"), null,
+            QueryResult result = await schema.ExecuteAsync(
+                "query x($x:Foo) { a(foo:$x) { foo } }", null,
                 new Dictionary<string, IValueNode> { { "x", obj } },
                 null, CancellationToken.None);
 

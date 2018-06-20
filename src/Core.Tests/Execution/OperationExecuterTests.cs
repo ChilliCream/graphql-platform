@@ -19,9 +19,9 @@ namespace HotChocolate.Execution
                 }");
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
+            OperationExecuter operationExecuter = new OperationExecuter(schema);
             QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, new Dictionary<string, IValueNode>(),
+                query, null, new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
 
             // assert
@@ -55,9 +55,9 @@ namespace HotChocolate.Execution
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
+            OperationExecuter operationExecuter = new OperationExecuter(schema);
             QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

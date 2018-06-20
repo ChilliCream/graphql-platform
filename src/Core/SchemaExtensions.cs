@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -7,11 +8,9 @@ namespace HotChocolate
 {
     public static class SchemaExtensions
     {
-        private static readonly OperationExecuter _operationExecuter = new OperationExecuter();
-
         public static Task<QueryResult> ExecuteAsync(this Schema schema, string query)
         {
-            return _operationExecuter.ExecuteRequestAsync(schema,
+            return schema.OperationExecuter.ExecuteRequestAsync(
                 Parser.Default.Parse(query), null, null, null,
                 CancellationToken.None);
         }
@@ -19,9 +18,11 @@ namespace HotChocolate
         public static Task<QueryResult> ExecuteAsync(
             this Schema schema, string query,
             string operationName = null,
+            Dictionary<string, IValueNode> variableValues = null,
+            object initialValue = null,
             CancellationToken cancellationToken = default)
         {
-            return _operationExecuter.ExecuteRequestAsync(schema,
+            return schema.OperationExecuter.ExecuteRequestAsync(
                 Parser.Default.Parse(query), operationName, null, null,
                 CancellationToken.None);
         }
@@ -29,7 +30,7 @@ namespace HotChocolate
         public static QueryResult Execute(this Schema schema, string query)
         {
             return Task.Factory.StartNew(
-                () => _operationExecuter.ExecuteRequestAsync(schema,
+                () => schema.OperationExecuter.ExecuteRequestAsync(
                     Parser.Default.Parse(query), null, null, null,
                     CancellationToken.None))
                 .Unwrap()
@@ -40,10 +41,12 @@ namespace HotChocolate
         public static QueryResult Execute(
             this Schema schema, string query,
             string operationName = null,
+            Dictionary<string, IValueNode> variableValues = null,
+            object initialValue = null,
             CancellationToken cancellationToken = default)
         {
             return Task.Factory.StartNew(
-                () => _operationExecuter.ExecuteRequestAsync(schema,
+                () => schema.OperationExecuter.ExecuteRequestAsync(
                     Parser.Default.Parse(query), operationName, null, null,
                     CancellationToken.None))
                 .Unwrap()

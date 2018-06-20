@@ -10,12 +10,8 @@ namespace HotChocolate.Configuration
 
         public BindResolver(ResolverCollectionBindingInfo bindingInfo)
         {
-            if (bindingInfo == null)
-            {
-                throw new ArgumentNullException(nameof(bindingInfo));
-            }
-
-            _bindingInfo = bindingInfo;
+            _bindingInfo = bindingInfo
+                ?? throw new ArgumentNullException(nameof(bindingInfo));
         }
 
         public IBindFieldResolver<TResolver> Resolve(string fieldName)

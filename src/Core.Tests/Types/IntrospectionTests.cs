@@ -18,12 +18,11 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse("{ __typename }");
+            string query = "{ __typename }";
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -35,12 +34,11 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse("{ b { __typename } }");
+            string query = "{ b { __typename } }";
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -52,13 +50,11 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(
-                "{ __type (type: \"Foo\") { name } }");
+            string query = "{ __type (type: \"Foo\") { name } }";
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -70,13 +66,13 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(
-                "{ __type (type: \"Foo\") { name fields { name type { name } } } }");
+            string query =
+                "{ __type (type: \"Foo\") " +
+                "{ name fields { name type { name } } } }";
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);
@@ -88,14 +84,12 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(
-                FileResource.Open("IntrospectionQuery.graphql"));
+            string query =
+                FileResource.Open("IntrospectionQuery.graphql");
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter();
-            Stopwatch sw = Stopwatch.StartNew();
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(
+                query, null, null, null, CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

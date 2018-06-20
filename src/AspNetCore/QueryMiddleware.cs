@@ -34,8 +34,7 @@ namespace HotChocolate.AspNetCore
 
         public async Task Invoke(
             HttpContext context,
-            Schema schema,
-            OperationExecuter operationExecuter)
+            Schema schema)
         {
             bool handled = false;
             if (context.Request.Method.Equals(_post, StringComparison.OrdinalIgnoreCase))
@@ -44,7 +43,7 @@ namespace HotChocolate.AspNetCore
                 if (_route == null || _route.Equals(path))
                 {
                     await HandleRequestAsync(context, schema,
-                        operationExecuter, context.RequestAborted)
+                        context.RequestAborted)
                         .ConfigureAwait(false);
                     handled = true;
                 }
@@ -59,16 +58,13 @@ namespace HotChocolate.AspNetCore
         private async Task HandleRequestAsync(
             HttpContext context,
             Schema schema,
-            OperationExecuter operationExecuter,
             CancellationToken cancellationToken)
         {
             QueryRequest request = await ReadRequestAsync(context.Request)
                 .ConfigureAwait(false);
 
-            DocumentNode queryDocument = _parser.Parse(request.Query);
-
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                schema, queryDocument, request.OperationName,
+            QueryResult result = await schema.ExecuteAsync(
+                request.Query, request.OperationName,
                 DeserializeVariables(request.Variables), null,
                 CancellationToken.None).ConfigureAwait(false);
 

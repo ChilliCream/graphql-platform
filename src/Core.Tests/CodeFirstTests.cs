@@ -178,7 +178,7 @@ namespace HotChocolate
                 c.RegisterType<DrinkType>();
                 c.RegisterType<TeaType>();
                 c.RegisterType<DogType>();
-            }, true);
+            });
         }
 
         public class QueryTypeWithProperty

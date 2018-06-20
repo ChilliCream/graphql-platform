@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeImplicitly()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
 
             StringType stringType = new StringType();
@@ -42,7 +42,7 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(new ServiceManager());
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
@@ -66,8 +66,7 @@ namespace HotChocolate.Configuration
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext(new ServiceManager());
 
             StringType stringType = new StringType();
             InputField[] arguments = new[]
@@ -88,7 +87,7 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(new ServiceManager());
             configuration
                 .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
                 .To<TestObjectA>()
@@ -135,13 +134,13 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
                 .Resolve("bar").With(t => t.GetFooBar(default));
@@ -183,13 +182,13 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
             configuration.BindType<TestObjectB>().To("Dummy");
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
@@ -228,13 +227,13 @@ namespace HotChocolate.Configuration
                 }
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
             configuration.BindType<TestObjectB>().To("Dummy");
 
             bool hasErrors = configuration.RegisterTypes(schemaContext).Any();

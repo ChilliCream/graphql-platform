@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -15,6 +17,7 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public partial class Schema
+        : IServiceProvider
     {
         private readonly Directive[] _directives = new Directive[]
         {
@@ -22,17 +25,21 @@ namespace HotChocolate
             new SkipDirective()
         };
 
+        private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
         private readonly IntrospectionFields _introspectionFields;
 
         private Schema(
-            IServiceProvider services,
+            ServiceManager serviceManager,
             SchemaTypes types,
+            IReadOnlySchemaOptions options,
             IntrospectionFields introspectionFields)
         {
+            _serviceManager= serviceManager;
             _types = types;
+            Options = options;
             _introspectionFields = introspectionFields;
-            Services = services;
+            OperationExecuter = new OperationExecuter(this);
         }
 
         /// <summary>
@@ -58,7 +65,9 @@ namespace HotChocolate
 
         internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
 
-        internal IServiceProvider Services { get; }
+        internal OperationExecuter OperationExecuter { get; }
+
+        public IReadOnlySchemaOptions Options { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType
@@ -83,7 +92,7 @@ namespace HotChocolate
             return new List<Directive>();
         }
 
-        internal IReadOnlyCollection<ObjectType> GetPossibleTypes(
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType)
         {
             if (abstractType == null)
@@ -97,12 +106,28 @@ namespace HotChocolate
             {
                 return types;
             }
+
             return Array.Empty<ObjectType>();
         }
 
-        internal bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetNativeType(string typeName, out Type nativeType)
         {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
             return _types.TryGetNativeType(typeName, out nativeType);
+        }
+
+        public object GetService(Type serviceType)
+        {
+            if (serviceType == null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
+
+            return _serviceManager.GetService(serviceType);
         }
     }
 }

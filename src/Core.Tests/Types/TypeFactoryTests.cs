@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                 "Simple", "a",
                 (c, r) => "hello");
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext context = new SchemaContext(serviceManager);
             context.Types.RegisterType(scalarType);
             context.Resolvers.RegisterResolver(resolverBinding);

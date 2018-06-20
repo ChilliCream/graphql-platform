@@ -155,7 +155,7 @@ namespace HotChocolate
             public static SchemaTypes Create(
                 IEnumerable<INamedType> types,
                 IEnumerable<ITypeBinding> typeBindings,
-                SchemaNames names)
+                IReadOnlySchemaOptions options)
             {
                 if (types == null)
                 {
@@ -167,15 +167,16 @@ namespace HotChocolate
                     throw new ArgumentNullException(nameof(typeBindings));
                 }
 
-                SchemaNames n = string.IsNullOrEmpty(names.QueryTypeName)
-                    ? new SchemaNames(null, null, null)
-                    : names;
+                if (options == null)
+                {
+                    throw new ArgumentNullException(nameof(options));
+                }
 
                 return new SchemaTypes(types,
                     typeBindings,
-                    n.QueryTypeName,
-                    n.MutationTypeName,
-                    n.SubscriptionTypeName);
+                    options.QueryTypeName,
+                    options.MutationTypeName,
+                    options.SubscriptionTypeName);
             }
         }
     }

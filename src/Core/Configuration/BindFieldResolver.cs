@@ -15,18 +15,10 @@ namespace HotChocolate.Configuration
             ResolverCollectionBindingInfo bindingInfo,
             FieldResolverBindungInfo fieldBindingInfo)
         {
-            if (bindingInfo == null)
-            {
-                throw new ArgumentNullException(nameof(bindingInfo));
-            }
-
-            if (fieldBindingInfo == null)
-            {
-                throw new ArgumentNullException(nameof(fieldBindingInfo));
-            }
-
-            _bindingInfo = bindingInfo;
-            _fieldBindingInfo = fieldBindingInfo;
+            _bindingInfo = bindingInfo
+                ?? throw new ArgumentNullException(nameof(bindingInfo));
+            _fieldBindingInfo = fieldBindingInfo
+                ?? throw new ArgumentNullException(nameof(fieldBindingInfo));
         }
 
         public IBoundResolver<TResolver> With<TPropertyType>(

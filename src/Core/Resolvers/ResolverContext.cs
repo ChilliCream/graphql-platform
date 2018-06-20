@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.ValueConverters;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -111,7 +112,7 @@ namespace HotChocolate.Resolvers
 
         public T Service<T>()
         {
-            return (T)_executionContext.GetService(typeof(T));
+            return _executionContext.Schema.GetService<T>();
         }
     }
 }
