@@ -497,7 +497,7 @@ namespace HotChocolate.Language
 
             if (code.IsValidEscapeCharacter())
             {
-                return code;
+                return code.EscapeCharacter();
             }
 
             if (code == 'u')

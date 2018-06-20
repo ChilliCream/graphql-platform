@@ -107,6 +107,25 @@ namespace HotChocolate.Language
             return ref _isEscapeCharacter[c];
         }
 
+        public static char EscapeCharacter(in this char c)
+        {
+            switch (c)
+            {
+                case 'b':
+                    return '\b';
+                case 'f':
+                    return '\f';
+                case 'n':
+                    return '\n';
+                case 'r':
+                    return '\r';
+                case 't':
+                    return '\t';
+                default:
+                    return c;
+            }
+        }
+
         public static ref readonly bool IsControlCharacter(in this char c)
         {
             return ref _isControlCharacter[c];
