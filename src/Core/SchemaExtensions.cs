@@ -23,8 +23,9 @@ namespace HotChocolate
             CancellationToken cancellationToken = default)
         {
             return schema.OperationExecuter.ExecuteRequestAsync(
-                Parser.Default.Parse(query), operationName, null, null,
-                CancellationToken.None);
+                Parser.Default.Parse(query), operationName,
+                variableValues, initialValue,
+                cancellationToken);
         }
 
         public static QueryResult Execute(this Schema schema, string query)
@@ -47,8 +48,9 @@ namespace HotChocolate
         {
             return Task.Factory.StartNew(
                 () => schema.OperationExecuter.ExecuteRequestAsync(
-                    Parser.Default.Parse(query), operationName, null, null,
-                    CancellationToken.None))
+                    Parser.Default.Parse(query), operationName,
+                    variableValues, initialValue,
+                    cancellationToken))
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
