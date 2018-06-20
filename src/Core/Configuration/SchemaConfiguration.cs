@@ -13,23 +13,24 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
     {
-        private readonly Dictionary<string, INamedType> _types =
-            new Dictionary<string, INamedType>();
         private readonly List<ResolverBindingInfo> _resolverBindings =
             new List<ResolverBindingInfo>();
         private readonly List<TypeBindingInfo> _typeBindings =
             new List<TypeBindingInfo>();
-        private readonly ServiceManager _serviceManager;
+        private readonly Action<IServiceProvider> _registerServiceProvider;
+        private readonly ITypeRegistry _typeRegistry;
 
-        public SchemaConfiguration(ServiceManager serviceManager)
+        public SchemaConfiguration(
+            Action<IServiceProvider> registerServiceProvider,
+            ITypeRegistry typeRegistry)
         {
-            _serviceManager = serviceManager
-                ?? throw new ArgumentNullException(nameof(serviceManager));
+            _registerServiceProvider = registerServiceProvider
+                ?? throw new ArgumentNullException(nameof(registerServiceProvider));
+            _typeRegistry = typeRegistry
+                ?? throw new ArgumentNullException(nameof(typeRegistry));
         }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
-
-        internal IReadOnlyCollection<INamedType> Types => _types.Values;
 
         internal IReadOnlyCollection<TypeBindingInfo> TypeBindings => _typeBindings;
 
@@ -37,7 +38,7 @@ namespace HotChocolate.Configuration
 
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {
-            _serviceManager.RegisterServiceProvider(serviceProvider);
+            _registerServiceProvider(serviceProvider);
         }
     }
 }

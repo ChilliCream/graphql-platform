@@ -64,6 +64,7 @@ namespace HotChocolate.Configuration
                 {
                     _registered.Add(type.Name);
                     context.Types.RegisterType(type);
+                    type = context.Types.GetType<INamedType>(type.Name);
 
                     if (type is INeedsInitialization initializer)
                     {

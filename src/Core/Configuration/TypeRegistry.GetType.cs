@@ -84,7 +84,8 @@ namespace HotChocolate.Configuration
         private bool TryGetTypeFromNativeNamedType<T>(TypeInfo typeInfo, out T type)
         {
             if (_dotnetTypeToSchemaType.TryGetValue(
-                typeInfo.NativeNamedType, out INamedType namedType))
+                typeInfo.NativeNamedType, out string typeName)
+                && _namedTypes.TryGetValue(typeName, out INamedType namedType))
             {
                 IType internalType = typeInfo.TypeFactory(namedType);
                 if (internalType is T t)
@@ -100,8 +101,10 @@ namespace HotChocolate.Configuration
 
         private bool TryGetTypeFromNativeTypeBinding<T>(TypeInfo typeInfo, out T type)
         {
-            if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType, out List<INamedType> namedTypes))
+            if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType,
+                out HashSet<string> namedTypeNames))
             {
+                List<INamedType> namedTypes = GetNamedTypes(namedTypeNames).ToList();
                 if (typeof(T) == typeof(IInputType) || typeof(T) == typeof(IOutputType))
                 {
                     type = namedTypes.OfType<T>().FirstOrDefault();
@@ -164,6 +167,17 @@ namespace HotChocolate.Configuration
 
             type = default;
             return false;
+        }
+
+        private IEnumerable<INamedType> GetNamedTypes(IEnumerable<string> typeNames)
+        {
+            foreach (string typeName in typeNames)
+            {
+                if (_namedTypes.TryGetValue(typeName, out INamedType namedType))
+                {
+                    yield return namedType;
+                }
+            }
         }
 
         public IEnumerable<INamedType> GetTypes()

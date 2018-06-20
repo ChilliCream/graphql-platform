@@ -29,7 +29,9 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(new ServiceManager());
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
@@ -53,7 +55,8 @@ namespace HotChocolate.Configuration
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
-            SchemaContext schemaContext = new SchemaContext(new ServiceManager());
+            ServiceManager serviceManager = new ServiceManager();
+            SchemaContext schemaContext = new SchemaContext(serviceManager);
 
             ObjectType dummyType = new ObjectType(d =>
             {
@@ -65,7 +68,9 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(new ServiceManager());
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration
                 .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
                 .To<TestObjectA>()
@@ -108,7 +113,9 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
                 .Resolve("bar").With(t => t.GetFooBar(default));
@@ -146,7 +153,9 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
+            SchemaConfiguration configuration = new SchemaConfiguration(
+               serviceManager.RegisterServiceProvider,
+               schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
@@ -182,7 +191,9 @@ namespace HotChocolate.Configuration
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(serviceManager);
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);

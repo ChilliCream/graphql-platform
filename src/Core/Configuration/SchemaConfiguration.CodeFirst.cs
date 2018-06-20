@@ -51,9 +51,9 @@ namespace HotChocolate.Configuration
                     "name and attributes."));
             }
 
-            T type = _serviceManager.GetService<T>();
-            _types[type.Name] = type;
-            return type;
+            TypeReference typeReference = new TypeReference(typeof(T));
+            _typeRegistry.RegisterType(typeReference);
+            return _typeRegistry.GetType<T>(typeReference);
         }
 
         #endregion
@@ -63,25 +63,25 @@ namespace HotChocolate.Configuration
         public void RegisterType<T>(T namedType)
             where T : class, INamedType
         {
-            _types[namedType.Name] = namedType;
+            _typeRegistry.RegisterType(namedType);
         }
 
         public void RegisterQueryType<T>(T objectType) where T : ObjectType
         {
             Options.QueryTypeName = objectType.Name;
-            _types[objectType.Name] = objectType;
+            _typeRegistry.RegisterType(objectType);
         }
 
         public void RegisterMutationType<T>(T objectType) where T : ObjectType
         {
             Options.MutationTypeName = objectType.Name;
-            _types[objectType.Name] = objectType;
+            _typeRegistry.RegisterType(objectType);
         }
 
         public void RegisterSubscriptionType<T>(T objectType) where T : ObjectType
         {
             Options.SubscriptionTypeName = objectType.Name;
-            _types[objectType.Name] = objectType;
+            _typeRegistry.RegisterType(objectType);
         }
 
         #endregion

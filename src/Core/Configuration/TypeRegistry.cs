@@ -14,10 +14,10 @@ namespace HotChocolate.Configuration
             new Dictionary<string, INamedType>();
         private readonly Dictionary<string, ITypeBinding> _typeBindings =
             new Dictionary<string, ITypeBinding>();
-        private readonly Dictionary<Type, INamedType> _dotnetTypeToSchemaType =
-            new Dictionary<Type, INamedType>();
-        private readonly Dictionary<Type, List<INamedType>> _nativeTypes =
-            new Dictionary<Type, List<INamedType>>();
+        private readonly Dictionary<Type, string> _dotnetTypeToSchemaType =
+            new Dictionary<Type, string>();
+        private readonly Dictionary<Type, HashSet<string>> _nativeTypes =
+            new Dictionary<Type, HashSet<string>>();
         private readonly IServiceProvider _serviceProvider;
         private bool _sealed;
 
@@ -73,10 +73,9 @@ namespace HotChocolate.Configuration
 
         private void AddNativeTypeBinding(Type type, INamedType namedType)
         {
-            if (_nativeTypes.TryGetValue(type, out List<INamedType> types)
-                && !types.Contains(namedType))
+            if (_nativeTypes.TryGetValue(type, out HashSet<string> types))
             {
-                types.Add(namedType);
+                types.Add(namedType.Name);
             }
         }
 

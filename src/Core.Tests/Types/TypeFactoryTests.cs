@@ -73,18 +73,20 @@ namespace HotChocolate.Types
 
             ServiceManager serviceManager = new ServiceManager();
             SchemaContext context = new SchemaContext(serviceManager);
-            SchemaConfiguration schemaConfiguration = new SchemaConfiguration(serviceManager);
-            schemaConfiguration.RegisterType(new ObjectType(d =>
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                context.Types);
+            configuration.RegisterType(new ObjectType(d =>
                 d.Name("A").Field("a").Type<StringType>()));
-            schemaConfiguration.RegisterType(new ObjectType(d =>
+            configuration.RegisterType(new ObjectType(d =>
                 d.Name("B").Field("a").Type<StringType>()));
 
             // act
             UnionTypeFactory factory = new UnionTypeFactory();
             UnionType unionType = factory.Create(unionTypeDefinition);
-            schemaConfiguration.RegisterType(unionType);
+            configuration.RegisterType(unionType);
 
-            TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
             typeFinalizer.FinalizeTypes(context);
 
             // assert

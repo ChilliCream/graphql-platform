@@ -115,7 +115,8 @@ namespace HotChocolate
             {
                 // configure resolvers, custom types and type mappings.
                 SchemaConfiguration configuration = new SchemaConfiguration(
-                    context.ServiceManager);
+                    context.ServiceManager.RegisterServiceProvider,
+                    context.Types);
                 configure(configuration);
 
                 TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);

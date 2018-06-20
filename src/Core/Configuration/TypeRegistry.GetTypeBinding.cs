@@ -30,7 +30,9 @@ namespace HotChocolate.Configuration
             where T : ITypeBinding
         {
             if (_typeInspector.TryCreate(nativeNamedType, out TypeInfo typeInfo)
-                && _dotnetTypeToSchemaType.TryGetValue(typeInfo.NativeNamedType, out INamedType namedType)
+                && _dotnetTypeToSchemaType.TryGetValue(
+                        typeInfo.NativeNamedType, out string namedTypeName)
+                && _namedTypes.TryGetValue(namedTypeName, out INamedType namedType)
                 && TryGetTypeBinding(namedType, out typeBinding))
             {
                 return true;

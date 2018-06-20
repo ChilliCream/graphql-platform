@@ -36,8 +36,7 @@ namespace HotChocolate.Configuration
         private void RegisterTypes(ISchemaContext context)
         {
             TypeRegistrar typeRegistrar = new TypeRegistrar(
-                context.Types.GetTypes().Concat(
-                    _schemaConfiguration.Types));
+                context.Types.GetTypes());
             typeRegistrar.RegisterTypes(context);
             _errors.AddRange(typeRegistrar.Errors);
             ((TypeRegistry)context.Types).CompleteRegistartion();
