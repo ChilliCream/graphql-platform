@@ -57,6 +57,7 @@ namespace HotChocolate.Types
             Name = descriptor.Name;
             Description = descriptor.Description;
             DefaultValue = descriptor.DefaultValue;
+            Property = descriptor.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }

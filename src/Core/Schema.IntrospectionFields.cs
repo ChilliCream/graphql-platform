@@ -15,14 +15,14 @@ namespace HotChocolate
                 TypeField = new __TypeField();
                 TypeNameField = new __TypeNameField();
 
-                SchemaField.RegisterDependencies(context, reportError, null);
-                TypeField.RegisterDependencies(context, reportError, null);
-                TypeNameField.RegisterDependencies(context, reportError, null);
+            //    SchemaField.RegisterDependencies(context, reportError, null);
+              //  TypeField.RegisterDependencies(context, reportError, null);
+               // TypeNameField.RegisterDependencies(context, reportError, null);
 
-                ObjectType schema = context.Types.GetType<ObjectType>("__Schema");
-                SchemaField.CompleteField(context, reportError, schema);
-                TypeField.CompleteField(context, reportError, schema);
-                TypeNameField.CompleteField(context, reportError, schema);
+               // ObjectType schema = context.Types.GetType<ObjectType>("__Schema");
+               // SchemaField.CompleteField(context, reportError, schema);
+               // TypeField.CompleteField(context, reportError, schema);
+               // TypeNameField.CompleteField(context, reportError, schema);
             }
 
             internal __SchemaField SchemaField { get; }

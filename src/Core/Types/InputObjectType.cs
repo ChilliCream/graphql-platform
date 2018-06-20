@@ -189,12 +189,7 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError)
         {
             CompleteNativeType(schemaContext.Types, reportError);
-
-            if (!_fieldMap.Any())
-            {
-                reportError(new SchemaError(
-                    $"The input object `{Name}` does not have any fields."));
-            }
+            CompleteFields(schemaContext.Types, reportError);
         }
 
         private void CompleteNativeType(
@@ -217,6 +212,22 @@ namespace HotChocolate.Types
 
             _deserialize = InputObjectDeserializerFactory.Create(
                     reportError, this, _nativeType);
+        }
+
+        private void CompleteFields(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError)
+        {
+            foreach (InputField field in _fieldMap.Values)
+            {
+                field.CompleteInputField(typeRegistry, reportError, this);
+            }
+
+            if (!_fieldMap.Any())
+            {
+                reportError(new SchemaError(
+                    $"The input object `{Name}` does not have any fields."));
+            }
         }
 
         #endregion

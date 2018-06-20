@@ -145,6 +145,7 @@ namespace HotChocolate
             context.Types.RegisterType(new TypeReference(typeof(FloatType)));
 
             // register introspection types
+            /*
             context.Types.RegisterType(new TypeReference(typeof(__Directive)));
             context.Types.RegisterType(new TypeReference(typeof(__DirectiveLocation)));
             context.Types.RegisterType(new TypeReference(typeof(__EnumValue)));
@@ -153,7 +154,7 @@ namespace HotChocolate
             context.Types.RegisterType(new TypeReference(typeof(__Schema)));
             context.Types.RegisterType(new TypeReference(typeof(__Type)));
             context.Types.RegisterType(new TypeReference(typeof(__TypeKind)));
-
+ */
             return context;
         }
     }
