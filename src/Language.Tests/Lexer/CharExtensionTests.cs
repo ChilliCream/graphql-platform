@@ -555,15 +555,29 @@ namespace HotChocolate.Language
         [InlineData('"')]
         [InlineData('/')]
         [InlineData('\\')]
-        [InlineData('\b')]
-        [InlineData('\f')]
-        [InlineData('\n')]
-        [InlineData('\r')]
-        [InlineData('\t')]
+        [InlineData('b')]
+        [InlineData('f')]
+        [InlineData('n')]
+        [InlineData('r')]
+        [InlineData('t')]
         [Theory]
         public static void IsValidEscapeCharacter(char c)
         {
             Assert.True(c.IsValidEscapeCharacter());
+        }
+
+        [InlineData('"', '"')]
+        [InlineData('/', '/')]
+        [InlineData('\\', '\\')]
+        [InlineData('b', '\b')]
+        [InlineData('f', '\f')]
+        [InlineData('n', '\n')]
+        [InlineData('r', '\r')]
+        [InlineData('t', '\t')]
+        [Theory]
+        public static void EscapeCharacter(char input, char output)
+        {
+            Assert.Equal(output, input.EscapeCharacter());
         }
 
         [Fact]
@@ -574,11 +588,11 @@ namespace HotChocolate.Language
             isValidEscapeCharacter['"'] = true;
             isValidEscapeCharacter['/'] = true;
             isValidEscapeCharacter['\\'] = true;
-            isValidEscapeCharacter['\b'] = true;
-            isValidEscapeCharacter['\f'] = true;
-            isValidEscapeCharacter['\n'] = true;
-            isValidEscapeCharacter['\r'] = true;
-            isValidEscapeCharacter['\t'] = true;
+            isValidEscapeCharacter['b'] = true;
+            isValidEscapeCharacter['f'] = true;
+            isValidEscapeCharacter['n'] = true;
+            isValidEscapeCharacter['r'] = true;
+            isValidEscapeCharacter['t'] = true;
 
             // check max char
             // act
