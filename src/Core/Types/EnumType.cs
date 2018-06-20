@@ -134,7 +134,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal virtual EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor(GetType());
+            new EnumTypeDescriptor(GetType().Name);
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 

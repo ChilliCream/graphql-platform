@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration
             RegisterTypes(context);
 
             // finalize and register .net type to schema type bindings
-            RegisterTypeBindings(context.Types);
+            RegisterTypeBindings(context);
 
             // finalize and register field resolver bindings
             RegisterFieldResolvers(context);
@@ -39,14 +39,14 @@ namespace HotChocolate.Configuration
                 context.Types.GetTypes());
             typeRegistrar.RegisterTypes(context);
             _errors.AddRange(typeRegistrar.Errors);
-            ((TypeRegistry)context.Types).CompleteRegistartion();
         }
 
-        private void RegisterTypeBindings(ITypeRegistry typeRegistry)
+        private void RegisterTypeBindings(ISchemaContext context)
         {
             TypeBindingRegistrar typeBindingRegistrar = new TypeBindingRegistrar(
                 _schemaConfiguration.TypeBindings);
-            typeBindingRegistrar.RegisterTypeBindings(typeRegistry);
+            typeBindingRegistrar.RegisterTypeBindings(context.Types);
+            ((TypeRegistry)context.Types).CompleteRegistartion();
         }
 
         private void RegisterFieldResolvers(ISchemaContext context)
