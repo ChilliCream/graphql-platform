@@ -201,20 +201,22 @@ namespace HotChocolate.Types
             ITypeRegistry typeRegistry,
             Action<SchemaError> reportError)
         {
-            if (typeRegistry.TryGetTypeBinding(this,
+            if (_nativeType == null && typeRegistry.TryGetTypeBinding(this,
                 out InputObjectTypeBinding typeBinding))
             {
                 _nativeType = typeBinding.Type;
-                _deserialize = InputObjectDeserializerFactory.Create(
-                    reportError, this, _nativeType);
             }
-            else
+
+            if (_nativeType == null)
             {
                 reportError(new SchemaError(
                     "Could not resolve the native type associated with " +
                     $"input object type `{Name}`.",
                     this));
             }
+
+            _deserialize = InputObjectDeserializerFactory.Create(
+                    reportError, this, _nativeType);
         }
 
         #endregion

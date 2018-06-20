@@ -88,6 +88,8 @@ namespace HotChocolate.Types
         {
             return Schema.Create(c =>
             {
+                c.Options.StrictValidation = false;
+
                 c.RegisterType(new InputObjectType<SerializationInputObject1>(d =>
                 {
                     d.Name("Object1");
