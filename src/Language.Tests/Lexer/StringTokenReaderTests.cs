@@ -26,6 +26,8 @@ namespace HotChocolate.Language
             Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
         }
 
+        // allowed escape characters "	\	/	b	f	n	r	t
+        // see also http://facebook.github.io/graphql/draft/#EscapedCharacter
         // \" -> "
         [InlineData("\"\\\"456\"", "\"456")]
         [InlineData("\"123\\\"456\"", "123\"456")]
@@ -43,6 +45,12 @@ namespace HotChocolate.Language
         [InlineData("\"123\\/456\"", "123/456")]
         [InlineData("\"123\\/\"", "123/")]
         [InlineData("\"\\/\"", "/")]
+
+        [InlineData("\"123\\b456\"", "123\b456")]
+        [InlineData("\"123\\f456\"", "123\f456")]
+        [InlineData("\"123\\n456\"", "123\n456")]
+        [InlineData("\"123\\r456\"", "123\r456")]
+        [InlineData("\"123\\t456\"", "123\t456")]
 
         [Theory]
         private void EscapeCharacters(string sourceText, string expectedResult)
