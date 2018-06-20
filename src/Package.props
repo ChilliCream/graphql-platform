@@ -5,13 +5,13 @@
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream</Company>
     <Copyright>Copyright © 2018 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
-    <PackageLicenseUrl>https://github.com/ChilliCream/prometheus/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ChilliCream/prometheus</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ChilliCream/prometheus</RepositoryUrl>
-    <PackageTags>GraphQL</PackageTags>
-    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/prometheus/releases/$(PackageVersion)</PackageReleaseNotes>
+    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ChilliCream/hotchocolate</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ChilliCream/hotchocolate</RepositoryUrl>
+    <PackageTags>GraphQL ChilliCream</PackageTags>
+    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://github.com/ChilliCream/prometheus/raw/master/icon.png</PackageIconUrl>
+    <!--PackageIconUrl>https://github.com/ChilliCream/prometheus/raw/master/icon.png</PackageIconUrl-->
     <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
