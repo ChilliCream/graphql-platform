@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -33,7 +34,7 @@ namespace HotChocolate.Types
 
             if (literal is IntValueNode intLiteral)
             {
-                return int.Parse(intLiteral.Value);
+                return int.Parse(intLiteral.Value, CultureInfo.InvariantCulture);
             }
 
             if (literal is NullValueNode)
