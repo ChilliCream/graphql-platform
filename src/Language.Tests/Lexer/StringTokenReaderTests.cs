@@ -4,6 +4,7 @@ namespace HotChocolate.Language
 {
     public class StringTokenReaderTests
     {
+
         [InlineData("     \n\"üähelloWorld_123\"")]
         [InlineData("\"üähelloWorld_123\"\n        ")]
         [InlineData("     \n\"üähelloWorld_123\"\n        ")]
