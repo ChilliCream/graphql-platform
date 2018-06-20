@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Types;
 
 namespace HotChocolate.Internal
@@ -28,6 +29,30 @@ namespace HotChocolate.Internal
             {
                 return true;
             }
+            return false;
+        }
+
+        public static bool IsSchemaType<T>()
+        {
+            return IsSchemaType(typeof(T));
+        }
+
+        public static bool IsSchemaType(Type type)
+        {
+            foreach (Type baseType in _baseTypes)
+            {
+                if (baseType.IsAssignableFrom(type))
+                {
+                    return true;
+                }
+            }
+
+            if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                return typeDefinition == typeof(ListType<>) || typeDefinition == typeof(NonNullType<>);
+            }
+
             return false;
         }
 

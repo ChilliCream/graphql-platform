@@ -6,40 +6,69 @@ using HotChocolate.Types;
 namespace HotChocolate.Types.Factories
 {
     internal sealed class ObjectTypeFactory
-        : ObjectTypeFactoryBase
-        , ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
+        : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
         public ObjectType Create(
-            ObjectTypeDefinitionNode objectTypeDefinition)
+            ObjectTypeDefinitionNode node)
         {
-            return new ObjectType(new ObjectTypeConfig
+            return new ObjectType(d =>
             {
-                SyntaxNode = objectTypeDefinition,
-                Name = objectTypeDefinition.Name.Value,
-                Description = objectTypeDefinition.Description?.Value,
-                Fields = GetFields(
-                    objectTypeDefinition.Name.Value,
-                    objectTypeDefinition.Fields),
-                Interfaces = t => GetInterfaces(t,
-                    objectTypeDefinition.Interfaces)
+                d.SyntaxNode(node)
+                    .Name(node.Name.Value)
+                    .Description(node.Description?.Value);
+
+                DeclareInterfaces(d,
+                    node.Interfaces);
+
+                DeclareFields(d,
+                    node.Name.Value,
+                    node.Fields);
             });
         }
 
-        private IEnumerable<InterfaceType> GetInterfaces(
-            ITypeRegistry typeRegistry,
+        private void DeclareInterfaces(
+            IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<NamedTypeNode> interfaceReferences)
         {
-            int i = 0;
-            InterfaceType[] interfaces =
-                new InterfaceType[interfaceReferences.Count];
-
             foreach (NamedTypeNode typeNode in interfaceReferences)
             {
-                interfaces[i++] = typeRegistry.GetType<InterfaceType>(
-                    typeNode.Name.Value);
+                typeDescriptor.Interface(typeNode);
             }
+        }
 
-            return interfaces;
+        private void DeclareFields(
+            IObjectTypeDescriptor typeDescriptor,
+            string typeName,
+            IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
+        {
+            foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
+            {
+                IFieldDescriptor fieldDescriptor = typeDescriptor
+                    .Field(fieldDefinition.Name.Value)
+                    .Description(fieldDefinition.Description?.Value)
+                    .Type(fieldDefinition.Type)
+                    .SyntaxNode(fieldDefinition);
+
+                DeclareFieldArguments(fieldDescriptor, fieldDefinition);
+            }
+        }
+
+        private void DeclareFieldArguments(
+            IFieldDescriptor fieldDescriptor,
+            FieldDefinitionNode fieldDefinition)
+        {
+            foreach (InputValueDefinitionNode inputFieldDefinition in
+                fieldDefinition.Arguments)
+            {
+                fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
+                    a =>
+                    {
+                        a.Description(inputFieldDefinition.Description?.Value)
+                            .Type(inputFieldDefinition.Type)
+                            .DefaultValue(inputFieldDefinition.DefaultValue)
+                            .SyntaxNode(inputFieldDefinition);
+                    });
+            }
         }
     }
 }

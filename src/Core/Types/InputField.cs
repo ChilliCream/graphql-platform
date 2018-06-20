@@ -10,40 +10,54 @@ namespace HotChocolate.Types
     public class InputField
         : ITypeSystemNode
     {
-        private readonly Func<ITypeRegistry, IInputType> _typeFactory;
-        private readonly Func<ITypeRegistry, IValueNode> _defaultValueFactory;
-        private IInputType _type;
-        private Type _nativeNamedType;
+        private readonly TypeReference _typeReference;
+        private object _nativeDefaultValue;
 
-        internal InputField(InputFieldConfig config)
+        internal InputField(ArgumentDescriptor descriptor)
         {
-            if (config == null)
+            if (descriptor == null)
             {
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (string.IsNullOrEmpty(config.Name))
+            if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
                     "An input value name must not be null or empty.",
-                    nameof(config));
+                    nameof(descriptor));
             }
 
-            if (config.Type == null)
+            _typeReference = descriptor.TypeReference;
+            _nativeDefaultValue = descriptor.NativeDefaultValue;
+
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            DefaultValue = descriptor.DefaultValue;
+        }
+
+        internal InputField(InputFieldDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
-                    "An input type factory must not be null or empty.",
-                    nameof(config));
+                    "An input value name must not be null or empty.",
+                    nameof(descriptor));
             }
 
-            _typeFactory = config.Type;
-            _nativeNamedType = config.NativeNamedType;
-            _defaultValueFactory = config.DefaultValue;
+            _typeReference = descriptor.TypeReference;
+            _nativeDefaultValue = descriptor.NativeDefaultValue;
 
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
-            Property = config.Property;
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            DefaultValue = descriptor.DefaultValue;
+            Property = descriptor.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
@@ -52,7 +66,7 @@ namespace HotChocolate.Types
 
         public string Description { get; }
 
-        public IInputType Type => _type;
+        public IInputType Type { get; private set; }
 
         public IValueNode DefaultValue { get; private set; }
 
@@ -74,9 +88,9 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (_nativeNamedType != null)
+            if (_typeReference != null)
             {
-                typeRegistry.RegisterType(_nativeNamedType);
+                typeRegistry.RegisterType(_typeReference);
             }
         }
 
@@ -85,22 +99,8 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory(typeRegistry);
-            if (_type == null)
-            {
-                reportError(new SchemaError(
-                    $"The type of the input field {Name} is null.",
-                    parentType));
-            }
-
-            if (_defaultValueFactory == null)
-            {
-                DefaultValue = new NullValueNode(null);
-            }
-            else
-            {
-                DefaultValue = _defaultValueFactory(typeRegistry);
-            }
+            CompleteType(typeRegistry, reportError, parentType);
+            CompleteDefaultValue(Type, reportError, parentType);
 
             if (parentType is InputObjectType
                 && Property == null
@@ -108,6 +108,51 @@ namespace HotChocolate.Types
                 && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
             {
                 Property = fieldBinding.Property;
+            }
+        }
+
+        private void CompleteType(
+           ITypeRegistry typeRegistry,
+           Action<SchemaError> reportError,
+           INamedType parentType)
+        {
+            if (_typeReference != null)
+            {
+                Type = typeRegistry.GetType<IInputType>(_typeReference);
+            }
+
+            if (Type == null)
+            {
+                reportError(new SchemaError(
+                    $"The type of field `{parentType.Name}.{Name}` is null.",
+                    parentType));
+            }
+        }
+
+        private void CompleteDefaultValue(
+            IInputType type,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            try
+            {
+                if (DefaultValue == null)
+                {
+                    if (_nativeDefaultValue == null)
+                    {
+                        DefaultValue = new NullValueNode();
+                    }
+                    else
+                    {
+                        DefaultValue = type.ParseValue(_nativeDefaultValue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                reportError(new SchemaError(
+                    "Could not parse the native value for input field " +
+                    $"`{parentType.Name}.{Name}`.", parentType, ex));
             }
         }
 

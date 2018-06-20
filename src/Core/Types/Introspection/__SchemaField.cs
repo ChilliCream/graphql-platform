@@ -4,12 +4,11 @@ namespace HotChocolate.Types.Introspection
         : Field
     {
         internal __SchemaField()
-            : base(new FieldConfig
+            : base("__schema", d =>
             {
-                Name = "__schema",
-                Description = "Access the current type schema of this server.",
-                Type = t => new NonNullType(t.GetType<IOutputType>(typeof(__Schema))),
-                Resolver = r => (ctx, ct) => ctx.Schema
+                d.Description("Access the current type schema of this server.")
+                    .Type<NonNullType<__Schema>>()
+                    .Resolver(ctx => ctx.Schema);
             })
         {
         }

@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -49,23 +44,17 @@ namespace HotChocolate.Execution
             object result = null;
             bool nextHandlerIsRaised = false;
 
-            EnumType enumType = new EnumType(new EnumTypeConfig
+            EnumType enumType = new EnumType(d =>
             {
-                Name = "Foo",
-                Values = new List<EnumValueConfig>
-                {
-                    new EnumValueConfig
-                    {
-                        Value = "ABC"
-                    }
-                }
+                d.Name("Foo");
+                d.Item("ABC");
             });
 
             Mock<IFieldValueCompletionContext> context =
                 new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(enumType);
             context.Setup(t => t.Value).Returns(expectedResult);
-            context.Setup(t => t.SetResult(Moq.It.IsAny<string>()))
+            context.Setup(t => t.SetResult(It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;

@@ -4,13 +4,12 @@ namespace HotChocolate.Types.Introspection
         : Field
     {
         internal __TypeNameField()
-            : base(new FieldConfig
-            {
-                Name = "__typename",
-                Description = "The name of the current Object type at runtime.",
-                Type = t => new NonNullType(t.GetType<IOutputType>(typeof(StringType))),
-                Resolver = r => (ctx, ct) => ctx.ObjectType.Name
-            })
+           : base("__typename", d =>
+           {
+               d.Description("The name of the current Object type at runtime.")
+                   .Type<NonNullType<StringType>>()
+                   .Resolver(ctx => ctx.ObjectType.Name);
+           })
         {
         }
     }

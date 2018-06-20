@@ -16,38 +16,27 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeImplicitly()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
 
-            StringType stringType = new StringType();
-            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
+            ObjectType dummyType = new ObjectType(d =>
             {
-                Name = "TestObjectA",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name= "a", Type =
-                        t => stringType
-                    }),
-                    new Field(new FieldConfig
-                    {
-                        Name= "b",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("TestObjectA");
+                d.Field("a").Type<StringType>();
+                d.Field("b").Type<StringType>();
             });
 
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -66,38 +55,31 @@ namespace HotChocolate.Configuration
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
 
-            StringType stringType = new StringType();
-            InputField[] arguments = new[]
+            ObjectType dummyType = new ObjectType(d =>
             {
-                new InputField(new InputFieldConfig { Name = "a", Type = t => stringType })
-            };
-            ObjectType dummyType = new ObjectType(new ObjectTypeConfig
-            {
-                Name = "TestObjectA",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig{ Name= "a", Type = t => stringType, Arguments = arguments}),
-                    new Field(new FieldConfig{ Name= "b", Type = t => stringType})
-                }
+                d.Name("TestObjectA");
+                d.Field("a").Type<StringType>().Argument("a", a => a.Type<StringType>());
+                d.Field("b").Type<StringType>();
             });
 
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration
                 .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
                 .To<TestObjectA>()
                 .Resolve(t => t.A)
                 .With(t => t.GetA(default, default));
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.True(hasErrors);
@@ -120,35 +102,27 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            StringType stringType = new StringType();
-
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
                 .Resolve("bar").With(t => t.GetFooBar(default));
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -168,33 +142,25 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            StringType stringType = new StringType();
-
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(
+               serviceManager.RegisterServiceProvider,
+               schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);
@@ -214,32 +180,25 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            ScalarType stringType = new StringType();
-            ObjectType objectType = new ObjectType(new ObjectTypeConfig
+            ObjectType objectType = new ObjectType(d =>
             {
-                Name = "Dummy",
-                Fields = new[]
-                {
-                    new Field(new FieldConfig
-                    {
-                        Name = "bar2",
-                        Type = t => stringType
-                    })
-                }
+                d.Name("Dummy");
+                d.Field("bar2").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager serviceManager = new ServiceManager();
             SchemaContext schemaContext = new SchemaContext(serviceManager);
-            schemaContext.Types.RegisterType(stringType);
             schemaContext.Types.RegisterType(objectType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration();
+            SchemaConfiguration configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 
-            bool hasErrors = configuration.RegisterTypes(schemaContext).Any();
-            configuration.RegisterResolvers(schemaContext);
-            hasErrors = schemaContext.CompleteTypes().Any() || hasErrors;
+            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(schemaContext);
+            bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
             Assert.False(hasErrors);

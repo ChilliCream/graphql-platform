@@ -17,67 +17,60 @@ namespace HotChocolate.Execution
         private static readonly FieldValueCompleter _valueCompleter =
             new FieldValueCompleter();
 
+        private readonly Schema _schema;
+        private int _maxExecutionDepth;
+        private TimeSpan _executionTimeout;
+
+        public OperationExecuter(Schema schema)
+        {
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _maxExecutionDepth = schema.Options.MaxExecutionDepth;
+            _executionTimeout = schema.Options.ExecutionTimeout;
+        }
+
         public async Task<QueryResult> ExecuteRequestAsync(
-            Schema schema, DocumentNode queryDocument, string operationName,
-            Dictionary<string, IValueNode> variableValues, object initialValue,
-            CancellationToken cancellationToken)
+            DocumentNode queryDocument, string operationName,
+            Dictionary<string, IValueNode> variableValues,
+            object initialValue, CancellationToken cancellationToken)
         {
             ExecutionContext executionContext = CreateExecutionContext(
-                schema, queryDocument, operationName,
-                variableValues, initialValue);
-            List<FieldResolverTask> tasks = null;
+                queryDocument, operationName, variableValues, initialValue);
 
-            switch (executionContext.Operation.Operation)
-            {
-                case OperationType.Query:
-                    tasks = CreateInitialFieldResolverBatch(
-                        executionContext, schema.QueryType);
-                    executionContext.NextBatch.AddRange(tasks);
-                    await ExecuteFieldResolversAsync(
-                        executionContext, cancellationToken);
-                    break;
-
-                case OperationType.Mutation:
-                    tasks = CreateInitialFieldResolverBatch(
-                        executionContext, schema.MutationType);
-                    executionContext.NextBatch.AddRange(tasks);
-                    await ExecuteFieldResolversSeriallyAsync(
-                        executionContext, cancellationToken);
-                    break;
-
-                case OperationType.Subscription:
-                    throw new NotSupportedException();
-            }
+            await ExecuteOperationAsync(executionContext, cancellationToken);
 
             if (executionContext.Errors.Any())
             {
-                return new QueryResult(executionContext.Data, executionContext.Errors);
+                return new QueryResult(
+                    executionContext.Data,
+                    executionContext.Errors);
             }
+
             return new QueryResult(executionContext.Data);
         }
 
         private ExecutionContext CreateExecutionContext(
-            Schema schema, DocumentNode queryDocument, string operationName,
+            DocumentNode queryDocument, string operationName,
             Dictionary<string, IValueNode> variableValues, object initialValue)
         {
             Dictionary<string, IValueNode> vars = variableValues
                 ?? new Dictionary<string, IValueNode>();
             OperationDefinitionNode operation = GetOperation(
                 queryDocument, operationName);
-            ObjectType operationType = GetOperationType(schema, operation);
+            ObjectType operationType = GetOperationType(_schema, operation);
 
-            if (initialValue == null && schema.TryGetNativeType(
+            if (initialValue == null && _schema.TryGetNativeType(
                 operationType.Name, out Type nativeType))
             {
-                initialValue = schema.Services.GetService(nativeType);
+                initialValue = _schema.GetService(nativeType)
+                    ?? Activator.CreateInstance(nativeType);
             }
 
             VariableCollection variables = new VariableCollection(
                 _variableValueResolver.CoerceVariableValues(
-                    schema, operation, vars));
+                    _schema, operation, vars));
 
             ExecutionContext executionContext = new ExecutionContext(
-                schema, queryDocument, operation, variables, schema.Services,
+                _schema, queryDocument, operation, variables,
                 initialValue, null);
 
             return executionContext;
@@ -117,8 +110,9 @@ namespace HotChocolate.Execution
                     return operations[0];
                 }
 
-                // TODO : Exception
-                throw new Exception();
+                throw new QueryException(
+                    "Only queries that contain one operation can be executed " +
+                    "without specifying the opartion name.");
             }
             else
             {
@@ -126,11 +120,57 @@ namespace HotChocolate.Execution
                     t => string.Equals(t.Name.Value, operationName, StringComparison.Ordinal));
                 if (operation == null)
                 {
-                    // TODO : Exception
-                    throw new Exception();
+                    throw new QueryException(
+                        $"The specified operation `{operationName}` does not exist.");
                 }
                 return operation;
             }
+        }
+
+        private async Task ExecuteOperationAsync(
+            ExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            CancellationTokenSource requestTimeoutCts =
+                new CancellationTokenSource(_executionTimeout);
+
+            CancellationTokenSource combinedCts = CancellationTokenSource
+                .CreateLinkedTokenSource(requestTimeoutCts.Token, cancellationToken);
+
+            try
+            {
+                switch (executionContext.Operation.Operation)
+                {
+                    case OperationType.Query:
+                        AddResolverTasks(executionContext, _schema.QueryType);
+                        await ExecuteFieldResolversAsync(
+                            executionContext, cancellationToken);
+                        break;
+
+                    case OperationType.Mutation:
+                        AddResolverTasks(executionContext, _schema.MutationType);
+                        await ExecuteFieldResolversSeriallyAsync(
+                            executionContext, cancellationToken);
+                        break;
+
+                    case OperationType.Subscription:
+                        throw new NotSupportedException();
+                }
+            }
+            finally
+            {
+                combinedCts.Dispose();
+                requestTimeoutCts.Dispose();
+            }
+        }
+
+        private void AddResolverTasks(
+            ExecutionContext executionContext,
+            ObjectType type)
+        {
+            List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
+                executionContext, type);
+            executionContext.NextBatch.AddRange(tasks);
         }
 
         private List<FieldResolverTask> CreateInitialFieldResolverBatch(
@@ -185,11 +225,23 @@ namespace HotChocolate.Execution
             foreach (FieldResolverTask task in batch)
             {
                 IResolverContext resolverContext = new ResolverContext(
-                    executionContext, task);
-                object resolverResult = ExecuteFieldResolver(
-                    resolverContext, task.FieldSelection.Field,
-                    task.FieldSelection.Node, cancellationToken);
-                runningTasks.Add((task, resolverContext, resolverResult));
+                        executionContext, task);
+
+                if (task.Path.Depth <= _maxExecutionDepth)
+                {
+                    object resolverResult = ExecuteFieldResolver(
+                        resolverContext, task.FieldSelection.Field,
+                        task.FieldSelection.Node, cancellationToken);
+                    runningTasks.Add((task, resolverContext, resolverResult));
+                }
+                else
+                {
+                    runningTasks.Add((task, resolverContext,
+                        new FieldError(
+                            $"The field has a depth of {task.Path.Depth}, " +
+                            "which exceeds max allowed depth of " +
+                            $"{_maxExecutionDepth}", task.FieldSelection.Node)));
+                }
             }
 
             foreach (var runningTask in runningTasks)

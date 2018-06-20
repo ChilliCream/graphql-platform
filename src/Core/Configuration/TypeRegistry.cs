@@ -1,17 +1,25 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Internal;
+using System.Linq;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal class TypeRegistry
+    internal partial class TypeRegistry
         : ITypeRegistry
     {
-        private Dictionary<string, INamedType> _namedTypes = new Dictionary<string, INamedType>();
-        private Dictionary<string, ITypeBinding> _typeBindings = new Dictionary<string, ITypeBinding>();
-        private Dictionary<Type, INamedType> _typesToNamedTypes = new Dictionary<Type, INamedType>();
+        private readonly object _sync = new object();
+        private readonly TypeInspector _typeInspector = new TypeInspector();
+        private readonly Dictionary<string, INamedType> _namedTypes =
+            new Dictionary<string, INamedType>();
+        private readonly Dictionary<string, ITypeBinding> _typeBindings =
+            new Dictionary<string, ITypeBinding>();
+        private readonly Dictionary<Type, string> _dotnetTypeToSchemaType =
+            new Dictionary<Type, string>();
+        private readonly Dictionary<Type, HashSet<string>> _nativeTypes =
+            new Dictionary<Type, HashSet<string>>();
         private readonly IServiceProvider _serviceProvider;
+        private bool _sealed;
 
         public TypeRegistry(IServiceProvider serviceProvider)
         {
@@ -19,155 +27,58 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
+
             _serviceProvider = serviceProvider;
         }
 
-        public void RegisterType(INamedType namedType, ITypeBinding typeBinding = null)
+        public void CompleteRegistartion()
         {
-            if (namedType == null)
+            lock (_sync)
             {
-                throw new ArgumentNullException(nameof(namedType));
-            }
-
-            if (!_namedTypes.ContainsKey(namedType.Name))
-            {
-                _namedTypes[namedType.Name] = namedType;
-            }
-
-            Type nativeNamedType = namedType.GetType();
-            if (!_typesToNamedTypes.ContainsKey(nativeNamedType)
-                && !BaseTypes.IsNonGenericBaseType(nativeNamedType))
-            {
-                _typesToNamedTypes[nativeNamedType] = namedType;
-            }
-
-            if (typeBinding != null)
-            {
-                _typeBindings[namedType.Name] = typeBinding;
-            }
-        }
-
-        public void RegisterType(Type nativeNamedType)
-        {
-            if (nativeNamedType == null)
-            {
-                throw new ArgumentNullException(nameof(nativeNamedType));
-            }
-
-            if (BaseTypes.IsNonGenericBaseType(nativeNamedType))
-            {
-                throw new ArgumentException(
-                    $"The {nativeNamedType.GetTypeName()} type must be defined explicit",
-                    nameof(nativeNamedType));
-            }
-
-            if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
-            {
-                if (!_typesToNamedTypes.ContainsKey(nativeNamedType))
+                if (!_sealed)
                 {
-                    INamedType namedType = (INamedType)_serviceProvider
-                        .GetService(nativeNamedType);
-                    RegisterType(namedType);
+                    CreateNativeTypeLookup();
+                    _sealed = true;
                 }
             }
         }
 
-        public T GetType<T>(string typeName) where T : IType
+        private void CreateNativeTypeLookup()
         {
-            if (typeName == null)
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (_namedTypes.TryGetValue(typeName, out INamedType namedType)
-                && namedType is T t)
-            {
-                return t;
-            }
-
-            throw new ArgumentException(
-                "The specified type does not exist or " +
-                "is not of the specified kind.",
-                nameof(typeName));
+            AddNativeTypeBindingFromInputTypes();
+            AddNativeTypeBindingFromTypeBindings();
         }
 
-        public T GetType<T>(Type nativeNamedType) where T : IType
+        private void AddNativeTypeBindingFromInputTypes()
         {
-            if (nativeNamedType == null)
+            foreach (INamedInputType inputType in
+                GetTypes().OfType<INamedInputType>()
+                .Where(t => t.NativeType != null))
             {
-                throw new ArgumentNullException(nameof(nativeNamedType));
+                AddNativeTypeBinding(inputType.NativeType, inputType);
             }
+        }
 
-            if (_typesToNamedTypes.TryGetValue(nativeNamedType, out INamedType namedType)
-                && namedType is T t)
+        private void AddNativeTypeBindingFromTypeBindings()
+        {
+            foreach (ITypeBinding typeBinding in
+                _typeBindings.OfType<ITypeBinding>())
             {
-                return t;
+                if (typeBinding.Type != null && _namedTypes.TryGetValue(
+                    typeBinding.Name, out INamedType namedType))
+                {
+                    AddNativeTypeBinding(typeBinding.Type, namedType);
+                }
             }
-
-            throw new ArgumentException(
-                $"The {nativeNamedType.GetTypeName()} type does not exist or " +
-                "is not of the specified kind.",
-                nameof(nativeNamedType));
         }
 
-        public bool TryGetType<T>(string typeName, out T type) where T : IType
+        private void AddNativeTypeBinding(Type type, INamedType namedType)
         {
-            if (typeName == null)
+            if (_nativeTypes.TryGetValue(type, out HashSet<string> types))
             {
-                throw new ArgumentNullException(nameof(typeName));
+                types.Add(namedType.Name);
             }
-
-            if (_namedTypes.TryGetValue(typeName, out INamedType namedType)
-                && namedType is T t)
-            {
-                type = t;
-                return true;
-            }
-
-            type = default(T);
-            return false;
         }
 
-        public IEnumerable<INamedType> GetTypes()
-        {
-            return _namedTypes.Values;
-        }
-
-        public bool TryGetTypeBinding<T>(string typeName, out T typeBinding)
-            where T : ITypeBinding
-        {
-            if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding)
-                && binding is T b)
-            {
-                typeBinding = b;
-                return true;
-            }
-
-            typeBinding = default(T);
-            return false;
-        }
-
-        public bool TryGetTypeBinding<T>(INamedType namedType, out T typeBinding)
-            where T : ITypeBinding
-        {
-            return TryGetTypeBinding(namedType.Name, out typeBinding);
-        }
-
-        public bool TryGetTypeBinding<T>(Type nativeType, out T typeBinding)
-            where T : ITypeBinding
-        {
-            if (_typesToNamedTypes.TryGetValue(nativeType, out INamedType namedType))
-            {
-                return TryGetTypeBinding(namedType, out typeBinding);
-            }
-
-            typeBinding = default(T);
-            return false;
-        }
-
-        public IEnumerable<ITypeBinding> GetTypeBindings()
-        {
-            return _typeBindings.Values;
-        }
     }
 }

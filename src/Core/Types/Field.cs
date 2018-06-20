@@ -12,83 +12,53 @@ namespace HotChocolate.Types
     public class Field
         : ITypeSystemNode
     {
-        private readonly Func<ITypeRegistry, IOutputType> _typeFactory;
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
-        private Func<IResolverRegistry, FieldResolverDelegate> _resolverFactory;
         private MemberInfo _member;
-        private IOutputType _type;
-        private Type _nativeNamedType;
-        private FieldResolverDelegate _resolver;
+        private TypeReference _typeReference;
 
-        internal Field(FieldConfig config)
+        internal Field(string name, Action<IFieldDescriptor> configure)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException(
                     "A field name must not be null or empty.",
-                    nameof(config));
+                    nameof(name));
             }
 
-            if (config.Type == null)
+            if (configure == null)
             {
-                throw new ArgumentException(
-                    "A field type must not be null or empty.",
-                    nameof(config));
+                throw new ArgumentNullException(nameof(configure));
             }
 
-            if (config.Arguments != null)
-            {
-                foreach (InputField argument in config.Arguments)
-                {
-                    if (_argumentMap.ContainsKey(argument.Name))
-                    {
-                        throw new ArgumentException(
-                            $"The argument names are not unique -> argument: `{argument.Name}`.",
-                            nameof(config));
-                    }
-                    else
-                    {
-                        _argumentMap.Add(argument.Name, argument);
-                    }
-                }
-            }
-
-            _member = config.Member;
-            _typeFactory = config.Type;
-            _nativeNamedType = config.NativeNamedType;
-            _resolverFactory = config.Resolver;
-
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
-            IsIntrospection = config.IsIntrospection;
-            IsDeprecated = !string.IsNullOrEmpty(config.DeprecationReason);
-            DeprecationReason = config.DeprecationReason;
+            Initialize(name, configure);
         }
 
-        public FieldDefinitionNode SyntaxNode { get; }
+        internal Field(FieldDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
-        public string Name { get; }
+            Initialize(descriptor);
+        }
 
-        public string Description { get; }
+        public FieldDefinitionNode SyntaxNode { get; private set; }
 
-        internal bool IsIntrospection { get; }
+        public string Name { get; private set; }
 
-        public bool IsDeprecated { get; }
+        public string Description { get; private set; }
 
-        public string DeprecationReason { get; }
+        public bool IsDeprecated { get; private set; }
 
-        public IOutputType Type => _type;
+        public string DeprecationReason { get; private set; }
+
+        public IOutputType Type { get; private set; }
 
         public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
 
-        public FieldResolverDelegate Resolver => _resolver;
+        public FieldResolverDelegate Resolver { get; private set; }
 
         #region TypeSystemNode
 
@@ -100,20 +70,53 @@ namespace HotChocolate.Types
 
         #region Initialization
 
+        private void Initialize(string name, Action<IFieldDescriptor> configure)
+        {
+            FieldDescriptor descriptor = new FieldDescriptor(null, name);
+            configure(descriptor);
+            Initialize(descriptor);
+        }
+
+        private void Initialize(FieldDescriptor descriptor)
+        {
+            if (string.IsNullOrEmpty(descriptor.Name))
+            {
+                throw new ArgumentException(
+                    "A field name must not be null or empty.",
+                    nameof(descriptor));
+            }
+
+            foreach (InputField argument in descriptor.GetArguments()
+                .Select(t => new InputField(t)))
+            {
+                _argumentMap[argument.Name] = argument;
+            }
+
+            _member = descriptor.Member;
+            _typeReference = descriptor.TypeReference;
+
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
+            DeprecationReason = descriptor.DeprecationReason;
+            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
+            Resolver = descriptor.Resolver;
+        }
+
         internal void RegisterDependencies(
             ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
+            if (_typeReference != null)
+            {
+                schemaContext.Types.RegisterType(_typeReference);
+            }
+
             if (_member != null)
             {
                 schemaContext.Resolvers.RegisterResolver(
                     new MemberResolverBinding(parentType.Name, Name, _member));
-            }
-
-            if (_nativeNamedType != null)
-            {
-                schemaContext.Types.RegisterType(_nativeNamedType);
             }
 
             foreach (InputField argument in _argumentMap.Values)
@@ -128,33 +131,46 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            _type = _typeFactory(schemaContext.Types);
-            if (_type == null)
-            {
-                reportError(new SchemaError(
-                    $"The type of field `{Name}` is null.",
-                    parentType));
-            }
+            CompleteType(schemaContext.Types, reportError, parentType);
+            CompleteResolver(schemaContext.Resolvers, reportError, parentType);
 
             foreach (InputField argument in _argumentMap.Values)
             {
                 argument.CompleteInputField(
                     schemaContext.Types, reportError, parentType);
             }
+        }
 
-
-            if (parentType is ObjectType ot)
+        private void CompleteType(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            if (_typeReference != null)
             {
-                if (_resolverFactory == null)
-                {
-                    _resolverFactory = r => r.GetResolver(ot.Name, Name);
-                }
+                Type = typeRegistry.GetType<IOutputType>(_typeReference);
+            }
 
-                _resolver = _resolverFactory(schemaContext.Resolvers);
-                if (_resolver == null)
+            if (Type == null)
+            {
+                reportError(new SchemaError(
+                    $"The type of field `{parentType.Name}.{Name}` is null.",
+                    parentType));
+            }
+        }
+
+        private void CompleteResolver(
+            IResolverRegistry resolverRegistry,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            if (parentType is ObjectType ot && Resolver == null)
+            {
+                Resolver = resolverRegistry.GetResolver(parentType.Name, Name);
+                if (Resolver == null)
                 {
                     reportError(new SchemaError(
-                        $"The field `{Name}` of object type `{parentType.Name}` " +
+                        $"The field `{parentType.Name}.{Name}` " +
                         "has no resolver.", parentType));
                 }
             }

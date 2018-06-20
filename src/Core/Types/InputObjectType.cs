@@ -8,15 +8,13 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : INamedType
-        , IInputType
+        : INamedInputType
         , INullableType
         , ITypeSystemNode
         , INeedsInitialization
     {
         private Dictionary<string, InputField> _fieldMap =
             new Dictionary<string, InputField>();
-        private Func<ITypeRegistry, Type> _nativeTypeFactory;
         private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
 
@@ -28,11 +26,6 @@ namespace HotChocolate.Types
         internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
         {
             Initialize(configure);
-        }
-
-        internal InputObjectType(InputObjectTypeConfig config)
-        {
-            Initialize(config);
         }
 
         public TypeKind Kind { get; } = TypeKind.InputObject;
@@ -150,6 +143,15 @@ namespace HotChocolate.Types
 
             InputObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
+            Initialize(descriptor);
+        }
+
+        private void Initialize(InputObjectTypeDescriptor descriptor)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
             if (string.IsNullOrEmpty(descriptor.Name))
             {
@@ -157,74 +159,48 @@ namespace HotChocolate.Types
                     "An input object type name must not be null or empty.");
             }
 
-            IReadOnlyCollection<InputFieldDescriptor> fields =
-                descriptor.GetFieldDescriptors();
-            if (!fields.Any())
-            {
-                throw new ArgumentException(
-                    $"The input object `{descriptor.Name}` must at least " +
-                    "provide one field.");
-            }
-
-            foreach (InputFieldDescriptor fieldDescriptor in fields)
-            {
-                _fieldMap[fieldDescriptor.Name] = fieldDescriptor.CreateField();
-            }
-
-            _nativeType = descriptor.NativeType;
-
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-        }
-
-        private void Initialize(InputObjectTypeConfig config)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.",
-                    nameof(config));
-            }
-
-            InputField[] fields = config.Fields?.ToArray();
-            if (fields?.Length == 0)
-            {
-                throw new ArgumentException(
-                   $"The input object `{config.Name}` must at least " +
-                   "provide one field.",
-                   nameof(config));
-            }
-
-            foreach (InputField field in fields)
+            foreach (InputField field in
+                descriptor.GetFieldDescriptors()
+                .Select(t => new InputField(t)))
             {
                 _fieldMap[field.Name] = field;
             }
 
-            _nativeTypeFactory = config.NativeType;
+            _nativeType = descriptor.NativeType;
 
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
+            SyntaxNode = descriptor.SyntaxNode;
+            Name = descriptor.Name;
+            Description = descriptor.Description;
         }
 
-        void INeedsInitialization.RegisterDependencies(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.RegisterDependencies(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
             foreach (InputField field in _fieldMap.Values)
             {
-                field.RegisterDependencies(schemaContext.Types, reportError, this);
+                field.RegisterDependencies(
+                    schemaContext.Types, reportError, this);
             }
         }
 
-        void INeedsInitialization.CompleteType(ISchemaContext schemaContext, Action<SchemaError> reportError)
+        void INeedsInitialization.CompleteType(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
         {
-            _nativeType = _nativeType == null
-                ? _nativeTypeFactory?.Invoke(schemaContext.Types)
-                : _nativeType;
+            CompleteNativeType(schemaContext.Types, reportError);
+            CompleteFields(schemaContext.Types, reportError);
+        }
+
+        private void CompleteNativeType(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError)
+        {
+            if (_nativeType == null && typeRegistry.TryGetTypeBinding(this,
+                out InputObjectTypeBinding typeBinding))
+            {
+                _nativeType = typeBinding.Type;
+            }
 
             if (_nativeType == null)
             {
@@ -233,15 +209,24 @@ namespace HotChocolate.Types
                     $"input object type `{Name}`.",
                     this));
             }
-            else
-            {
-                _deserialize = InputObjectDeserializerFactory.Create(
-                    reportError, this, _nativeType);
-            }
 
+            _deserialize = InputObjectDeserializerFactory.Create(
+                    reportError, this, _nativeType);
+        }
+
+        private void CompleteFields(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError)
+        {
             foreach (InputField field in _fieldMap.Values)
             {
-                field.CompleteInputField(schemaContext.Types, reportError, this);
+                field.CompleteInputField(typeRegistry, reportError, this);
+            }
+
+            if (!_fieldMap.Any())
+            {
+                reportError(new SchemaError(
+                    $"The input object `{Name}` does not have any fields."));
             }
         }
 

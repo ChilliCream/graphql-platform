@@ -4,20 +4,13 @@ namespace HotChocolate.Types.Introspection
         : Field
     {
         internal __TypeField()
-            : base(new FieldConfig
+            : base("__type", d =>
             {
-                Name = "__type",
-                Description = "Request the type information of a single type.",
-                Type = t => t.GetType<IOutputType>(typeof(__Type)),
-                Arguments = new[]
-                {
-                    new InputField(new InputFieldConfig
-                    {
-                        Name ="type",
-                        Type = t => new NonNullType(t.GetType<IOutputType>(typeof(StringType)))
-                    })
-                },
-                Resolver = r => (ctx, ct) => ctx.Schema.GetType<INamedType>(ctx.Argument<string>("type"))
+                d.Description("Request the type information of a single type.")
+                    .Argument("type", a => a.Type<NonNullType<StringType>>())
+                    .Type<__Type>()
+                    .Resolver(ctx => ctx.Schema
+                        .GetType<INamedType>(ctx.Argument<string>("type")));
             })
         {
         }

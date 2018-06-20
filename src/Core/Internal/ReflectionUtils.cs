@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Types;
 
 namespace HotChocolate.Internal
 {
@@ -88,6 +90,61 @@ namespace HotChocolate.Internal
             IEnumerable<string> arguments = type.GetGenericArguments()
                 .Select(GetTypeName);
             return $"{name}<{string.Join(", ", arguments)}>";
+        }
+
+        public static Type GetReturnType(this MemberInfo member)
+        {
+            if (member is PropertyInfo p)
+            {
+                return p.PropertyType;
+            }
+
+            if (member is MethodInfo m
+                && (m.ReturnType != typeof(void)
+                    || m.ReturnType != typeof(Task)))
+            {
+                return m.ReturnType;
+            }
+
+            return null;
+        }
+
+        public static Dictionary<string, PropertyInfo> GetProperties(Type type)
+        {
+            Dictionary<string, PropertyInfo> members =
+                new Dictionary<string, PropertyInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            foreach (PropertyInfo property in type.GetProperties())
+            {
+                members[property.GetGraphQLName()] = property;
+            }
+
+            return members;
+        }
+
+        public static Dictionary<string, MemberInfo> GetMembers(Type type)
+        {
+            Dictionary<string, MemberInfo> members =
+                new Dictionary<string, MemberInfo>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            foreach (PropertyInfo property in type.GetProperties())
+            {
+                members[property.GetGraphQLName()] = property;
+            }
+
+            foreach (MethodInfo method in type.GetMethods())
+            {
+                members[method.GetGraphQLName()] = method;
+                if (method.Name.Length > 3 && method.Name
+                    .StartsWith("Get", StringComparison.OrdinalIgnoreCase))
+                {
+                    members[method.Name.Substring(3)] = method;
+                }
+            }
+
+            return members;
         }
     }
 }

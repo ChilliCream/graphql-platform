@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         public void EnsureObjectTypeKindIsCorret()
         {
             // arrange
-            ServiceManager services = new ServiceManager(new DefaultServiceProvider());
+            ServiceManager services = new ServiceManager();
             List<SchemaError> errors = new List<SchemaError>();
             SchemaContext context = new SchemaContext(services);
 
@@ -70,11 +70,11 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// For the type detection the order of the resolver or type descriptor function should not matter.
-        /// 
+        ///
         /// descriptor.Field("test")
         ///   .Resolver<List<string>>(() => new List<string>())
         ///   .Type<ListType<StringType>>();
-        /// 
+        ///
         /// descriptor.Field("test")
         ///   .Type<ListType<StringType>>();
         ///   .Resolver<List<string>>(() => new List<string>())
@@ -83,7 +83,11 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
         {
             // act
-            Schema schema = Schema.Create(c => c.RegisterType<FooType>());
+            Schema schema = Schema.Create(c =>
+            {
+                c.Options.StrictValidation = false;
+                c.RegisterType<FooType>();
+            });
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
@@ -104,8 +108,8 @@ namespace HotChocolate.Types
             protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Description);
-                descriptor.Field("test")                    
-                    .Resolver<List<string>>(() => new List<string>())
+                descriptor.Field("test")
+                    .Resolver(() => new List<string>())
                     .Type<ListType<StringType>>();
             }
         }

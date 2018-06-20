@@ -1,24 +1,39 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Collections.Immutable;
 using HotChocolate.Types;
 
 namespace HotChocolate.Internal
 {
     internal sealed class ServiceManager
         : IServiceProvider
+        , IDisposable
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly Dictionary<Type, object> _typeInstances = new Dictionary<Type, object>();
+        private readonly object _sync = new object();
+        private readonly Stack<IServiceProvider> _serviceProviders =
+            new Stack<IServiceProvider>();
+        private readonly ServiceFactory _factory;
+        private readonly ServiceContainer _types;
+        private bool _disposed;
 
-        public ServiceManager(IServiceProvider serviceProvider)
+
+        public ServiceManager()
         {
-            if (serviceProvider == null)
+            _factory = new ServiceFactory(t => GetServiceFromProviders(t));
+            _types = new ServiceContainer(_factory);
+        }
+
+        public void RegisterServiceProvider(IServiceProvider services)
+        {
+            if (services == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(services));
             }
-            _serviceProvider = serviceProvider;
+
+            if (!_serviceProviders.Contains(services))
+            {
+                _serviceProviders.Push(services);
+            }
         }
 
         public object GetService(Type serviceType)
@@ -28,60 +43,33 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(serviceType));
             }
 
-            if (_typeInstances.TryGetValue(serviceType, out object service))
+            if (IsNamedType(serviceType))
             {
-                return service;
+                return _types.GetService(serviceType);
             }
-
-            service = _serviceProvider.GetService(serviceType);
-            if (service == null && IsNamedType(serviceType))
-            {
-                service = TryCreateInstance(serviceType);
-                if (service != null)
-                {
-                    _typeInstances[serviceType] = service;
-                }
-            }
-
-            return service;
+            return GetServiceFromProviders(serviceType);
         }
 
-        private bool IsNamedType(Type serviceType) =>
-            typeof(INamedType).IsAssignableFrom(serviceType);
-
-        private object TryCreateInstance(Type type)
+        private object GetServiceFromProviders(Type serviceType)
         {
-            foreach (ConstructorInfo constructor in type.GetConstructors()
-                .Where(t => !t.GetParameters().Any(p => IsPrimitive(p.ParameterType)))
-                .OrderByDescending(t => t.GetParameters().Length))
+            foreach (IServiceProvider services in _serviceProviders)
             {
-                if (TryGetDependencies(constructor, out object[] parameters))
+                object service = services.GetService(serviceType);
+                if (service != null)
                 {
-                    return constructor.Invoke(parameters);
+                    return service;
                 }
             }
             return null;
         }
 
-        private bool TryGetDependencies(ConstructorInfo constructor, out object[] parameterValues)
-        {
-            ParameterInfo[] parameters = constructor.GetParameters();
-            parameterValues = new object[parameters.Length];
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                object value = _serviceProvider.GetService(parameters[i].ParameterType);
-                if (value == null)
-                {
-                    parameterValues = null;
-                    return false;
-                }
-            }
-            return true;
-        }
+        private bool IsNamedType(Type serviceType) =>
+            typeof(INamedType).IsAssignableFrom(serviceType);
 
-        private bool IsPrimitive(Type type)
+
+        public void Dispose()
         {
-            return (type.IsValueType || type == typeof(string));
+            _types.Dispose();
         }
     }
 }

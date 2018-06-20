@@ -17,24 +17,12 @@ namespace HotChocolate.Execution
             VariableCollection variables,
             FragmentCollection fragments)
         {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (variables == null)
-            {
-                throw new ArgumentNullException(nameof(variables));
-            }
-
-            if (fragments == null)
-            {
-                throw new ArgumentNullException(nameof(fragments));
-            }
-
-            _schema = schema;
-            _variables = variables;
-            _fragments = fragments;
+            _schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
+            _variables = variables
+                ?? throw new ArgumentNullException(nameof(variables));
+            _fragments = fragments
+                ?? throw new ArgumentNullException(nameof(fragments));
         }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
@@ -42,6 +30,21 @@ namespace HotChocolate.Execution
             SelectionSetNode selectionSet,
             Action<QueryError> reportError)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (selectionSet == null)
+            {
+                throw new ArgumentNullException(nameof(selectionSet));
+            }
+
+            if (reportError == null)
+            {
+                throw new ArgumentNullException(nameof(reportError));
+            }
+
             Dictionary<string, FieldSelection> fields =
                 new Dictionary<string, FieldSelection>();
             CollectFields(type, selectionSet, reportError, fields);
