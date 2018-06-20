@@ -87,15 +87,23 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(IValueNode defaultValue)
         {
-            DefaultValue = defaultValue;
+            DefaultValue = defaultValue ?? new NullValueNode();
             NativeDefaultValue = null;
             return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(object defaultValue)
         {
-            DefaultValue = null;
-            NativeDefaultValue = defaultValue;
+            if (defaultValue == null)
+            {
+                DefaultValue = new NullValueNode();
+                NativeDefaultValue = null;
+            }
+            else
+            {
+                NativeDefaultValue = defaultValue;
+                DefaultValue = null;
+            }
             return this;
         }
 

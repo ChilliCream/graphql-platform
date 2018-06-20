@@ -169,7 +169,7 @@ namespace HotChocolate.Execution
             ObjectType type)
         {
             List<FieldResolverTask> tasks = CreateInitialFieldResolverBatch(
-                executionContext, _schema.QueryType);
+                executionContext, type);
             executionContext.NextBatch.AddRange(tasks);
         }
 

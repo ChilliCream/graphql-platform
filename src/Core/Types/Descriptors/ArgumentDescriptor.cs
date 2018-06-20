@@ -76,20 +76,23 @@ namespace HotChocolate.Types
 
         IArgumentDescriptor IArgumentDescriptor.DefaultValue(IValueNode valueNode)
         {
-            if (valueNode == null)
-            {
-                throw new ArgumentNullException(nameof(valueNode));
-            }
-
-            DefaultValue = valueNode;
+            DefaultValue = valueNode ?? new NullValueNode();
             NativeDefaultValue = null;
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.DefaultValue(object defaultValue)
         {
-            NativeDefaultValue = defaultValue;
-            DefaultValue = null;
+            if (defaultValue == null)
+            {
+                DefaultValue = new NullValueNode();
+                NativeDefaultValue = null;
+            }
+            else
+            {
+                NativeDefaultValue = defaultValue;
+                DefaultValue = null;
+            }
             return this;
         }
 
