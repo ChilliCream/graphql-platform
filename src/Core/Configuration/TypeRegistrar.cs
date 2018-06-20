@@ -60,13 +60,16 @@ namespace HotChocolate.Configuration
             while (_queue.Any())
             {
                 INamedType type = _queue.Dequeue();
-                context.Types.RegisterType(type);
-                _registered.Add(type.Name);
-
-                if (type is INeedsInitialization initializer)
+                if (!_registered.Contains(type.Name))
                 {
-                    initializer.RegisterDependencies(
-                        context, e => _errors.Add(e));
+                    _registered.Add(type.Name);
+                    context.Types.RegisterType(type);
+
+                    if (type is INeedsInitialization initializer)
+                    {
+                        initializer.RegisterDependencies(
+                            context, e => _errors.Add(e));
+                    }
                 }
             }
         }

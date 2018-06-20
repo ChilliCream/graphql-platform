@@ -484,7 +484,7 @@ namespace HotChocolate.Language
                 {
                     value.Append(state.SourceText.Substring(chunkStart, state.Position - chunkStart));
                     value.Append(ReadEscapedChar(state));
-                    chunkStart = state.Position;
+                    chunkStart = state.Position + 1;
                 }
             }
 

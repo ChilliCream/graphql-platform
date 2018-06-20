@@ -61,56 +61,37 @@ namespace HotChocolate.Types
                 .Resolver(null, CancellationToken.None)));
         }
 
-        /*
-    [Fact]
-    public void CreateUnion()
-    {
-        // arrange
-        DocumentNode document = Parser.Default.Parse(
-            "union X = A | B");
-        UnionTypeDefinitionNode unionTypeDefinition = document
-            .Definitions.OfType<UnionTypeDefinitionNode>().First();
 
-        SchemaContext context = new SchemaContext(
-            new[] { new StringType() });
-        SchemaConfiguration schemaConfiguration = new SchemaConfiguration();
-        schemaConfiguration.RegisterType(c => new ObjectTypeConfig
+        [Fact]
+        public void CreateUnion()
         {
-            Name = "A",
-            Fields = new[]
-            {
-                new Field(new FieldConfig
-                {
-                    Name = "a",
-                    Type = () => c.StringType()
-                })
-            }
-        });
-        schemaConfiguration.RegisterType(c => new ObjectTypeConfig
-        {
-            Name = "B",
-            Fields = new[]
-            {
-                new Field(new FieldConfig
-                {
-                    Name = "a",
-                    Type = () => c.StringType()
-                })
-            }
-        });
-        schemaConfiguration.Commit(context);
+            // arrange
+            DocumentNode document = Parser.Default.Parse(
+                "union X = A | B");
+            UnionTypeDefinitionNode unionTypeDefinition = document
+                .Definitions.OfType<UnionTypeDefinitionNode>().First();
 
-        // act
-        UnionTypeFactory factory = new UnionTypeFactory();
-        UnionType unionType = factory.Create(context, unionTypeDefinition);
-        ((INeedsInitialization)unionType).CompleteInitialization(error => { });
+            ServiceManager serviceManager = new ServiceManager();
+            SchemaContext context = new SchemaContext(serviceManager);
+            SchemaConfiguration schemaConfiguration = new SchemaConfiguration(serviceManager);
+            schemaConfiguration.RegisterType(new ObjectType(d =>
+                d.Name("A").Field("a").Type<StringType>()));
+            schemaConfiguration.RegisterType(new ObjectType(d =>
+                d.Name("B").Field("a").Type<StringType>()));
 
-        // assert
-        Assert.Equal("X", unionType.Name);
-        Assert.Equal(2, unionType.Types.Count);
-        Assert.Equal("A", unionType.Types.First().Key);
-        Assert.Equal("B", unionType.Types.Last().Key);
-    }
-     */
+            // act
+            UnionTypeFactory factory = new UnionTypeFactory();
+            UnionType unionType = factory.Create(unionTypeDefinition);
+            schemaConfiguration.RegisterType(unionType);
+
+            TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
+            typeFinalizer.FinalizeTypes(context);
+
+            // assert
+            Assert.Equal("X", unionType.Name);
+            Assert.Equal(2, unionType.Types.Count);
+            Assert.Equal("A", unionType.Types.First().Key);
+            Assert.Equal("B", unionType.Types.Last().Key);
+        }
     }
 }

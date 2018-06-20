@@ -25,5 +25,27 @@ namespace HotChocolate.Language
             Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
             Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
         }
+
+        [InlineData("\"\\\"456\"", "\"456")]
+        [InlineData("\"123\\\"456\"", "123\"456")]
+        [InlineData("\"123\\\"\"", "123\"")]
+        [InlineData("\"\\\"\"", "\"")]
+        [Theory]
+        private void EscapeCharacters(string sourceText, string expectedResult)
+        {
+            // arrange
+            Source source = new Source(sourceText);
+
+            // act
+            SyntaxToken token = Lexer.Default.Read(source);
+            token = token.Next;
+
+            // assert
+            Assert.NotNull(token);
+            Assert.Equal(TokenKind.String, token.Kind);
+            Assert.Equal(expectedResult, token.Value);
+            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
+            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
+        }
     }
 }
