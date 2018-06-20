@@ -26,10 +26,24 @@ namespace HotChocolate.Language
             Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
         }
 
+        // \" -> "
         [InlineData("\"\\\"456\"", "\"456")]
         [InlineData("\"123\\\"456\"", "123\"456")]
         [InlineData("\"123\\\"\"", "123\"")]
         [InlineData("\"\\\"\"", "\"")]
+
+        // \\ -> \
+        [InlineData("\"\\\\456\"", "\\456")]
+        [InlineData("\"123\\\\456\"", "123\\456")]
+        [InlineData("\"123\\\\\"", "123\\")]
+        [InlineData("\"\\\\\"", "\\")]
+
+        // \/ -> /
+        [InlineData("\"\\/456\"", "/456")]
+        [InlineData("\"123\\/456\"", "123/456")]
+        [InlineData("\"123\\/\"", "123/")]
+        [InlineData("\"\\/\"", "/")]
+
         [Theory]
         private void EscapeCharacters(string sourceText, string expectedResult)
         {
