@@ -108,6 +108,10 @@ namespace HotChocolate.Configuration
                 if (typeof(T) == typeof(IInputType) || typeof(T) == typeof(IOutputType))
                 {
                     type = namedTypes.OfType<T>().FirstOrDefault();
+                    if(type == null)
+                    {
+                        return false;
+                    }
                     type = (T)typeInfo.TypeFactory((INamedType)type);
                     return true;
                 }
