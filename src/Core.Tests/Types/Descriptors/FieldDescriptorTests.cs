@@ -11,7 +11,6 @@ namespace HotChocolate.Types
 {
     public class FieldDescriptorTests
     {
-
         [Fact]
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
