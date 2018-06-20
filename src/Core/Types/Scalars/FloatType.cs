@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -34,7 +35,8 @@ namespace HotChocolate.Types
 
             if (literal is FloatValueNode floatLiteral)
             {
-                return double.Parse(floatLiteral.Value);
+                return double.Parse(floatLiteral.Value,
+                    NumberStyles.Float, CultureInfo.InvariantCulture);
             }
 
             if (literal is NullValueNode)
@@ -56,12 +58,14 @@ namespace HotChocolate.Types
 
             if (value is double d)
             {
-                return new FloatValueNode(d.ToString("e"));
+                return new FloatValueNode(d.ToString("e",
+                    CultureInfo.InvariantCulture));
             }
 
             if (value is float f)
             {
-                return new FloatValueNode(f.ToString("e"));
+                return new FloatValueNode(f.ToString("e",
+                    CultureInfo.InvariantCulture));
             }
 
             throw new ArgumentException(

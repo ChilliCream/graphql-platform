@@ -57,7 +57,8 @@ namespace HotChocolate.Types
 
             if (value is decimal d)
             {
-                return new FloatValueNode(d.ToString("e", CultureInfo.InvariantCulture));
+                return new FloatValueNode(d.ToString("e",
+                    CultureInfo.InvariantCulture));
             }
 
             throw new ArgumentException(
