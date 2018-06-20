@@ -66,7 +66,7 @@ namespace HotChocolate.AspNetCore
             QueryResult result = await schema.ExecuteAsync(
                 request.Query, request.OperationName,
                 DeserializeVariables(request.Variables), null,
-                CancellationToken.None).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             await WriteResponseAsync(context.Response, result)
                 .ConfigureAwait(false);

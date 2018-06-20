@@ -83,7 +83,11 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
         {
             // act
-            Schema schema = Schema.Create(c => c.RegisterType<FooType>());
+            Schema schema = Schema.Create(c =>
+            {
+                c.Options.StrictValidation = false;
+                c.RegisterType<FooType>();
+            });
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
@@ -105,7 +109,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Field(t => t.Description);
                 descriptor.Field("test")
-                    .Resolver<List<string>>(() => new List<string>())
+                    .Resolver(() => new List<string>())
                     .Type<ListType<StringType>>();
             }
         }

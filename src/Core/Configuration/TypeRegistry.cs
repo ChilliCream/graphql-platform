@@ -52,7 +52,8 @@ namespace HotChocolate.Configuration
         private void AddNativeTypeBindingFromInputTypes()
         {
             foreach (INamedInputType inputType in
-                GetTypes().OfType<INamedInputType>())
+                GetTypes().OfType<INamedInputType>()
+                .Where(t => t.NativeType != null))
             {
                 AddNativeTypeBinding(inputType.NativeType, inputType);
             }
