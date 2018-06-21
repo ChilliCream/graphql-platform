@@ -41,22 +41,6 @@ namespace HotChocolate.Configuration
 
         private void CreateNativeTypeLookup()
         {
-            AddNativeTypeBindingFromInputTypes();
-            AddNativeTypeBindingFromTypeBindings();
-        }
-
-        private void AddNativeTypeBindingFromInputTypes()
-        {
-            foreach (INamedInputType inputType in
-                GetTypes().OfType<INamedInputType>()
-                .Where(t => t.NativeType != null))
-            {
-                AddNativeTypeBinding(inputType.NativeType, inputType.Name);
-            }
-        }
-
-        private void AddNativeTypeBindingFromTypeBindings()
-        {
             foreach (ITypeBinding typeBinding in _typeBindings.Values)
             {
                 if (typeBinding.Type != null && _namedTypes.TryGetValue(

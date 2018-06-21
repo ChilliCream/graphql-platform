@@ -74,6 +74,12 @@ namespace HotChocolate.Configuration
             {
                 _dotnetTypeToSchemaType[type] = namedTypeRef.Name;
             }
+
+            if (namedTypeRef is IInputType inputType
+                && inputType.NativeType != null)
+            {
+                AddNativeTypeBinding(inputType.NativeType, namedType.Name);
+            }
         }
 
         private void UpdateTypeBinding(string typeName, ITypeBinding typeBinding)
