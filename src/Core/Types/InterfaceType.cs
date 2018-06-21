@@ -26,6 +26,10 @@ namespace HotChocolate.Types
 
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
             Initialize(configure);
         }
 
@@ -67,11 +71,6 @@ namespace HotChocolate.Types
 
         private void Initialize(Action<IInterfaceTypeDescriptor> configure)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
             InterfaceTypeDescriptor descriptor =
                 new InterfaceTypeDescriptor(GetType());
             configure(descriptor);
@@ -80,11 +79,6 @@ namespace HotChocolate.Types
 
         private void Initialize(InterfaceTypeDescriptor descriptor)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
             if (string.IsNullOrEmpty(descriptor.Name))
             {
                 throw new ArgumentException(
