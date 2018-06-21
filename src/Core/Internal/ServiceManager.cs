@@ -16,7 +16,6 @@ namespace HotChocolate.Internal
         private readonly ServiceContainer _types;
         private bool _disposed;
 
-
         public ServiceManager()
         {
             _factory = new ServiceFactory(t => GetServiceFromProviders(t));

@@ -1,11 +1,11 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
-    public class HumanType
-        : ObjectType<Human>
+    public class DroidType
+        : ObjectType<Droid>
     {
-        protected override void Configure(IObjectTypeDescriptor<Human> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<Droid> descriptor)
         {
             descriptor.Interface<CharacterType>();
             descriptor.Field(t => t.Friends)

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public class CharacterType
         : InterfaceType

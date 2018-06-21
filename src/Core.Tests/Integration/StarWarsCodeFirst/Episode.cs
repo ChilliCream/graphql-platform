@@ -1,4 +1,4 @@
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public enum Episode
     {
