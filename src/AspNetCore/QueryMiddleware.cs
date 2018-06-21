@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -8,14 +7,12 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
 {
     public class QueryMiddleware
     {
-        private const string _post = "Post";
         private static readonly Parser _parser = Parser.Default;
 
         private readonly RequestDelegate _next;
@@ -36,20 +33,21 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             Schema schema)
         {
-            bool handled = false;
-            if (context.Request.Method.Equals(_post, StringComparison.OrdinalIgnoreCase))
+            if (context.Request.IsGet() || context.Request.IsPost())
             {
                 string path = context.Request.Path.ToUriComponent();
                 if (_route == null || _route.Equals(path))
                 {
-                    await HandleRequestAsync(context, schema,
-                        context.RequestAborted)
+                    QueryRequest request = context.Request.IsGet()
+                        ? GetRequest.ReadRequest(context)
+                        : await PostRequest.ReadRequestAsync(context);
+
+                    await HandleRequestAsync(context, request,
+                            schema, context.RequestAborted)
                         .ConfigureAwait(false);
-                    handled = true;
                 }
             }
-
-            if (!handled)
+            else
             {
                 await _next(context);
             }
@@ -57,12 +55,10 @@ namespace HotChocolate.AspNetCore
 
         private async Task HandleRequestAsync(
             HttpContext context,
+            QueryRequest request,
             Schema schema,
             CancellationToken cancellationToken)
         {
-            QueryRequest request = await ReadRequestAsync(context.Request)
-                .ConfigureAwait(false);
-
             QueryResult result = await schema.ExecuteAsync(
                 request.Query, request.OperationName,
                 DeserializeVariables(request.Variables), null,
@@ -70,16 +66,6 @@ namespace HotChocolate.AspNetCore
 
             await WriteResponseAsync(context.Response, result)
                 .ConfigureAwait(false);
-        }
-
-        private async Task<QueryRequest> ReadRequestAsync(HttpRequest request)
-        {
-            using (StreamReader reader = new StreamReader(
-                request.Body, Encoding.UTF8))
-            {
-                string json = await reader.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<QueryRequest>(json);
-            }
         }
 
         private async Task WriteResponseAsync(HttpResponse response, QueryResult queryResult)
