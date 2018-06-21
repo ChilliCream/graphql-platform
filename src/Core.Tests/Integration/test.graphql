@@ -1,0 +1,20 @@
+query x {
+    hero(episode: EMPIRE) {
+        name
+        friends {
+            name
+            friends {
+                name
+            }
+            ... additional
+        }
+    }
+}
+
+fragment additional on Droid {
+    primaryFunction
+}
+
+fragment additional on Human {
+    homePlanet
+}

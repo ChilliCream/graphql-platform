@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
@@ -16,6 +17,7 @@ namespace HotChocolate.Types
             if (typeReference != null)
             {
                 type = typeRegistry.GetType<T>(typeReference);
+
             }
 
             if (ReferenceEquals(type, default(T)))
@@ -26,7 +28,7 @@ namespace HotChocolate.Types
                     "to a valid schema type.", field.DeclaringType));
             }
 
-            return default(T);
+            return type;
         }
     }
 }

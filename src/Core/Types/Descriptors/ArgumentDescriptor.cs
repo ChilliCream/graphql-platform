@@ -90,6 +90,7 @@ namespace HotChocolate.Types
             }
             else
             {
+                TypeReference = TypeReference.GetMoreSpecific(defaultValue.GetType());
                 NativeDefaultValue = defaultValue;
                 DefaultValue = null;
             }

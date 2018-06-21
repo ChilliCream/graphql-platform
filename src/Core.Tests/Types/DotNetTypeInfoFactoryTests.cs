@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using Xunit;
@@ -89,6 +90,27 @@ namespace HotChocolate.Types
 
             // assert
             Assert.False(success);
+        }
+
+        [InlineData(typeof(List<string>), "[String]")]
+        [InlineData(typeof(ImmutableList<string>), "[String]")]
+        [InlineData(typeof(ImmutableArray<string>), "[String]")]
+        [InlineData(typeof(IList<string>), "[String]")]
+        [InlineData(typeof(IReadOnlyCollection<string>), "[String]")]
+        [InlineData(typeof(IReadOnlyList<string>), "[String]")]
+        [InlineData(typeof(string[]), "[String]")]
+        [Theory]
+        public void SupportedListTypes(Type nativeType, string expectedTypeName)
+        {
+            // arrange
+            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+
+            // act
+            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(expectedTypeName, typeInfo.TypeFactory(new StringType()).Visualize());
         }
     }
 }

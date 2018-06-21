@@ -12,13 +12,37 @@ namespace HotChocolate.Integration
     public class StarWarsCodeFirstTests
     {
         [Fact]
+        public void GraphQLOrgFieldExample()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                hero {
+                    name
+                    # Queries can have comments!
+                    friends {
+                        name
+                    }
+                }
+            }";
+
+            // act
+            QueryResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+
+        [Fact]
         public void GetEpisode5Hero()
         {
             // arrange
             Schema schema = CreateSchema();
             string query = @"
             {
-                hero(EMPIRE) {
+                hero(episode: EMPIRE) {
                     name
                     friends {
                         name
@@ -28,6 +52,99 @@ namespace HotChocolate.Integration
                     }
                 }
 
+            }";
+
+            // act
+            QueryResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void GetEpisode5HeroWithInlineFragments()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                hero(episode: EMPIRE) {
+                    name
+                    friends {
+                        name
+                        friends {
+                            name
+                        }
+                        ... on Droid {
+                            primaryFunction
+                        }
+                    }
+                }
+
+            }";
+
+            // act
+            QueryResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void GetEpisode5HeroWithFragments()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                hero(episode: EMPIRE) {
+                    name
+                    friends {
+                        name
+                        friends {
+                            name
+                        }
+                        ... additional
+                    }
+                }
+            }
+
+            fragment additional on Droid {
+                primaryFunction
+            }
+
+            fragment additional on Human {
+                homePlanet
+            }";
+
+            // act
+            QueryResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void CompareEpisodeHeros()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                leftComparison: hero(episode: EMPIRE) {
+                    ...comparisonFields
+                }
+                rightComparison: hero(episode: JEDI) {
+                    ...comparisonFields
+                }
+            }
+
+            fragment comparisonFields on Character {
+                name
+                appearsIn
+                friends {
+                    name
+                }
             }";
 
             // act
@@ -139,6 +256,12 @@ namespace HotChocolate.Integration
     public class QueryType
         : ObjectType<Query>
     {
+        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+        {
+            descriptor.Field(t => t.GetHero(default))
+                .Type<CharacterType>()
+                .Argument("episode", a => a.DefaultValue(Episode.NewHope));
+        }
     }
 
     public class Human
@@ -214,7 +337,7 @@ namespace HotChocolate.Integration
 
         public ICharacter GetHero(Episode episode)
         {
-            if (episode == Episode.Jedi)
+            if (episode == Episode.Empire)
             {
                 return _characters["1000"];
             }

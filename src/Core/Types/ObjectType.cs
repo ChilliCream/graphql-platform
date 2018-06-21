@@ -27,6 +27,7 @@ namespace HotChocolate.Types
         private IsOfType _isOfType;
         private ImmutableList<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
+        private bool _completed;
 
         protected ObjectType()
         {
@@ -143,22 +144,25 @@ namespace HotChocolate.Types
             ISchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
-            if (_interfaces != null)
+            if (!_completed)
             {
-                foreach (TypeReference typeReference in _interfaces)
+                if (_interfaces != null)
                 {
-                    schemaContext.Types.RegisterType(typeReference);
+                    foreach (TypeReference typeReference in _interfaces)
+                    {
+                        schemaContext.Types.RegisterType(typeReference);
+                    }
                 }
-            }
 
-            foreach (Field field in _fieldMap.Values)
-            {
-                field.RegisterDependencies(schemaContext, reportError, this);
-            }
+                foreach (Field field in _fieldMap.Values)
+                {
+                    field.RegisterDependencies(schemaContext, reportError, this);
+                }
 
-            if (_typeBinding != null)
-            {
-                schemaContext.Types.RegisterType(this, _typeBinding);
+                if (_typeBinding != null)
+                {
+                    schemaContext.Types.RegisterType(this, _typeBinding);
+                }
             }
         }
 
@@ -166,16 +170,66 @@ namespace HotChocolate.Types
             ISchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
-            foreach (Field field in _fieldMap.Values)
+            if (!_completed)
             {
-                field.CompleteField(schemaContext, reportError, this);
-            }
+                foreach (Field field in _fieldMap.Values)
+                {
+                    field.CompleteField(schemaContext, reportError, this);
+                }
 
+                CompleteIsOfType();
+                CompleteInterfaces(schemaContext.Types, reportError);
+
+                _completed = true;
+            }
+        }
+
+        private void CompleteIsOfType()
+        {
+            if (_isOfType == null)
+            {
+                if (_typeBinding?.Type == null)
+                {
+                    _isOfType = IsOfTypeNameBased;
+                }
+                else
+                {
+                    _isOfType = IsOfTypeWithNativeType;
+                }
+            }
+        }
+
+        private bool IsOfTypeWithNativeType(
+            IResolverContext context,
+            object result)
+        {
+            if (result == null)
+            {
+                return true;
+            }
+            return _typeBinding.Type.IsInstanceOfType(result);
+        }
+
+        private bool IsOfTypeNameBased(
+            IResolverContext context,
+            object result)
+        {
+            if (result == null)
+            {
+                return true;
+            }
+            return context.GetType().Name
+                .Equals(Name, StringComparison.Ordinal);
+        }
+
+        private void CompleteInterfaces(
+            ITypeRegistry typeRegistry,
+            Action<SchemaError> reportError)
+        {
             if (_interfaces != null)
             {
-
                 foreach (InterfaceType interfaceType in _interfaces
-                    .Select(t => schemaContext.Types.GetType<InterfaceType>(t))
+                    .Select(t => typeRegistry.GetType<InterfaceType>(t))
                     .Where(t => t != null))
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
