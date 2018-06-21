@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public class EpisodeType
         : EnumType<Episode>

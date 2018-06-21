@@ -5,7 +5,7 @@ using HotChocolate.Language;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public class StarWarsCodeFirstTests
     {

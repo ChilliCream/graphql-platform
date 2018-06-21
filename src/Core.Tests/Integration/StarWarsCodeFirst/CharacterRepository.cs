@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public class CharacterRepository
     {

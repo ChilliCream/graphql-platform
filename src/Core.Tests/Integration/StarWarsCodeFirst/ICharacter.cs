@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public interface ICharacter
     {

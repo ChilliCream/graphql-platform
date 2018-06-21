@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Integration
+namespace HotChocolate.Integration.HelloWorldCodeFirst
 {
     public class HelloWorldCodeFirstTests
     {
@@ -70,45 +69,5 @@ namespace HotChocolate.Integration
                 .Returns(serviceResolver);
             return serviceProvider.Object;
         }
-    }
-
-    public class QueryHelloWorld
-        : ObjectType
-    {
-        public QueryHelloWorld(DataStoreHelloWorld dataStore)
-        {
-            DataStore = dataStore;
-        }
-
-        public DataStoreHelloWorld DataStore { get; }
-
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor.Field("hello").Resolver(() => "world");
-            descriptor.Field("state").Resolver(() => DataStore.State);
-        }
-    }
-
-    public class MutationHelloWorld
-        : ObjectType
-    {
-        public MutationHelloWorld(DataStoreHelloWorld dataStore)
-        {
-            DataStore = dataStore;
-        }
-
-        public DataStoreHelloWorld DataStore { get; }
-
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor.Field("newState")
-                .Argument("state", a => a.Type<StringType>())
-                .Resolver(c => DataStore.State = c.Argument<string>("state"));
-        }
-    }
-
-    public class DataStoreHelloWorld
-    {
-        public string State { get; set; } = "initial";
     }
 }
