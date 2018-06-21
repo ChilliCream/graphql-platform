@@ -124,33 +124,6 @@ namespace HotChocolate.Integration
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-
-        [Fact]
-        public void GetEpisode5Hero()
-        {
-            // arrange
-            Schema schema = CreateSchema();
-            string query = @"
-            {
-                hero(episode: EMPIRE) {
-                    name
-                    friends {
-                        name
-                        friends {
-                            name
-                        }
-                    }
-                }
-
-            }";
-
-            // act
-            QueryResult result = schema.Execute(query);
-
-            // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
-        }
-
         [Fact]
         public void GraphQLOrgOperationNameExample()
         {
@@ -224,7 +197,7 @@ namespace HotChocolate.Integration
         }
 
         [Fact]
-        public void GraphQLOrgVariableDirectiveIncludeExample1()
+        public void GraphQLOrgDirectiveIncludeExample1()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -253,7 +226,7 @@ namespace HotChocolate.Integration
         }
 
         [Fact]
-        public void GraphQLOrgVariableDirectiveIncludeExample2()
+        public void GraphQLOrgDirectiveIncludeExample2()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -282,7 +255,7 @@ namespace HotChocolate.Integration
         }
 
         [Fact]
-        public void GraphQLOrgVariableDirectiveSkipExample1()
+        public void GraphQLOrgDirectiveSkipExample1()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -311,7 +284,7 @@ namespace HotChocolate.Integration
         }
 
         [Fact]
-        public void GraphQLOrgVariableDirectiveSkipExample2()
+        public void GraphQLOrgDirectiveSkipExample2()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -339,12 +312,43 @@ namespace HotChocolate.Integration
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+        [Fact]
+        public void GraphQLOrgMutation()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+                createReview(episode: $ep, review: $review) {
+                    stars
+                    commentary
+                }
+            }";
+
+            Dictionary<string, IValueNode> variables =
+                new Dictionary<string, IValueNode>
+            {
+                { "ep", new EnumValueNode("JEDI") },
+                { "review", new ObjectValueNode(
+                        new ObjectFieldNode("stars", new IntValueNode(5)),
+                        new ObjectFieldNode("commentary",
+                            new StringValueNode("This is a great movie!"))) }
+            };
+
+            // act
+            QueryResult result = schema.Execute(query, variableValues: variables);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
         private static Schema CreateSchema()
         {
             CharacterRepository repository = new CharacterRepository();
             Dictionary<Type, object> services = new Dictionary<Type, object>();
             services[typeof(CharacterRepository)] = repository;
             services[typeof(Query)] = new Query(repository);
+            services[typeof(Mutation)] = new Mutation();
+
 
             Func<Type, object> serviceResolver = new Func<Type, object>(
                 t =>
@@ -366,6 +370,7 @@ namespace HotChocolate.Integration
             {
                 c.RegisterServiceProvider(serviceProvider.Object);
                 c.RegisterQueryType<QueryType>();
+                c.RegisterMutationType<MutationType>();
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();

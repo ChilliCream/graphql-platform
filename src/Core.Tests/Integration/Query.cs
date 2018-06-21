@@ -25,5 +25,4 @@ namespace HotChocolate.Integration
             return _repository.GetDroid(id);
         }
     }
-
 }

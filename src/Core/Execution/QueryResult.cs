@@ -20,7 +20,16 @@ namespace HotChocolate.Execution
             Data = data;
         }
 
-        public QueryResult(List<IQueryError> errors)
+        public QueryResult(params IQueryError[] errors)
+        {
+            if (errors == null)
+            {
+                throw new ArgumentNullException(nameof(errors));
+            }
+            Errors = errors.ToImmutableList();
+        }
+
+        public QueryResult(IEnumerable<IQueryError> errors)
         {
             if (errors == null)
             {

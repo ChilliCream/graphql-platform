@@ -33,19 +33,37 @@ namespace HotChocolate.Execution
             Dictionary<string, IValueNode> variableValues,
             object initialValue, CancellationToken cancellationToken)
         {
-            ExecutionContext executionContext = CreateExecutionContext(
-                queryDocument, operationName, variableValues, initialValue);
-
-            await ExecuteOperationAsync(executionContext, cancellationToken);
-
-            if (executionContext.Errors.Any())
+            try
             {
-                return new QueryResult(
-                    executionContext.Data,
-                    executionContext.Errors);
-            }
+                ExecutionContext executionContext = CreateExecutionContext(
+                    queryDocument, operationName, variableValues, initialValue);
 
-            return new QueryResult(executionContext.Data);
+                await ExecuteOperationAsync(executionContext, cancellationToken);
+
+                if (executionContext.Errors.Any())
+                {
+                    return new QueryResult(
+                        executionContext.Data,
+                        executionContext.Errors);
+                }
+
+                return new QueryResult(executionContext.Data);
+            }
+            catch (QueryException ex)
+            {
+                return new QueryResult(ex.Errors);
+            }
+            catch (Exception ex)
+            {
+                if (_schema.Options.DeveloperMode)
+                {
+                    return new QueryResult(new QueryError(
+                        "Unexpected Resolver Error:\r\n" +
+                        ex.Message));
+                }
+                return new QueryResult(new QueryError(
+                    "Unexpected Operation Error!"));
+            }
         }
 
         private ExecutionContext CreateExecutionContext(
