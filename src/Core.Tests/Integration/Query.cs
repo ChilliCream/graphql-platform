@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Integration
 {
     public class Query
@@ -23,6 +25,11 @@ namespace HotChocolate.Integration
         public Droid GetDroid(string id)
         {
             return _repository.GetDroid(id);
+        }
+
+        public IEnumerable<object> Search(string text)
+        {
+            return _repository.Search(text);
         }
     }
 }

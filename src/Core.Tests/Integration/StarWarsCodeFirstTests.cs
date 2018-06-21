@@ -313,7 +313,7 @@ namespace HotChocolate.Integration
         }
 
         [Fact]
-        public void GraphQLOrgMutation()
+        public void GraphQLOrgMutationExample()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -341,6 +341,106 @@ namespace HotChocolate.Integration
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
+
+        [Fact]
+        public void GraphQLOrgInlineFragmentExample1()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            query HeroForEpisode($ep: Episode!) {
+                hero(episode: $ep) {
+                    name
+                    ... on Droid {
+                        primaryFunction
+                    }
+                    ... on Human {
+                        height
+                    }
+                }
+            }";
+
+            Dictionary<string, IValueNode> variables =
+                new Dictionary<string, IValueNode>
+            {
+                { "ep", new EnumValueNode("JEDI") },
+            };
+
+            // act
+            QueryResult result = schema.Execute(query, variableValues: variables);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void GraphQLOrgInlineFragmentExample2()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            query HeroForEpisode($ep: Episode!) {
+                hero(episode: $ep) {
+                    name
+                    ... on Droid {
+                        primaryFunction
+                    }
+                    ... on Human {
+                        height
+                    }
+                }
+            }";
+
+            Dictionary<string, IValueNode> variables =
+                new Dictionary<string, IValueNode>
+            {
+                { "ep", new EnumValueNode("EMPIRE") },
+            };
+
+            // act
+            QueryResult result = schema.Execute(query, variableValues: variables);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void GraphQLOrgMetaFieldAndUnionExample()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                search(text: ""an"") {
+                    __typename
+                    ... on Human {
+                        name
+                        height
+                    }
+                    ... on Droid {
+                        name
+                        primaryFunction
+                    }
+                    ... on Starship {
+                        name
+                        length
+                    }
+                }
+            }";
+
+            Dictionary<string, IValueNode> variables =
+                new Dictionary<string, IValueNode>
+            {
+                { "ep", new EnumValueNode("EMPIRE") },
+            };
+
+            // act
+            QueryResult result = schema.Execute(query, variableValues: variables);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         private static Schema CreateSchema()
         {
             CharacterRepository repository = new CharacterRepository();

@@ -17,5 +17,4 @@ namespace HotChocolate.Integration
 
         public double Height { get; } = 1.72d;
     }
-
 }
