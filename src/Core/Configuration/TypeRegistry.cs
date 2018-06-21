@@ -8,7 +8,6 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        private readonly object _sync = new object();
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly Dictionary<string, INamedType> _namedTypes =
             new Dictionary<string, INamedType>();
@@ -33,13 +32,10 @@ namespace HotChocolate.Configuration
 
         public void CompleteRegistartion()
         {
-            lock (_sync)
+            if (!_sealed)
             {
-                if (!_sealed)
-                {
-                    CreateNativeTypeLookup();
-                    _sealed = true;
-                }
+                CreateNativeTypeLookup();
+                _sealed = true;
             }
         }
 
@@ -55,29 +51,30 @@ namespace HotChocolate.Configuration
                 GetTypes().OfType<INamedInputType>()
                 .Where(t => t.NativeType != null))
             {
-                AddNativeTypeBinding(inputType.NativeType, inputType);
+                AddNativeTypeBinding(inputType.NativeType, inputType.Name);
             }
         }
 
         private void AddNativeTypeBindingFromTypeBindings()
         {
-            foreach (ITypeBinding typeBinding in
-                _typeBindings.OfType<ITypeBinding>())
+            foreach (ITypeBinding typeBinding in _typeBindings.Values)
             {
                 if (typeBinding.Type != null && _namedTypes.TryGetValue(
                     typeBinding.Name, out INamedType namedType))
                 {
-                    AddNativeTypeBinding(typeBinding.Type, namedType);
+                    AddNativeTypeBinding(typeBinding.Type, namedType.Name);
                 }
             }
         }
 
-        private void AddNativeTypeBinding(Type type, INamedType namedType)
+        private void AddNativeTypeBinding(Type type, string namedTypeName)
         {
-            if (_nativeTypes.TryGetValue(type, out HashSet<string> types))
+            if (!_nativeTypes.TryGetValue(type, out HashSet<string> types))
             {
-                types.Add(namedType.Name);
+                types = new HashSet<string>();
+                _nativeTypes[type] = types;
             }
+            types.Add(namedTypeName);
         }
 
     }

@@ -11,11 +11,13 @@ namespace HotChocolate.Types
 {
     public class Field
         : ITypeSystemNode
+        , IField
     {
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
         private MemberInfo _member;
         private TypeReference _typeReference;
+        private bool _completed;
 
         internal Field(string name, Action<IFieldDescriptor> configure)
         {
@@ -46,6 +48,8 @@ namespace HotChocolate.Types
 
         public FieldDefinitionNode SyntaxNode { get; private set; }
 
+        public INamedType DeclaringType { get; private set; }
+
         public string Name { get; private set; }
 
         public string Description { get; private set; }
@@ -63,6 +67,7 @@ namespace HotChocolate.Types
         #region TypeSystemNode
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
         IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
             => _argumentMap.Values;
 
@@ -108,21 +113,24 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (_typeReference != null)
+            if (!_completed)
             {
-                schemaContext.Types.RegisterType(_typeReference);
-            }
+                if (_typeReference != null)
+                {
+                    schemaContext.Types.RegisterType(_typeReference);
+                }
 
-            if (_member != null)
-            {
-                schemaContext.Resolvers.RegisterResolver(
-                    new MemberResolverBinding(parentType.Name, Name, _member));
-            }
+                if (_member != null)
+                {
+                    schemaContext.Resolvers.RegisterResolver(
+                        new MemberResolverBinding(parentType.Name, Name, _member));
+                }
 
-            foreach (InputField argument in _argumentMap.Values)
-            {
-                argument.RegisterDependencies(
-                    schemaContext.Types, reportError, parentType);
+                foreach (InputField argument in _argumentMap.Values)
+                {
+                    argument.RegisterDependencies(
+                        schemaContext.Types, reportError, parentType);
+                }
             }
         }
 
@@ -131,31 +139,21 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            CompleteType(schemaContext.Types, reportError, parentType);
-            CompleteResolver(schemaContext.Resolvers, reportError, parentType);
-
-            foreach (InputField argument in _argumentMap.Values)
+            if (!_completed)
             {
-                argument.CompleteInputField(
-                    schemaContext.Types, reportError, parentType);
-            }
-        }
+                DeclaringType = parentType;
+                Type = this.ResolveFieldType<IOutputType>(schemaContext.Types,
+                    reportError, _typeReference);
 
-        private void CompleteType(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            if (_typeReference != null)
-            {
-                Type = typeRegistry.GetType<IOutputType>(_typeReference);
-            }
+                CompleteResolver(schemaContext.Resolvers, reportError, parentType);
 
-            if (Type == null)
-            {
-                reportError(new SchemaError(
-                    $"The type of field `{parentType.Name}.{Name}` is null.",
-                    parentType));
+                foreach (InputField argument in _argumentMap.Values)
+                {
+                    argument.CompleteInputField(
+                        schemaContext.Types, reportError, parentType);
+                }
+
+                _completed = true;
             }
         }
 

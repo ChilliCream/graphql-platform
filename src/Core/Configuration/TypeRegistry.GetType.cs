@@ -99,8 +99,10 @@ namespace HotChocolate.Configuration
             return false;
         }
 
+        // TODO : Refactor
         private bool TryGetTypeFromNativeTypeBinding<T>(TypeInfo typeInfo, out T type)
         {
+            string debug = typeInfo.NativeNamedType.Name;
             if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType,
                 out HashSet<string> namedTypeNames))
             {
@@ -108,7 +110,7 @@ namespace HotChocolate.Configuration
                 if (typeof(T) == typeof(IInputType) || typeof(T) == typeof(IOutputType))
                 {
                     type = namedTypes.OfType<T>().FirstOrDefault();
-                    if(type == null)
+                    if (type == null)
                     {
                         return false;
                     }
