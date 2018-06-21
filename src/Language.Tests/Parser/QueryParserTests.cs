@@ -173,5 +173,27 @@ namespace HotChocolate.Language
 
                 });
         }
+
+        [Fact]
+        public void QueryWithComments()
+        {
+            // arrange
+            string query = @"{
+                hero {
+                    name
+                    # Queries can have comments!
+                    friends {
+                        name
+                    }
+                }
+            }";
+
+            // act
+            DocumentNode document = Parser.Default.Parse(query,
+                new ParserOptions(noLocations: true));
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(document));
+        }
     }
 }
