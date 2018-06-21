@@ -38,12 +38,8 @@ namespace HotChocolate.AspNetCore
                 string path = context.Request.Path.ToUriComponent();
                 if (_route == null || _route.Equals(path))
                 {
-                    QueryRequest request = context.Request.IsGet()
-                        ? GetRequest.ReadRequest(context)
-                        : await PostRequest.ReadRequestAsync(context);
-
-                    await HandleRequestAsync(context, request,
-                            schema, context.RequestAborted)
+                    await HandleRequestAsync(context, schema,
+                            context.RequestAborted)
                         .ConfigureAwait(false);
                 }
             }
@@ -55,10 +51,13 @@ namespace HotChocolate.AspNetCore
 
         private async Task HandleRequestAsync(
             HttpContext context,
-            QueryRequest request,
             Schema schema,
             CancellationToken cancellationToken)
         {
+            QueryRequest request = context.Request.IsGet()
+                ? GetRequest.ReadRequest(context)
+                : await PostRequest.ReadRequestAsync(context);
+
             QueryResult result = await schema.ExecuteAsync(
                 request.Query, request.OperationName,
                 DeserializeVariables(request.Variables), null,

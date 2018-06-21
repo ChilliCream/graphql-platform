@@ -9,11 +9,11 @@ namespace HotChocolate.AspNetCore
 {
     internal static class PostRequest
     {
-        private const string _method = "Post";
+        private const string _postMethod = "Post";
 
         internal static bool IsPost(this HttpRequest request)
         {
-            return request.Method.Equals(_method, StringComparison.OrdinalIgnoreCase);
+            return request.Method.Equals(_postMethod, StringComparison.OrdinalIgnoreCase);
         }
 
         internal static async Task<QueryRequest> ReadRequestAsync(HttpContext context)

@@ -6,11 +6,11 @@ namespace HotChocolate.AspNetCore
     internal static class GetRequest
     {
         private const string _queryIdentifier = "query";
-        private const string _method = "Get";
+        private const string _getMethod = "Get";
 
         internal static bool IsGet(this HttpRequest request)
         {
-            return request.Method.Equals(_method, StringComparison.OrdinalIgnoreCase);
+            return request.Method.Equals(_getMethod, StringComparison.OrdinalIgnoreCase);
         }
 
         internal static QueryRequest ReadRequest(HttpContext context)
