@@ -4,7 +4,7 @@
 
 ---
 
-**Hot Chocolate is a GraphQL Server for _.net core_ and _.net classic_**
+**Hot Chocolate is a GraphQL Server for _.NET Core_ and _.NET Classic_**
 
 _Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [draft specification](http://facebook.github.io/graphql/draft/) defined by facebook.
 
@@ -207,12 +207,12 @@ Moreoreover, we are working on the following parts that are not defined in the s
 
 ## Supported Frameworks
 
-- [ ] ASP.net classic
+- [ ] ASP.NET Classic
   - [ ] Get
   - [ ] Post
 
-- [x] ASP.net core
-  - [ ] Get
+- [x] ASP.NET Core
+  - [x] Get
   - [x] Post
 
 ## Documentation
