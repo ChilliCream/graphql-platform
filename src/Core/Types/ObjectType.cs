@@ -254,8 +254,8 @@ namespace HotChocolate.Types
                                 interfaceArgument.Name))
                             {
                                 reportError(new SchemaError(
-                                    $"Object type {Name} does not implement the " +
-                                    $"field all arguments of field {interfaceField.Name} " +
+                                    $"Object type {Name} does not implement " +
+                                    $"all arguments of field {interfaceField.Name} " +
                                     $"from interface {interfaceType.Name}.",
                                     this));
                             }

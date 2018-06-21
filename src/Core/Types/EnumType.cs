@@ -90,6 +90,11 @@ namespace HotChocolate.Types
                 return ev.Value;
             }
 
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
             throw new ArgumentException(
                 "The specified value cannot be handled " +
                 $"by the EnumType {Name}.");

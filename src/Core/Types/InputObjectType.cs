@@ -72,36 +72,13 @@ namespace HotChocolate.Types
                 return _deserialize(ov);
             }
 
-            throw new ArgumentException(
-                "The input object type can only parse object value literals.",
-                nameof(literal));
-        }
-
-        private object ParseLiteralWithParser(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is ObjectValueNode objectLiteral)
-            {
-                if (_deserialize == null)
-                {
-                    throw new InvalidOperationException(
-                        "There is no deserializer availabel for input " +
-                        $"object type `{Name}`");
-                }
-                return _deserialize(objectLiteral);
-            }
-
             if (literal is NullValueNode)
             {
                 return null;
             }
 
             throw new ArgumentException(
-                "The string type can only parse string literals.",
+                "The input object type can only parse object value literals.",
                 nameof(literal));
         }
 
