@@ -428,14 +428,8 @@ namespace HotChocolate.Integration
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
-            {
-                { "ep", new EnumValueNode("EMPIRE") },
-            };
-
             // act
-            QueryResult result = schema.Execute(query, variableValues: variables);
+            QueryResult result = schema.Execute(query);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));

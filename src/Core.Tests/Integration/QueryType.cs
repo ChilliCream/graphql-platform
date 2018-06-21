@@ -10,6 +10,9 @@ namespace HotChocolate.Integration
             descriptor.Field(t => t.GetHero(default))
                 .Type<CharacterType>()
                 .Argument("episode", a => a.DefaultValue(Episode.NewHope));
+
+            descriptor.Field(t => t.Search(default))
+                .Type<ListType<SearchResultType>>();
         }
     }
 
