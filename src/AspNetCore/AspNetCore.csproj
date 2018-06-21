@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <PackageId>HotChocolate.AspNetCore</PackageId>
+    <Description>The hot chocolate ASP.net core GraphQL middleware.</Description>
   </PropertyGroup>
 
   <PropertyGroup>
