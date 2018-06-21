@@ -34,15 +34,19 @@ namespace HotChocolate.Internal
         {
             ParameterInfo[] parameters = constructor.GetParameters();
             parameterValues = new object[parameters.Length];
+
             for (int i = 0; i < parameters.Length; i++)
             {
                 object value = _resolveService(parameters[i].ParameterType);
+                parameterValues[i] = value;
+
                 if (value == null)
                 {
                     parameterValues = null;
                     return false;
                 }
             }
+
             return true;
         }
 
