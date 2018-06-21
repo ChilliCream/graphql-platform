@@ -143,7 +143,7 @@ We currently support the following parts of the current [draft spec](http://face
 - [x] Float
 - [x] String
 - [x] Boolean
-- [ ] ID
+- [x] ID
 
 ### Directives
 
@@ -204,6 +204,16 @@ Moreoreover, we are working on the following parts that are not defined in the s
 
 - [x] Schema-First approach
 - [x] Code-First approach
+
+## Supported Frameworks
+
+- [ ] ASP.net classic
+  - [ ] Get
+  - [ ] Post
+
+- [x] ASP.net core
+  - [ ] Get
+  - [x] Post
 
 ## Documentation
 

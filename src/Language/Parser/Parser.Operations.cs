@@ -250,7 +250,7 @@ namespace HotChocolate.Language
         /// <see cref="ArgumentNode" />:
         /// Name : Value[isConstant]
         /// </summary>
-        /// <param name="context">The parser context.</param>        
+        /// <param name="context">The parser context.</param>
         private List<ArgumentNode> ParseArguments(
             ParserContext context,
             Func<ParserContext, ArgumentNode> parseArgument)

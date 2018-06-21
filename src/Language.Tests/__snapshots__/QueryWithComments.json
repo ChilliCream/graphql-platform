@@ -1,0 +1,82 @@
+{
+  "Kind": "Document",
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "hero"
+            },
+            "Alias": null,
+            "Directives": [],
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "name"
+                  },
+                  "Alias": null,
+                  "Directives": [],
+                  "Arguments": [],
+                  "SelectionSet": null
+                },
+                {
+                  "Kind": "Field",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "friends"
+                  },
+                  "Alias": null,
+                  "Directives": [],
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Alias": null,
+                        "Directives": [],
+                        "Arguments": [],
+                        "SelectionSet": null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

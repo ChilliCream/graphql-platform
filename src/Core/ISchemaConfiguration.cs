@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Configuration;
 
 namespace HotChocolate
@@ -7,6 +8,7 @@ namespace HotChocolate
         , ICodeFirstConfiguration
     {
         ISchemaOptions Options { get; }
+        void RegisterServiceProvider(IServiceProvider serviceProvider);
     }
 
 

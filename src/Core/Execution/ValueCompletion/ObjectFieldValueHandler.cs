@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -18,23 +19,38 @@ namespace HotChocolate.Execution
             {
                 ObjectType objectType = ResolveObjectType(
                     context.ResolverContext, context.Type, context.Value);
-
-                OrderedDictionary objectResult = new OrderedDictionary();
-                context.SetResult(objectResult);
-
-                IReadOnlyCollection<FieldSelection> fields = context.ExecutionContext
-                    .CollectFields(objectType, context.SelectionSet);
-
-                foreach (FieldSelection field in fields)
+                if (objectType == null)
                 {
-                    context.ExecutionContext.NextBatch.Add(new FieldResolverTask(
-                        context.Source.Push(context.Value), objectType, field,
-                        context.Path.Append(field.ResponseName), objectResult));
+                    context.AddError(new FieldError(
+                        "Could not resolve the schema type from " +
+                        $"`{context.Value.GetType().GetTypeName()}`.",
+                        context.Selection.Node));
+                    return;
                 }
+                CompleteObjectValue(context, nextHandler, objectType);
             }
             else
             {
                 nextHandler?.Invoke(context);
+            }
+        }
+
+        private void CompleteObjectValue(
+            IFieldValueCompletionContext context,
+            Action<IFieldValueCompletionContext> nextHandler,
+            ObjectType objectType)
+        {
+            OrderedDictionary objectResult = new OrderedDictionary();
+            context.SetResult(objectResult);
+
+            IReadOnlyCollection<FieldSelection> fields = context.ExecutionContext
+                .CollectFields(objectType, context.SelectionSet);
+
+            foreach (FieldSelection field in fields)
+            {
+                context.ExecutionContext.NextBatch.Add(new FieldResolverTask(
+                    context.Source.Push(context.Value), objectType, field,
+                    context.Path.Append(field.ResponseName), objectResult));
             }
         }
 

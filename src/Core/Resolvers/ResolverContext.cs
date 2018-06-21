@@ -73,19 +73,38 @@ namespace HotChocolate.Resolvers
 
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
-                if (argumentValue.Value is T v
-                    || TryConvertValue(argumentValue, out v))
-                {
-                    return v;
-                }
-
-                throw new QueryException(
-                    $"Could not convert argument {name} from " +
-                    $"{argumentValue.NativeType.FullName} to " +
-                    $"{typeof(T).FullName}.");
+                return ConvertArgumentValue<T>(name, argumentValue);
             }
 
             return default(T);
+        }
+
+        private T ConvertArgumentValue<T>(string name, ArgumentValue argumentValue)
+        {
+            if (argumentValue.Value is T value)
+            {
+                return value;
+            }
+
+            Type type = typeof(T);
+            if (argumentValue.Value == null
+                && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return default(T);
+            }
+
+            if (TryConvertValue(argumentValue, out value))
+            {
+                return value;
+            }
+
+            throw new QueryException(
+               new FieldError(
+                   $"Could not convert argument {name} from " +
+                   $"{argumentValue.NativeType.FullName} to " +
+                   $"{typeof(T).FullName}.",
+                   _fieldResolverTask.FieldSelection.Node));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)

@@ -20,6 +20,15 @@ namespace HotChocolate.Types
 
         public Type NativeType { get; }
         public ITypeNode Type { get; }
+
+        public override string ToString()
+        {
+            if(NativeType == null)
+            {
+                return Type.ToString();
+            }
+            return NativeType.GetTypeName();
+        }
     }
 
     internal static class TypeReferenceExtensions

@@ -35,7 +35,7 @@ namespace HotChocolate.Language
             // skip opening token
             context.MoveNext();
 
-            while (context.Current.Kind != closeKind) // todo : fix this
+            while (context.Current.Kind != closeKind)
             {
                 list.Add(parser(context));
             }

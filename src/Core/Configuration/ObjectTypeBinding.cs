@@ -16,30 +16,20 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (objectType == null)
-            {
-                throw new ArgumentNullException(nameof(objectType));
-            }
-
             if (fields == null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
 
             Name = name;
-            Type = type;
-            ObjectType = objectType;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            ObjectType = objectType ?? throw new ArgumentNullException(nameof(objectType));
             Fields = fields.ToImmutableDictionary(t => t.Name);
         }
 
         public string Name { get; }
         public Type Type { get; }
         public ObjectType ObjectType { get; }
-        public ImmutableDictionary<string, FieldBinding> Fields { get; }
+        public IReadOnlyDictionary<string, FieldBinding> Fields { get; }
     }
 }

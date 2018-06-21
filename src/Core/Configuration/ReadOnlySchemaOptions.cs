@@ -26,6 +26,7 @@ namespace HotChocolate.Configuration
                 ? MinMaxExecutionDepth
                 : options.MaxExecutionDepth;
             StrictValidation = options.StrictValidation;
+            DeveloperMode = options.DeveloperMode;
         }
 
         public string QueryTypeName { get; }
@@ -39,5 +40,7 @@ namespace HotChocolate.Configuration
         public TimeSpan ExecutionTimeout { get; }
 
         public bool StrictValidation { get; }
+
+        public bool DeveloperMode { get; }
     }
 }

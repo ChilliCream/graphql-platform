@@ -9,9 +9,11 @@ namespace HotChocolate.Types
 {
     public class InputField
         : ITypeSystemNode
+        , IField
     {
         private readonly TypeReference _typeReference;
         private object _nativeDefaultValue;
+        private bool _completed;
 
         internal InputField(ArgumentDescriptor descriptor)
         {
@@ -62,6 +64,8 @@ namespace HotChocolate.Types
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
+        public INamedType DeclaringType { get; private set; }
+
         public string Name { get; }
 
         public string Description { get; }
@@ -88,9 +92,12 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (_typeReference != null)
+            if (!_completed)
             {
-                typeRegistry.RegisterType(_typeReference);
+                if (_typeReference != null)
+                {
+                    typeRegistry.RegisterType(_typeReference);
+                }
             }
         }
 
@@ -99,33 +106,25 @@ namespace HotChocolate.Types
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            CompleteType(typeRegistry, reportError, parentType);
-            CompleteDefaultValue(Type, reportError, parentType);
-
-            if (parentType is InputObjectType
-                && Property == null
-                && typeRegistry.TryGetTypeBinding(parentType, out InputObjectTypeBinding binding)
-                && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
+            if (!_completed)
             {
-                Property = fieldBinding.Property;
-            }
-        }
+                DeclaringType = parentType;
+                Type = this.ResolveFieldType<IInputType>(typeRegistry,
+                    reportError, _typeReference);
 
-        private void CompleteType(
-           ITypeRegistry typeRegistry,
-           Action<SchemaError> reportError,
-           INamedType parentType)
-        {
-            if (_typeReference != null)
-            {
-                Type = typeRegistry.GetType<IInputType>(_typeReference);
-            }
+                if (Type != null)
+                {
+                    CompleteDefaultValue(Type, reportError, parentType);
 
-            if (Type == null)
-            {
-                reportError(new SchemaError(
-                    $"The type of field `{parentType.Name}.{Name}` is null.",
-                    parentType));
+                    if (parentType is InputObjectType
+                        && Property == null
+                        && typeRegistry.TryGetTypeBinding(parentType, out InputObjectTypeBinding binding)
+                        && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
+                    {
+                        Property = fieldBinding.Property;
+                    }
+                }
+                _completed = true;
             }
         }
 

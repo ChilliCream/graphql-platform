@@ -50,16 +50,6 @@ namespace HotChocolate.Configuration
                 {
                     TryUpdateNamedType(typeInfo.NativeNamedType);
                 }
-                else
-                {
-                    lock (_sync)
-                    {
-                        if (!_nativeTypes.ContainsKey(type))
-                        {
-                            _nativeTypes.Add(type, new HashSet<string>());
-                        }
-                    }
-                }
             }
         }
 
@@ -70,22 +60,25 @@ namespace HotChocolate.Configuration
 
         private void TryUpdateNamedType(INamedType namedType)
         {
-            lock (_sync)
+            INamedType namedTypeRef = namedType;
+
+            if (!_namedTypes.TryGetValue(namedType.Name, out namedTypeRef))
             {
-                INamedType namedTypeRef = namedType;
+                namedTypeRef = namedType;
+                _namedTypes[namedTypeRef.Name] = namedTypeRef;
+            }
 
-                if (!_namedTypes.TryGetValue(namedType.Name, out namedTypeRef))
-                {
-                    namedTypeRef = namedType;
-                    _namedTypes[namedTypeRef.Name] = namedTypeRef;
-                }
+            Type type = namedTypeRef.GetType();
+            if (!_dotnetTypeToSchemaType.ContainsKey(type)
+                && !BaseTypes.IsNonGenericBaseType(type))
+            {
+                _dotnetTypeToSchemaType[type] = namedTypeRef.Name;
+            }
 
-                Type type = namedTypeRef.GetType();
-                if (!_dotnetTypeToSchemaType.ContainsKey(type)
-                    && !BaseTypes.IsNonGenericBaseType(type))
-                {
-                    _dotnetTypeToSchemaType[type] = namedTypeRef.Name;
-                }
+            if (namedTypeRef is IInputType inputType
+                && inputType.NativeType != null)
+            {
+                AddNativeTypeBinding(inputType.NativeType, namedType.Name);
             }
         }
 
@@ -93,10 +86,8 @@ namespace HotChocolate.Configuration
         {
             if (typeBinding != null)
             {
-                lock (_sync)
-                {
-                    _typeBindings[typeName] = typeBinding;
-                }
+                _typeBindings[typeName] = typeBinding;
+                AddNativeTypeBinding(typeBinding.Type, typeName);
             }
         }
     }

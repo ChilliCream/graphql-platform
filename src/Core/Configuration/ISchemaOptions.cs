@@ -11,6 +11,7 @@ namespace HotChocolate.Configuration
         new int MaxExecutionDepth { get; set; }
         new TimeSpan ExecutionTimeout { get; set; }
         new bool StrictValidation { get; set; }
+        new bool DeveloperMode { get; set; }
     }
 
     public interface IReadOnlySchemaOptions
@@ -21,5 +22,6 @@ namespace HotChocolate.Configuration
         int MaxExecutionDepth { get; }
         TimeSpan ExecutionTimeout { get; }
         bool StrictValidation { get; }
+        bool DeveloperMode { get; }
     }
 }

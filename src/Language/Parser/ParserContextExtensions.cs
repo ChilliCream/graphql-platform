@@ -65,10 +65,11 @@ namespace HotChocolate.Language
 
         public static SyntaxToken Expect(this ParserContext context, TokenKind kind)
         {
-            if (context.Current.Kind == kind)
+            SyntaxToken current = context.Current;
+            if (current.Kind == kind)
             {
                 context.MoveNext();
-                return context.Current.Previous;
+                return current;
             }
 
             throw new SyntaxException(context,
@@ -165,6 +166,11 @@ namespace HotChocolate.Language
                 return context.Current;
             }
             return context.Current;
+        }
+
+        public static void SkipWhile(this ParserContext context, TokenKind kind)
+        {
+            while (context.Skip(kind)) { }
         }
 
         public static bool Skip(this ParserContext context, TokenKind kind)

@@ -180,15 +180,33 @@ namespace HotChocolate.Configuration
 
         private static Type GetInnerListType(Type type)
         {
+            if (type.IsInterface && IsSupportedCollectionInterface(type))
+            {
+                return type.GetGenericArguments().First();
+            }
+
             foreach (Type interfaceType in type.GetInterfaces())
             {
-                if (interfaceType.IsGenericType && typeof(IList<>)
-                    .IsAssignableFrom(interfaceType.GetGenericTypeDefinition()))
+                if (IsSupportedCollectionInterface(interfaceType))
                 {
                     return interfaceType.GetGenericArguments().First();
                 }
             }
             return null;
+        }
+
+        private static bool IsSupportedCollectionInterface(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                if (typeDefinition == typeof(IReadOnlyCollection<>)
+                    || typeDefinition == typeof(IList<>))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static bool IsListType(Type type)
