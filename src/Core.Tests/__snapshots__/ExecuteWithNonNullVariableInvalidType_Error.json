@@ -1,0 +1,9 @@
+{
+  "Data": null,
+  "Errors": [
+    {
+      "VariableName": "a",
+      "Message": "The variable value is not of the correct type."
+    }
+  ]
+}

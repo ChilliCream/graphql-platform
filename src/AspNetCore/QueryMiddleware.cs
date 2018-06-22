@@ -31,14 +31,14 @@ namespace HotChocolate.AspNetCore
 
         public async Task Invoke(
             HttpContext context,
-            Schema schema)
+            QueryExecuter queryExecuter)
         {
             if (context.Request.IsGet() || context.Request.IsPost())
             {
                 string path = context.Request.Path.ToUriComponent();
                 if (_route == null || _route.Equals(path))
                 {
-                    await HandleRequestAsync(context, schema,
+                    await HandleRequestAsync(context, queryExecuter,
                             context.RequestAborted)
                         .ConfigureAwait(false);
                 }
@@ -51,16 +51,19 @@ namespace HotChocolate.AspNetCore
 
         private async Task HandleRequestAsync(
             HttpContext context,
-            Schema schema,
+            QueryExecuter queryExecuter,
             CancellationToken cancellationToken)
         {
             QueryRequest request = context.Request.IsGet()
                 ? GetRequest.ReadRequest(context)
                 : await PostRequest.ReadRequestAsync(context);
 
-            QueryResult result = await schema.ExecuteAsync(
-                request.Query, request.OperationName,
-                DeserializeVariables(request.Variables), null,
+            QueryResult result = await queryExecuter.ExecuteAsync(
+                new Execution.QueryRequest(request.Query, request.OperationName)
+                {
+                    VariableValues = DeserializeVariables(request.Variables),
+                    InitialValue = null
+                },
                 cancellationToken).ConfigureAwait(false);
 
             await WriteResponseAsync(context.Response, result)
@@ -119,30 +122,40 @@ namespace HotChocolate.AspNetCore
 
             if (value is JArray ja)
             {
-                List<IValueNode> list = new List<IValueNode>();
-                foreach (JToken token in ja.Children())
-                {
-                    list.Add(DeserializeVariableValue(token));
-                }
-                return new ListValueNode(null, list);
+                return DeserializeVariableListValue(ja);
             }
 
             if (value is JValue jv)
             {
-                switch (jv.Type)
-                {
-                    case JTokenType.Boolean:
-                        return new BooleanValueNode(jv.Value<bool>());
-                    case JTokenType.Integer:
-                        return new IntValueNode(jv.Value<string>());
-                    case JTokenType.Float:
-                        return new FloatValueNode(jv.Value<string>());
-                    default:
-                        return new StringValueNode(jv.Value<string>());
-                }
+                return DeserializeVariableScalarValue(jv);
             }
 
             throw new NotSupportedException();
+        }
+
+        private IValueNode DeserializeVariableListValue(JArray array)
+        {
+            List<IValueNode> list = new List<IValueNode>();
+            foreach (JToken token in array.Children())
+            {
+                list.Add(DeserializeVariableValue(token));
+            }
+            return new ListValueNode(null, list);
+        }
+
+        private IValueNode DeserializeVariableScalarValue(JValue value)
+        {
+            switch (value.Type)
+            {
+                case JTokenType.Boolean:
+                    return new BooleanValueNode(value.Value<bool>());
+                case JTokenType.Integer:
+                    return new IntValueNode(value.Value<string>());
+                case JTokenType.Float:
+                    return new FloatValueNode(value.Value<string>());
+                default:
+                    return new StringValueNode(value.Value<string>());
+            }
         }
     }
 }

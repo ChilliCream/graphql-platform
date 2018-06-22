@@ -40,9 +40,8 @@ namespace HotChocolate.Execution
 
             // act
             QueryResult result = await schema.ExecuteAsync(
-                "query x($x:[Int]) { a(foo:$x) { foo } }", null,
-                new Dictionary<string, IValueNode> { { "x", list } },
-                null, CancellationToken.None);
+                "query x($x:[Int]) { a(foo:$x) { foo } }",
+                new Dictionary<string, IValueNode> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -77,9 +76,8 @@ namespace HotChocolate.Execution
 
             // act
             QueryResult result = await schema.ExecuteAsync(
-                "query x($x:[Foo]) { a(foo:$x) { foo } }", null,
-                new Dictionary<string, IValueNode> { { "x", list } },
-                null, CancellationToken.None);
+                "query x($x:[Foo]) { a(foo:$x) { foo } }",
+                new Dictionary<string, IValueNode> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -108,9 +106,8 @@ namespace HotChocolate.Execution
 
             // act
             QueryResult result = await schema.ExecuteAsync(
-                "query x($x:Int) { a(foo:$x) { foo } }", null,
-                new Dictionary<string, IValueNode> { { "x", value } },
-                null, CancellationToken.None);
+                "query x($x:Int) { a(foo:$x) { foo } }",
+                new Dictionary<string, IValueNode> { { "x", value } });
 
             // assert
             Assert.Null(result.Errors);
@@ -143,9 +140,8 @@ namespace HotChocolate.Execution
 
             // act
             QueryResult result = await schema.ExecuteAsync(
-                "query x($x:Foo) { a(foo:$x) { foo } }", null,
-                new Dictionary<string, IValueNode> { { "x", obj } },
-                null, CancellationToken.None);
+                "query x($x:Foo) { a(foo:$x) { foo } }",
+                new Dictionary<string, IValueNode> { { "x", obj } });
 
             // assert
             Assert.Null(result.Errors);
