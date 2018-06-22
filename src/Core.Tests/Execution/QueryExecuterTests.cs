@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -67,6 +69,107 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task ExecuteWithMissingVariables_Error()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>();
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest(
+                "query x($a: String!) { b(a: $a) }")
+            {
+                VariableValues = variableValues
+            };
+
+            // act
+            QueryResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteWithNonNullVariableNull_Error()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>()
+                {
+                    { "a", new NullValueNode() }
+                };
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest(
+                "query x($a: String!) { b(a: $a) }")
+            {
+                VariableValues = variableValues
+            };
+
+            // act
+            QueryResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteWithNonNullVariableInvalidType_Error()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>()
+                {
+                    { "a", new IntValueNode(123) }
+                };
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest(
+                "query x($a: String!) { b(a: $a) }")
+            {
+                VariableValues = variableValues
+            };
+
+            // act
+            QueryResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteWithNonNullVariableValidValue_NoErrors()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>()
+                {
+                    { "a", new StringValueNode("123") }
+                };
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest(
+                "query x($a: String!) { b(a: $a) }")
+            {
+                VariableValues = variableValues
+            };
+
+            // act
+            QueryResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public async Task ExecuteQueryWith2OperationsAndNoOperationName_Error()
         {
             // arrange
@@ -128,7 +231,7 @@ namespace HotChocolate.Execution
             {
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
-                c.BindResolver(ctx => "hello world " + ctx.Argument<string>("b"))
+                c.BindResolver(ctx => "hello world " + ctx.Argument<string>("a"))
                     .To("Query", "b");
             });
         }
