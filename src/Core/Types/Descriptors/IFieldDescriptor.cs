@@ -24,10 +24,11 @@ namespace HotChocolate.Types
 
         IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
 
+        IFieldDescriptor Ignore();
+
         IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
 
         IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver, Type resultType);
-
     }
 
     public static class FieldDescriptorExtensions

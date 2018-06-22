@@ -61,6 +61,8 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; protected set; }
 
+        public bool Ignored { get; protected set; }
+
         protected ImmutableList<ArgumentDescriptor> Arguments { get; set; }
             = ImmutableList<ArgumentDescriptor>.Empty;
 
@@ -221,6 +223,12 @@ namespace HotChocolate.Types
 
             Resolver = fieldResolver;
             TypeReference = TypeReference.GetMoreSpecific(resultType);
+            return this;
+        }
+
+        IFieldDescriptor IFieldDescriptor.Ignore()
+        {
+            Ignored = true;
             return this;
         }
 

@@ -64,7 +64,7 @@ namespace HotChocolate.Types
             return descriptors.Values;
         }
 
-        #region IObjectTypeDescriptor<T>
+        #region IObjectTypeDescriptor
 
         IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(
             ObjectTypeDefinitionNode syntaxNode)
@@ -163,46 +163,77 @@ namespace HotChocolate.Types
     {
         private BindingBehavior _bindingBehavior = BindingBehavior.Implicit;
 
-        public ObjectTypeDescriptor(Type pocoType)
-            : base(pocoType)
+        public ObjectTypeDescriptor()
+            : base(typeof(T))
         {
-            NativeType = pocoType;
+            NativeType = typeof(T);
         }
 
         public override IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
         {
             Dictionary<string, FieldDescriptor> descriptors =
                 new Dictionary<string, FieldDescriptor>();
+            List<MemberInfo> handledMembers = new List<MemberInfo>();
 
-            foreach (FieldDescriptor descriptor in Fields)
-            {
-                descriptors[descriptor.Name] = descriptor;
-            }
+            AddExplicitFields(descriptors, handledMembers);
 
             if (_bindingBehavior == BindingBehavior.Implicit)
             {
-                Dictionary<MemberInfo, string> members = GetMembers(NativeType);
-                foreach (FieldDescriptor descriptor in descriptors.Values
-                    .Where(t => t.Member != null))
-                {
-                    members.Remove(descriptor.Member);
-                }
-
-                foreach (KeyValuePair<MemberInfo, string> member in members)
-                {
-                    if (!descriptors.ContainsKey(member.Value))
-                    {
-                        Type returnType = member.Key.GetReturnType();
-                        if (returnType != null)
-                        {
-                            descriptors[member.Value] =
-                                new FieldDescriptor(Name, member.Key, returnType);
-                        }
-                    }
-                }
+                Dictionary<MemberInfo, string> members =
+                    GetPossibleImplicitFields(handledMembers);
+                AddImplicitFields(descriptors, members);
             }
 
             return descriptors.Values;
+        }
+
+        private void AddExplicitFields(
+            Dictionary<string, FieldDescriptor> descriptors,
+            List<MemberInfo> handledMembers)
+        {
+            foreach (FieldDescriptor descriptor in Fields)
+            {
+                if (!descriptor.Ignored)
+                {
+                    descriptors[descriptor.Name] = descriptor;
+                }
+
+                if (descriptor.Member != null)
+                {
+                    handledMembers.Add(descriptor.Member);
+                }
+            }
+        }
+
+        private Dictionary<MemberInfo, string> GetPossibleImplicitFields(
+            List<MemberInfo> handledMembers)
+        {
+            Dictionary<MemberInfo, string> members = GetMembers(NativeType);
+
+            foreach (MemberInfo member in handledMembers)
+            {
+                members.Remove(member);
+            }
+
+            return members;
+        }
+
+        private void AddImplicitFields(
+            Dictionary<string, FieldDescriptor> descriptors,
+            Dictionary<MemberInfo, string> members)
+        {
+            foreach (KeyValuePair<MemberInfo, string> member in members)
+            {
+                if (!descriptors.ContainsKey(member.Value))
+                {
+                    Type returnType = member.Key.GetReturnType();
+                    if (returnType != null)
+                    {
+                        descriptors[member.Value] =
+                            new FieldDescriptor(Name, member.Key, returnType);
+                    }
+                }
+            }
         }
 
         private static Dictionary<MemberInfo, string> GetMembers(Type type)
