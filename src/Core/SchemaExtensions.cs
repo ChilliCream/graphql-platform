@@ -51,7 +51,7 @@ namespace HotChocolate
            this Schema schema, QueryRequest request,
            CancellationToken cancellationToken = default)
         {
-            QueryExecuter executer = new QueryExecuter(schema);
+            QueryExecuter executer = new QueryExecuter(schema, 0);
             return await executer.ExecuteAsync(request, cancellationToken);
         }
 

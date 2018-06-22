@@ -12,7 +12,6 @@ namespace HotChocolate.Execution
     {
         private readonly object _sync = new object();
         private readonly Schema _schema;
-        private readonly int _size = 100;
         private readonly LinkedList<string> _requestRanking = new LinkedList<string>();
         private ImmutableDictionary<string, CachedRequest> _cachedRequests =
             ImmutableDictionary<string, CachedRequest>.Empty;
@@ -21,13 +20,17 @@ namespace HotChocolate.Execution
         public QueryExecuter(Schema schema)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            CacheSize = 100;
         }
 
         public QueryExecuter(Schema schema, int cacheSize)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
-            _size = cacheSize < 10 ? 10 : cacheSize;
+            CacheSize = cacheSize < 0 ? 0 : cacheSize;
         }
+
+        public int CacheSize { get; }
+        public int CachedOperations => _cachedRequests.Count;
 
         public async Task<QueryResult> ExecuteAsync(
             QueryRequest queryRequest,
@@ -90,8 +93,17 @@ namespace HotChocolate.Execution
 
         private OperationRequest GetOrCreateRequest(QueryRequest queryRequest)
         {
+            if (CacheSize == 0)
+            {
+                return CreateOperationRequest(queryRequest);
+            }
+            return GetOrCreateRequestFromCache(queryRequest);
+        }
+
+        private OperationRequest GetOrCreateRequestFromCache(QueryRequest queryRequest)
+        {
             string operationKey = CreateOperationKey(
-               queryRequest.Query, queryRequest.OperationName);
+              queryRequest.Query, queryRequest.OperationName);
 
             OperationRequest operationRequest;
             if (_cachedRequests.TryGetValue(operationKey, out CachedRequest entry))
@@ -101,7 +113,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                operationRequest = AddNewEntry(operationKey, queryRequest);
+                operationRequest = CreateOperationRequest(queryRequest);
+                AddNewEntry(operationKey, operationRequest);
             }
             return operationRequest;
         }
@@ -136,13 +149,8 @@ namespace HotChocolate.Execution
             }
         }
 
-        private OperationRequest AddNewEntry(string operationKey, QueryRequest queryRequest)
+        private void AddNewEntry(string operationKey, OperationRequest operationRequest)
         {
-            DocumentNode queryDocument = Parser.Default.Parse(queryRequest.Query);
-            OperationRequest request = new OperationRequest(
-                _schema, queryDocument, GetOperation(
-                    queryDocument, queryRequest.OperationName));
-
             if (!_cachedRequests.ContainsKey(operationKey))
             {
                 lock (_sync)
@@ -151,19 +159,25 @@ namespace HotChocolate.Execution
                     {
                         ClearSpaceForNewEntry();
                         LinkedListNode<string> rank = _requestRanking.AddFirst(operationKey);
-                        CachedRequest entry = new CachedRequest(rank, request);
+                        CachedRequest entry = new CachedRequest(rank, operationRequest);
                         _cachedRequests = _cachedRequests.SetItem(operationKey, entry);
                         _first = rank;
                     }
                 }
             }
+        }
 
-            return request;
+        private OperationRequest CreateOperationRequest(QueryRequest queryRequest)
+        {
+            DocumentNode queryDocument = Parser.Default.Parse(queryRequest.Query);
+            return new OperationRequest(
+                _schema, queryDocument, GetOperation(
+                    queryDocument, queryRequest.OperationName));
         }
 
         private void ClearSpaceForNewEntry()
         {
-            if (_cachedRequests.Count >= _size)
+            if (_cachedRequests.Count >= CacheSize)
             {
                 LinkedListNode<string> entry = _requestRanking.Last;
                 _cachedRequests = _cachedRequests.Remove(entry.Value);
