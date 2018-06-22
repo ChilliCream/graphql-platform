@@ -31,7 +31,6 @@ namespace HotChocolate
             _types = types;
             Options = options;
             _introspectionFields = introspectionFields;
-            OperationExecuter = new OperationExecuter(this);
         }
 
         /// <summary>
@@ -56,8 +55,6 @@ namespace HotChocolate
         internal __TypeField TypeField => _introspectionFields.TypeField;
 
         internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
-
-        internal OperationExecuter OperationExecuter { get; }
 
         public IReadOnlySchemaOptions Options { get; }
 

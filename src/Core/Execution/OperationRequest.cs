@@ -10,7 +10,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    public class OperationExecuter
+    public class OperationRequest
     {
         private static readonly VariableValueResolver _variableValueResolver =
             new VariableValueResolver();
@@ -18,25 +18,40 @@ namespace HotChocolate.Execution
             new FieldValueCompleter();
 
         private readonly Schema _schema;
-        private int _maxExecutionDepth;
-        private TimeSpan _executionTimeout;
+        private readonly DocumentNode _queryDocument;
+        private readonly OperationDefinitionNode _operation;
+        private readonly ObjectType _operationType;
+        private readonly string _operationName;
+        private readonly int _maxExecutionDepth;
+        private readonly TimeSpan _executionTimeout;
 
-        public OperationExecuter(Schema schema)
+        public OperationRequest(Schema schema,
+            DocumentNode queryDocument,
+            string operationName = null)
         {
-            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
+            _queryDocument = queryDocument
+                ?? throw new ArgumentNullException(nameof(queryDocument));
+            _operationName = operationName;
+
             _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
+
+            _operation = GetOperation(
+                queryDocument, operationName);
+            _operationType = GetOperationType(schema, _operation);
         }
 
-        public async Task<QueryResult> ExecuteRequestAsync(
-            DocumentNode queryDocument, string operationName,
-            Dictionary<string, IValueNode> variableValues,
-            object initialValue, CancellationToken cancellationToken)
+        public async Task<QueryResult> ExecuteAsync(
+            IReadOnlyDictionary<string, IValueNode> variableValues = null,
+            object initialValue = null,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 ExecutionContext executionContext = CreateExecutionContext(
-                    queryDocument, operationName, variableValues, initialValue);
+                    variableValues, initialValue);
 
                 await ExecuteOperationAsync(executionContext, cancellationToken);
 
@@ -67,34 +82,41 @@ namespace HotChocolate.Execution
         }
 
         private ExecutionContext CreateExecutionContext(
-            DocumentNode queryDocument, string operationName,
-            Dictionary<string, IValueNode> variableValues, object initialValue)
+            IReadOnlyDictionary<string, IValueNode> variableValues,
+            object initialValue)
         {
-            Dictionary<string, IValueNode> vars = variableValues
+            IReadOnlyDictionary<string, IValueNode> vars = variableValues
                 ?? new Dictionary<string, IValueNode>();
-            OperationDefinitionNode operation = GetOperation(
-                queryDocument, operationName);
-            ObjectType operationType = GetOperationType(_schema, operation);
+
+            VariableCollection variables = new VariableCollection(
+                _variableValueResolver.CoerceVariableValues(
+                    _schema, _operation, vars));
+
+            object rootValue = ResolveRootValue(initialValue);
+
+            ExecutionContext executionContext = new ExecutionContext(
+                _schema, _queryDocument, _operation, variables,
+                rootValue, null);
+
+            return executionContext;
+        }
+
+        private object ResolveRootValue(
+            object initialValue)
+        {
+            ObjectType operationType = GetOperationType(_schema, _operation);
 
             if (initialValue == null && _schema.TryGetNativeType(
-                operationType.Name, out Type nativeType))
+               operationType.Name, out Type nativeType))
             {
                 initialValue = _schema.GetService(nativeType)
                     ?? Activator.CreateInstance(nativeType);
             }
 
-            VariableCollection variables = new VariableCollection(
-                _variableValueResolver.CoerceVariableValues(
-                    _schema, operation, vars));
-
-            ExecutionContext executionContext = new ExecutionContext(
-                _schema, queryDocument, operation, variables,
-                initialValue, null);
-
-            return executionContext;
+            return initialValue;
         }
 
-        private ObjectType GetOperationType(
+        private static ObjectType GetOperationType(
             Schema schema, OperationDefinitionNode operation)
         {
             switch (operation.Operation)
@@ -114,7 +136,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private OperationDefinitionNode GetOperation(
+        private static OperationDefinitionNode GetOperation(
             DocumentNode queryDocument, string operationName)
         {
             OperationDefinitionNode[] operations = queryDocument.Definitions

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class OperationExecuterTests
+    public class OperationRequestTests
     {
         [Fact]
         public async Task ResolveSimpleOneLevelQuery()
@@ -19,9 +19,10 @@ namespace HotChocolate.Execution
                 }");
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter(schema);
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                query, null, new Dictionary<string, IValueNode>(),
+            OperationRequest operationRequest =
+                new OperationRequest(schema, query, null);
+            QueryResult result = await operationRequest.ExecuteAsync(
+                new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
 
             // assert
@@ -55,9 +56,9 @@ namespace HotChocolate.Execution
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
             // act
-            OperationExecuter operationExecuter = new OperationExecuter(schema);
-            QueryResult result = await operationExecuter.ExecuteRequestAsync(
-                query, null, null, null, CancellationToken.None);
+             OperationRequest operationRequest =
+                new OperationRequest(schema, query, null);
+            QueryResult result = await operationRequest.ExecuteAsync();
 
             // assert
             Assert.Null(result.Errors);

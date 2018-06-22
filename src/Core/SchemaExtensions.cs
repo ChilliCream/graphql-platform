@@ -10,8 +10,8 @@ namespace HotChocolate
     {
         public static Task<QueryResult> ExecuteAsync(this Schema schema, string query)
         {
-            return schema.OperationExecuter.ExecuteRequestAsync(
-                Parser.Default.Parse(query), null, null, null,
+            return ExecuteAsync(schema,
+                query, null, null, null,
                 CancellationToken.None);
         }
 
@@ -22,21 +22,19 @@ namespace HotChocolate
             object initialValue = null,
             CancellationToken cancellationToken = default)
         {
-            return schema.OperationExecuter.ExecuteRequestAsync(
-                Parser.Default.Parse(query), operationName,
+            OperationRequest request = new OperationRequest(
+                schema, Parser.Default.Parse(query), operationName);
+
+            return request.ExecuteAsync(
                 variableValues, initialValue,
                 cancellationToken);
         }
 
         public static QueryResult Execute(this Schema schema, string query)
         {
-            return Task.Factory.StartNew(
-                () => schema.OperationExecuter.ExecuteRequestAsync(
-                    Parser.Default.Parse(query), null, null, null,
-                    CancellationToken.None))
-                .Unwrap()
-                .GetAwaiter()
-                .GetResult();
+            return Execute(schema, query,
+                null, null, null,
+                CancellationToken.None);
         }
 
         public static QueryResult Execute(
@@ -46,9 +44,11 @@ namespace HotChocolate
             object initialValue = null,
             CancellationToken cancellationToken = default)
         {
+            OperationRequest request = new OperationRequest(
+                schema, Parser.Default.Parse(query), operationName);
+
             return Task.Factory.StartNew(
-                () => schema.OperationExecuter.ExecuteRequestAsync(
-                    Parser.Default.Parse(query), operationName,
+                () => request.ExecuteAsync(
                     variableValues, initialValue,
                     cancellationToken))
                 .Unwrap()

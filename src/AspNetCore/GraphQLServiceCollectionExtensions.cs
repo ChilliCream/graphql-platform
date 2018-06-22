@@ -11,7 +11,8 @@ namespace HotChocolate
             Schema schema)
         {
             serviceCollection.AddSingleton<Schema>(schema);
-            serviceCollection.AddSingleton<OperationExecuter>();
+            serviceCollection.AddSingleton<QueryExecuter>(
+                s => new QueryExecuter(s.GetRequiredService<Schema>()));
             return serviceCollection;
         }
 
@@ -21,7 +22,8 @@ namespace HotChocolate
         {
             Schema schema = Schema.Create(configure);
             serviceCollection.AddSingleton<Schema>(schema);
-            serviceCollection.AddSingleton<OperationExecuter>();
+            serviceCollection.AddSingleton<QueryExecuter>(
+                s => new QueryExecuter(s.GetRequiredService<Schema>()));
             return serviceCollection;
         }
 
@@ -32,7 +34,8 @@ namespace HotChocolate
         {
             Schema schema = Schema.Create(schemaSource, configure);
             serviceCollection.AddSingleton<Schema>(schema);
-            serviceCollection.AddSingleton<OperationExecuter>();
+            serviceCollection.AddSingleton<QueryExecuter>(
+                s => new QueryExecuter(s.GetRequiredService<Schema>()));
             return serviceCollection;
         }
     }
