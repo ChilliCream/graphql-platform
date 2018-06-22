@@ -10,10 +10,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    public class OperationRequest
+    internal class OperationRequest
     {
-        private static readonly VariableValueResolver _variableValueResolver =
-            new VariableValueResolver();
         private static readonly FieldValueCompleter _valueCompleter =
             new FieldValueCompleter();
 
@@ -21,26 +19,26 @@ namespace HotChocolate.Execution
         private readonly DocumentNode _queryDocument;
         private readonly OperationDefinitionNode _operation;
         private readonly ObjectType _operationType;
-        private readonly string _operationName;
         private readonly int _maxExecutionDepth;
         private readonly TimeSpan _executionTimeout;
+        private readonly VariableValueBuilder _variableValueBuilder;
 
         public OperationRequest(Schema schema,
             DocumentNode queryDocument,
-            string operationName = null)
+            OperationDefinitionNode operation)
         {
             _schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
             _queryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
-            _operationName = operationName;
+            _operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
 
             _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
 
-            _operation = GetOperation(
-                queryDocument, operationName);
             _operationType = GetOperationType(schema, _operation);
+            _variableValueBuilder = new VariableValueBuilder(schema, _operation);
         }
 
         public async Task<QueryResult> ExecuteAsync(
@@ -48,49 +46,27 @@ namespace HotChocolate.Execution
             object initialValue = null,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                ExecutionContext executionContext = CreateExecutionContext(
-                    variableValues, initialValue);
+            ExecutionContext executionContext = CreateExecutionContext(
+                variableValues, initialValue);
 
-                await ExecuteOperationAsync(executionContext, cancellationToken);
+            await ExecuteOperationAsync(executionContext, cancellationToken);
 
-                if (executionContext.Errors.Any())
-                {
-                    return new QueryResult(
-                        executionContext.Data,
-                        executionContext.Errors);
-                }
+            if (executionContext.Errors.Any())
+            {
+                return new QueryResult(
+                    executionContext.Data,
+                    executionContext.Errors);
+            }
 
-                return new QueryResult(executionContext.Data);
-            }
-            catch (QueryException ex)
-            {
-                return new QueryResult(ex.Errors);
-            }
-            catch (Exception ex)
-            {
-                if (_schema.Options.DeveloperMode)
-                {
-                    return new QueryResult(new QueryError(
-                        "Unexpected Resolver Error:\r\n" +
-                        ex.Message));
-                }
-                return new QueryResult(new QueryError(
-                    "Unexpected Operation Error!"));
-            }
+            return new QueryResult(executionContext.Data);
         }
 
         private ExecutionContext CreateExecutionContext(
             IReadOnlyDictionary<string, IValueNode> variableValues,
             object initialValue)
         {
-            IReadOnlyDictionary<string, IValueNode> vars = variableValues
-                ?? new Dictionary<string, IValueNode>();
-
-            VariableCollection variables = new VariableCollection(
-                _variableValueResolver.CoerceVariableValues(
-                    _schema, _operation, vars));
+            VariableCollection variables = _variableValueBuilder
+                .CreateValues(variableValues);
 
             object rootValue = ResolveRootValue(initialValue);
 
@@ -133,37 +109,6 @@ namespace HotChocolate.Execution
                 default:
                     throw new NotSupportedException(
                         "The specified operation type is not supported.");
-            }
-        }
-
-        private static OperationDefinitionNode GetOperation(
-            DocumentNode queryDocument, string operationName)
-        {
-            OperationDefinitionNode[] operations = queryDocument.Definitions
-                .OfType<OperationDefinitionNode>()
-                .ToArray();
-
-            if (string.IsNullOrEmpty(operationName))
-            {
-                if (operations.Length == 1)
-                {
-                    return operations[0];
-                }
-
-                throw new QueryException(
-                    "Only queries that contain one operation can be executed " +
-                    "without specifying the opartion name.");
-            }
-            else
-            {
-                OperationDefinitionNode operation = operations.SingleOrDefault(
-                    t => string.Equals(t.Name.Value, operationName, StringComparison.Ordinal));
-                if (operation == null)
-                {
-                    throw new QueryException(
-                        $"The specified operation `{operationName}` does not exist.");
-                }
-                return operation;
             }
         }
 
@@ -363,9 +308,9 @@ namespace HotChocolate.Execution
             {
                 return ex.Errors;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new FieldError("Internal resolver error.", fieldSelection);
+                return _schema.CreateErrorFromException(ex, fieldSelection);
             }
         }
 
@@ -413,9 +358,9 @@ namespace HotChocolate.Execution
             {
                 return ex.Errors;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new QueryError("Internal resolver error.");
+                return _schema.CreateErrorFromException(ex);
             }
         }
 

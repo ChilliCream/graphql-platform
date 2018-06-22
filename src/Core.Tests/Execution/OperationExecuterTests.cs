@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -17,10 +18,12 @@ namespace HotChocolate.Execution
                 {
                     a
                 }");
+            OperationDefinitionNode operation = query.Definitions
+                .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
             OperationRequest operationRequest =
-                new OperationRequest(schema, query, null);
+                new OperationRequest(schema, query, operation);
             QueryResult result = await operationRequest.ExecuteAsync(
                 new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
@@ -54,10 +57,12 @@ namespace HotChocolate.Execution
 
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
+            OperationDefinitionNode operation = query.Definitions
+                .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-             OperationRequest operationRequest =
-                new OperationRequest(schema, query, null);
+            OperationRequest operationRequest =
+                new OperationRequest(schema, query, operation);
             QueryResult result = await operationRequest.ExecuteAsync();
 
             // assert

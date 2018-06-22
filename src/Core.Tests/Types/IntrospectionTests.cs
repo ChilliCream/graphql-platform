@@ -21,8 +21,7 @@ namespace HotChocolate.Types
             string query = "{ __typename }";
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
-                query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -37,8 +36,7 @@ namespace HotChocolate.Types
             string query = "{ b { __typename } }";
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
-                query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -53,8 +51,7 @@ namespace HotChocolate.Types
             string query = "{ __type (type: \"Foo\") { name } }";
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
-                query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -71,8 +68,7 @@ namespace HotChocolate.Types
                 "{ name fields { name type { name } } } }";
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
-                query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -88,8 +84,7 @@ namespace HotChocolate.Types
                 FileResource.Open("IntrospectionQuery.graphql");
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
-                query, null, null, null, CancellationToken.None);
+            QueryResult result = await schema.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);

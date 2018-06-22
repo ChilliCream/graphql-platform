@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class VariableValueResolverTests
+    public class VariableValueBuilderTests
     {
         [Fact]
         public void QueryWithNonNullVariableAndDefaultWhereValueWasProvided()
@@ -23,14 +23,13 @@ namespace HotChocolate.Execution
             variableValues.Add("test", new StringValueNode(null, "123456", false));
 
             // act
-            VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, object> coercedVariableValues =
-                resolver.CoerceVariableValues(schema, operation, variableValues);
+            VariableValueBuilder resolver =
+                new VariableValueBuilder(schema, operation);
+            VariableCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
 
             // assert
-            Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.IsType<string>(coercedVariableValues["test"]);
-            Assert.Equal("123456", coercedVariableValues["test"]);
+            Assert.Equal("123456", coercedVariableValues.GetVariable<string>("test"));
         }
 
         [Fact]
@@ -45,9 +44,9 @@ namespace HotChocolate.Execution
             variableValues.Add("test", new NullValueNode(null));
 
             // act
-            VariableValueResolver resolver = new VariableValueResolver();
-            Action action = () =>
-                resolver.CoerceVariableValues(schema, operation, variableValues);
+            VariableValueBuilder resolver =
+                new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
 
             // assert
             Assert.Throws<QueryException>(action);
@@ -64,14 +63,13 @@ namespace HotChocolate.Execution
                 new Dictionary<string, IValueNode>();
 
             // act
-            VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, object> coercedVariableValues =
-                resolver.CoerceVariableValues(schema, operation, variableValues);
+            VariableValueBuilder resolver =
+                new VariableValueBuilder(schema, operation);
+            VariableCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
 
             // assert
-            Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.IsType<string>(coercedVariableValues["test"]);
-            Assert.Equal("foo", coercedVariableValues["test"]);
+            Assert.Equal("foo", coercedVariableValues.GetVariable<string>("test"));
         }
 
         [Fact]
@@ -86,18 +84,18 @@ namespace HotChocolate.Execution
             variableValues.Add("test", new NullValueNode(null));
 
             // act
-            VariableValueResolver resolver = new VariableValueResolver();
-            Dictionary<string, object> coercedVariableValues =
-                resolver.CoerceVariableValues(schema, operation, variableValues);
+            VariableValueBuilder resolver =
+                new VariableValueBuilder(schema, operation);
+            VariableCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
 
             // assert
-            Assert.True(coercedVariableValues.ContainsKey("test"));
-            Assert.Null(coercedVariableValues["test"]);
+            Assert.Null(coercedVariableValues.GetVariable<string>("test"));
         }
 
         private Schema CreateSchema()
         {
-            return Schema.Create("type Query { foo: Foo } type Foo { a: String }", 
+            return Schema.Create("type Query { foo: Foo } type Foo { a: String }",
                 c => { c.Options.StrictValidation = false; });
         }
 

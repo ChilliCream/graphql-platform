@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -37,8 +38,60 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(queryRequest));
             }
 
+            try
+            {
+                OperationRequest operationRequest =
+                    GetOrCreateRequest(queryRequest);
+
+                return await operationRequest.ExecuteAsync(
+                    queryRequest.VariableValues, queryRequest.InitialValue,
+                    cancellationToken);
+            }
+            catch (QueryException ex)
+            {
+                return new QueryResult(ex.Errors);
+            }
+            catch (Exception ex)
+            {
+                return new QueryResult(_schema.CreateErrorFromException(ex));
+            }
+        }
+
+        private static OperationDefinitionNode GetOperation(
+            DocumentNode queryDocument, string operationName)
+        {
+            OperationDefinitionNode[] operations = queryDocument.Definitions
+                .OfType<OperationDefinitionNode>()
+                .ToArray();
+
+            if (string.IsNullOrEmpty(operationName))
+            {
+                if (operations.Length == 1)
+                {
+                    return operations[0];
+                }
+
+                throw new QueryException(
+                    "Only queries that contain one operation can be executed " +
+                    "without specifying the opartion name.");
+            }
+            else
+            {
+                OperationDefinitionNode operation = operations.SingleOrDefault(
+                    t => string.Equals(t.Name.Value, operationName, StringComparison.Ordinal));
+                if (operation == null)
+                {
+                    throw new QueryException(
+                        $"The specified operation `{operationName}` does not exist.");
+                }
+                return operation;
+            }
+        }
+
+        private OperationRequest GetOrCreateRequest(QueryRequest queryRequest)
+        {
             string operationKey = CreateOperationKey(
-                queryRequest.Query, queryRequest.OperationName);
+               queryRequest.Query, queryRequest.OperationName);
 
             OperationRequest operationRequest;
             if (_cachedRequests.TryGetValue(operationKey, out CachedRequest entry))
@@ -50,10 +103,7 @@ namespace HotChocolate.Execution
             {
                 operationRequest = AddNewEntry(operationKey, queryRequest);
             }
-
-            return await operationRequest.ExecuteAsync(
-                queryRequest.VariableValues, queryRequest.InitialValue,
-                cancellationToken);
+            return operationRequest;
         }
 
         private string CreateOperationKey(string query, string operationName)
@@ -90,7 +140,8 @@ namespace HotChocolate.Execution
         {
             DocumentNode queryDocument = Parser.Default.Parse(queryRequest.Query);
             OperationRequest request = new OperationRequest(
-                _schema, queryDocument, queryRequest.OperationName);
+                _schema, queryDocument, GetOperation(
+                    queryDocument, queryRequest.OperationName));
 
             if (!_cachedRequests.ContainsKey(operationKey))
             {
