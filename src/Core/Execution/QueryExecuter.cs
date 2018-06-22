@@ -60,7 +60,6 @@ namespace HotChocolate.Execution
         {
             // normalize query
             string normalizedQuery = query
-                .Replace("\r\n", string.Empty)
                 .Replace("\r", string.Empty)
                 .Replace("\n", string.Empty);
 
