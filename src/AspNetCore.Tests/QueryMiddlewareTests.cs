@@ -22,9 +22,8 @@ namespace HotChocolate.AspNetCore
         public async Task HttpPost_BasicTest()
         {
             // arrange
-            Schema schema = CreateSchema();
+            TestServer server = CreateTestServer();
             QueryRequestDto request = new QueryRequestDto { Query = "{ basic { a } }" };
-            TestServer server = TestServerFactory.Create(schema, null);
 
             // act
             HttpResponseMessage message = await server.SendRequestAsync(request);
@@ -42,9 +41,8 @@ namespace HotChocolate.AspNetCore
         public async Task HttpGet_BasicTest()
         {
             // arrange
-            Schema schema = CreateSchema();
+            TestServer server = CreateTestServer();
             string query = "{ basic { a } }";
-            TestServer server = TestServerFactory.Create(schema, null);
 
             // act
             HttpResponseMessage message = await server.SendGetRequestAsync(query);
@@ -62,7 +60,7 @@ namespace HotChocolate.AspNetCore
         public async Task HttpPost_WithScalarVariables()
         {
             // arrange
-            Schema schema = CreateSchema();
+            TestServer server = CreateTestServer();
             QueryRequestDto request = new QueryRequestDto
             {
                 Query = @"
@@ -78,7 +76,6 @@ namespace HotChocolate.AspNetCore
                     { "a", "1234567890"}
                 }
             };
-            TestServer server = TestServerFactory.Create(schema, null);
 
             // act
             HttpResponseMessage message = await server.SendRequestAsync(request);
@@ -96,7 +93,7 @@ namespace HotChocolate.AspNetCore
         public async Task HttpPost_WithObjectVariables()
         {
             // arrange
-            Schema schema = CreateSchema();
+            TestServer server = CreateTestServer();
             QueryRequestDto request = new QueryRequestDto
             {
                 Query = @"
@@ -116,7 +113,6 @@ namespace HotChocolate.AspNetCore
                     } }
                 }
             };
-            TestServer server = TestServerFactory.Create(schema, null);
 
             // act
             HttpResponseMessage message = await server.SendRequestAsync(request);
@@ -130,9 +126,10 @@ namespace HotChocolate.AspNetCore
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        private Schema CreateSchema()
+        private TestServer CreateTestServer()
         {
-            return Schema.Create(c => c.RegisterQueryType<QueryType>());
+            return TestServerFactory.Create(
+                c => c.RegisterQueryType<QueryType>(), null);
         }
     }
 }
