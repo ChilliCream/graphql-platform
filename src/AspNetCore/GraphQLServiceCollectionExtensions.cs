@@ -11,20 +11,27 @@ namespace HotChocolate
             Schema schema)
         {
             serviceCollection.AddSingleton<Schema>(schema);
-            serviceCollection.AddSingleton<QueryExecuter>(
-                s => new QueryExecuter(s.GetRequiredService<Schema>()));
-            return serviceCollection;
+            return serviceCollection.AddQueryExecuter();
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            Func<IServiceProvider, Schema> schemaFactory)
+        {
+            serviceCollection.AddSingleton<Schema>(schemaFactory);
+            return serviceCollection.AddQueryExecuter();
         }
 
         public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
             Action<ISchemaConfiguration> configure)
         {
-            Schema schema = Schema.Create(configure);
-            serviceCollection.AddSingleton<Schema>(schema);
-            serviceCollection.AddSingleton<QueryExecuter>(
-                s => new QueryExecuter(s.GetRequiredService<Schema>()));
-            return serviceCollection;
+            serviceCollection.AddSingleton<Schema>(s => Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(s);
+                configure(c);
+            }));
+            return serviceCollection.AddQueryExecuter();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -33,7 +40,18 @@ namespace HotChocolate
             Action<ISchemaConfiguration> configure)
         {
             Schema schema = Schema.Create(schemaSource, configure);
-            serviceCollection.AddSingleton<Schema>(schema);
+            serviceCollection.AddSingleton<Schema>(s => Schema.Create(
+                schemaSource, c =>
+            {
+                c.RegisterServiceProvider(s);
+                configure(c);
+            }));
+            return serviceCollection.AddQueryExecuter();
+        }
+
+        private static IServiceCollection AddQueryExecuter(
+            this IServiceCollection serviceCollection)
+        {
             serviceCollection.AddSingleton<QueryExecuter>(
                 s => new QueryExecuter(s.GetRequiredService<Schema>()));
             return serviceCollection;
