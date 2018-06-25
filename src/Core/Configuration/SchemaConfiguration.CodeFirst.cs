@@ -85,5 +85,19 @@ namespace HotChocolate.Configuration
         }
 
         #endregion
+
+        #region Directives
+
+        public void RegisterDirective<T>() where T : Directive
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RegisterDirective<T>(T directive) where T : Directive
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }
