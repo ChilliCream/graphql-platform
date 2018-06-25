@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Validation
 {
     public class QueryValidationResult
     {
