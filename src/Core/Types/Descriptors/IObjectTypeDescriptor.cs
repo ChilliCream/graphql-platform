@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         : IFluent
     {
         /// <summary>
-        /// Associates the specified <paramref name="syntaxNode"/> 
+        /// Associates the specified <paramref name="syntaxNode"/>
         /// with the <see cref="ObjectType"/>.
         /// </summary>
         /// <param name="syntaxNode">
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Name(string name);
 
         /// <summary>
-        /// Adds explanatory text of the <see cref="ObjectType"/> 
+        /// Adds explanatory text of the <see cref="ObjectType"/>
         /// that can be accessd via introspection.
         /// </summary>
         /// <param name="description">The object type description.</param>
@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Interface(NamedTypeNode type);
 
         /// <summary>
-        /// Specifies a delegate that can determine if a resolver result 
+        /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>
         /// <param name="isOfType">
@@ -78,12 +78,29 @@ namespace HotChocolate.Types
         new IObjectTypeDescriptor<T> Name(string name);
 
         /// <summary>
-        /// Adds explanatory text of the <see cref="ObjectType"/> 
+        /// Adds explanatory text of the <see cref="ObjectType"/>
         /// that can be accessd via introspection.
         /// </summary>
         /// <param name="description">The object type description.</param>
         new IObjectTypeDescriptor<T> Description(string description);
 
+        /// <summary>
+        /// Defines the field binding behavior.
+        /// 
+        /// The default binding behaviour is set to <see cref="BindingBehavior.Implicit"/>.
+        /// </summary>
+        /// <param name="bindingBehavior">
+        /// The binding behavior.
+        ///
+        /// Implicit:
+        /// The object type descriptor will try to infer the object type fields from the
+        /// specified .net object type representation (<typeparamref name="T"/>).
+        ///
+        /// Explicit:
+        /// All field have to specified explicitly via 
+        /// <see cref="IObjectTypeDescriptor{T}.Field{TValue}(Expression{Func{T, TValue}})"/>
+        /// or <see cref="IObjectTypeDescriptor.Field(string)"/>.
+        /// </param>
         IObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
 
         /// <summary>
@@ -94,7 +111,7 @@ namespace HotChocolate.Types
             where TInterface : InterfaceType;
 
         /// <summary>
-        /// Specifies a delegate that can determine if a resolver result 
+        /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>
         /// <param name="isOfType">
@@ -106,8 +123,8 @@ namespace HotChocolate.Types
         /// Specifies an object type field.
         /// </summary>
         /// <param name="propertyOrMethod">
-        /// An expression selecting a property or method of 
-        /// <typeparamref name="T"/> that shall represent a 
+        /// An expression selecting a property or method of
+        /// <typeparamref name="T"/> that shall represent a
         /// <see cref="ObjectType"/>.
         /// </param>
         IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
