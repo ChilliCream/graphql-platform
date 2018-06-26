@@ -68,7 +68,11 @@ namespace HotChocolate.Internal
 
         public void Dispose()
         {
-            _types.Dispose();
+            if (!_disposed)
+            {
+                _types.Dispose();
+                _disposed = true;
+            }
         }
     }
 }
