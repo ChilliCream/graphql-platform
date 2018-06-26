@@ -10,20 +10,22 @@ namespace HotChocolate.AspNetCore
 
         internal static bool IsGet(this HttpRequest request)
         {
-            return request.Method.Equals(_getMethod, StringComparison.OrdinalIgnoreCase);
+            return request.Method.Equals(_getMethod, StringComparison.OrdinalIgnoreCase)
+                   && HasQueryParameter(request.HttpContext);
         }
 
         internal static QueryRequest ReadRequest(HttpContext context)
         {
-            string query = string.Empty;
-
-            if (context.Request.QueryString.HasValue &&
-                context.Request.Query.ContainsKey(_queryIdentifier))
+            return new QueryRequest()
             {
-                query = context.Request.Query[_queryIdentifier].ToString();
-            }
+                Query = context.Request.Query[_queryIdentifier].ToString()
+            };
+        }
 
-            return new QueryRequest() {Query = query};
+        private static bool HasQueryParameter(HttpContext context)
+        {
+            return context.Request.QueryString.HasValue &&
+                   context.Request.Query.ContainsKey(_queryIdentifier);
         }
     }
 }
