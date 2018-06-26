@@ -86,7 +86,7 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Defines the field binding behavior.
-        /// 
+        ///
         /// The default binding behaviour is set to <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="bindingBehavior">
@@ -97,7 +97,7 @@ namespace HotChocolate.Types
         /// specified .net object type representation (<typeparamref name="T"/>).
         ///
         /// Explicit:
-        /// All field have to specified explicitly via 
+        /// All field have to specified explicitly via
         /// <see cref="IObjectTypeDescriptor{T}.Field{TValue}(Expression{Func{T, TValue}})"/>
         /// or <see cref="IObjectTypeDescriptor.Field(string)"/>.
         /// </param>
