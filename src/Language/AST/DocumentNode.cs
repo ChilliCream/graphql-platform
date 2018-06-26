@@ -20,7 +20,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.Document;
+
         public Location Location { get; }
+
         public IReadOnlyCollection<IDefinitionNode> Definitions { get; }
     }
 }

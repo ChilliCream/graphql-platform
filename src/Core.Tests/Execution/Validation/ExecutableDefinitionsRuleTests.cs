@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Execution.Validation
 {
-    public class ExecutableDefinitionsValidatorTests
+    public class ExecutableDefinitionsRuleTests
     {
         [Fact]
         public void QueryWithTypeSystemDefinitions()
@@ -24,8 +24,8 @@ namespace HotChocolate.Execution.Validation
             ");
 
             // act
-            ExecutableDefinitionsValidator validator =
-                new ExecutableDefinitionsValidator();
+            ExecutableDefinitionsRule validator =
+                new ExecutableDefinitionsRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
@@ -51,32 +51,13 @@ namespace HotChocolate.Execution.Validation
             ");
 
             // act
-            ExecutableDefinitionsValidator validator =
-                new ExecutableDefinitionsValidator();
+            ExecutableDefinitionsRule validator =
+                new ExecutableDefinitionsRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
             Assert.Empty(result.Errors);
-        }
-    }
-
-    public static class ValidationUtils
-    {
-        public static Schema CreateSchema()
-        {
-            return Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryType>();
-                c.RegisterType<AlientType>();
-                c.RegisterType<CatOrDogType>();
-                c.RegisterType<CatType>();
-                c.RegisterType<DogOrHumanType>();
-                c.RegisterType<DogType>();
-                c.RegisterType<HumanOrAlienType>();
-                c.RegisterType<HumanType>();
-                c.RegisterType<PetType>();
-            });
         }
     }
 }

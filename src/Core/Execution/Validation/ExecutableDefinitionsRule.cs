@@ -16,10 +16,10 @@ namespace HotChocolate.Execution.Validation
     /// GraphQL documents not intended to be directly executed may
     /// include TypeSystemDefinition.
     ///
-    /// http://facebook.github.io/graphql/draft/#sec-Executable-Definitions
+    /// http://facebook.github.io/graphql/June2018/#sec-Executable-Definitions
     /// </summary>
-    public class ExecutableDefinitionsValidator
-        : IQueryValidator
+    public class ExecutableDefinitionsRule
+        : IQueryValidationRule
     {
         public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
         {
@@ -30,9 +30,9 @@ namespace HotChocolate.Execution.Validation
                 return QueryValidationResult.OK;
             }
             return new QueryValidationResult(
-                new QueryError(
+                new ValidationError(
                     "A document containing TypeSystemDefinition " +
-                    "is invalid for execution."));
+                    "is invalid for execution.", typeSystemNode));
         }
     }
 }

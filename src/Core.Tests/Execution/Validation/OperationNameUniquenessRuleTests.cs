@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Execution.Validation
 {
-    public class OperationNameUniquenessValidatorTests
+    public class OperationNameUniquenessRuleTests
     {
         [Fact]
         public void TwoUniqueQueryOperations()
@@ -28,8 +28,8 @@ namespace HotChocolate.Execution.Validation
             ");
 
             // act
-            OperationNameUniquenessValidator validator =
-                new OperationNameUniquenessValidator();
+            OperationNameUniquenessRule validator =
+                new OperationNameUniquenessRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
@@ -44,29 +44,32 @@ namespace HotChocolate.Execution.Validation
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
-            query getName {
-  dog {
-    name
-  }
-}
+                query getName {
+                    dog {
+                        name
+                    }
+                }
 
-query getName {
-  dog {
-    owner {
-      name
-    }
-  }
-}
-        ");
+                query getName {
+                    dog {
+                        owner {
+                            name
+                        }
+                    }
+                }
+            ");
 
             // act
-            OperationNameUniquenessValidator validator =
-                new OperationNameUniquenessValidator();
+            OperationNameUniquenessRule validator =
+                new OperationNameUniquenessRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
-            Assert.False(result.HasErrors);
-            Assert.Empty(result.Errors);
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                        $"The operation name `getName` is not unique.",
+                        t.Message));
         }
 
         [Fact]
@@ -75,27 +78,30 @@ query getName {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
-            query dogOperation {
-  dog {
-    name
-  }
-}
+                query dogOperation {
+                    dog {
+                        name
+                    }
+                }
 
-mutation dogOperation {
-  mutateDog {
-    id
-  }
-}
-        ");
+                mutation dogOperation {
+                    mutateDog {
+                        id
+                    }
+                }
+            ");
 
             // act
-            OperationNameUniquenessValidator validator =
-                new OperationNameUniquenessValidator();
+            OperationNameUniquenessRule validator =
+                new OperationNameUniquenessRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
-            Assert.False(result.HasErrors);
-            Assert.Empty(result.Errors);
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                        $"The operation name `dogOperation` is not unique.",
+                        t.Message));
         }
     }
 }

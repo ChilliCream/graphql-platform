@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Validation
 {
-    public interface IQueryValidator
+    public interface IQueryValidationRule
     {
         QueryValidationResult Validate(Schema schema, DocumentNode queryDocument);
     }
