@@ -87,7 +87,7 @@ namespace HotChocolate.Resolvers
             }
 
             Type type = typeof(T);
-            if (argumentValue.Value == null && !type.IsValueType)
+            if (argumentValue.Value == null)
             {
                 return default(T);
             }
