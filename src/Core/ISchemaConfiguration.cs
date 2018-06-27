@@ -10,6 +10,4 @@ namespace HotChocolate
         ISchemaOptions Options { get; }
         void RegisterServiceProvider(IServiceProvider serviceProvider);
     }
-
-
 }

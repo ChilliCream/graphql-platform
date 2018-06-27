@@ -1,7 +1,6 @@
 {
   "Data": {
-    "hello": "world",
-    "state": "initial"
+    "newState": "1234567"
   },
   "Errors": null
 }

@@ -87,9 +87,7 @@ namespace HotChocolate.Resolvers
             }
 
             Type type = typeof(T);
-            if (argumentValue.Value == null
-                && type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (argumentValue.Value == null)
             {
                 return default(T);
             }

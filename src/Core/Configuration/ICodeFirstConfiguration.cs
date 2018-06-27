@@ -17,6 +17,9 @@ namespace HotChocolate.Configuration
         void RegisterSubscriptionType<T>()
             where T : ObjectType;
 
+        void RegisterDirective<T>()
+            where T : Directive;
+
         void RegisterType<T>(T namedType)
             where T : class, INamedType;
 
@@ -28,5 +31,8 @@ namespace HotChocolate.Configuration
 
         void RegisterSubscriptionType<T>(T objectType)
             where T : ObjectType;
+
+        void RegisterDirective<T>(T directive)
+            where T : Directive;
     }
 }
