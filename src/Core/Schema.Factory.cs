@@ -138,11 +138,17 @@ namespace HotChocolate
         {
             SchemaContext context = new SchemaContext(new ServiceManager());
 
-            // create context with system types
+            // register speced scalar types
             context.Types.RegisterType(new TypeReference(typeof(StringType)));
+            context.Types.RegisterType(new TypeReference(typeof(IdType)));
             context.Types.RegisterType(new TypeReference(typeof(BooleanType)));
             context.Types.RegisterType(new TypeReference(typeof(IntType)));
             context.Types.RegisterType(new TypeReference(typeof(FloatType)));
+
+            // register extended scalar types
+            context.Types.RegisterType(new TypeReference(typeof(DecimalType)));
+            context.Types.RegisterType(new TypeReference(typeof(DateTimeType)));
+            context.Types.RegisterType(new TypeReference(typeof(DateType)));
 
             // register introspection types
             context.Types.RegisterType(new TypeReference(typeof(__Directive)));
