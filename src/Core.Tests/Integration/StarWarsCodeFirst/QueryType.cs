@@ -11,6 +11,10 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 .Type<CharacterType>()
                 .Argument("episode", a => a.DefaultValue(Episode.NewHope));
 
+            descriptor.Field(t => t.GetHeroes(default))
+                .Type<NonNullType<ListType<NonNullType<CharacterType>>>>()
+                .Argument("episodes", a => a.Type<NonNullType<ListType<NonNullType<EpisodeType>>>>());
+
             descriptor.Field(t => t.Search(default))
                 .Type<ListType<SearchResultType>>();
         }

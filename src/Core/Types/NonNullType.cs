@@ -25,10 +25,11 @@ namespace HotChocolate.Types
                     nameof(type));
             }
 
-            _isInputType = type.InnerType().IsInputType();
-            _inputType = type.InnerType() as IInputType;
+            _isInputType = type.IsInputType();
+            _inputType = type as IInputType;
+
             Type = type;
-            NativeType = _isInputType ? _inputType.NativeType : null;
+            NativeType = _inputType?.NativeType;
         }
 
         public TypeKind Kind { get; } = TypeKind.NonNull;
