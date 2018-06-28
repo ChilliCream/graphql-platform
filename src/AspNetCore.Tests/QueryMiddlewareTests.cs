@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace HotChocolate.AspNetCore
@@ -86,10 +87,10 @@ namespace HotChocolate.AspNetCore
                         c
                     }
                 }",
-                Variables = new Dictionary<string, object>
+                Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "a", "1234567890"}
-                }
+                })
             };
 
             // act
@@ -119,14 +120,14 @@ namespace HotChocolate.AspNetCore
                         c
                     }
                 }",
-                Variables = new Dictionary<string, object>
+                Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "a", new Dictionary<string, object> {
                         {"a", "44"},
                         {"b", "55"},
                         {"c", 66}
                     } }
-                }
+                })
             };
 
             // act

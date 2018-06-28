@@ -13,8 +13,6 @@ namespace HotChocolate.AspNetCore
 {
     public class QueryMiddleware
     {
-        private static readonly Parser _parser = Parser.Default;
-
         private readonly RequestDelegate _next;
         private readonly string _route;
 
@@ -75,6 +73,17 @@ namespace HotChocolate.AspNetCore
             string json = queryResult.ToString(false);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
             await response.Body.WriteAsync(buffer, 0, buffer.Length);
+        }
+
+        private Dictionary<string, IValueNode> DeserializeVariables(
+            JObject input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+
+            return DeserializeVariables(input.ToObject<Dictionary<string, JToken>>());
         }
 
         private Dictionary<string, IValueNode> DeserializeVariables(
