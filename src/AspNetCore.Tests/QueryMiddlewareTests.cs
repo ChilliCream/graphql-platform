@@ -57,6 +57,21 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task HttpGet_ForwardToNextMiddleware()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            string query = "{ basic { a } }";
+
+            // act
+            HttpResponseMessage message = await server.CreateClient()
+                .GetAsync($"http://localhost:5000/1234");
+
+            // assert
+            Assert.Equal(HttpStatusCode.NotFound, message.StatusCode);
+        }
+
+        [Fact]
         public async Task HttpPost_WithScalarVariables()
         {
             // arrange
