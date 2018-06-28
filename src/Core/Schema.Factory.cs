@@ -138,13 +138,31 @@ namespace HotChocolate
         {
             SchemaContext context = new SchemaContext(new ServiceManager());
 
-            // create context with system types
+            RegisterSpecScalarTypes(context);
+            RegisterExtendedScalarTypes(context);
+            RegisterIntrospectionTypes(context);
+
+            return context;
+        }
+
+        private static void RegisterSpecScalarTypes(SchemaContext context)
+        {
             context.Types.RegisterType(new TypeReference(typeof(StringType)));
+            context.Types.RegisterType(new TypeReference(typeof(IdType)));
             context.Types.RegisterType(new TypeReference(typeof(BooleanType)));
             context.Types.RegisterType(new TypeReference(typeof(IntType)));
             context.Types.RegisterType(new TypeReference(typeof(FloatType)));
+        }
 
-            // register introspection types
+        private static void RegisterExtendedScalarTypes(SchemaContext context)
+        {
+            context.Types.RegisterType(new TypeReference(typeof(DecimalType)));
+            context.Types.RegisterType(new TypeReference(typeof(DateTimeType)));
+            context.Types.RegisterType(new TypeReference(typeof(DateType)));
+        }
+
+        private static void RegisterIntrospectionTypes(SchemaContext context)
+        {
             context.Types.RegisterType(new TypeReference(typeof(__Directive)));
             context.Types.RegisterType(new TypeReference(typeof(__DirectiveLocation)));
             context.Types.RegisterType(new TypeReference(typeof(__EnumValue)));
@@ -153,8 +171,6 @@ namespace HotChocolate
             context.Types.RegisterType(new TypeReference(typeof(__Schema)));
             context.Types.RegisterType(new TypeReference(typeof(__Type)));
             context.Types.RegisterType(new TypeReference(typeof(__TypeKind)));
-
-            return context;
         }
     }
 }
