@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
@@ -20,12 +22,15 @@ namespace HotChocolate.AspNetCore
 
         internal static QueryRequest ReadRequest(HttpContext context)
         {
+            IQueryCollection requestQuery = context.Request.Query;
+
+            StringValues variables = requestQuery[_variablesIdentifier];
             return new QueryRequest
             {
-                NamedQuery = context.Request.Query[_namedQueryIdentifier].ToString(),
-                OperationName = context.Request.Query[_operationNameIdentifier].ToString(),
-                Query = context.Request.Query[_queryIdentifier].ToString(),
-                Variables = JObject.Parse(context.Request.Query[_variablesIdentifier].ToString()),
+                Query = requestQuery[_queryIdentifier].ToString(),
+                NamedQuery = requestQuery[_namedQueryIdentifier].ToString(),
+                OperationName = requestQuery[_operationNameIdentifier].ToString(),
+                Variables = variables.Any() ? JObject.Parse(variables) : null
             };
         }
 
