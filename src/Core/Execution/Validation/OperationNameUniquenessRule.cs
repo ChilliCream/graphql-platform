@@ -77,4 +77,13 @@ namespace HotChocolate.Execution.Validation
             return errors;
         }
     }
+
+    public class EmptySelectionSetRule
+       : IQueryValidationRule
+    {
+        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

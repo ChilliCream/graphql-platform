@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
             _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
 
-            _operationType = GetOperationType(schema, _operation);
+            _operationType = schema.GetOperationType(_operation.Operation);
             _variableValueBuilder = new VariableValueBuilder(schema, _operation);
         }
 
@@ -80,36 +80,13 @@ namespace HotChocolate.Execution
         private object ResolveRootValue(
             object initialValue)
         {
-            ObjectType operationType = GetOperationType(_schema, _operation);
-
             if (initialValue == null && _schema.TryGetNativeType(
-               operationType.Name, out Type nativeType))
+               _operationType.Name, out Type nativeType))
             {
                 initialValue = _schema.GetService(nativeType)
                     ?? Activator.CreateInstance(nativeType);
             }
-
             return initialValue;
-        }
-
-        private static ObjectType GetOperationType(
-            Schema schema, OperationDefinitionNode operation)
-        {
-            switch (operation.Operation)
-            {
-                case OperationType.Query:
-                    return schema.QueryType;
-
-                case OperationType.Mutation:
-                    return schema.MutationType;
-
-                case OperationType.Subscription:
-                    return schema.SubscriptionType;
-
-                default:
-                    throw new NotSupportedException(
-                        "The specified operation type is not supported.");
-            }
         }
 
         private async Task ExecuteOperationAsync(
