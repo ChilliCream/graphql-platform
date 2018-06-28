@@ -29,16 +29,17 @@ namespace HotChocolate.Types
                     nameof(elementType));
             }
 
-            _isInputType = elementType.InnerType().IsInputType();
-            _inputType = elementType.InnerType() as IInputType;
+            _isInputType = elementType.IsInputType();
+            _inputType = elementType as IInputType;
+
             ElementType = elementType;
-            NativeType = _isInputType ? CreateListType(_inputType.NativeType) : null;
-        }
 
-        public ListType()
-        {
+            if (_isInputType && _inputType != null)
+            {
+                NativeType = CreateListType(_inputType.NativeType);
+            }
         }
-
+     
         public TypeKind Kind { get; } = TypeKind.List;
 
         public IType ElementType { get; }
@@ -63,18 +64,16 @@ namespace HotChocolate.Types
                 {
                     if (listValueLiteral.Items.Any())
                     {
-                        return true;
-                    }
-                    else
-                    {
                         IValueNode value = listValueLiteral.Items.First();
                         if (!_inputType.IsInstanceOfType(value))
                         {
                             return !ElementType.IsNonNullType()
-                                && value is NullValueNode;
+                                   && value is NullValueNode;
                         }
+
                         return true;
                     }
+                    return true;
                 }
                 return false;
             }
