@@ -3,28 +3,28 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class IntTypeTests
+    public class LongTests
     {
         [Fact]
-        public void Serialize_Int()
+        public void Serialize_Long()
         {
             // arrange
-            IntType type = new IntType();
-            int input = 1;
+            LongType type = new LongType();
+            long input = 1L;
 
             // act
             object serializedValue = type.Serialize(input);
 
             // assert
-            Assert.IsType<int>(serializedValue);
-            Assert.Equal(1, serializedValue);
+            Assert.IsType<long>(serializedValue);
+            Assert.Equal(1L, serializedValue);
         }
 
         [Fact]
         public void Serialize_Null()
         {
             // arrange
-            IntType type = new IntType();
+            LongType type = new LongType();
 
             // act
             object serializedValue = type.Serialize(null);
@@ -37,22 +37,22 @@ namespace HotChocolate.Types
         public void ParseLiteral_IntValueNode()
         {
             // arrange
-            IntType type = new IntType();
+            LongType type = new LongType();
             IntValueNode input = new IntValueNode("1");
 
             // act
             object output = type.ParseLiteral(input);
 
             // assert
-            Assert.IsType<int>(output);
-            Assert.Equal(1, output);
+            Assert.IsType<long>(output);
+            Assert.Equal(1L, output);
         }
 
         [Fact]
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            IntType type = new IntType();
+            LongType type = new LongType();
             NullValueNode input = new NullValueNode();
 
             // act
@@ -63,12 +63,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue_Int_Max()
+        public void ParseValue_Long_Max()
         {
             // arrange
-            IntType type = new IntType();
-            int input = int.MaxValue;
-            string expectedLiteralValue = "2147483647";
+            LongType type = new LongType();
+            long input = long.MaxValue;
+            string expectedLiteralValue = "9223372036854775807";
 
             // act
             IntValueNode literal =
@@ -79,12 +79,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue_Int_Min()
+        public void ParseValue_Long_Min()
         {
             // arrange
-            IntType type = new IntType();
-            int input = int.MinValue;
-            string expectedLiteralValue = "-2147483648";
+            LongType type = new LongType();
+            long input = long.MinValue;
+            string expectedLiteralValue = "-9223372036854775808";
 
             // act
             IntValueNode literal =
@@ -98,7 +98,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            IntType type = new IntType();
+            LongType type = new LongType();
             object input = null;
 
             // act
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
         public void EnsureFloatTypeKindIsCorret()
         {
             // arrange
-            IntType type = new IntType();
+            LongType type = new LongType();
 
             // act
             TypeKind kind = type.Kind;

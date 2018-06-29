@@ -69,7 +69,7 @@ namespace HotChocolate.Types
             // arrange
             DecimalType type = new DecimalType();
             decimal input = decimal.MaxValue;
-            string expectedLiteralValue = "7.922816e+028";
+            string expectedLiteralValue = "7.922816E+028";
 
             // act
             FloatValueNode literal =
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
             // arrange
             DecimalType type = new DecimalType();
             decimal input = decimal.MinValue;
-            string expectedLiteralValue = "-7.922816e+028";
+            string expectedLiteralValue = "-7.922816E+028";
 
             // act
             FloatValueNode literal =
