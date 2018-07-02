@@ -107,7 +107,7 @@ Open the Startup.cs and add the following code.
 ```csharp
 protected override void ConfigureServices(IServiceCollection services)
 {
-    services.AddGraphQL(c => c.RegisterQuery<ObjectType<Query>>());
+    services.AddGraphQL(c => c.RegisterQueryType<ObjectType<Query>>());
 }
 ```
 
