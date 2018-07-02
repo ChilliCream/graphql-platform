@@ -4,4 +4,10 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
     }
+
+    public interface IValueNode<out T>
+        : IValueNode
+    {
+        T Value { get; }
+    }
 }

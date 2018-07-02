@@ -5,121 +5,25 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class DecimalTypeTests
+        : NumberTypeTests<decimal, DecimalType, FloatValueNode>
     {
-        [Fact]
-        public void Serialize_Decimal()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            decimal input = 1.0m;
+        protected override FloatValueNode CreateValueNode() =>
+            new FloatValueNode("1.000000E+000");
 
-            // act
-            object serializedValue = type.Serialize(input);
+        protected override IValueNode CreateWrongValueNode() =>
+            new IntValueNode("1");
 
-            // assert
-            Assert.IsType<decimal>(serializedValue);
-            Assert.Equal(1.0m, serializedValue);
-        }
+        protected override decimal CreateValue() => 1.0m;
 
-        [Fact]
-        public void Serialize_Null()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
+        protected override object CreateWrongValue() => 1.0d;
 
-            // act
-            object serializedValue = type.Serialize(null);
+        protected override decimal AssertValue() => 1.0m;
 
-            // assert
-            Assert.Null(serializedValue);
-        }
+        protected override decimal CreateMaxValue() => decimal.MaxValue;
+        protected override string AssertMaxValue() => "7.922816E+028";
 
-        [Fact]
-        public void ParseLiteral_FloatValueNode()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            FloatValueNode input = new FloatValueNode("1.000000e+000");
+        protected override decimal CreateMinValue() => decimal.MinValue;
+        protected override string AssertMinValue() => "-7.922816E+028";
 
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.IsType<decimal>(output);
-            Assert.Equal(1.0m, output);
-        }
-
-        [Fact]
-        public void ParseLiteral_NullValueNode()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            NullValueNode input = new NullValueNode();
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.Null(output);
-        }
-
-        [Fact]
-        public void ParseValue_Decimal_Max()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            decimal input = decimal.MaxValue;
-            string expectedLiteralValue = "7.922816E+028";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value, StringComparer.InvariantCulture);
-        }
-
-        [Fact]
-        public void ParseValue_Decimal_Min()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            decimal input = decimal.MinValue;
-            string expectedLiteralValue = "-7.922816E+028";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value, StringComparer.InvariantCulture);
-        }
-
-        [Fact]
-        public void ParseValue_Null()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-            object input = null;
-
-            // act
-            object output = type.ParseValue(input);
-
-            // assert
-            Assert.IsType<NullValueNode>(output);
-        }
-
-        [Fact]
-        public void EnsureDecimalTypeKindIsCorret()
-        {
-            // arrange
-            DecimalType type = new DecimalType();
-
-            // act
-            TypeKind kind = type.Kind;
-
-            // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
-        }
     }
 }

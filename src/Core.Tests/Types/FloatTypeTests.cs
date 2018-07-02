@@ -4,93 +4,26 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class FloatTests
+    public class FloatTypeTests
+        : NumberTypeTests<double, FloatType, FloatValueNode>
     {
-        [Fact]
-        public void Serialize_Float()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            float input = 1.0f;
+        protected override FloatValueNode CreateValueNode() =>
+            new FloatValueNode("1.000000E+000");
 
-            // act
-            object serializedValue = type.Serialize(input);
+        protected override IValueNode CreateWrongValueNode() =>
+            new IntValueNode("1");
 
-            // assert
-            Assert.IsType<float>(serializedValue);
-            Assert.Equal(1.0f, serializedValue);
-        }
+        protected override double CreateValue() => 1.0d;
 
-        [Fact]
-        public void Serialize_Double()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = 1.0d;
+        protected override object CreateWrongValue() => 1.0m;
 
-            // act
-            object serializedValue = type.Serialize(input);
+        protected override double AssertValue() => 1.0d;
 
-            // assert
-            Assert.IsType<double>(serializedValue);
-            Assert.Equal(1.0d, serializedValue);
-        }
+        protected override double CreateMaxValue() => double.MaxValue;
+        protected override string AssertMaxValue() => "1.797693E+308";
 
-        [Fact]
-        public void Serialize_Null()
-        {
-            // arrange
-            FloatType type = new FloatType();
-
-            // act
-            object serializedValue = type.Serialize(null);
-
-            // assert
-            Assert.Null(serializedValue);
-        }
-
-        [Fact]
-        public void ParseLiteral_FloatValueNode()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            FloatValueNode input = new FloatValueNode("1.000000e+000");
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.IsType<double>(output);
-            Assert.Equal(1.0d, output);
-        }
-
-        [Fact]
-        public void ParseLiteral_NullValueNode()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            NullValueNode input = new NullValueNode();
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.Null(output);
-        }
-
-        [Fact]
-        public void ParseValue_Null()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            object input = null;
-
-            // act
-            object output = type.ParseValue(input);
-
-            // assert
-            Assert.IsType<NullValueNode>(output);
-        }
+        protected override double CreateMinValue() => double.MinValue;
+        protected override string AssertMinValue() => "-1.797693E+308";
 
         [Fact]
         public void ParseValue_Float_Max()
@@ -98,14 +31,13 @@ namespace HotChocolate.Types
             // arrange
             FloatType type = new FloatType();
             float input = float.MaxValue;
-            string expectedLiteralValue = "3.402823E+038";
 
             // act
             FloatValueNode literal =
                 (FloatValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
+            Assert.Equal("3.402823E+038", literal.Value);
         }
 
         [Fact]
@@ -114,91 +46,13 @@ namespace HotChocolate.Types
             // arrange
             FloatType type = new FloatType();
             float input = float.MinValue;
-            string expectedLiteralValue = "-3.402823E+038";
 
             // act
             FloatValueNode literal =
                 (FloatValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
-        }
-
-        [Fact]
-        public void ParseValue_Float_Epsilon()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = double.Epsilon;
-            string expectedLiteralValue = "4.940656E-324";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
-        }
-
-        [Fact]
-        public void ParseValue_Double_Max()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = double.MaxValue;
-            string expectedLiteralValue = "1.797693E+308";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
-        }
-
-        [Fact]
-        public void ParseValue_Double_Min()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = double.MinValue;
-            string expectedLiteralValue = "-1.797693E+308";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
-        }
-
-        [Fact]
-        public void ParseValue_Double_Epsilon()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = double.Epsilon;
-            string expectedLiteralValue = "4.940656E-324";
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
-        }
-
-        [Fact]
-        public void EnsureFloatTypeKindIsCorret()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            
-            // act
-            TypeKind kind = type.Kind;
-
-            // assert
-            Assert.Equal(TypeKind.Scalar, kind);
+            Assert.Equal("-3.402823E+038", literal.Value);
         }
     }
 }
