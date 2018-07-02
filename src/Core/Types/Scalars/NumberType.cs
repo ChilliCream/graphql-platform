@@ -45,7 +45,7 @@ namespace HotChocolate.Types
             {
                 return null;
             }
-            
+
             throw new ArgumentException(
                 $"The {NativeType.Name} type can only parse {typeof(TNode).Name}.");
         }

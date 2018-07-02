@@ -190,6 +190,8 @@ Moreoreover, we are working on the following parts that are not defined in the s
 - [ ] Time
 - [ ] URL
 - [x] Decimal
+- [x] Short (Int16)
+- [x] Long (Int64)
 - [x] Custom Scalars
 
 ### Additional Directives
