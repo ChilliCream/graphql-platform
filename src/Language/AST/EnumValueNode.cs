@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.Language
 {
     public sealed class EnumValueNode
-        : IValueNode
+        : IValueNode<string>
     {
         public EnumValueNode(string value)
             : this(null, value)
@@ -24,7 +24,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.EnumValue;
+
         public Location Location { get; }
+
         public string Value { get; }
     }
 }

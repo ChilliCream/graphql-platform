@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class ObjectValueNode
-        : IValueNode
+        : IValueNode<IReadOnlyCollection<ObjectFieldNode>>
     {
         public ObjectValueNode(
             params ObjectFieldNode[] fields)
@@ -32,7 +32,11 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.ObjectValue;
+
         public Location Location { get; }
+
         public IReadOnlyCollection<ObjectFieldNode> Fields { get; }
+
+        IReadOnlyCollection<ObjectFieldNode> IValueNode<IReadOnlyCollection<ObjectFieldNode>>.Value => Fields;
     }
 }
