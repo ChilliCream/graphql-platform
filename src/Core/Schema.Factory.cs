@@ -157,6 +157,7 @@ namespace HotChocolate
         private static void RegisterExtendedScalarTypes(SchemaContext context)
         {
             context.Types.RegisterType(new TypeReference(typeof(DecimalType)));
+            context.Types.RegisterType(new TypeReference(typeof(LongType)));
             context.Types.RegisterType(new TypeReference(typeof(DateTimeType)));
             context.Types.RegisterType(new TypeReference(typeof(DateType)));
         }

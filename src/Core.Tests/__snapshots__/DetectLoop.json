@@ -40,7 +40,8 @@
                       },
                       "Value": {
                         "Kind": "NullValue",
-                        "Location": null
+                        "Location": null,
+                        "Value": null
                       }
                     },
                     {

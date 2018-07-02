@@ -1,7 +1,7 @@
 namespace HotChocolate.Language
 {
     public sealed class NullValueNode
-        : IValueNode
+        : IValueNode<object>
     {
         public NullValueNode()
         {
@@ -13,6 +13,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.NullValue;
+
         public Location Location { get; }
+
+        public object Value { get; } = null;
     }
 }

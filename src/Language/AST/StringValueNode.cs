@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.Language
 {
     public sealed class StringValueNode
-        : IValueNode
+        : IValueNode<string>
     {
         public StringValueNode(string value)
             : this(null, value, false)
@@ -26,8 +26,11 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.StringValue;
+
         public Location Location { get; }
+
         public string Value { get; }
+
         public bool Block { get; }
     }
 }

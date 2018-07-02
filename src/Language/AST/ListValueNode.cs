@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class ListValueNode
-        : IValueNode
+        : IValueNode<IReadOnlyList<IValueNode>>
     {
         public ListValueNode(
             IReadOnlyList<IValueNode> items)
@@ -26,7 +26,11 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.ListValue;
+
         public Location Location { get; }
+
         public IReadOnlyList<IValueNode> Items { get; }
+
+        IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value => Items;
     }
 }
