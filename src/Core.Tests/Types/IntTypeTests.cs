@@ -7,22 +7,22 @@ namespace HotChocolate.Types
     public class IntTypeTests
         : NumberTypeTests<int, IntType, IntValueNode>
     {
-        protected override IntValueNode CreateValueNode() =>
+        protected override IntValueNode GetValueNode =>
             new IntValueNode("1");
 
-        protected override IValueNode CreateWrongValueNode() =>
+        protected override IValueNode GetWrongValueNode =>
             new FloatValueNode("1.0f");
 
-        protected override int CreateValue() => 1;
+        protected override int GetValue => 1;
 
-        protected override object CreateWrongValue() => 1.0d;
+        protected override object GetWrongValue => 1.0d;
 
-        protected override int AssertValue() => 1;
+        protected override int GetAssertValue => 1;
 
-        protected override int CreateMaxValue() => int.MaxValue;
-        protected override string AssertMaxValue() => "2147483647";
+        protected override int GetMaxValue => int.MaxValue;
+        protected override string GetAssertMaxValue => "2147483647";
 
-        protected override int CreateMinValue() => int.MinValue;
-        protected override string AssertMinValue() => "-2147483648";
+        protected override int GetMinValue => int.MinValue;
+        protected override string GetAssertMinValue => "-2147483648";
     }
 }

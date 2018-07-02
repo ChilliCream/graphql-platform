@@ -7,23 +7,23 @@ namespace HotChocolate.Types
     public class FloatTypeTests
         : NumberTypeTests<double, FloatType, FloatValueNode>
     {
-        protected override FloatValueNode CreateValueNode() =>
+        protected override FloatValueNode GetValueNode =>
             new FloatValueNode("1.000000E+000");
 
-        protected override IValueNode CreateWrongValueNode() =>
+        protected override IValueNode GetWrongValueNode =>
             new IntValueNode("1");
 
-        protected override double CreateValue() => 1.0d;
+        protected override double GetValue => 1.0d;
 
-        protected override object CreateWrongValue() => 1.0m;
+        protected override object GetWrongValue => 1.0m;
 
-        protected override double AssertValue() => 1.0d;
+        protected override double GetAssertValue => 1.0d;
 
-        protected override double CreateMaxValue() => double.MaxValue;
-        protected override string AssertMaxValue() => "1.797693E+308";
+        protected override double GetMaxValue => double.MaxValue;
+        protected override string GetAssertMaxValue => "1.797693E+308";
 
-        protected override double CreateMinValue() => double.MinValue;
-        protected override string AssertMinValue() => "-1.797693E+308";
+        protected override double GetMinValue => double.MinValue;
+        protected override string GetAssertMinValue => "-1.797693E+308";
 
         [Fact]
         public void ParseValue_Float_Max()

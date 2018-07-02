@@ -8,22 +8,22 @@ namespace HotChocolate.Types
         where TType : ScalarType, new()
         where TValueNode : IValueNode<string>
     {
-        protected abstract TValueNode CreateValueNode();
-        protected abstract IValueNode CreateWrongValueNode();
-        protected abstract TNative CreateValue();
-        protected abstract object CreateWrongValue();
-        protected abstract TNative AssertValue();
-        protected abstract TNative CreateMaxValue();
-        protected abstract string AssertMaxValue();
-        protected abstract TNative CreateMinValue();
-        protected abstract string AssertMinValue();
+        protected abstract TValueNode GetValueNode { get; }
+        protected abstract IValueNode GetWrongValueNode { get; }
+        protected abstract TNative GetValue { get; }
+        protected abstract object GetWrongValue { get; }
+        protected abstract TNative GetAssertValue { get; }
+        protected abstract TNative GetMaxValue { get; }
+        protected abstract string GetAssertMaxValue { get; }
+        protected abstract TNative GetMinValue { get; }
+        protected abstract string GetAssertMinValue { get; }
 
         [Fact]
         public void IsInstanceOfType_ValueNode()
         {
             // arrange
             TType type = new TType();
-            IValueNode input = CreateValueNode();
+            IValueNode input = GetValueNode;
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            IValueNode input = CreateWrongValueNode();
+            IValueNode input = GetWrongValueNode;
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -76,14 +76,14 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            TNative input = CreateValue();
+            TNative input = GetValue;
 
             // act
             object serializedValue = type.Serialize(input);
 
             // assert
             Assert.IsType<TNative>(serializedValue);
-            Assert.Equal(AssertValue(), serializedValue);
+            Assert.Equal(GetAssertValue, serializedValue);
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            object input = CreateWrongValue();
+            object input = GetWrongValue;
 
             // act
             // assert
@@ -116,14 +116,14 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            IValueNode input = CreateValueNode();
+            IValueNode input = GetValueNode;
 
             // act
             object output = type.ParseLiteral(input);
 
             // assert
             Assert.IsType<TNative>(output);
-            Assert.Equal(AssertValue(), output);
+            Assert.Equal(GetAssertValue, output);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            IValueNode input = CreateWrongValueNode();
+            IValueNode input = GetWrongValueNode;
 
             // act
             // assert
@@ -168,14 +168,14 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            TNative input = CreateMaxValue();
+            TNative input = GetMaxValue;
 
             // act
             TValueNode literal =
                 (TValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(AssertMaxValue(), literal.Value);
+            Assert.Equal(GetAssertMaxValue, literal.Value);
         }
 
         [Fact]
@@ -183,14 +183,14 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            TNative input = CreateMinValue();
+            TNative input = GetMinValue;
 
             // act
             TValueNode literal =
                 (TValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(AssertMinValue(), literal.Value);
+            Assert.Equal(GetAssertMinValue, literal.Value);
         }
 
         [Fact]
@@ -198,7 +198,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            object input = CreateWrongValue();
+            object input = GetWrongValue;
 
             // act
             // assert
