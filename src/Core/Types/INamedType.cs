@@ -33,7 +33,6 @@ namespace HotChocolate.Types
         FieldResolverDelegate Resolver { get; }
     }
 
-    public interface
 
     /// <summary>
     /// Represents an input field. Input fields can be arguments of fields
