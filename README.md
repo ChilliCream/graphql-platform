@@ -96,13 +96,19 @@ This runs a query fetching the one field defined. The graphql function will firs
 Console.WriteLine(schema.Execute("{ foo }"));
 ```
 
-In order to setup a GraphQL HTTP endpoint that can be used by a web application or other application we have to first create an empty web project with the dotnet CLI.
+In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. In order to set it up create a new empty web project with the dotnet CLI.
 
 ```bash
 dotnet new web -n graphql-web
 ```
 
-Open the Startup.cs and add the following code.
+Now add our middleware package to the project with the following command.
+
+```bash
+dotnet add package HotChocolate.AspNetCore
+```
+
+Now open the Startup.cs and add the following code.
 
 ```csharp
 protected override void ConfigureServices(IServiceCollection services)
@@ -124,6 +130,8 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 
 This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
 In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+
+We are also currently working on a middleware for ASP.net classic.
 
 ## Features
 
