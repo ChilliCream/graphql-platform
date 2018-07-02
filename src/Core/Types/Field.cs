@@ -10,8 +10,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class Field
-        : ITypeSystemNode
-        , IField
+        : IOutputField
     {
         private readonly Dictionary<string, InputField> _argumentMap =
             new Dictionary<string, InputField>();
@@ -62,16 +61,10 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
 
+        IReadOnlyDictionary<string, IInputField> IOutputField.Arguments
+            => _argumentMap.ToDictionary(t => t.Key, t => t.Value);
+
         public FieldResolverDelegate Resolver { get; private set; }
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-            => _argumentMap.Values;
-
-        #endregion
 
         #region Initialization
 

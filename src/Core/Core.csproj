@@ -33,4 +33,7 @@
     <ProjectReference Include="..\Language\Language.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Types\IHasSyntaxNode.cs" />
+  </ItemGroup>
 </Project>

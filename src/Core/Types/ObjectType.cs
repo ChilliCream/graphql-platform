@@ -13,12 +13,8 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class ObjectType
-        : INamedType
-        , IOutputType
-        , INullableType
-        , ITypeSystemNode
+        : IComplexOutputType
         , INeedsInitialization
-        , IHasFields
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
@@ -53,6 +49,8 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
+        IReadOnlyDictionary<string, IOutputField> IComplexOutputType.Fields => _fieldMap;
+
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
 
@@ -62,25 +60,6 @@ namespace HotChocolate.Types
             new ObjectTypeDescriptor(GetType());
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region ITypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            foreach (InterfaceType node in Interfaces.Values)
-            {
-                yield return node;
-            }
-
-            foreach (Field node in Fields.Values)
-            {
-                yield return node;
-            }
-        }
 
         #endregion
 

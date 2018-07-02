@@ -8,8 +8,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputField
-        : ITypeSystemNode
-        , IField
+        : IInputField
     {
         private readonly TypeReference _typeReference;
         private object _nativeDefaultValue;
@@ -75,15 +74,6 @@ namespace HotChocolate.Types
         public IValueNode DefaultValue { get; private set; }
 
         public PropertyInfo Property { get; private set; }
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() =>
-            Enumerable.Empty<ITypeSystemNode>();
-
-        #endregion
 
         #region Initialization
 
