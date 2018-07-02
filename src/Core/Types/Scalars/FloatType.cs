@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         }
 
         protected override double OnParseLiteral(FloatValueNode node) =>
-            float.Parse(node.Value, NumberStyles.Float, CultureInfo.InvariantCulture);
+            double.Parse(node.Value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
         protected override FloatValueNode OnParseValue(double value) =>
             new FloatValueNode(value.ToString("E", CultureInfo.InvariantCulture));
