@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.Language
 {
     public sealed class FloatValueNode
-        : IValueNode
+        : IValueNode<string>
     {
         public FloatValueNode(
             string value)

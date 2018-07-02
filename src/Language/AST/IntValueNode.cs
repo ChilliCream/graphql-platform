@@ -4,7 +4,7 @@ using System.Globalization;
 namespace HotChocolate.Language
 {
     public sealed class IntValueNode
-        : IValueNode
+        : IValueNode<string>
     {
         public IntValueNode(int value)
             : this(null, value.ToString(CultureInfo.InvariantCulture))
