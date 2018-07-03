@@ -14,6 +14,16 @@ namespace HotChocolate.Types
     {
         private TypeReference _typeReference;
 
+        internal InterfaceField(Action<IInterfaceFieldDescriptor> configure)
+            : this(() => ExecuteConfigure(configure))
+        {
+        }
+
+        internal InterfaceField(Func<InterfaceFieldDescription> descriptionFactory)
+            : this(ExecuteFactory(descriptionFactory))
+        {
+        }
+
         internal InterfaceField(InterfaceFieldDescription fieldDescription)
         {
             if (fieldDescription == null)
@@ -31,21 +41,45 @@ namespace HotChocolate.Types
             DeprecationReason = fieldDescription.DeprecationReason;
         }
 
-        public FieldDefinitionNode SyntaxNode { get; private set; }
+        private static InterfaceFieldDescription ExecuteConfigure(
+            Action<IInterfaceFieldDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
 
-        public string Name { get; private set; }
+            InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
+            configure(descriptor);
+            return descriptor.FieldDescription;
+        }
+
+        private static InterfaceFieldDescription ExecuteFactory(
+            Func<InterfaceFieldDescription> descriptionFactory)
+        {
+            if (descriptionFactory == null)
+            {
+                throw new ArgumentNullException(nameof(descriptionFactory));
+            }
+
+            return descriptionFactory();
+        }
+
+        public FieldDefinitionNode SyntaxNode { get; }
+
+        public string Name { get; }
 
         public INamedType DeclaringType { get; private set; }
 
         public IOutputType Type { get; private set; }
 
-        public IFieldCollection<InputField> Arguments { get; private set; }
+        public IFieldCollection<InputField> Arguments { get; }
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
-        public bool IsDeprecated { get; private set; }
+        public bool IsDeprecated { get; }
 
-        public string DeprecationReason { get; private set; }
+        public string DeprecationReason { get; }
 
         protected bool IsCompleted { get; private set; }
 
@@ -112,156 +146,44 @@ namespace HotChocolate.Types
         }
     }
 
-
-    public class Field
-        : IOutputField
+    public class ObjectTypeField
+        : InterfaceField
     {
-        private readonly Dictionary<string, InputField> _argumentMap =
-            new Dictionary<string, InputField>();
-        private MemberInfo _member;
-        private TypeReference _typeReference;
-        private bool _completed;
+        private readonly MemberInfo _member;
 
-        internal Field(string name, Action<IFieldDescriptor> configure)
+        internal ObjectTypeField(ObjectFieldDescription fieldDescription)
+            : base(fieldDescription)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "A field name must not be null or empty.",
-                    nameof(name));
-            }
-
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            Initialize(name, configure);
+            _member = fieldDescription.Member;
+            Resolver = fieldDescription.Resolver;
         }
-
-        internal Field(FieldDescriptor descriptor)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            Initialize(descriptor);
-        }
-
-        public FieldDefinitionNode SyntaxNode { get; private set; }
-
-        public INamedType DeclaringType { get; private set; }
-
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
-
-        public bool IsDeprecated { get; private set; }
-
-        public string DeprecationReason { get; private set; }
-
-        public IOutputType Type { get; private set; }
-
-        public IReadOnlyDictionary<string, InputField> Arguments => _argumentMap;
-
-        IReadOnlyDictionary<string, IInputField> IOutputField.Arguments
-            => _argumentMap.ToDictionary(t => t.Key, t => t.Value);
 
         public FieldResolverDelegate Resolver { get; private set; }
 
-        #region Initialization
-
-        private void Initialize(string name, Action<IFieldDescriptor> configure)
-        {
-            FieldDescriptor descriptor = new FieldDescriptor(null, name);
-            configure(descriptor);
-            Initialize(descriptor);
-        }
-
-        private void Initialize(FieldDescriptor descriptor)
-        {
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "A field name must not be null or empty.",
-                    nameof(descriptor));
-            }
-
-            foreach (InputField argument in descriptor.GetArguments()
-                .Select(t => new InputField(t)))
-            {
-                _argumentMap[argument.Name] = argument;
-            }
-
-            _member = descriptor.Member;
-            _typeReference = descriptor.TypeReference;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DeprecationReason = descriptor.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
-            Resolver = descriptor.Resolver;
-        }
-
-        internal void RegisterDependencies(
+        internal override void OnRegisterDependencies(
             ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (!_completed)
+            base.OnRegisterDependencies(schemaContext, reportError, parentType);
+
+            if (_member != null)
             {
-                if (_typeReference != null)
-                {
-                    schemaContext.Types.RegisterType(_typeReference);
-                }
-
-                if (_member != null)
-                {
-                    schemaContext.Resolvers.RegisterResolver(
-                        new MemberResolverBinding(parentType.Name, Name, _member));
-                }
-
-                foreach (InputField argument in _argumentMap.Values)
-                {
-                    argument.RegisterDependencies(
-                        schemaContext.Types, reportError, parentType);
-                }
+                schemaContext.Resolvers.RegisterResolver(
+                    new MemberResolverBinding(parentType.Name, Name, _member));
             }
         }
 
-        internal void CompleteField(
+        internal override void OnCompleteField(
             ISchemaContext schemaContext,
             Action<SchemaError> reportError,
             INamedType parentType)
         {
-            if (!_completed)
-            {
-                DeclaringType = parentType;
-                Type = this.ResolveFieldType<IOutputType>(schemaContext.Types,
-                    reportError, _typeReference);
+            base.OnCompleteField(schemaContext, reportError, parentType);
 
-                CompleteResolver(schemaContext.Resolvers, reportError, parentType);
-
-                foreach (InputField argument in _argumentMap.Values)
-                {
-                    argument.CompleteInputField(
-                        schemaContext.Types, reportError, parentType);
-                }
-
-                _completed = true;
-            }
-        }
-
-        private void CompleteResolver(
-            IResolverRegistry resolverRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
             if (parentType is ObjectType ot && Resolver == null)
             {
-                Resolver = resolverRegistry.GetResolver(parentType.Name, Name);
+                Resolver = schemaContext.Resolvers.GetResolver(parentType.Name, Name);
                 if (Resolver == null)
                 {
                     reportError(new SchemaError(
@@ -270,7 +192,5 @@ namespace HotChocolate.Types
                 }
             }
         }
-
-        #endregion
     }
 }

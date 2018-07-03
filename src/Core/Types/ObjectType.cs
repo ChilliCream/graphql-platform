@@ -98,7 +98,7 @@ namespace HotChocolate.Types
         private void InitializeFields(ObjectTypeDescriptor descriptor)
         {
             List<FieldBinding> fieldBindings = new List<FieldBinding>();
-            foreach (FieldDescriptor fieldDescriptor in descriptor
+            foreach (ObjectFieldDescriptor fieldDescriptor in descriptor
                 .GetFieldDescriptors())
             {
                 Field field = new Field(fieldDescriptor);

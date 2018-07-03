@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
-        IFieldDescriptor Type(ITypeNode type);
+        IObjectFieldDescriptor Type(ITypeNode type);
 
         IInterfaceFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
     }

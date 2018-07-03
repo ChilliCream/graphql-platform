@@ -47,17 +47,17 @@ namespace HotChocolate.Types
 
         public IsOfType IsOfType { get; protected set; }
 
-        protected ImmutableList<FieldDescriptor> Fields { get; set; }
-            = ImmutableList<FieldDescriptor>.Empty;
+        protected ImmutableList<ObjectFieldDescriptor> Fields { get; set; }
+            = ImmutableList<ObjectFieldDescriptor>.Empty;
 
         public ImmutableList<TypeReference> Interfaces { get; protected set; }
             = ImmutableList<TypeReference>.Empty;
 
-        public virtual IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
+        public virtual IReadOnlyCollection<ObjectFieldDescriptor> GetFieldDescriptors()
         {
-            Dictionary<string, FieldDescriptor> descriptors =
-                new Dictionary<string, FieldDescriptor>();
-            foreach (FieldDescriptor descriptor in Fields)
+            Dictionary<string, ObjectFieldDescriptor> descriptors =
+                new Dictionary<string, ObjectFieldDescriptor>();
+            foreach (ObjectFieldDescriptor descriptor in Fields)
             {
                 descriptors[descriptor.Name] = descriptor;
             }
@@ -133,7 +133,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IObjectTypeDescriptor.Field(string name)
+        IObjectFieldDescriptor IObjectTypeDescriptor.Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -149,7 +149,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(Name, name);
             Fields = Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -169,10 +169,10 @@ namespace HotChocolate.Types
             NativeType = typeof(T);
         }
 
-        public override IReadOnlyCollection<FieldDescriptor> GetFieldDescriptors()
+        public override IReadOnlyCollection<ObjectFieldDescriptor> GetFieldDescriptors()
         {
-            Dictionary<string, FieldDescriptor> descriptors =
-                new Dictionary<string, FieldDescriptor>();
+            Dictionary<string, ObjectFieldDescriptor> descriptors =
+                new Dictionary<string, ObjectFieldDescriptor>();
             List<MemberInfo> handledMembers = new List<MemberInfo>();
 
             AddExplicitFields(descriptors, handledMembers);
@@ -188,10 +188,10 @@ namespace HotChocolate.Types
         }
 
         private void AddExplicitFields(
-            Dictionary<string, FieldDescriptor> descriptors,
+            Dictionary<string, ObjectFieldDescriptor> descriptors,
             List<MemberInfo> handledMembers)
         {
-            foreach (FieldDescriptor descriptor in Fields)
+            foreach (ObjectFieldDescriptor descriptor in Fields)
             {
                 if (!descriptor.Ignored)
                 {
@@ -219,7 +219,7 @@ namespace HotChocolate.Types
         }
 
         private void AddImplicitFields(
-            Dictionary<string, FieldDescriptor> descriptors,
+            Dictionary<string, ObjectFieldDescriptor> descriptors,
             Dictionary<MemberInfo, string> members)
         {
             foreach (KeyValuePair<MemberInfo, string> member in members)
@@ -230,7 +230,7 @@ namespace HotChocolate.Types
                     if (returnType != null)
                     {
                         descriptors[member.Value] =
-                            new FieldDescriptor(Name, member.Key, returnType);
+                            new ObjectFieldDescriptor(Name, member.Key, returnType);
                     }
                 }
             }
@@ -290,7 +290,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
+        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
             if (methodOrProperty == null)
             {
@@ -300,7 +300,7 @@ namespace HotChocolate.Types
             MemberInfo member = methodOrProperty.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                FieldDescriptor fieldDescriptor = new FieldDescriptor(
+                ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                     Name, member, typeof(TValue));
                 Fields = Fields.Add(fieldDescriptor);
                 return fieldDescriptor;

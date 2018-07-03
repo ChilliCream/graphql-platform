@@ -31,8 +31,8 @@ namespace HotChocolate.Types
 
         public ResolveAbstractType ResolveAbstractType { get; protected set; }
 
-        public ImmutableList<FieldDescriptor> Fields { get; protected set; }
-            = ImmutableList<FieldDescriptor>.Empty;
+        public ImmutableList<ObjectFieldDescriptor> Fields { get; protected set; }
+            = ImmutableList<ObjectFieldDescriptor>.Empty;
 
         #region IObjectTypeDescriptor<T>
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(Name, name);
             Fields = Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }

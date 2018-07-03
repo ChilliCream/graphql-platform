@@ -62,7 +62,7 @@ namespace HotChocolate.Types
         /// <param name="name">
         /// The name that the field shall have.
         /// </param>
-        IFieldDescriptor Field(string name);
+        IObjectFieldDescriptor Field(string name);
     }
 
     public interface IObjectTypeDescriptor<T>
@@ -127,6 +127,6 @@ namespace HotChocolate.Types
         /// <typeparamref name="T"/> that shall represent a
         /// <see cref="ObjectType"/>.
         /// </param>
-        IFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
     }
 }

@@ -15,10 +15,10 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor("Type", "field");
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor("Type", "field");
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                 .Type<ListType<StringType>>()
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
@@ -31,10 +31,10 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor("Type", "field");
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor("Type", "field");
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>()
                 .Type<ListType<StringType>>();
 
@@ -47,12 +47,12 @@ namespace HotChocolate.Types
         public void ResolverTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                 "Field", typeof(Field).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                .Name("args")
                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
                .Resolver(c => c.Parent<Field>().Arguments.Values);
@@ -66,12 +66,12 @@ namespace HotChocolate.Types
         public void OverwriteName()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                 "Field", typeof(Field).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                .Name("args");
 
             // assert
@@ -83,12 +83,12 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                 "Field", typeof(Field).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                .Description(expectedDescription);
 
             // assert
@@ -99,12 +99,12 @@ namespace HotChocolate.Types
         public void SetResolverAndInferTypeFromResolver()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                 "Field", typeof(Field).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                .Resolver(() => "ThisIsAString");
 
             // assert
@@ -119,12 +119,12 @@ namespace HotChocolate.Types
         public void SetResolverAndInferTypeIsAlwaysRecognosedAsDotNetType()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
+            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
                 "Field", typeof(Field).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)fieldDescriptor)
                .Type<__Type>()
                 .Resolver(ctx => ctx.Schema
                     .GetType<INamedType>(ctx.Argument<string>("type")));

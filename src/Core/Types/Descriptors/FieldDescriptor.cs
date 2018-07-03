@@ -9,14 +9,101 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    internal class FieldDescriptor
-        : IFieldDescriptor
+    internal class InterfaceFieldDescriptor
+        : IInterfaceFieldDescriptor
+    {
+        public InterfaceFieldDescription FieldDescription { get; } = new InterfaceFieldDescription();
+
+        public IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode)
+        {
+            FieldDescription.SyntaxNode = syntaxNode;
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Name(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (!ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(name));
+            }
+
+            FieldDescription.Name = name;
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Description(string description)
+        {
+            FieldDescription.Description = description;
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Type<TOutputType>() where TOutputType : IOutputType
+        {
+            FieldDescription.TypeReference = FieldDescription
+                .TypeReference.GetMoreSpecific(typeof(TOutputType));
+            return this;
+        }
+
+        public IObjectFieldDescriptor Type(ITypeNode type)
+        {
+            FieldDescription.TypeReference = FieldDescription
+                .TypeReference.GetMoreSpecific(type));
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The argument name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (!ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL argument name.",
+                    nameof(name));
+            }
+
+            if (argument == null)
+            {
+                throw new ArgumentNullException(nameof(argument));
+            }
+
+            ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
+            argument(descriptor);
+            FieldDescription.Arguments.Add(descriptor);
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor DeprecationReason(string deprecationReason)
+        {
+            FieldDescription.DeprecationReason = deprecationReason;
+            return this;
+        }
+
+    }
+
+
+    internal class ObjectFieldDescriptor
+        : IObjectFieldDescriptor
         , IInterfaceFieldDescriptor
     {
         private readonly string _typeName;
         private bool _argumentsInitialized;
 
-        public FieldDescriptor(string typeName, string fieldName)
+        public ObjectFieldDescriptor(string typeName, string fieldName)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -36,7 +123,7 @@ namespace HotChocolate.Types
             Name = fieldName;
         }
 
-        public FieldDescriptor(string typeName, MemberInfo member, Type nativeFieldType)
+        public ObjectFieldDescriptor(string typeName, MemberInfo member, Type nativeFieldType)
         {
             if (member == null)
             {
@@ -122,13 +209,13 @@ namespace HotChocolate.Types
 
         #region IFieldDescriptor
 
-        IFieldDescriptor IFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
+        IObjectFieldDescriptor IObjectFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
         {
             SyntaxNode = syntaxNode;
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Name(string name)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -148,32 +235,32 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Description(string description)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Description(string description)
         {
             Description = description;
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Type<TOutputType>()
+        IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>()
         {
             TypeReference = TypeReference.GetMoreSpecific(typeof(TOutputType));
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Type(ITypeNode type)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Type(ITypeNode type)
         {
             TypeReference = TypeReference.GetMoreSpecific(type);
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.DeprecationReason(
+        IObjectFieldDescriptor IObjectFieldDescriptor.DeprecationReason(
             string deprecationReason)
         {
             DeprecationReason = deprecationReason;
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Argument(
+        IObjectFieldDescriptor IObjectFieldDescriptor.Argument(
             string name, Action<IArgumentDescriptor> argument)
         {
             if (string.IsNullOrEmpty(name))
@@ -201,7 +288,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Resolver(
+        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
             FieldResolverDelegate fieldResolver)
         {
             if (fieldResolver == null)
@@ -213,7 +300,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Resolver(
+        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
             FieldResolverDelegate fieldResolver, Type resultType)
         {
             if (fieldResolver == null)
@@ -226,7 +313,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IFieldDescriptor IFieldDescriptor.Ignore()
+        IObjectFieldDescriptor IObjectFieldDescriptor.Ignore()
         {
             Ignored = true;
             return this;
@@ -238,43 +325,43 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
         {
-            ((IFieldDescriptor)this).SyntaxNode(syntaxNode);
+            ((IObjectFieldDescriptor)this).SyntaxNode(syntaxNode);
             return this;
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Name(string name)
         {
-            ((IFieldDescriptor)this).Name(name);
+            ((IObjectFieldDescriptor)this).Name(name);
             return this;
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Description(string description)
         {
-            ((IFieldDescriptor)this).Description(description);
+            ((IObjectFieldDescriptor)this).Description(description);
             return this;
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.DeprecationReason(string deprecationReason)
         {
-            ((IFieldDescriptor)this).DeprecationReason(deprecationReason);
+            ((IObjectFieldDescriptor)this).DeprecationReason(deprecationReason);
             return this;
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Type<TOutputType>()
         {
-            ((IFieldDescriptor)this).Type<TOutputType>();
+            ((IObjectFieldDescriptor)this).Type<TOutputType>();
             return this;
         }
 
-        IFieldDescriptor IInterfaceFieldDescriptor.Type(ITypeNode type)
+        IObjectFieldDescriptor IInterfaceFieldDescriptor.Type(ITypeNode type)
         {
-            ((IFieldDescriptor)this).Type(type);
+            ((IObjectFieldDescriptor)this).Type(type);
             return this;
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(string name, Action<IArgumentDescriptor> argument)
         {
-            ((IFieldDescriptor)this).Argument(name, argument);
+            ((IObjectFieldDescriptor)this).Argument(name, argument);
             return this;
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -6,42 +6,42 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    public interface IFieldDescriptor
+    public interface IObjectFieldDescriptor
         : IFluent
     {
-        IFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
+        IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
 
-        IFieldDescriptor Name(string name);
+        IObjectFieldDescriptor Name(string name);
 
-        IFieldDescriptor Description(string description);
+        IObjectFieldDescriptor Description(string description);
 
-        IFieldDescriptor DeprecationReason(string deprecationReason);
+        IObjectFieldDescriptor DeprecationReason(string deprecationReason);
 
-        IFieldDescriptor Type<TOutputType>()
+        IObjectFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
-        IFieldDescriptor Type(ITypeNode type);
+        IObjectFieldDescriptor Type(ITypeNode type);
 
-        IFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
+        IObjectFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
 
-        IFieldDescriptor Ignore();
+        IObjectFieldDescriptor Ignore();
 
-        IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
+        IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
 
-        IFieldDescriptor Resolver(FieldResolverDelegate fieldResolver, Type resultType);
+        IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver, Type resultType);
     }
 
-    public static class FieldDescriptorExtensions
+    public static class ObjectFieldDescriptorExtensions
     {
-        public static IFieldDescriptor Resolver(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver(
+            this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, object> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
-        public static IFieldDescriptor Resolver<TResult>(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver<TResult>(
+            this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, TResult> fieldResolver)
         {
             return descriptor
@@ -50,52 +50,52 @@ namespace HotChocolate.Types
                 typeof(NativeType<TResult>));
         }
 
-        public static IFieldDescriptor Resolver(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver(
+            this IObjectFieldDescriptor descriptor,
             Func<object> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver());
         }
 
-        public static IFieldDescriptor Resolver<TResult>(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver<TResult>(
+            this IObjectFieldDescriptor descriptor,
             Func<TResult> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(),
                typeof(NativeType<TResult>));
         }
 
-        public static IFieldDescriptor Resolver(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver(
+            this IObjectFieldDescriptor descriptor,
             AsyncFieldResolverDelegate fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(ctx, ct));
         }
 
-        public static IFieldDescriptor Resolver(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver(
+            this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<object>> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(ctx));
         }
 
-        public static IFieldDescriptor Resolver<TResult>(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver<TResult>(
+            this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(ctx),
                typeof(NativeType<TResult>));
         }
 
-        public static IFieldDescriptor Resolver(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver(
+            this IObjectFieldDescriptor descriptor,
             Func<Task<object>> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver());
         }
 
-        public static IFieldDescriptor Resolver<TResult>(
-            this IFieldDescriptor descriptor,
+        public static IObjectFieldDescriptor Resolver<TResult>(
+            this IObjectFieldDescriptor descriptor,
             Func<Task<TResult>> fieldResolver)
         {
             return descriptor.Resolver((ctx, ct) => fieldResolver(),

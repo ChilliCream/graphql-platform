@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Factories
         {
             foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
             {
-                IFieldDescriptor fieldDescriptor = typeDescriptor
+                IObjectFieldDescriptor fieldDescriptor = typeDescriptor
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Factories
         }
 
         private void DeclareFieldArguments(
-            IFieldDescriptor fieldDescriptor,
+            IObjectFieldDescriptor fieldDescriptor,
             FieldDefinitionNode fieldDefinition)
         {
             foreach (InputValueDefinitionNode inputFieldDefinition in
