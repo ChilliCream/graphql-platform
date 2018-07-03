@@ -12,20 +12,104 @@ namespace HotChocolate.Types
     public class InterfaceField
         : IOutputField
     {
+        private TypeReference _typeReference;
+
+        internal InterfaceField(InterfaceFieldDescription fieldDescription)
+        {
+            if (fieldDescription == null)
+            {
+                throw new ArgumentNullException(nameof(fieldDescription));
+            }
+
+            _typeReference = fieldDescription.TypeReference;
+
+            SyntaxNode = fieldDescription.SyntaxNode;
+            Name = fieldDescription.Name;
+            Arguments = new FieldCollection<InputField>(
+                fieldDescription.Arguments.Select(t => new InputField(t)));
+            IsDeprecated = !string.IsNullOrEmpty(fieldDescription.DeprecationReason);
+            DeprecationReason = fieldDescription.DeprecationReason;
+        }
 
         public FieldDefinitionNode SyntaxNode { get; private set; }
 
-        public bool IsDeprecated => throw new NotImplementedException();
+        public string Name { get; private set; }
 
-        public string DeprecationReason => throw new NotImplementedException();
+        public INamedType DeclaringType { get; private set; }
 
-        public IOutputType Type => throw new NotImplementedException();
+        public IOutputType Type { get; private set; }
 
-        public IFieldCollection<IInputField> Arguments => throw new NotImplementedException();
+        public IFieldCollection<InputField> Arguments { get; private set; }
 
-        public INamedType DeclaringType => throw new NotImplementedException();
+        IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
-        public string Name => throw new NotImplementedException();
+        public bool IsDeprecated { get; private set; }
+
+        public string DeprecationReason { get; private set; }
+
+        protected bool IsCompleted { get; private set; }
+
+        protected void Complete()
+        {
+            IsCompleted = true;
+        }
+
+        internal void RegisterDependencies(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            if (!IsCompleted)
+            {
+                OnRegisterDependencies(schemaContext, reportError, parentType);
+            }
+        }
+
+        internal virtual void OnRegisterDependencies(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            if (_typeReference != null)
+            {
+                schemaContext.Types.RegisterType(_typeReference);
+            }
+
+            foreach (InputField argument in Arguments)
+            {
+                argument.RegisterDependencies(
+                    schemaContext.Types, reportError, parentType);
+            }
+        }
+
+        internal void CompleteField(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            if (!IsCompleted)
+            {
+                OnCompleteField(schemaContext, reportError, parentType);
+                Complete();
+            }
+        }
+
+        internal virtual void OnCompleteField(
+            ISchemaContext schemaContext,
+            Action<SchemaError> reportError,
+            INamedType parentType)
+        {
+            DeclaringType = parentType;
+            Type = this.ResolveFieldType<IOutputType>(
+                schemaContext.Types,
+                reportError, _typeReference);
+
+            foreach (InputField argument in Arguments)
+            {
+                argument.CompleteInputField(
+                    schemaContext.Types, reportError, parentType);
+            }
+        }
     }
 
 

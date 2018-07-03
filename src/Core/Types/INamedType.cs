@@ -20,15 +20,13 @@ namespace HotChocolate.Types
         IFieldCollection<IOutputField> Fields { get; }
     }
 
-    public interface IFieldCollection<T>
+    public interface IFieldCollection<out T>
         : IEnumerable<T>
         where T : IField
     {
         T this[string fieldName] { get; }
 
         bool ContainsField(string fieldName);
-
-        bool TryGetField(string fieldName, out T field);
     }
 
     public class FieldCollection<T>
