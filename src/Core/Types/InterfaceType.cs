@@ -8,12 +8,9 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : INamedType
-        , IOutputType
-        , INullableType
-        , ITypeSystemNode
+        : IComplexOutputType
         , INeedsInitialization
-        , IHasFields
+
     {
         private readonly Dictionary<string, Field> _fieldMap =
             new Dictionary<string, Field>();
@@ -43,6 +40,8 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
 
+        IReadOnlyDictionary<string, IOutputField> IComplexOutputType.Fields => _fieldMap;
+
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
             if (context == null)
@@ -56,14 +55,6 @@ namespace HotChocolate.Types
         #region Configuration
 
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Fields.Values;
 
         #endregion
 

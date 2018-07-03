@@ -5,7 +5,6 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumValue
-         : ITypeSystemNode
     {
         internal EnumValue(EnumValueDescriptor descriptor)
         {
@@ -42,12 +41,5 @@ namespace HotChocolate.Types
         public bool IsDeprecated { get; }
 
         public object Value { get; }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            yield break;
-        }
     }
 }

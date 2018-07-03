@@ -9,8 +9,6 @@ namespace HotChocolate.Types
 {
     public class InputObjectType
         : INamedInputType
-        , INullableType
-        , ITypeSystemNode
         , INeedsInitialization
     {
         private Dictionary<string, InputField> _fieldMap =
@@ -95,17 +93,6 @@ namespace HotChocolate.Types
             new InputObjectTypeDescriptor();
 
         protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            return Fields.Values;
-        }
 
         #endregion
 

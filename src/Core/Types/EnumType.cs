@@ -7,12 +7,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : INamedType
-        , IOutputType
-        , IInputType
-        , INullableType
+        : INamedOutputType
+        , INamedInputType
         , ISerializableType
-        , ITypeSystemNode
         , INeedsInitialization
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
@@ -142,14 +139,6 @@ namespace HotChocolate.Types
             new EnumTypeDescriptor(GetType().Name);
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
 
         #endregion
 
