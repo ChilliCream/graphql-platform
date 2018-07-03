@@ -9,6 +9,26 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
+    public class InterfaceField
+        : IOutputField
+    {
+
+        public FieldDefinitionNode SyntaxNode { get; private set; }
+
+        public bool IsDeprecated => throw new NotImplementedException();
+
+        public string DeprecationReason => throw new NotImplementedException();
+
+        public IOutputType Type => throw new NotImplementedException();
+
+        public IFieldCollection<IInputField> Arguments => throw new NotImplementedException();
+
+        public INamedType DeclaringType => throw new NotImplementedException();
+
+        public string Name => throw new NotImplementedException();
+    }
+
+
     public class Field
         : IOutputField
     {

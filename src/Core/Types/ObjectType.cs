@@ -18,8 +18,7 @@ namespace HotChocolate.Types
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
-        private readonly Dictionary<string, Field> _fieldMap =
-            new Dictionary<string, Field>();
+        private FieldCollection<Field> _fields;
         private IsOfType _isOfType;
         private ImmutableList<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
@@ -47,9 +46,9 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces => _interfaceMap;
 
-        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
+        public IFieldCollection<Field> Fields { get; }
 
-        IReadOnlyDictionary<string, IOutputField> IComplexOutputType.Fields => _fieldMap;
+
 
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
@@ -103,7 +102,7 @@ namespace HotChocolate.Types
                 .GetFieldDescriptors())
             {
                 Field field = new Field(fieldDescriptor);
-                _fieldMap[fieldDescriptor.Name] = field;
+                _fields[fieldDescriptor.Name] = field;
 
                 if (fieldDescriptor.Member != null)
                 {
@@ -133,7 +132,7 @@ namespace HotChocolate.Types
                     }
                 }
 
-                foreach (Field field in _fieldMap.Values)
+                foreach (Field field in _fields.Values)
                 {
                     field.RegisterDependencies(schemaContext, reportError, this);
                 }
@@ -151,7 +150,7 @@ namespace HotChocolate.Types
         {
             if (!_completed)
             {
-                foreach (Field field in _fieldMap.Values)
+                foreach (Field field in _fields.Values)
                 {
                     field.CompleteField(schemaContext, reportError, this);
                 }
