@@ -6,30 +6,16 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class InterfaceTypeDescription
-    {
-        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public ResolveAbstractType ResolveAbstractType { get; set; }
-
-        public List<InterfaceFieldDescription> Fields { get; set; } =
-            new List<InterfaceFieldDescription>();
-    }
-
     internal class InterfaceTypeDescriptor
         : IInterfaceTypeDescriptor
     {
-        protected List<InputFieldDescriptor> Fields { get; } =
-            new List<InputFieldDescriptor>();
+        protected List<InterfaceFieldDescriptor> Fields { get; } =
+            new List<InterfaceFieldDescriptor>();
 
         protected InterfaceTypeDescription ObjectDescription { get; }
             = new InterfaceTypeDescription();
 
-        public InputObjectTypeDescription CreateObjectDescription()
+        public InterfaceTypeDescription CreateObjectDescription()
         {
             CompleteFields();
             return ObjectDescription;
@@ -37,23 +23,19 @@ namespace HotChocolate.Types
 
         protected virtual void CompleteFields()
         {
-            foreach (InputFieldDescriptor fieldDescriptor in Fields)
+            foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
             {
                 ObjectDescription.Fields.Add(
-                    fieldDescriptor.CreateInputDescription());
+                    fieldDescriptor.CreateFieldDescription());
             }
         }
 
-        #region IObjectTypeDescriptor<T>
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxNode)
+        protected void SyntaxNode(InterfaceTypeDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -69,16 +51,14 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
-            return this;
+            ObjectDescription.Name = name;
         }
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(string description)
+        protected void Description(string description)
         {
-            Description = description;
-            return this;
+            ObjectDescription.Description = description;
         }
 
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        protected InterfaceFieldDescriptor Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -94,12 +74,13 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(Name, name);
-            Fields = Fields.Add(fieldDescriptor);
+            InterfaceFieldDescriptor fieldDescriptor =
+                new InterfaceFieldDescriptor(name);
+            Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.ResolveAbstractType(
+        protected void ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
             if (resolveAbstractType == null)
@@ -107,7 +88,38 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolveAbstractType));
             }
 
-            ResolveAbstractType = resolveAbstractType;
+            ObjectDescription.ResolveAbstractType = resolveAbstractType;
+        }
+
+        #region IObjectTypeDescriptor<T>
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
+        {
+            Name(name);
+            return this;
+        }
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(string description)
+        {
+            Description(description);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        {
+            return Field(name);
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.ResolveAbstractType(
+            ResolveAbstractType resolveAbstractType)
+        {
+            ResolveAbstractType(resolveAbstractType);
             return this;
         }
 

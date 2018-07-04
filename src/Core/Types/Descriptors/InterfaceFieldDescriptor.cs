@@ -14,9 +14,9 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(fieldDescription));
         }
 
-        public InterfaceFieldDescriptor()
+        public InterfaceFieldDescriptor(string name)
         {
-            FieldDescription = new InterfaceFieldDescription();
+            FieldDescription = new InterfaceFieldDescription { Name = name };
         }
 
         protected InterfaceFieldDescription FieldDescription { get; }
