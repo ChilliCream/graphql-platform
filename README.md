@@ -9,7 +9,7 @@
 _Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by facebook.
 Currently we are still closing some gaps and hope to finalise Version 1 by September. We have listed the implemented specification parts at the bottom of this readme.
 
-# Getting Started
+## Getting Started
 
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
@@ -25,7 +25,7 @@ dotnet new starwars
 
 The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/facebook/graphql).
 
-## Using Hot Chocolate
+### Using Hot Chocolate
 
 The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
 
@@ -151,7 +151,7 @@ In order to run a query against your schema startup your web host and get [Graph
 
 _We are also currently working on a middleware for ASP.net classic._
 
-## Templates
+### Templates
 
 Apart from the Star Wars template we also have a GraphQL server template that just generates a project with everything hooked up so that you can start building your API quickliy.
 
