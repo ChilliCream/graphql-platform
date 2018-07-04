@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -51,11 +47,12 @@ namespace HotChocolate.Types
 
             InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
             configure(descriptor);
-            return descriptor.FieldDescription;
+            return descriptor.CreateFieldDescription();
         }
 
-        private static InterfaceFieldDescription ExecuteFactory(
-            Func<InterfaceFieldDescription> descriptionFactory)
+        internal static T ExecuteFactory<T>(
+            Func<T> descriptionFactory)
+            where T : InterfaceFieldDescription
         {
             if (descriptionFactory == null)
             {
@@ -142,54 +139,6 @@ namespace HotChocolate.Types
             {
                 argument.CompleteInputField(
                     schemaContext.Types, reportError, parentType);
-            }
-        }
-    }
-
-    public class ObjectField
-        : InterfaceField
-    {
-        private readonly MemberInfo _member;
-
-        internal ObjectField(ObjectFieldDescription fieldDescription)
-            : base(fieldDescription)
-        {
-            _member = fieldDescription.Member;
-            Resolver = fieldDescription.Resolver;
-        }
-
-        public FieldResolverDelegate Resolver { get; private set; }
-
-        internal override void OnRegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            base.OnRegisterDependencies(schemaContext, reportError, parentType);
-
-            if (_member != null)
-            {
-                schemaContext.Resolvers.RegisterResolver(
-                    new MemberResolverBinding(parentType.Name, Name, _member));
-            }
-        }
-
-        internal override void OnCompleteField(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            base.OnCompleteField(schemaContext, reportError, parentType);
-
-            if (Resolver == null)
-            {
-                Resolver = schemaContext.Resolvers.GetResolver(parentType.Name, Name);
-                if (Resolver == null)
-                {
-                    reportError(new SchemaError(
-                        $"The field `{parentType.Name}.{Name}` " +
-                        "has no resolver.", parentType));
-                }
             }
         }
     }

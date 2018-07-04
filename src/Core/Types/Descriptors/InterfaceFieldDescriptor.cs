@@ -19,6 +19,11 @@ namespace HotChocolate.Types
             FieldDescription = new InterfaceFieldDescription { Name = name };
         }
 
+        public InterfaceFieldDescriptor()
+        {
+            FieldDescription = new InterfaceFieldDescription();
+        }
+
         protected InterfaceFieldDescription FieldDescription { get; }
 
         public InterfaceFieldDescription CreateFieldDescription()

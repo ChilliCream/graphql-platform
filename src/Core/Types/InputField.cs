@@ -14,51 +14,33 @@ namespace HotChocolate.Types
         private object _nativeDefaultValue;
         private bool _completed;
 
-        internal InputField(ArgumentDescriptor descriptor)
+        internal InputField(ArgumentDescription argumentDescription)
         {
-            if (descriptor == null)
+            if (argumentDescription == null)
             {
-                throw new ArgumentNullException(nameof(descriptor));
+                throw new ArgumentNullException(nameof(argumentDescription));
             }
 
-            if (string.IsNullOrEmpty(descriptor.Name))
+            if (string.IsNullOrEmpty(argumentDescription.Name))
             {
                 throw new ArgumentException(
                     "An input value name must not be null or empty.",
-                    nameof(descriptor));
+                    nameof(argumentDescription));
             }
 
-            _typeReference = descriptor.TypeReference;
-            _nativeDefaultValue = descriptor.NativeDefaultValue;
+            _typeReference = argumentDescription.TypeReference;
+            _nativeDefaultValue = argumentDescription.NativeDefaultValue;
 
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DefaultValue = descriptor.DefaultValue;
+            SyntaxNode = argumentDescription.SyntaxNode;
+            Name = argumentDescription.Name;
+            Description = argumentDescription.Description;
+            DefaultValue = argumentDescription.DefaultValue;
         }
 
-        internal InputField(InputFieldDescriptor descriptor)
+        internal InputField(InputFieldDescription inputFieldDescription)
+            : this((ArgumentDescription)inputFieldDescription)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input value name must not be null or empty.",
-                    nameof(descriptor));
-            }
-
-            _typeReference = descriptor.TypeReference;
-            _nativeDefaultValue = descriptor.NativeDefaultValue;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DefaultValue = descriptor.DefaultValue;
-            Property = descriptor.Property;
+            Property = inputFieldDescription.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
