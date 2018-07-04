@@ -17,7 +17,7 @@ namespace HotChocolate.Types
 
         public bool Ignored { get; set; }
 
-        public List<ArgumentDescription> Arguments { get; set; }
-            = new List<ArgumentDescription>();
+        public List<ArgumentDescription> Arguments { get; set; } =
+            new List<ArgumentDescription>();
     }
 }

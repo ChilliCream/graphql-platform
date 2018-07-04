@@ -16,8 +16,8 @@ namespace HotChocolate.Types
         protected List<InputFieldDescriptor> Fields { get; } =
             new List<InputFieldDescriptor>();
 
-        protected InputObjectTypeDescription ObjectDescription { get; }
-            = new InputObjectTypeDescription();
+        protected InputObjectTypeDescription ObjectDescription { get; } =
+            new InputObjectTypeDescription();
 
         public InputObjectTypeDescription CreateObjectDescription()
         {

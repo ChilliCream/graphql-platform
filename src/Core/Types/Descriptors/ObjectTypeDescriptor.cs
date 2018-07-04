@@ -10,6 +10,30 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    internal class ObjectTypeDescription
+    {
+        public ObjectTypeDefinitionNode SyntaxNode { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public Type NativeType { get; set; }
+
+        public bool IsIntrospection { get; set; }
+
+        public IsOfType IsOfType { get; set; }
+
+        public BindingBehavior FieldBindingBehavior { get; set; }
+
+        public List<ObjectFieldDescription> Fields { get; set; } =
+            new List<ObjectFieldDescription>();
+
+        public List<TypeReference> Interfaces { get; set; } =
+            new List<TypeReference>();
+
+    }
+
     internal class ObjectTypeDescriptor
         : IObjectTypeDescriptor
     {
@@ -20,7 +44,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(objectType));
             }
 
-            Name = objectType.GetGraphQLName();
+            ObjectDescription.Name = objectType.GetGraphQLName();
         }
 
         public ObjectTypeDescriptor(string name)
@@ -32,48 +56,42 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
+            ObjectDescription.Name = name;
         }
 
-        public ObjectTypeDefinitionNode SyntaxNode { get; protected set; }
+        protected List<ObjectFieldDescriptor> Fields { get; } =
+            new List<ObjectFieldDescriptor>();
 
-        public string Name { get; protected set; }
+        protected ObjectTypeDescription ObjectDescription { get; } =
+            new ObjectTypeDescription();
 
-        public string Description { get; protected set; }
-
-        public Type NativeType { get; protected set; }
-
-        public bool IsIntrospection { get; protected set; }
-
-        public IsOfType IsOfType { get; protected set; }
-
-        protected ImmutableList<ObjectFieldDescriptor> Fields { get; set; }
-            = ImmutableList<ObjectFieldDescriptor>.Empty;
-
-        public ImmutableList<TypeReference> Interfaces { get; protected set; }
-            = ImmutableList<TypeReference>.Empty;
-
-        public virtual IReadOnlyCollection<ObjectFieldDescriptor> GetFieldDescriptors()
+        public ObjectTypeDescription CreateObjectDescription()
         {
-            Dictionary<string, ObjectFieldDescriptor> descriptors =
-                new Dictionary<string, ObjectFieldDescriptor>();
-            foreach (ObjectFieldDescriptor descriptor in Fields)
+            CompleteFields();
+            return ObjectDescription;
+        }
+
+        protected virtual void CompleteFields()
+        {
+            Dictionary<string, ObjectFieldDescription> fields =
+                new Dictionary<string, ObjectFieldDescription>();
+
+            foreach (ObjectFieldDescriptor fieldDescriptor in Fields)
             {
-                descriptors[descriptor.Name] = descriptor;
+                ObjectFieldDescription fieldDescription = fieldDescriptor
+                    .CreateFieldDescription();
+                fields[fieldDescription.Name] = fieldDescription;
             }
-            return descriptors.Values;
+
+            ObjectDescription.Fields.AddRange(fields.Values);
         }
 
-        #region IObjectTypeDescriptor
-
-        IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(
-            ObjectTypeDefinitionNode syntaxNode)
+        protected void SyntaxNode(ObjectTypeDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -89,17 +107,15 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
-            return this;
+            ObjectDescription.Name = name;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
+        protected void Description(string description)
         {
-            Description = description;
-            return this;
+            ObjectDescription.Description = description;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Interface<TInterface>()
+        protected void Interface<TInterface>()
         {
             if (typeof(TInterface) == typeof(InterfaceType))
             {
@@ -107,33 +123,31 @@ namespace HotChocolate.Types
                     "The interface type has to be inherited.");
             }
 
-            Interfaces = Interfaces.Add(new TypeReference(typeof(TInterface)));
-            return this;
+            ObjectDescription.Interfaces.Add(
+                new TypeReference(typeof(TInterface)));
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
+        protected void Interface(NamedTypeNode type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            Interfaces = Interfaces.Add(new TypeReference(type));
-            return this;
+            ObjectDescription.Interfaces.Add(new TypeReference(type));
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.IsOfType(IsOfType isOfType)
+        protected void IsOfType(IsOfType isOfType)
         {
             if (isOfType == null)
             {
                 throw new ArgumentNullException(nameof(isOfType));
             }
 
-            IsOfType = isOfType;
-            return this;
+            ObjectDescription.IsOfType = isOfType;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor.Field(string name)
+        protected ObjectFieldDescriptor Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -149,9 +163,55 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(Name, name);
-            Fields = Fields.Add(fieldDescriptor);
+            ObjectFieldDescriptor fieldDescriptor =
+                new ObjectFieldDescriptor(ObjectDescription.Name, name);
+            Fields.Add(fieldDescriptor);
             return fieldDescriptor;
+        }
+
+
+        #region IObjectTypeDescriptor
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.SyntaxNode(
+            ObjectTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Name(string name)
+        {
+            Name(name);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
+        {
+            Description(description);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface<TInterface>()
+        {
+            Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
+        {
+            Interface(type);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.IsOfType(IsOfType isOfType)
+        {
+            IsOfType(isOfType);
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectTypeDescriptor.Field(string name)
+        {
+            return Field(name);
         }
 
         #endregion
@@ -161,46 +221,73 @@ namespace HotChocolate.Types
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
     {
-        private BindingBehavior _bindingBehavior = BindingBehavior.Implicit;
-
         public ObjectTypeDescriptor()
             : base(typeof(T))
         {
-            NativeType = typeof(T);
+            ObjectDescription.NativeType = typeof(T);
         }
 
-        public override IReadOnlyCollection<ObjectFieldDescriptor> GetFieldDescriptors()
+        protected void BindFields(BindingBehavior bindingBehavior)
         {
-            Dictionary<string, ObjectFieldDescriptor> descriptors =
-                new Dictionary<string, ObjectFieldDescriptor>();
+            ObjectDescription.FieldBindingBehavior = bindingBehavior;
+        }
+
+        protected ObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
+        {
+            if (methodOrProperty == null)
+            {
+                throw new ArgumentNullException(nameof(methodOrProperty));
+            }
+
+            MemberInfo member = methodOrProperty.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
+            {
+                ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
+                    ObjectDescription.Name, member, typeof(TValue));
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            throw new ArgumentException(
+                "A field of an entity can only be a property or a method.",
+                nameof(member));
+        }
+
+        protected override void CompleteFields()
+        {
+            base.CompleteFields();
+
+            Dictionary<string, ObjectFieldDescription> descriptions =
+                new Dictionary<string, ObjectFieldDescription>();
             List<MemberInfo> handledMembers = new List<MemberInfo>();
 
-            AddExplicitFields(descriptors, handledMembers);
+            AddExplicitFields(descriptions, handledMembers);
 
-            if (_bindingBehavior == BindingBehavior.Implicit)
+            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
             {
                 Dictionary<MemberInfo, string> members =
                     GetPossibleImplicitFields(handledMembers);
-                AddImplicitFields(descriptors, members);
+                AddImplicitFields(descriptions, members);
             }
 
-            return descriptors.Values;
+            ObjectDescription.Fields.Clear();
+            ObjectDescription.Fields.AddRange(descriptions.Values);
         }
 
         private void AddExplicitFields(
-            Dictionary<string, ObjectFieldDescriptor> descriptors,
+            Dictionary<string, ObjectFieldDescription> descriptors,
             List<MemberInfo> handledMembers)
         {
-            foreach (ObjectFieldDescriptor descriptor in Fields)
+            foreach (ObjectFieldDescription fieldDescription in ObjectDescription.Fields)
             {
-                if (!descriptor.Ignored)
+                if (!fieldDescription.Ignored)
                 {
-                    descriptors[descriptor.Name] = descriptor;
+                    descriptors[fieldDescription.Name] = fieldDescription;
                 }
 
-                if (descriptor.Member != null)
+                if (fieldDescription.Member != null)
                 {
-                    handledMembers.Add(descriptor.Member);
+                    handledMembers.Add(fieldDescription.Member);
                 }
             }
         }
@@ -208,7 +295,8 @@ namespace HotChocolate.Types
         private Dictionary<MemberInfo, string> GetPossibleImplicitFields(
             List<MemberInfo> handledMembers)
         {
-            Dictionary<MemberInfo, string> members = GetMembers(NativeType);
+            Dictionary<MemberInfo, string> members = GetMembers(
+                ObjectDescription.NativeType);
 
             foreach (MemberInfo member in handledMembers)
             {
@@ -219,7 +307,7 @@ namespace HotChocolate.Types
         }
 
         private void AddImplicitFields(
-            Dictionary<string, ObjectFieldDescriptor> descriptors,
+            Dictionary<string, ObjectFieldDescription> descriptors,
             Dictionary<MemberInfo, string> members)
         {
             foreach (KeyValuePair<MemberInfo, string> member in members)
@@ -229,8 +317,12 @@ namespace HotChocolate.Types
                     Type returnType = member.Key.GetReturnType();
                     if (returnType != null)
                     {
-                        descriptors[member.Value] =
-                            new ObjectFieldDescriptor(Name, member.Key, returnType);
+                        ObjectFieldDescriptor fieldDescriptor =
+                            new ObjectFieldDescriptor(
+                                ObjectDescription.Name, member.Key, returnType);
+
+                        descriptors[member.Value] = fieldDescriptor
+                            .CreateFieldDescription();
                     }
                 }
             }
@@ -262,53 +354,37 @@ namespace HotChocolate.Types
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(string name)
         {
-            ((IObjectTypeDescriptor)this).Name(name);
+            Name(name);
             return this;
         }
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Description(string description)
         {
-            ((IObjectTypeDescriptor)this).Description(description);
+            Description(description);
             return this;
         }
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(BindingBehavior bindingBehavior)
         {
-            _bindingBehavior = bindingBehavior;
+            BindFields(bindingBehavior);
             return this;
         }
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Interface<TInterface>()
         {
-            ((IObjectTypeDescriptor)this).Interface<TInterface>();
+            Interface<TInterface>();
             return this;
         }
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.IsOfType(IsOfType isOfType)
         {
-            ((IObjectTypeDescriptor)this).IsOfType(isOfType);
+            IsOfType(isOfType);
             return this;
         }
 
         IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
-            if (methodOrProperty == null)
-            {
-                throw new ArgumentNullException(nameof(methodOrProperty));
-            }
-
-            MemberInfo member = methodOrProperty.ExtractMember();
-            if (member is PropertyInfo || member is MethodInfo)
-            {
-                ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
-                    Name, member, typeof(TValue));
-                Fields = Fields.Add(fieldDescriptor);
-                return fieldDescriptor;
-            }
-
-            throw new ArgumentException(
-                "A field of an entity can only be a property or a method.",
-                nameof(member));
+            return Field<TValue>(methodOrProperty);
         }
 
         #endregion

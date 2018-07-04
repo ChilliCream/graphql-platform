@@ -12,8 +12,8 @@ namespace HotChocolate.Types
         protected List<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
-        protected InterfaceTypeDescription ObjectDescription { get; }
-            = new InterfaceTypeDescription();
+        protected InterfaceTypeDescription ObjectDescription { get; } =
+            new InterfaceTypeDescription();
 
         public InterfaceTypeDescription CreateObjectDescription()
         {
