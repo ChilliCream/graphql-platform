@@ -12,35 +12,59 @@ namespace HotChocolate.Types
         , INeedsInitialization
 
     {
-        private readonly Dictionary<string, Field> _fieldMap =
-            new Dictionary<string, Field>();
         private ResolveAbstractType _resolveAbstractType;
 
-        protected InterfaceType()
+        public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
+            : this(ExecuteConfigure(configure))
         {
-            Initialize(Configure);
         }
 
-        public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
+        internal InterfaceType(Func<InterfaceTypeDescription> descriptionFactory)
+            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
+        {
+        }
+
+        internal InterfaceType(InterfaceTypeDescription interfaceTypeDescription)
+        {
+            if (string.IsNullOrEmpty(interfaceTypeDescription.Name))
+            {
+                throw new ArgumentException(
+                    "The type name must not be null or empty.");
+            }
+
+            _resolveAbstractType = interfaceTypeDescription.ResolveAbstractType;
+
+            SyntaxNode = interfaceTypeDescription.SyntaxNode;
+            Name = interfaceTypeDescription.Name;
+            Description = interfaceTypeDescription.Description;
+            Fields = new FieldCollection<InterfaceField>(
+                interfaceTypeDescription.Fields.Select(t => new InterfaceField(t)));
+        }
+
+        private static InterfaceTypeDescription ExecuteConfigure(
+            Action<IInterfaceTypeDescriptor> configure)
         {
             if (configure == null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
-            Initialize(configure);
+
+            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor();
+            configure(descriptor);
+            return descriptor.CreateDescription();
         }
 
         public TypeKind Kind { get; } = TypeKind.Interface;
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
+        public InterfaceTypeDefinitionNode SyntaxNode { get; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public string Description { get; private set; }
+        public string Description { get; }
 
-        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
+        public FieldCollection<InterfaceField> Fields { get; }
 
-        IReadOnlyDictionary<string, IOutputField> IComplexOutputType.Fields => _fieldMap;
+        IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
@@ -60,40 +84,11 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        private void Initialize(Action<IInterfaceTypeDescriptor> configure)
-        {
-            InterfaceTypeDescriptor descriptor =
-                new InterfaceTypeDescriptor(GetType());
-            configure(descriptor);
-            Initialize(descriptor);
-        }
-
-        private void Initialize(InterfaceTypeDescriptor descriptor)
-        {
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "The type name must not be null or empty.");
-            }
-
-            foreach (Field field in descriptor.Fields
-                .Select(t => new Field(t)))
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _resolveAbstractType = descriptor.ResolveAbstractType;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-        }
-
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
-            foreach (Field field in _fieldMap.Values)
+            foreach (InterfaceField field in Fields)
             {
                 field.RegisterDependencies(schemaContext, reportError, this);
             }
@@ -105,10 +100,12 @@ namespace HotChocolate.Types
         {
             CompleteAbstractTypeResolver(schemaContext.Types);
 
-            foreach (Field field in _fieldMap.Values)
+            foreach (InterfaceField field in Fields)
             {
                 field.CompleteField(schemaContext, reportError, this);
             }
+
+            // TODO : report error that fields are empty
         }
 
         private void CompleteAbstractTypeResolver(

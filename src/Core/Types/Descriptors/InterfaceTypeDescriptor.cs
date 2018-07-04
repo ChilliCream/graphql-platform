@@ -8,6 +8,7 @@ namespace HotChocolate.Types
 {
     internal class InterfaceTypeDescriptor
         : IInterfaceTypeDescriptor
+        , IDescriptionFactory<InterfaceTypeDescription>
     {
         protected List<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
@@ -15,7 +16,7 @@ namespace HotChocolate.Types
         protected InterfaceTypeDescription ObjectDescription { get; } =
             new InterfaceTypeDescription();
 
-        public InterfaceTypeDescription CreateObjectDescription()
+        public InterfaceTypeDescription CreateDescription()
         {
             CompleteFields();
             return ObjectDescription;
