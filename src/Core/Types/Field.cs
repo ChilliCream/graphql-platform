@@ -146,12 +146,12 @@ namespace HotChocolate.Types
         }
     }
 
-    public class ObjectTypeField
+    public class ObjectField
         : InterfaceField
     {
         private readonly MemberInfo _member;
 
-        internal ObjectTypeField(ObjectFieldDescription fieldDescription)
+        internal ObjectField(ObjectFieldDescription fieldDescription)
             : base(fieldDescription)
         {
             _member = fieldDescription.Member;
@@ -181,7 +181,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteField(schemaContext, reportError, parentType);
 
-            if (parentType is ObjectType ot && Resolver == null)
+            if (Resolver == null)
             {
                 Resolver = schemaContext.Resolvers.GetResolver(parentType.Name, Name);
                 if (Resolver == null)

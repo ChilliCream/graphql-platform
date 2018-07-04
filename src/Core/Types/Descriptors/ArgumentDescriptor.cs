@@ -8,6 +8,12 @@ namespace HotChocolate.Types
     internal class ArgumentDescriptor
         : IArgumentDescriptor
     {
+        protected ArgumentDescriptor(ArgumentDescription argumentDescription)
+        {
+            InputDescription = argumentDescription
+                ?? throw new ArgumentNullException(nameof(argumentDescription));
+        }
+
         public ArgumentDescriptor(string argumentName, Type argumentType)
             : this(argumentName)
         {
@@ -16,8 +22,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
-            TypeReference = new TypeReference(argumentType);
-            DefaultValue = new NullValueNode();
+            InputDescription = new ArgumentDescription();
+            InputDescription.TypeReference = new TypeReference(argumentType);
+            InputDescription.DefaultValue = new NullValueNode();
         }
 
         public ArgumentDescriptor(string argumentName)
@@ -36,64 +43,98 @@ namespace HotChocolate.Types
                     nameof(argumentName));
             }
 
-            Name = argumentName;
-            DefaultValue = new NullValueNode();
+            InputDescription = new ArgumentDescription();
+            InputDescription.Name = argumentName;
+            InputDescription.DefaultValue = new NullValueNode();
         }
 
-        public InputValueDefinitionNode SyntaxNode { get; protected set; }
-        public string Name { get; protected set; }
-        public string Description { get; protected set; }
-        public TypeReference TypeReference { get; protected set; }
-        public IValueNode DefaultValue { get; protected set; }
-        public object NativeDefaultValue { get; protected set; }
+        protected ArgumentDescription InputDescription { get; }
+
+        public ArgumentDescription CreateInputDescription()
+        {
+            return InputDescription;
+        }
+
+        protected void SyntaxNode(InputValueDefinitionNode syntaxNode)
+        {
+            InputDescription.SyntaxNode = syntaxNode;
+
+        }
+        protected void Description(string description)
+        {
+            InputDescription.Description = description;
+        }
+
+        protected void Type<TInputType>()
+        {
+            InputDescription.TypeReference = InputDescription.TypeReference
+                .GetMoreSpecific(typeof(TInputType));
+        }
+
+        protected void Type(ITypeNode type)
+        {
+            InputDescription.TypeReference = InputDescription.TypeReference
+                .GetMoreSpecific(type);
+        }
+
+        protected void DefaultValue(IValueNode valueNode)
+        {
+            InputDescription.DefaultValue = valueNode ?? new NullValueNode();
+            InputDescription.NativeDefaultValue = null;
+        }
+
+        protected void DefaultValue(object defaultValue)
+        {
+            if (defaultValue == null)
+            {
+                InputDescription.DefaultValue = new NullValueNode();
+                InputDescription.NativeDefaultValue = null;
+            }
+            else
+            {
+                InputDescription.TypeReference = InputDescription.TypeReference
+                    .GetMoreSpecific(defaultValue.GetType());
+                InputDescription.NativeDefaultValue = defaultValue;
+                InputDescription.DefaultValue = null;
+            }
+        }
 
         #region IArgumentDescriptor
 
         IArgumentDescriptor IArgumentDescriptor.SyntaxNode(
             InputValueDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
+            SyntaxNode(syntaxNode);
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.Description(string description)
         {
-            Description = description;
+            Description(description);
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
         {
-            TypeReference = TypeReference.GetMoreSpecific(typeof(TInputType));
+            Type<TInputType>();
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.Type(ITypeNode type)
         {
-            TypeReference = TypeReference.GetMoreSpecific(type);
+            Type(type);
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.DefaultValue(IValueNode valueNode)
         {
-            DefaultValue = valueNode ?? new NullValueNode();
-            NativeDefaultValue = null;
+            DefaultValue(valueNode);
             return this;
         }
 
         IArgumentDescriptor IArgumentDescriptor.DefaultValue(object defaultValue)
         {
-            if (defaultValue == null)
-            {
-                DefaultValue = new NullValueNode();
-                NativeDefaultValue = null;
-            }
-            else
-            {
-                TypeReference = TypeReference.GetMoreSpecific(defaultValue.GetType());
-                NativeDefaultValue = defaultValue;
-                DefaultValue = null;
-            }
+            DefaultValue(defaultValue);
             return this;
         }
 

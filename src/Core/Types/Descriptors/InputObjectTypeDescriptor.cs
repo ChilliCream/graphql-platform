@@ -10,6 +10,20 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    internal class InputObjectTypeDescription
+    {
+        public InputObjectTypeDefinitionNode SyntaxNode { get; protected set; }
+
+        public string Name { get; protected set; }
+
+        public string Description { get; protected set; }
+
+        public Type NativeType { get; protected set; }
+
+        protected List<InputFieldDescriptor> Fields { get; set; }
+            = new List<InputFieldDescriptor>();
+    }
+
     internal class InputObjectTypeDescriptor
         : IInputObjectTypeDescriptor
     {

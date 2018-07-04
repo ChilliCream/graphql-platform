@@ -17,6 +17,7 @@ namespace HotChocolate.Types
 
         public bool Ignored { get; set; }
 
-        public IReadOnlyList<ArgumentDescriptor> Arguments { get; set; }
+        public List<ArgumentDescription> Arguments { get; set; }
+            = new List<ArgumentDescription>();
     }
 }
