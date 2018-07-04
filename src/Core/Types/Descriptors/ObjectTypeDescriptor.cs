@@ -10,32 +10,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class ObjectTypeDescription
-    {
-        public ObjectTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public Type NativeType { get; set; }
-
-        public bool IsIntrospection { get; set; }
-
-        public IsOfType IsOfType { get; set; }
-
-        public BindingBehavior FieldBindingBehavior { get; set; }
-
-        public List<ObjectFieldDescription> Fields { get; set; } =
-            new List<ObjectFieldDescription>();
-
-        public List<TypeReference> Interfaces { get; set; } =
-            new List<TypeReference>();
-
-    }
-
     internal class ObjectTypeDescriptor
         : IObjectTypeDescriptor
+        , IDescriptionFactory<ObjectTypeDescription>
     {
         public ObjectTypeDescriptor(Type objectType)
         {
@@ -65,7 +42,7 @@ namespace HotChocolate.Types
         protected ObjectTypeDescription ObjectDescription { get; } =
             new ObjectTypeDescription();
 
-        public ObjectTypeDescription CreateObjectDescription()
+        public ObjectTypeDescription CreateDescription()
         {
             CompleteFields();
             return ObjectDescription;
@@ -79,7 +56,7 @@ namespace HotChocolate.Types
             foreach (ObjectFieldDescriptor fieldDescriptor in Fields)
             {
                 ObjectFieldDescription fieldDescription = fieldDescriptor
-                    .CreateFieldDescription();
+                    .CreateDescription();
                 fields[fieldDescription.Name] = fieldDescription;
             }
 
@@ -322,7 +299,7 @@ namespace HotChocolate.Types
                                 ObjectDescription.Name, member.Key, returnType);
 
                         descriptors[member.Value] = fieldDescriptor
-                            .CreateFieldDescription();
+                            .CreateDescription();
                     }
                 }
             }

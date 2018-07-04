@@ -13,6 +13,7 @@ namespace HotChocolate.Types
     internal class ObjectFieldDescriptor
         : InterfaceFieldDescriptor
         , IObjectFieldDescriptor
+        , IDescriptionFactory<ObjectFieldDescription>
     {
         private readonly string _typeName;
         private bool _argumentsInitialized;
@@ -56,7 +57,7 @@ namespace HotChocolate.Types
         protected new ObjectFieldDescription FieldDescription
             => (ObjectFieldDescription)base.FieldDescription;
 
-        public new ObjectFieldDescription CreateFieldDescription()
+        public new ObjectFieldDescription CreateDescription()
         {
             CompleteArguments();
             return FieldDescription;
@@ -110,7 +111,7 @@ namespace HotChocolate.Types
                             new ArgumentDescriptor(argumentName,
                                 parameter.ParameterType);
                         descriptions[argumentName] = argumentDescriptor
-                            .CreateInputDescription();
+                            .CreateDescription();
                     }
                 }
             }

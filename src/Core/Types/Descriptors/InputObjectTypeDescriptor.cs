@@ -12,6 +12,7 @@ namespace HotChocolate.Types
 {
     internal class InputObjectTypeDescriptor
         : IInputObjectTypeDescriptor
+        , IDescriptionFactory<InputObjectTypeDescription>
     {
         protected List<InputFieldDescriptor> Fields { get; } =
             new List<InputFieldDescriptor>();
@@ -19,7 +20,7 @@ namespace HotChocolate.Types
         protected InputObjectTypeDescription ObjectDescription { get; } =
             new InputObjectTypeDescription();
 
-        public InputObjectTypeDescription CreateObjectDescription()
+        public InputObjectTypeDescription CreateDescription()
         {
             CompleteFields();
             return ObjectDescription;
@@ -30,7 +31,7 @@ namespace HotChocolate.Types
             foreach (InputFieldDescriptor fieldDescriptor in Fields)
             {
                 ObjectDescription.Fields.Add(
-                    fieldDescriptor.CreateInputDescription());
+                    fieldDescriptor.CreateDescription());
             }
         }
 
@@ -207,7 +208,7 @@ namespace HotChocolate.Types
                     InputFieldDescriptor descriptor =
                         new InputFieldDescriptor(property.Key);
                     descriptions[property.Value] = descriptor
-                        .CreateInputDescription();
+                        .CreateDescription();
                 }
             }
         }

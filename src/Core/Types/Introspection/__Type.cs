@@ -135,7 +135,7 @@ namespace HotChocolate.Types.Introspection
         {
             if (type is InputObjectType iot)
             {
-                return iot.Fields.Values;
+                return iot.Fields;
             }
             return null;
         }

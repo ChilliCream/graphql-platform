@@ -7,6 +7,7 @@ namespace HotChocolate.Types
 {
     internal class ArgumentDescriptor
         : IArgumentDescriptor
+        , IDescriptionFactory<ArgumentDescription>
     {
         protected ArgumentDescriptor(ArgumentDescription argumentDescription)
         {
@@ -50,7 +51,7 @@ namespace HotChocolate.Types
 
         protected ArgumentDescription InputDescription { get; }
 
-        public ArgumentDescription CreateInputDescription()
+        public ArgumentDescription CreateDescription()
         {
             return InputDescription;
         }

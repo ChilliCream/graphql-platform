@@ -26,7 +26,7 @@ namespace HotChocolate.Types
             foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
             {
                 ObjectDescription.Fields.Add(
-                    fieldDescriptor.CreateFieldDescription());
+                    fieldDescriptor.CreateDescription());
             }
         }
 

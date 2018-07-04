@@ -11,32 +11,77 @@ namespace HotChocolate.Types
         : INamedInputType
         , INeedsInitialization
     {
-        private Dictionary<string, InputField> _fieldMap =
-            new Dictionary<string, InputField>();
-        private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
 
-        internal InputObjectType()
+        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+            : this(ExecuteConfigure(configure))
         {
-            Initialize(Configure);
         }
 
-        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        internal InputObjectType(Func<InputObjectTypeDescription> descriptionFactory)
+            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
         {
-            Initialize(configure);
+        }
+
+        internal InputObjectType(
+            InputObjectTypeDescription inputObjectTypeDescription)
+        {
+            if (inputObjectTypeDescription == null)
+            {
+                throw new ArgumentNullException(nameof(inputObjectTypeDescription));
+            }
+
+            if (string.IsNullOrEmpty(inputObjectTypeDescription.Name))
+            {
+                throw new ArgumentException(
+                    "An input object type name must not be null or empty.");
+            }
+
+            NativeType = inputObjectTypeDescription.NativeType;
+            SyntaxNode = inputObjectTypeDescription.SyntaxNode;
+            Name = inputObjectTypeDescription.Name;
+            Description = inputObjectTypeDescription.Description;
+            Fields = new FieldCollection<InputField>(
+                inputObjectTypeDescription.Fields.Select(t => new InputField(t)));
+        }
+
+        private static InputObjectTypeDescription ExecuteConfigure(
+            Action<IInputObjectTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            InputObjectTypeDescriptor descriptor = new InputObjectTypeDescriptor();
+            configure(descriptor);
+            return descriptor.CreateDescription();
+        }
+
+        private static InterfaceFieldDescription ExecuteConfigure(
+            Action<IInterfaceFieldDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
+            configure(descriptor);
+            return descriptor.CreateDescription();
         }
 
         public TypeKind Kind { get; } = TypeKind.InputObject;
 
-        public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
+        public InputObjectTypeDefinitionNode SyntaxNode { get; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public string Description { get; private set; }
+        public string Description { get; }
 
-        public IReadOnlyDictionary<string, InputField> Fields => _fieldMap;
+        public FieldCollection<InputField> Fields { get; }
 
-        public Type NativeType => _nativeType;
+        public Type NativeType { get; private set; }
 
         #region IInputType
 
@@ -112,36 +157,14 @@ namespace HotChocolate.Types
 
         private void Initialize(InputObjectTypeDescriptor descriptor)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
 
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.");
-            }
-
-            foreach (InputField field in
-                descriptor.GetFieldDescriptors()
-                .Select(t => new InputField(t)))
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _nativeType = descriptor.NativeType;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
         }
 
         void INeedsInitialization.RegisterDependencies(
             ISchemaContext schemaContext,
             Action<SchemaError> reportError)
         {
-            foreach (InputField field in _fieldMap.Values)
+            foreach (InputField field in Fields)
             {
                 field.RegisterDependencies(
                     schemaContext.Types, reportError, this);
@@ -160,13 +183,13 @@ namespace HotChocolate.Types
             ITypeRegistry typeRegistry,
             Action<SchemaError> reportError)
         {
-            if (_nativeType == null && typeRegistry.TryGetTypeBinding(this,
+            if (NativeType == null && typeRegistry.TryGetTypeBinding(this,
                 out InputObjectTypeBinding typeBinding))
             {
-                _nativeType = typeBinding.Type;
+                NativeType = typeBinding.Type;
             }
 
-            if (_nativeType == null)
+            if (NativeType == null)
             {
                 reportError(new SchemaError(
                     "Could not resolve the native type associated with " +
@@ -175,19 +198,19 @@ namespace HotChocolate.Types
             }
 
             _deserialize = InputObjectDeserializerFactory.Create(
-                    reportError, this, _nativeType);
+                    reportError, this, NativeType);
         }
 
         private void CompleteFields(
             ITypeRegistry typeRegistry,
             Action<SchemaError> reportError)
         {
-            foreach (InputField field in _fieldMap.Values)
+            foreach (InputField field in Fields)
             {
                 field.CompleteInputField(typeRegistry, reportError, this);
             }
 
-            if (!_fieldMap.Any())
+            if (Fields.IsEmpty)
             {
                 reportError(new SchemaError(
                     $"The input object `{Name}` does not have any fields."));
@@ -201,6 +224,7 @@ namespace HotChocolate.Types
         : InputObjectType
     {
         public InputObjectType()
+            : this(d => { })
         {
         }
 

@@ -43,9 +43,15 @@ namespace HotChocolate.Types
             }
 
             _fields = fields.ToDictionary(t => t.Name);
+            Count = _fields.Count;
+            IsEmpty = _fields.Count == 0;
         }
 
         public T this[string fieldName] => _fields[fieldName];
+
+        public int Count { get; }
+
+        public bool IsEmpty { get; }
 
         public bool ContainsField(string fieldName)
         {

@@ -8,6 +8,7 @@ namespace HotChocolate.Types
     internal class InputFieldDescriptor
         : ArgumentDescriptor
         , IInputFieldDescriptor
+        , IDescriptionFactory<InputFieldDescription>
     {
         public InputFieldDescriptor(string name)
             : base(new InputFieldDescription())
@@ -31,7 +32,7 @@ namespace HotChocolate.Types
         protected new InputFieldDescription InputDescription
             => (InputFieldDescription)base.InputDescription;
 
-        public new InputFieldDescription CreateInputDescription()
+        public new InputFieldDescription CreateDescription()
         {
             return InputDescription;
         }

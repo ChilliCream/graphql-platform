@@ -6,6 +6,7 @@ namespace HotChocolate.Types
 {
     internal class InterfaceFieldDescriptor
         : IInterfaceFieldDescriptor
+        , IDescriptionFactory<InterfaceFieldDescription>
     {
         protected InterfaceFieldDescriptor(
             InterfaceFieldDescription fieldDescription)
@@ -26,7 +27,7 @@ namespace HotChocolate.Types
 
         protected InterfaceFieldDescription FieldDescription { get; }
 
-        public InterfaceFieldDescription CreateFieldDescription()
+        public InterfaceFieldDescription CreateDescription()
         {
             return FieldDescription;
         }
@@ -95,7 +96,7 @@ namespace HotChocolate.Types
 
             ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
             argument(descriptor);
-            FieldDescription.Arguments.Add(descriptor.CreateInputDescription());
+            FieldDescription.Arguments.Add(descriptor.CreateDescription());
         }
 
         protected void DeprecationReason(string deprecationReason)

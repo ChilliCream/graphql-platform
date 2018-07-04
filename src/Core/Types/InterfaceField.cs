@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         }
 
         internal InterfaceField(Func<InterfaceFieldDescription> descriptionFactory)
-            : this(ExecuteFactory(descriptionFactory))
+            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
         {
         }
 
@@ -31,6 +31,7 @@ namespace HotChocolate.Types
 
             SyntaxNode = fieldDescription.SyntaxNode;
             Name = fieldDescription.Name;
+            Description = fieldDescription.Description;
             Arguments = new FieldCollection<InputField>(
                 fieldDescription.Arguments.Select(t => new InputField(t)));
             IsDeprecated = !string.IsNullOrEmpty(fieldDescription.DeprecationReason);
@@ -47,24 +48,14 @@ namespace HotChocolate.Types
 
             InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
             configure(descriptor);
-            return descriptor.CreateFieldDescription();
-        }
-
-        internal static T ExecuteFactory<T>(
-            Func<T> descriptionFactory)
-            where T : InterfaceFieldDescription
-        {
-            if (descriptionFactory == null)
-            {
-                throw new ArgumentNullException(nameof(descriptionFactory));
-            }
-
-            return descriptionFactory();
+            return descriptor.CreateDescription();
         }
 
         public FieldDefinitionNode SyntaxNode { get; }
 
         public string Name { get; }
+
+        public string Description { get; }
 
         public INamedType DeclaringType { get; private set; }
 
