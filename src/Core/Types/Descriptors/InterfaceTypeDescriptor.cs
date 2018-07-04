@@ -1,38 +1,48 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    internal class InterfaceTypeDescription
+    {
+        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public ResolveAbstractType ResolveAbstractType { get; set; }
+
+        public List<InterfaceFieldDescription> Fields { get; set; } =
+            new List<InterfaceFieldDescription>();
+    }
+
     internal class InterfaceTypeDescriptor
         : IInterfaceTypeDescriptor
     {
-        public InterfaceTypeDescriptor(Type interfaceType)
-        {
-            if (interfaceType == null)
-            {
-                throw new ArgumentNullException(nameof(interfaceType));
-            }
+        protected List<InputFieldDescriptor> Fields { get; } =
+            new List<InputFieldDescriptor>();
 
-            // TODO : move name resolution to utilities
-            Name = interfaceType.GetGraphQLName();
-            if (Name == interfaceType.Name && Name.EndsWith("Type"))
-            {
-                Name = Name.Substring(0, Name.Length - 4);
-            }
+        protected InterfaceTypeDescription ObjectDescription { get; }
+            = new InterfaceTypeDescription();
+
+        public InputObjectTypeDescription CreateObjectDescription()
+        {
+            CompleteFields();
+            return ObjectDescription;
         }
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; protected set; }
-
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public ResolveAbstractType ResolveAbstractType { get; protected set; }
-
-        public ImmutableList<ObjectFieldDescriptor> Fields { get; protected set; }
-            = ImmutableList<ObjectFieldDescriptor>.Empty;
+        protected virtual void CompleteFields()
+        {
+            foreach (InputFieldDescriptor fieldDescriptor in Fields)
+            {
+                ObjectDescription.Fields.Add(
+                    fieldDescriptor.CreateInputDescription());
+            }
+        }
 
         #region IObjectTypeDescriptor<T>
 

@@ -10,55 +10,36 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class InputObjectTypeDescription
-    {
-        public InputObjectTypeDefinitionNode SyntaxNode { get; protected set; }
-
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public Type NativeType { get; protected set; }
-
-        protected List<InputFieldDescriptor> Fields { get; set; }
-            = new List<InputFieldDescriptor>();
-    }
-
     internal class InputObjectTypeDescriptor
         : IInputObjectTypeDescriptor
     {
-        public InputObjectTypeDefinitionNode SyntaxNode { get; protected set; }
+        protected List<InputFieldDescriptor> Fields { get; } =
+            new List<InputFieldDescriptor>();
 
-        public string Name { get; protected set; }
+        protected InputObjectTypeDescription ObjectDescription { get; }
+            = new InputObjectTypeDescription();
 
-        public string Description { get; protected set; }
-
-        public Type NativeType { get; protected set; }
-
-        protected ImmutableList<InputFieldDescriptor> Fields { get; set; } =
-            ImmutableList<InputFieldDescriptor>.Empty;
-
-        public virtual IReadOnlyCollection<InputFieldDescriptor> GetFieldDescriptors()
+        public InputObjectTypeDescription CreateObjectDescription()
         {
-            Dictionary<string, InputFieldDescriptor> descriptors =
-                new Dictionary<string, InputFieldDescriptor>();
-            foreach (InputFieldDescriptor descriptor in Fields)
+            CompleteFields();
+            return ObjectDescription;
+        }
+
+        protected virtual void CompleteFields()
+        {
+            foreach (InputFieldDescriptor fieldDescriptor in Fields)
             {
-                descriptors[descriptor.Name] = descriptor;
+                ObjectDescription.Fields.Add(
+                    fieldDescriptor.CreateInputDescription());
             }
-            return descriptors.Values;
         }
 
-        #region IInputObjectTypeDescriptor
-
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode)
+        protected void SyntaxNode(InputObjectTypeDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -74,17 +55,15 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
-            return this;
+            ObjectDescription.Name = name;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(string description)
+        protected void Description(string description)
         {
-            Description = description;
-            return this;
+            ObjectDescription.Description = description;
         }
 
-        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(string name)
+        protected InputFieldDescriptor Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -101,8 +80,34 @@ namespace HotChocolate.Types
             }
 
             InputFieldDescriptor field = new InputFieldDescriptor(name);
-            Fields = Fields.Add(field);
+            Fields.Add(field);
             return field;
+        }
+
+        #region IInputObjectTypeDescriptor
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.SyntaxNode(
+            InputObjectTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
+        {
+            Name(name);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(string description)
+        {
+            Description(description);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(string name)
+        {
+            return Field(name);
         }
 
         #endregion
@@ -119,42 +124,92 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(pocoType));
             }
 
-            NativeType = pocoType;
-            Name = pocoType.GetGraphQLName();
+            ObjectDescription.NativeType = pocoType;
+            ObjectDescription.Name = pocoType.GetGraphQLName();
         }
 
-        private BindingBehavior _bindingBehavior = BindingBehavior.Implicit;
-
-        public override IReadOnlyCollection<InputFieldDescriptor> GetFieldDescriptors()
+        protected override void CompleteFields()
         {
-            Dictionary<string, InputFieldDescriptor> descriptors =
-                new Dictionary<string, InputFieldDescriptor>();
+            base.CompleteFields();
 
-            foreach (InputFieldDescriptor descriptor in Fields)
+            Dictionary<string, InputFieldDescription> descriptions =
+                new Dictionary<string, InputFieldDescription>();
+
+            foreach (InputFieldDescription description in ObjectDescription.Fields)
             {
-                descriptors[descriptor.Name] = descriptor;
+                descriptions[description.Name] = description;
             }
 
-            if (_bindingBehavior == BindingBehavior.Implicit)
+            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
             {
-                Dictionary<PropertyInfo, string> properties = GetProperties(NativeType);
-                foreach (InputFieldDescriptor descriptor in descriptors.Values
-                    .Where(t => t.Property != null))
-                {
-                    properties.Remove(descriptor.Property);
-                }
+                DeriveFieldsFromType(descriptions);
+                ObjectDescription.Fields = descriptions.Values.ToList();
+            }
+        }
 
-                foreach (KeyValuePair<PropertyInfo, string> property in properties)
-                {
-                    if (!descriptors.ContainsKey(property.Value))
-                    {
-                        descriptors[property.Value] =
-                            new InputFieldDescriptor(property.Key);
-                    }
-                }
+        protected void BindFields(BindingBehavior bindingBehavior)
+        {
+            ObjectDescription.FieldBindingBehavior = bindingBehavior;
+        }
+
+        protected InputFieldDescriptor Field(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The name cannot be null or empty.",
+                    nameof(name));
             }
 
-            return descriptors.Values;
+            if (!ValidationHelper.IsFieldNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(name));
+            }
+
+            InputFieldDescriptor field = new InputFieldDescriptor(name);
+            Fields.Add(field);
+            return field;
+        }
+
+        protected InputFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                InputFieldDescriptor field = new InputFieldDescriptor(p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
+
+        private void DeriveFieldsFromType(
+                Dictionary<string, InputFieldDescription> descriptions)
+        {
+            Dictionary<PropertyInfo, string> properties =
+                GetProperties(ObjectDescription.NativeType);
+
+            foreach (InputFieldDescription description in descriptions.Values
+                .Where(t => t.Property != null))
+            {
+                properties.Remove(description.Property);
+            }
+
+            foreach (KeyValuePair<PropertyInfo, string> property in properties)
+            {
+                if (!descriptions.ContainsKey(property.Value))
+                {
+                    InputFieldDescriptor descriptor =
+                        new InputFieldDescriptor(property.Key);
+                    descriptions[property.Value] = descriptor
+                        .CreateInputDescription();
+                }
+            }
         }
 
         private static Dictionary<PropertyInfo, string> GetProperties(Type type)
@@ -177,44 +232,35 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.SyntaxNode(
             InputObjectTypeDefinitionNode syntaxNode)
         {
-            ((IInputObjectTypeDescriptor)this).SyntaxNode(syntaxNode);
+            SyntaxNode(syntaxNode);
             return this;
         }
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
             string name)
         {
-            ((IInputObjectTypeDescriptor)this).Name(name);
+            Name(name);
             return this;
         }
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Description(
             string description)
         {
-            ((IInputObjectTypeDescriptor)this).Description(description);
+            Description(description);
             return this;
         }
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.BindFields(
             BindingBehavior bindingBehavior)
         {
-            _bindingBehavior = bindingBehavior;
+            BindFields(bindingBehavior);
             return this;
         }
 
         IInputFieldDescriptor IInputObjectTypeDescriptor<T>.Field<TValue>(
             Expression<Func<T, TValue>> property)
         {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                InputFieldDescriptor field = new InputFieldDescriptor(p);
-                Fields = Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
+            return Field<TValue>(property);
         }
 
         #endregion
