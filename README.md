@@ -151,6 +151,24 @@ In order to run a query against your schema startup your web host and get [Graph
 
 _We are also currently working on a middleware for ASP.net classic._
 
+## Templates
+
+Apart from the Star Wars template we also have a GraphQL server template that just generates a project with everything hooked up so that you can start building your API quickliy.
+
+So, to install the GraphQL Server template run the following command.
+
+```bash
+dotnet new -i HotChocolate.Templates.Server
+```
+
+Now that you have implemented this you can generate a new server project by running the following commands.
+
+```bash
+mkdir myserver
+cd myserver
+dotnet new graphql-server
+```
+
 ## Features
 
 We currently support the following parts of the current [draft spec](http://facebook.github.io/graphql/draft/) of GraphQL.
