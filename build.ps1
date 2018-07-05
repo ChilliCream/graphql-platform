@@ -1,4 +1,4 @@
-param([switch]$DisableBuild, [switch]$RunTests, [switch]$EnableCoverage, [switch]$EnableSonar, [switch]$Publish)
+param([switch]$DisableBuild, [switch]$RunTests, [switch]$EnableCoverage, [switch]$EnableSonar, [switch]$Pack)
 
 if (!!$env:APPVEYOR_REPO_TAG_NAME) {
     $version = $env:APPVEYOR_REPO_TAG_NAME
@@ -76,9 +76,8 @@ if ($EnableSonar) {
 
 }
 
-if ($Publish) {
+if ($Pack) {
     $dropRootDirectory = Join-Path -Path $PSScriptRoot -ChildPath "drop"
-    $packageFilter = "$dropRootDirectory\*.nupkg"
 
     if ($env:PreVersion) {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix
@@ -86,6 +85,4 @@ if ($Publish) {
     else {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix
     }
-
-    dotnet nuget push $packageFilter -s https://api.nuget.org/v3/index.json -k $env:NUGET_APIKEY
 }
