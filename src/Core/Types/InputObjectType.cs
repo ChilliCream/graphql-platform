@@ -8,78 +8,31 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : INamedInputType
-        , INeedsInitialization
+        : TypeBase
+        , INamedInputType
     {
         private Func<ObjectValueNode, object> _deserialize;
+        private bool _completed;
+
+        internal InputObjectType()
+            : base(TypeKind.InputObject)
+        {
+            Initialize(Configure);
+        }
 
         internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
-            : this(ExecuteConfigure(configure))
+            : base(TypeKind.InputObject)
         {
+            Initialize(configure);
         }
 
-        internal InputObjectType(Func<InputObjectTypeDescription> descriptionFactory)
-            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
-        {
-        }
+        public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
-        internal InputObjectType(
-            InputObjectTypeDescription inputObjectTypeDescription)
-        {
-            if (inputObjectTypeDescription == null)
-            {
-                throw new ArgumentNullException(nameof(inputObjectTypeDescription));
-            }
+        public string Name { get; private set; }
 
-            if (string.IsNullOrEmpty(inputObjectTypeDescription.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.");
-            }
+        public string Description { get; private set; }
 
-            NativeType = inputObjectTypeDescription.NativeType;
-            SyntaxNode = inputObjectTypeDescription.SyntaxNode;
-            Name = inputObjectTypeDescription.Name;
-            Description = inputObjectTypeDescription.Description;
-            Fields = new FieldCollection<InputField>(
-                inputObjectTypeDescription.Fields.Select(t => new InputField(t)));
-        }
-
-        private static InputObjectTypeDescription ExecuteConfigure(
-            Action<IInputObjectTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            InputObjectTypeDescriptor descriptor = new InputObjectTypeDescriptor();
-            configure(descriptor);
-            return descriptor.CreateDescription();
-        }
-
-        private static InterfaceFieldDescription ExecuteConfigure(
-            Action<IInterfaceFieldDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
-            configure(descriptor);
-            return descriptor.CreateDescription();
-        }
-
-        public TypeKind Kind { get; } = TypeKind.InputObject;
-
-        public InputObjectTypeDefinitionNode SyntaxNode { get; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public FieldCollection<InputField> Fields { get; }
+        public FieldCollection<InputField> Fields { get; private set; }
 
         public Type NativeType { get; private set; }
 
@@ -152,67 +105,70 @@ namespace HotChocolate.Types
 
             InputObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
-            Initialize(descriptor);
+
+            InputObjectTypeDescription description = descriptor.CreateDescription();
+            NativeType = description.NativeType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            Fields = new FieldCollection<InputField>(
+                description.Fields.Select(t => new InputField(t)));
         }
 
-        private void Initialize(InputObjectTypeDescriptor descriptor)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
+            base.OnRegisterDependencies(context);
 
-        }
-
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
-        {
-            foreach (InputField field in Fields)
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.RegisterDependencies(
-                    schemaContext.Types, reportError, this);
+                field.RegisterDependencies(context);
             }
         }
 
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            CompleteNativeType(schemaContext.Types, reportError);
-            CompleteFields(schemaContext.Types, reportError);
+            base.OnCompleteType(context);
+
+            CompleteNativeType(context);
+            CompleteFields(context);
         }
 
         private void CompleteNativeType(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
-            if (NativeType == null && typeRegistry.TryGetTypeBinding(this,
-                out InputObjectTypeBinding typeBinding))
+            if (NativeType == null
+                && context.TryGetNativeType(this, out Type nativeType))
             {
-                NativeType = typeBinding.Type;
+                NativeType = nativeType;
             }
 
             if (NativeType == null)
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     "Could not resolve the native type associated with " +
                     $"input object type `{Name}`.",
                     this));
             }
 
             _deserialize = InputObjectDeserializerFactory.Create(
-                    reportError, this, NativeType);
+                    context, this, NativeType);
         }
 
         private void CompleteFields(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
-            foreach (InputField field in Fields)
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.CompleteInputField(typeRegistry, reportError, this);
+                field.CompleteType(context);
             }
 
             if (Fields.IsEmpty)
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     $"The input object `{Name}` does not have any fields."));
             }
         }
@@ -224,7 +180,6 @@ namespace HotChocolate.Types
         : InputObjectType
     {
         public InputObjectType()
-            : this(d => { })
         {
         }
 

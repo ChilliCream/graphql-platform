@@ -8,32 +8,24 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputField
-        : IInputField
+        : FieldBase
+        , IInputField
     {
         private readonly TypeReference _typeReference;
         private object _nativeDefaultValue;
-        private bool _completed;
 
         internal InputField(ArgumentDescription argumentDescription)
+            : base(argumentDescription?.Name, argumentDescription?.Description)
         {
             if (argumentDescription == null)
             {
                 throw new ArgumentNullException(nameof(argumentDescription));
             }
 
-            if (string.IsNullOrEmpty(argumentDescription.Name))
-            {
-                throw new ArgumentException(
-                    "An input value name must not be null or empty.",
-                    nameof(argumentDescription));
-            }
-
             _typeReference = argumentDescription.TypeReference;
             _nativeDefaultValue = argumentDescription.NativeDefaultValue;
 
             SyntaxNode = argumentDescription.SyntaxNode;
-            Name = argumentDescription.Name;
-            Description = argumentDescription.Description;
             DefaultValue = argumentDescription.DefaultValue;
         }
 
@@ -45,12 +37,6 @@ namespace HotChocolate.Types
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
-        public INamedType DeclaringType { get; private set; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
         public IInputType Type { get; private set; }
 
         public IValueNode DefaultValue { get; private set; }
@@ -59,51 +45,39 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        internal void RegisterDependencies(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
-            if (!_completed)
+            base.OnRegisterDependencies(context);
+
+            if (_typeReference != null)
             {
-                if (_typeReference != null)
-                {
-                    typeRegistry.RegisterType(_typeReference);
-                }
+                context.RegisterType(_typeReference);
             }
         }
 
-        internal void CompleteInputField(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            if (!_completed)
+            base.OnRegisterDependencies(context);
+
+            Type = context.ResolveFieldType<IInputType>(this, _typeReference);
+            if (Type != null)
             {
-                DeclaringType = parentType;
-                Type = this.ResolveFieldType<IInputType>(typeRegistry,
-                    reportError, _typeReference);
+                CompleteDefaultValue(context, Type);
 
-                if (Type != null)
+                if (context.Type is InputObjectType
+                    && Property == null
+                    && context.TryGetProperty(context.Type, out PropertyInfo property))
                 {
-                    CompleteDefaultValue(Type, reportError, parentType);
-
-                    if (parentType is InputObjectType
-                        && Property == null
-                        && typeRegistry.TryGetTypeBinding(parentType, out InputObjectTypeBinding binding)
-                        && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
-                    {
-                        Property = fieldBinding.Property;
-                    }
+                    Property = property;
                 }
-                _completed = true;
             }
         }
 
         private void CompleteDefaultValue(
-            IInputType type,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+            ITypeInitializationContext context,
+            IInputType type)
         {
             try
             {
@@ -121,9 +95,9 @@ namespace HotChocolate.Types
             }
             catch (Exception ex)
             {
-                reportError(new SchemaError(
-                    "Could not parse the native value for input field " +
-                    $"`{parentType.Name}.{Name}`.", parentType, ex));
+                context.ReportError(new SchemaError(
+                    "Could not parse the native value of input field " +
+                    $"`{context.Type.Name}.{Name}`.", context.Type, ex));
             }
         }
 

@@ -7,22 +7,31 @@ namespace HotChocolate.Types
     internal static class FieldHelper
     {
         public static T ResolveFieldType<T>(
-            this IField field,
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
+            this ITypeInitializationContext context,
+            IField field,
             TypeReference typeReference)
             where T : IType
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             T type = default(T);
             if (typeReference != null)
             {
-                type = typeRegistry.GetType<T>(typeReference);
+                type = context.GetType<T>(typeReference);
 
             }
 
             if (ReferenceEquals(type, default(T)))
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     $"The type `{typeReference}` of field " +
                     $"`{field.DeclaringType.Name}.{field.Name}` could not be resolved " +
                     "to a valid schema type.", field.DeclaringType));

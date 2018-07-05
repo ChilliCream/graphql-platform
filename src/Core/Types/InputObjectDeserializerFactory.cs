@@ -8,19 +8,19 @@ namespace HotChocolate.Types
     internal static class InputObjectDeserializerFactory
     {
         public static Func<ObjectValueNode, object> Create(
-           Action<SchemaError> reportError,
+           ITypeInitializationContext context,
            InputObjectType inputObjectType,
            Type nativeType)
         {
             Func<ObjectValueNode, object> _deserialize;
             if (!TryCreateNativeTypeParserDeserializer(
-                    reportError, inputObjectType, nativeType, out _deserialize)
+                    context, inputObjectType, nativeType, out _deserialize)
                 && !TryCreateNativeConstructorDeserializer(
                     nativeType, out _deserialize)
                 && !TryCreateNativeReflectionDeserializer(
                     inputObjectType, nativeType, out _deserialize))
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     "Could not create a literal parser for input " +
                     $"object type `{inputObjectType.Name}`", inputObjectType));
             }
@@ -28,7 +28,7 @@ namespace HotChocolate.Types
         }
 
         private static bool TryCreateNativeTypeParserDeserializer(
-            Action<SchemaError> reportError,
+            ITypeInitializationContext context,
             InputObjectType inputObjectType,
             Type nativeType,
             out Func<ObjectValueNode, object> deserializer)
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    reportError(new SchemaError(
+                    context.ReportError(new SchemaError(
                         "A literal parser has to implement `ILiteralParser`.",
                         inputObjectType));
                 }

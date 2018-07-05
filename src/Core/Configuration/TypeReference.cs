@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal sealed class TypeReference
+    public sealed class TypeReference
     {
         public TypeReference(ITypeNode type)
         {
@@ -23,7 +23,7 @@ namespace HotChocolate.Types
 
         public override string ToString()
         {
-            if(NativeType == null)
+            if (NativeType == null)
             {
                 return Type.ToString();
             }

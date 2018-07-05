@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
@@ -20,9 +21,7 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
-        void RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError);
+        void RegisterDependencies(ITypeInitializationContext context);
 
         /// <summary>
         /// Completes the type and this makes it immutable.
@@ -30,8 +29,24 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="schemaContext"></param>
         /// <param name="reportError"></param>
-        void CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError);
+        void CompleteType(ITypeInitializationContext context);
+    }
+
+    public interface ITypeInitializationContext
+    {
+        INamedType Type { get; }
+
+        void RegisterType(TypeReference typeReference);
+
+        T GetType<T>(TypeReference typeReference) where T : IType;
+
+        bool TryGetNativeType(INamedType type, out Type nativeType);
+
+        bool TryGetProperty<T>(INamedType type, out T member)
+            where T : MemberInfo;
+
+        void ReportError(SchemaError error);
+
+        ITypeInitializationContext WithType(INamedType type);
     }
 }
