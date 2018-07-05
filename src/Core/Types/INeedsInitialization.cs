@@ -37,6 +37,8 @@ namespace HotChocolate.Types
     {
         INamedType Type { get; }
 
+        void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
+
         void RegisterType(TypeReference typeReference);
 
         T GetType<T>(TypeReference typeReference) where T : IType;
@@ -50,7 +52,5 @@ namespace HotChocolate.Types
             where T : MemberInfo;
 
         void ReportError(SchemaError error);
-
-        ITypeInitializationContext WithType(INamedType type);
     }
 }

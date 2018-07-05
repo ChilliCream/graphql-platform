@@ -2,9 +2,10 @@ using System;
 
 namespace HotChocolate.Configuration
 {
-    internal interface ITypeBinding
+    public interface ITypeBinding
     {
         string Name { get; }
+
         Type Type { get; }
     }
 }

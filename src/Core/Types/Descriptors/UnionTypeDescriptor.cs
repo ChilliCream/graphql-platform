@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -7,6 +6,7 @@ namespace HotChocolate.Types
 {
     internal class UnionTypeDescriptor
         : IUnionTypeDescriptor
+        , IDescriptionFactory<UnionTypeDescription>
     {
         public UnionTypeDescriptor(Type unionType)
         {
@@ -15,30 +15,23 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(unionType));
             }
 
-            Name = unionType.GetGraphQLName();
+            UnionDescription.Name = unionType.GetGraphQLName();
         }
 
-        public UnionTypeDefinitionNode SyntaxNode { get; protected set; }
+        protected UnionTypeDescription UnionDescription { get; } =
+            new UnionTypeDescription();
 
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public ImmutableList<TypeReference> Types { get; protected set; }
-            = ImmutableList<TypeReference>.Empty;
-
-        public ResolveAbstractType ResolveAbstractType { get; protected set; }
-
-        #region IUnionTypeDescriptor
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.SyntaxNode(
-            UnionTypeDefinitionNode syntaxNode)
+        public UnionTypeDescription CreateDescription()
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            return UnionDescription;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Name(string name)
+        public void SyntaxNode(UnionTypeDefinitionNode syntaxNode)
+        {
+            UnionDescription.SyntaxNode = syntaxNode;
+        }
+
+        public void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -54,37 +47,68 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
+            UnionDescription.Name = name;
+        }
+
+        public void Description(string description)
+        {
+            UnionDescription.Description = description;
+        }
+
+        public void Type<TObjectType>()
+        {
+            UnionDescription.Types.Add(new TypeReference(typeof(TObjectType)));
+        }
+
+        public void Type(NamedTypeNode objectType)
+        {
+            UnionDescription.Types.Add(new TypeReference(objectType));
+        }
+
+        public void ResolveAbstractType(
+            ResolveAbstractType resolveAbstractType)
+        {
+            UnionDescription.ResolveAbstractType = resolveAbstractType
+                ?? throw new ArgumentNullException(nameof(resolveAbstractType));
+        }
+
+        #region IUnionTypeDescriptor
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.SyntaxNode(
+            UnionTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Name(string name)
+        {
+            Name(name);
             return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Description(string description)
         {
-            Description = description;
+            Description(description);
             return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>()
         {
-            Types = Types.Add(new TypeReference(typeof(TObjectType)));
+            Type<TObjectType>();
             return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Type(NamedTypeNode objectType)
         {
-            Types = Types.Add(new TypeReference(objectType));
+            Type(objectType);
             return this;
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            if (resolveAbstractType == null)
-            {
-                throw new ArgumentNullException(nameof(resolveAbstractType));
-            }
-
-            ResolveAbstractType = resolveAbstractType;
+            ResolveAbstractType(resolveAbstractType);
             return this;
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -80,12 +79,12 @@ namespace HotChocolate.Types
 
         private void InitializeFields(ObjectTypeDescription description)
         {
-            List<FieldBinding> fieldBindings = new List<FieldBinding>();
-            List<ObjectField> fields = new List<ObjectField>();
+            var fieldBindings = new List<FieldBinding>();
+            var fields = new List<ObjectField>();
 
             foreach (ObjectFieldDescription fieldDescription in description.Fields)
             {
-                ObjectField field = new ObjectField(fieldDescription);
+                var field = new ObjectField(fieldDescription);
                 fields.Add(field);
 
                 if (fieldDescription.Member != null)
@@ -98,53 +97,45 @@ namespace HotChocolate.Types
             if (description.NativeType != null)
             {
                 _typeBinding = new ObjectTypeBinding(
-                    description.Name, description.NativeType, 
+                    description.Name, description.NativeType,
                     this, fieldBindings);
             }
         }
 
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnRegisterDependencies(ITypeInitializationContext context)
         {
-            if (!_completed)
+            base.OnRegisterDependencies(context);
+
+            if (_interfaces != null)
             {
-                if (_interfaces != null)
+                foreach (TypeReference typeReference in _interfaces)
                 {
-                    foreach (TypeReference typeReference in _interfaces)
-                    {
-                        schemaContext.Types.RegisterType(typeReference);
-                    }
+                    context.RegisterType(typeReference);
                 }
+            }
 
-                foreach (Field field in _fields.Values)
-                {
-                    field.RegisterDependencies(schemaContext, reportError, this);
-                }
+            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
+            {
+                field.RegisterDependencies(context);
+            }
 
-                if (_typeBinding != null)
-                {
-                    schemaContext.Types.RegisterType(this, _typeBinding);
-                }
+            if (_typeBinding != null)
+            {
+                context.RegisterType(this, _typeBinding);
             }
         }
 
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(ITypeInitializationContext context)
         {
-            if (!_completed)
+            base.OnCompleteType(context);
+
+            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
             {
-                foreach (Field field in _fields.Values)
-                {
-                    field.CompleteField(schemaContext, reportError, this);
-                }
-
-                CompleteIsOfType();
-                CompleteInterfaces(schemaContext.Types, reportError);
-
-                _completed = true;
+                field.CompleteType(context);
             }
+
+            CompleteIsOfType();
+            CompleteInterfaces(context);
         }
 
         private void CompleteIsOfType()
@@ -186,37 +177,36 @@ namespace HotChocolate.Types
         }
 
         private void CompleteInterfaces(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
             if (_interfaces != null)
             {
                 foreach (InterfaceType interfaceType in _interfaces
-                    .Select(t => typeRegistry.GetType<InterfaceType>(t))
+                    .Select(t => context.GetType<InterfaceType>(t))
                     .Where(t => t != null))
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
 
-                CheckIfAllInterfaceFieldsAreImplemented(reportError);
+                CheckIfAllInterfaceFieldsAreImplemented(context);
             }
         }
 
         private void CheckIfAllInterfaceFieldsAreImplemented(
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
             foreach (InterfaceType interfaceType in _interfaceMap.Values)
             {
-                foreach (Field interfaceField in interfaceType.Fields.Values)
+                foreach (InterfaceField interfaceField in interfaceType.Fields)
                 {
-                    if (Fields.TryGetValue(interfaceField.Name, out Field field))
+                    if (Fields.TryGetField(interfaceField.Name, out ObjectField field))
                     {
-                        foreach (InputField interfaceArgument in interfaceField.Arguments.Values)
+                        foreach (InputField interfaceArgument in interfaceField.Arguments)
                         {
-                            if (!field.Arguments.ContainsKey(
+                            if (!field.Arguments.ContainsField(
                                 interfaceArgument.Name))
                             {
-                                reportError(new SchemaError(
+                                context.ReportError(new SchemaError(
                                     $"Object type {Name} does not implement " +
                                     $"all arguments of field {interfaceField.Name} " +
                                     $"from interface {interfaceType.Name}.",
@@ -226,7 +216,7 @@ namespace HotChocolate.Types
                     }
                     else
                     {
-                        reportError(new SchemaError(
+                        context.ReportError(new SchemaError(
                             $"Object type {Name} does not implement the " +
                             $"field {interfaceField.Name} " +
                             $"from interface {interfaceType.Name}.",
