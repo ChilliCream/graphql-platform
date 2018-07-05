@@ -9,6 +9,12 @@ namespace HotChocolate.Execution.Validation
     {
         private readonly ISchema _schema;
 
+        public QueryVisitor(ISchema schema)
+        {
+            _schema = schema 
+                ?? throw new System.ArgumentNullException(nameof(schema));
+        }
+
         protected virtual void VisitDocument(DocumentNode node)
         {
             foreach (OperationDefinitionNode operation in node.Definitions
@@ -67,7 +73,7 @@ namespace HotChocolate.Execution.Validation
                 VisitArgument(argument, type, current);
             }
 
-            if (_schema.TryGetField(type.NamedType(), field.Name.Value, out Field f))
+            if (_schema.TryGetField(type.NamedType(), field.Name.Value, out IOutputField f))
             {
                 VisitSelectionSet(field.SelectionSet, f.Type, path);
             }
