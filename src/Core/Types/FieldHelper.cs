@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {
@@ -33,8 +31,9 @@ namespace HotChocolate.Types
             {
                 context.ReportError(new SchemaError(
                     $"The type `{typeReference}` of field " +
-                    $"`{field.DeclaringType.Name}.{field.Name}` could not be resolved " +
-                    "to a valid schema type.", field.DeclaringType));
+                    $"`{field.DeclaringType.Name}.{field.Name}` " +
+                    "could not be resolved to a valid schema type.", 
+                    field.DeclaringType));
             }
 
             return type;

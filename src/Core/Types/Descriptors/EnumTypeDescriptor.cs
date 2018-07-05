@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -39,12 +40,24 @@ namespace HotChocolate.Types
 
         public EnumTypeDescription CreateDescription()
         {
+            CompleteValues();
             return EnumDescription;
         }
 
-        protected virtual void CompleteValues()
+        protected void CompleteValues()
         {
             AddImplicitValues();
+
+            var values = new Dictionary<string, EnumValueDescription>();
+
+            foreach (EnumValueDescription valueDescription in
+                Values.Select(t => t.CreateDescription()))
+            {
+                values[valueDescription.Name] = valueDescription;
+            }
+
+            EnumDescription.Values.Clear();
+            EnumDescription.Values.AddRange(values.Values);
         }
 
         protected void AddImplicitValues()

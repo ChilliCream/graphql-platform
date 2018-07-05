@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         }
 
         internal ObjectField(Func<ObjectFieldDescription> descriptionFactory)
-            : this(ExecuteFactory(descriptionFactory))
+            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
         {
         }
 
@@ -39,43 +39,37 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            ObjectFieldDescriptor descriptor =
-                new ObjectFieldDescriptor(null, fieldName);
+            var descriptor = new ObjectFieldDescriptor(null, fieldName);
             configure(descriptor);
-            return descriptor.CreateFieldDescription();
+            return descriptor.CreateDescription();
         }
 
         public FieldResolverDelegate Resolver { get; private set; }
 
-        internal override void OnRegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
-            base.OnRegisterDependencies(schemaContext, reportError, parentType);
+            base.OnRegisterDependencies(context);
 
             if (_member != null)
             {
-                schemaContext.Resolvers.RegisterResolver(
-                    new MemberResolverBinding(parentType.Name, Name, _member));
+                context.RegisterResolver(Name, _member);
             }
         }
 
-        internal override void OnCompleteField(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            base.OnCompleteField(schemaContext, reportError, parentType);
+            base.OnCompleteType(context);
 
             if (Resolver == null)
             {
-                Resolver = schemaContext.Resolvers.GetResolver(parentType.Name, Name);
+                Resolver = context.GetResolver(Name);
                 if (Resolver == null)
                 {
-                    reportError(new SchemaError(
-                        $"The field `{parentType.Name}.{Name}` " +
-                        "has no resolver.", parentType));
+                    context.ReportError(new SchemaError(
+                        $"The field `{context.Type.Name}.{Name}` " +
+                        "has no resolver.", context.Type));
                 }
             }
         }

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -37,7 +36,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            InterfaceFieldDescriptor descriptor = new InterfaceFieldDescriptor();
+            var descriptor = new InterfaceFieldDescriptor();
             configure(descriptor);
             return descriptor.CreateDescription();
         }

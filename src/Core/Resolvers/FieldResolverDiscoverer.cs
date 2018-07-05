@@ -57,11 +57,12 @@ namespace HotChocolate.Resolvers
                 return FieldResolverDescriptor.CreateCollectionProperty(
                     fieldResolverMember, resolverType, sourceType, p);
             }
-            else if (fieldResolverMember.Member is MethodInfo m)
+
+            if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, resolverType, sourceType);
+                    CreateResolverArgumentDescriptors(m, sourceType);
                 return FieldResolverDescriptor.CreateCollectionMethod(
                     fieldResolverMember, resolverType, sourceType, m,
                     isAsync, argumentDescriptors);
@@ -79,11 +80,12 @@ namespace HotChocolate.Resolvers
                 return FieldResolverDescriptor.CreateSourceProperty(
                     fieldResolverMember, sourceType, p);
             }
-            else if (fieldResolverMember.Member is MethodInfo m)
+
+            if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, resolverType, sourceType);
+                    CreateResolverArgumentDescriptors(m, sourceType);
                 return FieldResolverDescriptor.CreateSourceMethod(
                     fieldResolverMember, sourceType, m, isAsync,
                     argumentDescriptors);
@@ -93,10 +95,9 @@ namespace HotChocolate.Resolvers
         }
 
         internal static IReadOnlyCollection<FieldResolverArgumentDescriptor> CreateResolverArgumentDescriptors(
-            MethodInfo method, Type resolverType, Type sourceType)
+            MethodInfo method, Type sourceType)
         {
-            List<FieldResolverArgumentDescriptor> arguments =
-                new List<FieldResolverArgumentDescriptor>();
+            var arguments = new List<FieldResolverArgumentDescriptor>();
 
             foreach (ParameterInfo parameter in method.GetParameters())
             {
@@ -158,7 +159,8 @@ namespace HotChocolate.Resolvers
                 }
                 else
                 {
-                    if (method.Name.StartsWith("Get") && method.Name.Length > 3)
+                    if (method.Name.StartsWith("Get", StringComparison.Ordinal)
+                        && method.Name.Length > 3)
                     {
                         yield return new FieldResolverMember(
                             typeName,

@@ -18,7 +18,7 @@ namespace HotChocolate.Internal
 
         public ServiceManager()
         {
-            _factory = new ServiceFactory(t => GetServiceFromProviders(t));
+            _factory = new ServiceFactory(GetServiceFromProviders);
             _types = new ServiceContainer(_factory);
         }
 

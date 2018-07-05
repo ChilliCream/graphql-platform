@@ -14,12 +14,8 @@ namespace HotChocolate.Internal
 
         public ServiceContainer(ServiceFactory serviceFactory)
         {
-            if (serviceFactory == null)
-            {
-                throw new ArgumentNullException(nameof(serviceFactory));
-            }
-
-            _serviceFactory = serviceFactory;
+            _serviceFactory = serviceFactory
+                ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 
         public object GetService(Type serviceType)
@@ -53,19 +49,24 @@ namespace HotChocolate.Internal
                 {
                     disposable.Dispose();
                 }
-                catch { }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
+                catch
+                {
+                }
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             }
         }
 
         public void Dispose()
         {
             ImmutableDictionary<Type, object> services = _services;
-            _services = ImmutableDictionary<Type, object>.Empty;
 
             foreach (object service in services.Values)
             {
                 FinalizeService(service);
             }
+
+            _services = ImmutableDictionary<Type, object>.Empty;
         }
     }
 }

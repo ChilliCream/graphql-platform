@@ -12,19 +12,15 @@ namespace HotChocolate.Resolvers
             FieldResolverDelegate resolver)
             : base(typeName, fieldName)
         {
-            if (resolver == null)
-            {
-                throw new ArgumentNullException(nameof(resolver));
-            }
-
-            Resolver = resolver;
+            Resolver = resolver
+                ?? throw new ArgumentNullException(nameof(resolver));
         }
 
         public FieldResolverDelegate Resolver { get; }
 
         public bool Equals(FieldResolver other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -41,7 +37,7 @@ namespace HotChocolate.Resolvers
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }

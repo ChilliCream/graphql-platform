@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Types;
 
 namespace HotChocolate.Internal
 {
@@ -111,9 +110,8 @@ namespace HotChocolate.Internal
 
         public static Dictionary<string, PropertyInfo> GetProperties(Type type)
         {
-            Dictionary<string, PropertyInfo> members =
-                new Dictionary<string, PropertyInfo>(
-                    StringComparer.OrdinalIgnoreCase);
+            var members = new Dictionary<string, PropertyInfo>(
+                StringComparer.OrdinalIgnoreCase);
 
             foreach (PropertyInfo property in type.GetProperties())
             {
@@ -125,9 +123,8 @@ namespace HotChocolate.Internal
 
         public static Dictionary<string, MemberInfo> GetMembers(Type type)
         {
-            Dictionary<string, MemberInfo> members =
-                new Dictionary<string, MemberInfo>(
-                    StringComparer.OrdinalIgnoreCase);
+            var members = new Dictionary<string, MemberInfo>(
+                StringComparer.OrdinalIgnoreCase);
 
             foreach (PropertyInfo property in type.GetProperties())
             {

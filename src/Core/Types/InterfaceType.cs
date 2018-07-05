@@ -52,7 +52,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            InterfaceTypeDescriptor descriptor = new InterfaceTypeDescriptor();
+            var descriptor = new InterfaceTypeDescriptor();
             configure(descriptor);
             return descriptor.CreateDescription();
         }

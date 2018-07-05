@@ -39,9 +39,9 @@ namespace HotChocolate.Types
                     .GetCustomAttribute<GraphQLLiteralParserAttribute>().Type;
                 if (typeof(ILiteralParser).IsAssignableFrom(parserType))
                 {
-                    ILiteralParser parser = (ILiteralParser)Activator
+                    var parser = (ILiteralParser)Activator
                         .CreateInstance(parserType);
-                    deserializer = literal => parser.ParseLiteral(literal);
+                    deserializer = parser.ParseLiteral;
                     return true;
                 }
                 else

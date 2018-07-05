@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types
 {
     public class TypeBase
@@ -8,8 +6,6 @@ namespace HotChocolate.Types
     {
         public TypeBase(TypeKind kind)
         {
-
-
             Kind = kind;
         }
 

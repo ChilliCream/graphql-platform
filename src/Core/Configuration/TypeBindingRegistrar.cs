@@ -47,8 +47,7 @@ namespace HotChocolate.Configuration
         private Dictionary<ObjectType, ObjectTypeBinding> CreateObjectTypeBindings(
             ITypeRegistry typeRegistry)
         {
-            Dictionary<ObjectType, ObjectTypeBinding> typeBindings =
-                new Dictionary<ObjectType, ObjectTypeBinding>();
+            var typeBindings = new Dictionary<ObjectType, ObjectTypeBinding>();
 
             foreach (TypeBindingInfo typeBindingInfo in _typeBindings)
             {
@@ -58,7 +57,7 @@ namespace HotChocolate.Configuration
                 }
 
                 IEnumerable<FieldBinding> fieldBindings = null;
-                if (typeRegistry.TryGetType<ObjectType>(
+                if (typeRegistry.TryGetType(
                     typeBindingInfo.Name, out ObjectType ot))
                 {
                     fieldBindings = CreateFieldBindings(typeBindingInfo, ot.Fields);
@@ -72,10 +71,9 @@ namespace HotChocolate.Configuration
 
         private IEnumerable<FieldBinding> CreateFieldBindings(
             TypeBindingInfo typeBindingInfo,
-            IReadOnlyDictionary<string, Field> fields)
+            FieldCollection<ObjectField> fields)
         {
-            Dictionary<string, FieldBinding> fieldBindings =
-                new Dictionary<string, FieldBinding>();
+            var fieldBindings = new Dictionary<string, FieldBinding>();
 
             // create explicit field bindings
             foreach (FieldBindingInfo fieldBindingInfo in
@@ -86,7 +84,7 @@ namespace HotChocolate.Configuration
                     fieldBindingInfo.Name = fieldBindingInfo.Member.GetGraphQLName();
                 }
 
-                if (fields.TryGetValue(fieldBindingInfo.Name, out Field field))
+                if (fields.TryGetField(fieldBindingInfo.Name, out ObjectField field))
                 {
                     fieldBindings[field.Name] = new FieldBinding(
                         fieldBindingInfo.Name, fieldBindingInfo.Member, field);
@@ -98,7 +96,8 @@ namespace HotChocolate.Configuration
             {
                 Dictionary<string, MemberInfo> members =
                     ReflectionUtils.GetMembers(typeBindingInfo.Type);
-                foreach (Field field in fields.Values
+                
+                foreach (ObjectField field in fields
                     .Where(t => !fieldBindings.ContainsKey(t.Name)))
                 {
                     if (members.TryGetValue(field.Name, out MemberInfo member))
@@ -119,7 +118,7 @@ namespace HotChocolate.Configuration
         private Dictionary<InputObjectType, InputObjectTypeBinding> CreateInputObjectTypeBindings(
             ITypeRegistry typeRegistry)
         {
-            Dictionary<InputObjectType, InputObjectTypeBinding> typeBindings =
+            var typeBindings = 
                 new Dictionary<InputObjectType, InputObjectTypeBinding>();
 
             foreach (TypeBindingInfo typeBindingInfo in _typeBindings)
@@ -130,8 +129,8 @@ namespace HotChocolate.Configuration
                 }
 
                 IEnumerable<InputFieldBinding> fieldBindings = null;
-                if (typeRegistry.TryGetType<InputObjectType>(
-                    typeBindingInfo.Name, out InputObjectType iot))
+                if (typeRegistry.TryGetType(typeBindingInfo.Name,
+                    out InputObjectType iot))
                 {
                     fieldBindings = CreateInputFieldBindings(typeBindingInfo, iot.Fields);
                     typeBindings[iot] = new InputObjectTypeBinding(iot.Name,
@@ -144,10 +143,9 @@ namespace HotChocolate.Configuration
 
         private IEnumerable<InputFieldBinding> CreateInputFieldBindings(
             TypeBindingInfo typeBindingInfo,
-            IReadOnlyDictionary<string, InputField> fields)
+            FieldCollection<InputField> fields)
         {
-            Dictionary<string, InputFieldBinding> fieldBindings =
-                new Dictionary<string, InputFieldBinding>();
+            var fieldBindings = new Dictionary<string, InputFieldBinding>();
 
             // create explicit field bindings
             foreach (FieldBindingInfo fieldBindingInfo in
@@ -158,7 +156,7 @@ namespace HotChocolate.Configuration
                     fieldBindingInfo.Name = fieldBindingInfo.Member.GetGraphQLName();
                 }
 
-                if (fields.TryGetValue(fieldBindingInfo.Name, out InputField field))
+                if (fields.TryGetField(fieldBindingInfo.Name, out InputField field))
                 {
                     if (fieldBindingInfo.Member is PropertyInfo p)
                     {
@@ -174,7 +172,7 @@ namespace HotChocolate.Configuration
             {
                 Dictionary<string, PropertyInfo> properties =
                     ReflectionUtils.GetProperties(typeBindingInfo.Type);
-                foreach (InputField field in fields.Values
+                foreach (InputField field in fields
                     .Where(t => !fieldBindings.ContainsKey(t.Name)))
                 {
                     if (properties.TryGetValue(field.Name,

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -13,16 +11,15 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal const string FullClassName = Namespace + "." + ClassName;
 
         private static readonly SourceCodeGenerator[] _generators =
-            new SourceCodeGenerator[]
-            {
-                new AsyncResolverMethodGenerator(),
-                new SyncResolverMethodGenerator(),
-                new ResolverPropertyGenerator(),
+        {
+            new AsyncResolverMethodGenerator(),
+            new SyncResolverMethodGenerator(),
+            new ResolverPropertyGenerator(),
 
-                new AsyncSourceMethodGenerator(),
-                new SyncSourceMethodGenerator(),
-                new SourcePropertyGenerator()
-            };
+            new AsyncSourceMethodGenerator(),
+            new SyncSourceMethodGenerator(),
+            new SourcePropertyGenerator()
+        };
 
         public string Generate(IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
         {
@@ -32,7 +29,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private string GenerateClass(
             IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
         {
-            StringBuilder source = new StringBuilder();
+            var source = new StringBuilder();
 
             source.AppendLine("using System;");
             source.AppendLine("using System.Collections.Generic;");
@@ -60,7 +57,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors,
             StringBuilder source)
         {
-            int i = 0;
+            var i = 0;
             foreach (FieldResolverDescriptor resolverDescriptor in
                 fieldResolverDescriptors)
             {

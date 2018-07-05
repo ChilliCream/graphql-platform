@@ -14,7 +14,8 @@ namespace HotChocolate.Types
             }
         }
 
-        void INeedsInitialization.RegisterDependencies(ITypeInitializationContext context)
+        void INeedsInitialization.RegisterDependencies(
+            ITypeInitializationContext context)
         {
             RegisterDependencies(context);
         }
@@ -34,7 +35,8 @@ namespace HotChocolate.Types
             }
         }
 
-        void INeedsInitialization.CompleteType(ITypeInitializationContext context)
+        void INeedsInitialization.CompleteType(
+            ITypeInitializationContext context)
         {
             CompleteType(context);
         }

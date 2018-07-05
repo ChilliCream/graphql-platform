@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -11,7 +8,7 @@ namespace HotChocolate.Types
         : FieldBase<IInputType>
         , IInputField
     {
-        private object _nativeDefaultValue;
+        private readonly object _nativeDefaultValue;
 
         internal InputField(ArgumentDescription argumentDescription)
             : base(argumentDescription)

@@ -273,7 +273,7 @@ namespace HotChocolate.Execution
 
         private object ExecuteFieldResolver(
             IResolverContext resolverContext,
-            Field field,
+            ObjectField field,
             FieldNode fieldSelection,
             CancellationToken cancellationToken)
         {

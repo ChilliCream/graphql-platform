@@ -12,7 +12,7 @@ namespace HotChocolate.Types
 
         public Type NativeType { get; set; }
 
-        protected List<EnumValueDescription> Items { get; set; } =
+        public List<EnumValueDescription> Values { get; set; } =
             new List<EnumValueDescription>();
 
         public BindingBehavior ValueBindingBehavior { get; set; }

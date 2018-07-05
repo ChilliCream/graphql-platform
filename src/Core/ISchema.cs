@@ -73,9 +73,9 @@ namespace HotChocolate
         bool TryGetNativeType(string typeName, out Type nativeType);
 
 
-        Field GetField(INamedType namedType, string name);
+        // IOutputType GetField(INamedType namedType, string name);
 
-        bool TryGetField(INamedType namedType, string name, out Field field);
+        bool TryGetField(INamedType namedType, string name, out IOutputType field);
 
 
         IReadOnlyCollection<ObjectType> GetPossibleTypes(

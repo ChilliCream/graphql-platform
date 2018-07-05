@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
@@ -69,20 +70,31 @@ namespace HotChocolate.Resolvers
                 return FieldResolverArgumentKind.ObjectType;
             }
 
-            if (argumentType == typeof(Field))
+            if (argumentType == typeof(ObjectField))
             {
                 return FieldResolverArgumentKind.Field;
             }
 
-             if (argumentType == typeof(CancellationToken))
+            if (argumentType == typeof(CancellationToken))
             {
                 return FieldResolverArgumentKind.CancellationToken;
             }
 
-            // TODO:
-            // QueryDocument,
-            // OperationDefinition,
-            // FieldSelection,
+            if (argumentType == typeof(DocumentNode))
+            {
+                return FieldResolverArgumentKind.QueryDocument;
+            }
+
+            if (argumentType == typeof(OperationDefinitionNode))
+            {
+                return FieldResolverArgumentKind.OperationDefinition;
+            }
+
+            if (argumentType == typeof(FieldNode))
+            {
+                return FieldResolverArgumentKind.Field;
+            }
+
             // Service -> Attribute
 
             return FieldResolverArgumentKind.Argument;

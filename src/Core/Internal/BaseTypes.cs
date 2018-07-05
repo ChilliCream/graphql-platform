@@ -7,7 +7,7 @@ namespace HotChocolate.Internal
 {
     internal static class BaseTypes
     {
-        private static HashSet<Type> _baseTypes = new HashSet<Type>
+        private static readonly HashSet<Type> _baseTypes = new HashSet<Type>
         {
             typeof(ScalarType),
             typeof(InputObjectType),

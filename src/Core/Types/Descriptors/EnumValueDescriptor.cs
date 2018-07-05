@@ -19,7 +19,7 @@ namespace HotChocolate.Types
             ValueDescription.Value = value;
         }
 
-        public EnumValueDescription ValueDescription { get; } =
+        protected EnumValueDescription ValueDescription { get; } =
             new EnumValueDescription();
 
         public EnumValueDescription CreateDescription()

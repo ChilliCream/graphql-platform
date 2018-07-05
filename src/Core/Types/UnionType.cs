@@ -53,7 +53,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            UnionTypeDescriptor descriptor = new UnionTypeDescriptor(GetType());
+            var descriptor = new UnionTypeDescriptor(GetType());
             configure(descriptor);
 
             UnionTypeDescription description = descriptor.CreateDescription();

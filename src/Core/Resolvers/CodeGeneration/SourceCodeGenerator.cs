@@ -15,7 +15,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string resolverName,
             FieldResolverDescriptor resolverDescriptor)
         {
-            StringBuilder source = new StringBuilder();
+            var source = new StringBuilder();
             source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
             source.Append(resolverName);
