@@ -74,8 +74,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            InterfaceFieldDescriptor fieldDescriptor =
-                new InterfaceFieldDescriptor(name);
+            var fieldDescriptor = new InterfaceFieldDescriptor(name);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -83,12 +82,8 @@ namespace HotChocolate.Types
         protected void ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            if (resolveAbstractType == null)
-            {
-                throw new ArgumentNullException(nameof(resolveAbstractType));
-            }
-
-            ObjectDescription.ResolveAbstractType = resolveAbstractType;
+            ObjectDescription.ResolveAbstractType = resolveAbstractType
+                ?? throw new ArgumentNullException(nameof(resolveAbstractType));
         }
 
         #region IObjectTypeDescriptor<T>

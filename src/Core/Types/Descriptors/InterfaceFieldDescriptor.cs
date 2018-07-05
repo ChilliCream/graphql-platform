@@ -94,7 +94,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
+            var descriptor = new ArgumentDescriptor(name);
             argument(descriptor);
             FieldDescription.Arguments.Add(descriptor.CreateDescription());
         }

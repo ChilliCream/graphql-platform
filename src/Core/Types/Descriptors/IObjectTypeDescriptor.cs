@@ -127,6 +127,7 @@ namespace HotChocolate.Types
         /// <typeparamref name="T"/> that shall represent a
         /// <see cref="ObjectType"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> propertyOrMethod);
     }
 }

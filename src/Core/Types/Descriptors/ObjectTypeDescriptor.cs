@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -50,8 +49,7 @@ namespace HotChocolate.Types
 
         protected virtual void CompleteFields()
         {
-            Dictionary<string, ObjectFieldDescription> fields =
-                new Dictionary<string, ObjectFieldDescription>();
+            var fields = new Dictionary<string, ObjectFieldDescription>();
 
             foreach (ObjectFieldDescriptor fieldDescriptor in Fields)
             {
@@ -116,12 +114,8 @@ namespace HotChocolate.Types
 
         protected void IsOfType(IsOfType isOfType)
         {
-            if (isOfType == null)
-            {
-                throw new ArgumentNullException(nameof(isOfType));
-            }
-
-            ObjectDescription.IsOfType = isOfType;
+            ObjectDescription.IsOfType = isOfType
+                ?? throw new ArgumentNullException(nameof(isOfType));
         }
 
         protected ObjectFieldDescriptor Field(string name)
@@ -140,8 +134,8 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            ObjectFieldDescriptor fieldDescriptor =
-                new ObjectFieldDescriptor(ObjectDescription.Name, name);
+            var fieldDescriptor = new ObjectFieldDescriptor(
+                ObjectDescription.Name, name);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -219,7 +213,7 @@ namespace HotChocolate.Types
             MemberInfo member = methodOrProperty.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                ObjectFieldDescriptor fieldDescriptor = new ObjectFieldDescriptor(
+                var fieldDescriptor = new ObjectFieldDescriptor(
                     ObjectDescription.Name, member, typeof(TValue));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
@@ -234,9 +228,8 @@ namespace HotChocolate.Types
         {
             base.CompleteFields();
 
-            Dictionary<string, ObjectFieldDescription> descriptions =
-                new Dictionary<string, ObjectFieldDescription>();
-            List<MemberInfo> handledMembers = new List<MemberInfo>();
+            var descriptions = new Dictionary<string, ObjectFieldDescription>();
+            var handledMembers = new List<MemberInfo>();
 
             AddExplicitFields(descriptions, handledMembers);
 
@@ -294,9 +287,8 @@ namespace HotChocolate.Types
                     Type returnType = member.Key.GetReturnType();
                     if (returnType != null)
                     {
-                        ObjectFieldDescriptor fieldDescriptor =
-                            new ObjectFieldDescriptor(
-                                ObjectDescription.Name, member.Key, returnType);
+                        var fieldDescriptor = new ObjectFieldDescriptor(
+                            ObjectDescription.Name, member.Key, returnType);
 
                         descriptors[member.Value] = fieldDescriptor
                             .CreateDescription();
@@ -307,8 +299,7 @@ namespace HotChocolate.Types
 
         private static Dictionary<MemberInfo, string> GetMembers(Type type)
         {
-            Dictionary<MemberInfo, string> members =
-                new Dictionary<MemberInfo, string>();
+            var members = new Dictionary<MemberInfo, string>();
 
             foreach (PropertyInfo property in type.GetProperties(
                 BindingFlags.Instance | BindingFlags.Public)
@@ -361,7 +352,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
         {
-            return Field<TValue>(methodOrProperty);
+            return Field(methodOrProperty);
         }
 
         #endregion

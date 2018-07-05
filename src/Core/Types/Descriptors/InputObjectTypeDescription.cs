@@ -6,12 +6,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InputObjectTypeDescription
+        : TypeDescriptionBase
     {
         public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
 
         public Type NativeType { get; set; }
 
