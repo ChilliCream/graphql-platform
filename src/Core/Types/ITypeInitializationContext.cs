@@ -14,7 +14,7 @@ namespace HotChocolate.Types
 
         void RegisterType(TypeReference typeReference);
 
-        void RegisterResolver(string fieldName, MemberInfo member);
+        void RegisterResolver(string fieldName, MemberInfo fieldMember);
 
         FieldResolverDelegate GetResolver(string fieldName);
 
@@ -23,9 +23,9 @@ namespace HotChocolate.Types
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
 
-        bool TryGetNativeType(INamedType type, out Type nativeType);
+        bool TryGetNativeType(INamedType namedType, out Type nativeType);
 
-        bool TryGetProperty<T>(INamedType type, out T member)
+        bool TryGetProperty<T>(INamedType namedType, string fieldName, out T member)
             where T : MemberInfo;
 
         void ReportError(SchemaError error);

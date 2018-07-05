@@ -43,7 +43,7 @@ namespace HotChocolate.Types
 
                 if (context.Type is InputObjectType
                     && Property == null
-                    && context.TryGetProperty(context.Type, out PropertyInfo property))
+                    && context.TryGetProperty(context.Type, Name, out PropertyInfo property))
                 {
                     Property = property;
                 }

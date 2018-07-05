@@ -32,10 +32,14 @@ namespace HotChocolate.Configuration
 
             // complete types
             List<SchemaError> errors = new List<SchemaError>();
-            foreach (INeedsInitialization initializer in _typeRegistry.GetTypes()
-                .OfType<INeedsInitialization>())
+            foreach (INamedType namedType in _typeRegistry.GetTypes())
             {
-                initializer.CompleteType(this, e => errors.Add(e));
+                if (namedType is INeedsInitialization init)
+                {
+                    var initializationContext = new TypeInitializationContext(
+                        this, e => errors.Add(e), namedType);
+                    init.CompleteType(initializationContext);
+                }
             }
             return errors;
         }

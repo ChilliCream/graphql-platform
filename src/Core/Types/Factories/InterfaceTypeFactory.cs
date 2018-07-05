@@ -16,20 +16,17 @@ namespace HotChocolate.Types.Factories
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
-                DeclareFields(d,
-                    node.Name.Value,
-                    node.Fields);
+                DeclareFields(d, node.Fields);
             });
         }
 
         private void DeclareFields(
             IInterfaceTypeDescriptor typeDescriptor,
-            string typeName,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
             foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
             {
-                IObjectFieldDescriptor fieldDescriptor = typeDescriptor
+                IInterfaceFieldDescriptor fieldDescriptor = typeDescriptor
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
@@ -40,7 +37,7 @@ namespace HotChocolate.Types.Factories
         }
 
         private void DeclareFieldArguments(
-            IObjectFieldDescriptor fieldDescriptor,
+            IInterfaceFieldDescriptor fieldDescriptor,
             FieldDefinitionNode fieldDefinition)
         {
             foreach (InputValueDefinitionNode inputFieldDefinition in
