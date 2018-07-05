@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -43,13 +41,9 @@ namespace HotChocolate.Types
         public ObjectFieldDescriptor(string typeName, MemberInfo member, Type nativeFieldType)
             : base(new ObjectFieldDescription())
         {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
             _typeName = typeName;
-            FieldDescription.Member = member;
+            FieldDescription.Member = member
+                ?? throw new ArgumentNullException(nameof(member));
             FieldDescription.Name = member.GetGraphQLName();
             FieldDescription.TypeReference = new TypeReference(nativeFieldType);
         }
@@ -91,8 +85,7 @@ namespace HotChocolate.Types
 
         private IEnumerable<ArgumentDescription> CreateArguments()
         {
-            Dictionary<string, ArgumentDescription> descriptions =
-                new Dictionary<string, ArgumentDescription>();
+            var descriptions = new Dictionary<string, ArgumentDescription>();
 
             foreach (ArgumentDescription descriptor in FieldDescription.Arguments)
             {
@@ -107,7 +100,7 @@ namespace HotChocolate.Types
                     if (!descriptions.ContainsKey(argumentName)
                         && IsArgumentType(parameter.ParameterType))
                     {
-                        ArgumentDescriptor argumentDescriptor =
+                        var argumentDescriptor =
                             new ArgumentDescriptor(argumentName,
                                 parameter.ParameterType);
                         descriptions[argumentName] = argumentDescriptor
