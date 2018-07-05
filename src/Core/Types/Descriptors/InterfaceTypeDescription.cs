@@ -4,12 +4,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InterfaceTypeDescription
+        : TypeDescriptionBase
     {
         public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
 
         public ResolveAbstractType ResolveAbstractType { get; set; }
 

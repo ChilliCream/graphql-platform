@@ -8,23 +8,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InputField
-        : FieldBase
+        : FieldBase<IInputType>
         , IInputField
     {
-        private readonly TypeReference _typeReference;
         private object _nativeDefaultValue;
 
         internal InputField(ArgumentDescription argumentDescription)
-            : base(argumentDescription?.Name, argumentDescription?.Description)
+            : base(argumentDescription)
         {
-            if (argumentDescription == null)
-            {
-                throw new ArgumentNullException(nameof(argumentDescription));
-            }
-
-            _typeReference = argumentDescription.TypeReference;
             _nativeDefaultValue = argumentDescription.NativeDefaultValue;
-
             SyntaxNode = argumentDescription.SyntaxNode;
             DefaultValue = argumentDescription.DefaultValue;
         }
@@ -37,31 +29,17 @@ namespace HotChocolate.Types
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
-        public IInputType Type { get; private set; }
-
         public IValueNode DefaultValue { get; private set; }
 
         public PropertyInfo Property { get; private set; }
 
         #region Initialization
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
-        {
-            base.OnRegisterDependencies(context);
-
-            if (_typeReference != null)
-            {
-                context.RegisterType(_typeReference);
-            }
-        }
-
         protected override void OnCompleteType(
             ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
 
-            Type = context.ResolveFieldType<IInputType>(this, _typeReference);
             if (Type != null)
             {
                 CompleteDefaultValue(context, Type);

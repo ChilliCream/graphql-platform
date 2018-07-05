@@ -4,14 +4,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InterfaceFieldDescription
+        : FieldDescriptionBase
     {
         public FieldDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
-
-        public TypeReference TypeReference { get; set; }
 
         public string DeprecationReason { get; set; }
 

@@ -8,9 +8,8 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : IComplexOutputType
-        , INeedsInitialization
-
+        : TypeBase
+        , IComplexOutputType
     {
         private ResolveAbstractType _resolveAbstractType;
 
@@ -24,21 +23,26 @@ namespace HotChocolate.Types
         {
         }
 
-        internal InterfaceType(InterfaceTypeDescription interfaceTypeDescription)
+        internal InterfaceType(InterfaceTypeDescription description)
+            : base(TypeKind.InputObject)
         {
-            if (string.IsNullOrEmpty(interfaceTypeDescription.Name))
+            if (description == null)
             {
-                throw new ArgumentException(
-                    "The type name must not be null or empty.");
+                throw new ArgumentNullException(nameof(description));
             }
 
-            _resolveAbstractType = interfaceTypeDescription.ResolveAbstractType;
+            if (string.IsNullOrEmpty(description.Name))
+            {
+                throw new ArgumentException(
+                    "The name of named types mustn't be null or empty.");
+            }
 
-            SyntaxNode = interfaceTypeDescription.SyntaxNode;
-            Name = interfaceTypeDescription.Name;
-            Description = interfaceTypeDescription.Description;
+            _resolveAbstractType = description.ResolveAbstractType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
             Fields = new FieldCollection<InterfaceField>(
-                interfaceTypeDescription.Fields.Select(t => new InterfaceField(t)));
+                description.Fields.Select(t => new InterfaceField(t)));
         }
 
         private static InterfaceTypeDescription ExecuteConfigure(
@@ -53,8 +57,6 @@ namespace HotChocolate.Types
             configure(descriptor);
             return descriptor.CreateDescription();
         }
-
-        public TypeKind Kind { get; } = TypeKind.Interface;
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; }
 
@@ -84,46 +86,45 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+
+        protected override void OnRegisterDependencies(ITypeInitializationContext context)
         {
-            foreach (InterfaceField field in Fields)
+            base.OnRegisterDependencies(context);
+
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.RegisterDependencies(schemaContext, reportError, this);
+                field.RegisterDependencies(context);
             }
         }
 
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(ITypeInitializationContext context)
         {
-            CompleteAbstractTypeResolver(schemaContext.Types);
+            base.OnCompleteType(context);
 
-            foreach (InterfaceField field in Fields)
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.CompleteField(schemaContext, reportError, this);
+                field.CompleteType(context);
             }
 
-            // TODO : report error that fields are empty
+            CompleteAbstractTypeResolver(context);
         }
+
 
         private void CompleteAbstractTypeResolver(
-            ITypeRegistry typeRegistry)
+            ITypeInitializationContext context)
         {
             if (_resolveAbstractType == null)
             {
                 // if there is now custom type resolver we will use this default
                 // abstract type resolver.
-                List<ObjectType> types = null;
+                IReadOnlyCollection<ObjectType> types = null;
                 _resolveAbstractType = (c, r) =>
                 {
                     if (types == null)
                     {
-                        types = typeRegistry.GetTypes()
-                            .OfType<ObjectType>()
-                            .Where(t => t.Interfaces.ContainsKey(Name))
-                            .ToList();
+                        types = context.GetPossibleTypes(this);
                     }
 
                     foreach (ObjectType type in types)

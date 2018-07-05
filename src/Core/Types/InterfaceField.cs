@@ -6,10 +6,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class InterfaceField
-        : IOutputField
+        : FieldBase<IOutputType>
+        , IOutputField
     {
-        private TypeReference _typeReference;
-
         internal InterfaceField(Action<IInterfaceFieldDescriptor> configure)
             : this(() => ExecuteConfigure(configure))
         {
@@ -21,17 +20,9 @@ namespace HotChocolate.Types
         }
 
         internal InterfaceField(InterfaceFieldDescription fieldDescription)
+            : base(fieldDescription)
         {
-            if (fieldDescription == null)
-            {
-                throw new ArgumentNullException(nameof(fieldDescription));
-            }
-
-            _typeReference = fieldDescription.TypeReference;
-
             SyntaxNode = fieldDescription.SyntaxNode;
-            Name = fieldDescription.Name;
-            Description = fieldDescription.Description;
             Arguments = new FieldCollection<InputField>(
                 fieldDescription.Arguments.Select(t => new InputField(t)));
             IsDeprecated = !string.IsNullOrEmpty(fieldDescription.DeprecationReason);
@@ -53,14 +44,6 @@ namespace HotChocolate.Types
 
         public FieldDefinitionNode SyntaxNode { get; }
 
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public INamedType DeclaringType { get; private set; }
-
-        public IOutputType Type { get; private set; }
-
         public IFieldCollection<InputField> Arguments { get; }
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
@@ -69,67 +52,27 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; }
 
-        protected bool IsCompleted { get; private set; }
-
-        protected void Complete()
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
-            IsCompleted = true;
-        }
+            base.OnRegisterDependencies(context);
 
-        internal void RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            if (!IsCompleted)
+            foreach (INeedsInitialization argument in Arguments
+                .Cast<INeedsInitialization>())
             {
-                OnRegisterDependencies(schemaContext, reportError, parentType);
+                argument.RegisterDependencies(context);
             }
         }
 
-        internal virtual void OnRegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            if (_typeReference != null)
-            {
-                schemaContext.Types.RegisterType(_typeReference);
-            }
+            base.OnCompleteType(context);
 
-            foreach (InputField argument in Arguments)
+            foreach (INeedsInitialization argument in Arguments
+                .Cast<INeedsInitialization>())
             {
-                argument.RegisterDependencies(
-                    schemaContext.Types, reportError, parentType);
-            }
-        }
-
-        internal void CompleteField(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            if (!IsCompleted)
-            {
-                OnCompleteField(schemaContext, reportError, parentType);
-                Complete();
-            }
-        }
-
-        internal virtual void OnCompleteField(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            DeclaringType = parentType;
-            Type = this.ResolveFieldType<IOutputType>(
-                schemaContext.Types,
-                reportError, _typeReference);
-
-            foreach (InputField argument in Arguments)
-            {
-                argument.CompleteInputField(
-                    schemaContext.Types, reportError, parentType);
+                argument.CompleteType(context);
             }
         }
     }

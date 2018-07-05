@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 
@@ -39,6 +40,9 @@ namespace HotChocolate.Types
         void RegisterType(TypeReference typeReference);
 
         T GetType<T>(TypeReference typeReference) where T : IType;
+
+        IReadOnlyCollection<ObjectType> GetPossibleTypes(
+            INamedType abstractType);
 
         bool TryGetNativeType(INamedType type, out Type nativeType);
 

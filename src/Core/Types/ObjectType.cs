@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -13,28 +9,27 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class ObjectType
-        : IComplexOutputType
-        , INeedsInitialization
+        : TypeBase
+        , IComplexOutputType
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
-        private FieldCollection<Field> _fields;
         private IsOfType _isOfType;
-        private ImmutableList<TypeReference> _interfaces;
+        private List<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
         private bool _completed;
 
         protected ObjectType()
+            : base(TypeKind.Object)
         {
             Initialize(Configure);
         }
 
         public ObjectType(Action<IObjectTypeDescriptor> configure)
+            : base(TypeKind.Object)
         {
             Initialize(configure);
         }
-
-        public TypeKind Kind { get; } = TypeKind.Object;
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -42,13 +37,11 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        internal bool IsIntrospection { get; private set; }
-
         public IReadOnlyDictionary<string, InterfaceType> Interfaces => _interfaceMap;
 
-        public IFieldCollection<Field> Fields { get; }
+        public FieldCollection<ObjectField> Fields { get; }
 
-
+        IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
@@ -73,48 +66,40 @@ namespace HotChocolate.Types
 
             ObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
-            Initialize(descriptor);
+
+            ObjectTypeDescription description = descriptor.CreateDescription();
+            InitializeFields(description);
+
+            _isOfType = description.IsOfType;
+            _interfaces = description.Interfaces;
+
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
         }
 
-        private void Initialize(ObjectTypeDescriptor descriptor)
-        {
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "The type name must not be null or empty.");
-            }
-
-            InitializeFields(descriptor);
-
-            _isOfType = descriptor.IsOfType;
-            _interfaces = descriptor.Interfaces;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            IsIntrospection = descriptor.IsIntrospection;
-        }
-
-        private void InitializeFields(ObjectTypeDescriptor descriptor)
+        private void InitializeFields(ObjectTypeDescription description)
         {
             List<FieldBinding> fieldBindings = new List<FieldBinding>();
-            foreach (ObjectFieldDescriptor fieldDescriptor in descriptor
-                .GetFieldDescriptors())
-            {
-                Field field = new Field(fieldDescriptor);
-                _fields[fieldDescriptor.Name] = field;
+            List<ObjectField> fields = new List<ObjectField>();
 
-                if (fieldDescriptor.Member != null)
+            foreach (ObjectFieldDescription fieldDescription in description.Fields)
+            {
+                ObjectField field = new ObjectField(fieldDescription);
+                fields.Add(field);
+
+                if (fieldDescription.Member != null)
                 {
                     fieldBindings.Add(new FieldBinding(
-                        fieldDescriptor.Name, fieldDescriptor.Member, field));
+                        field.Name, fieldDescription.Member, field));
                 }
             }
 
-            if (descriptor.NativeType != null)
+            if (description.NativeType != null)
             {
                 _typeBinding = new ObjectTypeBinding(
-                    descriptor.Name, descriptor.NativeType, this, fieldBindings);
+                    description.Name, description.NativeType, 
+                    this, fieldBindings);
             }
         }
 
