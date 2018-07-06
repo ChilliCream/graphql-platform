@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration
                 if (namedType is INeedsInitialization init)
                 {
                     var initializationContext = new TypeInitializationContext(
-                        this, e => errors.Add(e), namedType);
+                        this, e => errors.Add(e), namedType, false);
                     init.CompleteType(initializationContext);
                 }
             }

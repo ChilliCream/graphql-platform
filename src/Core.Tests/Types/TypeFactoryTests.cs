@@ -36,14 +36,14 @@ namespace HotChocolate.Types
             schemaContext.Types.RegisterType(objectType);
 
             var initializationContext = new TypeInitializationContext(
-                schemaContext, error => { }, objectType);
+                schemaContext, error => { }, objectType, false);
             ((INeedsInitialization)objectType)
                 .RegisterDependencies(initializationContext);
             schemaContext.CompleteTypes();
 
             // assert
             Assert.Equal("Simple", objectType.Name);
-            Assert.Equal(2, objectType.Fields.Count);
+            Assert.Equal(3, objectType.Fields.Count);
             Assert.True(objectType.Fields.ContainsField("a"));
             Assert.True(objectType.Fields.ContainsField("b"));
             Assert.False(objectType.Fields["a"].Type.IsNonNullType());
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
             configuration.RegisterType(unionType);
 
             var typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(context);
+            typeFinalizer.FinalizeTypes(context, null);
 
             // assert
             Assert.Equal("X", unionType.Name);

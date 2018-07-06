@@ -10,6 +10,8 @@ namespace HotChocolate.Types
     {
         INamedType Type { get; }
 
+        bool IsQueryType { get; }
+
         void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
 
         void RegisterType(TypeReference typeReference);

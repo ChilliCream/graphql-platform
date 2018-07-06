@@ -45,7 +45,7 @@ namespace HotChocolate
             SchemaContext context = CreateSchemaContext();
 
             // deserialize schema objects
-            SchemaSyntaxVisitor visitor = new SchemaSyntaxVisitor(context.Types);
+            var visitor = new SchemaSyntaxVisitor(context.Types);
             visitor.Visit(schemaDocument);
 
             return CreateSchema(context, c =>
@@ -74,11 +74,7 @@ namespace HotChocolate
             SchemaContext context,
             Action<ISchemaConfiguration> configure)
         {
-            List<SchemaError> errors = new List<SchemaError>();
-
-            // setup introspection fields
-            IntrospectionFields introspectionFields =
-                new IntrospectionFields(context, e => errors.Add(e));
+            var errors = new List<SchemaError>();
 
             IReadOnlySchemaOptions options = ExecuteSchemaConfiguration(
                 context, configure, errors);
@@ -102,8 +98,7 @@ namespace HotChocolate
                     context.Types.GetTypes(),
                     context.Types.GetTypeBindings(),
                     options),
-                options,
-                introspectionFields);
+                options);
         }
 
         private static IReadOnlySchemaOptions ExecuteSchemaConfiguration(
@@ -114,16 +109,17 @@ namespace HotChocolate
             try
             {
                 // configure resolvers, custom types and type mappings.
-                SchemaConfiguration configuration = new SchemaConfiguration(
+                var configuration = new SchemaConfiguration(
                     context.ServiceManager.RegisterServiceProvider,
                     context.Types);
                 configure(configuration);
+                var options = new ReadOnlySchemaOptions(configuration.Options);
 
-                TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-                typeFinalizer.FinalizeTypes(context);
+                var typeFinalizer = new TypeFinalizer(configuration);
+                typeFinalizer.FinalizeTypes(context, options.QueryTypeName);
                 errors.AddRange(typeFinalizer.Errors);
 
-                return new ReadOnlySchemaOptions(configuration.Options);
+                return options;
             }
             catch (Exception ex)
             {
@@ -136,7 +132,7 @@ namespace HotChocolate
 
         private static SchemaContext CreateSchemaContext()
         {
-            SchemaContext context = new SchemaContext(new ServiceManager());
+            var context = new SchemaContext(new ServiceManager());
 
             RegisterSpecScalarTypes(context);
             RegisterExtendedScalarTypes(context);

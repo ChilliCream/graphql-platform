@@ -18,10 +18,10 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<SchemaError> Errors => _errors;
 
-        public void FinalizeTypes(SchemaContext context)
+        public void FinalizeTypes(SchemaContext context, string queryTypeName)
         {
             // register types and their dependencies
-            RegisterTypes(context);
+            RegisterTypes(context, queryTypeName);
 
             // finalize and register .net type to schema type bindings
             RegisterTypeBindings(context);
@@ -33,11 +33,11 @@ namespace HotChocolate.Configuration
             _errors.AddRange(context.CompleteTypes());
         }
 
-        private void RegisterTypes(ISchemaContext context)
+        private void RegisterTypes(ISchemaContext context, string queryTypeName)
         {
             var typeRegistrar = new TypeRegistrar(
                 context.Types.GetTypes());
-            typeRegistrar.RegisterTypes(context);
+            typeRegistrar.RegisterTypes(context, queryTypeName);
             _errors.AddRange(typeRegistrar.Errors);
         }
 

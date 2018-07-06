@@ -14,22 +14,19 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public partial class Schema
-        : IServiceProvider        
+        : IServiceProvider
     {
         private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
-        private readonly IntrospectionFields _introspectionFields;
 
         private Schema(
             ServiceManager serviceManager,
             SchemaTypes types,
-            IReadOnlySchemaOptions options,
-            IntrospectionFields introspectionFields)
+            IReadOnlySchemaOptions options)
         {
             _serviceManager = serviceManager;
             _types = types;
             Options = options;
-            _introspectionFields = introspectionFields;
         }
 
         /// <summary>
@@ -48,12 +45,6 @@ namespace HotChocolate
         /// subscription operations will be rooted at.
         /// </summary>
         public ObjectType SubscriptionType => _types.SubscriptionType;
-
-        internal __SchemaField SchemaField => _introspectionFields.SchemaField;
-
-        internal __TypeField TypeField => _introspectionFields.TypeField;
-
-        internal __TypeNameField TypeNameField => _introspectionFields.TypeNameField;
 
         public IReadOnlySchemaOptions Options { get; }
 

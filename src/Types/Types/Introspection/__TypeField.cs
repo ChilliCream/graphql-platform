@@ -14,5 +14,7 @@ namespace HotChocolate.Types.Introspection
             })
         {
         }
+
+        public override bool IsIntrospectionField { get; } = true;
     }
 }

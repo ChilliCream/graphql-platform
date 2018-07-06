@@ -14,7 +14,8 @@ namespace HotChocolate.Types
         private readonly Action<SchemaError> _reportError;
 
         public TypeInitializationContext(ISchemaContext schemaContext,
-            Action<SchemaError> reportError, INamedType namedType)
+            Action<SchemaError> reportError, INamedType namedType,
+            bool isQueryType)
         {
             _schemaContext = schemaContext
                 ?? throw new ArgumentNullException(nameof(schemaContext));
@@ -22,9 +23,12 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(reportError));
             Type = namedType
                 ?? throw new ArgumentNullException(nameof(namedType));
+            IsQueryType = isQueryType;
         }
 
         public INamedType Type { get; }
+
+        public bool IsQueryType { get; }
 
         public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
         {

@@ -3,6 +3,8 @@
     public interface IOutputField
        : IField
     {
+        bool IsIntrospectionField { get; }
+
         bool IsDeprecated { get; }
 
         string DeprecationReason { get; }

@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             INeedsInitialization init = fooType;
 
             var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType);
+                schemaContext, a => errors.Add(a), fooType, false);
             init.RegisterDependencies(initializationContext);
             schemaContext.CompleteTypes();
 
@@ -44,7 +44,7 @@ namespace HotChocolate.Types
             INeedsInitialization init = fooType;
 
             var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType);
+                schemaContext, a => errors.Add(a), fooType, false);
             init.RegisterDependencies(initializationContext);
             schemaContext.CompleteTypes();
 

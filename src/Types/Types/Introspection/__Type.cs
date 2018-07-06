@@ -90,9 +90,10 @@ namespace HotChocolate.Types.Introspection
             {
                 if (!includeDeprecated)
                 {
-                    return complexType.Fields.Where(t => !t.IsDeprecated);
+                    return complexType.Fields
+                        .Where(t => !t.IsIntrospectionField && !t.IsDeprecated);
                 }
-                return complexType.Fields;
+                return complexType.Fields.Where(t => !t.IsIntrospectionField);
             }
             return null;
         }

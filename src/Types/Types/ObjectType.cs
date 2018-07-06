@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
@@ -79,19 +80,9 @@ namespace HotChocolate.Types
         private void InitializeFields(ObjectTypeDescription description)
         {
             var fieldBindings = new List<FieldBinding>();
-            var fields = new List<ObjectField>();
+            var fields = new List<ObjectField> { new __TypeNameField() };
 
-            foreach (ObjectFieldDescription fieldDescription in description.Fields)
-            {
-                var field = new ObjectField(fieldDescription);
-                fields.Add(field);
-
-                if (fieldDescription.Member != null)
-                {
-                    fieldBindings.Add(new FieldBinding(
-                        field.Name, fieldDescription.Member, field));
-                }
-            }
+            CreateFieldsAndBindings(description.Fields, fieldBindings, fields);
 
             if (description.NativeType != null)
             {
@@ -103,7 +94,26 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<ObjectField>(fields);
         }
 
-        protected override void OnRegisterDependencies(ITypeInitializationContext context)
+        private void CreateFieldsAndBindings(
+            IEnumerable<ObjectFieldDescription> fieldDescriptions,
+            List<FieldBinding> fieldBindings,
+            List<ObjectField> fields)
+        {
+            foreach (ObjectFieldDescription fieldDescription in fieldDescriptions)
+            {
+                var field = new ObjectField(fieldDescription);
+                fields.Add(field);
+
+                if (fieldDescription.Member != null)
+                {
+                    fieldBindings.Add(new FieldBinding(
+                        field.Name, fieldDescription.Member, field));
+                }
+            }
+        }
+
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
 
@@ -115,14 +125,30 @@ namespace HotChocolate.Types
                 }
             }
 
-            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
-            {
-                field.RegisterDependencies(context);
-            }
+            RegisterFields(context);
 
             if (_typeBinding != null)
             {
                 context.RegisterType(this, _typeBinding);
+            }
+        }
+
+        private void RegisterFields(ITypeInitializationContext context)
+        {
+            if (context.IsQueryType)
+            {
+                var fields = new List<ObjectField>
+                {
+                    new __TypeField(),
+                    new __SchemaField()
+                };
+                fields.AddRange(Fields);
+                Fields = new FieldCollection<ObjectField>(fields);
+            }
+
+            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
+            {
+                field.RegisterDependencies(context);
             }
         }
 

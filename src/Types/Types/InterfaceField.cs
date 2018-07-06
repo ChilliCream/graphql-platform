@@ -47,6 +47,8 @@ namespace HotChocolate.Types
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
+        public virtual bool IsIntrospectionField { get; } = false;
+
         public bool IsDeprecated { get; }
 
         public string DeprecationReason { get; }

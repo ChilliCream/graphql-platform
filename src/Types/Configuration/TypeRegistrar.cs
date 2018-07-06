@@ -26,10 +26,10 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<SchemaError> Errors => _errors;
 
-        public void RegisterTypes(ISchemaContext context)
+        public void RegisterTypes(ISchemaContext context, string queryTypeName)
         {
             RegisterAllTypes(context);
-            RegisterTypeDependencies(context);
+            RegisterTypeDependencies(context, queryTypeName);
         }
 
         private void RegisterAllTypes(ISchemaContext context)
@@ -41,20 +41,27 @@ namespace HotChocolate.Configuration
         }
 
         private void RegisterTypeDependencies(
-            ISchemaContext context)
+            ISchemaContext context, string queryTypeName)
         {
             // register types until there are no new registrations of types.
             while (_queue.Any())
             {
                 // process current batch of types.
-                ProcessBatch(context);
+                ProcessBatch(context, queryTypeName);
 
                 // check if there are new types that have to be processed.
                 EnqueueUnprocessedTypes(context.Types);
             }
+
+            // add missing query type
+            if (queryTypeName != null && !_registered.Contains(queryTypeName))
+            {
+                _queue.Enqueue(new ObjectType(d => d.Name(queryTypeName)));
+                ProcessBatch(context, queryTypeName);
+            }
         }
 
-        private void ProcessBatch(ISchemaContext schemaContext)
+        private void ProcessBatch(ISchemaContext schemaContext, string queryTypeName)
         {
             while (_queue.Any())
             {
@@ -67,8 +74,13 @@ namespace HotChocolate.Configuration
 
                     if (type is INeedsInitialization initializer)
                     {
-                        var initializationContext = new TypeInitializationContext(
-                            schemaContext, e => _errors.Add(e), type);
+                        bool isQueryType = string.Equals(queryTypeName,
+                            type.Name, StringComparison.Ordinal);
+
+                        var initializationContext =
+                            new TypeInitializationContext(schemaContext,
+                                e => _errors.Add(e), type, isQueryType);
+
                         initializer.RegisterDependencies(initializationContext);
                     }
                 }
