@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>HotChocolate.Core</AssemblyName>
+    <AssemblyName>HotChocolate.Types</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
-    <PackageId>HotChocolate</PackageId>
-    <Description>The hot chocolate GraphQL type system and query engine.</Description>
+    <PackageId>HotChocolate.Types</PackageId>
+    <Description>The hot chocolate GraphQL type system.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -23,7 +23,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\Types.csproj" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\Language\Language.csproj" />
   </ItemGroup>
 
 </Project>

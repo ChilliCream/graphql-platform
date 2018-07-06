@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;

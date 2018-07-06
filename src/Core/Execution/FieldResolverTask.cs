@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution

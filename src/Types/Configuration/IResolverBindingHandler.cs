@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Execution;
-
 namespace HotChocolate.Configuration
 {
     // applies the bindings and creates a FieldResolverObjects from the specified binding object

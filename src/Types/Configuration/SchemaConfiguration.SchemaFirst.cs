@@ -1,12 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Execution;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
@@ -20,7 +13,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
 
-            ResolverDelegateBindingInfo bindingInfo =
+            var bindingInfo =
                 new ResolverDelegateBindingInfo
                 {
                     AsyncFieldResolver = fieldResolver
@@ -37,7 +30,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
 
-            ResolverDelegateBindingInfo bindingInfo =
+            var bindingInfo =
                 new ResolverDelegateBindingInfo
                 {
                     FieldResolver = fieldResolver
@@ -50,7 +43,7 @@ namespace HotChocolate.Configuration
             BindingBehavior bindingBehavior)
             where TResolver : class
         {
-            ResolverCollectionBindingInfo bindingInfo =
+            var bindingInfo =
                 new ResolverCollectionBindingInfo
                 {
                     Behavior = bindingBehavior,
@@ -64,7 +57,7 @@ namespace HotChocolate.Configuration
             BindingBehavior bindingBehavior)
             where T : class
         {
-            TypeBindingInfo bindingInfo = new TypeBindingInfo
+            var bindingInfo = new TypeBindingInfo
             {
                 Behavior = bindingBehavior,
                 Type = typeof(T)
