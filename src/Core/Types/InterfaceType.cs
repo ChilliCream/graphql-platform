@@ -1,39 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : INamedType
-        , IOutputType
-        , INullableType
-        , ITypeSystemNode
-        , INeedsInitialization
-        , IHasFields
+        : TypeBase
+        , IComplexOutputType
     {
-        private readonly Dictionary<string, Field> _fieldMap =
-            new Dictionary<string, Field>();
         private ResolveAbstractType _resolveAbstractType;
 
         protected InterfaceType()
+            : base(TypeKind.Interface)
         {
             Initialize(Configure);
         }
 
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
+            : base(TypeKind.Interface)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
             Initialize(configure);
         }
-
-        public TypeKind Kind { get; } = TypeKind.Interface;
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -41,7 +30,9 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        public IReadOnlyDictionary<string, Field> Fields => _fieldMap;
+        public FieldCollection<InterfaceField> Fields { get; private set; }
+
+        IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public ObjectType ResolveType(IResolverContext context, object resolverResult)
         {
@@ -55,15 +46,10 @@ namespace HotChocolate.Types
 
         #region Configuration
 
+        internal virtual InterfaceTypeDescriptor CreateDescriptor() =>
+            new InterfaceTypeDescriptor();
+
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
-
-        #endregion
-
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Fields.Values;
 
         #endregion
 
@@ -71,71 +57,63 @@ namespace HotChocolate.Types
 
         private void Initialize(Action<IInterfaceTypeDescriptor> configure)
         {
-            InterfaceTypeDescriptor descriptor =
-                new InterfaceTypeDescriptor(GetType());
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            InterfaceTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
-            Initialize(descriptor);
+
+            InterfaceTypeDescription description = descriptor.CreateDescription();
+            _resolveAbstractType = description.ResolveAbstractType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            Fields = new FieldCollection<InterfaceField>(
+                description.Fields.Select(t => new InterfaceField(t)));
         }
 
-        private void Initialize(InterfaceTypeDescriptor descriptor)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
-            if (string.IsNullOrEmpty(descriptor.Name))
+            base.OnRegisterDependencies(context);
+
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                throw new ArgumentException(
-                    "The type name must not be null or empty.");
+                field.RegisterDependencies(context);
             }
-
-            foreach (Field field in descriptor.Fields
-                .Select(t => new Field(t)))
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _resolveAbstractType = descriptor.ResolveAbstractType;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
         }
 
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            foreach (Field field in _fieldMap.Values)
+            base.OnCompleteType(context);
+
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.RegisterDependencies(schemaContext, reportError, this);
+                field.CompleteType(context);
             }
+
+            CompleteAbstractTypeResolver(context);
         }
 
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
-        {
-            CompleteAbstractTypeResolver(schemaContext.Types);
-
-            foreach (Field field in _fieldMap.Values)
-            {
-                field.CompleteField(schemaContext, reportError, this);
-            }
-        }
 
         private void CompleteAbstractTypeResolver(
-            ITypeRegistry typeRegistry)
+            ITypeInitializationContext context)
         {
             if (_resolveAbstractType == null)
             {
                 // if there is now custom type resolver we will use this default
                 // abstract type resolver.
-                List<ObjectType> types = null;
+                IReadOnlyCollection<ObjectType> types = null;
                 _resolveAbstractType = (c, r) =>
                 {
                     if (types == null)
                     {
-                        types = typeRegistry.GetTypes()
-                            .OfType<ObjectType>()
-                            .Where(t => t.Interfaces.ContainsKey(Name))
-                            .ToList();
+                        types = context.GetPossibleTypes(this);
                     }
 
                     foreach (ObjectType type in types)

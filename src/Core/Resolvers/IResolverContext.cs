@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,7 +12,7 @@ namespace HotChocolate.Resolvers
 
         ObjectType ObjectType { get; }
 
-        Field Field { get; }
+        ObjectField Field { get; }
 
         // query context
         DocumentNode QueryDocument { get; }

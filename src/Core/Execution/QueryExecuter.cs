@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Validation;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution
@@ -12,20 +13,25 @@ namespace HotChocolate.Execution
     {
         private readonly object _sync = new object();
         private readonly Schema _schema;
+        private readonly QueryValidator _queryValidator;
         private readonly LinkedList<string> _requestRanking = new LinkedList<string>();
         private ImmutableDictionary<string, CachedRequest> _cachedRequests =
             ImmutableDictionary<string, CachedRequest>.Empty;
+        private ImmutableDictionary<string, QueryValidationResult> _validationResults =
+            ImmutableDictionary<string, QueryValidationResult>.Empty;
         private LinkedListNode<string> _first;
 
         public QueryExecuter(Schema schema)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _queryValidator = new QueryValidator(schema);
             CacheSize = 100;
         }
 
         public QueryExecuter(Schema schema, int cacheSize)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _queryValidator = new QueryValidator(schema);
             CacheSize = cacheSize < 0 ? 0 : cacheSize;
         }
 
@@ -122,15 +128,19 @@ namespace HotChocolate.Execution
         private string CreateOperationKey(string query, string operationName)
         {
             // normalize query
-            string normalizedQuery = query
-                .Replace("\r", string.Empty)
-                .Replace("\n", string.Empty);
-
+            string normalizedQuery = NormalizeQuery(query);
             if (operationName == null)
             {
                 return normalizedQuery;
             }
             return $"{operationName}++{query}";
+        }
+
+        private string NormalizeQuery(string query)
+        {
+            return query
+                .Replace("\r", string.Empty)
+                .Replace("\n", " ");
         }
 
         private void TouchEntry(LinkedListNode<string> rank)
@@ -170,9 +180,37 @@ namespace HotChocolate.Execution
         private OperationRequest CreateOperationRequest(QueryRequest queryRequest)
         {
             DocumentNode queryDocument = Parser.Default.Parse(queryRequest.Query);
+            QueryValidationResult result = GetOrCreateValidationResult(
+                queryRequest.Query, queryDocument);
+
+            if (result.HasErrors)
+            {
+                throw new QueryException(result.Errors);
+            }
+
             return new OperationRequest(
                 _schema, queryDocument, GetOperation(
                     queryDocument, queryRequest.OperationName));
+        }
+
+        private QueryValidationResult GetOrCreateValidationResult(
+            string query, DocumentNode queryDocument)
+        {
+            string normalizedQuery = NormalizeQuery(query);
+            if (!_validationResults.TryGetValue(normalizedQuery,
+                out QueryValidationResult result))
+            {
+                lock (_sync)
+                {
+                    if (!_validationResults.TryGetValue(normalizedQuery, out result))
+                    {
+                        result = _queryValidator.Validate(queryDocument);
+                        _validationResults = _validationResults
+                            .SetItem(normalizedQuery, result);
+                    }
+                }
+            }
+            return result;
         }
 
         private void ClearSpaceForNewEntry()

@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Types;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Resolvers
@@ -20,14 +14,14 @@ namespace HotChocolate.Resolvers
             // arrange
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 0);
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+            var descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, method, true,
                     Enumerable.Empty<FieldResolverArgumentDescriptor>());
 
             // act
-            StringBuilder source = new StringBuilder();
-            AsyncSourceMethodGenerator generator = new AsyncSourceMethodGenerator();
+            var source = new StringBuilder();
+            var generator = new AsyncSourceMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -40,20 +34,20 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor =
-                FieldResolverArgumentDescriptor.Create("a",
+                new FieldResolverArgumentDescriptor("a", "b",
                     FieldResolverArgumentKind.Argument,
                     typeof(string));
 
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+            var descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, method, true,
                     new[] { argumentDescriptor });
 
             // act
-            StringBuilder source = new StringBuilder();
-            AsyncSourceMethodGenerator generator = new AsyncSourceMethodGenerator();
+            var source = new StringBuilder();
+            var generator = new AsyncSourceMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -64,26 +58,26 @@ namespace HotChocolate.Resolvers
         public void AsyncSourceMethodGenerator_GenerateWithTwoArgument()
         {
             // arrange
-            FieldResolverArgumentDescriptor argumentDescriptor1 =
-                FieldResolverArgumentDescriptor.Create("a",
+            var argumentDescriptor1 =
+                new FieldResolverArgumentDescriptor("a", "b",
                     FieldResolverArgumentKind.Argument,
                     typeof(string));
 
-            FieldResolverArgumentDescriptor argumentDescriptor2 =
-                FieldResolverArgumentDescriptor.Create("b",
+            var argumentDescriptor2 =
+                new FieldResolverArgumentDescriptor("b", "c",
                     FieldResolverArgumentKind.Argument,
                     typeof(int));
 
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
                 .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 2);
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+            var descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, method, true,
                     new[] { argumentDescriptor1, argumentDescriptor2 });
 
             // act
-            StringBuilder source = new StringBuilder();
-            AsyncSourceMethodGenerator generator = new AsyncSourceMethodGenerator();
+            var source = new StringBuilder();
+            var generator = new AsyncSourceMethodGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert

@@ -52,7 +52,7 @@ namespace HotChocolate.Resolvers
 
         public ObjectType ObjectType => _fieldResolverTask.ObjectType;
 
-        public Field Field => _fieldResolverTask.FieldSelection.Field;
+        public ObjectField Field => _fieldResolverTask.FieldSelection.Field;
 
         public DocumentNode QueryDocument => _executionContext.QueryDocument;
 

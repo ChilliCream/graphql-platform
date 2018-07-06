@@ -34,12 +34,11 @@ namespace HotChocolate.Configuration
         public static bool TryGetObjectTypeField(
             this ITypeRegistry typeRegistry,
             FieldReference fieldReference,
-            out Field field)
+            out ObjectField field)
         {
             field = null;
-            return typeRegistry.TryGetType<ObjectType>(
-                    fieldReference.TypeName, out ObjectType ot)
-                && ot.Fields.TryGetValue(fieldReference.FieldName, out field);
+            return typeRegistry.TryGetType(fieldReference.TypeName, out ObjectType ot)
+                && ot.Fields.TryGetField(fieldReference.FieldName, out field);
         }
     }
 }

@@ -1,17 +1,18 @@
 using System;
-using System.Diagnostics;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class NonNullType
-        : IOutputType
+        : TypeBase
+        , IOutputType
         , IInputType
     {
         private readonly bool _isInputType;
         private readonly IInputType _inputType;
 
         public NonNullType(IType type)
+            : base(TypeKind.NonNull)
         {
             if (type == null)
             {
@@ -31,8 +32,6 @@ namespace HotChocolate.Types
             Type = type;
             NativeType = _inputType?.NativeType;
         }
-
-        public TypeKind Kind { get; } = TypeKind.NonNull;
 
         public IType Type { get; }
 

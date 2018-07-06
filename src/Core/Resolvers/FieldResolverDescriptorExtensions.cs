@@ -8,8 +8,7 @@ namespace HotChocolate.Resolvers
         public static int ArgumentCount(this FieldResolverDescriptor descriptor)
         {
             return descriptor.ArgumentDescriptors
-                .Where(t => t.Kind == FieldResolverArgumentKind.Argument)
-                .Count();
+                .Count(t => t.Kind == FieldResolverArgumentKind.Argument);
         }
 
         public static IEnumerable<FieldResolverArgumentDescriptor> Arguments(

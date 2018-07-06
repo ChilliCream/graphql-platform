@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -31,14 +30,14 @@ namespace HotChocolate.Resolvers
 
         private static Assembly Compile(string sourceText, SyntaxTree syntaxTree)
         {
-            string assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
+            var assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
                 $"._{Guid.NewGuid().ToString("N")}.dll";
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName, new SyntaxTree[] { syntaxTree },
                 ResolveReferences(), _options);
 
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 EmitResult result = compilation.Emit(stream);
                 if (result.Success)
@@ -56,7 +55,7 @@ namespace HotChocolate.Resolvers
 
         private static IEnumerable<MetadataReference> ResolveReferences()
         {
-            List<MetadataReference> references = new List<MetadataReference>();
+            var references = new List<MetadataReference>();
             foreach (Assembly assembly in AppDomain.CurrentDomain
                 .GetAssemblies().Where(t => !t.IsDynamic))
             {

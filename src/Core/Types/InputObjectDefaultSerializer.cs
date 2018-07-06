@@ -37,10 +37,9 @@ namespace HotChocolate.Types
             Type type = obj.GetType();
             PropertyInfo[] properties = GetProperties(type);
 
-            Dictionary<string, IValueNode> fieldValues =
-                new Dictionary<string, IValueNode>();
+            var fieldValues = new Dictionary<string, IValueNode>();
 
-            foreach (InputField field in inputObjectType.Fields.Values)
+            foreach (InputField field in inputObjectType.Fields)
             {
                 PropertyInfo property = GetPropertyByName(properties, field.Name);
                 if (property != null)
@@ -121,11 +120,13 @@ namespace HotChocolate.Types
             IInputType elementType,
             IEnumerable enumerable)
         {
-            List<IValueNode> list = new List<IValueNode>();
+            var list = new List<IValueNode>();
+
             foreach (object element in enumerable)
             {
                 list.Add(ParseScalar(elementType, element));
             }
+
             return new ListValueNode(list);
         }
 
@@ -134,7 +135,8 @@ namespace HotChocolate.Types
             InputObjectType elementType,
             IEnumerable enumerable)
         {
-            List<IValueNode> list = new List<IValueNode>();
+            var list = new List<IValueNode>();
+
             foreach (object element in enumerable)
             {
                 if (!processed.Contains(element))
@@ -142,13 +144,14 @@ namespace HotChocolate.Types
                     list.Add(ParseObject(processed, elementType, element));
                 }
             }
+
             return new ListValueNode(list);
         }
 
         private static PropertyInfo[] GetProperties(Type type)
         {
             return type.GetProperties(
-                    BindingFlags.Public | BindingFlags.Instance)
+                BindingFlags.Public | BindingFlags.Instance)
                 .Where(t => !t.IsSpecialName)
                 .ToArray();
         }

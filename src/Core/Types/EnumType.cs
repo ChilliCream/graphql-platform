@@ -7,13 +7,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : INamedType
-        , IOutputType
-        , IInputType
-        , INullableType
+        : TypeBase
+        , INamedOutputType
+        , INamedInputType
         , ISerializableType
-        , ITypeSystemNode
-        , INeedsInitialization
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();
@@ -21,16 +18,16 @@ namespace HotChocolate.Types
             new Dictionary<object, EnumValue>();
 
         protected EnumType()
+            : base(TypeKind.Enum)
         {
             Initialize(Configure);
         }
 
         public EnumType(Action<IEnumTypeDescriptor> configure)
+            : base(TypeKind.Enum)
         {
             Initialize(configure);
         }
-
-        public TypeKind Kind { get; } = TypeKind.Enum;
 
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -44,7 +41,7 @@ namespace HotChocolate.Types
 
         public bool TryGetValue(string name, out object value)
         {
-            if (_nameToValues.TryGetValue(name, out var enumValue))
+            if (_nameToValues.TryGetValue(name, out EnumValue enumValue))
             {
                 value = enumValue.Value;
                 return true;
@@ -56,7 +53,7 @@ namespace HotChocolate.Types
 
         public bool TryGetName(object value, out string name)
         {
-            if (_valueToValues.TryGetValue(value, out var enumValue))
+            if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
             {
                 name = enumValue.Name;
                 return true;
@@ -145,14 +142,6 @@ namespace HotChocolate.Types
 
         #endregion
 
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() => Values;
-
-        #endregion
-
         #region  Initialization
 
         private void Initialize(Action<IEnumTypeDescriptor> configure)
@@ -164,48 +153,27 @@ namespace HotChocolate.Types
 
             EnumTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
-            Initialize(descriptor);
-        }
 
-        private void Initialize(EnumTypeDescriptor descriptor)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+            EnumTypeDescription description = descriptor.CreateDescription();
 
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "Am enum type name must not be null or empty.");
-            }
-
-            foreach (EnumValue enumValue in descriptor.GetItems()
+            foreach (EnumValue enumValue in description.Values
                 .Select(t => new EnumValue(t)))
             {
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
             }
 
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            NativeType = descriptor.NativeType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            NativeType = description.NativeType;
         }
 
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
-        {
-        }
-
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(ITypeInitializationContext context)
         {
             if (!Values.Any())
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     $"The enum type `{Name}` has no values."));
             }
         }
@@ -228,7 +196,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor<T>(typeof(T));
+            new EnumTypeDescriptor<T>();
 
         protected sealed override void Configure(IEnumTypeDescriptor descriptor)
         {

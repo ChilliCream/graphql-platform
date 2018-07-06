@@ -9,17 +9,16 @@ namespace HotChocolate.Types
         public void IgnoreFields()
         {
             // arrange
-            ObjectTypeDescriptor<Foo> descriptor =
-                new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>();
 
             // act
-            IObjectTypeDescriptor<Foo> desc = (IObjectTypeDescriptor<Foo>)descriptor;
+            IObjectTypeDescriptor<Foo> desc = descriptor;
             desc.Field(t => t.A);
             desc.Field(t => t.B).Ignore();
 
             // assert
             Assert.Collection(
-                descriptor.GetFieldDescriptors().Select(t => t.Name),
+                descriptor.CreateDescription().Fields.Select(t => t.Name),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("c", t));
         }

@@ -1,137 +1,58 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class InputField
-        : ITypeSystemNode
-        , IField
+        : FieldBase<IInputType>
+        , IInputField
     {
-        private readonly TypeReference _typeReference;
-        private object _nativeDefaultValue;
-        private bool _completed;
+        private readonly object _nativeDefaultValue;
 
-        internal InputField(ArgumentDescriptor descriptor)
+        internal InputField(ArgumentDescription argumentDescription)
+            : base(argumentDescription)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input value name must not be null or empty.",
-                    nameof(descriptor));
-            }
-
-            _typeReference = descriptor.TypeReference;
-            _nativeDefaultValue = descriptor.NativeDefaultValue;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DefaultValue = descriptor.DefaultValue;
+            _nativeDefaultValue = argumentDescription.NativeDefaultValue;
+            SyntaxNode = argumentDescription.SyntaxNode;
+            DefaultValue = argumentDescription.DefaultValue;
         }
 
-        internal InputField(InputFieldDescriptor descriptor)
+        internal InputField(InputFieldDescription inputFieldDescription)
+            : this((ArgumentDescription)inputFieldDescription)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input value name must not be null or empty.",
-                    nameof(descriptor));
-            }
-
-            _typeReference = descriptor.TypeReference;
-            _nativeDefaultValue = descriptor.NativeDefaultValue;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-            DefaultValue = descriptor.DefaultValue;
-            Property = descriptor.Property;
+            Property = inputFieldDescription.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
-
-        public INamedType DeclaringType { get; private set; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public IInputType Type { get; private set; }
 
         public IValueNode DefaultValue { get; private set; }
 
         public PropertyInfo Property { get; private set; }
 
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes() =>
-            Enumerable.Empty<ITypeSystemNode>();
-
-        #endregion
-
         #region Initialization
 
-        internal void RegisterDependencies(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            if (!_completed)
+            base.OnCompleteType(context);
+
+            if (Type != null)
             {
-                if (_typeReference != null)
+                CompleteDefaultValue(context, Type);
+
+                if (context.Type is InputObjectType
+                    && Property == null
+                    && context.TryGetProperty(context.Type, Name, out PropertyInfo property))
                 {
-                    typeRegistry.RegisterType(_typeReference);
+                    Property = property;
                 }
-            }
-        }
-
-        internal void CompleteInputField(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError,
-            INamedType parentType)
-        {
-            if (!_completed)
-            {
-                DeclaringType = parentType;
-                Type = this.ResolveFieldType<IInputType>(typeRegistry,
-                    reportError, _typeReference);
-
-                if (Type != null)
-                {
-                    CompleteDefaultValue(Type, reportError, parentType);
-
-                    if (parentType is InputObjectType
-                        && Property == null
-                        && typeRegistry.TryGetTypeBinding(parentType, out InputObjectTypeBinding binding)
-                        && binding.Fields.TryGetValue(Name, out InputFieldBinding fieldBinding))
-                    {
-                        Property = fieldBinding.Property;
-                    }
-                }
-                _completed = true;
             }
         }
 
         private void CompleteDefaultValue(
-            IInputType type,
-            Action<SchemaError> reportError,
-            INamedType parentType)
+            ITypeInitializationContext context,
+            IInputType type)
         {
             try
             {
@@ -149,9 +70,9 @@ namespace HotChocolate.Types
             }
             catch (Exception ex)
             {
-                reportError(new SchemaError(
-                    "Could not parse the native value for input field " +
-                    $"`{parentType.Name}.{Name}`.", parentType, ex));
+                context.ReportError(new SchemaError(
+                    "Could not parse the native value of input field " +
+                    $"`{context.Type.Name}.{Name}`.", context.Type, ex));
             }
         }
 

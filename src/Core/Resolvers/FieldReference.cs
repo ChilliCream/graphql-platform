@@ -22,11 +22,12 @@ namespace HotChocolate.Resolvers
         }
 
         public string TypeName { get; }
+
         public string FieldName { get; }
 
         public bool Equals(FieldReference other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -42,7 +43,7 @@ namespace HotChocolate.Resolvers
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }

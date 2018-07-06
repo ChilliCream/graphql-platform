@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 

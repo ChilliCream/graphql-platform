@@ -19,7 +19,8 @@ namespace HotChocolate.Internal
 
             if (member is MethodInfo)
             {
-                if (member.Name.StartsWith("Get") && member.Name.Length > 3)
+                if (member.Name.StartsWith("Get", StringComparison.Ordinal) 
+                    && member.Name.Length > 3)
                 {
                     return NormalizeName(member.Name.Substring(3));
                 }

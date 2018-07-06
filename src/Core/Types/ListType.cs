@@ -1,14 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class ListType
-        : IOutputType
+        : TypeBase
+        , IOutputType
         , IInputType
         , INullableType
     {
@@ -16,6 +16,7 @@ namespace HotChocolate.Types
         private readonly IInputType _inputType;
 
         public ListType(IType elementType)
+            : base(TypeKind.List)
         {
             if (elementType == null)
             {
@@ -39,8 +40,6 @@ namespace HotChocolate.Types
                 NativeType = CreateListType(_inputType.NativeType);
             }
         }
-     
-        public TypeKind Kind { get; } = TypeKind.List;
 
         public IType ElementType { get; }
 
@@ -96,22 +95,21 @@ namespace HotChocolate.Types
 
             if (_isInputType && literal is ListValueNode listValueLiteral)
             {
-                return CreateArray(literal, listValueLiteral);
+                return CreateArray(listValueLiteral);
             }
 
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
 
-        private object CreateArray(IValueNode literal,
-            ListValueNode listValueLiteral)
+        private object CreateArray(ListValueNode listValueLiteral)
         {
             Type elementType = _inputType.NativeType;
-            Array array = Array.CreateInstance(
+            var array = Array.CreateInstance(
                 elementType,
                 listValueLiteral.Items.Count);
 
-            for (int i = 0; i < listValueLiteral.Items.Count; i++)
+            for (var i = 0; i < listValueLiteral.Items.Count; i++)
             {
                 object element = _inputType.ParseLiteral(listValueLiteral.Items[i]);
                 array.SetValue(element, i);
@@ -131,7 +129,7 @@ namespace HotChocolate.Types
 
                 if (value is IEnumerable e)
                 {
-                    List<IValueNode> items = new List<IValueNode>();
+                    var items = new List<IValueNode>();
                     foreach (object v in e)
                     {
                         items.Add(_inputType.ParseValue(value));

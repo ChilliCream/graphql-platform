@@ -1,7 +1,7 @@
 namespace HotChocolate.Types.Introspection
 {
     internal sealed class __TypeNameField
-        : Field
+        : ObjectField
     {
         internal __TypeNameField()
            : base("__typename", d =>

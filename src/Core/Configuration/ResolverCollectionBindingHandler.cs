@@ -111,10 +111,11 @@ namespace HotChocolate.Configuration
             ITypeRegistry typeRegistry,
             IEnumerable<FieldResolverDescriptor> resolverDescriptors)
         {
-            foreach (var resolverGroup in resolverDescriptors.GroupBy(r => r.Field))
+            foreach (IGrouping<FieldReference, FieldResolverDescriptor> resolverGroup in 
+                resolverDescriptors.GroupBy(r => r.Field))
             {
                 FieldReference fieldReference = resolverGroup.Key;
-                if (typeRegistry.TryGetObjectTypeField(fieldReference, out Field field))
+                if (typeRegistry.TryGetObjectTypeField(fieldReference, out ObjectField field))
                 {
                     foreach (FieldResolverDescriptor resolverDescriptor in
                         resolverGroup.OrderByDescending(t => t.ArgumentCount()))
@@ -129,18 +130,19 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool AllArgumentsMatch(Field field, FieldResolverDescriptor resolverDescriptor)
+        private bool AllArgumentsMatch(ObjectField field, FieldResolverDescriptor resolverDescriptor)
         {
             foreach (FieldResolverArgumentDescriptor argumentDescriptor in
                 resolverDescriptor.Arguments())
             {
-                if (!field.Arguments.ContainsKey(argumentDescriptor.Name))
+                if (!field.Arguments.ContainsField(argumentDescriptor.Name))
                 {
                     return false;
                 }
 
                 // TODO : Check that argument types are type compatible.
             }
+
             return true;
         }
 

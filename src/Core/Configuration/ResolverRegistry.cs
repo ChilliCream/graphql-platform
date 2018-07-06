@@ -26,7 +26,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolverBinding));
             }
 
-            FieldReference fieldReference = new FieldReference(
+            var fieldReference = new FieldReference(
                 resolverBinding.TypeName, resolverBinding.FieldName);
             _resolverBindings[fieldReference] = resolverBinding;
         }
@@ -54,7 +54,7 @@ namespace HotChocolate.Configuration
 
         public FieldResolverDelegate GetResolver(string typeName, string fieldName)
         {
-            FieldReference fieldReference = new FieldReference(typeName, fieldName);
+            var fieldReference = new FieldReference(typeName, fieldName);
             if (_resolvers.TryGetValue(fieldReference, out FieldResolverDelegate resolver))
             {
                 return resolver;
@@ -64,7 +64,7 @@ namespace HotChocolate.Configuration
 
         internal void BuildResolvers()
         {
-            List<FieldResolver> fieldResolvers = new List<FieldResolver>();
+            var fieldResolvers = new List<FieldResolver>();
             fieldResolvers.AddRange(CompileResolvers());
             fieldResolvers.AddRange(_resolverBindings.Values
                 .OfType<DelegateResolverBinding>()
@@ -72,7 +72,7 @@ namespace HotChocolate.Configuration
 
             foreach (FieldResolver resolver in fieldResolvers)
             {
-                FieldReference fieldReference = new FieldReference(
+                var fieldReference = new FieldReference(
                     resolver.TypeName, resolver.FieldName);
                 _resolvers[fieldReference] = resolver.Resolver;
             }
@@ -80,8 +80,7 @@ namespace HotChocolate.Configuration
 
         private IEnumerable<FieldResolver> CompileResolvers()
         {
-            List<FieldResolverDescriptor> resolverDescriptors =
-                new List<FieldResolverDescriptor>();
+            var resolverDescriptors = new List<FieldResolverDescriptor>();
 
             foreach (MemberResolverBinding binding in _resolverBindings.Values
                 .OfType<MemberResolverBinding>())
@@ -104,7 +103,7 @@ namespace HotChocolate.Configuration
         {
             if (binding.FieldMember is PropertyInfo p)
             {
-                FieldReference fieldReference = new FieldReference(
+                var fieldReference = new FieldReference(
                     binding.TypeName, binding.FieldName);
                 resolverDescriptors.Add(FieldResolverDescriptor
                     .CreateSourceProperty(fieldReference, p.ReflectedType, p));
@@ -117,11 +116,11 @@ namespace HotChocolate.Configuration
         {
             if (binding.FieldMember is MethodInfo m)
             {
-                FieldReference fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
+                var fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
                     FieldResolverDiscoverer.CreateResolverArgumentDescriptors(
-                        m, m.ReflectedType, m.ReflectedType);
+                        m, m.ReflectedType);
                 resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(
                     fieldReference, m.ReflectedType, m, isAsync,
                     argumentDescriptors));

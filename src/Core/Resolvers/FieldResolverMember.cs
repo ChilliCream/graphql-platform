@@ -10,12 +10,7 @@ namespace HotChocolate.Resolvers
         public FieldResolverMember(string typeName, string fieldName, MemberInfo member)
             : base(typeName, fieldName)
         {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            Member = member;
+            Member = member ?? throw new ArgumentNullException(nameof(member));
         }
 
         public MemberInfo Member { get; }
@@ -32,7 +27,7 @@ namespace HotChocolate.Resolvers
 
         public bool Equals(FieldResolverMember other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }

@@ -25,7 +25,7 @@ namespace HotChocolate.Resolvers
             Assembly assembly = CSharpCompiler.Compile(sourceText);
             Type type = assembly.GetType(FieldResolverSourceCodeGenerator.FullClassName);
 
-            for (int i = 0; i < descriptors.Length; i++)
+            for (var i = 0; i < descriptors.Length; i++)
             {
                 string resolverName = _codeGenerator.GetResolverName(i);
                 FieldInfo field = type.GetField(resolverName,

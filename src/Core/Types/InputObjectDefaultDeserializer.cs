@@ -18,7 +18,7 @@ namespace HotChocolate.Types
             object nativeInputObject = Activator.CreateInstance(
                 inputObjectType.NativeType);
 
-            foreach (InputField field in inputObjectType.Fields.Values)
+            foreach (InputField field in inputObjectType.Fields)
             {
                 if (fieldValues.TryGetValue(field.Name, out IValueNode value))
                 {

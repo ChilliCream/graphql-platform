@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -14,6 +13,7 @@ namespace HotChocolate.Configuration
         }
 
         public Type NativeNamedType { get; }
+
         public Func<IType, IType> TypeFactory { get; }
     }
 }

@@ -86,17 +86,15 @@ namespace HotChocolate.Types.Introspection
             return null;
         }
 
-        private IEnumerable<Field> GetFields(IType type, bool includeDeprecated)
+        private IEnumerable<IOutputField> GetFields(IType type, bool includeDeprecated)
         {
-            if (type.IsObjectType() || type.IsInterfaceType())
+            if (type is IComplexOutputType complexType)
             {
-                IReadOnlyDictionary<string, Field> fields =
-                    ((IHasFields)type).Fields;
                 if (!includeDeprecated)
                 {
-                    return fields.Values.Where(t => !t.IsDeprecated);
+                    return complexType.Fields.Where(t => !t.IsDeprecated);
                 }
-                return fields.Values;
+                return complexType.Fields;
             }
             return null;
         }
@@ -137,7 +135,7 @@ namespace HotChocolate.Types.Introspection
         {
             if (type is InputObjectType iot)
             {
-                return iot.Fields.Values;
+                return iot.Fields;
             }
             return null;
         }
