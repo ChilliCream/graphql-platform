@@ -30,7 +30,7 @@ namespace HotChocolate.Types
         {
             if (!_completed)
             {
-                CompleteType(context);
+                OnCompleteType(context);
                 _completed = true;
             }
         }

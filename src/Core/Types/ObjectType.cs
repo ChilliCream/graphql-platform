@@ -16,7 +16,6 @@ namespace HotChocolate.Types
         private IsOfType _isOfType;
         private List<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
-        private bool _completed;
 
         protected ObjectType()
             : base(TypeKind.Object)
@@ -38,7 +37,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces => _interfaceMap;
 
-        public FieldCollection<ObjectField> Fields { get; }
+        public FieldCollection<ObjectField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
@@ -100,6 +99,8 @@ namespace HotChocolate.Types
                     description.Name, description.NativeType,
                     this, fieldBindings);
             }
+
+            Fields = new FieldCollection<ObjectField>(fields);
         }
 
         protected override void OnRegisterDependencies(ITypeInitializationContext context)

@@ -9,7 +9,6 @@ namespace HotChocolate.Types
         , INamedInputType
     {
         private Func<ObjectValueNode, object> _deserialize;
-        private bool _completed;
 
         internal InputObjectType()
             : base(TypeKind.InputObject)

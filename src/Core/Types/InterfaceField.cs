@@ -43,7 +43,7 @@ namespace HotChocolate.Types
 
         public FieldDefinitionNode SyntaxNode { get; }
 
-        public IFieldCollection<InputField> Arguments { get; }
+        public FieldCollection<InputField> Arguments { get; }
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 

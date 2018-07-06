@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Factories;
 using Xunit;
 
@@ -20,35 +14,38 @@ namespace HotChocolate.Types
         public void CreateObjectType()
         {
             // arrange
-            StringType scalarType = new StringType();
+            var scalarType = new StringType();
 
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(
                 "type Simple { a: String b: [String] }");
             ObjectTypeDefinitionNode objectTypeDefinition = document
                 .Definitions.OfType<ObjectTypeDefinitionNode>().First();
-            DelegateResolverBinding resolverBinding = new DelegateResolverBinding(
+            var resolverBinding = new DelegateResolverBinding(
                 "Simple", "a",
                 (c, r) => "hello");
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext context = new SchemaContext(serviceManager);
-            context.Types.RegisterType(scalarType);
-            context.Resolvers.RegisterResolver(resolverBinding);
+            var serviceManager = new ServiceManager();
+            var schemaContext = new SchemaContext(serviceManager);
+            schemaContext.Types.RegisterType(scalarType);
+            schemaContext.Resolvers.RegisterResolver(resolverBinding);
 
             // act
-            ObjectTypeFactory factory = new ObjectTypeFactory();
+            var factory = new ObjectTypeFactory();
             ObjectType objectType = factory.Create(objectTypeDefinition);
-            context.Types.RegisterType(objectType);
+            schemaContext.Types.RegisterType(objectType);
 
-            ((INeedsInitialization)objectType).RegisterDependencies(context, error => { });
-            context.CompleteTypes();
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, error => { }, objectType);
+            ((INeedsInitialization)objectType)
+                .RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
 
             // assert
             Assert.Equal("Simple", objectType.Name);
             Assert.Equal(2, objectType.Fields.Count);
-            Assert.True(objectType.Fields.ContainsKey("a"));
-            Assert.True(objectType.Fields.ContainsKey("b"));
+            Assert.True(objectType.Fields.ContainsField("a"));
+            Assert.True(objectType.Fields.ContainsField("b"));
             Assert.False(objectType.Fields["a"].Type.IsNonNullType());
             Assert.False(objectType.Fields["a"].Type.IsListType());
             Assert.True(objectType.Fields["a"].Type.IsScalarType());
@@ -71,9 +68,9 @@ namespace HotChocolate.Types
             UnionTypeDefinitionNode unionTypeDefinition = document
                 .Definitions.OfType<UnionTypeDefinitionNode>().First();
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext context = new SchemaContext(serviceManager);
-            SchemaConfiguration configuration = new SchemaConfiguration(
+            var serviceManager = new ServiceManager();
+            var context = new SchemaContext(serviceManager);
+            var configuration = new SchemaConfiguration(
                 serviceManager.RegisterServiceProvider,
                 context.Types);
             configuration.RegisterType(new ObjectType(d =>
@@ -82,11 +79,11 @@ namespace HotChocolate.Types
                 d.Name("B").Field("a").Type<StringType>()));
 
             // act
-            UnionTypeFactory factory = new UnionTypeFactory();
+            var factory = new UnionTypeFactory();
             UnionType unionType = factory.Create(unionTypeDefinition);
             configuration.RegisterType(unionType);
 
-            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            var typeFinalizer = new TypeFinalizer(configuration);
             typeFinalizer.FinalizeTypes(context);
 
             // assert

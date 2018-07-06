@@ -12,58 +12,25 @@ namespace HotChocolate.Types
     {
         private ResolveAbstractType _resolveAbstractType;
 
+        protected InterfaceType()
+            : base(TypeKind.Interface)
+        {
+            Initialize(Configure);
+        }
+
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
-            : this(ExecuteConfigure(configure))
+            : base(TypeKind.Interface)
         {
+            Initialize(configure);
         }
 
-        internal InterfaceType(Func<InterfaceTypeDescription> descriptionFactory)
-            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
-        {
-        }
+        public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
-        internal InterfaceType(InterfaceTypeDescription description)
-            : base(TypeKind.InputObject)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException(nameof(description));
-            }
+        public string Name { get; private set; }
 
-            if (string.IsNullOrEmpty(description.Name))
-            {
-                throw new ArgumentException(
-                    "The name of named types mustn't be null or empty.");
-            }
+        public string Description { get; private set; }
 
-            _resolveAbstractType = description.ResolveAbstractType;
-            SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
-            Fields = new FieldCollection<InterfaceField>(
-                description.Fields.Select(t => new InterfaceField(t)));
-        }
-
-        private static InterfaceTypeDescription ExecuteConfigure(
-            Action<IInterfaceTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var descriptor = new InterfaceTypeDescriptor();
-            configure(descriptor);
-            return descriptor.CreateDescription();
-        }
-
-        public InterfaceTypeDefinitionNode SyntaxNode { get; }
-
-        public string Name { get; }
-
-        public string Description { get; }
-
-        public FieldCollection<InterfaceField> Fields { get; }
+        public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
@@ -79,14 +46,36 @@ namespace HotChocolate.Types
 
         #region Configuration
 
+        internal virtual InterfaceTypeDescriptor CreateDescriptor() =>
+            new InterfaceTypeDescriptor();
+
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
 
         #endregion
 
         #region Initialization
 
+        private void Initialize(Action<IInterfaceTypeDescriptor> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
 
-        protected override void OnRegisterDependencies(ITypeInitializationContext context)
+            InterfaceTypeDescriptor descriptor = CreateDescriptor();
+            configure(descriptor);
+
+            InterfaceTypeDescription description = descriptor.CreateDescription();
+            _resolveAbstractType = description.ResolveAbstractType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            Fields = new FieldCollection<InterfaceField>(
+                description.Fields.Select(t => new InterfaceField(t)));
+        }
+
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
 
@@ -97,7 +86,8 @@ namespace HotChocolate.Types
             }
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
