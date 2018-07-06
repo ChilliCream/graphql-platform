@@ -4,7 +4,14 @@
   },
   "Errors": [
     {
-      "Message": "Internal resolver error"
+      "FieldName": "error5",
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Message": "Unexpected execution error."
     }
   ]
 }

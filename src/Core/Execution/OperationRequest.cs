@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
             _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
 
-            _operationType = GetOperationType(schema, _operation);
+            _operationType = schema.GetOperationType(_operation.Operation);
             _variableValueBuilder = new VariableValueBuilder(schema, _operation);
         }
 
@@ -80,36 +80,13 @@ namespace HotChocolate.Execution
         private object ResolveRootValue(
             object initialValue)
         {
-            ObjectType operationType = GetOperationType(_schema, _operation);
-
             if (initialValue == null && _schema.TryGetNativeType(
-               operationType.Name, out Type nativeType))
+               _operationType.Name, out Type nativeType))
             {
                 initialValue = _schema.GetService(nativeType)
                     ?? Activator.CreateInstance(nativeType);
             }
-
             return initialValue;
-        }
-
-        private static ObjectType GetOperationType(
-            Schema schema, OperationDefinitionNode operation)
-        {
-            switch (operation.Operation)
-            {
-                case OperationType.Query:
-                    return schema.QueryType;
-
-                case OperationType.Mutation:
-                    return schema.MutationType;
-
-                case OperationType.Subscription:
-                    return schema.SubscriptionType;
-
-                default:
-                    throw new NotSupportedException(
-                        "The specified operation type is not supported.");
-            }
         }
 
         private async Task ExecuteOperationAsync(
@@ -232,6 +209,7 @@ namespace HotChocolate.Execution
             foreach (var runningTask in runningTasks)
             {
                 object fieldValue = await HandleFieldValueAsync(
+                    runningTask.task.FieldSelection.Node,
                     runningTask.resolverResult);
 
                 FieldValueCompletionContext completionContext =
@@ -277,6 +255,7 @@ namespace HotChocolate.Execution
 
                 // handle async results
                 resolverResult = await HandleFieldValueAsync(
+                    task.FieldSelection.Node,
                     resolverResult);
 
                 FieldValueCompletionContext completionContext =
@@ -296,7 +275,7 @@ namespace HotChocolate.Execution
 
         private object ExecuteFieldResolver(
             IResolverContext resolverContext,
-            Field field,
+            ObjectField field,
             FieldNode fieldSelection,
             CancellationToken cancellationToken)
         {
@@ -337,18 +316,18 @@ namespace HotChocolate.Execution
         }
 
         // todo: rework ....
-        private async Task<object> HandleFieldValueAsync(object resolverResult)
+        private async Task<object> HandleFieldValueAsync(FieldNode fieldSelection, object resolverResult)
         {
             switch (resolverResult)
             {
                 case Task<object> task:
-                    return await HandleFieldValueTaskAsync(task);
+                    return await HandleFieldValueTaskAsync(fieldSelection, task);
                 default:
                     return resolverResult;
             }
         }
 
-        private async Task<object> HandleFieldValueTaskAsync(Task<object> task)
+        private async Task<object> HandleFieldValueTaskAsync(FieldNode fieldSelection, Task<object> task)
         {
             try
             {
@@ -360,7 +339,7 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                return _schema.CreateErrorFromException(ex);
+                return _schema.CreateErrorFromException(ex, fieldSelection);
             }
         }
 

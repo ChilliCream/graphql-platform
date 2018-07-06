@@ -75,7 +75,7 @@ namespace HotChocolate.Types
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        [Fact(Skip = "Fix it!")]
+        [Fact]
         public async Task ExecuteGraphiQLIntrospectionQuery()
         {
             // arrange

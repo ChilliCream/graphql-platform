@@ -11,15 +11,16 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor = new ArgumentDescriptor("Type");
+            var descriptor = new ArgumentDescriptor("Type");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .Type<ListType<StringType>>()
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
             // assert
-            TypeReference typeRef = argumentDescriptor.TypeReference;
+            ArgumentDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -27,15 +28,16 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor = new ArgumentDescriptor("Type");
+            var descriptor = new ArgumentDescriptor("Type");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>()
                 .Type<ListType<StringType>>();
 
             // assert
-            TypeReference typeRef = argumentDescriptor.TypeReference;
+            ArgumentDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -43,22 +45,22 @@ namespace HotChocolate.Types
         public void GetName()
         {
             // act
-            ArgumentDescriptor argumentDescriptor = new ArgumentDescriptor("args");
+            var descriptor = new ArgumentDescriptor("args");
 
             // assert
-            Assert.Equal("args", argumentDescriptor.Name);
+            Assert.Equal("args", descriptor.CreateDescription().Name);
         }
 
         [Fact]
         public void GetNameAndType()
         {
             // act
-            ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor("args", typeof(string));
+            var descriptor = new ArgumentDescriptor("args", typeof(string));
 
             // assert
-            Assert.Equal("args", argumentDescriptor.Name);
-            Assert.Equal(typeof(string), argumentDescriptor.TypeReference.NativeType);
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.Equal("args", description.Name);
+            Assert.Equal(typeof(string), description.TypeReference.NativeType);
         }
 
         [Fact]
@@ -66,83 +68,85 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            ArgumentDescriptor argumentDescriptor = new ArgumentDescriptor("Type");
+            var descriptor = new ArgumentDescriptor("Type");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .Description(expectedDescription);
 
             // assert
-            Assert.Equal(expectedDescription, argumentDescriptor.Description);
+            Assert.Equal(expectedDescription,
+                descriptor.CreateDescription().Description);
         }
 
         [Fact]
         public void SetDefaultValueAndInferType()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor("args");
+            var descriptor = new ArgumentDescriptor("args");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
-                .DefaultValue("string");
+            ((IArgumentDescriptor)descriptor).DefaultValue("string");
 
             // assert
-            Assert.Equal(typeof(string), argumentDescriptor.TypeReference.NativeType);
-            Assert.Equal("string", argumentDescriptor.NativeDefaultValue);
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(string),
+                description.TypeReference.NativeType);
+            Assert.Equal("string",
+                description.NativeDefaultValue);
         }
 
         [Fact]
         public void OverwriteDefaultValueLiteralWithNativeDefaultValue()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor("args");
+            var descriptor = new ArgumentDescriptor("args");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .DefaultValue(new StringValueNode("123"))
                 .DefaultValue("string");
 
             // assert
-            Assert.Null(argumentDescriptor.DefaultValue);
-            Assert.Equal("string", argumentDescriptor.NativeDefaultValue);
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.Null(description.DefaultValue);
+            Assert.Equal("string", description.NativeDefaultValue);
         }
 
         [Fact]
         public void SettingTheNativeDefaultValueToNullCreatesNullLiteral()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor("args");
+            var descriptor = new ArgumentDescriptor("args");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .DefaultValue(new StringValueNode("123"))
                 .DefaultValue("string")
                 .DefaultValue(null);
 
             // assert
-            Assert.IsType<NullValueNode>(argumentDescriptor.DefaultValue);
-            Assert.Null(argumentDescriptor.NativeDefaultValue);
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.IsType<NullValueNode>(description.DefaultValue);
+            Assert.Null(description.NativeDefaultValue);
         }
 
         [Fact]
         public void OverwriteNativeDefaultValueWithDefaultValueLiteral()
         {
             // arrange
-            ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor("args");
+            var descriptor = new ArgumentDescriptor("args");
 
             // act
-            ((IArgumentDescriptor)argumentDescriptor)
+            ((IArgumentDescriptor)descriptor)
                 .DefaultValue("string")
                 .DefaultValue(new StringValueNode("123"));
 
             // assert
-            Assert.IsType<StringValueNode>(argumentDescriptor.DefaultValue);
-            Assert.Equal("123", ((StringValueNode)argumentDescriptor.DefaultValue).Value);
-            Assert.Null(argumentDescriptor.NativeDefaultValue);
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.IsType<StringValueNode>(description.DefaultValue);
+            Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
+            Assert.Null(description.NativeDefaultValue);
         }
     }
 }

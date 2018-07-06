@@ -45,8 +45,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(reportError));
             }
 
-            Dictionary<string, FieldSelection> fields =
-                new Dictionary<string, FieldSelection>();
+            var fields = new Dictionary<string, FieldSelection>();
             CollectFields(type, selectionSet, reportError, fields);
             return fields.Values;
         }
@@ -75,11 +74,11 @@ namespace HotChocolate.Execution
             if (selection is FieldNode fs)
             {
                 string fieldName = fs.Name.Value;
-                if (fieldName.StartsWith("__"))
+                if (fieldName.StartsWith("__", StringComparison.Ordinal))
                 {
                     ResolveIntrospectionField(type, fs, reportError, fields);
                 }
-                else if (type.Fields.TryGetValue(fieldName, out Field field))
+                else if (type.Fields.TryGetField(fieldName, out ObjectField field))
                 {
                     string name = fs.Alias == null ? fs.Name.Value : fs.Alias.Value;
                     fields[name] = new FieldSelection(fs, field, name);
