@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using HotChocolate.Configuration;
-using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
     internal class TypeInspector
         : ITypeInfoFactory
     {
-        private static readonly ITypeInfoFactory[] _factories = new ITypeInfoFactory[]
+        private static readonly ITypeInfoFactory[] _factories = 
         {
             new NamedTypeInfoFactory(),
             new DotNetTypeInfoFactory()
         };
 
-        private ImmutableDictionary<Type, TypeInfo> _typeInfoCache
-            = ImmutableDictionary<Type, TypeInfo>.Empty;
+        private ImmutableDictionary<Type, TypeInfo> _typeInfoCache = 
+            ImmutableDictionary<Type, TypeInfo>.Empty;
 
         public bool TryCreate(Type type, out TypeInfo typeInfo)
         {

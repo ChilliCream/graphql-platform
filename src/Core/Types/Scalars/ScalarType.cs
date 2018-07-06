@@ -6,7 +6,6 @@ namespace HotChocolate.Types
     public abstract class ScalarType
         : INamedOutputType
         , INamedInputType
-        , INullableType
         , ISerializableType
     {
         protected ScalarType(string name)

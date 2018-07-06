@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 if (resolverDescriptor.ArgumentDescriptors.Any())
                 {
                     string arguments = string.Join(", ",
-                        resolverDescriptor.ArgumentDescriptors.Select(t => t.Name));
+                        resolverDescriptor.ArgumentDescriptors.Select(t => t.VariableName));
                     s.Append(arguments);
                 }
                 s.Append(");");

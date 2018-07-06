@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 
@@ -7,43 +7,35 @@ namespace HotChocolate.Types
 {
     internal class InterfaceTypeDescriptor
         : IInterfaceTypeDescriptor
+        , IDescriptionFactory<InterfaceTypeDescription>
     {
-        public InterfaceTypeDescriptor(Type interfaceType)
-        {
-            if (interfaceType == null)
-            {
-                throw new ArgumentNullException(nameof(interfaceType));
-            }
+        protected List<InterfaceFieldDescriptor> Fields { get; } =
+            new List<InterfaceFieldDescriptor>();
 
-            // TODO : move name resolution to utilities
-            Name = interfaceType.GetGraphQLName();
-            if (Name == interfaceType.Name && Name.EndsWith("Type"))
+        protected InterfaceTypeDescription ObjectDescription { get; } =
+            new InterfaceTypeDescription();
+
+        public InterfaceTypeDescription CreateDescription()
+        {
+            CompleteFields();
+            return ObjectDescription;
+        }
+
+        protected virtual void CompleteFields()
+        {
+            foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
             {
-                Name = Name.Substring(0, Name.Length - 4);
+                ObjectDescription.Fields.Add(
+                    fieldDescriptor.CreateDescription());
             }
         }
 
-        public InterfaceTypeDefinitionNode SyntaxNode { get; protected set; }
-
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public ResolveAbstractType ResolveAbstractType { get; protected set; }
-
-        public ImmutableList<FieldDescriptor> Fields { get; protected set; }
-            = ImmutableList<FieldDescriptor>.Empty;
-
-        #region IObjectTypeDescriptor<T>
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxNode)
+        protected void SyntaxNode(InterfaceTypeDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -59,16 +51,14 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
-            return this;
+            ObjectDescription.Name = name;
         }
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(string description)
+        protected void Description(string description)
         {
-            Description = description;
-            return this;
+            ObjectDescription.Description = description;
         }
 
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        protected InterfaceFieldDescriptor Field(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -84,20 +74,47 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(Name, name);
-            Fields = Fields.Add(fieldDescriptor);
+            var fieldDescriptor = new InterfaceFieldDescriptor(name);
+            Fields.Add(fieldDescriptor);
             return fieldDescriptor;
+        }
+
+        protected void ResolveAbstractType(
+            ResolveAbstractType resolveAbstractType)
+        {
+            ObjectDescription.ResolveAbstractType = resolveAbstractType
+                ?? throw new ArgumentNullException(nameof(resolveAbstractType));
+        }
+
+        #region IObjectTypeDescriptor<T>
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
+        {
+            Name(name);
+            return this;
+        }
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(string description)
+        {
+            Description(description);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        {
+            return Field(name);
         }
 
         IInterfaceTypeDescriptor IInterfaceTypeDescriptor.ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            if (resolveAbstractType == null)
-            {
-                throw new ArgumentNullException(nameof(resolveAbstractType));
-            }
-
-            ResolveAbstractType = resolveAbstractType;
+            ResolveAbstractType(resolveAbstractType);
             return this;
         }
 

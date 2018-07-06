@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -10,9 +9,8 @@ namespace HotChocolate.Types
 {
     internal class EnumTypeDescriptor
         : IEnumTypeDescriptor
+        , IDescriptionFactory<EnumTypeDescription>
     {
-        private bool _valuesInitialized;
-
         public EnumTypeDescriptor(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -21,62 +19,80 @@ namespace HotChocolate.Types
                     "The name cannot be null or empty.",
                     nameof(name));
             }
-            Name = name;
+
+            EnumDescription.Name = name;
         }
 
         public EnumTypeDescriptor(Type enumType)
         {
-            if (enumType == null)
-            {
-                throw new ArgumentNullException(nameof(enumType));
-            }
-
-            Name = enumType.GetGraphQLName();
-            NativeType = enumType;
+            EnumDescription.NativeType = enumType
+                ?? throw new ArgumentNullException(nameof(enumType));
+            EnumDescription.Name = enumType.GetGraphQLName();
         }
 
-        public EnumTypeDefinitionNode SyntaxNode { get; protected set; }
+        protected List<EnumValueDescriptor> Values { get; } =
+            new List<EnumValueDescriptor>();
 
-        public string Name { get; protected set; }
+        protected EnumTypeDescription EnumDescription { get; } =
+            new EnumTypeDescription();
 
-        public string Description { get; protected set; }
-
-        public Type NativeType { get; protected set; }
-
-        protected ImmutableList<EnumValueDescriptor> Items { get; set; } =
-            ImmutableList<EnumValueDescriptor>.Empty;
-
-        public BindingBehavior BindingBehavior { get; protected set; }
-
-        public virtual IEnumerable<EnumValueDescriptor> GetItems()
+        public EnumTypeDescription CreateDescription()
         {
-            if (BindingBehavior == BindingBehavior.Implicit)
+            CompleteValues();
+            return EnumDescription;
+        }
+
+        protected void CompleteValues()
+        {
+            var valueToDesc = new Dictionary<object, EnumValueDescription>();
+
+            foreach (EnumValueDescription valueDescription in
+                Values.Select(t => t.CreateDescription()))
             {
-                if (!_valuesInitialized
-                    && NativeType != null
-                    && NativeType.IsEnum
-                    && !Items.Any())
+                valueToDesc[valueDescription.Value] = valueDescription;
+            }
+
+            AddImplicitValues(valueToDesc);
+
+            var values = new Dictionary<string, EnumValueDescription>();
+
+            foreach (EnumValueDescription valueDescription in valueToDesc.Values)
+            {
+                values[valueDescription.Name] = valueDescription;
+            }
+
+            EnumDescription.Values.Clear();
+            EnumDescription.Values.AddRange(values.Values);
+        }
+
+        protected void AddImplicitValues(Dictionary<object, EnumValueDescription> valueToDesc)
+        {
+            if (EnumDescription.ValueBindingBehavior == BindingBehavior.Implicit)
+            {
+                if (EnumDescription.NativeType != null
+                    && EnumDescription.NativeType.IsEnum)
                 {
-                    _valuesInitialized = true;
-                    foreach (object o in Enum.GetValues(NativeType))
+                    foreach (object o in Enum.GetValues(
+                        EnumDescription.NativeType))
                     {
-                        Items = Items.Add(new EnumValueDescriptor(o));
+                        EnumValueDescription description =
+                            new EnumValueDescriptor(o)
+                                .CreateDescription();
+                        if (!valueToDesc.ContainsKey(description.Value))
+                        {
+                            valueToDesc[description.Value] = description;
+                        }
                     }
                 }
             }
-            return Items;
         }
 
-        #region IEnumTypeDescriptor
-
-        IEnumTypeDescriptor IEnumTypeDescriptor.SyntaxNode(
-            EnumTypeDefinitionNode syntaxNode)
+        protected void SyntaxNode(EnumTypeDefinitionNode syntaxNode)
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            EnumDescription.SyntaxNode = syntaxNode;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -92,31 +108,61 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
+            EnumDescription.Name = name;
+        }
+
+        protected void Description(string description)
+        {
+            EnumDescription.Description = description;
+        }
+
+        protected EnumValueDescriptor Item<T>(T value)
+        {
+            if (EnumDescription.NativeType == null)
+            {
+                EnumDescription.NativeType = typeof(T);
+            }
+
+            var descriptor = new EnumValueDescriptor(value);
+            Values.Add(descriptor);
+            return descriptor;
+        }
+
+        protected void BindItems(BindingBehavior bindingBehavior)
+        {
+            EnumDescription.ValueBindingBehavior = bindingBehavior;
+        }
+
+        #region IEnumTypeDescriptor
+
+        IEnumTypeDescriptor IEnumTypeDescriptor.SyntaxNode(
+            EnumTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IEnumTypeDescriptor IEnumTypeDescriptor.Name(string name)
+        {
+            Name(name);
             return this;
         }
 
         IEnumTypeDescriptor IEnumTypeDescriptor.Description(string description)
         {
-            Description = description;
+            Description(description);
             return this;
         }
 
         IEnumValueDescriptor IEnumTypeDescriptor.Item<T>(T value)
         {
-            if (NativeType == null)
-            {
-                NativeType = typeof(T);
-            }
-
-            EnumValueDescriptor descriptor = new EnumValueDescriptor(value);
-            Items = Items.Add(descriptor);
-            return descriptor;
+            return Item(value);
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.BindItems(BindingBehavior bindingBehavior)
+        IEnumTypeDescriptor IEnumTypeDescriptor.BindItems(
+            BindingBehavior bindingBehavior)
         {
-            BindingBehavior = bindingBehavior;
+            BindItems(bindingBehavior);
             return this;
         }
 
@@ -127,49 +173,43 @@ namespace HotChocolate.Types
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor(Type enumType)
-            : base(enumType)
+        public EnumTypeDescriptor()
+            : base(typeof(T))
         {
-            NativeType = typeof(T);
         }
 
         #region IEnumTypeDescriptor<T>
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.SyntaxNode(EnumTypeDefinitionNode syntaxNode)
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.SyntaxNode(
+            EnumTypeDefinitionNode syntaxNode)
         {
-            ((IEnumTypeDescriptor)this).SyntaxNode(syntaxNode);
+            SyntaxNode(syntaxNode);
             return this;
         }
 
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(string name)
         {
-            ((IEnumTypeDescriptor)this).Name(name);
+            Name(name);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Description(string description)
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Description(
+            string description)
         {
-            ((IEnumTypeDescriptor)this).Description(description);
+            Description(description);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(BindingBehavior bindingBehavior)
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(
+            BindingBehavior bindingBehavior)
         {
-            BindingBehavior = bindingBehavior;
+            BindItems(bindingBehavior);
             return this;
         }
 
         IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
         {
-            if (ReferenceEquals(value, null))
-            {
-                throw new ArgumentNullException(
-                    "An enum value mustn't be null.");
-            }
-
-            EnumValueDescriptor descriptor = new EnumValueDescriptor(value);
-            Items = Items.Add(descriptor);
-            return descriptor;
+            return Item(value);
         }
 
         #endregion

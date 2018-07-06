@@ -6,6 +6,7 @@ namespace HotChocolate.Types
 {
     internal class EnumValueDescriptor
         : IEnumValueDescriptor
+        , IDescriptionFactory<EnumValueDescription>
     {
         public EnumValueDescriptor(object value)
         {
@@ -14,29 +15,24 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(value));
             }
 
-            Name = value.ToString().ToUpperInvariant();
-            Value = value;
+            ValueDescription.Name = value.ToString().ToUpperInvariant();
+            ValueDescription.Value = value;
         }
 
-        public EnumValueDefinitionNode SyntaxNode { get; protected set; }
+        protected EnumValueDescription ValueDescription { get; } =
+            new EnumValueDescription();
 
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public string DeprecationReason { get; protected set; }
-
-        public object Value { get; protected set; }
-
-        #region IEnumValueDescriptor
-
-        IEnumValueDescriptor IEnumValueDescriptor.SyntaxNode(EnumValueDefinitionNode syntaxNode)
+        public EnumValueDescription CreateDescription()
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            return ValueDescription;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Name(string name)
+        protected void SyntaxNode(EnumValueDefinitionNode syntaxNode)
+        {
+            ValueDescription.SyntaxNode = syntaxNode;
+        }
+
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -48,23 +44,51 @@ namespace HotChocolate.Types
             if (!ValidationHelper.IsTypeNameValid(name))
             {
                 throw new ArgumentException(
-                    "The specified name is not a valid GraphQL enum value name.",
+                    "The specified name is not a valid " +
+                    "GraphQL enum value name.",
                     nameof(name));
             }
 
-            Name = name;
+            ValueDescription.Name = name;
+        }
+
+        protected void Description(string description)
+        {
+            ValueDescription.Description = description;
+        }
+
+        protected void DeprecationReason(string deprecationReason)
+        {
+            ValueDescription.DeprecationReason = deprecationReason;
+        }
+
+
+        #region IEnumValueDescriptor
+
+        IEnumValueDescriptor IEnumValueDescriptor.SyntaxNode(
+            EnumValueDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Description(string description)
+        IEnumValueDescriptor IEnumValueDescriptor.Name(string name)
         {
-            Description = description;
+            Name(name);
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.DeprecationReason(string deprecationReason)
+        IEnumValueDescriptor IEnumValueDescriptor.Description(
+            string description)
         {
-            DeprecationReason = deprecationReason;
+            Description(description);
+            return this;
+        }
+
+        IEnumValueDescriptor IEnumValueDescriptor.DeprecationReason(
+            string deprecationReason)
+        {
+            DeprecationReason(deprecationReason);
             return this;
         }
 

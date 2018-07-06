@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
                     .Where(t => t.Value != null)
                     .ToDictionary(t => t.Name.Value, t => t.Value);
 
-            foreach (InputField argument in fieldSelection.Field.Arguments.Values)
+            foreach (InputField argument in fieldSelection.Field.Arguments)
             {
                 string argumentName = argument.Name;
                 IInputType argumentType = argument.Type;

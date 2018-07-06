@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterTypes(ISchemaContext context)
         {
-            TypeRegistrar typeRegistrar = new TypeRegistrar(
+            var typeRegistrar = new TypeRegistrar(
                 context.Types.GetTypes());
             typeRegistrar.RegisterTypes(context);
             _errors.AddRange(typeRegistrar.Errors);
@@ -43,7 +43,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterTypeBindings(ISchemaContext context)
         {
-            TypeBindingRegistrar typeBindingRegistrar = new TypeBindingRegistrar(
+            var typeBindingRegistrar = new TypeBindingRegistrar(
                 _schemaConfiguration.TypeBindings);
             typeBindingRegistrar.RegisterTypeBindings(context.Types);
             ((TypeRegistry)context.Types).CompleteRegistartion();
@@ -51,7 +51,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterFieldResolvers(ISchemaContext context)
         {
-            ResolverRegistrar resolverRegistrar = new ResolverRegistrar(
+            var resolverRegistrar = new ResolverRegistrar(
                 _schemaConfiguration.ResolverBindings);
             resolverRegistrar.RegisterResolvers(context);
         }

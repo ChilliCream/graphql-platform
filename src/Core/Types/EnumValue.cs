@@ -1,34 +1,32 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class EnumValue
-         : ITypeSystemNode
     {
-        internal EnumValue(EnumValueDescriptor descriptor)
+        internal EnumValue(EnumValueDescription description)
         {
-            if (descriptor == null)
+            if (description == null)
             {
-                throw new ArgumentNullException(nameof(descriptor));
+                throw new ArgumentNullException(nameof(description));
             }
 
-            if (descriptor.Value == null)
+            if (description.Value == null)
             {
                 throw new ArgumentException(
                     "The inner value of enum value cannot be null or empty.",
-                    nameof(descriptor));
+                    nameof(description));
             }
 
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = string.IsNullOrEmpty(descriptor.Name)
-                ? descriptor.Value.ToString()
-                : descriptor.Name;
-            Description = descriptor.Description;
-            DeprecationReason = descriptor.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(descriptor.DeprecationReason);
-            Value = descriptor.Value;
+            SyntaxNode = description.SyntaxNode;
+            Name = string.IsNullOrEmpty(description.Name)
+                ? description.Value.ToString()
+                : description.Name;
+            Description = description.Description;
+            DeprecationReason = description.DeprecationReason;
+            IsDeprecated = !string.IsNullOrEmpty(description.DeprecationReason);
+            Value = description.Value;
         }
 
         public EnumValueDefinitionNode SyntaxNode { get; }
@@ -42,12 +40,5 @@ namespace HotChocolate.Types
         public bool IsDeprecated { get; }
 
         public object Value { get; }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            yield break;
-        }
     }
 }

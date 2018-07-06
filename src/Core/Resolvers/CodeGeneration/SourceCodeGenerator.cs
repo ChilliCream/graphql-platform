@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 
@@ -15,7 +11,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string resolverName,
             FieldResolverDescriptor resolverDescriptor)
         {
-            StringBuilder source = new StringBuilder();
+            var source = new StringBuilder();
+            source.AppendLine($"/* {resolverDescriptor.Field.TypeName}.{resolverDescriptor.Field.FieldName} */");
             source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
             source.Append(resolverName);
@@ -24,7 +21,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
-            foreach (FieldResolverArgumentDescriptor argumentDescriptor in resolverDescriptor.ArgumentDescriptors)
+            foreach (FieldResolverArgumentDescriptor argumentDescriptor in
+                resolverDescriptor.ArgumentDescriptors)
             {
                 GenerateArgumentInvocation(argumentDescriptor, source);
                 source.AppendLine();
@@ -41,7 +39,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             FieldResolverArgumentDescriptor argumentDescriptor,
             StringBuilder source)
         {
-            source.Append($"var {argumentDescriptor.Name} = ");
+            source.Append($"var {argumentDescriptor.VariableName} = ");
             switch (argumentDescriptor.Kind)
             {
                 case FieldResolverArgumentKind.Argument:
@@ -93,7 +91,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected string GetTypeName(Type type)
         {
             return type.GetTypeName();
-        }        
+        }
 
         protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
         {
@@ -106,10 +104,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine("{");
             source.AppendLine($"return ex.{nameof(QueryException.Errors)};");
             source.AppendLine("}");
-            source.AppendLine($"catch({GetTypeName(typeof(Exception))})");
-            source.AppendLine("{");
-            source.AppendLine($"return new {GetTypeName(typeof(QueryError))}(\"Internal resolver error\");");
-            source.Append("}");
         }
     }
 }

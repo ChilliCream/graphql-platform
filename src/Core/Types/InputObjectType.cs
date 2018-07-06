@@ -1,34 +1,26 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : INamedInputType
-        , INullableType
-        , ITypeSystemNode
-        , INeedsInitialization
+        : TypeBase
+        , INamedInputType
     {
-        private Dictionary<string, InputField> _fieldMap =
-            new Dictionary<string, InputField>();
-        private Type _nativeType;
         private Func<ObjectValueNode, object> _deserialize;
 
         internal InputObjectType()
+            : base(TypeKind.InputObject)
         {
             Initialize(Configure);
         }
 
         internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+            : base(TypeKind.InputObject)
         {
             Initialize(configure);
         }
-
-        public TypeKind Kind { get; } = TypeKind.InputObject;
 
         public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -36,9 +28,9 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        public IReadOnlyDictionary<string, InputField> Fields => _fieldMap;
+        public FieldCollection<InputField> Fields { get; private set; }
 
-        public Type NativeType => _nativeType;
+        public Type NativeType { get; private set; }
 
         #region IInputType
 
@@ -98,17 +90,6 @@ namespace HotChocolate.Types
 
         #endregion
 
-        #region TypeSystemNode
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
-        IEnumerable<ITypeSystemNode> ITypeSystemNode.GetNodes()
-        {
-            return Fields.Values;
-        }
-
-        #endregion
-
         #region Initialization
 
         private void Initialize(Action<IInputObjectTypeDescriptor> configure)
@@ -120,89 +101,70 @@ namespace HotChocolate.Types
 
             InputObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
-            Initialize(descriptor);
+
+            InputObjectTypeDescription description = descriptor.CreateDescription();
+            NativeType = description.NativeType;
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            Fields = new FieldCollection<InputField>(
+                description.Fields.Select(t => new InputField(t)));
         }
 
-        private void Initialize(InputObjectTypeDescriptor descriptor)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
-            if (descriptor == null)
+            base.OnRegisterDependencies(context);
+
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (string.IsNullOrEmpty(descriptor.Name))
-            {
-                throw new ArgumentException(
-                    "An input object type name must not be null or empty.");
-            }
-
-            foreach (InputField field in
-                descriptor.GetFieldDescriptors()
-                .Select(t => new InputField(t)))
-            {
-                _fieldMap[field.Name] = field;
-            }
-
-            _nativeType = descriptor.NativeType;
-
-            SyntaxNode = descriptor.SyntaxNode;
-            Name = descriptor.Name;
-            Description = descriptor.Description;
-        }
-
-        void INeedsInitialization.RegisterDependencies(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
-        {
-            foreach (InputField field in _fieldMap.Values)
-            {
-                field.RegisterDependencies(
-                    schemaContext.Types, reportError, this);
+                field.RegisterDependencies(context);
             }
         }
 
-        void INeedsInitialization.CompleteType(
-            ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
-            CompleteNativeType(schemaContext.Types, reportError);
-            CompleteFields(schemaContext.Types, reportError);
+            base.OnCompleteType(context);
+
+            CompleteNativeType(context);
+            CompleteFields(context);
         }
 
         private void CompleteNativeType(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
-            if (_nativeType == null && typeRegistry.TryGetTypeBinding(this,
-                out InputObjectTypeBinding typeBinding))
+            if (NativeType == null
+                && context.TryGetNativeType(this, out Type nativeType))
             {
-                _nativeType = typeBinding.Type;
+                NativeType = nativeType;
             }
 
-            if (_nativeType == null)
+            if (NativeType == null)
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     "Could not resolve the native type associated with " +
                     $"input object type `{Name}`.",
                     this));
             }
 
             _deserialize = InputObjectDeserializerFactory.Create(
-                    reportError, this, _nativeType);
+                    context, this, NativeType);
         }
 
         private void CompleteFields(
-            ITypeRegistry typeRegistry,
-            Action<SchemaError> reportError)
+            ITypeInitializationContext context)
         {
-            foreach (InputField field in _fieldMap.Values)
+            foreach (INeedsInitialization field in Fields
+                .Cast<INeedsInitialization>())
             {
-                field.CompleteInputField(typeRegistry, reportError, this);
+                field.CompleteType(context);
             }
 
-            if (!_fieldMap.Any())
+            if (Fields.IsEmpty)
             {
-                reportError(new SchemaError(
+                context.ReportError(new SchemaError(
                     $"The input object `{Name}` does not have any fields."));
             }
         }

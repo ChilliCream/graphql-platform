@@ -9,20 +9,28 @@ namespace HotChocolate
     {
         private sealed class IntrospectionFields
         {
-            public IntrospectionFields(SchemaContext context, Action<SchemaError> reportError)
+            public IntrospectionFields(
+                SchemaContext schemaContext,
+                Action<SchemaError> reportError)
             {
                 SchemaField = new __SchemaField();
                 TypeField = new __TypeField();
                 TypeNameField = new __TypeNameField();
 
-                SchemaField.RegisterDependencies(context, reportError, null);
-                TypeField.RegisterDependencies(context, reportError, null);
-                TypeNameField.RegisterDependencies(context, reportError, null);
+                ObjectType schema = schemaContext.Types.GetType<ObjectType>("__Schema");
+                var initializationContext = new TypeInitializationContext(
+                    schemaContext, reportError, schema);
+                CompleteField(initializationContext, SchemaField);
+                CompleteField(initializationContext, TypeField);
+                CompleteField(initializationContext, TypeNameField);
+            }
 
-                ObjectType schema = context.Types.GetType<ObjectType>("__Schema");
-                SchemaField.CompleteField(context, reportError, schema);
-                TypeField.CompleteField(context, reportError, schema);
-                TypeNameField.CompleteField(context, reportError, schema);
+            private static void CompleteField(
+                TypeInitializationContext context,
+                INeedsInitialization field)
+            {
+                field.RegisterDependencies(context);
+                field.CompleteType(context);
             }
 
             internal __SchemaField SchemaField { get; }

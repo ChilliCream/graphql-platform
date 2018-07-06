@@ -6,48 +6,34 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InputFieldDescriptor
-        : IInputFieldDescriptor
+        : ArgumentDescriptor
+        , IInputFieldDescriptor
+        , IDescriptionFactory<InputFieldDescription>
     {
         public InputFieldDescriptor(string name)
+            : base(new InputFieldDescription())
         {
-            Name = name;
+            InputDescription.Name = name;
         }
 
         public InputFieldDescriptor(PropertyInfo property)
+            : base(new InputFieldDescription())
         {
-            if (property == null)
-            {
-                throw new ArgumentNullException(nameof(property));
-            }
-
-            Property = property;
-            Name = property.GetGraphQLName();
-            TypeReference = new TypeReference(property.PropertyType);
+            InputDescription.Property = property 
+                ?? throw new ArgumentNullException(nameof(property));
+            InputDescription.Name = property.GetGraphQLName();
+            InputDescription.TypeReference = new TypeReference(property.PropertyType);
         }
 
-        public PropertyInfo Property { get; }
+        protected new InputFieldDescription InputDescription
+            => (InputFieldDescription)base.InputDescription;
 
-        public InputValueDefinitionNode SyntaxNode { get; protected set; }
-
-        public string Name { get; protected set; }
-
-        public string Description { get; protected set; }
-
-        public TypeReference TypeReference { get; protected set; }
-
-        public IValueNode DefaultValue { get; protected set; }
-
-        public object NativeDefaultValue { get; protected set; }
-
-        #region IInputFieldDescriptor
-
-        IInputFieldDescriptor IInputFieldDescriptor.SyntaxNode(InputValueDefinitionNode syntaxNode)
+        public new InputFieldDescription CreateDescription()
         {
-            SyntaxNode = syntaxNode;
-            return this;
+            return InputDescription;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Name(string name)
+        protected void Name(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -63,48 +49,54 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            Name = name;
+            InputDescription.Name = name;
+        }
+
+        #region IInputFieldDescriptor
+
+        IInputFieldDescriptor IInputFieldDescriptor.SyntaxNode(
+            InputValueDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Description(string description)
+        IInputFieldDescriptor IInputFieldDescriptor.Name(string name)
         {
-            Description = description;
+            Name(name);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Description(
+            string description)
+        {
+            Description(description);
             return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
         {
-            TypeReference = TypeReference.GetMoreSpecific(typeof(TInputType));
+            Type<TInputType>();
             return this;
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
-            TypeReference = TypeReference.GetMoreSpecific(type);
+            Type(type);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(IValueNode defaultValue)
+        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(
+            IValueNode defaultValue)
         {
-            DefaultValue = defaultValue ?? new NullValueNode();
-            NativeDefaultValue = null;
+            DefaultValue(defaultValue);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(object defaultValue)
+        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(
+            object defaultValue)
         {
-            if (defaultValue == null)
-            {
-                DefaultValue = new NullValueNode();
-                NativeDefaultValue = null;
-            }
-            else
-            {
-                NativeDefaultValue = defaultValue;
-                DefaultValue = null;
-                TypeReference = TypeReference.GetMoreSpecific(defaultValue.GetType());
-            }
+            DefaultValue(defaultValue);
             return this;
         }
 

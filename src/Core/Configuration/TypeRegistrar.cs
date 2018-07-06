@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +54,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void ProcessBatch(ISchemaContext context)
+        private void ProcessBatch(ISchemaContext schemaContext)
         {
             while (_queue.Any())
             {
@@ -63,13 +62,14 @@ namespace HotChocolate.Configuration
                 if (!_registered.Contains(type.Name))
                 {
                     _registered.Add(type.Name);
-                    context.Types.RegisterType(type);
-                    type = context.Types.GetType<INamedType>(type.Name);
+                    schemaContext.Types.RegisterType(type);
+                    type = schemaContext.Types.GetType<INamedType>(type.Name);
 
                     if (type is INeedsInitialization initializer)
                     {
-                        initializer.RegisterDependencies(
-                            context, e => _errors.Add(e));
+                        var initializationContext = new TypeInitializationContext(
+                            schemaContext, e => _errors.Add(e), type);
+                        initializer.RegisterDependencies(initializationContext);
                     }
                 }
             }
