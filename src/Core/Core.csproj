@@ -26,4 +26,7 @@
     <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Execution\_\" />
+  </ItemGroup>
 </Project>

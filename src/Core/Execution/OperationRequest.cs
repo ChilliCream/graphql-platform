@@ -10,6 +10,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+
     internal class OperationRequest
     {
         private static readonly FieldValueCompleter _valueCompleter =
