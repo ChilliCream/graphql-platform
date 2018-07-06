@@ -7,10 +7,12 @@ namespace HotChocolate.Resolvers
 {
     public class FieldResolverArgumentDescriptor
     {
-        private FieldResolverArgumentDescriptor(
-            string name, FieldResolverArgumentKind kind, Type type)
+        internal FieldResolverArgumentDescriptor(
+            string name, string variableName,
+            FieldResolverArgumentKind kind, Type type)
         {
             Name = name;
+            VariableName = variableName;
             Kind = kind;
             Type = type;
         }
@@ -19,6 +21,11 @@ namespace HotChocolate.Resolvers
         /// Gets the name of the argument.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Gets the variable name of the argument.
+        /// </summary>
+        public string VariableName { get; }
 
         /// <summary>
         /// Defines the argument kind.
@@ -30,22 +37,6 @@ namespace HotChocolate.Resolvers
         /// Gets the argument type.
         /// </summary>
         public Type Type { get; }
-
-        public static FieldResolverArgumentDescriptor Create(
-            string name, FieldResolverArgumentKind kind, Type type)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return new FieldResolverArgumentDescriptor(name, kind, type);
-        }
 
         internal static FieldResolverArgumentKind LookupKind(
             Type argumentType, Type sourceType)
