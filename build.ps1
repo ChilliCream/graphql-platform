@@ -80,9 +80,9 @@ if ($Pack) {
     $dropRootDirectory = Join-Path -Path $PSScriptRoot -ChildPath "drop"
 
     if ($env:PreVersion) {
-        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix
+        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix --include-source --include-symbols
     }
     else {
-        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix
+        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix --include-source --include-symbols
     }
 }
