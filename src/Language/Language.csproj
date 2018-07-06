@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>HotChocolate.Types</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
-    <PackageId>HotChocolate.Types</PackageId>
-    <Description>The hot chocolate GraphQL type system.</Description>
+    <TargetFrameworks>netstandard2.0; netstandard1.4</TargetFrameworks>
+    <AssemblyName>HotChocolate.Language</AssemblyName>
+    <RootNamespace>HotChocolate.Language</RootNamespace>
+    <PackageId>HotChocolate.Language</PackageId>
+    <Description>The hot chocolate GraphQL lexer and parser that can be used to parse GraphQL queries and schemas.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,15 +22,14 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
-    <ProjectReference Include="..\Language\Language.csproj" />
+    <Folder Include="Lexer\" />
+    <Folder Include="AST\" />
+    <Folder Include="Parser\" />
   </ItemGroup>
 
 </Project>
