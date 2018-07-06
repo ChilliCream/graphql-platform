@@ -66,10 +66,18 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetValue("FOOBAR", out object value));
-            Assert.Equal(Foo.Bar1, value);
-            Assert.False(type.TryGetValue("BAR2", out value));
-            Assert.Null(value);
+
+            Assert.Collection(type.Values,
+                t =>
+                {
+                    Assert.Equal(Foo.Bar1, t.Value);
+                    Assert.Equal("FOOBAR", t.Name);
+                },
+                t =>
+                {
+                    Assert.Equal(Foo.Bar2, t.Value);
+                    Assert.Equal("BAR2", t.Name);
+                });
         }
 
         [Fact]

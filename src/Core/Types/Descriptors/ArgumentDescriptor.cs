@@ -23,6 +23,7 @@ namespace HotChocolate.Types
             }
 
             InputDescription = new ArgumentDescription();
+            InputDescription.Name = argumentName;
             InputDescription.TypeReference = new TypeReference(argumentType);
             InputDescription.DefaultValue = new NullValueNode();
         }

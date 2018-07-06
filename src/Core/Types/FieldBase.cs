@@ -7,6 +7,7 @@ namespace HotChocolate.Types
         , IField
         where T : IType
     {
+        bool init;
         protected FieldBase(FieldDescriptionBase description)
         {
             if (description == null)
@@ -16,7 +17,7 @@ namespace HotChocolate.Types
 
             if (string.IsNullOrEmpty(description.Name))
             {
-                throw new ArgumentNullException(
+                throw new ArgumentException(
                     "The name of a field mustn't be null or empty.",
                     nameof(description));
             }
@@ -67,6 +68,7 @@ namespace HotChocolate.Types
 
             DeclaringType = context.Type;
             Type = context.ResolveFieldType<T>(this, TypeReference);
+            init = true;
         }
     }
 }

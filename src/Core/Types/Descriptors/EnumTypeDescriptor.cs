@@ -11,8 +11,6 @@ namespace HotChocolate.Types
         : IEnumTypeDescriptor
         , IDescriptionFactory<EnumTypeDescription>
     {
-        private bool _valuesInitialized;
-
         public EnumTypeDescriptor(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -46,12 +44,19 @@ namespace HotChocolate.Types
 
         protected void CompleteValues()
         {
-            AddImplicitValues();
-
-            var values = new Dictionary<string, EnumValueDescription>();
+            var valueToDesc = new Dictionary<object, EnumValueDescription>();
 
             foreach (EnumValueDescription valueDescription in
                 Values.Select(t => t.CreateDescription()))
+            {
+                valueToDesc[valueDescription.Value] = valueDescription;
+            }
+
+            AddImplicitValues(valueToDesc);
+
+            var values = new Dictionary<string, EnumValueDescription>();
+
+            foreach (EnumValueDescription valueDescription in valueToDesc.Values)
             {
                 values[valueDescription.Name] = valueDescription;
             }
@@ -60,20 +65,24 @@ namespace HotChocolate.Types
             EnumDescription.Values.AddRange(values.Values);
         }
 
-        protected void AddImplicitValues()
+        protected void AddImplicitValues(Dictionary<object, EnumValueDescription> valueToDesc)
         {
             if (EnumDescription.ValueBindingBehavior == BindingBehavior.Implicit)
             {
-                if (!_valuesInitialized
-                    && EnumDescription.NativeType != null
+                if (EnumDescription.NativeType != null
                     && EnumDescription.NativeType.IsEnum)
                 {
                     foreach (object o in Enum.GetValues(
                         EnumDescription.NativeType))
                     {
-                        Values.Add(new EnumValueDescriptor(o));
+                        EnumValueDescription description =
+                            new EnumValueDescriptor(o)
+                                .CreateDescription();
+                        if (!valueToDesc.ContainsKey(description.Value))
+                        {
+                            valueToDesc[description.Value] = description;
+                        }
                     }
-                    _valuesInitialized = true;
                 }
             }
         }

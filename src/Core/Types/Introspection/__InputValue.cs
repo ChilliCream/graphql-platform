@@ -34,7 +34,8 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c =>
                 {
                     InputField field = c.Parent<InputField>();
-                    if (field.Type.IsNonNullType() && field.DefaultValue is NullValueNode)
+                    if (field.Type.IsNonNullType() 
+                        && field.DefaultValue is NullValueNode)
                     {
                         return null;
                     }
@@ -44,7 +45,8 @@ namespace HotChocolate.Types.Introspection
                         object nativeValue = field.Type.ParseLiteral(field.DefaultValue);
                         if (field.Type is ISerializableType serializableType)
                         {
-                            return JsonConvert.SerializeObject(serializableType.Serialize(nativeValue));
+                            return JsonConvert.SerializeObject(
+                                serializableType.Serialize(nativeValue));
                         }
                     }
 

@@ -203,7 +203,8 @@ namespace HotChocolate.Types
             ObjectDescription.FieldBindingBehavior = bindingBehavior;
         }
 
-        protected ObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> methodOrProperty)
+        protected ObjectFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> methodOrProperty)
         {
             if (methodOrProperty == null)
             {

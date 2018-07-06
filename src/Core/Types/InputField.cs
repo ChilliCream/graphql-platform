@@ -35,7 +35,7 @@ namespace HotChocolate.Types
         protected override void OnCompleteType(
             ITypeInitializationContext context)
         {
-            base.OnRegisterDependencies(context);
+            base.OnCompleteType(context);
 
             if (Type != null)
             {
