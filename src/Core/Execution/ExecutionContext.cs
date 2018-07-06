@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class ExecutionContext : IExecutionContext
+    internal class ExecutionContext
     {
         private readonly FieldCollector _fieldCollector;
 
