@@ -209,6 +209,7 @@ namespace HotChocolate.Execution
             foreach (var runningTask in runningTasks)
             {
                 object fieldValue = await HandleFieldValueAsync(
+                    runningTask.task.FieldSelection.Node,
                     runningTask.resolverResult);
 
                 FieldValueCompletionContext completionContext =
@@ -254,6 +255,7 @@ namespace HotChocolate.Execution
 
                 // handle async results
                 resolverResult = await HandleFieldValueAsync(
+                    task.FieldSelection.Node,
                     resolverResult);
 
                 FieldValueCompletionContext completionContext =
@@ -314,18 +316,18 @@ namespace HotChocolate.Execution
         }
 
         // todo: rework ....
-        private async Task<object> HandleFieldValueAsync(object resolverResult)
+        private async Task<object> HandleFieldValueAsync(FieldNode fieldSelection, object resolverResult)
         {
             switch (resolverResult)
             {
                 case Task<object> task:
-                    return await HandleFieldValueTaskAsync(task);
+                    return await HandleFieldValueTaskAsync(fieldSelection, task);
                 default:
                     return resolverResult;
             }
         }
 
-        private async Task<object> HandleFieldValueTaskAsync(Task<object> task)
+        private async Task<object> HandleFieldValueTaskAsync(FieldNode fieldSelection, Task<object> task)
         {
             try
             {
@@ -337,7 +339,7 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                return _schema.CreateErrorFromException(ex);
+                return _schema.CreateErrorFromException(ex, fieldSelection);
             }
         }
 
