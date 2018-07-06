@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Execution
 {
     internal class ResolverContext
         : IResolverContext
@@ -129,7 +128,7 @@ namespace HotChocolate.Resolvers
 
         public T Service<T>()
         {
-            return _executionContext.Schema.GetService<T>();
+            return (T)_executionContext.Schema.GetService(typeof(T));
         }
     }
 }

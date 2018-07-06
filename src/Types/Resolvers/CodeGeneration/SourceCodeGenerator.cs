@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using HotChocolate.Execution;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -95,14 +94,15 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
         {
+            // TODO : move HotChocolate.Execution.QueryException to abstractions and go back to the part where we used a strongly typed solution
             source.AppendLine("try");
             source.AppendLine("{");
             code(source);
             source.AppendLine();
             source.AppendLine("}");
-            source.AppendLine($"catch({GetTypeName(typeof(QueryException))} ex)");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
             source.AppendLine("{");
-            source.AppendLine($"return ex.{nameof(QueryException.Errors)};");
+            source.AppendLine($"return ex.Errors;");
             source.AppendLine("}");
         }
     }

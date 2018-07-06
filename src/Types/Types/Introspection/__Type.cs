@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Introspection
 {

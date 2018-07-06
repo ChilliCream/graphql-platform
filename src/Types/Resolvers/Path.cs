@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Immutable;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
     public sealed class Path
         : IEquatable<Path>
