@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -13,26 +16,27 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
 
-
         protected async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
-            List<ResolverTask> resolverTasks,
+            IEnumerable<ResolverTask> initialBatch,
             CancellationToken cancellationToken)
         {
-            /*
-            while (resolverTasks.Count > 0)
-            {
-                List<FieldResolverTask> currentBatch =
-                    new List<FieldResolverTask>(executionContext.NextBatch);
-                executionContext.NextBatch.Clear();
+            var currentBatch = new List<ResolverTask>(initialBatch);
+            var nextBatch = new List<ResolverTask>();
+            var swap = nextBatch;
 
+            while (currentBatch.Count > 0)
+            {
                 await ExecuteResolverBatchAsync(executionContext,
-                    currentBatch, cancellationToken);
+                    currentBatch, nextBatch, cancellationToken);
+
+                swap = currentBatch;
+                currentBatch = nextBatch;
+                nextBatch = currentBatch;
+                nextBatch.Clear();
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
-             */
-            throw new NotImplementedException();
         }
 
         private async Task ExecuteResolverBatchAsync(
@@ -59,12 +63,9 @@ namespace HotChocolate.Execution
             {
                 if (resolverTask.Path.Depth <= executionContext.Options.MaxExecutionDepth)
                 {
-                    /*
-                    object resolverResult = ExecuteFieldResolver(
-                        resolverContext, task.FieldSelection.Field,
-                        task.FieldSelection.Node, cancellationToken);
-                    runningTasks.Add((task, resolverContext, resolverResult));
-                    */
+                    resolverTask.ResolverResult = ExecuteResolver(
+                        resolverTask, executionContext.Options.DeveloperMode,
+                        cancellationToken);
                 }
                 else
                 {
@@ -100,6 +101,29 @@ namespace HotChocolate.Execution
                 CompleteValue(completionContext);
 
                 cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected IEnumerable<ResolverTask> CreateRootResolverTasks(
+            IExecutionContext executionContext,
+            OrderedDictionary result)
+        {
+            ImmutableStack<object> source = ImmutableStack<object>.Empty
+                .Push(executionContext.RootValue);
+
+            IReadOnlyCollection<FieldSelection> fieldSelections =
+                executionContext.CollectFields(
+                    executionContext.OperationType,
+                    executionContext.Operation.SelectionSet);
+
+            foreach (FieldSelection fieldSelection in fieldSelections)
+            {
+                yield return new ResolverTask(
+                    executionContext.OperationType,
+                    fieldSelection,
+                    Path.New(fieldSelection.ResponseName),
+                    source,
+                    result);
             }
         }
     }

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 namespace HotChocolate.Execution
 {
     public class QueryResult
+        : IExecutionResult
     {
         private const string _data = "data";
         private const string _errors = "errors";
@@ -17,16 +18,14 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(data));
             }
+
             Data = data;
+            Data.MakeReadOnly();
         }
 
         public QueryResult(params IQueryError[] errors)
+            : this(errors as IEnumerable<IQueryError>)
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-            Errors = errors.ToImmutableList();
         }
 
         public QueryResult(IEnumerable<IQueryError> errors)
@@ -35,10 +34,16 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(errors));
             }
+
             Errors = errors.ToImmutableList();
+
+            if (Errors.Count == 0)
+            {
+                throw new ArgumentException("The list of errors ");
+            }
         }
 
-        public QueryResult(OrderedDictionary data, List<IQueryError> errors)
+        public QueryResult(OrderedDictionary data, IEnumerable<IQueryError> errors)
         {
             if (data == null)
             {
@@ -51,17 +56,24 @@ namespace HotChocolate.Execution
             }
 
             Data = data;
+            Data.MakeReadOnly();
+
             Errors = errors.ToImmutableList();
+            if (Errors.Count == 0)
+            {
+                Errors = null;
+            }
         }
 
         public OrderedDictionary Data { get; }
-        public ImmutableList<IQueryError> Errors { get; }
+
+        public IReadOnlyCollection<IQueryError> Errors { get; }
 
         public string ToString(bool indented)
         {
             Dictionary<string, object> internalResult = new Dictionary<string, object>();
 
-            if (Errors != null)
+            if (Errors != null && Errors.Count > 0)
             {
                 internalResult[_errors] = Errors;
             }

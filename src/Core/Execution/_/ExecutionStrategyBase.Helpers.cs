@@ -3,12 +3,37 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
     internal abstract partial class ExecutionStrategyBase
     {
-        protected async Task<object> FinalizeResolverResultAsync(
+        protected static object ExecuteResolver(
+           ResolverTask resolverTask,
+           bool isDeveloperMode,
+           CancellationToken cancellationToken)
+        {
+            try
+            {
+                return resolverTask.FieldSelection.Field.Resolver(
+                    resolverTask.ResolverContext,
+                    cancellationToken);
+            }
+            catch (QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorFromException(ex,
+                    resolverTask.FieldSelection.Node,
+                    isDeveloperMode);
+            }
+        }
+
+        protected static async Task<object> FinalizeResolverResultAsync(
             FieldNode fieldSelection, object resolverResult,
             bool isDeveloperMode)
         {
@@ -22,7 +47,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task<object> FinalizeResolverResultTaskAsync(
+        private static async Task<object> FinalizeResolverResultTaskAsync(
             FieldNode fieldSelection, Task<object> task,
             bool isDeveloperMode)
         {

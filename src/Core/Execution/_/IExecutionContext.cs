@@ -18,13 +18,15 @@ namespace HotChocolate.Execution
         // query ast
         DocumentNode QueryDocument { get; }
         OperationDefinitionNode Operation { get; }
+        ObjectType OperationType { get; }
 
         // query
         FragmentCollection Fragments { get; }
         VariableCollection Variables { get; }
 
-
         void ReportError(IQueryError error);
+        IEnumerable<IQueryError> GetErrors();
+
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet);
 

@@ -10,9 +10,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class ResolverContext
+    internal readonly struct ResolverContext
         : IResolverContext
     {
+        // remove
         private static readonly List<IInputValueConverter> _converters =
             new List<IInputValueConverter>
             {
@@ -20,48 +21,49 @@ namespace HotChocolate.Execution
                 new FloatValueConverter(),
                 new DateTimeValueConverter()
             };
+
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
         private readonly ExecutionContext _executionContext;
-        private readonly FieldResolverTask _fieldResolverTask;
-        private Dictionary<string, ArgumentValue> _arguments;
+        private readonly ResolverTask _resolverTask;
+        private readonly Dictionary<string, ArgumentValue> _arguments;
 
         public ResolverContext(
             ExecutionContext executionContext,
-            FieldResolverTask fieldResolverTask)
+            ResolverTask resolverTask)
         {
             if (executionContext == null)
             {
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            if (fieldResolverTask == null)
+            if (resolverTask == null)
             {
-                throw new ArgumentNullException(nameof(fieldResolverTask));
+                throw new ArgumentNullException(nameof(resolverTask));
             }
 
             _executionContext = executionContext;
-            _fieldResolverTask = fieldResolverTask;
+            _resolverTask = resolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-                fieldResolverTask.ObjectType, fieldResolverTask.FieldSelection,
+                resolverTask.ObjectType, resolverTask.FieldSelection,
                 executionContext.Variables);
         }
 
         public Schema Schema => _executionContext.Schema;
 
-        public ObjectType ObjectType => _fieldResolverTask.ObjectType;
+        public ObjectType ObjectType => _resolverTask.ObjectType;
 
-        public ObjectField Field => _fieldResolverTask.FieldSelection.Field;
+        public ObjectField Field => _resolverTask.FieldSelection.Field;
 
         public DocumentNode QueryDocument => _executionContext.QueryDocument;
 
         public OperationDefinitionNode Operation => _executionContext.Operation;
 
-        public FieldNode FieldSelection => _fieldResolverTask.FieldSelection.Node;
+        public FieldNode FieldSelection => _resolverTask.FieldSelection.Node;
 
-        public ImmutableStack<object> Source => _fieldResolverTask.Source;
+        public ImmutableStack<object> Source => _resolverTask.Source;
 
-        public Path Path => _fieldResolverTask.Path;
+        public Path Path => _resolverTask.Path;
 
         public T Argument<T>(string name)
         {
@@ -101,7 +103,7 @@ namespace HotChocolate.Execution
                    $"Could not convert argument {name} from " +
                    $"{argumentValue.NativeType.FullName} to " +
                    $"{typeof(T).FullName}.",
-                   _fieldResolverTask.FieldSelection.Node));
+                   _resolverTask.FieldSelection.Node));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)
