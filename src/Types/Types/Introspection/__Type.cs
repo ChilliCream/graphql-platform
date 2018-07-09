@@ -107,7 +107,7 @@ namespace HotChocolate.Types.Introspection
             return null;
         }
 
-        private IEnumerable<IType> GetPossibleTypes(Schema schema, INamedType type)
+        private IEnumerable<IType> GetPossibleTypes(ISchema schema, INamedType type)
         {
             if (type.IsAbstractType())
             {

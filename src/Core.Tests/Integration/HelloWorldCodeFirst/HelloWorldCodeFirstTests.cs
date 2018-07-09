@@ -20,7 +20,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
                 "{ hello state }");
 
             // assert
@@ -28,7 +28,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-         [Fact]
+        [Fact]
         public void ExecuteHelloWorldCodeFirstQueryWithArgument()
         {
             // arrange
@@ -40,7 +40,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
                 "{ hello(to: \"me\") state }");
 
             // assert
@@ -60,7 +60,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
                 "mutation { newState(state:\"1234567\") }");
 
             // assert

@@ -12,7 +12,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = schema.Execute("{ hello world }");
+            IExecutionResult result = schema.Execute("{ hello world }");
 
             // assert
             Assert.Null(result.Errors);

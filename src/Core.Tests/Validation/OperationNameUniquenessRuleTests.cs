@@ -1,4 +1,3 @@
-using HotChocolate.Execution.Validation;
 using HotChocolate.Language;
 using Xunit;
 

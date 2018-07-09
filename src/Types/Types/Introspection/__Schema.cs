@@ -3,9 +3,9 @@ using HotChocolate.Configuration;
 namespace HotChocolate.Types.Introspection
 {
     internal sealed class __Schema
-        : ObjectType<Schema>
+        : ObjectType<ISchema>
     {
-        protected override void Configure(IObjectTypeDescriptor<Schema> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<ISchema> descriptor)
         {
             descriptor.Name("__Schema");
 
@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("types")
                 .Description("A list of all types supported by this server.")
                 .Type<NonNullType<ListType<NonNullType<__Type>>>>()
-                .Resolver(c => c.Schema.GetAllTypes());
+                .Resolver(c => c.Schema.Types);
 
             descriptor.Field(t => t.QueryType)
                 .Description("The type that query operations will be rooted at.")
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("directives")
                 .Description("A list of all directives supported by this server.")
                 .Type<NonNullType<ListType<NonNullType<__Directive>>>>()
-                .Resolver(c => c.Schema.GetDirectives());
+                .Resolver(c => c.Schema.Directives);
         }
     }
 }

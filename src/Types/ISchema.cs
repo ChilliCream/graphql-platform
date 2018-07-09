@@ -6,6 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     public interface ISchema
+        : IServiceProvider
     {
         IReadOnlySchemaOptions Options { get; }
 
@@ -55,7 +56,7 @@ namespace HotChocolate
         /// <param name="typeName">The name of the type.</param>
         /// <param name="type">The resolved type.</param>
         /// <returns>
-        /// <c>true</c>, if a type with the name exists and is of the specified 
+        /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
         bool TryGetType<T>(string typeName, out T type)
@@ -67,7 +68,7 @@ namespace HotChocolate
         /// <param name="typeName">The name of the type.</param>
         /// <param name="nativeType">The resolved .net type.</param>
         /// <returns>
-        /// <c>true</c>, if a .net type was found that was bound 
+        /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
         bool TryGetNativeType(string typeName, out Type nativeType);
@@ -75,12 +76,10 @@ namespace HotChocolate
 
         // IOutputType GetField(INamedType namedType, string name);
 
-        bool TryGetField(INamedType namedType, string name, out IOutputField field);
+        // bool TryGetField(INamedType namedType, string name, out IOutputField field);
 
 
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
-
-
     }
 }

@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
             QueryRequest request = new QueryRequest("{ a }");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -60,9 +60,9 @@ namespace HotChocolate.Execution
             QueryRequest requestb = new QueryRequest("{ b(a: \"foo\") }");
 
             // act
-            QueryResult resulta1 = await executer.ExecuteAsync(requesta);
-            QueryResult resultb = await executer.ExecuteAsync(requestb);
-            QueryResult resulta2 = await executer.ExecuteAsync(requesta);
+            IExecutionResult resulta1 = await executer.ExecuteAsync(requesta);
+            IExecutionResult resultb = await executer.ExecuteAsync(requestb);
+            IExecutionResult resulta2 = await executer.ExecuteAsync(requesta);
 
             // assert
             Assert.Equal(2, executer.CachedOperations);
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -136,7 +136,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -162,7 +162,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution
                 "query a { a } query b { b }");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -196,7 +196,7 @@ namespace HotChocolate.Execution
                 "query a { a } query b { b }", "a");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -213,7 +213,7 @@ namespace HotChocolate.Execution
                 "query a { a } query b { b }", "c");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);

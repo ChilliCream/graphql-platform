@@ -24,14 +24,14 @@ namespace HotChocolate.Execution
             // act
             OperationRequest operationRequest =
                 new OperationRequest(schema, query, operation);
-            QueryResult result = await operationRequest.ExecuteAsync(
+            IExecutionResult result = await operationRequest.ExecuteAsync(
                 new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
 
             // assert
             Assert.NotNull(result);
             Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
+            Assert.Collection(((QueryResult)result).Data,
                 item =>
                 {
                     Assert.Equal("a", item.Key);
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
             // act
             OperationRequest operationRequest =
                 new OperationRequest(schema, query, operation);
-            QueryResult result = await operationRequest.ExecuteAsync();
+            IExecutionResult result = await operationRequest.ExecuteAsync();
 
             // assert
             Assert.Null(result.Errors);

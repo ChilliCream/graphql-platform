@@ -16,10 +16,9 @@ namespace HotChocolate.Validation
                 new OperationNameUniquenessRule()
             };
 
+        private readonly ISchema _schema;
 
-        private readonly Schema _schema;
-
-        public QueryValidator(Schema schema)
+        public QueryValidator(ISchema schema)
         {
             _schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));

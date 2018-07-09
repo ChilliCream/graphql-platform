@@ -24,12 +24,12 @@ namespace HotChocolate.Execution
 
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
-        private readonly ExecutionContext _executionContext;
+        private readonly IExecutionContext _executionContext;
         private readonly ResolverTask _resolverTask;
         private readonly Dictionary<string, ArgumentValue> _arguments;
 
         public ResolverContext(
-            ExecutionContext executionContext,
+            IExecutionContext executionContext,
             ResolverTask resolverTask)
         {
             if (executionContext == null)
@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
                 executionContext.Variables);
         }
 
-        public Schema Schema => _executionContext.Schema;
+        public ISchema Schema => _executionContext.Schema;
 
         public ObjectType ObjectType => _resolverTask.ObjectType;
 

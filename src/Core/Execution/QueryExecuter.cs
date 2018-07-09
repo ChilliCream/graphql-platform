@@ -11,31 +11,34 @@ namespace HotChocolate.Execution
 {
     public partial class QueryExecuter
     {
-        private readonly Schema _schema;
+        private readonly ISchema _schema;
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationRequest> _operationCache;
         private readonly bool _useCache;
 
-        public QueryExecuter(Schema schema)
+        public QueryExecuter(ISchema schema)
             : this(schema, 100)
         {
         }
 
-        public QueryExecuter(Schema schema, int cacheSize)
+        public QueryExecuter(ISchema schema, int cacheSize)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationRequest>(cacheSize * 10);
             _useCache = cacheSize > 0;
+            CacheSize = cacheSize;
         }
+
+        public int CacheSize { get; }
 
         public int CachedQueries => _queryCache.Usage;
 
         public int CachedOperations => _queryCache.Usage;
 
-        public async Task<QueryResult> ExecuteAsync(
+        public async Task<IExecutionResult> ExecuteAsync(
             QueryRequest queryRequest,
             CancellationToken cancellationToken = default)
         {

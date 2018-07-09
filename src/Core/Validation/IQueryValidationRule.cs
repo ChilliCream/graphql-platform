@@ -5,7 +5,7 @@ namespace HotChocolate.Validation
     public interface IQueryValidationRule
     {
         QueryValidationResult Validate(
-            Schema schema,
+            ISchema schema,
             DocumentNode queryDocument);
     }
 }

@@ -14,7 +14,7 @@ namespace HotChocolate.Validation
     public class LoneAnonymousOperationRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
         {
             if (schema == null)
             {

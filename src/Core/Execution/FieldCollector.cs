@@ -7,16 +7,16 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// This class implements the 
+    /// This class implements the
     /// </summary>
     internal class FieldCollector
     {
-        private readonly Schema _schema;
+        private readonly ISchema _schema;
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldCollector(
-            Schema schema,
+            ISchema schema,
             VariableCollection variables,
             FragmentCollection fragments)
         {

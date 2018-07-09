@@ -56,7 +56,7 @@ namespace HotChocolate.AspNetCore
                 ? GetRequest.ReadRequest(context)
                 : await PostRequest.ReadRequestAsync(context);
 
-            QueryResult result = await queryExecuter.ExecuteAsync(
+            IExecutionResult result = await queryExecuter.ExecuteAsync(
                 new Execution.QueryRequest(request.Query, request.OperationName)
                 {
                     VariableValues = DeserializeVariables(request.Variables),
@@ -68,11 +68,17 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteResponseAsync(HttpResponse response, QueryResult queryResult)
+        private async Task WriteResponseAsync(
+            HttpResponse response,
+            IExecutionResult executionResult)
         {
-            string json = queryResult.ToString(false);
-            byte[] buffer = Encoding.UTF8.GetBytes(json);
-            await response.Body.WriteAsync(buffer, 0, buffer.Length);
+            if (executionResult is IQueryExecutionResult queryResult)
+            {
+                // TODO : refactor this ...
+                string json = queryResult.ToJson();
+                byte[] buffer = Encoding.UTF8.GetBytes(json);
+                await response.Body.WriteAsync(buffer, 0, buffer.Length);
+            }
         }
 
         private Dictionary<string, IValueNode> DeserializeVariables(

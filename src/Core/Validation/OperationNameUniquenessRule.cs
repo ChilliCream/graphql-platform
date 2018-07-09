@@ -15,7 +15,7 @@ namespace HotChocolate.Validation
     public class OperationNameUniquenessRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
         {
             if (schema == null)
             {
@@ -76,15 +76,6 @@ namespace HotChocolate.Validation
                 }
             }
             return errors;
-        }
-    }
-
-    public class EmptySelectionSetRule
-       : IQueryValidationRule
-    {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
-        {
-            throw new NotImplementedException();
         }
     }
 }

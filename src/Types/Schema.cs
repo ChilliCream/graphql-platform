@@ -14,7 +14,7 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public partial class Schema
-        : IServiceProvider
+        : ISchema
     {
         private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
@@ -48,6 +48,10 @@ namespace HotChocolate
 
         public IReadOnlySchemaOptions Options { get; }
 
+        public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
+
+        public IReadOnlyCollection<Directive> Directives { get; } = new List<Directive>();
+
         public T GetType<T>(string typeName)
             where T : INamedType
         {
@@ -58,17 +62,6 @@ namespace HotChocolate
             where T : INamedType
         {
             return _types.TryGetType<T>(typeName, out type);
-        }
-
-        public IReadOnlyCollection<INamedType> GetAllTypes()
-        {
-            return _types.GetTypes();
-        }
-
-        public IReadOnlyCollection<Directive> GetDirectives()
-        {
-            // TODO : Fix directive bug
-            return new List<Directive>();
         }
 
         public IReadOnlyCollection<ObjectType> GetPossibleTypes(
@@ -108,5 +101,7 @@ namespace HotChocolate
 
             return _serviceManager.GetService(serviceType);
         }
+
+
     }
 }
