@@ -14,7 +14,7 @@ Currently we are still closing some gaps and hope to finalise Version 1 by Septe
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
 
-In order to get generate the example project head over to your console and fire up the following commands.
+In order to generate the example project head over to your console and fire up the following commands.
 
 ```bash
 mkdir starwars
@@ -47,7 +47,7 @@ Now add the query engine package to the project with the following command.
 dotnet add package HotChocolate
 ```
 
-The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walkthrough shows you the code-first approache.
+The GraphQL schema describes the capabilities of a GraphQL API. _Hot Chocolate_ allows you to do that code-first by defining .net classes describing that schema or schema-first by defining the schema in the GraphQL syntax and binding resolvers to it. Our README walkthrough shows you the code-first approach.
 
 The following example shows the code-first approach.
 
@@ -114,7 +114,9 @@ This runs a query fetching the one field defined. The graphql function will firs
 Console.WriteLine(schema.Execute("{ foo }"));
 ```
 
-In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. In order to set it up create a new empty web project with the dotnet CLI.
+In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. 
+
+Create a new project with the web template that comes with your dotnet CLI.
 
 ```bash
 dotnet new web -n graphql-web
@@ -135,6 +137,8 @@ protected override void ConfigureServices(IServiceCollection services)
 }
 ```
 
+The above example adds the GraphQL schema and the execution engine to the dependency injection.
+
 ```csharp
 protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {
@@ -146,8 +150,20 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
-In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+
+By default the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
+
+```csharp
+protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    app.UseGraphQL("Foo/Bar");
+}
+```
 
 _We are also currently working on a middleware for ASP.net classic._
 
@@ -231,7 +247,7 @@ We currently support the following parts of the current [draft spec](http://face
   - [x] inputFields
   - [x] ofType
 
-Moreoreover, we are working on the following parts that are not defined in the spec.
+Moreover, we are working on the following parts that are not defined in the spec.
 
 ### Additional Scalar Types
 
