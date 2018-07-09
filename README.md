@@ -56,7 +56,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var schema = Schema.Create(c => c.RegisterType<ObjectType<Query>>());
+        var schema = Schema.Create(c => c.RegisterQueryType<Query>());
     }
 }
 
