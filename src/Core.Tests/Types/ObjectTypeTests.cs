@@ -97,6 +97,49 @@ namespace HotChocolate.Types
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
         }
 
+        [Fact]
+        public void GenericObjectTypes()
+        {
+            // arrange
+            ServiceManager services = new ServiceManager();
+            List<SchemaError> errors = new List<SchemaError>();
+            SchemaContext context = new SchemaContext(services);
+
+            // act
+            ObjectType<GenericFoo<string>> genericType =
+                new ObjectType<GenericFoo<string>>();
+            ((INeedsInitialization)genericType).RegisterDependencies(
+                context, e => errors.Add(e));
+            context.CompleteTypes();
+
+            // assert
+            Assert.Equal("GenericFooOfString", genericType.Name);
+        }
+
+         [Fact]
+        public void NestedGenericObjectTypes()
+        {
+            // arrange
+            ServiceManager services = new ServiceManager();
+            List<SchemaError> errors = new List<SchemaError>();
+            SchemaContext context = new SchemaContext(services);
+
+            // act
+            ObjectType<GenericFoo<GenericFoo<string>>> genericType =
+                new ObjectType<GenericFoo<GenericFoo<string>>>();
+            ((INeedsInitialization)genericType).RegisterDependencies(
+                context, e => errors.Add(e));
+            context.CompleteTypes();
+
+            // assert
+            Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
+        }
+
+        public class GenericFoo<T>
+        {
+            public T Value { get; }
+        }
+
         public class Foo
         {
             public string Description { get; } = "hello";

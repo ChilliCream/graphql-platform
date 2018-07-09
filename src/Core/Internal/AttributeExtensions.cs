@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace HotChocolate.Internal
@@ -31,6 +33,11 @@ namespace HotChocolate.Internal
                 return NormalizeName(member.Name);
             }
 
+            if (member is Type t)
+            {
+                return GetFromType(t);
+            }
+
             return member.Name;
         }
 
@@ -41,6 +48,18 @@ namespace HotChocolate.Internal
                 return parameter.GetCustomAttribute<GraphQLNameAttribute>().Name;
             }
             return NormalizeName(parameter.Name);
+        }
+
+        private static string GetFromType(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                string name = type.Name.Substring(0, type.Name.Length - 2);
+                IEnumerable<string> arguments = type.GetGenericArguments()
+                    .Select(GetFromType);
+                return $"{name}Of{string.Join("Of", arguments)}";
+            }
+            return type.Name;
         }
 
         private static string NormalizeName(string name)
