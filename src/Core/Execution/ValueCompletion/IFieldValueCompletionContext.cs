@@ -9,7 +9,7 @@ namespace HotChocolate.Execution
 {
     internal interface IFieldValueCompletionContext
     {
-        ExecutionContext ExecutionContext { get; }
+        IExecutionContext ExecutionContext { get; }
 
         IResolverContext ResolverContext { get; }
 
@@ -27,13 +27,16 @@ namespace HotChocolate.Execution
 
         bool IsNullable { get; }
 
-        void AddErrors(IEnumerable<IQueryError> errors);
+        void ReportError(IEnumerable<IQueryError> errors);
 
-        void AddError(IQueryError error);
+        void ReportError(IQueryError error);
 
-        void AddError(string message);
+        void ReportError(string message);
 
-        void SetResult(object value);
+        void IntegrateResult(object value);
+
+        // enqueues the selectionset fields for processing in the next batch
+        void EnqueueForProcessing(ObjectType objectType, OrderedDictionary objectResult);
 
         IFieldValueCompletionContext AsNonNullValueContext();
 

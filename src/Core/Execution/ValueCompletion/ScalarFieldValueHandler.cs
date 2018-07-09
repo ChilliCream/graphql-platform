@@ -16,21 +16,21 @@ namespace HotChocolate.Execution
                 {
                     try
                     {
-                        context.SetResult(serializable.Serialize(context.Value));
+                        context.IntegrateResult(serializable.Serialize(context.Value));
                     }
                     catch (ArgumentException ex)
                     {
-                        context.AddError(ex.Message);
+                        context.ReportError(ex.Message);
                     }
                     catch (Exception)
                     {
-                        context.AddError(
+                        context.ReportError(
                             "Undefined field serialization error.");
                     }
                 }
                 else
                 {
-                    context.AddError(
+                    context.ReportError(
                         "Scalar types and enum types must be serializable.");
                 }
             }

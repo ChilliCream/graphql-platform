@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,6 +9,7 @@ namespace HotChocolate.Execution
     {
         // schema
         ISchema Schema { get; }
+        IReadOnlySchemaOptions Options { get; }
 
         // context
         object RootValue { get; }
@@ -17,20 +19,25 @@ namespace HotChocolate.Execution
         DocumentNode QueryDocument { get; }
         OperationDefinitionNode Operation { get; }
 
-        // query 
+        // query
         FragmentCollection Fragments { get; }
         VariableCollection Variables { get; }
 
+
+        void ReportError(IQueryError error);
+        IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType objectType, SelectionSetNode selectionSet);
+
         // result
-        OrderedDictionary Data { get; } // remove
-        List<IQueryError> Errors { get; } // remove
+        // OrderedDictionary Data { get; } // remove
+        // List<IQueryError> Errors { get; } // remove
 
         // processing
-        List<FieldResolverTask> NextBatch { get; } // remove
+        // List<FieldResolverTask> NextBatch { get; } // remove
 
 
         // field
-        IReadOnlyCollection<FieldSelection> CollectFields(
-            ObjectType objectType, SelectionSetNode selectionSet); // remove -> strategy base class
+        // IReadOnlyCollection<FieldSelection> CollectFields(
+        //    ObjectType objectType, SelectionSetNode selectionSet); // remove -> strategy base class
     }
 }

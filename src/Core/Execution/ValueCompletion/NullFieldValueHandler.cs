@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
         {
             if (context.Value == null)
             {
-                context.SetResult(null);
+                context.IntegrateResult(null);
             }
             else
             {

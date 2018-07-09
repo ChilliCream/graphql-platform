@@ -18,12 +18,13 @@ namespace HotChocolate.Execution
                 bool isNonNullElement = elementType.IsNonNullType();
                 elementType = elementType.InnerType();
 
-                Action<object, int, List<object>> completeElement = (element, index, list) =>
-                {
-                    nextHandler?.Invoke(context.AsElementValueContext(
-                        context.Path.Append(index), elementType,
-                        element, item => list.Add(item)));
-                };
+                Action<object, int, List<object>> completeElement =
+                    (element, index, list) =>
+                    {
+                        nextHandler?.Invoke(context.AsElementValueContext(
+                            context.Path.Append(index), elementType,
+                            element, item => list.Add(item)));
+                    };
 
                 CompleteList(context, completeElement, isNonNullElement);
             }
@@ -42,22 +43,22 @@ namespace HotChocolate.Execution
             if (context.Value is IEnumerable enumerable)
             {
                 int i = 0;
-                List<object> list = new List<object>();
+                var list = new List<object>();
                 foreach (object element in enumerable)
                 {
                     if (isNonNullElement && element == null)
                     {
-                        context.AddError(
+                        context.ReportError(
                             "The list does not allow null elements");
                         return;
                     }
                     completeElement(element, i++, list);
                 }
-                context.SetResult(list);
+                context.IntegrateResult(list);
             }
             else
             {
-                context.AddError(
+                context.ReportError(
                     "A list value must implement " +
                     $"{typeof(IEnumerable).FullName}.");
             }
