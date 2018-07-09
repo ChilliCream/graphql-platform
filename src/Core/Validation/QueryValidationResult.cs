@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class QueryValidationResult
     {

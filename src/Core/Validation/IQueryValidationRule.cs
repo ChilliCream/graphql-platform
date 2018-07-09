@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public interface IQueryValidationRule
     {

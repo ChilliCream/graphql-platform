@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {

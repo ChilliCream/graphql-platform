@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// GraphQL allows a short‐hand form for defining query operations

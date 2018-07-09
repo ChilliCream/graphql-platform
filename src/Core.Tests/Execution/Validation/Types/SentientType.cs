@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class SentientType
         : InterfaceType

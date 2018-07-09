@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class ExecutableDefinitionsRuleTests
     {

@@ -1,7 +1,7 @@
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// GraphQL execution will only consider the executable definitions

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// Each named operation definition must be unique within a document

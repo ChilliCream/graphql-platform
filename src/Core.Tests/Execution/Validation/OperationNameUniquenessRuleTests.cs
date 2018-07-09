@@ -2,7 +2,7 @@ using HotChocolate.Execution.Validation;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class OperationNameUniquenessRuleTests
     {

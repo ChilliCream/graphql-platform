@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class Human
         : ISentient

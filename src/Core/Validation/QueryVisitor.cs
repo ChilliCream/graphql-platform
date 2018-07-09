@@ -3,7 +3,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     internal class QueryVisitor
     {
