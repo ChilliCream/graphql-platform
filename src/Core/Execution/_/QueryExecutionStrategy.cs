@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,12 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            OrderedDictionary data = new OrderedDictionary();
+            if (executionContext == null)
+            {
+                throw new ArgumentNullException(nameof(executionContext));
+            }
+
+            var data = new OrderedDictionary();
 
             IEnumerable<ResolverTask> rootResolverTasks =
                 CreateRootResolverTasks(executionContext, data);

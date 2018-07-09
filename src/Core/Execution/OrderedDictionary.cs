@@ -5,7 +5,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public class OrderedDictionary
-        : IDictionary<string, object>
+        : IOrderedDictionary
+        , IDictionary<string, object>
     {
         private bool _isReadOnly;
         private readonly List<KeyValuePair<string, object>> _order = new List<KeyValuePair<string, object>>();
@@ -40,7 +41,11 @@ namespace HotChocolate.Execution
 
         public ICollection<string> Keys => _map.Keys;
 
+        IEnumerable<string> IReadOnlyDictionary<string, object>.Keys => Keys;
+
         public ICollection<object> Values => _map.Values;
+
+        IEnumerable<object> IReadOnlyDictionary<string, object>.Values => Values;
 
         public int Count => _order.Count;
 

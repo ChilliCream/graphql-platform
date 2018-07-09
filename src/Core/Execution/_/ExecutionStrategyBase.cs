@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -50,7 +49,7 @@ namespace HotChocolate.Execution
                 executionContext, currentBatch, cancellationToken);
 
             // await field resolver results
-            await EndResolverBatchAsync(
+            await EndExecuteResolverBatchAsync(
                 executionContext, currentBatch, nextBatch, cancellationToken);
         }
 
@@ -79,7 +78,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task EndResolverBatchAsync(
+        private async Task EndExecuteResolverBatchAsync(
             IExecutionContext executionContext,
             IEnumerable<ResolverTask> currentBatch,
             List<ResolverTask> nextBatch,

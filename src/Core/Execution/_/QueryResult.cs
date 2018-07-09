@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace HotChocolate.Execution
 {
     public class QueryResult
-        : IExecutionResult
+        : IQueryExecutionResult
     {
         private const string _data = "data";
         private const string _errors = "errors";
@@ -67,9 +67,21 @@ namespace HotChocolate.Execution
 
         public OrderedDictionary Data { get; }
 
+        IOrderedDictionary IQueryExecutionResult.Data => Data;
+
         public IReadOnlyCollection<IQueryError> Errors { get; }
 
-        public string ToString(bool indented)
+        public T ToObject<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string ToJson()
+        {
+            return ToJson(false);
+        }
+
+        public string ToJson(bool indented)
         {
             Dictionary<string, object> internalResult = new Dictionary<string, object>();
 
@@ -89,7 +101,7 @@ namespace HotChocolate.Execution
 
         public override string ToString()
         {
-            return ToString(true);
+            return ToJson(true);
         }
     }
 }
