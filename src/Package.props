@@ -11,7 +11,7 @@
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <!--PackageIconUrl>https://github.com/ChilliCream/prometheus/raw/master/icon.png</PackageIconUrl-->
+    <PackageIconUrl>https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/master/img/hotchocolate-signet.png</PackageIconUrl>
     <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 

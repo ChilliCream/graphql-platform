@@ -65,7 +65,6 @@ namespace HotChocolate.Internal
             return false;
         }
 
-
         internal static string GetTypeName(this Type type)
         {
             if (type == null)
@@ -73,22 +72,39 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(type));
             }
 
-            string name = type.FullName ?? type.Name;
-
-            if (type.IsGenericType)
-            {
-                name = CreateGenericName(type);
-            }
+            string name = type.IsGenericType
+                ? CreateGenericTypeName(type)
+                : CreateTypeName(type, type.Name);
 
             return name.Replace("+", ".");
         }
 
-        private static string CreateGenericName(Type type)
+        private static string CreateGenericTypeName(Type type)
         {
             string name = type.Name.Substring(0, type.Name.Length - 2);
             IEnumerable<string> arguments = type.GetGenericArguments()
                 .Select(GetTypeName);
-            return $"{name}<{string.Join(", ", arguments)}>";
+            return CreateTypeName(type,
+                $"{name}<{string.Join(", ", arguments)}>");;
+        }
+
+        private static string CreateTypeName(Type type, string typeName)
+        {
+            string ns = GetNamespace(type);
+            if (ns == null)
+            {
+                return typeName;
+            }
+            return $"{ns}.{typeName}";
+        }
+
+        private static string GetNamespace(Type type)
+        {
+            if (type.IsNested)
+            {
+                return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
+            }
+            return type.Namespace;
         }
 
         public static Type GetReturnType(this MemberInfo member)
