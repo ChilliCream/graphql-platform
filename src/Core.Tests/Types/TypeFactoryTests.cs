@@ -92,5 +92,36 @@ namespace HotChocolate.Types
             Assert.Equal("A", unionType.Types.First().Key);
             Assert.Equal("B", unionType.Types.Last().Key);
         }
+
+        [Fact]
+        public void CreateEnum()
+        {
+            // arrange
+            DocumentNode document = Parser.Default.Parse(
+                "enum Abc { A B C }");
+            EnumTypeDefinitionNode typeDefinition = document
+                .Definitions.OfType<EnumTypeDefinitionNode>().First();
+
+            var serviceManager = new ServiceManager();
+            var context = new SchemaContext(serviceManager);
+            var configuration = new SchemaConfiguration(
+                serviceManager.RegisterServiceProvider,
+                context.Types);
+
+            // act
+            var factory = new EnumTypeFactory();
+            EnumType enumType = factory.Create(typeDefinition);
+            configuration.RegisterType(enumType);
+
+            var typeFinalizer = new TypeFinalizer(configuration);
+            typeFinalizer.FinalizeTypes(context, null);
+
+            // assert
+            Assert.Equal("Abc", enumType.Name);
+            Assert.Collection(enumType.Values,
+                t => Assert.Equal("A", t.Name),
+                t => Assert.Equal("B", t.Name),
+                t => Assert.Equal("C", t.Name));
+        }
     }
 }

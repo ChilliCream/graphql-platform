@@ -5,9 +5,6 @@ using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
-    //internal delegate AsyncFieldResolverDelegate FieldResolverFactory(
-    //    ObjectType objectType, Field field);
-
     internal class SchemaSyntaxVisitor
         : SyntaxNodeVisitor
     {
@@ -16,6 +13,7 @@ namespace HotChocolate
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
         private readonly UnionTypeFactory _unionTypeFactory = new UnionTypeFactory();
         private readonly InputObjectTypeFactory _inputObjectTypeFactory = new InputObjectTypeFactory();
+        private readonly EnumTypeFactory _enumTypeFactory = new EnumTypeFactory();
 
         public string QueryTypeName { get; private set; }
         public string MutationTypeName { get; private set; }
@@ -58,6 +56,12 @@ namespace HotChocolate
             InputObjectTypeDefinitionNode node)
         {
             _typeRegistry.RegisterType(_inputObjectTypeFactory.Create(node));
+        }
+
+        protected override void VisitEnumTypeDefinition(
+            EnumTypeDefinitionNode node)
+        {
+            _typeRegistry.RegisterType(_enumTypeFactory.Create(node));
         }
 
         protected override void VisitSchemaDefinition(
