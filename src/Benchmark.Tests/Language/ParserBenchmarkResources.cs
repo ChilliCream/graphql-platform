@@ -1,7 +1,7 @@
 using System.IO;
 using HotChocolate.Language;
 
-namespace HotChocolate.Benchmark.Tests
+namespace HotChocolate.Benchmark.Tests.Language
 {
     public class ParserBenchmarkResources
     {

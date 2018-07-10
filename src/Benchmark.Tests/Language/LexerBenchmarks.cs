@@ -4,7 +4,7 @@ using BenchmarkDotNet.Attributes.Exporters;
 using BenchmarkDotNet.Attributes.Jobs;
 using HotChocolate.Language;
 
-namespace HotChocolate.Benchmark.Tests
+namespace HotChocolate.Benchmark.Tests.Language
 {
     [CoreJob]
     [RPlotExporter, RankColumn, MemoryDiagnoser]
