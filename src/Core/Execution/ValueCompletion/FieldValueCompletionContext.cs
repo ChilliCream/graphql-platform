@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
             SelectionSet = resolverTask.FieldSelection.Node.SelectionSet;
             Type = resolverContext.Field.Type;
             Path = resolverContext.Path;
-            Value = resolverTask.Result;
+            Value = resolverTask.ResolverResult;
             IsNullable = true;
         }
 
@@ -153,7 +153,8 @@ namespace HotChocolate.Execution
 
             foreach (FieldSelection field in fields)
             {
-                _enqueueResolverTask(new ResolverTask(objectType, field,
+                _enqueueResolverTask(new ResolverTask(
+                    ExecutionContext, objectType, field,
                     Path.Append(field.ResponseName), Source.Push(Value),
                     objectResult));
             }

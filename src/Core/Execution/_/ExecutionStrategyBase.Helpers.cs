@@ -1,15 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
     internal abstract partial class ExecutionStrategyBase
     {
+        private static readonly FieldValueCompleter _fieldValueCompleter =
+            new FieldValueCompleter();
+
         protected static object ExecuteResolver(
            ResolverTask resolverTask,
            bool isDeveloperMode,
@@ -86,8 +86,7 @@ namespace HotChocolate.Execution
 
         protected void CompleteValue(FieldValueCompletionContext completionContext)
         {
-            // _valueCompleter.CompleteValue(completionContext);
+            _fieldValueCompleter.CompleteValue(completionContext);
         }
-
     }
 }

@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
         {
             var currentBatch = new List<ResolverTask>(initialBatch);
             var nextBatch = new List<ResolverTask>();
-            var swap = nextBatch;
+            List<ResolverTask> swap = null;
 
             while (currentBatch.Count > 0)
             {
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
 
                 swap = currentBatch;
                 currentBatch = nextBatch;
-                nextBatch = currentBatch;
+                nextBatch = swap;
                 nextBatch.Clear();
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -118,6 +118,7 @@ namespace HotChocolate.Execution
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
                 yield return new ResolverTask(
+                    executionContext,
                     executionContext.OperationType,
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),

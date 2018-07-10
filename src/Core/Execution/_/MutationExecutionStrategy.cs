@@ -34,10 +34,10 @@ namespace HotChocolate.Execution
            IEnumerable<ResolverTask> currentBatch,
            CancellationToken cancellationToken)
         {
-            var nextBatch = new List<ResolverTask>();
-
             foreach (ResolverTask resolverTask in currentBatch)
             {
+                var nextBatch = new List<ResolverTask>();
+
                 if (resolverTask.Path.Depth <= executionContext.Options.MaxExecutionDepth)
                 {
                     await ExecuteResolverSeriallyAsync(
@@ -52,12 +52,12 @@ namespace HotChocolate.Execution
                         $"{executionContext.Options.MaxExecutionDepth}"));
                 }
 
+                // execute child fields with the default parallel flow logic
+                await ExecuteResolversAsync(
+                    executionContext, nextBatch, cancellationToken);
+
                 cancellationToken.ThrowIfCancellationRequested();
             }
-
-            // execute child fields with the default parallel flow logic
-            await ExecuteResolversAsync(
-                executionContext, nextBatch, cancellationToken);
         }
 
         private async Task ExecuteResolverSeriallyAsync(

@@ -1,16 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-
     internal class OperationRequest
     {
         private static readonly Dictionary<OperationType, IExecutionStrategy> _executionStrategy =
@@ -49,10 +44,11 @@ namespace HotChocolate.Execution
             _variableValueBuilder = new VariableValueBuilder(schema, _operation);
 
             if (!_executionStrategy.TryGetValue(_operation.Operation,
-                    out IExecutionStrategy _strategy))
+                out IExecutionStrategy strategy))
             {
                 throw new NotSupportedException();
             }
+            _strategy = strategy;
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
