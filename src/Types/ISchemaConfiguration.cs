@@ -8,6 +8,7 @@ namespace HotChocolate
         , ICodeFirstConfiguration
     {
         ISchemaOptions Options { get; }
+
         void RegisterServiceProvider(IServiceProvider serviceProvider);
     }
 }

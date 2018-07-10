@@ -49,6 +49,44 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         }
 
         [Fact]
+        public void ExecuteHelloWorldCodeFirstClrQuery()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(CreateServiceProvider());
+                c.RegisterQueryType<QueryHelloWorldClr>();
+            });
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ hello state }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void ExecuteHelloWorldCodeFirstClrQueryWithArgument()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(CreateServiceProvider());
+                c.RegisterQueryType<QueryHelloWorldClr>();
+            });
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ hello(to: \"me\") state }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public void ExecuteHelloWorldCodeFirstMutation()
         {
             // arrange

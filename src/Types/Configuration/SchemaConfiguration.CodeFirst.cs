@@ -11,43 +11,50 @@ namespace HotChocolate.Configuration
         public void RegisterType<T>()
             where T : class, INamedType
         {
-            CreateAndRegisterType<T>();
+            CreateAndRegisterType(typeof(T));
         }
 
         public void RegisterQueryType<T>()
-            where T : ObjectType
+            where T : class
         {
-            T type = CreateAndRegisterType<T>();
+            INamedType type = RegisterObjectType<T>();
             Options.QueryTypeName = type.Name;
         }
 
         public void RegisterMutationType<T>()
-            where T : ObjectType
+            where T : class
         {
-            T type = CreateAndRegisterType<T>();
+            INamedType type = RegisterObjectType<T>();
             Options.MutationTypeName = type.Name;
         }
 
         public void RegisterSubscriptionType<T>()
-            where T : ObjectType
+            where T : class
         {
-            T type = CreateAndRegisterType<T>();
+            INamedType type = RegisterObjectType<T>();
             Options.SubscriptionTypeName = type.Name;
         }
 
-        private T CreateAndRegisterType<T>()
-            where T : class, INamedType
+        public INamedType RegisterObjectType<T>()
+            where T : class
         {
-            if (BaseTypes.IsNonGenericBaseType(typeof(T)))
+            return typeof(ObjectType).IsAssignableFrom(typeof(T))
+                ? CreateAndRegisterType(typeof(T))
+                : CreateAndRegisterType(typeof(ObjectType<T>));
+        }
+
+        private INamedType CreateAndRegisterType(Type type)
+        {
+            if (BaseTypes.IsNonGenericBaseType(type))
             {
                 throw new SchemaException(new SchemaError(
                     "You cannot add a type without specifing its " +
                     "name and attributes."));
             }
 
-            TypeReference typeReference = new TypeReference(typeof(T));
+            TypeReference typeReference = new TypeReference(type);
             _typeRegistry.RegisterType(typeReference);
-            return _typeRegistry.GetType<T>(typeReference);
+            return _typeRegistry.GetType<INamedType>(typeReference);
         }
 
         #endregion

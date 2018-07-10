@@ -9,13 +9,13 @@ namespace HotChocolate.Configuration
             where T : class, INamedType;
 
         void RegisterQueryType<T>()
-            where T : ObjectType;
+            where T : class;
 
         void RegisterMutationType<T>()
-            where T : ObjectType;
+            where T : class;
 
         void RegisterSubscriptionType<T>()
-            where T : ObjectType;
+            where T : class;
 
         void RegisterDirective<T>()
             where T : Directive;
