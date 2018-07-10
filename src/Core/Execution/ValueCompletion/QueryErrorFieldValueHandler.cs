@@ -12,11 +12,11 @@ namespace HotChocolate.Execution
         {
             if (context.Value is IQueryError error)
             {
-                context.AddError(error);
+                context.ReportError(error);
             }
             else if (context.Value is IEnumerable<IQueryError> errors)
             {
-                context.AddErrors(errors);
+                context.ReportError(errors);
             }
             else
             {

@@ -6,14 +6,17 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+    /// <summary>
+    /// This class implements the
+    /// </summary>
     internal class FieldCollector
     {
-        private readonly Schema _schema;
+        private readonly ISchema _schema;
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldCollector(
-            Schema schema,
+            ISchema schema,
             VariableCollection variables,
             FragmentCollection fragments)
         {
@@ -74,11 +77,7 @@ namespace HotChocolate.Execution
             if (selection is FieldNode fs)
             {
                 string fieldName = fs.Name.Value;
-                if (fieldName.StartsWith("__", StringComparison.Ordinal))
-                {
-                    ResolveIntrospectionField(type, fs, reportError, fields);
-                }
-                else if (type.Fields.TryGetField(fieldName, out ObjectField field))
+                if (type.Fields.TryGetField(fieldName, out ObjectField field))
                 {
                     string name = fs.Alias == null ? fs.Name.Value : fs.Alias.Value;
                     fields[name] = new FieldSelection(fs, field, name);
@@ -106,44 +105,6 @@ namespace HotChocolate.Execution
                 {
                     CollectFields(type, fragment.SelectionSet, reportError, fields);
                 }
-            }
-        }
-
-        private void ResolveIntrospectionField(
-           ObjectType type,
-           FieldNode fieldNode,
-           Action<QueryError> reportError,
-           Dictionary<string, FieldSelection> fields)
-        {
-            string name = fieldNode.Alias == null
-                ? fieldNode.Name.Value
-                : fieldNode.Alias.Value;
-
-            if (_schema.TypeNameField.Name
-                .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
-            {
-                fields[name] = new FieldSelection(
-                    fieldNode, _schema.TypeNameField, name);
-            }
-            else if (_schema.QueryType == type
-                && _schema.TypeField.Name
-                    .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
-            {
-                fields[name] = new FieldSelection(
-                    fieldNode, _schema.TypeField, name);
-            }
-            else if (_schema.QueryType == type
-                && _schema.SchemaField.Name
-                    .Equals(fieldNode.Name.Value, StringComparison.Ordinal))
-            {
-                fields[name] = new FieldSelection(
-                    fieldNode, _schema.SchemaField, name);
-            }
-            else
-            {
-                reportError(new FieldError(
-                    "The specified introspection field does not exist.",
-                    fieldNode));
             }
         }
 

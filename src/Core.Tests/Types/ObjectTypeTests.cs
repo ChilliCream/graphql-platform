@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             INeedsInitialization init = fooType;
 
             var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType);
+                schemaContext, a => errors.Add(a), fooType, false);
             init.RegisterDependencies(initializationContext);
             schemaContext.CompleteTypes();
 
@@ -44,7 +44,7 @@ namespace HotChocolate.Types
             INeedsInitialization init = fooType;
 
             var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType);
+                schemaContext, a => errors.Add(a), fooType, false);
             init.RegisterDependencies(initializationContext);
             schemaContext.CompleteTypes();
 
@@ -95,6 +95,52 @@ namespace HotChocolate.Types
             Assert.True(hasDynamicField);
             Assert.IsType<ListType>(field.Type);
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
+        }
+
+        [Fact]
+        public void GenericObjectTypes()
+        {
+            // arrange
+            var services = new ServiceManager();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext(services);
+
+            // act
+            var genericType = new ObjectType<GenericFoo<string>>();
+            INeedsInitialization init = genericType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+            // assert
+            Assert.Equal("GenericFooOfString", genericType.Name);
+        }
+
+        [Fact]
+        public void NestedGenericObjectTypes()
+        {
+            // arrange
+            var services = new ServiceManager();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext(services);
+
+            // act
+            var genericType = new ObjectType<GenericFoo<GenericFoo<string>>>();
+            INeedsInitialization init = genericType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
+        }
+
+        public class GenericFoo<T>
+        {
+            public T Value { get; }
         }
 
         public class Foo

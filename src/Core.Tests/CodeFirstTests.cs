@@ -18,7 +18,7 @@ namespace HotChocolate
                 c => c.RegisterType<QueryTypeWithProperty>());
 
             // act
-            QueryResult result = await schema.ExecuteAsync("{ test }");
+            IExecutionResult result = await schema.ExecuteAsync("{ test }");
 
             // assert
             Assert.Null(result.Errors);
@@ -33,7 +33,7 @@ namespace HotChocolate
                 c => c.RegisterType<QueryTypeWithMethod>());
 
             // act
-            QueryResult result = await schema.ExecuteAsync("{ test }");
+            IExecutionResult result = await schema.ExecuteAsync("{ test }");
 
             // assert
             Assert.Null(result.Errors);
@@ -47,7 +47,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ fooOrBar { ... on Bar { nameBar } ... on Foo { nameFoo } } }");
 
             // assert
@@ -81,7 +81,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ drink { ... on Tea { kind } } }");
 
             // assert
@@ -114,7 +114,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ dog { name } }");
 
             // assert
@@ -129,7 +129,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ dog { desc } }");
 
             // assert
@@ -144,7 +144,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ dog { name2 } }");
 
             // assert
@@ -159,7 +159,7 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "{ dog { names } }");
 
             // assert

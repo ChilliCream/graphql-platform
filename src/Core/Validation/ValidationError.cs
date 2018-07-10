@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
+using HotChocolate.Execution;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class ValidationError
          : QueryError
     {
-        public ValidationError(string message, ISyntaxNode syntaxNode)
+        public ValidationError(string message, Language.ISyntaxNode syntaxNode)
             : base(message)
         {
             if (syntaxNode == null)
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Validation
             };
         }
 
-        public ValidationError(string message, IEnumerable<ISyntaxNode> syntaxNodes)
+        public ValidationError(string message, IEnumerable<Language.ISyntaxNode> syntaxNodes)
            : base(message)
         {
             if (syntaxNodes == null)

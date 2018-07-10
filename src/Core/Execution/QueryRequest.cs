@@ -5,7 +5,6 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution
 {
     public class QueryRequest
-        : IQueryResult
     {
         public QueryRequest(string query)
         {

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     public class QueryValidator
     {
@@ -15,10 +16,9 @@ namespace HotChocolate.Execution.Validation
                 new OperationNameUniquenessRule()
             };
 
+        private readonly ISchema _schema;
 
-        private readonly Schema _schema;
-
-        public QueryValidator(Schema schema)
+        public QueryValidator(ISchema schema)
         {
             _schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));

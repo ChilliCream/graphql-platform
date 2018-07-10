@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// GraphQL allows a short‐hand form for defining query operations
@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Validation
     public class LoneAnonymousOperationRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
         {
             if (schema == null)
             {

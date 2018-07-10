@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                 new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(stringType);
             context.Setup(t => t.Value).Returns(expectedResult);
-            context.Setup(t => t.SetResult(Moq.It.IsAny<string>()))
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
                 new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(enumType);
             context.Setup(t => t.Value).Returns(expectedResult);
-            context.Setup(t => t.SetResult(It.IsAny<string>()))
+            context.Setup(t => t.IntegrateResult(It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
                 new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(resolverValue);
-            context.Setup(t => t.SetResult(Moq.It.IsAny<string>()))
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;

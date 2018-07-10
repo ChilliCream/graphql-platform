@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                     context.ResolverContext, context.Type, context.Value);
                 if (objectType == null)
                 {
-                    context.AddError(new FieldError(
+                    context.ReportError(new FieldError(
                         "Could not resolve the schema type from " +
                         $"`{context.Value.GetType().GetTypeName()}`.",
                         context.Selection.Node));
@@ -40,18 +40,9 @@ namespace HotChocolate.Execution
             Action<IFieldValueCompletionContext> nextHandler,
             ObjectType objectType)
         {
-            OrderedDictionary objectResult = new OrderedDictionary();
-            context.SetResult(objectResult);
-
-            IReadOnlyCollection<FieldSelection> fields = context.ExecutionContext
-                .CollectFields(objectType, context.SelectionSet);
-
-            foreach (FieldSelection field in fields)
-            {
-                context.ExecutionContext.NextBatch.Add(new FieldResolverTask(
-                    context.Source.Push(context.Value), objectType, field,
-                    context.Path.Append(field.ResponseName), objectResult));
-            }
+            var objectResult = new OrderedDictionary();
+            context.IntegrateResult(objectResult);
+            context.EnqueueForProcessing(objectType, objectResult);
         }
 
         private ObjectType ResolveObjectType(

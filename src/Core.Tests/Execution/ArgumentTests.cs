@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
             });
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:[Int]) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", list } });
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution
             });
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:[Foo]) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", list } });
 
@@ -105,7 +105,7 @@ namespace HotChocolate.Execution
             IntValueNode value = new IntValueNode(123);
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:Int) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", value } });
 
@@ -139,7 +139,7 @@ namespace HotChocolate.Execution
             });
 
             // act
-            QueryResult result = await schema.ExecuteAsync(
+            IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:Foo) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", obj } });
 

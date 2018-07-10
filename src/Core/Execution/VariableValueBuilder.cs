@@ -9,10 +9,10 @@ namespace HotChocolate.Execution
     // http://facebook.github.io/graphql/draft/#sec-Coercing-Variable-Values
     internal sealed class VariableValueBuilder
     {
-        private readonly Schema _schema;
+        private readonly ISchema _schema;
         private readonly OperationDefinitionNode _operation;
 
-        public VariableValueBuilder(Schema schema, OperationDefinitionNode operation)
+        public VariableValueBuilder(ISchema schema, OperationDefinitionNode operation)
         {
             _schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));

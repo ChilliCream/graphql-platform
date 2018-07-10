@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// Each named operation definition must be unique within a document
@@ -14,7 +15,7 @@ namespace HotChocolate.Execution.Validation
     public class OperationNameUniquenessRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
         {
             if (schema == null)
             {
@@ -75,15 +76,6 @@ namespace HotChocolate.Execution.Validation
                 }
             }
             return errors;
-        }
-    }
-
-    public class EmptySelectionSetRule
-       : IQueryValidationRule
-    {
-        public QueryValidationResult Validate(Schema schema, DocumentNode queryDocument)
-        {
-            throw new NotImplementedException();
         }
     }
 }

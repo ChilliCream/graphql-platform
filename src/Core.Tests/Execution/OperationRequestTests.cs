@@ -22,16 +22,16 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationRequest operationRequest =
-                new OperationRequest(schema, query, operation);
-            QueryResult result = await operationRequest.ExecuteAsync(
+            OperationExecuter operationRequest =
+                new OperationExecuter(schema, query, operation);
+            IExecutionResult result = await operationRequest.ExecuteAsync(
                 new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
 
             // assert
             Assert.NotNull(result);
             Assert.Null(result.Errors);
-            Assert.Collection(result.Data,
+            Assert.Collection(((QueryResult)result).Data,
                 item =>
                 {
                     Assert.Equal("a", item.Key);
@@ -61,9 +61,9 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationRequest operationRequest =
-                new OperationRequest(schema, query, operation);
-            QueryResult result = await operationRequest.ExecuteAsync();
+            OperationExecuter operationRequest =
+                new OperationExecuter(schema, query, operation);
+            IExecutionResult result = await operationRequest.ExecuteAsync();
 
             // assert
             Assert.Null(result.Errors);

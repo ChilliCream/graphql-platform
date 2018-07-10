@@ -1,6 +1,6 @@
 ![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/acacc5b353f4a21bc03591d9910232c3c748d552/img/hotchocolate-banner-light.svg)
 
-[![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Build](https://ci.appveyor.com/api/projects/status/uf8xnbyo32bh7ge1/branch/master?svg=true)](https://ci.appveyor.com/project/rstaib/zeus) [![Tests](https://img.shields.io/appveyor/tests/rstaib/zeus/master.svg)](https://ci.appveyor.com/project/rstaib/zeus) [![Coverage Status](https://coveralls.io/repos/github/ChilliCream/hotchocolate/badge.svg?branch=master)](https://coveralls.io/github/ChilliCream/hotchocolate?branch=master)
+[![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Build](https://ci.appveyor.com/api/projects/status/uf8xnbyo32bh7ge1/branch/master?svg=true)](https://ci.appveyor.com/project/rstaib/zeus) [![Tests](https://img.shields.io/appveyor/tests/rstaib/zeus/master.svg)](https://ci.appveyor.com/project/rstaib/zeus) [![Coverage Status](https://coveralls.io/repos/github/ChilliCream/hotchocolate/badge.svg?branch=master)](https://coveralls.io/github/ChilliCream/hotchocolate?branch=master) [![BCH compliance](https://bettercodehub.com/edge/badge/ChilliCream/hotchocolate?branch=master)](https://bettercodehub.com/)
 
 ---
 
@@ -14,7 +14,7 @@ Currently we are still closing some gaps and hope to finalise Version 1 by Septe
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
 
-In order to get generate the example project head over to your console and fire up the following commands.
+In order to generate the example project head over to your console and fire up the following commands.
 
 ```bash
 mkdir starwars
@@ -56,7 +56,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var schema = Schema.Create(c => c.RegisterType<ObjectType<Query>>());
+        var schema = Schema.Create(c => c.RegisterQueryType<Query>());
     }
 }
 
@@ -114,7 +114,9 @@ This runs a query fetching the one field defined. The graphql function will firs
 Console.WriteLine(schema.Execute("{ foo }"));
 ```
 
-In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. In order to set it up create a new empty web project with the dotnet CLI.
+In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. 
+
+Create a new project with the web template that comes with your dotnet CLI.
 
 ```bash
 dotnet new web -n graphql-web
@@ -135,6 +137,8 @@ protected override void ConfigureServices(IServiceCollection services)
 }
 ```
 
+The above example adds the GraphQL schema and the execution engine to the dependency injection.
+
 ```csharp
 protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {
@@ -146,8 +150,20 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
-In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+
+By default the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
+
+```csharp
+protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    if (env.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    app.UseGraphQL("Foo/Bar");
+}
+```
 
 _We are also currently working on a middleware for ASP.net classic._
 
@@ -231,7 +247,7 @@ We currently support the following parts of the current [draft spec](http://face
   - [x] inputFields
   - [x] ofType
 
-Moreoreover, we are working on the following parts that are not defined in the spec.
+Moreover, we are working on the following parts that are not defined in the spec.
 
 ### Additional Scalar Types
 

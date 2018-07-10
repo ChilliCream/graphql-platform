@@ -3,7 +3,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Validation
+namespace HotChocolate.Validation
 {
     internal class QueryVisitor
     {
@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Validation
 
         public QueryVisitor(ISchema schema)
         {
-            _schema = schema 
+            _schema = schema
                 ?? throw new System.ArgumentNullException(nameof(schema));
         }
 
@@ -73,9 +73,12 @@ namespace HotChocolate.Execution.Validation
                 VisitArgument(argument, type, current);
             }
 
-            if (_schema.TryGetField(type.NamedType(), field.Name.Value, out IOutputField f))
+            if (type is IComplexOutputType complexType
+                && complexType.Fields.ContainsField(field.Name.Value))
             {
-                VisitSelectionSet(field.SelectionSet, f.Type, path);
+                VisitSelectionSet(field.SelectionSet,
+                    complexType.Fields[field.Name.Value].Type,
+                    path);
             }
         }
 

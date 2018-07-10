@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(schemaContext);
+            typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
                 .With(t => t.GetA(default, default));
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(schemaContext);
+            typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
@@ -121,7 +121,7 @@ namespace HotChocolate.Configuration
                 .Resolve("bar").With(t => t.GetFooBar(default));
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(schemaContext);
+            typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
@@ -159,7 +159,7 @@ namespace HotChocolate.Configuration
             configuration.BindType<TestObjectB>().To("Dummy");
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(schemaContext);
+            typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
@@ -197,7 +197,7 @@ namespace HotChocolate.Configuration
             configuration.BindType<TestObjectB>().To("Dummy");
 
             TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(schemaContext);
+            typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
             // assert
