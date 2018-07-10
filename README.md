@@ -34,7 +34,7 @@ _Hot Chocolate_ can build a GraphQL schema, serve queries against that schema an
 
 _For our examples we use .net core and the dotnet CLI which you can download [here](https://dot.net)._
 
-Lets get started by setting up a new console application that we will use to showcase how to setup a GraphQL schema and execute queries against it.
+Let’s get started by setting up a new console application that we will use to showcase how to set up a GraphQL schema and execute queries against it.
 
 ```bash
 mkdir graphql-demo
@@ -42,7 +42,7 @@ cd graphql-demo
 dotnet new console -n graphql-console
 ```
 
-Now add the query engine package to the project with the following command.
+Now add the query engine package to your project with the following command.
 
 ```bash
 dotnet add package HotChocolate
