@@ -50,13 +50,17 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
 
-            List<OperationTypeDefinitionNode> operationTypeDefinitions =
-                ParseMany(context,
-                    TokenKind.LeftBrace,
-                    ParseOperationTypeDefinition,
-                    TokenKind.RightBrace);
+            List<OperationTypeDefinitionNode> operationTypeDefinitions = null;
+            if (context.Current.IsLeftBrace())
+            {
+                operationTypeDefinitions =
+                    ParseMany(context,
+                        TokenKind.LeftBrace,
+                        ParseOperationTypeDefinition,
+                        TokenKind.RightBrace);
+            }
 
-            if (directives.Count == 0 && operationTypeDefinitions.Count == 0)
+            if (directives.Count == 0 && operationTypeDefinitions?.Count == 0)
             {
                 throw context.Unexpected(start);
             }
