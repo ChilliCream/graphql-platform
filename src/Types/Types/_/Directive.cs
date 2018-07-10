@@ -81,4 +81,6 @@ namespace HotChocolate.Types
         public IEnumerable<InputField> Arguments { get; set; }
         public DirectiveDefinitionNode SyntaxNode { get; set; }
     }
+
+
 }

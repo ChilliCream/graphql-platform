@@ -11,7 +11,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
 {
 
     [CoreJob]
-    [RPlotExporter, RankColumn, MemoryDiagnoser]
+    [RPlotExporter, MemoryDiagnoser]
     public class QueryExecuterBenchmarkBase
     {
         private readonly Schema _schema;
