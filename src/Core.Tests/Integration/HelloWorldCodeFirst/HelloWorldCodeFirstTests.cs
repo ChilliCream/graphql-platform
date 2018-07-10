@@ -108,10 +108,12 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
         private IServiceProvider CreateServiceProvider()
         {
-            Dictionary<Type, object> services = new Dictionary<Type, object>();
+            var services = new Dictionary<Type, object>();
             services[typeof(DataStoreHelloWorld)] = new DataStoreHelloWorld();
+            services[typeof(QueryHelloWorldClr)] =
+                new QueryHelloWorldClr(new DataStoreHelloWorld());
 
-            Func<Type, object> serviceResolver = new Func<Type, object>(
+            var serviceResolver = new Func<Type, object>(
                 t =>
                 {
                     if (services.TryGetValue(t, out object s))
@@ -121,8 +123,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     return null;
                 });
 
-            Mock<IServiceProvider> serviceProvider =
-                new Mock<IServiceProvider>(MockBehavior.Strict);
+            var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
             serviceProvider.Setup(t => t.GetService(It.IsAny<Type>()))
                 .Returns(serviceResolver);
             return serviceProvider.Object;
