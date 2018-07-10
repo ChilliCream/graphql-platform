@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
-    internal class OperationRequest
+    internal class OperationExecuter
     {
         private static readonly Dictionary<OperationType, IExecutionStrategy> _executionStrategy =
             new Dictionary<OperationType, IExecutionStrategy>
@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
         private IExecutionStrategy _strategy;
 
 
-        public OperationRequest(ISchema schema,
+        public OperationExecuter(ISchema schema,
             DocumentNode queryDocument,
             OperationDefinitionNode operation)
         {

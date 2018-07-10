@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         private readonly ISchema _schema;
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
-        private readonly Cache<OperationRequest> _operationCache;
+        private readonly Cache<OperationExecuter> _operationCache;
         private readonly bool _useCache;
 
         public QueryExecuter(ISchema schema)
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
-            _operationCache = new Cache<OperationRequest>(cacheSize * 10);
+            _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
 
             try
             {
-                OperationRequest operationRequest =
+                OperationExecuter operationRequest =
                     GetOrCreateOperationRequest(
                         queryRequest, queryInfo.QueryDocument);
 

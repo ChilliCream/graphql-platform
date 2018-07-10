@@ -22,8 +22,8 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationRequest operationRequest =
-                new OperationRequest(schema, query, operation);
+            OperationExecuter operationRequest =
+                new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationRequest.ExecuteAsync(
                 new Dictionary<string, IValueNode>(),
                 null, CancellationToken.None);
@@ -61,8 +61,8 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationRequest operationRequest =
-                new OperationRequest(schema, query, operation);
+            OperationExecuter operationRequest =
+                new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationRequest.ExecuteAsync();
 
             // assert
