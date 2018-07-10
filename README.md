@@ -28,7 +28,7 @@ The GraphQL specification and more is available on the [Facebook GraphQL reposit
 
 ### Using Hot Chocolate
 
-The easiest way to get a feel for the API is to walk through our README example. If you you need additional information, you can also have a look at our [documentation](http://hotchocolate.io).
+The easiest way to get a feel for the API is to walk through our README example. If you need additional information, you can also have a look at our [documentation](http://hotchocolate.io).
 
 _Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
 
