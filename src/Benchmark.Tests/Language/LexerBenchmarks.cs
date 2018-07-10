@@ -7,7 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Benchmark.Tests.Language
 {
     [CoreJob]
-    [RPlotExporter, RankColumn, MemoryDiagnoser]
+    [RPlotExporter, MemoryDiagnoser]
     public class LexerBenchmarks
     {
         private readonly ParserBenchmarkResources _resources =
