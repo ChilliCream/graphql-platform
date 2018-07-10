@@ -72,11 +72,9 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(type));
             }
 
-            string name = type.IsGenericType
+            return type.IsGenericType
                 ? CreateGenericTypeName(type)
                 : CreateTypeName(type, type.Name);
-
-            return name.Replace("+", ".");
         }
 
         private static string CreateGenericTypeName(Type type)

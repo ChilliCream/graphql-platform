@@ -21,7 +21,7 @@ namespace HotChocolate.Internal
 
             if (member is MethodInfo)
             {
-                if (member.Name.StartsWith("Get", StringComparison.Ordinal) 
+                if (member.Name.StartsWith("Get", StringComparison.Ordinal)
                     && member.Name.Length > 3)
                 {
                     return NormalizeName(member.Name.Substring(3));
@@ -58,7 +58,7 @@ namespace HotChocolate.Internal
                 string name = type.Name.Substring(0, type.Name.Length - 2);
                 IEnumerable<string> arguments = type.GetGenericArguments()
                     .Select(GetFromType);
-                return $"{name}Of{string.Join("Of", arguments)}";
+                return $"{name}Of{string.Join("And", arguments)}";
             }
             return type.Name;
         }

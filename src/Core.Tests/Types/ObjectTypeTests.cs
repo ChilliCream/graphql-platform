@@ -101,35 +101,38 @@ namespace HotChocolate.Types
         public void GenericObjectTypes()
         {
             // arrange
-            ServiceManager services = new ServiceManager();
-            List<SchemaError> errors = new List<SchemaError>();
-            SchemaContext context = new SchemaContext(services);
+            var services = new ServiceManager();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext(services);
 
             // act
-            ObjectType<GenericFoo<string>> genericType =
-                new ObjectType<GenericFoo<string>>();
-            ((INeedsInitialization)genericType).RegisterDependencies(
-                context, e => errors.Add(e));
-            context.CompleteTypes();
+            var genericType = new ObjectType<GenericFoo<string>>();
+            INeedsInitialization init = genericType;
 
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
             // assert
             Assert.Equal("GenericFooOfString", genericType.Name);
         }
 
-         [Fact]
+        [Fact]
         public void NestedGenericObjectTypes()
         {
             // arrange
-            ServiceManager services = new ServiceManager();
-            List<SchemaError> errors = new List<SchemaError>();
-            SchemaContext context = new SchemaContext(services);
+            var services = new ServiceManager();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext(services);
 
             // act
-            ObjectType<GenericFoo<GenericFoo<string>>> genericType =
-                new ObjectType<GenericFoo<GenericFoo<string>>>();
-            ((INeedsInitialization)genericType).RegisterDependencies(
-                context, e => errors.Add(e));
-            context.CompleteTypes();
+            var genericType = new ObjectType<GenericFoo<GenericFoo<string>>>();
+            INeedsInitialization init = genericType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
 
             // assert
             Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
