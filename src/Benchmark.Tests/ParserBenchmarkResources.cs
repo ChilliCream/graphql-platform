@@ -7,11 +7,17 @@ namespace HotChocolate.Benchmark.Tests
     {
         public ParserBenchmarkResources()
         {
-            KitchenSinkSchema = new Source(File.ReadAllText("KitchenSinkSchema.graphql"));
-            SimpleSchema = new Source(File.ReadAllText("SimpleSchema.graphql"));
-            KitchenSinkQuery = new Source(File.ReadAllText("KitchenSinkQuery.graphql"));
-            IntrospectionQuery = new Source(File.ReadAllText("IntrospectionQuery.graphql"));
-            SimpleQuery = new Source(File.ReadAllText("SimpleQuery.graphql"));
+            ResourceHelper resources = new ResourceHelper();
+            KitchenSinkSchema = new Source(
+                resources.GetResourceString("KitchenSinkSchema.graphql"));
+            SimpleSchema = new Source(
+                resources.GetResourceString("SimpleSchema.graphql"));
+            KitchenSinkQuery = new Source(
+                resources.GetResourceString("KitchenSinkQuery.graphql"));
+            IntrospectionQuery = new Source(
+                resources.GetResourceString("IntrospectionQuery.graphql"));
+            SimpleQuery = new Source(
+                resources.GetResourceString("SimpleQuery.graphql"));
         }
 
         public ISource KitchenSinkSchema { get; }

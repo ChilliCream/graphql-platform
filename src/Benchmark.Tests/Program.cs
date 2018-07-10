@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using BenchmarkDotNet.Running;
 
 namespace HotChocolate.Benchmark.Tests

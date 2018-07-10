@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-     <AssemblyName>HotChocolate.Benchmarks</AssemblyName>
     <RootNamespace>HotChocolate.Benchmark.Tests</RootNamespace>
   </PropertyGroup>
 
@@ -16,9 +15,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="__resources__\*.*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Remove="Resources\IntrospectionQuery.graphql" />
+    <None Remove="Resources\KitchenSinkQuery.graphql" />
+    <None Remove="Resources\KitchenSinkSchema.graphql" />
+    <None Remove="Resources\SimpleQuery.graphql" />
+    <None Remove="Resources\SimpleSchema.graphql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
+    <EmbeddedResource Include="Resources\KitchenSinkQuery.graphql" />
+    <EmbeddedResource Include="Resources\KitchenSinkSchema.graphql" />
+    <EmbeddedResource Include="Resources\SimpleQuery.graphql" />
+    <EmbeddedResource Include="Resources\SimpleSchema.graphql" />
   </ItemGroup>
 
 </Project>
