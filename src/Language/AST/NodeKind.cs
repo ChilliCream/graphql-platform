@@ -36,6 +36,7 @@ namespace HotChocolate.Language
         EnumTypeDefinition,
         EnumValueDefinition,
         InputObjectTypeDefinition,
+        SchemaExtension,
         ScalarTypeExtension,
         ObjectTypeExtension,
         InterfaceTypeExtension,
