@@ -6,12 +6,18 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+
     public class Directive
         : TypeSystemBase
     {
-        internal Directive(DirectiveConfig config)
+        internal Directive(Action<IDirectiveDescriptor> configure)
         {
-            Initialize(config);
+            Initialize(configure);
+        }
+
+        protected Directive()
+        {
+            Initialize(Configure);
         }
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
@@ -22,30 +28,37 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<DirectiveLocation> Locations { get; private set; }
 
-        public IReadOnlyDictionary<string, InputField> Arguments { get; private set; }
+        public FieldCollection<InputField> Arguments { get; private set; }
+
+        #region Configuration
+
+        internal virtual DirectiveDescriptor CreateDescriptor() =>
+            new DirectiveDescriptor();
+
+        protected virtual void Configure(IDirectiveDescriptor descriptor) { }
+
+        #endregion
 
         #region  Initialization
 
-        private void Initialize(DirectiveConfig config)
+        private void Initialize(Action<IDirectiveDescriptor> configure)
         {
-            if (config == null)
+            if (configure == null)
             {
-                throw new ArgumentNullException(nameof(config));
+                throw new ArgumentNullException(nameof(configure));
             }
 
-            if (string.IsNullOrEmpty(config.Name))
-            {
-                throw new ArgumentException(
-                    "A directive name must not be null or empty.",
-                    nameof(config));
-            }
+            DirectiveDescriptor descriptor = CreateDescriptor();
+            configure(descriptor);
 
-            SyntaxNode = config.SyntaxNode;
-            Name = config.Name;
-            Description = config.Description;
-            Locations = config.Locations.ToImmutableList();
-            ;
-            Arguments = config.Arguments.ToImmutableDictionary(t => t.Name);
+            DirectiveDescription description = descriptor.CreateDescription();
+
+            SyntaxNode = description.SyntaxNode;
+            Name = description.Name;
+            Description = description.Description;
+            Locations = description.Locations.ToImmutableList();
+            Arguments = new FieldCollection<InputField>(
+                description.Arguments.Select(t => new InputField(t)));
         }
 
         protected override void OnRegisterDependencies(ITypeInitializationContext context)
@@ -71,14 +84,5 @@ namespace HotChocolate.Types
         }
 
         #endregion
-    }
-
-    internal class DirectiveConfig
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public IEnumerable<DirectiveLocation> Locations { get; set; }
-        public IEnumerable<InputField> Arguments { get; set; }
-        public DirectiveDefinitionNode SyntaxNode { get; set; }
     }
 }
