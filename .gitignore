@@ -290,3 +290,5 @@ __pycache__/
 lcov.info
 coverage.json
 .DS_Store
+
+BenchmarkDotNet.Artifacts
