@@ -15,7 +15,7 @@ We are currently in the process of closing some gaps and hope to finalise Versio
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
 
-To generate the example project, head over to your console and fire up the following commands.
+To generate the example project, head over to your console and fire up the following commands:
 
 ```bash
 mkdir starwars
