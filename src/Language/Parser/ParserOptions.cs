@@ -2,12 +2,6 @@ namespace HotChocolate.Language
 {
     public sealed class ParserOptions
     {
-        public ParserOptions()
-        {
-            NoLocations = false;
-            Experimental = new ParserOptionsExperimental(false);
-        }
-
         public ParserOptions(bool noLocations = false, bool allowFragmentVariables = false)
         {
             NoLocations = noLocations;
@@ -15,9 +9,9 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// By default, the parser creates <see cref="ISyntaxNode" />s 
-        /// that know the location in the source that they correspond to. 
-        /// This configuration flag disables that behavior 
+        /// By default, the parser creates <see cref="ISyntaxNode" />s
+        /// that know the location in the source that they correspond to.
+        /// This configuration flag disables that behavior
         /// for performance or testing.
         /// </summary>
         public bool NoLocations { get; }
