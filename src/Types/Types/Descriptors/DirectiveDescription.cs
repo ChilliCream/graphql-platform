@@ -11,8 +11,8 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
-        public List<DirectiveLocation> Locations { get; } =
-            new List<DirectiveLocation>();
+        public HashSet<DirectiveLocation> Locations { get; } =
+            new HashSet<DirectiveLocation>();
 
         public List<ArgumentDescription> Arguments { get; } =
             new List<ArgumentDescription>();

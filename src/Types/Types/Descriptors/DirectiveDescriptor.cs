@@ -18,6 +18,12 @@ namespace HotChocolate.Types
 
         public DirectiveDescription CreateDescription()
         {
+            if(DirectiveDescription.Name == null)
+            {
+                throw new InvalidOperationException(
+                    "A directive must have a name.");
+            }
+
             foreach (ArgumentDescriptor descriptor in _arguments)
             {
                 DirectiveDescription.Arguments.Add(descriptor.CreateDescription());
