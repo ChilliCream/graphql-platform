@@ -27,15 +27,15 @@ namespace HotChocolate.Execution
         }
 
         private static Action<IFieldValueCompletionContext> CreateValueCompleter(
-            IFieldValueHandler handler,
+            IFieldValueHandler valueHandler,
             Action<IFieldValueCompletionContext> completeValue)
         {
-            return c => handler.CompleteValue(c, completeValue);
+            return c => valueHandler.CompleteValue(c, completeValue);
         }
 
-        public void CompleteValue(IFieldValueCompletionContext context)
+        public void CompleteValue(IFieldValueCompletionContext completionContext)
         {
-            _completeValue(context);
+            _completeValue(completionContext);
         }
     }
 }

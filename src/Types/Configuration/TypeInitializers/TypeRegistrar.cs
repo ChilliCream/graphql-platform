@@ -26,10 +26,13 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<SchemaError> Errors => _errors;
 
-        public void RegisterTypes(ISchemaContext context, string queryTypeName)
+        public void RegisterTypes(
+            ISchemaContext schemaContext,
+            string queryTypeName)
         {
-            RegisterAllTypes(context);
-            RegisterTypeDependencies(context, queryTypeName);
+            RegisterAllTypes(schemaContext);
+            RegisterTypeDependencies(schemaContext, queryTypeName);
+            RegisterDirectiveDependencies(schemaContext);
         }
 
         private void RegisterAllTypes(ISchemaContext context)
@@ -61,7 +64,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void ProcessBatch(ISchemaContext schemaContext, string queryTypeName)
+        private void ProcessBatch(
+            ISchemaContext schemaContext,
+            string queryTypeName)
         {
             while (_queue.Any())
             {
@@ -72,18 +77,27 @@ namespace HotChocolate.Configuration
                     schemaContext.Types.RegisterType(type);
                     type = schemaContext.Types.GetType<INamedType>(type.Name);
 
-                    if (type is INeedsInitialization initializer)
-                    {
-                        bool isQueryType = string.Equals(queryTypeName,
-                            type.Name, StringComparison.Ordinal);
-
-                        var initializationContext =
-                            new TypeInitializationContext(schemaContext,
-                                e => _errors.Add(e), type, isQueryType);
-
-                        initializer.RegisterDependencies(initializationContext);
-                    }
+                    RegisterTypeDependencies(schemaContext, type, queryTypeName);
                 }
+            }
+        }
+
+        // TODO : rename
+        private void RegisterTypeDependencies(
+            ISchemaContext schemaContext,
+            INamedType type,
+            string queryTypeName)
+        {
+            if (type is INeedsInitialization initializer)
+            {
+                bool isQueryType = string.Equals(queryTypeName,
+                    type.Name, StringComparison.Ordinal);
+
+                var initializationContext =
+                    new TypeInitializationContext(schemaContext,
+                        e => _errors.Add(e), type, isQueryType);
+
+                initializer.RegisterDependencies(initializationContext);
             }
         }
 
@@ -95,6 +109,18 @@ namespace HotChocolate.Configuration
                 {
                     _queue.Enqueue(type);
                 }
+            }
+        }
+
+        private void RegisterDirectiveDependencies(ISchemaContext schemaContext)
+        {
+            foreach (INeedsInitialization directive in schemaContext.Directives
+                .GetDirectives().Cast<INeedsInitialization>())
+            {
+                var initializationContext =
+                    new TypeInitializationContext(schemaContext,
+                        e => _errors.Add(e));
+                directive.RegisterDependencies(initializationContext);
             }
         }
     }

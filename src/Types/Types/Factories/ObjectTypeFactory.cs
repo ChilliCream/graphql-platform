@@ -17,12 +17,9 @@ namespace HotChocolate.Types.Factories
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
-                DeclareInterfaces(d,
-                    node.Interfaces);
+                DeclareInterfaces(d, node.Interfaces);
 
-                DeclareFields(d,
-                    node.Name.Value,
-                    node.Fields);
+                DeclareFields(d, node.Fields);
             });
         }
 
@@ -38,7 +35,6 @@ namespace HotChocolate.Types.Factories
 
         private void DeclareFields(
             IObjectTypeDescriptor typeDescriptor,
-            string typeName,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
             foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)

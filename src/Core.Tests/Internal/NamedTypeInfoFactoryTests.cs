@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Linq;
-using System.Threading;
-using HotChocolate;
-using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Types.Factories;
 using Xunit;
 
 namespace HotChocolate.Types

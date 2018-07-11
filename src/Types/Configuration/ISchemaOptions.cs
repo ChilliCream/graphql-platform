@@ -13,15 +13,4 @@ namespace HotChocolate.Configuration
         new bool StrictValidation { get; set; }
         new bool DeveloperMode { get; set; }
     }
-
-    public interface IReadOnlySchemaOptions
-    {
-        string QueryTypeName { get; }
-        string MutationTypeName { get; }
-        string SubscriptionTypeName { get; }
-        int MaxExecutionDepth { get; }
-        TimeSpan ExecutionTimeout { get; }
-        bool StrictValidation { get; }
-        bool DeveloperMode { get; }
-    }
 }

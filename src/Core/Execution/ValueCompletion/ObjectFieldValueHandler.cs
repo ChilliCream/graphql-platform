@@ -10,28 +10,28 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            IFieldValueCompletionContext context,
+            IFieldValueCompletionContext completionContext,
             Action<IFieldValueCompletionContext> nextHandler)
         {
-            if (context.Type.IsObjectType()
-                || context.Type.IsInterfaceType()
-                || context.Type.IsUnionType())
+            if (completionContext.Type.IsObjectType()
+                || completionContext.Type.IsInterfaceType()
+                || completionContext.Type.IsUnionType())
             {
                 ObjectType objectType = ResolveObjectType(
-                    context.ResolverContext, context.Type, context.Value);
+                    completionContext.ResolverContext, completionContext.Type, completionContext.Value);
                 if (objectType == null)
                 {
-                    context.ReportError(new FieldError(
+                    completionContext.ReportError(new FieldError(
                         "Could not resolve the schema type from " +
-                        $"`{context.Value.GetType().GetTypeName()}`.",
-                        context.Selection.Node));
+                        $"`{completionContext.Value.GetType().GetTypeName()}`.",
+                        completionContext.Selection.Node));
                     return;
                 }
-                CompleteObjectValue(context, nextHandler, objectType);
+                CompleteObjectValue(completionContext, nextHandler, objectType);
             }
             else
             {
-                nextHandler?.Invoke(context);
+                nextHandler?.Invoke(completionContext);
             }
         }
 

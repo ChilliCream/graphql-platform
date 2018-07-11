@@ -80,13 +80,11 @@ namespace HotChocolate.Types
                 fieldValues[field.Name] = ParseScalar(
                     fieldType, fieldValue);
             }
-            else if (fieldType.IsInputObjectType())
+            else if (fieldType.IsInputObjectType()
+                && !processed.Contains(fieldValue))
             {
-                if (!processed.Contains(fieldValue))
-                {
-                    fieldValues[field.Name] = ParseObject(
-                        processed, (InputObjectType)fieldType, fieldValue);
-                }
+                fieldValues[field.Name] = ParseObject(
+                    processed, (InputObjectType)fieldType, fieldValue);
             }
         }
 
@@ -156,7 +154,8 @@ namespace HotChocolate.Types
                 .ToArray();
         }
 
-        private static PropertyInfo GetPropertyByName(PropertyInfo[] property, string fieldName)
+        private static PropertyInfo GetPropertyByName(
+            PropertyInfo[] property, string fieldName)
         {
             return property.FirstOrDefault(t =>
                 t.GetGraphQLName().Equals(fieldName, StringComparison.Ordinal));

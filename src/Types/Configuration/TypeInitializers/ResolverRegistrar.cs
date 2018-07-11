@@ -29,8 +29,6 @@ namespace HotChocolate.Configuration
 
             CompleteDelegateBindings(schemaContext.Types);
             CompleteCollectionBindings(schemaContext.Types);
-
-            HashSet<FieldReference> registeredResolvers = new HashSet<FieldReference>();
             RegisterKnownFieldResolvers(schemaContext);
             TryRegisterMissingResolvers(schemaContext);
         }
@@ -46,16 +44,14 @@ namespace HotChocolate.Configuration
                     continue;
                 }
 
-                if (binding.ObjectTypeName == null)
-                {
-                    if (typeRegistry.TryGetTypeBinding(
+                if (binding.ObjectTypeName == null
+                    && typeRegistry.TryGetTypeBinding(
                         binding.ObjectType, out ObjectTypeBinding typeBinding))
-                    {
-                        FieldBinding fieldBinding = typeBinding?.Fields.Values
-                            .FirstOrDefault(t => t.Member == binding.FieldMember);
-                        binding.ObjectTypeName = typeBinding.Name;
-                        binding.FieldName = fieldBinding?.Name;
-                    }
+                {
+                    FieldBinding fieldBinding = typeBinding?.Fields.Values
+                        .FirstOrDefault(t => t.Member == binding.FieldMember);
+                    binding.ObjectTypeName = typeBinding.Name;
+                    binding.FieldName = fieldBinding?.Name;
                 }
             }
         }

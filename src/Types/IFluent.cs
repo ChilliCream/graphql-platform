@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     public interface IFluent
     {

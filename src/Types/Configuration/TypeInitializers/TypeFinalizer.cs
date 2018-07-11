@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
     internal class TypeFinalizer
     {
         private readonly SchemaConfiguration _schemaConfiguration;
-        private List<SchemaError> _errors = new List<SchemaError>();
+        private readonly List<SchemaError> _errors = new List<SchemaError>();
 
         public TypeFinalizer(SchemaConfiguration schemaConfiguration)
         {
@@ -31,6 +31,7 @@ namespace HotChocolate.Configuration
 
             // compile resolvers and finalize types
             _errors.AddRange(context.CompleteTypes());
+            _errors.AddRange(context.CompleteDirectives());
         }
 
         private void RegisterTypes(ISchemaContext context, string queryTypeName)

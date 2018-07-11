@@ -11,13 +11,14 @@ elseif (!!$env:APPVEYOR_BUILD_VERSION) {
 
 $prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
 $prName = $env:APPVEYOR_PULL_REQUEST_TITLE
+$sonarLogin = $env:SONAR_TOKEN
 
 if ($PR) {
-    Write-Host "PR Key: " + $prKey
-    Write-Host "PR Name: " + $prName
+    Write-Host "PR Key: " $prKey
+    Write-Host "PR Name: " $prName
 }
 
-if ($version -ne $null) {
+if ($null -ne $version) {
     $env:Version = $version
 }
 
@@ -37,10 +38,10 @@ if ($EnableSonar) {
     dotnet tool install --global dotnet-sonarscanner
 
     if ($PR) {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
+      dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\coverage.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
     }
     else {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
+      dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\coverage.xml"
     }
 }
 
@@ -55,7 +56,7 @@ if ($RunTests -or $EnableCoverage) {
     $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
     $testAssemblies = ""
 
-    Get-ChildItem src -Directory -Filter *.Tests  | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
+    Get-ChildItem src -Directory -Filter *.Tests | Where-Object {$_.Name.StartsWith("Benchmark") -eq $false} | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
 
     if (!!$testAssemblies) {
         # Has test assemblies {
@@ -78,7 +79,9 @@ if ($RunTests -or $EnableCoverage) {
             $coveralls = Resolve-Path $coveralls
 
             & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[HotChocolate*]*"
-            & $coveralls --opencover coverage.xml
+            if($PR -eq $false) {
+              & $coveralls --opencover coverage.xml
+            }
         }
         else {
             # Test
@@ -88,7 +91,7 @@ if ($RunTests -or $EnableCoverage) {
 }
 
 if ($EnableSonar) {
-    dotnet sonarscanner end /d:sonar.login="$env:SonarLogin"
+    dotnet sonarscanner end /d:sonar.login="$sonarLogin"
 }
 
 if ($Pack) {
@@ -101,3 +104,4 @@ if ($Pack) {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix --include-source --include-symbols
     }
 }
+

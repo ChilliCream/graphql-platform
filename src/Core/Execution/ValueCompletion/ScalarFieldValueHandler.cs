@@ -7,36 +7,38 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            IFieldValueCompletionContext context,
+            IFieldValueCompletionContext completionContext,
             Action<IFieldValueCompletionContext> nextHandler)
         {
-            if (context.Type.IsScalarType() || context.Type.IsEnumType())
+            if (completionContext.Type.IsScalarType()
+                || completionContext.Type.IsEnumType())
             {
-                if (context.Type is ISerializableType serializable)
+                if (completionContext.Type is ISerializableType serializable)
                 {
                     try
                     {
-                        context.IntegrateResult(serializable.Serialize(context.Value));
+                        completionContext.IntegrateResult(
+                            serializable.Serialize(completionContext.Value));
                     }
                     catch (ArgumentException ex)
                     {
-                        context.ReportError(ex.Message);
+                        completionContext.ReportError(ex.Message);
                     }
                     catch (Exception)
                     {
-                        context.ReportError(
+                        completionContext.ReportError(
                             "Undefined field serialization error.");
                     }
                 }
                 else
                 {
-                    context.ReportError(
+                    completionContext.ReportError(
                         "Scalar types and enum types must be serializable.");
                 }
             }
             else
             {
-                nextHandler?.Invoke(context);
+                nextHandler?.Invoke(completionContext);
             }
         }
     }

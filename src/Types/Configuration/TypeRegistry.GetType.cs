@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -71,7 +72,7 @@ namespace HotChocolate.Configuration
 
         private bool TryGetTypeFromNativeType<T>(Type nativeType, out T type)
         {
-            if (_typeInspector.TryCreate(nativeType, out TypeInfo typeInfo))
+            if (_typeInspector.TryCreate(nativeType, out Internal.TypeInfo typeInfo))
             {
                 return TryGetTypeFromNativeNamedType(typeInfo, out type)
                     || TryGetTypeFromNativeTypeBinding(typeInfo, out type);

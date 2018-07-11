@@ -22,11 +22,13 @@ namespace HotChocolate
         private Schema(
             ServiceManager serviceManager,
             SchemaTypes types,
+            IReadOnlyCollection<Directive> directives,
             IReadOnlySchemaOptions options)
         {
             _serviceManager = serviceManager;
             _types = types;
             Options = options;
+            Directives = directives;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace HotChocolate
 
         public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
 
-        public IReadOnlyCollection<Directive> Directives { get; } = new List<Directive>();
+        public IReadOnlyCollection<Directive> Directives { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType
@@ -101,7 +103,5 @@ namespace HotChocolate
 
             return _serviceManager.GetService(serviceType);
         }
-
-
     }
 }
