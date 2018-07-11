@@ -11,8 +11,6 @@ namespace HotChocolate.Configuration
     {
         private readonly FieldResolverDiscoverer _fieldResolverDiscoverer =
             new FieldResolverDiscoverer();
-        private readonly FieldResolverBuilder _fieldResolverBuilder =
-            new FieldResolverBuilder();
         private readonly ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
 
         public ResolverCollectionBindingHandler(
@@ -111,7 +109,7 @@ namespace HotChocolate.Configuration
             ITypeRegistry typeRegistry,
             IEnumerable<FieldResolverDescriptor> resolverDescriptors)
         {
-            foreach (IGrouping<FieldReference, FieldResolverDescriptor> resolverGroup in 
+            foreach (IGrouping<FieldReference, FieldResolverDescriptor> resolverGroup in
                 resolverDescriptors.GroupBy(r => r.Field))
             {
                 FieldReference fieldReference = resolverGroup.Key;

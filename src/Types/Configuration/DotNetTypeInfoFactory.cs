@@ -36,15 +36,13 @@ namespace HotChocolate.Configuration
         private static bool TryCreate3ComponentType(
              List<Type> components, out TypeInfo typeInfo)
         {
-            if (components.Count == 3)
+            if (components.Count == 3
+                && IsListType(components[0])
+                && IsNullableType(components[1])
+                && components[2].IsValueType)
             {
-                if (IsListType(components[0])
-                    && IsNullableType(components[1])
-                    && components[2].IsValueType)
-                {
-                    typeInfo = new TypeInfo(components[2], t => new ListType(t));
-                    return true;
-                }
+                typeInfo = new TypeInfo(components[2], t => new ListType(t));
+                return true;
             }
 
             typeInfo = default;

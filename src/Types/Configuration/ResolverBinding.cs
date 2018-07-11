@@ -5,7 +5,7 @@ namespace HotChocolate.Configuration
 {
     internal abstract class ResolverBinding
     {
-        public ResolverBinding(string typeName, string fieldName)
+        protected ResolverBinding(string typeName, string fieldName)
         {
             if (typeName == null)
             {
@@ -40,6 +40,7 @@ namespace HotChocolate.Configuration
         }
 
         public string TypeName { get; }
+
         public string FieldName { get; }
     }
 }
