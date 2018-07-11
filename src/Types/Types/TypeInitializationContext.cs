@@ -26,6 +26,15 @@ namespace HotChocolate.Types
             IsQueryType = isQueryType;
         }
 
+        public TypeInitializationContext(ISchemaContext schemaContext,
+            Action<SchemaError> reportError)
+        {
+            _schemaContext = schemaContext
+                ?? throw new ArgumentNullException(nameof(schemaContext));
+            _reportError = reportError
+                ?? throw new ArgumentNullException(nameof(reportError));
+        }
+
         public INamedType Type { get; }
 
         public bool IsQueryType { get; }

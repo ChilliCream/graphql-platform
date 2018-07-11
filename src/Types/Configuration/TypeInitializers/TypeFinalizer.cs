@@ -31,6 +31,7 @@ namespace HotChocolate.Configuration
 
             // compile resolvers and finalize types
             _errors.AddRange(context.CompleteTypes());
+            _errors.AddRange(context.CompleteDirectives());
         }
 
         private void RegisterTypes(ISchemaContext context, string queryTypeName)

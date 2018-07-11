@@ -10,6 +10,7 @@ namespace HotChocolate.Configuration
         : ISchemaContext
     {
         private readonly TypeRegistry _typeRegistry;
+        private readonly DirectiveRegistry _directiveRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
         public SchemaContext(ServiceManager serviceManager)
@@ -17,6 +18,7 @@ namespace HotChocolate.Configuration
             ServiceManager = serviceManager;
             _typeRegistry = new TypeRegistry(serviceManager);
             _resolverRegistry = new ResolverRegistry();
+            _directiveRegistry = new DirectiveRegistry();
         }
 
         public ITypeRegistry Types => _typeRegistry;
@@ -24,6 +26,8 @@ namespace HotChocolate.Configuration
         public IResolverRegistry Resolvers => _resolverRegistry;
 
         public ServiceManager ServiceManager { get; }
+
+        public IDirectiveRegistry Directives { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {
@@ -40,6 +44,19 @@ namespace HotChocolate.Configuration
                         this, e => errors.Add(e), namedType, false);
                     init.CompleteType(initializationContext);
                 }
+            }
+            return errors;
+        }
+
+        public IEnumerable<SchemaError> CompleteDirectives()
+        {
+            List<SchemaError> errors = new List<SchemaError>();
+            foreach (INeedsInitialization directive in _directiveRegistry.GetDirectives()
+                .Cast<INeedsInitialization>())
+            {
+                var initializationContext = new TypeInitializationContext(
+                    this, e => errors.Add(e));
+                directive.CompleteType(initializationContext);
             }
             return errors;
         }

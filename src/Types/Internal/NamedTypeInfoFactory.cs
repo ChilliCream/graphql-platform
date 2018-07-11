@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Internal
 {
     internal class NamedTypeInfoFactory
         : ITypeInfoFactory

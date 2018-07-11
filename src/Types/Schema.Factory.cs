@@ -42,7 +42,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = CreateSchemaContext();
+            SchemaContext context = SchemaContextFactory.Create();
 
             // deserialize schema objects
             var visitor = new SchemaSyntaxVisitor(context.Types);
@@ -66,7 +66,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = CreateSchemaContext();
+            SchemaContext context = SchemaContextFactory.Create();
             return CreateSchema(context, configure);
         }
 
@@ -98,6 +98,7 @@ namespace HotChocolate
                     context.Types.GetTypes(),
                     context.Types.GetTypeBindings(),
                     options),
+                context.Directives.GetDirectives().ToArray(),
                 options);
         }
 
@@ -112,9 +113,10 @@ namespace HotChocolate
                 var configuration = new SchemaConfiguration(
                     context.ServiceManager.RegisterServiceProvider,
                     context.Types);
-                configure(configuration);
-                var options = new ReadOnlySchemaOptions(configuration.Options);
 
+                configure(configuration);
+
+                var options = new ReadOnlySchemaOptions(configuration.Options);
                 var typeFinalizer = new TypeFinalizer(configuration);
                 typeFinalizer.FinalizeTypes(context, options.QueryTypeName);
                 errors.AddRange(typeFinalizer.Errors);
@@ -128,46 +130,6 @@ namespace HotChocolate
                     new SchemaError(ex.Message, null, ex)
                 });
             }
-        }
-
-        private static SchemaContext CreateSchemaContext()
-        {
-            var context = new SchemaContext(new ServiceManager());
-
-            RegisterSpecScalarTypes(context);
-            RegisterExtendedScalarTypes(context);
-            RegisterIntrospectionTypes(context);
-
-            return context;
-        }
-
-        private static void RegisterSpecScalarTypes(SchemaContext context)
-        {
-            context.Types.RegisterType(new TypeReference(typeof(StringType)));
-            context.Types.RegisterType(new TypeReference(typeof(IdType)));
-            context.Types.RegisterType(new TypeReference(typeof(BooleanType)));
-            context.Types.RegisterType(new TypeReference(typeof(IntType)));
-            context.Types.RegisterType(new TypeReference(typeof(FloatType)));
-        }
-
-        private static void RegisterExtendedScalarTypes(SchemaContext context)
-        {
-            context.Types.RegisterType(new TypeReference(typeof(DecimalType)));
-            context.Types.RegisterType(new TypeReference(typeof(LongType)));
-            context.Types.RegisterType(new TypeReference(typeof(DateTimeType)));
-            context.Types.RegisterType(new TypeReference(typeof(DateType)));
-        }
-
-        private static void RegisterIntrospectionTypes(SchemaContext context)
-        {
-            context.Types.RegisterType(new TypeReference(typeof(__Directive)));
-            context.Types.RegisterType(new TypeReference(typeof(__DirectiveLocation)));
-            context.Types.RegisterType(new TypeReference(typeof(__EnumValue)));
-            context.Types.RegisterType(new TypeReference(typeof(__Field)));
-            context.Types.RegisterType(new TypeReference(typeof(__InputValue)));
-            context.Types.RegisterType(new TypeReference(typeof(__Schema)));
-            context.Types.RegisterType(new TypeReference(typeof(__Type)));
-            context.Types.RegisterType(new TypeReference(typeof(__TypeKind)));
         }
     }
 }

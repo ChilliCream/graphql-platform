@@ -1,6 +1,7 @@
 using System;
+using HotChocolate.Internal;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Internal
 {
     internal interface ITypeInfoFactory
     {
