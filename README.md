@@ -269,6 +269,11 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Custom Schema Directives
 - [ ] Custom Execution Directives
 
+### Execution Engine
+
+- [ ] Custom Context Objects
+- [ ] Data Loader Integration / Batched Operations
+
 ### Schema Creation
 
 - [x] Schema-First approach
