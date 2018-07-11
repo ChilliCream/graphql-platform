@@ -14,7 +14,6 @@ namespace HotChocolate.Execution
                 .Add(new QueryError(message));
         }
 
-
         public QueryException(IQueryError error)
         {
             if (error == null)
@@ -35,12 +34,7 @@ namespace HotChocolate.Execution
 
         public QueryException(IEnumerable<IQueryError> errors)
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
-            Errors = errors.ToImmutableList()
+            Errors = errors?.ToImmutableList()
                 ?? ImmutableList<IQueryError>.Empty;
         }
 

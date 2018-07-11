@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     public sealed class DirectiveLocation
         : IEquatable<DirectiveLocation>
     {
-        private string _value;
+        private readonly string _value;
 
         private DirectiveLocation(string value)
         {
@@ -64,24 +64,24 @@ namespace HotChocolate.Language
             return _value;
         }
 
-        public static DirectiveLocation Query = new DirectiveLocation("QUERY");
-        public static DirectiveLocation Mutation = new DirectiveLocation("MUTATION");
-        public static DirectiveLocation Subscription = new DirectiveLocation("SUBSCRIPTION");
-        public static DirectiveLocation Field = new DirectiveLocation("FIELD");
-        public static DirectiveLocation FragmentDefinition = new DirectiveLocation("FRAGMENT_DEFINITION");
-        public static DirectiveLocation FragmentSpread = new DirectiveLocation("FRAGMENT_SPREAD");
-        public static DirectiveLocation InlineFragment = new DirectiveLocation("INLINE_FRAGMENT");
-        public static DirectiveLocation Schema = new DirectiveLocation("SCHEMA");
-        public static DirectiveLocation Scalar = new DirectiveLocation("SCALAR");
-        public static DirectiveLocation Object = new DirectiveLocation("OBJECT");
-        public static DirectiveLocation FieldDefinition = new DirectiveLocation("FIELD_DEFINITION");
-        public static DirectiveLocation ArgumentDefinition = new DirectiveLocation("ARGUMENT_DEFINITION");
-        public static DirectiveLocation Interface = new DirectiveLocation("INTERFACE");
-        public static DirectiveLocation Union = new DirectiveLocation("UNION");
-        public static DirectiveLocation Enum = new DirectiveLocation("ENUM");
-        public static DirectiveLocation EnumValue = new DirectiveLocation("ENUM_VALUE");
-        public static DirectiveLocation InputObject = new DirectiveLocation("INPUT_OBJECT");
-        public static DirectiveLocation InputFieldDefinition = new DirectiveLocation("INPUT_FIELD_DEFINITION");
+        public static DirectiveLocation Query { get; } = new DirectiveLocation("QUERY");
+        public static DirectiveLocation Mutation { get; } = new DirectiveLocation("MUTATION");
+        public static DirectiveLocation Subscription { get; } = new DirectiveLocation("SUBSCRIPTION");
+        public static DirectiveLocation Field { get; } = new DirectiveLocation("FIELD");
+        public static DirectiveLocation FragmentDefinition { get; } = new DirectiveLocation("FRAGMENT_DEFINITION");
+        public static DirectiveLocation FragmentSpread { get; } = new DirectiveLocation("FRAGMENT_SPREAD");
+        public static DirectiveLocation InlineFragment { get; } = new DirectiveLocation("INLINE_FRAGMENT");
+        public static DirectiveLocation Schema { get; } = new DirectiveLocation("SCHEMA");
+        public static DirectiveLocation Scalar { get; } = new DirectiveLocation("SCALAR");
+        public static DirectiveLocation Object { get; } = new DirectiveLocation("OBJECT");
+        public static DirectiveLocation FieldDefinition { get; } = new DirectiveLocation("FIELD_DEFINITION");
+        public static DirectiveLocation ArgumentDefinition { get; } = new DirectiveLocation("ARGUMENT_DEFINITION");
+        public static DirectiveLocation Interface { get; } = new DirectiveLocation("INTERFACE");
+        public static DirectiveLocation Union { get; } = new DirectiveLocation("UNION");
+        public static DirectiveLocation Enum { get; } = new DirectiveLocation("ENUM");
+        public static DirectiveLocation EnumValue { get; } = new DirectiveLocation("ENUM_VALUE");
+        public static DirectiveLocation InputObject { get; } = new DirectiveLocation("INPUT_OBJECT");
+        public static DirectiveLocation InputFieldDefinition { get; } = new DirectiveLocation("INPUT_FIELD_DEFINITION");
 
         public static bool IsValidName(string value)
         {
