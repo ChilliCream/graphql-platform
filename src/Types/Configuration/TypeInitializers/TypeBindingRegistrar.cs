@@ -13,7 +13,7 @@ namespace HotChocolate.Configuration
     /// </summary>
     internal class TypeBindingRegistrar
     {
-        private List<TypeBindingInfo> _typeBindings;
+        private readonly List<TypeBindingInfo> _typeBindings;
 
         public TypeBindingRegistrar(IEnumerable<TypeBindingInfo> typeBindings)
         {
@@ -96,7 +96,7 @@ namespace HotChocolate.Configuration
             {
                 Dictionary<string, MemberInfo> members =
                     ReflectionUtils.GetMembers(typeBindingInfo.Type);
-                
+
                 foreach (ObjectField field in fields
                     .Where(t => !fieldBindings.ContainsKey(t.Name)))
                 {
@@ -118,7 +118,7 @@ namespace HotChocolate.Configuration
         private Dictionary<InputObjectType, InputObjectTypeBinding> CreateInputObjectTypeBindings(
             ITypeRegistry typeRegistry)
         {
-            var typeBindings = 
+            var typeBindings =
                 new Dictionary<InputObjectType, InputObjectTypeBinding>();
 
             foreach (TypeBindingInfo typeBindingInfo in _typeBindings)
@@ -156,14 +156,11 @@ namespace HotChocolate.Configuration
                     fieldBindingInfo.Name = fieldBindingInfo.Member.GetGraphQLName();
                 }
 
-                if (fields.TryGetField(fieldBindingInfo.Name, out InputField field))
+                if (fields.TryGetField(fieldBindingInfo.Name, out InputField field)
+                    && fieldBindingInfo.Member is PropertyInfo p)
                 {
-                    if (fieldBindingInfo.Member is PropertyInfo p)
-                    {
-                        fieldBindings[field.Name] = new InputFieldBinding(
-                            fieldBindingInfo.Name, p, field);
-                    }
-                    // TODO : error -> exception?
+                    fieldBindings[field.Name] = new InputFieldBinding(
+                        fieldBindingInfo.Name, p, field);
                 }
             }
 

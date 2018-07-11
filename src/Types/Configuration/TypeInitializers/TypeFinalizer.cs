@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
     internal class TypeFinalizer
     {
         private readonly SchemaConfiguration _schemaConfiguration;
-        private List<SchemaError> _errors = new List<SchemaError>();
+        private readonly List<SchemaError> _errors = new List<SchemaError>();
 
         public TypeFinalizer(SchemaConfiguration schemaConfiguration)
         {
