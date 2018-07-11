@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
-            if (context.Type == null)
+            if (!context.IsDirective && context.Type == null)
             {
                 throw new InvalidOperationException(
                     "It is not allowed to initialize a field without " +
@@ -54,11 +54,12 @@ namespace HotChocolate.Types
             }
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
-            if (context.Type == null)
+            if (!context.IsDirective && context.Type == null)
             {
                 throw new InvalidOperationException(
                     "It is not allowed to initialize a field without " +

@@ -33,11 +33,14 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(schemaContext));
             _reportError = reportError
                 ?? throw new ArgumentNullException(nameof(reportError));
+            IsDirective = true;
         }
 
         public INamedType Type { get; }
 
         public bool IsQueryType { get; }
+
+        public bool IsDirective { get; }
 
         public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
         {

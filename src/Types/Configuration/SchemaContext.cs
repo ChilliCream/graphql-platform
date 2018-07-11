@@ -27,7 +27,7 @@ namespace HotChocolate.Configuration
 
         public ServiceManager ServiceManager { get; }
 
-        public IDirectiveRegistry Directives { get; }
+        public IDirectiveRegistry Directives => _directiveRegistry;
 
         public IEnumerable<SchemaError> CompleteTypes()
         {

@@ -62,7 +62,6 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateTestServer();
-            string query = "{ basic { a } }";
 
             // act
             HttpResponseMessage message = await server.CreateClient()

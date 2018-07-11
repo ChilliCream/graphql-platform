@@ -10,6 +10,8 @@ namespace HotChocolate.Types
     {
         INamedType Type { get; }
 
+        bool IsDirective { get; }
+
         bool IsQueryType { get; }
 
         void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
