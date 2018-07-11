@@ -42,6 +42,16 @@ namespace HotChocolate.Resolvers
                 && other.Member.Equals(Member);
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            return Equals(obj as FieldResolverMember);
+        }
+
         public override int GetHashCode()
         {
             unchecked
@@ -53,7 +63,7 @@ namespace HotChocolate.Resolvers
 
         public override string ToString()
         {
-            return $"{ToString()} => {Member.Name}";
+            return $"{base.ToString()} => {Member.Name}";
         }
     }
 }

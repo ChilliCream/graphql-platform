@@ -55,7 +55,7 @@ namespace HotChocolate.Language
         {
             unchecked
             {
-                return 199 * base.GetHashCode();
+                return 17 * _value.GetHashCode();
             }
         }
 
