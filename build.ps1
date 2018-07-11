@@ -104,3 +104,4 @@ if ($Pack) {
         dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix --include-source --include-symbols
     }
 }
+
