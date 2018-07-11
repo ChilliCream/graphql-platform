@@ -4,17 +4,18 @@
 
 ---
 
-**Hot Chocolate is a GraphQL Server for _.NET Core_ and _.NET Classic_**
+**Hot Chocolate is a GraphQL server for _.NET Core_ and _.NET Classic_**
 
-_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by facebook.
-Currently we are still closing some gaps and hope to finalise Version 1 by September. We have listed the implemented specification parts at the bottom of this readme.
+_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook. 
+
+We are currently in the process of closing some gaps and hope to finalise Version 1 by September. We have listed the implemented specification parts at the bottom of this readme.
 
 ## Getting Started
 
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).
 We have implemented the Star Wars example with the Hot Chocolate API and you can use our example implementation to follow along.
 
-In order to generate the example project head over to your console and fire up the following commands.
+To generate the example project, head over to your console and fire up the following commands:
 
 ```bash
 mkdir starwars
@@ -27,13 +28,13 @@ The GraphQL specification and more is available on the [Facebook GraphQL reposit
 
 ### Using Hot Chocolate
 
-The easiest way to get a feel for the API is to walk through our README example. But you can also visit our [documentation](http://hotchocolate.io) for a deep dive.
+The easiest way to get a feel for the API is to walk through our README example. If you need additional information, you can also have a look at our [documentation](http://hotchocolate.io).
 
 _Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
 
 _For our examples we use .net core and the dotnet CLI which you can download [here](https://dot.net)._
 
-Lets get started by setting up a new console application that we will use to showcase how to setup a GraphQL schema and execute queries against it.
+Let’s get started by setting up a new console application that we will use to showcase how to set up a GraphQL schema and execute queries against it.
 
 ```bash
 mkdir graphql-demo
@@ -41,7 +42,7 @@ cd graphql-demo
 dotnet new console -n graphql-console
 ```
 
-Now add the query engine package to the project with the following command.
+Now add the query engine package to your project with the following command.
 
 ```bash
 dotnet add package HotChocolate
@@ -68,7 +69,7 @@ public class Query
 
 The code above defines a simple schema with one type `Query` and one field `hello` that returns a string.
 
-If you would write that schema down in the GraphQL syntax it would look like the following.
+If you would write that schema down in the GraphQL syntax it would look as follows:
 
 ```graphql
 type Query {
@@ -114,7 +115,7 @@ This runs a query fetching the one field defined. The graphql function will firs
 Console.WriteLine(schema.Execute("{ foo }"));
 ```
 
-In order to setup a GraphQL HTTP endpoint hot chocolate comes with a asp.net core middleware. 
+In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP.net core middleware.
 
 Create a new project with the web template that comes with your dotnet CLI.
 
@@ -150,9 +151,9 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-This will setup all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema startup your web host and get [GraphiQL](https://github.com/graphql/graphiql).
+This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [GraphiQL](https://github.com/graphql/graphiql).
 
-By default the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
+By default, the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
 
 ```csharp
 protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -165,13 +166,13 @@ protected override void Configure(IApplicationBuilder app, IHostingEnvironment e
 }
 ```
 
-_We are also currently working on a middleware for ASP.net classic._
+_We are also currently working on a middleware for ASP.net classic which is planned for Version 0.6.0._
 
 ### Templates
 
-Apart from the Star Wars template we also have a GraphQL server template that just generates a project with everything hooked up so that you can start building your API quickliy.
+Apart from the Star Wars template, we also have a GraphQL server template that generates a project with everything hooked up so that you can start building your API quickly.
 
-So, to install the GraphQL Server template run the following command.
+To install the GraphQL server template, run the following command:
 
 ```bash
 dotnet new -i HotChocolate.Templates.Server
@@ -215,7 +216,7 @@ We currently support the following parts of the current [draft spec](http://face
 
 - [ ] Validation
 
-  For a detailed view which validation rule currently is implemented have a look at our issues
+  For a detailed view of which validation rule is currently implemented, have a look at our issues.
 
 ### Execution
 
@@ -285,4 +286,4 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 ## Documentation
 
-For more examples and a detailed documentation click [here](http://hotchocolate.io).
+For more examples and detailed documentation, click [here](http://hotchocolate.io).

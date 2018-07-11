@@ -10,22 +10,12 @@ namespace HotChocolate
         public SchemaException(params SchemaError[] errors)
             : base(CreateErrorMessage(errors))
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
             Errors = errors;
         }
 
         public SchemaException(IEnumerable<SchemaError> errors)
             : base(CreateErrorMessage(errors.ToArray()))
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
             Errors = errors.ToArray();
         }
 

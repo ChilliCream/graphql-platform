@@ -8,44 +8,34 @@ namespace HotChocolate.Execution
         : Exception
     {
         public QueryException(string message)
+            : base(message)
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            Errors = ImmutableList<IQueryError>.Empty.Add(new QueryError(message));
+            Errors = ImmutableList<IQueryError>.Empty
+                .Add(new QueryError(message));
         }
-
 
         public QueryException(IQueryError error)
         {
             if (error == null)
             {
-                throw new ArgumentNullException(nameof(error));
+                Errors = ImmutableList<IQueryError>.Empty;
             }
-
-            Errors = ImmutableList<IQueryError>.Empty.Add(error);
+            else
+            {
+                Errors = ImmutableList<IQueryError>.Empty.Add(error);
+            }
         }
 
         public QueryException(params IQueryError[] errors)
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
-            Errors = errors.ToImmutableList(); ;
+            Errors = errors?.ToImmutableList()
+                ?? ImmutableList<IQueryError>.Empty;
         }
 
         public QueryException(IEnumerable<IQueryError> errors)
         {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
-            Errors = errors.ToImmutableList();
+            Errors = errors?.ToImmutableList()
+                ?? ImmutableList<IQueryError>.Empty;
         }
 
         public IReadOnlyCollection<IQueryError> Errors { get; }

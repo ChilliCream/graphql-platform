@@ -292,3 +292,5 @@ coverage.json
 .DS_Store
 
 BenchmarkDotNet.Artifacts
+.sonarqube/
+.testresults

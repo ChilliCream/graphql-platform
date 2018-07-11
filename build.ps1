@@ -1,10 +1,20 @@
-param([switch]$DisableBuild, [switch]$RunTests, [switch]$EnableCoverage, [switch]$EnableSonar, [switch]$Pack)
+param([switch]$DisableBuild, [switch]$RunTests, [switch]$EnableCoverage, [switch]$EnableSonar, [switch]$Pack, [switch]$PR)
+
+$testResults = Join-Path -Path $PSScriptRoot -ChildPath ".testresults"
 
 if (!!$env:APPVEYOR_REPO_TAG_NAME) {
     $version = $env:APPVEYOR_REPO_TAG_NAME
 }
 elseif (!!$env:APPVEYOR_BUILD_VERSION) {
     $version = $env:APPVEYOR_BUILD_VERSION
+}
+
+$prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
+$prName = $env:APPVEYOR_PULL_REQUEST_TITLE
+
+if ($PR) {
+    Write-Host "PR Key: " + $prKey
+    Write-Host "PR Name: " + $prName
 }
 
 if ($version -ne $null) {
@@ -24,12 +34,18 @@ else {
 }
 
 if ($EnableSonar) {
+    dotnet tool install --global dotnet-sonarscanner
 
+    if ($PR) {
+        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
+    }
+    else {
+        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
+    }
 }
 
 if ($DisableBuild -eq $false) {
-    dotnet restore src
-    msbuild src
+    dotnet build src
 }
 
 if ($RunTests -or $EnableCoverage) {
@@ -39,7 +55,7 @@ if ($RunTests -or $EnableCoverage) {
     $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
     $testAssemblies = ""
 
-    Get-ChildItem src -Directory -Filter *.Tests  | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`"`n" }
+    Get-ChildItem src -Directory -Filter *.Tests  | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
 
     if (!!$testAssemblies) {
         # Has test assemblies {
@@ -72,8 +88,7 @@ if ($RunTests -or $EnableCoverage) {
 }
 
 if ($EnableSonar) {
-
-
+    dotnet sonarscanner end /d:sonar.login="$env:SonarLogin"
 }
 
 if ($Pack) {
