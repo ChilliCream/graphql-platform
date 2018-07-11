@@ -236,7 +236,7 @@ We currently support the following parts of the current [draft spec](http://face
   - [x] queryType
   - [x] mutationType
   - [x] subscriptionType
-  - [ ] directives
+  - [x] directives
 
 - __Type
   - [x] kind
