@@ -7,7 +7,6 @@ namespace HotChocolate.Types
         , IField
         where T : IType
     {
-        bool init;
         protected FieldBase(FieldDescriptionBase description)
         {
             if (description == null)
@@ -68,7 +67,6 @@ namespace HotChocolate.Types
 
             DeclaringType = context.Type;
             Type = context.ResolveFieldType<T>(this, TypeReference);
-            init = true;
         }
     }
 }

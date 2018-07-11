@@ -1,8 +1,7 @@
 namespace HotChocolate.Types
 {
     public interface INamedType
-        : IType
-        , INullableType
+        : INullableType
     {
         string Name { get; }
 
