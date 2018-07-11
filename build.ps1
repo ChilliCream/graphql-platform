@@ -11,14 +11,15 @@ elseif (!!$env:APPVEYOR_BUILD_VERSION) {
 
 $prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
 $prName = $env:APPVEYOR_PULL_REQUEST_TITLE
+$sonarLogin = $env:SonarLogin
 
 if ($PR) {
     Write-Host "PR Key: " $prKey
     Write-Host "PR Name: " $prName
-    Write-Host "TEST: " $env:SonarLogin
+    Write-Host "TEST: " $sonarLogin
 }
 
-if ($version -ne $null) {
+if ($null -ne $version) {
     $env:Version = $version
 }
 
@@ -38,10 +39,10 @@ if ($EnableSonar) {
     dotnet tool install --global dotnet-sonarscanner
 
     if ($PR) {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
+        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
     }
     else {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$env:SonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
+        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
     }
 }
 
@@ -89,7 +90,7 @@ if ($RunTests -or $EnableCoverage) {
 }
 
 if ($EnableSonar) {
-    dotnet sonarscanner end /d:sonar.login="$env:SonarLogin"
+    dotnet sonarscanner end /d:sonar.login="$sonarLogin"
 }
 
 if ($Pack) {
