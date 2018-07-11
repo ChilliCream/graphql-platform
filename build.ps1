@@ -16,7 +16,6 @@ $sonarLogin = $env:SONAR_TOKEN
 if ($PR) {
     Write-Host "PR Key: " $prKey
     Write-Host "PR Name: " $prName
-    Write-Host "TEST: " $sonarLogin
 }
 
 if ($null -ne $version) {
@@ -57,7 +56,7 @@ if ($RunTests -or $EnableCoverage) {
     $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
     $testAssemblies = ""
 
-    Get-ChildItem src -Directory -Filter *.Tests  | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
+    Get-ChildItem src -Directory -Filter *.Tests | Where-Object {$_.Name.StartsWith("Benchmark") -eq $false} | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
 
     if (!!$testAssemblies) {
         # Has test assemblies {
