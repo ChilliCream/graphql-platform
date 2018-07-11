@@ -7,16 +7,16 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            IFieldValueCompletionContext context,
+            IFieldValueCompletionContext completionContext,
             Action<IFieldValueCompletionContext> nextHandler)
         {
-            if (context.Type.IsNonNullType())
+            if (completionContext.Type.IsNonNullType())
             {
-                nextHandler?.Invoke(context.AsNonNullValueContext());
+                nextHandler?.Invoke(completionContext.AsNonNullValueContext());
             }
             else
             {
-                nextHandler?.Invoke(context);
+                nextHandler?.Invoke(completionContext);
             }
         }
     }

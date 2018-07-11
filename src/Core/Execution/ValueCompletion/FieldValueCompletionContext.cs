@@ -42,38 +42,38 @@ namespace HotChocolate.Execution
         }
 
         private FieldValueCompletionContext(
-            FieldValueCompletionContext context,
+            FieldValueCompletionContext completionContext,
             IType type, bool isNullable)
         {
-            _integrateResult = context._integrateResult;
-            _enqueueResolverTask = context._enqueueResolverTask;
+            _integrateResult = completionContext._integrateResult;
+            _enqueueResolverTask = completionContext._enqueueResolverTask;
 
-            ExecutionContext = context.ExecutionContext;
-            ResolverContext = context.ResolverContext;
-            Source = context.Source;
-            Selection = context.Selection;
-            SelectionSet = context.SelectionSet;
-            Path = context.Path;
-            Value = context.Value;
+            ExecutionContext = completionContext.ExecutionContext;
+            ResolverContext = completionContext.ResolverContext;
+            Source = completionContext.Source;
+            Selection = completionContext.Selection;
+            SelectionSet = completionContext.SelectionSet;
+            Path = completionContext.Path;
+            Value = completionContext.Value;
 
             Type = type;
             IsNullable = isNullable;
         }
 
         private FieldValueCompletionContext(
-            FieldValueCompletionContext context,
+            FieldValueCompletionContext completionContext,
             Path elementPath, IType elementType,
             object element, Action<object> addElementToList)
         {
             _integrateResult = addElementToList;
-            _enqueueResolverTask = context._enqueueResolverTask;
+            _enqueueResolverTask = completionContext._enqueueResolverTask;
 
-            ExecutionContext = context.ExecutionContext;
-            ResolverContext = context.ResolverContext;
-            Source = context.Source;
-            Selection = context.Selection;
-            SelectionSet = context.SelectionSet;
-            IsNullable = context.IsNullable;
+            ExecutionContext = completionContext.ExecutionContext;
+            ResolverContext = completionContext.ResolverContext;
+            Source = completionContext.Source;
+            Selection = completionContext.Selection;
+            SelectionSet = completionContext.SelectionSet;
+            IsNullable = completionContext.IsNullable;
 
             Path = elementPath;
             Type = elementType;
