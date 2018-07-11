@@ -293,3 +293,4 @@ coverage.json
 
 BenchmarkDotNet.Artifacts
 .sonarqube/
+.testresults
