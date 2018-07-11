@@ -13,8 +13,9 @@ $prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
 $prName = $env:APPVEYOR_PULL_REQUEST_TITLE
 
 if ($PR) {
-    Write-Host "PR Key: " + $prKey
-    Write-Host "PR Name: " + $prName
+    Write-Host "PR Key: " $prKey
+    Write-Host "PR Name: " $prName
+    Write-Host "TEST: " $env:SonarLogin
 }
 
 if ($version -ne $null) {
