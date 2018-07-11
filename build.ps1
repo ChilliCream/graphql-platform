@@ -11,7 +11,7 @@ elseif (!!$env:APPVEYOR_BUILD_VERSION) {
 
 $prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
 $prName = $env:APPVEYOR_PULL_REQUEST_TITLE
-$sonarLogin = $env:SonarLogin
+$sonarLogin = $env:SONAR_TOKEN
 
 if ($PR) {
     Write-Host "PR Key: " $prKey
@@ -39,10 +39,10 @@ if ($EnableSonar) {
     dotnet tool install --global dotnet-sonarscanner
 
     if ($PR) {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
+      dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
     }
     else {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
+      dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /v:"$env:VersionPrefix" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\opencover.xml"
     }
 }
 
@@ -80,7 +80,9 @@ if ($RunTests -or $EnableCoverage) {
             $coveralls = Resolve-Path $coveralls
 
             & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[HotChocolate*]*"
-            & $coveralls --opencover coverage.xml
+            if($PR -eq $false) {
+              & $coveralls --opencover coverage.xml
+            }
         }
         else {
             # Test
