@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         : IDirectiveDescriptor
         , IDescriptionFactory<DirectiveDescription>
     {
-        private List<ArgumentDescriptor> _arguments =
+        private readonly List<ArgumentDescriptor> _arguments =
             new List<ArgumentDescriptor>();
 
         protected DirectiveDescription DirectiveDescription { get; } =
