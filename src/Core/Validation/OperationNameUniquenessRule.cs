@@ -15,7 +15,9 @@ namespace HotChocolate.Validation
     public class OperationNameUniquenessRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode queryDocument)
         {
             if (schema == null)
             {
@@ -66,7 +68,8 @@ namespace HotChocolate.Validation
             Dictionary<string, List<ISyntaxNode>> operations)
         {
             List<IQueryError> errors = new List<IQueryError>();
-            foreach (KeyValuePair<string, List<ISyntaxNode>> operation in operations)
+            foreach (KeyValuePair<string, List<ISyntaxNode>> operation in
+                operations)
             {
                 if (operation.Value.Count > 1)
                 {

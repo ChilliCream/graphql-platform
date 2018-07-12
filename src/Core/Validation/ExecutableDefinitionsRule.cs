@@ -21,7 +21,9 @@ namespace HotChocolate.Validation
     public class ExecutableDefinitionsRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode queryDocument)
         {
             ITypeSystemDefinitionNode typeSystemNode = queryDocument.Definitions
                 .OfType<ITypeSystemDefinitionNode>().FirstOrDefault();

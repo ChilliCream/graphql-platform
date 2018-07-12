@@ -33,7 +33,8 @@ namespace HotChocolate.Validation
             VisitSelectionSet(operation.SelectionSet, null, path);
         }
 
-        protected virtual void VisitVariableDefinition(VariableDefinitionNode node) { }
+        protected virtual void VisitVariableDefinition(
+            VariableDefinitionNode node) { }
 
         protected virtual void VisitVariable(VariableNode node) { }
 
