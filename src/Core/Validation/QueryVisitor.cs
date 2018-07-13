@@ -6,7 +6,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
-
     internal class QueryVisitor
     {
         protected QueryVisitor(ISchema schema)
