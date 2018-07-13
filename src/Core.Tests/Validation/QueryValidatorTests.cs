@@ -207,5 +207,33 @@ namespace HotChocolate.Validation
                     $"The argument `nonNullBooleanArg` is required " +
                     "and does not allow null values.", t.Message));
         }
+
+        [Fact]
+        public void DisallowedSecondRootField()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                subscription sub {
+                    newMessage {
+                        body
+                        sender
+                    }
+                    disallowedSecondRootField
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    $"Subscription operation `sub` must " +
+                    "have exactly one root field.", t.Message));
+        }
     }
 }
