@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Lone-Anonymous-Operation
     /// </summary>
-    public class LoneAnonymousOperationRule
+    internal sealed class LoneAnonymousOperationRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(

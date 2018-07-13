@@ -18,7 +18,7 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Executable-Definitions
     /// </summary>
-    public class ExecutableDefinitionsRule
+    internal sealed class ExecutableDefinitionsRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(

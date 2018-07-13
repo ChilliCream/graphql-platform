@@ -39,7 +39,8 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, null, path.Push(operation));
+            VisitSelectionSet(operation.SelectionSet, null,
+                path.Push(operation));
         }
 
         protected virtual void VisitSelectionSet(
@@ -76,9 +77,12 @@ namespace HotChocolate.Validation
             if (type is IComplexOutputType complexType
                 && complexType.Fields.ContainsField(field.Name.Value))
             {
-                VisitSelectionSet(field.SelectionSet,
-                    complexType.Fields[field.Name.Value].Type,
-                    path);
+                if (field.SelectionSet != null)
+                {
+                    VisitSelectionSet(field.SelectionSet,
+                        complexType.Fields[field.Name.Value].Type,
+                        path);
+                }
             }
 
             VisitDirectives(field.Directives, path.Push(field));
@@ -127,7 +131,8 @@ namespace HotChocolate.Validation
                     typeCondition,
                     path.Push(fragmentDefinition));
 
-                VisitDirectives(fragmentDefinition.Directives, path.Push(fragmentDefinition));
+                VisitDirectives(fragmentDefinition.Directives,
+                    path.Push(fragmentDefinition));
             }
         }
 

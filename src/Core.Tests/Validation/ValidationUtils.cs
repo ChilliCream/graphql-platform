@@ -15,6 +15,7 @@ namespace HotChocolate.Validation
                 c.RegisterType<HumanOrAlienType>();
                 c.RegisterType<HumanType>();
                 c.RegisterType<PetType>();
+                c.RegisterType<ArgumentsType>();
             });
         }
     }

@@ -12,7 +12,7 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Operation-Name-Uniqueness
     /// </summary>
-    public class OperationNameUniquenessRule
+    internal sealed class OperationNameUniquenessRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(

@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Validation.Variables
     /// </summary>
-    public class VariableUniquenessRule
+    internal sealed class VariableUniquenessRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(

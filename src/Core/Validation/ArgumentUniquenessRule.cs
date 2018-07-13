@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Argument-Uniqueness
     /// </summary>
-    public class ArgumentUniquenessRule
+    internal sealed class ArgumentUniquenessRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(

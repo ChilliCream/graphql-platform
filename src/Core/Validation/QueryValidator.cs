@@ -14,7 +14,9 @@ namespace HotChocolate.Validation
                 new ExecutableDefinitionsRule(),
                 new LoneAnonymousOperationRule(),
                 new OperationNameUniquenessRule(),
-                new VariableUniquenessRule()
+                new VariableUniquenessRule(),
+                new ArgumentUniquenessRule(),
+                new RequiredArgumentRule()
             };
 
         private readonly ISchema _schema;
