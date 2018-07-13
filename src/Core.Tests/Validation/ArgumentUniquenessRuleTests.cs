@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
     public class ArgumentUniquenessRuleTests
     {
         [Fact]
-        public void GoodBooleanArgDefault()
+        public void NoDuplicateArgument()
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
@@ -25,7 +25,7 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void MissingRequiredArg()
+        public void DuplicateArgument()
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();

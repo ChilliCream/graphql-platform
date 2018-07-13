@@ -160,5 +160,52 @@ namespace HotChocolate.Validation
                     "define more than one variable with the same " +
                     "name is invalid for execution.", t.Message));
         }
+
+        [Fact]
+        public void DuplicateArgument()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment goodNonNullArg on Arguments {
+                    nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    $"Arguments are not unique.", t.Message));
+        }
+
+        [Fact]
+        public void MissingRequiredArgNonNullBooleanArg()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment missingRequiredArg on Arguments {
+                    nonNullBooleanArgField(nonNullBooleanArg: null)
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    $"The argument `nonNullBooleanArg` is required " +
+                    "and does not allow null values.", t.Message));
+        }
     }
 }
