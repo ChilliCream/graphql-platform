@@ -140,7 +140,10 @@ namespace HotChocolate.Validation
             IReadOnlyCollection<DirectiveNode> directives,
             ImmutableStack<ISyntaxNode> path)
         {
-
+            foreach (DirectiveNode directive in directives)
+            {
+                VisitDirective(directive, path);
+            }
         }
 
         protected virtual void VisitDirective(

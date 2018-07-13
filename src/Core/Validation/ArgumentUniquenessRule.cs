@@ -28,8 +28,8 @@ namespace HotChocolate.Validation
 
             return new QueryValidationResult(
                 new ValidationError(
-                    "A document containing TypeSystemDefinition " +
-                    "is invalid for execution.", visitor.ViolatingNodes));
+                    $"Arguments are not unique.",
+                    visitor.ViolatingNodes));
         }
     }
 }

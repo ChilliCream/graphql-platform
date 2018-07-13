@@ -11,10 +11,13 @@ namespace HotChocolate.Validation
     {
         private readonly List<ValidationError> _errors =
             new List<ValidationError>();
+        private readonly Dictionary<string, Directive> _directives =
+            new Dictionary<string, Directive>();
 
         public RequiredArgumentVisitor(ISchema schema)
             : base(schema)
         {
+            _directives = schema.Directives.ToDictionary(t => t.Name);
         }
 
         public IReadOnlyCollection<ValidationError> Errors => _errors;
@@ -28,7 +31,7 @@ namespace HotChocolate.Validation
             {
                 if (complexType.Fields.ContainsField(field.Name.Value))
                 {
-                    ValidateRequiredArguments(field.Arguments,
+                    ValidateRequiredArguments(field, field.Arguments,
                         complexType.Fields[field.Name.Value].Arguments);
                 }
             }
@@ -40,10 +43,18 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
+            if (_directives.TryGetValue(directive.Name.Value, out Directive d))
+            {
+                ValidateRequiredArguments(
+                    directive, directive.Arguments,
+                    d.Arguments);
+            }
+
             base.VisitDirective(directive, path);
         }
 
         private void ValidateRequiredArguments(
+            ISyntaxNode parent,
             IEnumerable<ArgumentNode> providedArguments,
             IFieldCollection<IInputField> arguments)
         {
@@ -62,7 +73,7 @@ namespace HotChocolate.Validation
                 {
                     _errors.Add(new ValidationError(
                         $"The argument `{requiredArgument.Name}` is required " +
-                        "and does not allow null values.", providedArgument));
+                        "and does not allow null values.", parent));
                 }
             }
         }
