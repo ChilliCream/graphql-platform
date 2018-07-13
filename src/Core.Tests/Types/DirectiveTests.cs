@@ -87,7 +87,7 @@ namespace HotChocolate.Types
             Action a = () => new Directive(d => { });
 
             // assert
-            Assert.Throws<InvalidOperationException>();
+            Assert.Throws<InvalidOperationException>(a);
         }
     }
 }
