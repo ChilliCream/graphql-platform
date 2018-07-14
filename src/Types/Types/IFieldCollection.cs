@@ -10,4 +10,23 @@ namespace HotChocolate.Types
 
         bool ContainsField(string fieldName);
     }
+
+    public static class FieldCollectionExtensions
+    {
+        public static bool TryGetField<T>(
+            this IFieldCollection<T> collection,
+            string fieldName,
+            out T field)
+            where T : IField
+        {
+            if(collection.ContainsField(fieldName))
+            {
+                field = collection[fieldName];
+                return true;
+            }
+
+            field = default(T);
+            return false;
+        }
+    }
 }

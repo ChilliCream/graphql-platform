@@ -235,5 +235,36 @@ namespace HotChocolate.Validation
                     $"Subscription operation `sub` must " +
                     "have exactly one root field.", t.Message));
         }
+
+        [Fact]
+        public void FieldIsNotDefinedOnTypeInFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment fieldNotDefined on Dog {
+                    meowVolume
+                }
+
+                fragment aliasedLyingFieldTargetNotDefined on Dog {
+                    barkVolume: kawVolume
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The field `meowVolume` does not exist " +
+                    "on the type `Dog`.", t.Message),
+                t => Assert.Equal(
+                    "The field `kawVolume` does not exist " +
+                    "on the type `Dog`.", t.Message));
+        }
     }
 }
