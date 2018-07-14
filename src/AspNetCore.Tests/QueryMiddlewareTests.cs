@@ -39,6 +39,32 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task HttpPost_EnumArgument()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = "query a($a: TestEnum) { withEnum(test: $a) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "a", "A"}
+                })
+            };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public async Task HttpGet_BasicTest()
         {
             // arrange

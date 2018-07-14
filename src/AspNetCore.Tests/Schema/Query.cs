@@ -31,5 +31,10 @@ namespace HotChocolate.AspNetCore
                 C = b.C
             };
         }
+
+        public bool GetWithEnum(TestEnum test)
+        {
+            return true;
+        }
     }
 }

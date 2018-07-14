@@ -80,6 +80,13 @@ namespace HotChocolate.Execution
                 variableValue = variable.DefaultValue ?? new NullValueNode();
             }
 
+            // TODO : this is a workaround for the serialization issue with enum values.
+            // once fixed this has to be removed.
+            if (variable.Type is EnumType && variableValue is StringValueNode v)
+            {
+                variableValue = new EnumValueNode(v.Value);
+            }
+
             variable = variable.WithValue(variableValue);
 
             CheckForNullValueViolation(in variable);
