@@ -20,23 +20,6 @@ namespace HotChocolate.Internal
             typeof(UnionType)
         };
 
-        public static bool IsBaseType(Type type)
-        {
-            if (_baseTypes.Contains(type)
-                || (type.IsGenericType
-                    && _baseTypes.Contains(
-                        type.GetGenericTypeDefinition())))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public static bool IsSchemaType<T>()
-        {
-            return IsSchemaType(typeof(T));
-        }
-
         public static bool IsSchemaType(Type type)
         {
             foreach (Type baseType in _baseTypes)
@@ -50,7 +33,8 @@ namespace HotChocolate.Internal
             if (type.IsGenericType)
             {
                 Type typeDefinition = type.GetGenericTypeDefinition();
-                return typeDefinition == typeof(ListType<>) || typeDefinition == typeof(NonNullType<>);
+                return typeDefinition == typeof(ListType<>)
+                    || typeDefinition == typeof(NonNullType<>);
             }
 
             return false;

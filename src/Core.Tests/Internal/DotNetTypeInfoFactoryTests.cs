@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Internal;
+using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Internal
 {
     public class DotNetTypeInfoFactoryTests
     {

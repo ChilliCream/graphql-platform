@@ -1,8 +1,8 @@
 ﻿using System;
-using HotChocolate.Internal;
+using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Internal
 {
     public class NamedTypeInfoFactoryTests
     {
