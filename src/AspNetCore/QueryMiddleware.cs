@@ -100,8 +100,7 @@ namespace HotChocolate.AspNetCore
                 return null;
             }
 
-            Dictionary<string, IValueNode> values =
-                new Dictionary<string, IValueNode>();
+            var values = new Dictionary<string, IValueNode>();
             foreach (string key in input.Keys.ToArray())
             {
                 values[key] = DeserializeVariableValue(input[key]);
@@ -117,7 +116,7 @@ namespace HotChocolate.AspNetCore
                 return null;
             }
 
-            List<ObjectFieldNode> fields = new List<ObjectFieldNode>();
+            var fields = new List<ObjectFieldNode>();
             foreach (string key in input.Keys.ToArray())
             {
                 fields.Add(new ObjectFieldNode(null,
@@ -150,7 +149,7 @@ namespace HotChocolate.AspNetCore
 
         private IValueNode DeserializeVariableListValue(JArray array)
         {
-            List<IValueNode> list = new List<IValueNode>();
+            var list = new List<IValueNode>();
             foreach (JToken token in array.Children())
             {
                 list.Add(DeserializeVariableValue(token));

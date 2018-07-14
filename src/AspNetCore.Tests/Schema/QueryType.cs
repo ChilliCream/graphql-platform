@@ -17,6 +17,9 @@ namespace HotChocolate.AspNetCore
                 .Argument("b", a =>
                     a.Type<NonNullType<FooInputType>>()
                         .DefaultValue(new Foo { A = "hello world", C = 0 }));
+            descriptor.Field(t => t.GetWithEnum(default))
+                .Type<NonNullType<BooleanType>>()
+                .Argument("test", a => a.Type<EnumType<TestEnum>>());
         }
     }
 }
