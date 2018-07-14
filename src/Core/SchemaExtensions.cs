@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -102,6 +103,21 @@ namespace HotChocolate
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
+        }
+
+        public static ObjectType GetOperationType(this ISchema schema, OperationType operation)
+        {
+            switch (operation)
+            {
+                case Language.OperationType.Query:
+                    return schema.QueryType;
+                case Language.OperationType.Mutation:
+                    return schema.MutationType;
+                case Language.OperationType.Subscription:
+                    return schema.SubscriptionType;
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }

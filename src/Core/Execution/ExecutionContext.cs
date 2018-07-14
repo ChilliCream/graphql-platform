@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(schema, variables, Fragments);
-            OperationType = GetOperationType(schema, operation.Operation);
+            OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(schema, OperationType, rootValue);
         }
 
@@ -81,21 +81,6 @@ namespace HotChocolate.Execution
         public IEnumerable<IQueryError> GetErrors()
         {
             return _errors;
-        }
-
-        private static ObjectType GetOperationType(ISchema schema, OperationType operation)
-        {
-            switch (operation)
-            {
-                case Language.OperationType.Query:
-                    return schema.QueryType;
-                case Language.OperationType.Mutation:
-                    return schema.MutationType;
-                case Language.OperationType.Subscription:
-                    return schema.SubscriptionType;
-                default:
-                    throw new NotSupportedException();
-            }
         }
 
         private static object ResolveRootValue(

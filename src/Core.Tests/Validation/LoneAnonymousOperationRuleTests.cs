@@ -19,8 +19,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            LoneAnonymousOperationRule validator =
-                new LoneAnonymousOperationRule();
+            var validator = new LoneAnonymousOperationRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
@@ -50,8 +49,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            LoneAnonymousOperationRule validator =
-                new LoneAnonymousOperationRule();
+            var validator = new LoneAnonymousOperationRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert
@@ -86,8 +84,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            LoneAnonymousOperationRule validator =
-                new LoneAnonymousOperationRule();
+            var validator = new LoneAnonymousOperationRule();
             QueryValidationResult result = validator.Validate(schema, query);
 
             // assert

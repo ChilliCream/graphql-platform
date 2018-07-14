@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,20 +8,27 @@ namespace HotChocolate.Validation
 {
     internal class QueryVisitor
     {
-        private readonly ISchema _schema;
-
-        public QueryVisitor(ISchema schema)
+        protected QueryVisitor(ISchema schema)
         {
-            _schema = schema
+            Schema = schema
                 ?? throw new System.ArgumentNullException(nameof(schema));
         }
 
-        protected virtual void VisitDocument(DocumentNode node)
+        protected ISchema Schema { get; }
+
+        public virtual void VisitDocument(DocumentNode document)
         {
-            foreach (OperationDefinitionNode operation in node.Definitions
+            foreach (OperationDefinitionNode operation in document.Definitions
                 .OfType<OperationDefinitionNode>())
             {
                 VisitOperationDefinition(operation,
+                    ImmutableStack<ISyntaxNode>.Empty);
+            }
+
+            foreach (FragmentDefinitionNode fragment in document.Definitions
+                .OfType<FragmentDefinitionNode>())
+            {
+                VisitFragmentDefinition(fragment,
                     ImmutableStack<ISyntaxNode>.Empty);
             }
         }
@@ -29,13 +37,10 @@ namespace HotChocolate.Validation
             OperationDefinitionNode operation,
             ImmutableStack<ISyntaxNode> path)
         {
-            // IType operationType = _schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, null, path);
+            IType operationType = Schema.GetOperationType(operation.Operation);
+            VisitSelectionSet(operation.SelectionSet, null,
+                path.Push(operation));
         }
-
-        protected virtual void VisitVariableDefinition(VariableDefinitionNode node) { }
-
-        protected virtual void VisitVariable(VariableNode node) { }
 
         protected virtual void VisitSelectionSet(
             SelectionSetNode selectionSet,
@@ -51,12 +56,12 @@ namespace HotChocolate.Validation
 
                 if (selection is FragmentSpreadNode fragmentSpread)
                 {
-                    VisitFragmentSpread(fragmentSpread, type);
+                    VisitFragmentSpread(fragmentSpread, type, path);
                 }
 
                 if (selection is InlineFragmentNode inlineFragment)
                 {
-                    VisitInlineFragment(inlineFragment, type);
+                    VisitInlineFragment(inlineFragment, type, path);
                 }
             }
         }
@@ -68,30 +73,83 @@ namespace HotChocolate.Validation
         {
             ImmutableStack<ISyntaxNode> current = path.Push(field);
 
-            foreach (ArgumentNode argument in field.Arguments)
-            {
-                VisitArgument(argument, type, current);
-            }
-
             if (type is IComplexOutputType complexType
                 && complexType.Fields.ContainsField(field.Name.Value))
             {
-                VisitSelectionSet(field.SelectionSet,
-                    complexType.Fields[field.Name.Value].Type,
-                    path);
+                if (field.SelectionSet != null)
+                {
+                    VisitSelectionSet(field.SelectionSet,
+                        complexType.Fields[field.Name.Value].Type,
+                        path);
+                }
             }
+
+            VisitDirectives(field.Directives, path.Push(field));
         }
 
-        protected virtual void VisitArgument(
-            ArgumentNode node,
+        protected virtual void VisitFragmentSpread(
+            FragmentSpreadNode fragmentSpread,
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
 
         }
 
-        protected virtual void VisitFragmentSpread(FragmentSpreadNode fragmentSpread, IType type) { }
-        protected virtual void VisitInlineFragment(InlineFragmentNode node, IType type) { }
-        protected virtual void VisitFragmentDefinition(FragmentDefinitionNode node) { }
+        protected virtual void VisitInlineFragment(
+            InlineFragmentNode inlineFragment,
+            IType type,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            if (inlineFragment.TypeCondition?.Name?.Value != null
+                && Schema.TryGetType<INamedOutputType>(
+                    inlineFragment.TypeCondition.Name.Value,
+                    out INamedOutputType typeCondition))
+            {
+                VisitSelectionSet(
+                    inlineFragment.SelectionSet,
+                    typeCondition,
+                    path.Push(inlineFragment));
+
+                VisitDirectives(
+                    inlineFragment.Directives,
+                    path.Push(inlineFragment));
+            }
+        }
+
+        protected virtual void VisitFragmentDefinition(
+            FragmentDefinitionNode fragmentDefinition,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            if (fragmentDefinition.TypeCondition?.Name?.Value != null
+                && Schema.TryGetType<INamedOutputType>(
+                    fragmentDefinition.TypeCondition.Name.Value,
+                    out INamedOutputType typeCondition))
+            {
+                VisitSelectionSet(
+                    fragmentDefinition.SelectionSet,
+                    typeCondition,
+                    path.Push(fragmentDefinition));
+
+                VisitDirectives(fragmentDefinition.Directives,
+                    path.Push(fragmentDefinition));
+            }
+        }
+
+        private void VisitDirectives(
+            IReadOnlyCollection<DirectiveNode> directives,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            foreach (DirectiveNode directive in directives)
+            {
+                VisitDirective(directive, path);
+            }
+        }
+
+        protected virtual void VisitDirective(
+            DirectiveNode directive,
+            ImmutableStack<ISyntaxNode> path)
+        {
+
+        }
     }
 }

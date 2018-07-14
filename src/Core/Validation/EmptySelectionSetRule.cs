@@ -3,10 +3,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
-    public class EmptySelectionSetRule
+    internal sealed class EmptySelectionSetRule
        : IQueryValidationRule
     {
-        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode queryDocument)
         {
             throw new NotImplementedException();
         }

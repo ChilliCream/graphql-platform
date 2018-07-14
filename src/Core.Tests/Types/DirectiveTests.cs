@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using HotChocolate.Configuration;
 using Xunit;
@@ -66,6 +67,27 @@ namespace HotChocolate.Types
                 t => Assert.Equal(DirectiveLocation.Field, t),
                 t => Assert.Equal(DirectiveLocation.FragmentSpread, t),
                 t => Assert.Equal(DirectiveLocation.InlineFragment, t));
+        }
+
+
+        [Fact]
+        public void ConfigureIsNull()
+        {
+            // act
+            Action a = () => new Directive(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void NoName()
+        {
+            // act
+            Action a = () => new Directive(d => { });
+
+            // assert
+            Assert.Throws<InvalidOperationException>(a);
         }
     }
 }

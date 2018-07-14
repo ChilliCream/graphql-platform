@@ -11,10 +11,12 @@ namespace HotChocolate.Validation
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Lone-Anonymous-Operation
     /// </summary>
-    public class LoneAnonymousOperationRule
+    internal sealed class LoneAnonymousOperationRule
         : IQueryValidationRule
     {
-        public QueryValidationResult Validate(ISchema schema, DocumentNode queryDocument)
+        public QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode queryDocument)
         {
             if (schema == null)
             {
@@ -26,7 +28,8 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(queryDocument));
             }
 
-            OperationDefinitionNode[] operations = GetAllOperations(queryDocument);
+            OperationDefinitionNode[] operations =
+                GetAllOperations(queryDocument);
             if (HasAnonymousOperation(operations) && operations.Length > 1)
             {
                 return new QueryValidationResult(new ValidationError(
