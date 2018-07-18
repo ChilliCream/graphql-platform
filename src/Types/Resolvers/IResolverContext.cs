@@ -72,7 +72,7 @@ namespace HotChocolate.Resolvers
         }
     }
 
-    public enum StateScope
+    public enum ExecutionScope
     {
         Request,
         User,
