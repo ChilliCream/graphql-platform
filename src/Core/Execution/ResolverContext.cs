@@ -21,7 +21,6 @@ namespace HotChocolate.Execution
                 new FloatValueConverter(),
                 new DateTimeValueConverter()
             };
-
         private static readonly ArgumentResolver _argumentResolver =
             new ArgumentResolver();
         private readonly IExecutionContext _executionContext;
@@ -131,6 +130,16 @@ namespace HotChocolate.Execution
         public T Service<T>()
         {
             return (T)_executionContext.Schema.GetService(typeof(T));
+        }
+
+        public T State<T>(StateScope scope)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T Loader<T>(string key, StateScope scope)
+        {
+            throw new NotImplementedException();
         }
     }
 }

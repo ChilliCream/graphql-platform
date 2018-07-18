@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class GraphQLLiteralParserAttribute
+    public sealed class GraphQLLiteralParserAttribute
         : Attribute
     {
         public GraphQLLiteralParserAttribute(Type type)

@@ -33,6 +33,25 @@ namespace HotChocolate.Resolvers
         T Service<T>();
 
         T State<T>(StateScope scope);
+
+        T Loader<T>(string key, StateScope scope);
+    }
+
+    public static class Foo
+    {
+        public static void Bar()
+        {
+            Schema.Create(c =>
+            {
+                c.RegisterLoader<UserLoader>(l => l.Trigger());
+                c.RegisterLoader<UserLoader>();
+                c.RegisterLoader<UserLoader>("k", StateScope.User);
+                c.RegisterLoader("k", sp => new UserLoader());
+
+
+                c.RegisterState<Blub>(sp => new Blub(), StateScope.User);
+            });
+        }
     }
 
     public static class ResolverContextExtensions
