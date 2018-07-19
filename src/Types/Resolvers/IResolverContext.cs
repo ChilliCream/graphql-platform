@@ -74,8 +74,8 @@ namespace HotChocolate.Resolvers
 
     public enum ExecutionScope
     {
-        Request,
-        User,
-        Global
+        Request = 0,
+        User = 1,
+        Global = 2
     }
 }
