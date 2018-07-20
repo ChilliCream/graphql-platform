@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -44,6 +45,16 @@ namespace HotChocolate
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
         IReadOnlyCollection<Directive> Directives { get; }
+
+        /// <summary>
+        /// Gets the data loader descriptors.
+        /// </summary>
+        IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
+
+        /// <summary>
+        /// Gets the state object descriptors.
+        /// </summary>
+        IReadOnlyCollection<StateObjectDescriptor> StateObjects{ get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
