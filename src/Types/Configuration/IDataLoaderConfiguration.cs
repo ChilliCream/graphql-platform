@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public interface IDataLoaderConfiguration
     {

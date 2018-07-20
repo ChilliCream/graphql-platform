@@ -13,7 +13,6 @@ namespace HotChocolate.Execution
 
         // context
         object RootValue { get; }
-        object UserContext { get; }
 
         // query ast
         DocumentNode QueryDocument { get; }
@@ -31,5 +30,6 @@ namespace HotChocolate.Execution
             ObjectType objectType, SelectionSetNode selectionSet);
 
         T GetDataLoader<T>(string key);
+        T GetState<T>();
     }
 }

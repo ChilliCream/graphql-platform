@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -10,6 +11,9 @@ namespace HotChocolate.Execution
         : IExecutionContext
     {
         private readonly List<IQueryError> _errors = new List<IQueryError>();
+        private readonly IServiceProvider _serviceProvider = null;
+        private readonly StateObjectContainer<string> _dataLoaders;
+        private readonly StateObjectContainer<Type> _state;
         private readonly FieldCollector _fieldCollector;
 
         public ExecutionContext(
@@ -31,7 +35,7 @@ namespace HotChocolate.Execution
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(schema, variables, Fragments);
             OperationType = schema.GetOperationType(operation.Operation);
-            RootValue = ResolveRootValue(schema, OperationType, rootValue);
+            RootValue = ResolveRootValue(serviceProvider, schema, OperationType, rootValue);
         }
 
         public ISchema Schema { get; }
@@ -49,8 +53,6 @@ namespace HotChocolate.Execution
         public FragmentCollection Fragments { get; }
 
         public VariableCollection Variables { get; }
-
-        public Se
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)
@@ -85,6 +87,7 @@ namespace HotChocolate.Execution
         }
 
         private static object ResolveRootValue(
+            IServiceProvider serviceProvider,
             ISchema schema,
             ObjectType operationType,
             object initialValue)
@@ -92,10 +95,20 @@ namespace HotChocolate.Execution
             if (initialValue == null && schema.TryGetNativeType(
                operationType.Name, out Type nativeType))
             {
-                initialValue = schema.GetService(nativeType)
+                initialValue = serviceProvider.GetService(nativeType)
                     ?? Activator.CreateInstance(nativeType);
             }
             return initialValue;
+        }
+
+        public T GetDataLoader<T>(string key)
+        {
+            return (T)_dataLoaders.GetStateObject(key);
+        }
+
+        public T GetState<T>()
+        {
+            return (T)_state.GetStateObject(typeof(T));
         }
     }
 }

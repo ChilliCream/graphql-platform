@@ -5,6 +5,15 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// A GraphQL service’s collective type system capabilities are referred to
+    /// as that service’s “schema”.
+    ///
+    /// A schema is defined in terms of the types and directives it supports
+    /// as well as the root operation types for each kind of operation:
+    /// query, mutation, and subscription; this determines the place in the
+    /// type system where those operations begin.
+    /// </summary>
     public interface ISchema
     {
         IReadOnlySchemaOptions Options { get; }
@@ -72,6 +81,15 @@ namespace HotChocolate
         /// </returns>
         bool TryGetNativeType(string typeName, out Type nativeType);
 
+        /// <summary>
+        /// Gets the possible object types to
+        /// an abstract type (union type or interface type).
+        /// </summary>
+        /// <param name="abstractType">The abstract type.</param>
+        /// <returns>
+        /// Returns a collection with all possible object types
+        /// for the given abstract type.
+        /// </returns>
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
     }
