@@ -13,9 +13,8 @@ namespace HotChocolate.Configuration
         private readonly DirectiveRegistry _directiveRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
-        public SchemaContext(ServiceManager serviceManager)
+        public SchemaContext()
         {
-            ServiceManager = serviceManager;
             _typeRegistry = new TypeRegistry(serviceManager);
             _resolverRegistry = new ResolverRegistry();
             _directiveRegistry = new DirectiveRegistry();
@@ -24,8 +23,6 @@ namespace HotChocolate.Configuration
         public ITypeRegistry Types => _typeRegistry;
 
         public IResolverRegistry Resolvers => _resolverRegistry;
-
-        public ServiceManager ServiceManager { get; }
 
         public IDirectiveRegistry Directives => _directiveRegistry;
 

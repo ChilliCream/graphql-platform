@@ -11,10 +11,5 @@ namespace HotChocolate
             ExecutionScope scope,
             Func<IServiceProvider, T> loaderFactory,
             Func<T, Task> triggerLoadAsync);
-
-        void RegisterLoader<T>(
-            string key,
-            ExecutionScope scope,
-            Func<T, Task> triggerLoadAsync);
     }
 }

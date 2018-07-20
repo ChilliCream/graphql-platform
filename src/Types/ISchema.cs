@@ -6,7 +6,6 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     public interface ISchema
-        : IServiceProvider
     {
         IReadOnlySchemaOptions Options { get; }
 

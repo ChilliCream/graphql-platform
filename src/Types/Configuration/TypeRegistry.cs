@@ -60,6 +60,5 @@ namespace HotChocolate.Configuration
             }
             types.Add(namedTypeName);
         }
-
     }
 }

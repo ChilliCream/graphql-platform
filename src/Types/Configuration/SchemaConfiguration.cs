@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
 {
@@ -28,6 +30,8 @@ namespace HotChocolate.Configuration
         internal IReadOnlyCollection<TypeBindingInfo> TypeBindings => _typeBindings;
 
         internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings => _resolverBindings;
+
+        internal 
 
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {

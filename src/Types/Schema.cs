@@ -16,16 +16,13 @@ namespace HotChocolate
     public partial class Schema
         : ISchema
     {
-        private readonly ServiceManager _serviceManager;
         private readonly SchemaTypes _types;
 
         private Schema(
-            ServiceManager serviceManager,
             SchemaTypes types,
             IReadOnlyCollection<Directive> directives,
             IReadOnlySchemaOptions options)
         {
-            _serviceManager = serviceManager;
             _types = types;
             Options = options;
             Directives = directives;
@@ -92,16 +89,6 @@ namespace HotChocolate
             }
 
             return _types.TryGetNativeType(typeName, out nativeType);
-        }
-
-        public object GetService(Type serviceType)
-        {
-            if (serviceType == null)
-            {
-                throw new ArgumentNullException(nameof(serviceType));
-            }
-
-            return _serviceManager.GetService(serviceType);
         }
     }
 }
