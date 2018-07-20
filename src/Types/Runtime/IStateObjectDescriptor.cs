@@ -1,9 +1,9 @@
 using System;
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Runtime
 {
-    internal interface IStateObjectDescriptor<TKey>
+    public interface IScopedStateDescriptor<TKey>
     {
         TKey Key { get; }
 

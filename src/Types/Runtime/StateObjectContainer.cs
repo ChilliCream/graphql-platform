@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Runtime
 {
-    internal class StateObjectContainer<TKey>
+    public class StateObjectContainer<TKey>
     {
         private readonly IServiceProvider _root;
         private readonly StateObjectDescriptorCollection<TKey> _descriptors;
@@ -65,7 +65,7 @@ namespace HotChocolate.Internal
         public object GetStateObject(TKey key)
         {
             if (_descriptors.TryGetDescriptor(key,
-                out IStateObjectDescriptor<TKey> descriptor))
+                out IScopedStateDescriptor<TKey> descriptor))
             {
                 StateObjectCollection<TKey> objects = _scopes[descriptor.Scope];
 
@@ -82,10 +82,10 @@ namespace HotChocolate.Internal
         }
 
         public bool TryGetStateObjectDescriptor<T>(TKey key, out T descriptor)
-            where T : IStateObjectDescriptor<TKey>
+            where T : IScopedStateDescriptor<TKey>
         {
             if (_descriptors.TryGetDescriptor(key,
-                out IStateObjectDescriptor<TKey> d)
+                out IScopedStateDescriptor<TKey> d)
                 && d is T t)
             {
                 descriptor = t;

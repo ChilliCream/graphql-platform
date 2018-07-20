@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Runtime
 {
-    internal class DataLoaderDescriptor
-        : IStateObjectDescriptor<string>
+    public class DataLoaderDescriptor
+        : IScopedStateDescriptor<string>
     {
         public DataLoaderDescriptor(
             string key,

@@ -6,7 +6,7 @@ namespace HotChocolate.Execution
 {
     public partial class QueryExecuter
     {
-        private OperationExecuter GetOrCreateOperationRequest(
+        private OperationExecuter GetOrCreateOperationExecuter(
             QueryRequest queryRequest, DocumentNode queryDocument)
         {
             if (_useCache)
@@ -14,9 +14,9 @@ namespace HotChocolate.Execution
                 string operationKey = CreateOperationKey(
                     queryRequest.Query, queryRequest.OperationName);
                 return _operationCache.GetOrCreate(operationKey,
-                    () => CreateOperationRequest(queryRequest, queryDocument));
+                    () => CreateOperationExecuter(queryRequest, queryDocument));
             }
-            return CreateOperationRequest(queryRequest, queryDocument);
+            return CreateOperationExecuter(queryRequest, queryDocument);
         }
 
         private string CreateOperationKey(string query, string operationName)
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
             return $"{operationName}++{query}";
         }
 
-        private OperationExecuter CreateOperationRequest(
+        private OperationExecuter CreateOperationExecuter(
             QueryRequest queryRequest, DocumentNode queryDocument)
         {
             return new OperationExecuter(

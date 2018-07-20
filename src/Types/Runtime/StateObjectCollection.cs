@@ -3,9 +3,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Runtime
 {
-    internal class StateObjectCollection<TKey>
+    public class StateObjectCollection<TKey>
         : IDisposable
     {
         private readonly object _sync = new object();
@@ -28,7 +28,7 @@ namespace HotChocolate.Internal
         }
 
         public object CreateObject(
-            IStateObjectDescriptor<TKey> descriptor,
+            IScopedStateDescriptor<TKey> descriptor,
             Func<object> serviceFactory)
         {
             if (descriptor == null)

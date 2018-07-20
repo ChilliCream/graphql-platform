@@ -51,11 +51,11 @@ namespace HotChocolate.Execution
 
             try
             {
-                OperationExecuter operationRequest =
-                    GetOrCreateOperationRequest(
+                OperationExecuter operationExecuter =
+                    GetOrCreateOperationExecuter(
                         queryRequest, queryInfo.QueryDocument);
 
-                return await operationRequest.ExecuteAsync(
+                return await operationExecuter.ExecuteAsync(
                     queryRequest.VariableValues, queryRequest.InitialValue,
                     cancellationToken);
             }

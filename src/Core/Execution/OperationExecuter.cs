@@ -26,8 +26,8 @@ namespace HotChocolate.Execution
         private readonly VariableValueBuilder _variableValueBuilder;
         private IExecutionStrategy _strategy;
 
-
-        public OperationExecuter(ISchema schema,
+        public OperationExecuter(
+            ISchema schema,
             DocumentNode queryDocument,
             OperationDefinitionNode operation)
         {

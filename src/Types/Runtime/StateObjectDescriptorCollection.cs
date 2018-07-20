@@ -4,14 +4,14 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Runtime
 {
-    internal class StateObjectDescriptorCollection<TKey>
+    public class StateObjectDescriptorCollection<TKey>
     {
-        private readonly Dictionary<TKey, IStateObjectDescriptor<TKey>> _descriptors;
+        private readonly Dictionary<TKey, IScopedStateDescriptor<TKey>> _descriptors;
 
         public StateObjectDescriptorCollection(
-            IEnumerable<IStateObjectDescriptor<TKey>> descriptors)
+            IEnumerable<IScopedStateDescriptor<TKey>> descriptors)
         {
             if (descriptors == null)
             {
@@ -23,14 +23,14 @@ namespace HotChocolate.Internal
 
         public bool TryGetDescriptor(
             TKey key,
-            out IStateObjectDescriptor<TKey> descriptor)
+            out IScopedStateDescriptor<TKey> descriptor)
         {
             return _descriptors.TryGetValue(key, out descriptor);
         }
 
         public Func<object> CreateFactory(
             IServiceProvider services,
-            IStateObjectDescriptor<TKey> descriptor)
+            IScopedStateDescriptor<TKey> descriptor)
         {
             if (descriptor.Factory == null)
             {
