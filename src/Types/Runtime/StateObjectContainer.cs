@@ -11,7 +11,7 @@ namespace HotChocolate.Runtime
         private readonly StateObjectDescriptorCollection<TKey> _descriptors;
         private readonly Dictionary<ExecutionScope, StateObjectCollection<TKey>> _scopes;
 
-        public StateObjectContainer(
+        protected StateObjectContainer(
             IServiceProvider root,
             StateObjectDescriptorCollection<TKey> descriptors,
             ISet<ExecutionScope> scopes,
@@ -50,7 +50,7 @@ namespace HotChocolate.Runtime
             }
         }
 
-        public StateObjectContainer(
+        protected StateObjectContainer(
             IServiceProvider root,
             StateObjectDescriptorCollection<TKey> descriptors,
             ISet<ExecutionScope> scopes)
@@ -62,7 +62,7 @@ namespace HotChocolate.Runtime
         public IEnumerable<StateObjectCollection<TKey>> Scopes =>
             _scopes.Values;
 
-        public object GetStateObject(TKey key)
+        protected object GetStateObject(TKey key)
         {
             if (_descriptors.TryGetDescriptor(key,
                 out IScopedStateDescriptor<TKey> descriptor))
@@ -81,7 +81,7 @@ namespace HotChocolate.Runtime
             return null;
         }
 
-        public bool TryGetStateObjectDescriptor<T>(TKey key, out T descriptor)
+        protected bool TryGetStateObjectDescriptor<T>(TKey key, out T descriptor)
             where T : IScopedStateDescriptor<TKey>
         {
             if (_descriptors.TryGetDescriptor(key,

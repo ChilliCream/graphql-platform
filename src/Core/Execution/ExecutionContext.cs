@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution

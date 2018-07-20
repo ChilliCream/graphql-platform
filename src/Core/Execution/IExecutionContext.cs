@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -13,6 +14,7 @@ namespace HotChocolate.Execution
 
         // context
         object RootValue { get; }
+        IDataLoaderState DataLoaders { get; }
 
         // query ast
         DocumentNode QueryDocument { get; }
@@ -29,7 +31,6 @@ namespace HotChocolate.Execution
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet);
 
-        T GetDataLoader<T>(string key);
         T GetState<T>();
     }
 }
