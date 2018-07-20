@@ -26,6 +26,8 @@ namespace HotChocolate.Configuration
 
         public IDirectiveRegistry Directives => _directiveRegistry;
 
+        public ServiceFactory 
+
         public IEnumerable<SchemaError> CompleteTypes()
         {
             // compile resolvers

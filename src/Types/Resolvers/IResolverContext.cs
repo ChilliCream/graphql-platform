@@ -32,50 +32,8 @@ namespace HotChocolate.Resolvers
 
         T Service<T>();
 
-        T State<T>(StateScope scope);
+        T State<T>();
 
-        T Loader<T>(string key, StateScope scope);
-    }
-
-    public static class Foo
-    {
-        public static void Bar()
-        {
-            Schema.Create(c =>
-            {
-                c.RegisterLoader<UserLoader>(l => l.Trigger());
-                c.RegisterLoader<UserLoader>();
-                c.RegisterLoader<UserLoader>("k", StateScope.User);
-                c.RegisterLoader("k", sp => new UserLoader());
-
-
-                c.RegisterState<Blub>(sp => new Blub(), StateScope.User);
-            });
-        }
-    }
-
-    public static class ResolverContextExtensions
-    {
-        public static T GlobalState<T>(this IResolverContext resolverContext)
-        {
-            return resolverContext.State<T>(StateScope.Global);
-        }
-
-        public static T UserState<T>(this IResolverContext resolverContext)
-        {
-            return resolverContext.State<T>(StateScope.User);
-        }
-
-        public static T State<T>(this IResolverContext resolverContext)
-        {
-            return resolverContext.State<T>(StateScope.Request);
-        }
-    }
-
-    public enum ExecutionScope
-    {
-        Request = 0,
-        User = 1,
-        Global = 2
+        T Loader<T>(string key);
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Resolvers;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Internal
 {

@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Resolvers;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Internal
 {

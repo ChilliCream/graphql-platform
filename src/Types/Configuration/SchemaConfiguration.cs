@@ -31,8 +31,6 @@ namespace HotChocolate.Configuration
 
         internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings => _resolverBindings;
 
-        internal 
-
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {
             _registerServiceProvider(serviceProvider);

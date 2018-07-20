@@ -12,9 +12,12 @@ namespace HotChocolate.Execution
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly FieldCollector _fieldCollector;
 
-        public ExecutionContext(ISchema schema, DocumentNode queryDocument,
-            OperationDefinitionNode operation, VariableCollection variables,
-            object rootValue, object userContext)
+        public ExecutionContext(
+            ISchema schema,
+            DocumentNode queryDocument,
+            OperationDefinitionNode operation,
+            VariableCollection variables,
+            object rootValue)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -24,8 +27,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
             Variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
-
-            UserContext = userContext;
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(schema, variables, Fragments);
@@ -39,8 +40,6 @@ namespace HotChocolate.Execution
 
         public object RootValue { get; }
 
-        public object UserContext { get; }
-
         public DocumentNode QueryDocument { get; }
 
         public OperationDefinitionNode Operation { get; }
@@ -50,6 +49,8 @@ namespace HotChocolate.Execution
         public FragmentCollection Fragments { get; }
 
         public VariableCollection Variables { get; }
+
+        public Se
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)

@@ -30,16 +30,6 @@ namespace HotChocolate.Execution
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet);
 
-        // result
-        // OrderedDictionary Data { get; } // remove
-        // List<IQueryError> Errors { get; } // remove
-
-        // processing
-        // List<FieldResolverTask> NextBatch { get; } // remove
-
-
-        // field
-        // IReadOnlyCollection<FieldSelection> CollectFields(
-        //    ObjectType objectType, SelectionSetNode selectionSet); // remove -> strategy base class
+        T GetDataLoader<T>(string key);
     }
 }
