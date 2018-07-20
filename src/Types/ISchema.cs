@@ -7,17 +7,21 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     /// <summary>
-    /// A GraphQL service’s collective type system capabilities are referred to
-    /// as that service’s “schema”.
-    ///
-    /// A schema is defined in terms of the types and directives it supports
-    /// as well as the root operation types for each kind of operation:
-    /// query, mutation, and subscription; this determines the place in the
-    /// type system where those operations begin.
+    /// A GraphQL Schema defines the capabilities of a GraphQL server. It
+    /// exposes all available types and directives on the server, as well as
+    /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public interface ISchema
     {
+        /// <summary>
+        /// Gets the schema options.
+        /// </summary>
         IReadOnlySchemaOptions Options { get; }
+
+        /// <summary>
+        /// Gets the global schema services.
+        /// </summary>
+        IServiceProvider Services { get; }
 
         /// <summary>
         /// The type that query operations will be rooted at.
@@ -54,7 +58,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets the state object descriptors.
         /// </summary>
-        IReadOnlyCollection<StateObjectDescriptor> StateObjects{ get; }
+        IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.

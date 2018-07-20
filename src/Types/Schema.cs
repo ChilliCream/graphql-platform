@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 
@@ -50,6 +51,10 @@ namespace HotChocolate
         public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
 
         public IReadOnlyCollection<Directive> Directives { get; }
+
+        public IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
+
+        public IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
 
         public T GetType<T>(string typeName)
             where T : INamedType
