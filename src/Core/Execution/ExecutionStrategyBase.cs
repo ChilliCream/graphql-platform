@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
                 executionContext, currentBatch, cancellationToken);
 
             // execute batch data loaders
-            await CompleteDataLoadersAsync(executionContext);
+            await CompleteDataLoadersAsync(executionContext, cancellationToken);
 
             // await field resolver results
             await EndExecuteResolverBatchAsync(
@@ -84,10 +84,12 @@ namespace HotChocolate.Execution
         }
 
         protected async Task CompleteDataLoadersAsync(
-            IExecutionContext executionContext)
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
         {
             await Task.WhenAll(executionContext
-                .DataLoaders.Touched.Select(t => t.TriggerAsync()));
+                .DataLoaders.Touched
+                .Select(t => t.TriggerAsync(cancellationToken)));
             executionContext.DataLoaders.Reset();
         }
 

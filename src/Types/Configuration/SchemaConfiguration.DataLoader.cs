@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
@@ -19,7 +20,7 @@ namespace HotChocolate.Configuration
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, T> loaderFactory,
-            Func<T, Task> triggerLoadAsync)
+            Func<T, CancellationToken, Task> triggerLoaderAsync)
         {
             if (key == null)
             {
@@ -29,7 +30,7 @@ namespace HotChocolate.Configuration
             var descriptor = new DataLoaderDescriptor(
                 key, typeof(T), scope,
                 sp => loaderFactory(sp),
-                o => triggerLoadAsync((T)o));
+                (o, c) => triggerLoaderAsync((T)o, c));
             _dataLoaders[key] = descriptor;
         }
     }

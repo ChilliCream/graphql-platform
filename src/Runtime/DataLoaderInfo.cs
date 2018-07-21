@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Runtime
@@ -31,11 +32,12 @@ namespace HotChocolate.Runtime
         /// Signals the data loader that all data load registrations have
         /// been made an the batched data retrieval can be started.
         /// </summary>
-        public Task TriggerAsync()
+        public Task TriggerAsync(CancellationToken cancellationToken)
         {
             if (NeedsToBeTriggered)
             {
-                return _descriptor.TriggerLoadAsync(Instance);
+                return _descriptor.TriggerLoadAsync(
+                    Instance, cancellationToken);
             }
             return Task.CompletedTask;
         }

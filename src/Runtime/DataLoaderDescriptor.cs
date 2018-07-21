@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Runtime
 {
     // TODO : move runtime namespace into separate lib
+    public delegate Task TriggerDataLoaderAsync(
+        object dataLoader,
+        CancellationToken cancellationToken);
+
     public class DataLoaderDescriptor
         : IScopedStateDescriptor<string>
     {
@@ -12,7 +17,7 @@ namespace HotChocolate.Runtime
             Type type,
             ExecutionScope scope,
             Func<IServiceProvider, object> factory,
-            Func<object, Task> triggerLoadAsync)
+            TriggerDataLoaderAsync triggerLoadAsync)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -29,6 +34,6 @@ namespace HotChocolate.Runtime
 
         public Func<IServiceProvider, object> Factory { get; }
 
-        public Func<object, Task> TriggerLoadAsync { get; }
+        public TriggerDataLoaderAsync TriggerLoadAsync { get; }
     }
 }
