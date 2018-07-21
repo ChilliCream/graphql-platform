@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Runtime\Runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>

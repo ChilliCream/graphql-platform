@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Runtime;
 
 namespace HotChocolate.Configuration
 {

@@ -20,7 +20,7 @@ namespace HotChocolate.Runtime
         private ImmutableDictionary<string, DataLoaderInfo> _touchedDataLoaders =
             ImmutableDictionary<string, DataLoaderInfo>.Empty;
 
-        protected DataLoaderState(
+        public DataLoaderState(
             IServiceProvider root,
             DataLoaderDescriptorCollection descriptors,
             IEnumerable<StateObjectCollection<string>> objectCollections)

@@ -11,8 +11,10 @@ namespace HotChocolate.Execution
             IServiceProvider services,
             IDataLoaderState dataLoaders)
         {
-            Services = services;
-            DataLoaders = dataLoaders;
+            Services = services
+                ?? throw new ArgumentNullException(nameof(services));
+            DataLoaders = dataLoaders
+                ?? throw new ArgumentNullException(nameof(dataLoaders));
         }
 
         public IServiceProvider Services { get; }

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
+using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
@@ -11,6 +12,7 @@ namespace HotChocolate.Execution
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
+        private readonly DataLoaderStateManager _dataLoaderStateManager;
         private readonly bool _useCache;
 
         public QueryExecuter(ISchema schema)
@@ -24,6 +26,8 @@ namespace HotChocolate.Execution
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
+            _dataLoaderStateManager = new DataLoaderStateManager(
+                schema.DataLoaders, cacheSize);
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
@@ -55,9 +59,11 @@ namespace HotChocolate.Execution
                     GetOrCreateOperationExecuter(
                         queryRequest, queryInfo.QueryDocument);
 
+                OperationRequest operationRequest =
+                    CreateOperationRequest(queryRequest);
+
                 return await operationExecuter.ExecuteAsync(
-                    queryRequest.VariableValues, queryRequest.InitialValue,
-                    cancellationToken);
+                    operationRequest, cancellationToken);
             }
             catch (QueryException ex)
             {
@@ -80,6 +86,21 @@ namespace HotChocolate.Execution
             {
                 return new QueryError("Unexpected execution error.");
             }
+        }
+
+        private OperationRequest CreateOperationRequest(
+            QueryRequest queryRequest)
+        {
+            IServiceProvider services =
+                queryRequest.Services ?? _schema.Services;
+            DataLoaderState dataLoaderState = _dataLoaderStateManager
+                .CreateState(services, "anonymous");
+
+            return new OperationRequest(services, dataLoaderState)
+            {
+                VariableValues = queryRequest.VariableValues,
+                InitialValue = queryRequest.InitialValue
+            };
         }
     }
 }

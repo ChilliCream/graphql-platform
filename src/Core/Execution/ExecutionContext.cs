@@ -20,12 +20,15 @@ namespace HotChocolate.Execution
             OperationRequest request,
             VariableCollection variables)
         {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
-            Services = services
-                ?? throw new ArgumentNullException(nameof(services));
-            DataLoaders = dataLoaders
-                ?? throw new ArgumentNullException(nameof(dataLoaders));
+            Services = request.Services;
+            DataLoaders = request.DataLoaders;
             QueryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
             Operation = operation
@@ -36,8 +39,8 @@ namespace HotChocolate.Execution
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(schema, variables, Fragments);
             OperationType = schema.GetOperationType(operation.Operation);
-            RootValue = ResolveRootValue(
-                services, schema, OperationType, rootValue);
+            RootValue = ResolveRootValue(request.Services, schema,
+                OperationType, request.InitialValue);
         }
 
         public ISchema Schema { get; }

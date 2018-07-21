@@ -129,7 +129,7 @@ namespace HotChocolate.Execution
 
         public T Service<T>()
         {
-            return (T)_executionContext.Schema.GetService(typeof(T));
+            return (T)_executionContext.Services.GetService(typeof(T));
         }
 
         public T State<T>()
@@ -139,7 +139,7 @@ namespace HotChocolate.Execution
 
         public T Loader<T>(string key)
         {
-            throw new NotImplementedException();
+            return _executionContext.DataLoaders.GetDataLoader<T>(key);
         }
     }
 }
