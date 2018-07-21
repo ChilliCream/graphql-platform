@@ -11,20 +11,21 @@ namespace HotChocolate.Execution
         : IExecutionContext
     {
         private readonly List<IQueryError> _errors = new List<IQueryError>();
-        private readonly IServiceProvider _serviceProvider = null;
-        private readonly StateObjectContainer<string> _dataLoaders;
-        private readonly StateObjectContainer<Type> _state;
         private readonly FieldCollector _fieldCollector;
 
         public ExecutionContext(
             ISchema schema,
             DocumentNode queryDocument,
             OperationDefinitionNode operation,
-            VariableCollection variables,
-            object rootValue)
+            OperationRequest request,
+            VariableCollection variables)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
+            Services = services
+                ?? throw new ArgumentNullException(nameof(services));
+            DataLoaders = dataLoaders
+                ?? throw new ArgumentNullException(nameof(dataLoaders));
             QueryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
             Operation = operation
@@ -35,12 +36,15 @@ namespace HotChocolate.Execution
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(schema, variables, Fragments);
             OperationType = schema.GetOperationType(operation.Operation);
-            RootValue = ResolveRootValue(serviceProvider, schema, OperationType, rootValue);
+            RootValue = ResolveRootValue(
+                services, schema, OperationType, rootValue);
         }
 
         public ISchema Schema { get; }
 
         public IReadOnlySchemaOptions Options => Schema.Options;
+
+        public IServiceProvider Services { get; }
 
         public object RootValue { get; }
 
@@ -53,6 +57,8 @@ namespace HotChocolate.Execution
         public FragmentCollection Fragments { get; }
 
         public VariableCollection Variables { get; }
+
+        public IDataLoaderState DataLoaders { get; }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)
@@ -99,16 +105,6 @@ namespace HotChocolate.Execution
                     ?? Activator.CreateInstance(nativeType);
             }
             return initialValue;
-        }
-
-        public T GetDataLoader<T>(string key)
-        {
-            return (T)_dataLoaders.GetStateObject(key);
-        }
-
-        public T GetState<T>()
-        {
-            return (T)_state.GetStateObject(typeof(T));
         }
     }
 }

@@ -132,12 +132,12 @@ namespace HotChocolate.Execution
             return (T)_executionContext.Schema.GetService(typeof(T));
         }
 
-        public T State<T>(StateScope scope)
+        public T State<T>()
         {
             throw new NotImplementedException();
         }
 
-        public T Loader<T>(string key, StateScope scope)
+        public T Loader<T>(string key)
         {
             throw new NotImplementedException();
         }

@@ -60,7 +60,7 @@ namespace HotChocolate.AspNetCore
                 new Execution.QueryRequest(request.Query, request.OperationName)
                 {
                     VariableValues = DeserializeVariables(request.Variables),
-                    RequestServices = context.RequestServices
+                    Services = context.RequestServices
                 },
                 cancellationToken).ConfigureAwait(false);
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
@@ -11,6 +12,7 @@ namespace HotChocolate.Execution
         // schema
         ISchema Schema { get; }
         IReadOnlySchemaOptions Options { get; }
+        IServiceProvider Services { get; }
 
         // context
         object RootValue { get; }
@@ -30,7 +32,5 @@ namespace HotChocolate.Execution
 
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet);
-
-        T GetState<T>();
     }
 }

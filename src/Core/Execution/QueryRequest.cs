@@ -34,6 +34,6 @@ namespace HotChocolate.Execution
 
         public object InitialValue { get; set; }
 
-        public IServiceProvider RequestServices { get; set; }
+        public IServiceProvider Services { get; set; }
     }
 }
