@@ -12,6 +12,11 @@ namespace HotChocolate.Runtime
 
         public object CreateInstance(Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             FactoryInfo factoryInfo = CreateFactoryInfo(Services, type);
             ParameterInfo[] parameters =
                 factoryInfo.Constructor.GetParameters();
