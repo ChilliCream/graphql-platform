@@ -6,7 +6,7 @@
 
 **Hot Chocolate is a GraphQL server for _.NET Core_ and _.NET Classic_**
 
-_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook. 
+_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook.
 
 We are currently in the process of closing some gaps and hope to finalise Version 1 by September. We have listed the implemented specification parts at the bottom of this readme.
 
@@ -269,7 +269,7 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Custom Schema Directives
 - [ ] Custom Execution Directives
 
-### Execution Engine
+### Execution Engine
 
 - [ ] Custom Context Objects
 - [ ] Data Loader Integration / Batched Operations
