@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Internal;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -17,17 +18,17 @@ namespace HotChocolate.Configuration
             new Dictionary<Type, string>();
         private readonly Dictionary<Type, HashSet<string>> _nativeTypes =
             new Dictionary<Type, HashSet<string>>();
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ServiceFactory _serviceFactory;
         private bool _sealed;
 
-        public TypeRegistry(IServiceProvider serviceProvider)
+        public TypeRegistry(ServiceFactory serviceFactory)
         {
-            if (serviceProvider == null)
+            if (serviceFactory == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(serviceFactory));
             }
 
-            _serviceProvider = serviceProvider;
+            _serviceFactory = serviceFactory;
         }
 
         public void CompleteRegistartion()

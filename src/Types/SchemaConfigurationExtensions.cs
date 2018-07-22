@@ -63,51 +63,5 @@ namespace HotChocolate
         {
             return configuration.BindResolver<TResolver>(BindingBehavior.Implicit);
         }
-
-        public static void RegisterLoader<T>(
-            this IDataLoaderConfiguration configuration)
-        {
-            RegisterLoader<T>(configuration, ExecutionScope.Request);
-        }
-
-        public static void RegisterLoader<T>(
-            this IDataLoaderConfiguration configuration,
-            Func<T, Task> triggerLoadAsync)
-        {
-            RegisterLoader<T>(configuration,
-                ExecutionScope.Request, triggerLoadAsync);
-        }
-
-        public static void RegisterLoader<T>(
-           this IDataLoaderConfiguration configuration,
-           ExecutionScope scope)
-        {
-            configuration.RegisterLoader<T>(typeof(T).FullName, scope);
-        }
-
-        public static void RegisterLoader<T>(
-           this IDataLoaderConfiguration configuration,
-           ExecutionScope scope,
-           Func<T, Task> triggerLoadAsync)
-        {
-            configuration.RegisterLoader<T>(typeof(T).FullName,
-                ExecutionScope.Request, triggerLoadAsync);
-        }
-
-        public static void RegisterLoader<T>(
-            this IDataLoaderConfiguration configuration,
-            string key)
-        {
-            configuration.RegisterLoader<T>(key, ExecutionScope.Request);
-        }
-
-        public static void RegisterLoader<T>(
-            this IDataLoaderConfiguration configuration,
-            string key,
-            Func<T, Task> triggerLoadAsync)
-        {
-            configuration.RegisterLoader<T>(key,
-                ExecutionScope.Request, triggerLoadAsync);
-        }
     }
 }

@@ -20,13 +20,17 @@ namespace HotChocolate
         private readonly SchemaTypes _types;
 
         private Schema(
+            IServiceProvider services,
             SchemaTypes types,
             IReadOnlyCollection<Directive> directives,
+            IReadOnlyCollection<DataLoaderDescriptor> dataLoaders,
             IReadOnlySchemaOptions options)
         {
             _types = types;
-            Options = options;
+            Services = services;
             Directives = directives;
+            DataLoaders = dataLoaders;
+            Options = options;
         }
 
         /// <summary>
@@ -83,7 +87,8 @@ namespace HotChocolate
         /// <param name="typeName">The name of the type.</param>
         /// <returns>The type.</returns>
         /// <exception cref="ArgumentException">
-        /// The specified type does not exist or is not of the specified type kind.
+        /// The specified type does not exist or
+        /// is not of the specified type kind.
         /// </exception>
         public T GetType<T>(string typeName)
             where T : INamedType

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Internal;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -9,15 +10,18 @@ namespace HotChocolate.Configuration
     internal class SchemaContext
         : ISchemaContext
     {
+        private readonly ServiceFactory _serviceFactory;
         private readonly TypeRegistry _typeRegistry;
         private readonly DirectiveRegistry _directiveRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
         public SchemaContext()
         {
-            _typeRegistry = new TypeRegistry(serviceManager);
+            _serviceFactory = new ServiceFactory();
+            _typeRegistry = new TypeRegistry(_serviceFactory);
             _resolverRegistry = new ResolverRegistry();
             _directiveRegistry = new DirectiveRegistry();
+            DataLoaders = new List<DataLoaderDescriptor>();
         }
 
         public ITypeRegistry Types => _typeRegistry;
@@ -26,7 +30,9 @@ namespace HotChocolate.Configuration
 
         public IDirectiveRegistry Directives => _directiveRegistry;
 
-        public ServiceFactory
+        public IServiceProvider Services => _serviceFactory.Services;
+
+        public ICollection<DataLoaderDescriptor> DataLoaders { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {
@@ -58,6 +64,11 @@ namespace HotChocolate.Configuration
                 directive.CompleteType(initializationContext);
             }
             return errors;
+        }
+
+        public void RegisterServiceProvider(IServiceProvider services)
+        {
+            _serviceFactory.Services = services;
         }
     }
 }

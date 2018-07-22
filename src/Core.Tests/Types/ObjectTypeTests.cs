@@ -12,9 +12,8 @@ namespace HotChocolate.Types
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            var services = new ServiceManager();
             var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext(services);
+            var schemaContext = new SchemaContext();
 
             // act
             var fooType = new ObjectType<Foo>(
@@ -35,9 +34,8 @@ namespace HotChocolate.Types
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
-            var services = new ServiceManager();
             var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext(services);
+            var schemaContext = new SchemaContext();
 
             // act
             var fooType = new ObjectType<Foo>();
@@ -57,9 +55,8 @@ namespace HotChocolate.Types
         public void EnsureObjectTypeKindIsCorret()
         {
             // arrange
-            var services = new ServiceManager();
             var errors = new List<SchemaError>();
-            var context = new SchemaContext(services);
+            var context = new SchemaContext();
 
             // act
             var someObject = new ObjectType<Foo>();
@@ -101,9 +98,8 @@ namespace HotChocolate.Types
         public void GenericObjectTypes()
         {
             // arrange
-            var services = new ServiceManager();
             var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext(services);
+            var schemaContext = new SchemaContext();
 
             // act
             var genericType = new ObjectType<GenericFoo<string>>();
@@ -121,9 +117,8 @@ namespace HotChocolate.Types
         public void NestedGenericObjectTypes()
         {
             // arrange
-            var services = new ServiceManager();
             var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext(services);
+            var schemaContext = new SchemaContext();
 
             // act
             var genericType = new ObjectType<GenericFoo<GenericFoo<string>>>();
