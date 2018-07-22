@@ -1,14 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// A GraphQL Schema defines the capabilities of a GraphQL server. It
+    /// exposes all available types and directives on the server, as well as
+    /// the entry points for query, mutation, and subscription operations.
+    /// </summary>
     public interface ISchema
-        : IServiceProvider
     {
+        /// <summary>
+        /// Gets the schema options.
+        /// </summary>
         IReadOnlySchemaOptions Options { get; }
+
+        /// <summary>
+        /// Gets the global schema services.
+        /// </summary>
+        IServiceProvider Services { get; }
 
         /// <summary>
         /// The type that query operations will be rooted at.
@@ -36,6 +49,16 @@ namespace HotChocolate
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
         IReadOnlyCollection<Directive> Directives { get; }
+
+        /// <summary>
+        /// Gets the data loader descriptors.
+        /// </summary>
+        IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
+
+        /// <summary>
+        /// Gets the state object descriptors.
+        /// </summary>
+        IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -73,12 +96,15 @@ namespace HotChocolate
         /// </returns>
         bool TryGetNativeType(string typeName, out Type nativeType);
 
-
-        // IOutputType GetField(INamedType namedType, string name);
-
-        // bool TryGetField(INamedType namedType, string name, out IOutputField field);
-
-
+        /// <summary>
+        /// Gets the possible object types to
+        /// an abstract type (union type or interface type).
+        /// </summary>
+        /// <param name="abstractType">The abstract type.</param>
+        /// <returns>
+        /// Returns a collection with all possible object types
+        /// for the given abstract type.
+        /// </returns>
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
     }

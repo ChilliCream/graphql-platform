@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Runtime;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -14,6 +15,11 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
+            var dataLoaderDescriptors =
+                new DataLoaderDescriptorCollection(schema.DataLoaders);
+            var dataLoaderState = new DataLoaderState(
+                schema.Services, dataLoaderDescriptors,
+                Enumerable.Empty<StateObjectCollection<string>>());
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -22,11 +28,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationRequest =
+            OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
-            IExecutionResult result = await operationRequest.ExecuteAsync(
-                new Dictionary<string, IValueNode>(),
-                null, CancellationToken.None);
+            IExecutionResult result = await operationExecuter.ExecuteAsync(
+                new OperationRequest(schema.Services, dataLoaderState),
+                CancellationToken.None);
 
             // assert
             Assert.NotNull(result);
@@ -54,6 +60,11 @@ namespace HotChocolate.Execution
                     cnf.BindResolver(ctx => state = ctx.Argument<int>("newNumber"))
                         .To("Mutation", "changeTheNumber");
                 });
+            var dataLoaderDescriptors =
+                new DataLoaderDescriptorCollection(schema.DataLoaders);
+            var dataLoaderState = new DataLoaderState(
+                schema.Services, dataLoaderDescriptors,
+                Enumerable.Empty<StateObjectCollection<string>>());
 
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
@@ -61,9 +72,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationRequest =
+            OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
-            IExecutionResult result = await operationRequest.ExecuteAsync();
+            IExecutionResult result = await operationExecuter.ExecuteAsync(
+                new OperationRequest(schema.Services, dataLoaderState),
+                CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

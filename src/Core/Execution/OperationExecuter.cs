@@ -26,8 +26,8 @@ namespace HotChocolate.Execution
         private readonly VariableValueBuilder _variableValueBuilder;
         private IExecutionStrategy _strategy;
 
-
-        public OperationExecuter(ISchema schema,
+        public OperationExecuter(
+            ISchema schema,
             DocumentNode queryDocument,
             OperationDefinitionNode operation)
         {
@@ -52,9 +52,8 @@ namespace HotChocolate.Execution
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyDictionary<string, IValueNode> variableValues = null,
-            object initialValue = null,
-            CancellationToken cancellationToken = default)
+            OperationRequest request,
+            CancellationToken cancellationToken)
         {
             var requestTimeoutCts =
                 new CancellationTokenSource(_executionTimeout);
@@ -66,7 +65,8 @@ namespace HotChocolate.Execution
             try
             {
                 IExecutionContext executionContext =
-                    CreateExecutionContext(variableValues, initialValue);
+                    CreateExecutionContext(request);
+
                 return await _strategy.ExecuteAsync(
                     executionContext, combinedCts.Token);
             }
@@ -78,15 +78,13 @@ namespace HotChocolate.Execution
         }
 
         private IExecutionContext CreateExecutionContext(
-            IReadOnlyDictionary<string, IValueNode> variableValues,
-            object initialValue)
+            OperationRequest request)
         {
             VariableCollection variables = _variableValueBuilder
-                .CreateValues(variableValues);
+                .CreateValues(request.VariableValues);
 
             ExecutionContext executionContext = new ExecutionContext(
-                _schema, _queryDocument, _operation, variables,
-                initialValue, null);
+                _schema, _queryDocument, _operation, request, variables);
 
             return executionContext;
         }

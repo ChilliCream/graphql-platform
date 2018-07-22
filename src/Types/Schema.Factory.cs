@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 
@@ -93,12 +94,13 @@ namespace HotChocolate
             }
 
             return new Schema(
-                context.ServiceManager,
+                context.Services ?? new ServiceFactory(),
                 SchemaTypes.Create(
                     context.Types.GetTypes(),
                     context.Types.GetTypeBindings(),
                     options),
                 context.Directives.GetDirectives().ToArray(),
+                context.DataLoaders.ToArray(),
                 options);
         }
 
@@ -111,7 +113,7 @@ namespace HotChocolate
             {
                 // configure resolvers, custom types and type mappings.
                 var configuration = new SchemaConfiguration(
-                    context.ServiceManager.RegisterServiceProvider,
+                    context.RegisterServiceProvider,
                     context.Types);
 
                 configure(configuration);

@@ -54,7 +54,8 @@ namespace HotChocolate.Configuration
 
         private void TryUpdateNamedType(Type type)
         {
-            TryUpdateNamedType((INamedType)_serviceProvider.GetService(type));
+            TryUpdateNamedType(
+                (INamedType)_serviceFactory.CreateInstance(type));
         }
 
         private void TryUpdateNamedType(INamedType namedType)

@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
     {
         public static SchemaContext Create()
         {
-            var schemaContext = new SchemaContext(new ServiceManager());
+            var schemaContext = new SchemaContext();
 
             RegisterSpecScalarTypes(schemaContext);
             RegisterExtendedScalarTypes(schemaContext);

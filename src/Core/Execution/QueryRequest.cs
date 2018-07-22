@@ -25,6 +25,7 @@ namespace HotChocolate.Execution
             OperationName = operationName;
         }
 
+
         public string Query { get; }
 
         public string OperationName { get; set; }
@@ -33,6 +34,6 @@ namespace HotChocolate.Execution
 
         public object InitialValue { get; set; }
 
-        public object UserContext { get; set; }
+        public IServiceProvider Services { get; set; }
     }
 }

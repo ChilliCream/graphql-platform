@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -16,8 +17,7 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeImplicitly()
         {
             // arrange
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext();
 
             ObjectType dummyType = new ObjectType(d =>
             {
@@ -30,7 +30,7 @@ namespace HotChocolate.Configuration
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                schemaContext.RegisterServiceProvider,
                 schemaContext.Types);
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
@@ -55,8 +55,7 @@ namespace HotChocolate.Configuration
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext();
 
             ObjectType dummyType = new ObjectType(d =>
             {
@@ -69,7 +68,7 @@ namespace HotChocolate.Configuration
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                schemaContext.RegisterServiceProvider,
                 schemaContext.Types);
             configuration
                 .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
@@ -108,13 +107,12 @@ namespace HotChocolate.Configuration
                 d.Field("bar").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                schemaContext.RegisterServiceProvider,
                 schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
@@ -148,13 +146,12 @@ namespace HotChocolate.Configuration
                 d.Field("bar").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration(
-               serviceManager.RegisterServiceProvider,
+               schemaContext.RegisterServiceProvider,
                schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 
@@ -186,13 +183,12 @@ namespace HotChocolate.Configuration
                 d.Field("bar2").Type<StringType>();
             });
 
-            ServiceManager serviceManager = new ServiceManager();
-            SchemaContext schemaContext = new SchemaContext(serviceManager);
+            SchemaContext schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(objectType);
 
             // act
             SchemaConfiguration configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                schemaContext.RegisterServiceProvider,
                 schemaContext.Types);
             configuration.BindType<TestObjectB>().To("Dummy");
 

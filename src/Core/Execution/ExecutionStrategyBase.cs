@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -48,6 +50,9 @@ namespace HotChocolate.Execution
             BeginExecuteResolverBatch(
                 executionContext, currentBatch, cancellationToken);
 
+            // execute batch data loaders
+            await CompleteDataLoadersAsync(executionContext, cancellationToken);
+
             // await field resolver results
             await EndExecuteResolverBatchAsync(
                 executionContext, currentBatch, nextBatch, cancellationToken);
@@ -76,6 +81,16 @@ namespace HotChocolate.Execution
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
+        }
+
+        protected async Task CompleteDataLoadersAsync(
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            await Task.WhenAll(executionContext
+                .DataLoaders.Touched
+                .Select(t => t.TriggerAsync(cancellationToken)));
+            executionContext.DataLoaders.Reset();
         }
 
         private async Task EndExecuteResolverBatchAsync(

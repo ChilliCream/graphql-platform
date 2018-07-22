@@ -2,10 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>HotChocolate.Core</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
-    <PackageId>HotChocolate</PackageId>
-    <Description>The hot chocolate GraphQL type system and query engine.</Description>
+    <AssemblyName>HotChocolate.Runtime</AssemblyName>
+    <RootNamespace>HotChocolate.Runtime</RootNamespace>
+    <PackageId>HotChocolate.Runtime</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -23,11 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\Types.csproj" />
-    <ProjectReference Include="..\Runtime\Runtime.csproj" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Execution\_\" />
-  </ItemGroup>
 </Project>

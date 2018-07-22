@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -30,5 +31,9 @@ namespace HotChocolate.Resolvers
         T Argument<T>(string name);
 
         T Service<T>();
+
+        T State<T>();
+
+        T Loader<T>(string key);
     }
 }

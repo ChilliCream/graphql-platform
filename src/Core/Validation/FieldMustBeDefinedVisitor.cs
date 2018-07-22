@@ -56,7 +56,7 @@ namespace HotChocolate.Validation
             base.VisitField(field, type, path);
         }
 
-        protected bool HasOnylTypeNameField(SelectionSetNode selectionSet)
+        private bool HasOnylTypeNameField(SelectionSetNode selectionSet)
         {
             return selectionSet.Selections
                 .OfType<FieldNode>()

@@ -30,8 +30,10 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 ",
                 c =>
                 {
-                    c.BindResolver<QueryA>().Resolve("hello").With(t => t.Hello);
-                    c.BindResolver<QueryB>().Resolve("world").With(t => t.World);
+                    c.BindResolver<QueryA>().To("Query")
+                        .Resolve("hello").With(t => t.Hello);
+                    c.BindResolver<QueryB>().To("Query")
+                        .Resolve("world").With(t => t.World);
                 });
         }
 
