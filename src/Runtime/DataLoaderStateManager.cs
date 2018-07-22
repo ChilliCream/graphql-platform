@@ -22,6 +22,8 @@ namespace HotChocolate.Runtime
                 new DataLoaderDescriptorCollection(descriptors);
             _cache = new Cache<StateObjectCollection<string>>(
                 size < 10 ? 10 : size);
+            _globalStateObjects =
+                new StateObjectCollection<string>(ExecutionScope.Global);
         }
 
 
