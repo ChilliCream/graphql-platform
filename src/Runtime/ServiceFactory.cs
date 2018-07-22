@@ -34,7 +34,7 @@ namespace HotChocolate.Runtime
             Type type)
         {
             ConstructorInfo[] constructors = type
-                .GetConstructors(BindingFlags.Public);
+                .GetConstructors(BindingFlags.Public | BindingFlags.Instance);
 
             if (constructors.Length == 0)
             {
