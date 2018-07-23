@@ -18,7 +18,8 @@ namespace HotChocolate.Validation
                 new ArgumentUniquenessRule(),
                 new RequiredArgumentRule(),
                 new SubscriptionSingleRootFieldRule(),
-                new FieldMustBeDefinedRule()
+                new FieldMustBeDefinedRule(),
+                new AllVariablesUsedRule()
             };
 
         private readonly ISchema _schema;

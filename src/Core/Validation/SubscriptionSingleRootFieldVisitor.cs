@@ -11,7 +11,8 @@ namespace HotChocolate.Validation
         : QueryVisitor
     {
         private int _fieldCount;
-        private List<ValidationError> _errors = new List<ValidationError>();
+        private readonly List<ValidationError> _errors =
+            new List<ValidationError>();
 
         public SubscriptionSingleRootFieldVisitor(ISchema schema)
             : base(schema)
