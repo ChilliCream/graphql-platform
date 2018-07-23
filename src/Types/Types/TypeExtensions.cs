@@ -27,6 +27,13 @@ namespace HotChocolate.Types
             return false;
         }
 
+        public static bool IsCompositeType(this IType type)
+        {
+            return IsType<ObjectType>(type)
+                || IsType<UnionType>(type)
+                || IsType<InterfaceType>(type);
+        }
+
         public static bool IsListType(this IType type)
         {
             return IsType<ListType>(type);

@@ -31,5 +31,12 @@ namespace HotChocolate.Language
         public NameNode Name { get; }
 
         public string Value => Name.Value;
+
+        public bool Equals(IValueNode other)
+        {
+            throw new NotImplementedException();
+        }
+
+
     }
 }
