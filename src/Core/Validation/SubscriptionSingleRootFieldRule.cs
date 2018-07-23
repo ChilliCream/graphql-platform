@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation
@@ -14,6 +15,16 @@ namespace HotChocolate.Validation
             ISchema schema,
             DocumentNode queryDocument)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (queryDocument == null)
+            {
+                throw new ArgumentNullException(nameof(queryDocument));
+            }
+
             var visitor = new SubscriptionSingleRootFieldVisitor(schema);
             visitor.VisitDocument(queryDocument);
 
