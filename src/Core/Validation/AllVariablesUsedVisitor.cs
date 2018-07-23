@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
-    internal class AllVariablesUsedVisitor
+    internal sealed class AllVariablesUsedVisitor
         : QueryVisitor
     {
         private readonly HashSet<string> _usedVariables = new HashSet<string>();

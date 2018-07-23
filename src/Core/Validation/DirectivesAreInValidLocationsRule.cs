@@ -3,15 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
-    /// <summary>
-    /// All variables defined by an operation must be used in that operation
-    /// or a fragment transitively included by that operation.
-    ///
-    /// Unused variables cause a validation error.
-    ///
-    /// http://facebook.github.io/graphql/June2018/#sec-All-Variables-Used
-    /// </summary>
-    internal sealed class AllVariablesUsedRule
+    internal sealed class DirectivesAreInValidLocationsRule
         : IQueryValidationRule
     {
         public QueryValidationResult Validate(
@@ -28,7 +20,7 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(queryDocument));
             }
 
-            var visitor = new AllVariablesUsedVisitor(schema);
+            var visitor = new DirectivesAreInValidLocationsVisitor(schema);
             visitor.VisitDocument(queryDocument);
 
             if (visitor.Errors.Count == 0)
@@ -39,4 +31,5 @@ namespace HotChocolate.Validation
             return new QueryValidationResult(visitor.Errors);
         }
     }
+
 }

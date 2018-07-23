@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
@@ -10,8 +11,7 @@ namespace HotChocolate.Validation
     {
         protected QueryVisitor(ISchema schema)
         {
-            Schema = schema
-                ?? throw new System.ArgumentNullException(nameof(schema));
+            Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         }
 
         protected ISchema Schema { get; }
@@ -38,8 +38,9 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, operationType,
-                path.Push(operation));
+            ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
+            VisitSelectionSet(operation.SelectionSet, operationType, newPath);
+            VisitDirectives(operation.Directives, newPath);
         }
 
         protected virtual void VisitSelectionSet(
