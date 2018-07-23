@@ -5,7 +5,9 @@ namespace HotChocolate.Validation
 {
     /// <summary>
     /// Directives are used to describe some metadata or behavioral change on
-    /// the definition they apply to. When more than one directive of the
+    /// the definition they apply to.
+    ///
+    /// When more than one directive of the
     /// same name is used, the expected metadata or behavior becomes ambiguous,
     /// therefore only one of each directive is allowed per location.
     ///
