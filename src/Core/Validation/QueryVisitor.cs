@@ -22,14 +22,14 @@ namespace HotChocolate.Validation
                 .OfType<OperationDefinitionNode>())
             {
                 VisitOperationDefinition(operation,
-                    ImmutableStack<ISyntaxNode>.Empty);
+                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
             }
 
             foreach (FragmentDefinitionNode fragment in document.Definitions
                 .OfType<FragmentDefinitionNode>())
             {
                 VisitFragmentDefinition(fragment,
-                    ImmutableStack<ISyntaxNode>.Empty);
+                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
             }
         }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, null,
+            VisitSelectionSet(operation.SelectionSet, operationType,
                 path.Push(operation));
         }
 

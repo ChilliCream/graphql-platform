@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
                     }
 
                     VisitOperationDefinition(operation,
-                        ImmutableStack<ISyntaxNode>.Empty);
+                        ImmutableStack<ISyntaxNode>.Empty.Push(document));
 
                     declaredVariables.ExceptWith(_usedVariables);
                     if (declaredVariables.Count > 0)
