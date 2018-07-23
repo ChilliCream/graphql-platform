@@ -305,5 +305,32 @@ namespace HotChocolate.Validation
                     "The following variables were not used: " +
                     "atOtherHomes.", t.Message));
         }
+
+        [Fact]
+        public void SkipDirectiveIsInTheWrongPlace()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query @skip(if: $foo) {
+                    field
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The field `field` does not exist " +
+                    "on the type `Query`.", t.Message),
+                t => Assert.Equal(
+                    "The specified directive is not valid the " +
+                    "current location.", t.Message));
+        }
     }
 }
