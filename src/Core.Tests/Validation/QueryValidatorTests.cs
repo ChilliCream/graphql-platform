@@ -332,5 +332,62 @@ namespace HotChocolate.Validation
                     "The specified directive is not valid the " +
                     "current location.", t.Message));
         }
+
+        [Fact]
+        public void QueriesWithInvalidVariableTypes()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query takesCat($cat: Cat) {
+                    # ...
+                }
+
+                query takesDogBang($dog: Dog!) {
+                    # ...
+                }
+
+                query takesListOfPet($pets: [Pet]) {
+                    # ...
+                }
+
+                query takesCatOrDog($catOrDog: CatOrDog) {
+                    # ...
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not used: cat.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: dog.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: pets.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: catOrDog.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `cat` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `dog` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `pets` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `catOrDog` is not an input type.",
+                    t.Message));
+        }
     }
 }

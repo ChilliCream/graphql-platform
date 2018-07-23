@@ -20,7 +20,8 @@ namespace HotChocolate.Validation
                 new SubscriptionSingleRootFieldRule(),
                 new FieldMustBeDefinedRule(),
                 new AllVariablesUsedRule(),
-                new DirectivesAreInValidLocationsRule()
+                new DirectivesAreInValidLocationsRule(),
+                new VariablesAreInputTypesRule()
             };
 
         private readonly ISchema _schema;
