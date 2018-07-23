@@ -59,7 +59,10 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "A document containing TypeSystemDefinition " +
-                    "is invalid for execution.", t.Message));
+                    "is invalid for execution.", t.Message),
+                t => Assert.Equal(
+                    "The field `color` does not exist " +
+                    "on the type `Dog`.", t.Message));
         }
 
         [Fact]
