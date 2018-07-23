@@ -137,7 +137,7 @@ namespace HotChocolate.Validation
             }
         }
 
-        private void VisitDirectives(
+        protected virtual void VisitDirectives(
             IReadOnlyCollection<DirectiveNode> directives,
             ImmutableStack<ISyntaxNode> path)
         {
