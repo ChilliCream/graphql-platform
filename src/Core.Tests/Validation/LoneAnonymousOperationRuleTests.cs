@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class LoneAnonymousOperationRuleTests
+        : ValidationTestBase
     {
+        public LoneAnonymousOperationRuleTests()
+            : base(new LoneAnonymousOperationRule())
+        {
+        }
+
         [Fact]
         public void QueryContainsOneAnonymousOperation()
         {
@@ -19,8 +25,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new LoneAnonymousOperationRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -49,8 +54,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new LoneAnonymousOperationRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -84,8 +88,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new LoneAnonymousOperationRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);

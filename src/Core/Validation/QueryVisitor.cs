@@ -92,7 +92,8 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-
+            VisitDirectives(fragmentSpread.Directives,
+                path.Push(fragmentSpread));
         }
 
         protected virtual void VisitInlineFragment(

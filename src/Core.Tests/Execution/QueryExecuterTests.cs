@@ -193,7 +193,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }", "a");
+                "query a { a } query b { a }", "a");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);

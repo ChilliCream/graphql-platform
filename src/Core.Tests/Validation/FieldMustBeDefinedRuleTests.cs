@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class FieldMustBeDefinedRuleTests
+        : ValidationTestBase
     {
+        public FieldMustBeDefinedRuleTests()
+            : base(new FieldMustBeDefinedRule())
+        {
+        }
+
         [Fact]
         public void FieldIsNotDefinedOnTypeInFragment()
         {
@@ -21,8 +27,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new FieldMustBeDefinedRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -47,8 +52,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new FieldMustBeDefinedRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -66,8 +70,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new FieldMustBeDefinedRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -95,8 +98,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new FieldMustBeDefinedRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -116,8 +118,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new FieldMustBeDefinedRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);

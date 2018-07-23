@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class ExecutableDefinitionsRuleTests
+        : ValidationTestBase
     {
+        public ExecutableDefinitionsRuleTests()
+            : base(new ExecutableDefinitionsRule())
+        {
+        }
+
         [Fact]
         public void QueryWithTypeSystemDefinitions()
         {
@@ -24,8 +30,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new ExecutableDefinitionsRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -50,8 +55,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new ExecutableDefinitionsRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);

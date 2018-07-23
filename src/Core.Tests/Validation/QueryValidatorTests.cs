@@ -158,7 +158,10 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "A document containing operations that " +
                     "define more than one variable with the same " +
-                    "name is invalid for execution.", t.Message));
+                    "name is invalid for execution.", t.Message),
+                t => Assert.Equal(
+                    "The field `isHousetrained` does not exist " +
+                    "on the type `Dog`.", t.Message));
         }
 
         [Fact]
@@ -233,7 +236,10 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     $"Subscription operation `sub` must " +
-                    "have exactly one root field.", t.Message));
+                    "have exactly one root field.", t.Message),
+                t => Assert.Equal(
+                    "The field `disallowedSecondRootField` does not exist " +
+                    "on the type `Subscription`.", t.Message));
         }
 
         [Fact]
@@ -265,6 +271,36 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The field `kawVolume` does not exist " +
                     "on the type `Dog`.", t.Message));
+        }
+
+        [Fact]
+        public void VariableNotUsedWithinFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
+                    dog {
+                        ...isHousetrainedWithoutVariableFragment
+                    }
+                }
+
+                fragment isHousetrainedWithoutVariableFragment on Dog {
+                    barkVolume
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not used: " +
+                    "atOtherHomes.", t.Message));
         }
     }
 }

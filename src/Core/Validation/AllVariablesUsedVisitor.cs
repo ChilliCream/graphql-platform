@@ -11,6 +11,8 @@ namespace HotChocolate.Validation
         : QueryVisitor
     {
         private readonly HashSet<string> _usedVariables = new HashSet<string>();
+        private readonly HashSet<string> _visitedFragments =
+            new HashSet<string>();
         private readonly List<ValidationError> _errors =
             new List<ValidationError>();
 
@@ -50,6 +52,7 @@ namespace HotChocolate.Validation
 
                     declaredVariables.Clear();
                     _usedVariables.Clear();
+                    _visitedFragments.Clear();
                 }
             }
         }
@@ -62,16 +65,21 @@ namespace HotChocolate.Validation
             if (path.Last() is DocumentNode d)
             {
                 string fragmentName = fragmentSpread.Name.Value;
-                IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
-                    .OfType<FragmentDefinitionNode>()
-                    .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
-
-                foreach (FragmentDefinitionNode fragment in fragments)
+                if (_visitedFragments.Add(fragmentName))
                 {
-                    VisitFragmentDefinition(fragment,
-                        path.Push(fragmentSpread));
+                    IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
+                        .OfType<FragmentDefinitionNode>()
+                        .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
+
+                    foreach (FragmentDefinitionNode fragment in fragments)
+                    {
+                        VisitFragmentDefinition(fragment,
+                            path.Push(fragmentSpread));
+                    }
                 }
             }
+
+            base.VisitFragmentSpread(fragmentSpread, type, path);
         }
 
         protected override void VisitField(
@@ -79,17 +87,27 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            foreach (ArgumentNode argumentNode in field.Arguments)
+            VisitArguments(field.Arguments);
+            base.VisitField(field, type, path);
+        }
+
+        protected override void VisitDirective(
+            DirectiveNode directive,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            VisitArguments(directive.Arguments);
+            base.VisitDirective(directive, path);
+        }
+
+        private void VisitArguments(IEnumerable<ArgumentNode> arguments)
+        {
+            foreach (ArgumentNode argumentNode in arguments)
             {
                 if (argumentNode.Value is VariableNode v)
                 {
                     _usedVariables.Add(v.Value);
                 }
             }
-
-            base.VisitField(field, type, path);
         }
     }
-
-
 }
