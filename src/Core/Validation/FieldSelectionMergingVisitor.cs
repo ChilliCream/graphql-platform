@@ -13,6 +13,8 @@ namespace HotChocolate.Validation
     {
         private Dictionary<SelectionSetNode, List<FieldInfo>> _fieldSelectionSets =
             new Dictionary<SelectionSetNode, List<FieldInfo>>();
+        private readonly HashSet<string> _visitedFragments =
+            new HashSet<string>();
 
         public FieldSelectionMergingVisitor(ISchema schema)
             : base(schema)
@@ -21,7 +23,25 @@ namespace HotChocolate.Validation
 
         public override void VisitDocument(DocumentNode document)
         {
-            base.VisitDocument(document);
+            ImmutableStack<ISyntaxNode> path =
+                ImmutableStack<ISyntaxNode>.Empty.Push(document);
+
+            foreach (OperationDefinitionNode operation in document.Definitions
+                .OfType<OperationDefinitionNode>())
+            {
+                VisitOperationDefinition(operation, path);
+            }
+
+            foreach (FragmentDefinitionNode fragment in document.Definitions
+                .OfType<FragmentDefinitionNode>())
+            {
+                string fragmentName = fragment.Name.Value;
+                if (_visitedFragments.Add(fragmentName))
+                {
+                    VisitFragmentDefinition(fragment, path);
+                }
+            }
+
             FindNonMergableFields();
         }
 
@@ -49,6 +69,31 @@ namespace HotChocolate.Validation
             base.VisitSelectionSet(selectionSet, type, path);
         }
 
+        protected override void VisitFragmentSpread(
+            FragmentSpreadNode fragmentSpread,
+            IType type,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            if (path.Last() is DocumentNode d)
+            {
+                string fragmentName = fragmentSpread.Name.Value;
+                if (_visitedFragments.Add(fragmentName))
+                {
+                    IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
+                        .OfType<FragmentDefinitionNode>()
+                        .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
+
+                    foreach (FragmentDefinitionNode fragment in fragments)
+                    {
+                        VisitFragmentDefinition(fragment,
+                            path.Push(fragmentSpread));
+                    }
+                }
+            }
+
+            base.VisitFragmentSpread(fragmentSpread, type, path);
+        }
+
         private bool TryGetSelectionSet(
             ImmutableStack<ISyntaxNode> path,
             out SelectionSetNode selectionSet)
@@ -61,6 +106,7 @@ namespace HotChocolate.Validation
                 if (current.Peek() is SelectionSetNode set)
                 {
                     root = set;
+                    var x = current.Pop().Peek();
                     if (IsRelevantSelectionSet(current.Pop().Peek()))
                     {
                         selectionSet = set;

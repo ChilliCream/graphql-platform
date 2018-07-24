@@ -214,9 +214,7 @@ We currently support the following parts of the current [draft spec](http://face
 
 ### Validation
 
-- [ ] Validation
-
-  For a detailed view of which validation rule is currently implemented, have a look at our issues.
+- [ ] [Validation](https://github.com/ChilliCream/hotchocolate/projects/3)
 
 ### Execution
 

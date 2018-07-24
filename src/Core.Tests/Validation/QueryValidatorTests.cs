@@ -389,5 +389,30 @@ namespace HotChocolate.Validation
                     "The type of variable `catOrDog` is not an input type.",
                     t.Message));
         }
+
+        [Fact]
+        public void ConflictingBecauseAlias()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment conflictingBecauseAlias on Dog {
+                    name: nickname
+                    name
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                        "The query has non-mergable fields.",
+                        t.Message));
+        }
     }
 }

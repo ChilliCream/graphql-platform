@@ -274,5 +274,79 @@ namespace HotChocolate.Validation
                         "The query has non-mergable fields.",
                         t.Message));
         }
+
+        [Fact]
+        public void ShortHandQueryWithNoDuplicateFields()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(
+                "{ __type (type: \"Foo\") " +
+                "{ name fields { name type { name } } } }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void ShortHandQueryWithDuplicateFieldInSecondLevelFragment()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: DOWN)
+                        ... FooLevel1
+                    }
+                }
+
+                fragment FooLevel1 on Dog {
+                    ... FooLevel2
+                }
+
+                fragment FooLevel2 on Dog {
+                    doesKnowCommand(dogCommand: HEEL)
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+        }
+
+        [Fact]
+        public void ShortHandQueryWithDupMergableFieldInSecondLevelFragment()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: DOWN)
+                        ... FooLevel1
+                    }
+                }
+
+                fragment FooLevel1 on Dog {
+                    ... FooLevel2
+                }
+
+                fragment FooLevel2 on Dog {
+                    doesKnowCommand(dogCommand: DOWN)
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
     }
 }
