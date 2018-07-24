@@ -8,20 +8,15 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class AllVariablesUsedVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
         private readonly HashSet<string> _usedVariables = new HashSet<string>();
         private readonly HashSet<string> _visitedFragments =
             new HashSet<string>();
-        private readonly List<ValidationError> _errors =
-            new List<ValidationError>();
-
         public AllVariablesUsedVisitor(ISchema schema)
             : base(schema)
         {
         }
-
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
 
         public override void VisitDocument(DocumentNode document)
         {
@@ -44,7 +39,7 @@ namespace HotChocolate.Validation
                     declaredVariables.ExceptWith(_usedVariables);
                     if (declaredVariables.Count > 0)
                     {
-                        _errors.Add(new ValidationError(
+                        Errors.Add(new ValidationError(
                             "The following variables were not used: " +
                             $"{string.Join(", ", declaredVariables)}.",
                             operation));

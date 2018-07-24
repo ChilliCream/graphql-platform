@@ -14,31 +14,11 @@ namespace HotChocolate.Validation
     /// http://facebook.github.io/graphql/draft/#sec-Directives-Are-Unique-Per-Location
     /// </summary>
     internal sealed class DirectivesAreUniquePerLocationRule
-        : IQueryValidationRule
+        : QueryVisitorValidationErrorBase
     {
-        public QueryValidationResult Validate(
-            ISchema schema,
-            DocumentNode queryDocument)
+        protected override QueryVisitorErrorBase CreateVisitor(ISchema schema)
         {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (queryDocument == null)
-            {
-                throw new ArgumentNullException(nameof(queryDocument));
-            }
-
-            var visitor = new DirectivesAreUniquePerLocationVisitor(schema);
-            visitor.VisitDocument(queryDocument);
-
-            if (visitor.Errors.Count == 0)
-            {
-                return QueryValidationResult.OK;
-            }
-
-            return new QueryValidationResult(visitor.Errors);
+            return new DirectivesAreUniquePerLocationVisitor(schema);
         }
     }
 }

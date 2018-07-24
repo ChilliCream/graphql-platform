@@ -9,31 +9,11 @@ namespace HotChocolate.Validation
     /// http://facebook.github.io/graphql/June2018/#sec-Single-root-field
     /// </summary>
     internal sealed class SubscriptionSingleRootFieldRule
-        : IQueryValidationRule
+        : QueryVisitorValidationErrorBase
     {
-        public QueryValidationResult Validate(
-            ISchema schema,
-            DocumentNode queryDocument)
+        protected override QueryVisitorErrorBase CreateVisitor(ISchema schema)
         {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (queryDocument == null)
-            {
-                throw new ArgumentNullException(nameof(queryDocument));
-            }
-
-            var visitor = new SubscriptionSingleRootFieldVisitor(schema);
-            visitor.VisitDocument(queryDocument);
-
-            if (visitor.Errors.Count == 0)
-            {
-                return QueryValidationResult.OK;
-            }
-
-            return new QueryValidationResult(visitor.Errors);
+            return new SubscriptionSingleRootFieldVisitor(schema);
         }
     }
 }

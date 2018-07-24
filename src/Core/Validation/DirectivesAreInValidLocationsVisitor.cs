@@ -7,19 +7,15 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class DirectivesAreInValidLocationsVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
         private readonly Dictionary<string, Directive> _directives;
-        private readonly List<ValidationError> _errors =
-            new List<ValidationError>();
 
         public DirectivesAreInValidLocationsVisitor(ISchema schema)
             : base(schema)
         {
             _directives = schema.Directives.ToDictionary(t => t.Name);
         }
-
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
 
         protected override void VisitDirective(
             DirectiveNode directive,
@@ -30,7 +26,7 @@ namespace HotChocolate.Validation
                     out Types.DirectiveLocation location)
                 && !d.Locations.Contains(location))
             {
-                _errors.Add(new ValidationError(
+                Errors.Add(new ValidationError(
                     "The specified directive is not valid the " +
                     "current location.", directive));
             }

@@ -10,17 +10,12 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class FieldMustBeDefinedVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
-        private readonly List<ValidationError> _errors =
-            new List<ValidationError>();
-
         public FieldMustBeDefinedVisitor(ISchema schema)
             : base(schema)
         {
         }
-
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
 
         protected override void VisitSelectionSet(
             SelectionSetNode selectionSet,
@@ -30,7 +25,7 @@ namespace HotChocolate.Validation
             if (type is UnionType ut
                 && !HasOnylTypeNameField(selectionSet))
             {
-                _errors.Add(new ValidationError(
+                Errors.Add(new ValidationError(
                     "A union type cannot declare a field directly. " +
                     "Use inline fragments or fragments instead", selectionSet));
             }
@@ -48,7 +43,7 @@ namespace HotChocolate.Validation
             if (type is IComplexOutputType ct
                 && !ct.Fields.ContainsField(field.Name.Value))
             {
-                _errors.Add(new ValidationError(
+                Errors.Add(new ValidationError(
                     $"The field `{field.Name.Value}` does not exist " +
                     $"on the type `{ct.Name}`.", field));
             }
