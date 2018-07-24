@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
             if (obj == null)
             {
-                return new NullValueNode();
+                return NullValueNode.Default;
             }
 
             return ParseObject(new HashSet<object>(), inputObjectType, obj);
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
         {
             if (fieldValue == null)
             {
-                fieldValues[field.Name] = new NullValueNode();
+                fieldValues[field.Name] = NullValueNode.Default;
             }
             else if (fieldType.IsNonNullType())
             {
@@ -111,7 +111,7 @@ namespace HotChocolate.Types
                     return ParseScalarList((IInputType)elementType, enumerable);
                 }
             }
-            return new NullValueNode();
+            return NullValueNode.Default;
         }
 
         private static IValueNode ParseScalarList(

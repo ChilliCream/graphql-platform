@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>HotChocolate.Benchmark.Tests</RootNamespace>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

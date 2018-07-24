@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
             Dictionary<string, IValueNode> variableValues =
                 new Dictionary<string, IValueNode>()
                 {
-                    { "a", new NullValueNode() }
+                    { "a", NullValueNode.Default }
                 };
 
             Schema schema = CreateSchema();
