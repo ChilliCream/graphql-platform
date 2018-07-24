@@ -30,9 +30,13 @@ namespace HotChocolate.AspNetCore
                 Query = requestQuery[_queryIdentifier].ToString(),
                 NamedQuery = requestQuery[_namedQueryIdentifier].ToString(),
                 OperationName = requestQuery[_operationNameIdentifier].ToString(),
-                Variables = variables.Any() ? JObject.Parse(variables) : null
+                Variables = variables.Any()
+                    ? JObject.Parse(variables.ToString().Trim('\"'))
+                    : null
             };
         }
+
+
 
         private static bool HasQueryParameter(HttpContext context)
         {

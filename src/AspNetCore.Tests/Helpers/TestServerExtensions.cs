@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,12 @@ namespace HotChocolate.AspNetCore
 
             return testServer.CreateClient()
                 .GetAsync($"http://localhost:5000?query={normalizedQuery}");
+        }
+
+        public static Task<HttpResponseMessage> SendGetRequestAsync(this TestServer testServer, Uri requestUri)
+        {
+            return testServer.CreateClient()
+                .GetAsync(requestUri);
         }
     }
 }
