@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     internal sealed class FieldSelectionMergingVisitor
         : QueryVisitorErrorBase
     {
-        private Dictionary<SelectionSetNode, List<FieldInfo>> _fieldSelectionSets =
+        private readonly Dictionary<SelectionSetNode, List<FieldInfo>> _fieldSelectionSets =
             new Dictionary<SelectionSetNode, List<FieldInfo>>();
         private readonly HashSet<string> _visitedFragments =
             new HashSet<string>();
@@ -106,7 +106,6 @@ namespace HotChocolate.Validation
                 if (current.Peek() is SelectionSetNode set)
                 {
                     root = set;
-                    var x = current.Pop().Peek();
                     if (IsRelevantSelectionSet(current.Pop().Peek()))
                     {
                         selectionSet = set;
@@ -154,28 +153,35 @@ namespace HotChocolate.Validation
 
                 foreach (FieldInfo fieldB in fieldGroup.Skip(1))
                 {
-                    if (SameResponseShape(fieldA, fieldB))
+                    if (!SameResponseShape(fieldA, fieldB)
+                        || !CanFieldsInSetMerge(fieldA, fieldB))
                     {
-                        if (fieldA.DeclaringType == fieldB.DeclaringType)
-                        {
-                            if (fieldA.Field.Name.Value
-                                .EqualsOrdinal(fieldB.Field.Name.Value)
-                                && AreFieldArgumentsEqual(fieldA, fieldB))
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            return true;
-                        }
+                        return false;
                     }
+                }
+            }
+
+            return true;
+        }
+
+        private bool CanFieldsInSetMerge(
+           FieldInfo fieldA, FieldInfo fieldB)
+        {
+            if (fieldA.DeclaringType == fieldB.DeclaringType)
+            {
+                if (fieldA.Field.Name.Value
+                    .EqualsOrdinal(fieldB.Field.Name.Value)
+                    && AreFieldArgumentsEqual(fieldA, fieldB))
+                {
+                    return true;
                 }
 
                 return false;
             }
-
-            return true;
+            else
+            {
+                return true;
+            }
         }
 
         private bool AreFieldArgumentsEqual(FieldInfo fieldA, FieldInfo fieldB)

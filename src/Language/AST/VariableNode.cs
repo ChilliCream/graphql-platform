@@ -4,6 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class VariableNode
         : IValueNode<string>
+        , IEquatable<VariableNode>
     {
         public VariableNode(
             NameNode name)

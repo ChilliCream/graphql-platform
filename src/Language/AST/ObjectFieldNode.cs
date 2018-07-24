@@ -4,6 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class ObjectFieldNode
         : ISyntaxNode
+        , IEquatable<ObjectFieldNode>
     {
         private int? _hash;
 

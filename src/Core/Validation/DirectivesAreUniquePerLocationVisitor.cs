@@ -20,8 +20,6 @@ namespace HotChocolate.Validation
         {
             _directives.Clear();
 
-            ISyntaxNode node = path.Peek();
-
             foreach (DirectiveNode directive in directives)
             {
                 if (!_directives.Add(directive.Name.Value))

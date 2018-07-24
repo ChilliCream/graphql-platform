@@ -20,7 +20,6 @@ namespace HotChocolate.Validation
             OperationDefinitionNode operation,
             ImmutableStack<ISyntaxNode> path)
         {
-
             foreach (VariableDefinitionNode variable in
                 operation.VariableDefinitions)
             {
@@ -47,11 +46,12 @@ namespace HotChocolate.Validation
             base.VisitDirective(directive, path);
         }
 
-        private void ValidateArguments(ISyntaxNode node, IEnumerable<ArgumentNode> arguments)
+        private void ValidateArguments(
+            ISyntaxNode node,
+            IEnumerable<ArgumentNode> arguments)
         {
             foreach (ArgumentNode argument in arguments)
             {
-
             }
         }
     }
