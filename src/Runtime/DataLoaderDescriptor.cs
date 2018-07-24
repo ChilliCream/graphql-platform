@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Runtime
 {
-    // TODO : move runtime namespace into separate lib
     public delegate Task TriggerDataLoaderAsync(
         object dataLoader,
         CancellationToken cancellationToken);

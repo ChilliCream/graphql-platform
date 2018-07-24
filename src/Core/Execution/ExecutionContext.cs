@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
         }
 
         private static object ResolveRootValue(
-            IServiceProvider serviceProvider,
+            IServiceProvider services,
             ISchema schema,
             ObjectType operationType,
             object initialValue)
@@ -104,10 +104,19 @@ namespace HotChocolate.Execution
             if (initialValue == null && schema.TryGetNativeType(
                operationType.Name, out Type nativeType))
             {
-                initialValue = serviceProvider.GetService(nativeType)
-                    ?? Activator.CreateInstance(nativeType);
+                initialValue = services.GetService(nativeType)
+                    ?? CreateRootValue(services, nativeType);
             }
             return initialValue;
+        }
+
+        private static object CreateRootValue(
+            IServiceProvider services,
+            Type nativeType)
+        {
+            ServiceFactory serviceFactory = new ServiceFactory();
+            serviceFactory.Services = services;
+            return serviceFactory.CreateInstance(nativeType);
         }
     }
 }
