@@ -135,11 +135,11 @@ namespace HotChocolate.Validation
                 Dictionary<string, ArgumentNode> argumentsOfB =
                     CreateArgumentLookup(fieldB.Field);
 
-                foreach (ArgumentNode argument in fieldA.Field.Arguments)
+                foreach (ArgumentNode argumentA in fieldA.Field.Arguments)
                 {
-                    if (!argumentsOfB.TryGetValue(argument.Name.Value,
+                    if (!argumentsOfB.TryGetValue(argumentA.Name.Value,
                         out ArgumentNode argumentB)
-                        || !AreFieldArgumentsEqual(fieldA, fieldB))
+                        || !AreFieldArgumentsEqual(argumentA, argumentB))
                     {
                         return false;
                     }
@@ -206,7 +206,7 @@ namespace HotChocolate.Validation
                 }
 
                 typeA = typeA.InnerType();
-                typeA = typeB.InnerType();
+                typeB = typeB.InnerType();
             }
 
             return true;
@@ -222,7 +222,7 @@ namespace HotChocolate.Validation
                 }
 
                 typeA = typeA.InnerType();
-                typeA = typeB.InnerType();
+                typeB = typeB.InnerType();
             }
 
             return true;
