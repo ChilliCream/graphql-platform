@@ -30,12 +30,6 @@ namespace HotChocolate.Validation
             Types.IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (field.SelectionSet != null)
-            {
-                _fieldSelectionSets.Add(field.SelectionSet,
-                    new List<FieldInfo>());
-            }
-
             if (TryGetSelectionSet(path, out SelectionSetNode selectionSet)
                 && _fieldSelectionSets.TryGetValue(selectionSet,
                     out List<FieldInfo> fields))
@@ -44,6 +38,15 @@ namespace HotChocolate.Validation
             }
 
             base.VisitField(field, type, path);
+        }
+
+        protected override void VisitSelectionSet(
+            SelectionSetNode selectionSet,
+            IType type,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            _fieldSelectionSets.Add(selectionSet, new List<FieldInfo>());
+            base.VisitSelectionSet(selectionSet, type, path);
         }
 
         private bool TryGetSelectionSet(

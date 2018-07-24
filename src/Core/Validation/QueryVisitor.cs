@@ -52,17 +52,19 @@ namespace HotChocolate.Validation
             {
                 if (selection is FieldNode field)
                 {
-                    VisitField(field, type, path);
+                    VisitField(field, type, path.Push(selectionSet));
                 }
 
                 if (selection is FragmentSpreadNode fragmentSpread)
                 {
-                    VisitFragmentSpread(fragmentSpread, type, path);
+                    VisitFragmentSpread(fragmentSpread, type,
+                        path.Push(selectionSet));
                 }
 
                 if (selection is InlineFragmentNode inlineFragment)
                 {
-                    VisitInlineFragment(inlineFragment, type, path);
+                    VisitInlineFragment(inlineFragment, type,
+                        path.Push(selectionSet));
                 }
             }
         }
