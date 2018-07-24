@@ -13,6 +13,7 @@ namespace HotChocolate.Validation
         private readonly HashSet<string> _usedVariables = new HashSet<string>();
         private readonly HashSet<string> _visitedFragments =
             new HashSet<string>();
+
         public AllVariablesUsedVisitor(ISchema schema)
             : base(schema)
         {
