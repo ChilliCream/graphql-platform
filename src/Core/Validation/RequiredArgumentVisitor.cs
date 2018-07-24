@@ -7,10 +7,8 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class RequiredArgumentVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
-        private readonly List<ValidationError> _errors =
-            new List<ValidationError>();
         private readonly Dictionary<string, Directive> _directives =
             new Dictionary<string, Directive>();
 
@@ -19,8 +17,6 @@ namespace HotChocolate.Validation
         {
             _directives = schema.Directives.ToDictionary(t => t.Name);
         }
-
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
 
         protected override void VisitField(
             FieldNode field,
@@ -71,7 +67,7 @@ namespace HotChocolate.Validation
                 if (providedArgument == null
                     || providedArgument.Value is NullValueNode)
                 {
-                    _errors.Add(new ValidationError(
+                    Errors.Add(new ValidationError(
                         $"The argument `{requiredArgument.Name}` is required " +
                         "and does not allow null values.", parent));
                 }

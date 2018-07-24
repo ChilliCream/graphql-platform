@@ -26,7 +26,7 @@ namespace HotChocolate.Types
             // arrange
             BooleanValueNode boolLiteral = new BooleanValueNode(null, true);
             StringValueNode stringLiteral = new StringValueNode(null, "12345", false);
-            NullValueNode nullLiteral = new NullValueNode(null);
+            NullValueNode nullLiteral = NullValueNode.Default;
 
             // act
             BooleanType booleanType = new BooleanType();

@@ -8,17 +8,14 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class SubscriptionSingleRootFieldVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
         private int _fieldCount;
-        private List<ValidationError> _errors = new List<ValidationError>();
 
         public SubscriptionSingleRootFieldVisitor(ISchema schema)
             : base(schema)
         {
         }
-
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
 
         public override void VisitDocument(DocumentNode document)
         {
@@ -33,7 +30,7 @@ namespace HotChocolate.Validation
 
                 if (_fieldCount > 1)
                 {
-                    _errors.Add(new ValidationError(
+                    Errors.Add(new ValidationError(
                         $"Subscription operation `{operation.Name.Value}` " +
                         "must have exactly one root field.", operation));
                 }

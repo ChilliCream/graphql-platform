@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             // act
             ListType type = new ListType(innerType);
             bool shouldBeFalse = type.IsInstanceOfType(
-                new ListValueNode(new[] { new NullValueNode() }));
+                new ListValueNode(new[] { NullValueNode.Default }));
             bool shouldBeTrue = type.IsInstanceOfType(
                 new ListValueNode(new[] { new StringValueNode("foo") }));
 

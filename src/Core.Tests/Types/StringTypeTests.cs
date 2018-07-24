@@ -38,7 +38,7 @@ namespace HotChocolate.Types
         {
             // arrange
             StringType type = new StringType();
-            NullValueNode input = new NullValueNode();
+            NullValueNode input = NullValueNode.Default;
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -132,7 +132,7 @@ namespace HotChocolate.Types
         {
             // arrange
             StringType type = new StringType();
-            NullValueNode input = new NullValueNode();
+            NullValueNode input = NullValueNode.Default;
 
             // act
             object output = type.ParseLiteral(input);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
@@ -10,8 +11,7 @@ namespace HotChocolate.Validation
     {
         protected QueryVisitor(ISchema schema)
         {
-            Schema = schema
-                ?? throw new System.ArgumentNullException(nameof(schema));
+            Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         }
 
         protected ISchema Schema { get; }
@@ -22,14 +22,14 @@ namespace HotChocolate.Validation
                 .OfType<OperationDefinitionNode>())
             {
                 VisitOperationDefinition(operation,
-                    ImmutableStack<ISyntaxNode>.Empty);
+                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
             }
 
             foreach (FragmentDefinitionNode fragment in document.Definitions
                 .OfType<FragmentDefinitionNode>())
             {
                 VisitFragmentDefinition(fragment,
-                    ImmutableStack<ISyntaxNode>.Empty);
+                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
             }
         }
 
@@ -38,8 +38,9 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, null,
-                path.Push(operation));
+            ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
+            VisitSelectionSet(operation.SelectionSet, operationType, newPath);
+            VisitDirectives(operation.Directives, newPath);
         }
 
         protected virtual void VisitSelectionSet(
@@ -51,17 +52,19 @@ namespace HotChocolate.Validation
             {
                 if (selection is FieldNode field)
                 {
-                    VisitField(field, type, path);
+                    VisitField(field, type, path.Push(selectionSet));
                 }
 
                 if (selection is FragmentSpreadNode fragmentSpread)
                 {
-                    VisitFragmentSpread(fragmentSpread, type, path);
+                    VisitFragmentSpread(fragmentSpread, type,
+                        path.Push(selectionSet));
                 }
 
                 if (selection is InlineFragmentNode inlineFragment)
                 {
-                    VisitInlineFragment(inlineFragment, type, path);
+                    VisitInlineFragment(inlineFragment, type,
+                        path.Push(selectionSet));
                 }
             }
         }
@@ -92,7 +95,8 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-
+            VisitDirectives(fragmentSpread.Directives,
+                path.Push(fragmentSpread));
         }
 
         protected virtual void VisitInlineFragment(
@@ -135,7 +139,7 @@ namespace HotChocolate.Validation
             }
         }
 
-        private void VisitDirectives(
+        protected virtual void VisitDirectives(
             IReadOnlyCollection<DirectiveNode> directives,
             ImmutableStack<ISyntaxNode> path)
         {

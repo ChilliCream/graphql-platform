@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         {
             if (value == null)
             {
-                return new NullValueNode();
+                return NullValueNode.Default;
             }
 
             if (value is bool b)

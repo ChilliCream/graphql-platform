@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            NullValueNode input = new NullValueNode();
+            NullValueNode input = NullValueNode.Default;
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
         {
             // arrange
             TType type = new TType();
-            NullValueNode input = new NullValueNode();
+            NullValueNode input = NullValueNode.Default;
 
             // act
             object output = type.ParseLiteral(input);

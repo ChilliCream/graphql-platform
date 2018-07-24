@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class ArgumentUniquenessRuleTests
+        : ValidationTestBase
     {
+        public ArgumentUniquenessRuleTests()
+            : base(new ArgumentUniquenessRule())
+        {
+        }
+
         [Fact]
         public void NoDuplicateArgument()
         {
@@ -17,8 +23,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new ArgumentUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -36,8 +41,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new ArgumentUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);

@@ -59,7 +59,10 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "A document containing TypeSystemDefinition " +
-                    "is invalid for execution.", t.Message));
+                    "is invalid for execution.", t.Message),
+                t => Assert.Equal(
+                    "The field `color` does not exist " +
+                    "on the type `Dog`.", t.Message));
         }
 
         [Fact]
@@ -158,7 +161,10 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "A document containing operations that " +
                     "define more than one variable with the same " +
-                    "name is invalid for execution.", t.Message));
+                    "name is invalid for execution.", t.Message),
+                t => Assert.Equal(
+                    "The field `isHousetrained` does not exist " +
+                    "on the type `Dog`.", t.Message));
         }
 
         [Fact]
@@ -233,7 +239,10 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     $"Subscription operation `sub` must " +
-                    "have exactly one root field.", t.Message));
+                    "have exactly one root field.", t.Message),
+                t => Assert.Equal(
+                    "The field `disallowedSecondRootField` does not exist " +
+                    "on the type `Subscription`.", t.Message));
         }
 
         [Fact]
@@ -265,6 +274,120 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The field `kawVolume` does not exist " +
                     "on the type `Dog`.", t.Message));
+        }
+
+        [Fact]
+        public void VariableNotUsedWithinFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
+                    dog {
+                        ...isHousetrainedWithoutVariableFragment
+                    }
+                }
+
+                fragment isHousetrainedWithoutVariableFragment on Dog {
+                    barkVolume
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not used: " +
+                    "atOtherHomes.", t.Message));
+        }
+
+        [Fact]
+        public void SkipDirectiveIsInTheWrongPlace()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query @skip(if: $foo) {
+                    field
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The field `field` does not exist " +
+                    "on the type `Query`.", t.Message),
+                t => Assert.Equal(
+                    "The specified directive is not valid the " +
+                    "current location.", t.Message));
+        }
+
+        [Fact]
+        public void QueriesWithInvalidVariableTypes()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query takesCat($cat: Cat) {
+                    # ...
+                }
+
+                query takesDogBang($dog: Dog!) {
+                    # ...
+                }
+
+                query takesListOfPet($pets: [Pet]) {
+                    # ...
+                }
+
+                query takesCatOrDog($catOrDog: CatOrDog) {
+                    # ...
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not used: cat.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: dog.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: pets.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The following variables were not used: catOrDog.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `cat` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `dog` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `pets` is not an input type.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The type of variable `catOrDog` is not an input type.",
+                    t.Message));
         }
     }
 }

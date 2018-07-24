@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation
@@ -9,21 +10,11 @@ namespace HotChocolate.Validation
     /// http://facebook.github.io/graphql/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
     /// </summary>
     internal sealed class FieldMustBeDefinedRule
-        : IQueryValidationRule
+        : QueryVisitorValidationErrorBase
     {
-        public QueryValidationResult Validate(
-            ISchema schema,
-            DocumentNode queryDocument)
+        protected override QueryVisitorErrorBase CreateVisitor(ISchema schema)
         {
-            var visitor = new FieldMustBeDefinedVisitor(schema);
-            visitor.VisitDocument(queryDocument);
-
-            if (visitor.Errors.Count == 0)
-            {
-                return QueryValidationResult.OK;
-            }
-
-            return new QueryValidationResult(visitor.Errors);
+            return new FieldMustBeDefinedVisitor(schema);
         }
     }
 }

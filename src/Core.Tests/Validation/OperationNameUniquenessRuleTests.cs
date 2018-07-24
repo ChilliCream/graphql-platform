@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class OperationNameUniquenessRuleTests
+        : ValidationTestBase
     {
+        public OperationNameUniquenessRuleTests()
+            : base(new OperationNameUniquenessRule())
+        {
+        }
+
         [Fact]
         public void TwoUniqueQueryOperations()
         {
@@ -27,8 +33,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new OperationNameUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -58,8 +63,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new OperationNameUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -89,8 +93,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new OperationNameUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
