@@ -53,22 +53,32 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path,
             out SelectionSetNode selectionSet)
         {
+            SelectionSetNode root = null;
             ImmutableStack<ISyntaxNode> current = path;
 
             while (current.Any())
             {
-                if (current.Peek() is SelectionSetNode set
-                    && _fieldSelectionSets.ContainsKey(set))
+                if (current.Peek() is SelectionSetNode set)
                 {
-                    selectionSet = set;
-                    return true;
+                    root = set;
+                    if (IsRelevantSelectionSet(current.Pop().Peek()))
+                    {
+                        selectionSet = set;
+                        return true;
+                    }
                 }
 
                 current = current.Pop();
             }
 
-            selectionSet = null;
-            return false;
+            selectionSet = root;
+            return root != null;
+        }
+
+        private bool IsRelevantSelectionSet(ISyntaxNode syntaxNode)
+        {
+            return syntaxNode is FieldNode
+                || syntaxNode is OperationDefinitionNode;
         }
 
         private void FindNonMergableFields()

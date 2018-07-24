@@ -202,5 +202,77 @@ namespace HotChocolate.Validation
                         t.Message));
         }
 
+        [Fact]
+        public void SafeDifferingFields()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment safeDifferingFields on Pet {
+                    ... on Dog {
+                        volume: barkVolume
+                    }
+                    ... on Cat {
+                        volume: meowVolume
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void SafeDifferingArgs()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment safeDifferingArgs on Pet {
+                    ... on Dog {
+                        doesKnowCommand(dogCommand: SIT)
+                    }
+                    ... on Cat {
+                        doesKnowCommand(catCommand: JUMP)
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void ConflictingDifferingResponses()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment conflictingDifferingResponses on Pet {
+                    ... on Dog {
+                        someValue: nickname
+                    }
+                    ... on Cat {
+                        someValue: meowVolume
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                        "The query has non-mergable fields.",
+                        t.Message));
+        }
     }
 }

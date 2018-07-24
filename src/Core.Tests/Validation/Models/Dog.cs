@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
 
         public string Nickname { get; set; }
 
-        public int? BarkVolume { get; set; }
+        public int BarkVolume { get; set; }
 
         public bool DoesKnowCommand(DogCommand dogCommand)
         {
