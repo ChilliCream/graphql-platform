@@ -110,20 +110,19 @@ namespace HotChocolate.Validation
                 {
                     if (SameResponseShape(fieldA, fieldB))
                     {
-                        // TODO : we have to check if the declaring types are different if those field belong to fragments
-                        // if (fieldA.DeclaringType == fieldB.DeclaringType)
-                        // {
-                        if (fieldA.Field.Name.Value
-                            .EqualsOrdinal(fieldB.Field.Name.Value)
-                            && AreFieldArgumentsEqual(fieldA, fieldB))
+                        if (fieldA.DeclaringType == fieldB.DeclaringType)
+                        {
+                            if (fieldA.Field.Name.Value
+                                .EqualsOrdinal(fieldB.Field.Name.Value)
+                                && AreFieldArgumentsEqual(fieldA, fieldB))
+                            {
+                                return true;
+                            }
+                        }
+                        else
                         {
                             return true;
                         }
-                        // }
-                        // else
-                        // {
-
-                        // }
                     }
                 }
 
