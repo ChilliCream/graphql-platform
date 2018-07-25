@@ -40,25 +40,32 @@ namespace HotChocolate.Validation
 
             // nonNullBooleanArgField(nonNullBooleanArg: Boolean!): Boolean!
             descriptor.Field("nonNullBooleanArgField")
-            .Argument("nonNullBooleanArg",
-                t => t.Type<NonNullType<BooleanType>>())
-            .Type<NonNullType<BooleanType>>()
-            .Resolver(() => null);
+                .Argument("nonNullBooleanArg",
+                    t => t.Type<NonNullType<BooleanType>>())
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => null);
 
             // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
             descriptor.Field("multiplbooleanListArgFieldeReqs")
-            .Argument("booleanListArg",
-                t => t.Type<NonNullType<ListType<BooleanType>>>())
-            .Type<ListType<BooleanType>>()
-            .Resolver(() => null);
+                .Argument("booleanListArg",
+                    t => t.Type<NonNullType<ListType<BooleanType>>>())
+                .Type<ListType<BooleanType>>()
+                .Resolver(() => null);
 
             // optionalNonNullBooleanArgField(optionalBooleanArg: Boolean! = false) : Boolean!
             descriptor.Field("optionalNonNullBooleanArgField")
-            .Argument("optionalBooleanArg",
-                t => t.Type<NonNullType<BooleanType>>().DefaultValue(false))
-            .Argument("y", t => t.Type<NonNullType<IntType>>())
-            .Type<NonNullType<BooleanType>>()
-            .Resolver(() => null);
+                .Argument("optionalBooleanArg",
+                    t => t.Type<NonNullType<BooleanType>>().DefaultValue(false))
+                .Argument("y", t => t.Type<NonNullType<IntType>>())
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => null);
+
+            // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
+            descriptor.Field("nonNullBooleanListField")
+                .Argument("nonNullBooleanListArg",
+                    t => t.Type<NonNullType<ListType<BooleanType>>>())
+                .Type<ListType<BooleanType>>()
+                .Resolver(() => null);
         }
     }
 }

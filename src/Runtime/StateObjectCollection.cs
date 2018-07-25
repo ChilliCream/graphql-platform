@@ -8,6 +8,7 @@ namespace HotChocolate.Runtime
         : IDisposable
     {
         private readonly object _sync = new object();
+        private bool _disposed;
 
         private ImmutableDictionary<TKey, object> _instances =
             ImmutableDictionary<TKey, object>.Empty;
@@ -58,10 +59,19 @@ namespace HotChocolate.Runtime
 
         public void Dispose()
         {
-            foreach (IDisposable disposable in
-                _instances.Values.OfType<IDisposable>())
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
             {
-                disposable.Dispose();
+                foreach (IDisposable disposable in
+                    _instances.Values.OfType<IDisposable>())
+                {
+                    disposable.Dispose();
+                }
             }
         }
     }

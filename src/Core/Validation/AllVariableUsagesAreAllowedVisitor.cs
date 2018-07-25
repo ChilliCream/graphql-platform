@@ -26,6 +26,8 @@ namespace HotChocolate.Validation
             IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
             ImmutableStack<ISyntaxNode> path)
         {
+            // we only want to visit framnet definitions that are used by
+            // operations. So, we skip visiting all fragment definitions.
         }
 
         protected override void VisitOperationDefinition(
@@ -92,20 +94,18 @@ namespace HotChocolate.Validation
             {
                 if (_variableDefinitions.TryGetValue(
                     variableUsage.Name,
-                    out VariableDefinitionNode variableDefinition))
-                {
-                    if (!IsVariableUsageAllowed(
+                    out VariableDefinitionNode variableDefinition)
+                    && !IsVariableUsageAllowed(
                         variableDefinition, variableUsage))
-                    {
-                        string variableName =
-                            variableDefinition.Variable.Name.Value;
+                {
+                    string variableName =
+                        variableDefinition.Variable.Name.Value;
 
-                        Errors.Add(new ValidationError(
-                            $"The variable `{variableName}` type is not " +
-                            "compatible with the type of the argument " +
-                            $"`{variableUsage.InputField.Name}`.",
-                            variableUsage.Argument, variableDefinition));
-                    }
+                    Errors.Add(new ValidationError(
+                        $"The variable `{variableName}` type is not " +
+                        "compatible with the type of the argument " +
+                        $"`{variableUsage.InputField.Name}`.",
+                        variableUsage.Argument, variableDefinition));
                 }
             }
         }
@@ -118,13 +118,8 @@ namespace HotChocolate.Validation
             if (variableUsage.Type.IsNonNullType()
                 && !variableDefinition.Type.IsNonNullType())
             {
-                bool hasVariableDefinionDefaultValue =
-                    !(variableDefinition.DefaultValue is NullValueNode);
-                bool hasLocationDefaultValue =
-                    !(variableUsage.InputField.DefaultValue is NullValueNode);
-
-                if (!hasVariableDefinionDefaultValue
-                    && !hasLocationDefaultValue)
+                if (variableDefinition.DefaultValue.IsNull()
+                    && variableUsage.InputField.DefaultValue.IsNull())
                 {
                     return false;
                 }

@@ -22,7 +22,8 @@ namespace HotChocolate.Validation
                 new AllVariablesUsedRule(),
                 new DirectivesAreInValidLocationsRule(),
                 new VariablesAreInputTypesRule(),
-                new FieldSelectionMergingRule()
+                new FieldSelectionMergingRule(),
+                new AllVariableUsagesAreAllowedRule(),
             };
 
         private readonly ISchema _schema;

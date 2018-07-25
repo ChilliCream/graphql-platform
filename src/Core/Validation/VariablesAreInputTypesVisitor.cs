@@ -22,15 +22,13 @@ namespace HotChocolate.Validation
                 operation.VariableDefinitions)
             {
                 if (Schema.TryGetTypeFromAst(variableDefinition.Type,
-                    out IType type))
+                    out IType type)
+                    && !type.IsInputType())
                 {
-                    if (!type.IsInputType())
-                    {
-                        Errors.Add(new ValidationError(
-                            "The type of variable " +
-                            $"`{variableDefinition.Variable.Name.Value}` " +
-                            "is not an input type.", variableDefinition));
-                    }
+                    Errors.Add(new ValidationError(
+                        "The type of variable " +
+                        $"`{variableDefinition.Variable.Name.Value}` " +
+                        "is not an input type.", variableDefinition));
                 }
             }
         }
