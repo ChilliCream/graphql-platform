@@ -34,6 +34,22 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void NullableType()
+        {
+            // arrange
+            var namedType = new NamedTypeNode(null, new NameNode("Foo"));
+            var nonNullType = new NonNullTypeNode(null, namedType);
+
+            // act
+            ITypeNode a = nonNullType.NullableType();
+            ITypeNode b = namedType.NullableType();
+
+            // assert
+            Assert.Equal(namedType, a);
+            Assert.Equal(namedType, b);
+        }
+
+        [Fact]
         public void IsListType()
         {
             // arrange

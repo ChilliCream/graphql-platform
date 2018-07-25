@@ -56,6 +56,7 @@ namespace HotChocolate.Validation
                     .OfType<FragmentDefinitionNode>()
                     .FirstOrDefault(t =>
                         t.Name.Value.EqualsOrdinal(fragmentSpread.Name.Value));
+
                 if (fragment != null)
                 {
                     VisitFragmentDefinition(fragment, path.Push(fragmentSpread));

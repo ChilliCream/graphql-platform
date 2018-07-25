@@ -69,31 +69,6 @@ namespace HotChocolate.Validation
             base.VisitSelectionSet(selectionSet, type, path);
         }
 
-        protected override void VisitFragmentSpread(
-            FragmentSpreadNode fragmentSpread,
-            IType type,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            if (path.Last() is DocumentNode d)
-            {
-                string fragmentName = fragmentSpread.Name.Value;
-                if (_visitedFragments.Add(fragmentName))
-                {
-                    IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
-                        .OfType<FragmentDefinitionNode>()
-                        .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
-
-                    foreach (FragmentDefinitionNode fragment in fragments)
-                    {
-                        VisitFragmentDefinition(fragment,
-                            path.Push(fragmentSpread));
-                    }
-                }
-            }
-
-            base.VisitFragmentSpread(fragmentSpread, type, path);
-        }
-
         private bool TryGetSelectionSet(
             ImmutableStack<ISyntaxNode> path,
             out SelectionSetNode selectionSet)

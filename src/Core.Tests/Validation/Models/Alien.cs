@@ -1,6 +1,6 @@
 namespace HotChocolate.Validation
 {
-    public class Alient
+    public class Alien
         : ISentient
     {
         public string Name { get; set; }

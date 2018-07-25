@@ -29,6 +29,16 @@ namespace HotChocolate.Language
             return type;
         }
 
+        public static ITypeNode NullableType(this ITypeNode type)
+        {
+            if (type is NonNullTypeNode n)
+            {
+                return n.Type;
+            }
+
+            return type;
+        }
+
         public static NamedTypeNode NamedType(this ITypeNode type)
         {
             if (type.InnerType().InnerType().InnerType() is NamedTypeNode n)

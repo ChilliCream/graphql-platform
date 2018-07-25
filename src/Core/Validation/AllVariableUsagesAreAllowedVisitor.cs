@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,13 +10,21 @@ namespace HotChocolate.Validation
     internal sealed class AllVariableUsagesAreAllowedVisitor
         : QueryVisitorErrorBase
     {
+        private readonly Dictionary<string, Directive> _directives;
         private readonly Dictionary<string, VariableDefinitionNode> _variableDefinitions
             = new Dictionary<string, VariableDefinitionNode>();
-        private readonly List<VariableNode> _variablesUsages =
-            new List<VariableNode>();
+        private readonly List<VariableUsage> _variablesUsages =
+            new List<VariableUsage>();
 
         public AllVariableUsagesAreAllowedVisitor(ISchema schema)
             : base(schema)
+        {
+            _directives = schema.Directives.ToDictionary(t => t.Name);
+        }
+
+        protected override void VisitFragmentDefinitions(
+            IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
+            ImmutableStack<ISyntaxNode> path)
         {
         }
 
@@ -23,14 +32,15 @@ namespace HotChocolate.Validation
             OperationDefinitionNode operation,
             ImmutableStack<ISyntaxNode> path)
         {
+            base.VisitOperationDefinition(operation, path);
+
             foreach (VariableDefinitionNode variable in
                 operation.VariableDefinitions)
             {
                 _variableDefinitions[variable.Variable.Name.Value] = variable;
             }
 
-            base.VisitOperationDefinition(operation, path);
-
+            FindVariableUsageErrors();
 
             _variableDefinitions.Clear();
             _variablesUsages.Clear();
@@ -41,7 +51,11 @@ namespace HotChocolate.Validation
            IType type,
            ImmutableStack<ISyntaxNode> path)
         {
-            ValidateArguments(field, field.Arguments);
+            if (type is IComplexOutputType ct
+                && ct.Fields.TryGetField(field.Name.Value, out IOutputField of))
+            {
+                ValidateArguments(of.Arguments, field.Arguments);
+            }
             base.VisitField(field, type, path);
         }
 
@@ -49,36 +63,86 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            ValidateArguments(directive, directive.Arguments);
+            if (_directives.TryGetValue(directive.Name.Value, out Directive d))
+            {
+                ValidateArguments(d.Arguments, directive.Arguments);
+            }
             base.VisitDirective(directive, path);
         }
 
         private void ValidateArguments(
-            ISyntaxNode node,
-            IEnumerable<ArgumentNode> arguments)
+            IFieldCollection<IInputField> arguments,
+            IEnumerable<ArgumentNode> argumentNodes)
         {
-            foreach (ArgumentNode argument in arguments)
+            foreach (ArgumentNode argument in argumentNodes)
             {
-
+                if (argument.Value is VariableNode vn
+                    && arguments.TryGetField(argument.Name.Value,
+                        out IInputField f))
+                {
+                    _variablesUsages.Add(
+                        new VariableUsage(f, argument, vn));
+                }
             }
         }
 
         private void FindVariableUsageErrors()
         {
-            foreach (VariableNode variableUsage in _variablesUsages)
+            foreach (VariableUsage variableUsage in _variablesUsages)
             {
                 if (_variableDefinitions.TryGetValue(
-                    variableUsage.Name.Value,
-                    out VariableDefinitionNode expectedVariableType))
+                    variableUsage.Name,
+                    out VariableDefinitionNode variableDefinition))
                 {
+                    if (!IsVariableUsageAllowed(
+                        variableDefinition, variableUsage))
+                    {
+                        string variableName =
+                            variableDefinition.Variable.Name.Value;
 
+                        Errors.Add(new ValidationError(
+                            $"The variable `{variableName}` type is not " +
+                            "compatible with the type of the argument " +
+                            $"`{variableUsage.InputField.Name}`.",
+                            variableUsage.Argument, variableDefinition));
+                    }
                 }
             }
         }
 
+        // http://facebook.github.io/graphql/June2018/#IsVariableUsageAllowed()
+        private bool IsVariableUsageAllowed(
+            VariableDefinitionNode variableDefinition,
+            VariableUsage variableUsage)
+        {
+            if (variableUsage.Type.IsNonNullType()
+                && !variableDefinition.Type.IsNonNullType())
+            {
+                bool hasVariableDefinionDefaultValue =
+                    !(variableDefinition.DefaultValue is NullValueNode);
+                bool hasLocationDefaultValue =
+                    !(variableUsage.InputField.DefaultValue is NullValueNode);
+
+                if (!hasVariableDefinionDefaultValue
+                    && !hasLocationDefaultValue)
+                {
+                    return false;
+                }
+
+                return AreTypesCompatible(
+                    variableDefinition.Type,
+                    variableUsage.Type.NullableType());
+            }
+
+            return AreTypesCompatible(
+                variableDefinition.Type,
+                variableUsage.Type);
+        }
+
+        // http://facebook.github.io/graphql/June2018/#AreTypesCompatible()
         private bool AreTypesCompatible(
             ITypeNode variableType,
-            ITypeNode locationType)
+            IType locationType)
         {
             if (locationType.IsNonNullType())
             {
@@ -115,15 +179,41 @@ namespace HotChocolate.Validation
             }
 
             if (variableType is NamedTypeNode vn
-                && locationType is NamedTypeNode ln)
+                && locationType is INamedType lt)
             {
                 return string.Equals(
                     vn.Name.Value,
-                    ln.Name.Value,
+                    lt.Name,
                     StringComparison.Ordinal);
             }
 
             return false;
+        }
+
+        private readonly struct VariableUsage
+        {
+            public VariableUsage(
+                IInputField inputField,
+                ArgumentNode argument,
+                VariableNode variable)
+            {
+                InputField = inputField
+                    ?? throw new ArgumentNullException(nameof(inputField));
+                Argument = argument
+                    ?? throw new ArgumentNullException(nameof(argument));
+                Variable = variable
+                    ?? throw new ArgumentNullException(nameof(variable));
+            }
+
+            public string Name => Variable.Name.Value;
+
+            public IType Type => InputField.Type;
+
+            public IInputField InputField { get; }
+
+            public ArgumentNode Argument { get; }
+
+            public VariableNode Variable { get; }
         }
     }
 }

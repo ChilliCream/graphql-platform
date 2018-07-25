@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,6 +10,9 @@ namespace HotChocolate.Validation
 {
     internal class QueryVisitor
     {
+        private readonly HashSet<string> _visitedFragments =
+            new HashSet<string>();
+
         protected QueryVisitor(ISchema schema)
         {
             Schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -21,14 +25,30 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path =
                 ImmutableStack<ISyntaxNode>.Empty.Push(document);
 
-            foreach (OperationDefinitionNode operation in document.Definitions
-                .OfType<OperationDefinitionNode>())
+            VisitOperationDefinitions(
+                document.Definitions.OfType<OperationDefinitionNode>(),
+                path);
+
+            VisitFragmentDefinitions(
+                document.Definitions.OfType<FragmentDefinitionNode>(),
+                path);
+        }
+
+        protected virtual void VisitOperationDefinitions(
+            IEnumerable<OperationDefinitionNode> oprationDefinitions,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            foreach (OperationDefinitionNode operation in oprationDefinitions)
             {
                 VisitOperationDefinition(operation, path);
             }
+        }
 
-            foreach (FragmentDefinitionNode fragment in document.Definitions
-                .OfType<FragmentDefinitionNode>())
+        protected virtual void VisitFragmentDefinitions(
+            IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            foreach (FragmentDefinitionNode fragment in fragmentDefinitions)
             {
                 VisitFragmentDefinition(fragment, path);
             }
@@ -99,8 +119,25 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            VisitDirectives(fragmentSpread.Directives,
-                path.Push(fragmentSpread));
+            ImmutableStack<ISyntaxNode> newpath = path.Push(fragmentSpread);
+
+            if (path.Last() is DocumentNode d)
+            {
+                string fragmentName = fragmentSpread.Name.Value;
+                if (_visitedFragments.Add(fragmentName))
+                {
+                    IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
+                        .OfType<FragmentDefinitionNode>()
+                        .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
+
+                    foreach (FragmentDefinitionNode fragment in fragments)
+                    {
+                        VisitFragmentDefinition(fragment, newpath);
+                    }
+                }
+            }
+
+            VisitDirectives(fragmentSpread.Directives, newpath);
         }
 
         protected virtual void VisitInlineFragment(

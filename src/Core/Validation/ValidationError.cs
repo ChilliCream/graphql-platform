@@ -8,7 +8,9 @@ namespace HotChocolate.Validation
     public class ValidationError
          : QueryError
     {
-        public ValidationError(string message, Language.ISyntaxNode syntaxNode)
+        public ValidationError(
+            string message,
+            Language.ISyntaxNode syntaxNode)
             : base(message)
         {
             if (syntaxNode == null)
@@ -24,8 +26,25 @@ namespace HotChocolate.Validation
             };
         }
 
-        public ValidationError(string message, IEnumerable<Language.ISyntaxNode> syntaxNodes)
+        public ValidationError(
+            string message,
+            IEnumerable<Language.ISyntaxNode> syntaxNodes)
            : base(message)
+        {
+            if (syntaxNodes == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxNodes));
+            }
+
+            Locations = syntaxNodes.Select(t => new Location(
+                t.Location.StartToken.Line,
+                t.Location.StartToken.Column)).ToArray();
+        }
+
+        public ValidationError(
+           string message,
+           params Language.ISyntaxNode[] syntaxNodes)
+          : base(message)
         {
             if (syntaxNodes == null)
             {
