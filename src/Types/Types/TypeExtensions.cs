@@ -116,6 +116,15 @@ namespace HotChocolate.Types
             return type;
         }
 
+        public static IType NullableType(this IType type)
+        {
+            if (type is NonNullType nnt)
+            {
+                return nnt.Type;
+            }
+            return type;
+        }
+
         public static string TypeName(this IType type)
         {
             IType innerType = type.InnerType().InnerType().InnerType();

@@ -11,8 +11,6 @@ namespace HotChocolate.Validation
         : QueryVisitorErrorBase
     {
         private readonly HashSet<string> _usedVariables = new HashSet<string>();
-        private readonly HashSet<string> _visitedFragments =
-            new HashSet<string>();
 
         public AllVariablesUsedVisitor(ISchema schema)
             : base(schema)
@@ -48,34 +46,8 @@ namespace HotChocolate.Validation
 
                     declaredVariables.Clear();
                     _usedVariables.Clear();
-                    _visitedFragments.Clear();
                 }
             }
-        }
-
-        protected override void VisitFragmentSpread(
-            FragmentSpreadNode fragmentSpread,
-            IType type,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            if (path.Last() is DocumentNode d)
-            {
-                string fragmentName = fragmentSpread.Name.Value;
-                if (_visitedFragments.Add(fragmentName))
-                {
-                    IEnumerable<FragmentDefinitionNode> fragments = d.Definitions
-                        .OfType<FragmentDefinitionNode>()
-                        .Where(t => t.Name.Value.EqualsOrdinal(fragmentName));
-
-                    foreach (FragmentDefinitionNode fragment in fragments)
-                    {
-                        VisitFragmentDefinition(fragment,
-                            path.Push(fragmentSpread));
-                    }
-                }
-            }
-
-            base.VisitFragmentSpread(fragmentSpread, type, path);
         }
 
         protected override void VisitField(

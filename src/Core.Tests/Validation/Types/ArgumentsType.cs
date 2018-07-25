@@ -1,51 +1,70 @@
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
     public class ArgumentsType
         : ObjectType
     {
+        public ArgumentsType()
+        {
+        }
+
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
             descriptor.Name("Arguments");
 
+            // multipleReqs(x: Int!, y: Int!): Int!
             descriptor.Field("multipleReqs")
+                .Argument("x", t => t.Type<NonNullType<IntType>>())
+                .Argument("y", t => t.Type<NonNullType<IntType>>())
                 .Type<NonNullType<IntType>>()
-                .Argument("x", a => a.Type<NonNullType<IntType>>())
-                .Argument("y", a => a.Type<NonNullType<IntType>>())
                 .Resolver(() => null);
 
+            //  booleanArgField(booleanArg: Boolean) : Boolean
             descriptor.Field("booleanArgField")
+                .Argument("booleanArg", t => t.Type<BooleanType>())
                 .Type<BooleanType>()
-                .Argument("booleanArg", a => a.Type<BooleanType>())
                 .Resolver(() => null);
 
+            // floatArgField(floatArg: Float): Float
             descriptor.Field("floatArgField")
+                .Argument("floatArg", t => t.Type<FloatType>())
                 .Type<FloatType>()
-                .Argument("floatArg", a => a.Type<FloatType>())
                 .Resolver(() => null);
 
+            // intArgField(intArg: Int): Int
             descriptor.Field("intArgField")
-                .Type<IntType>()
-                .Argument("intArg", a => a.Type<IntType>())
+                .Argument("intArg", t => t.Type<IntType>())
+                .Type<NonNullType<IntType>>()
                 .Resolver(() => null);
 
+            // nonNullBooleanArgField(nonNullBooleanArg: Boolean!): Boolean!
             descriptor.Field("nonNullBooleanArgField")
-                .Type<NonNullType<BooleanType>>()
                 .Argument("nonNullBooleanArg",
-                    a => a.Type<NonNullType<BooleanType>>())
-                .Resolver(() => null);
-
-            descriptor.Field("booleanListArgField")
-                .Type<ListType<BooleanType>>()
-                .Argument("booleanListArg",
-                    a => a.Type<NonNullType<ListType<BooleanType>>>())
-                .Resolver(() => null);
-
-            descriptor.Field("optionalNonNullBooleanArgField")
+                    t => t.Type<NonNullType<BooleanType>>())
                 .Type<NonNullType<BooleanType>>()
+                .Resolver(() => null);
+
+            // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
+            descriptor.Field("multiplbooleanListArgFieldeReqs")
+                .Argument("booleanListArg",
+                    t => t.Type<NonNullType<ListType<BooleanType>>>())
+                .Type<ListType<BooleanType>>()
+                .Resolver(() => null);
+
+            // optionalNonNullBooleanArgField(optionalBooleanArg: Boolean! = false) : Boolean!
+            descriptor.Field("optionalNonNullBooleanArgField")
                 .Argument("optionalBooleanArg",
-                    a => a.Type<NonNullType<BooleanType>>())
+                    t => t.Type<NonNullType<BooleanType>>().DefaultValue(false))
+                .Argument("y", t => t.Type<NonNullType<IntType>>())
+                .Type<NonNullType<BooleanType>>()
+                .Resolver(() => null);
+
+            // booleanListArgField(booleanListArg: [Boolean]!) : [Boolean]
+            descriptor.Field("nonNullBooleanListField")
+                .Argument("nonNullBooleanListArg",
+                    t => t.Type<NonNullType<ListType<BooleanType>>>())
+                .Type<ListType<BooleanType>>()
                 .Resolver(() => null);
         }
     }

@@ -19,8 +19,8 @@ namespace HotChocolate.Configuration
         public void RegisterLoader<T>(
             string key,
             ExecutionScope scope,
-            Func<IServiceProvider, T> loaderFactory,
-            Func<T, CancellationToken, Task> triggerLoaderAsync)
+            Func<IServiceProvider, T> loaderFactory = null,
+            Func<T, CancellationToken, Task> triggerLoaderAsync = null)
         {
             if (key == null)
             {

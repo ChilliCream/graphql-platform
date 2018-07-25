@@ -7,6 +7,9 @@ namespace HotChocolate.Validation
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
+            descriptor.Field("arguments")
+                .Type<ArgumentsType>()
+                .Resolver(() => null);
         }
     }
 }
