@@ -122,6 +122,14 @@ namespace HotChocolate.Types
             ObjectDescription.NativeType = pocoType
                 ?? throw new ArgumentNullException(nameof(pocoType));
             ObjectDescription.Name = pocoType.GetGraphQLName();
+
+            // this convention will fix most type colisions where the
+            // .net type is and input and an output type.
+            // It is still possible to opt out via the descriptor.Name("Foo").
+            if (!ObjectDescription.Name.EndsWith("Input"))
+            {
+                ObjectDescription.Name = ObjectDescription.Name + "Input";
+            }
         }
 
         protected override void CompleteFields()
