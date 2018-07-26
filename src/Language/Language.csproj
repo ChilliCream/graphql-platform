@@ -22,14 +22,12 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Lexer\" />
-    <Folder Include="AST\" />
-    <Folder Include="Parser\" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 
 </Project>

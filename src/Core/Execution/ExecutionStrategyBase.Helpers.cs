@@ -42,6 +42,16 @@ namespace HotChocolate.Execution
                 case Task<object> task:
                     return await FinalizeResolverResultTaskAsync(
                         fieldSelection, task, isDeveloperMode);
+
+                case IResolverResult result:
+                    if (result.IsError)
+                    {
+                        return new FieldError(
+                            result.ErrorMessage,
+                            fieldSelection);
+                    }
+                    return result.Value;
+
                 default:
                     return resolverResult;
             }

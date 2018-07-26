@@ -5,11 +5,17 @@ namespace HotChocolate.Language
     /// <summary>
     /// Represents the internal state of a lexer session.
     /// </summary>
-    internal sealed class LexerState
+    internal ref struct LexerState
     {
+        private readonly ReadOnlySpan<char> _sourceText;
+
         public LexerState(string sourceText)
         {
-            SourceText = sourceText;
+            _sourceText = sourceText.AsSpan();
+            Position = 0;
+            Line = 1;
+            LineStart = 0;
+            Column = 1;
         }
 
         /// <summary>
@@ -22,23 +28,29 @@ namespace HotChocolate.Language
         /// the lexer is currently pointing to.
         /// The line index is 1-based.
         /// </summary>
-        public int Line { get; private set; } = 1;
+        public int Line { get; private set; }
 
         /// <summary>
         /// The source index of where the current line starts.
         /// </summary>
-        public int LineStart { get; private set; } = 0;
+        public int LineStart { get; private set; }
 
         /// <summary>
         /// The column in the line where the lexer is currently pointing to.
         /// The column index is 1-based.
         /// </summary>
-        public int Column { get; private set; } = 1;
+        public int Column { get; private set; }
 
         /// <summary>
         /// The normalized GraphQL source text that is beeing tokenized.
         /// </summary>
-        public string SourceText { get; }
+        public ReadOnlySpan<char> _SourceText
+        {
+            get
+            {
+                return _sourceText;
+            }
+        }
 
         /// <summary>
         /// Sets the state to a new line.
@@ -84,7 +96,7 @@ namespace HotChocolate.Language
         /// <returns></returns>
         public bool IsEndOfStream()
         {
-            return !(Position < SourceText.Length);
+            return !(Position < _SourceText.Length);
         }
     }
 }

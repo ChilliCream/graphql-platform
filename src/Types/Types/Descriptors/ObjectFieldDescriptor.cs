@@ -98,7 +98,7 @@ namespace HotChocolate.Types
                 {
                     string argumentName = parameter.GetGraphQLName();
                     if (!descriptions.ContainsKey(argumentName)
-                        && IsArgumentType(parameter.ParameterType))
+                        && IsArgumentType(parameter))
                     {
                         var argumentDescriptor =
                             new ArgumentDescriptor(argumentName,
@@ -112,10 +112,10 @@ namespace HotChocolate.Types
             return descriptions.Values;
         }
 
-        private bool IsArgumentType(Type argumentType)
+        private bool IsArgumentType(ParameterInfo parameter)
         {
-            return (FieldResolverArgumentDescriptor
-                .LookupKind(argumentType, FieldDescription.Member.ReflectedType) ==
+            return (FieldResolverArgumentHelper
+                .LookupKind(parameter, FieldDescription.Member.ReflectedType) ==
                     FieldResolverArgumentKind.Argument);
         }
 

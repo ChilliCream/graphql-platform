@@ -62,7 +62,8 @@ namespace HotChocolate.Execution
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                if (resolverTask.Path.Depth <= executionContext.Options.MaxExecutionDepth)
+                if (resolverTask.Path.Depth <= executionContext
+                    .Options.MaxExecutionDepth)
                 {
                     resolverTask.ResolverResult = ExecuteResolver(
                         resolverTask, executionContext.Options.DeveloperMode,
@@ -71,7 +72,8 @@ namespace HotChocolate.Execution
                 else
                 {
                     executionContext.ReportError(resolverTask.CreateError(
-                        $"The field has a depth of {resolverTask.Path.Depth}, " +
+                        "The field has a depth of " +
+                        $"{resolverTask.Path.Depth}, " +
                         "which exceeds max allowed depth of " +
                         $"{executionContext.Options.MaxExecutionDepth}"));
                 }

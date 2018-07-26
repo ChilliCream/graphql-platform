@@ -1,5 +1,46 @@
+using System;
+
 namespace HotChocolate.Language
 {
+    public readonly struct Range
+    {
+        public Range(int start, int end)
+        {
+            Start = start;
+            End = end;
+        }
+
+        /// <summary>
+        /// Gets the character offset at which this node begins.
+        /// </summary>
+        public int Start { get; }
+
+        /// <summary>
+        /// Gets the character offset at which this node ends.
+        /// </summary>
+        public int End { get; }
+    }
+
+    public readonly struct Position
+    {
+        public Position(int line, int column)
+        {
+            Line = line;
+            Column = column;
+        }
+
+        /// <summary>
+        /// Gets the 1-indexed line number;
+        /// </summary>
+        public int Line { get; }
+
+        /// <summary>
+        /// Gets the 1-indexed column number;
+        /// </summary>
+        public int Column { get; }
+
+    }
+
     /// <summary>
     /// Represents a GraphQL syntax token.
     /// </summary>
@@ -29,15 +70,15 @@ namespace HotChocolate.Language
         /// </param>
         public SyntaxToken(
             TokenKind kind,
-            int start, int end,
-            int line, int column,
+            Range range,
+            Position position,
             SyntaxToken previous)
         {
             Kind = kind;
-            Start = start;
-            End = end;
-            Line = line;
-            Column = column;
+            Start = range.Start;
+            End = range.End;
+            Line = position.Line;
+            Column = position.Column;
             Previous = previous;
         }
 
@@ -68,16 +109,16 @@ namespace HotChocolate.Language
         /// </param>
         public SyntaxToken(
            TokenKind kind,
-           int start, int end,
-           int line, int column,
+           Range range,
+           Position position,
            string value,
            SyntaxToken previous)
         {
             Kind = kind;
-            Start = start;
-            End = end;
-            Line = line;
-            Column = column;
+            Start = range.Start;
+            End = range.End;
+            Line = position.Line;
+            Column = position.Column;
             Value = value;
             Previous = previous;
         }

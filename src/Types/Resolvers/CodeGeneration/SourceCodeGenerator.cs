@@ -74,6 +74,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 case FieldResolverArgumentKind.CancellationToken:
                     source.Append($"ct");
                     break;
+                case FieldResolverArgumentKind.DataLoader:
+                    source.Append($"ctx.{nameof(IResolverContext.Loader)}<{GetTypeName(argumentDescriptor.Type)}>()");
+                    break;
+                case FieldResolverArgumentKind.State:
+                    source.Append($"ctx.{nameof(IResolverContext.State)}<{GetTypeName(argumentDescriptor.Type)}>()");
+                    break;
                 default:
                     throw new NotSupportedException();
             }
