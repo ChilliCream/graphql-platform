@@ -47,8 +47,15 @@ namespace HotChocolate
             Debug.WriteLine("Schema Errors:");
             foreach (SchemaError error in errors)
             {
-                Debug.WriteLine(
-                    $"Type: {error.Type.Name} - Message: {error.Message}");
+                if (error.Type == null)
+                {
+                    Debug.WriteLine(error.Message);
+                }
+                else
+                {
+                    Debug.WriteLine(
+                        $"{error.Message} - Type: {error.Type.Name}");
+                }
             }
         }
     }
