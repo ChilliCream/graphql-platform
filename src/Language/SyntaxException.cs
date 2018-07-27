@@ -14,7 +14,7 @@ namespace HotChocolate.Language
             Position = context.Position;
             Line = context.Line;
             Column = context.Column;
-            SourceText = new string(context._SourceText.ToArray());
+            SourceText = context.SourceText;
         }
 
         internal SyntaxException(LexerState context,
@@ -24,7 +24,7 @@ namespace HotChocolate.Language
             Position = context.Position;
             Line = context.Line;
             Column = context.Column;
-            SourceText = new string(context._SourceText.ToArray());
+            SourceText = context.SourceText;
         }
 
         internal SyntaxException(ParserContext context, string message)
