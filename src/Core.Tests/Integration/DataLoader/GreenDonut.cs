@@ -14,20 +14,33 @@ namespace HotChocolate.Integration.DataLoader
     public class DataLoaderTests
     {
         [Fact]
-        public void RequestDataLoader()
+        public async Task RequestDataLoader()
         {
             // arrange
             ISchema schema = CreateSchema(ExecutionScope.Request);
+            QueryExecuter executer = new QueryExecuter(schema, 10);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
-            results.Add(schema.Execute(
-                "{ a: withDataLoader(key: \"a\") b: withDataLoader(key: \"b\") }"));
-            results.Add(schema.Execute("{ withDataLoader(key: \"c\") }"));
-            results.Add(schema.Execute("{ loads }"));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withDataLoader(key: ""a"")
+                    b: withDataLoader(key: ""b"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withDataLoader(key: ""a"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    c: withDataLoader(key: ""c"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                "{ loads }")));
 
             // assert
             Assert.Collection(results,
+                t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors));
@@ -35,20 +48,33 @@ namespace HotChocolate.Integration.DataLoader
         }
 
         [Fact]
-        public void GlobalDataLoader()
+        public async Task GlobalDataLoader()
         {
             // arrange
-            ISchema schema = CreateSchema(ExecutionScope.Request);
+            ISchema schema = CreateSchema(ExecutionScope.Global);
+            QueryExecuter executer = new QueryExecuter(schema, 10);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
-            results.Add(schema.Execute(
-                "{ withDataLoader(key: \"a\") withDataLoader(key: \"b\") }"));
-            results.Add(schema.Execute("{ withDataLoader(key: \"c\") }"));
-            results.Add(schema.Execute("{ loads }"));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withDataLoader(key: ""a"")
+                    b: withDataLoader(key: ""b"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withDataLoader(key: ""a"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    c: withDataLoader(key: ""c"")
+                }")));
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                "{ loads }")));
 
             // assert
             Assert.Collection(results,
+                t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors));
@@ -102,7 +128,7 @@ namespace HotChocolate.Integration.DataLoader
         protected override Task<IReadOnlyList<Result<string>>> Fetch(
             IReadOnlyList<string> keys)
         {
-            Loads.Add(keys);
+            Loads.Add(keys.OrderBy(t => t).ToArray());
             return Task.FromResult<IReadOnlyList<Result<string>>>(
                 keys.Select(t => Result<string>.Resolve(t)).ToArray());
         }
