@@ -1,11 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using GreenDonut;
-using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using Xunit;
 
@@ -88,49 +83,6 @@ namespace HotChocolate.Integration.DataLoader
                 c.RegisterDataLoader<TestDataLoader>(scope);
                 c.RegisterQueryType<Query>();
             });
-        }
-    }
-
-    public class Query
-    {
-        public Task<string> GetWithDataLoader(
-            string key,
-            FieldNode fieldSelection,
-            [DataLoader]TestDataLoader testDataLoader)
-        {
-            return testDataLoader.LoadAsync(key);
-        }
-
-        public List<string> GetLoads([DataLoader]TestDataLoader testDataLoader)
-        {
-            List<string> list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
-    }
-
-    public class TestDataLoader
-        : DataLoaderBase<string, string>
-    {
-        public TestDataLoader()
-            : base(new DataLoaderOptions<string>())
-        {
-        }
-
-        public List<IReadOnlyList<string>> Loads { get; } =
-            new List<IReadOnlyList<string>>();
-
-        protected override Task<IReadOnlyList<Result<string>>> Fetch(
-            IReadOnlyList<string> keys)
-        {
-            Loads.Add(keys.OrderBy(t => t).ToArray());
-            return Task.FromResult<IReadOnlyList<Result<string>>>(
-                keys.Select(t => Result<string>.Resolve(t)).ToArray());
         }
     }
 }

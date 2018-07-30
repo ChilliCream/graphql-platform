@@ -9,7 +9,6 @@ namespace HotChocolate.Validation
     public class QueryValidator
     {
         private static readonly IQueryValidationRule[] _rules =
-            new IQueryValidationRule[]
             {
                 new ExecutableDefinitionsRule(),
                 new LoneAnonymousOperationRule(),

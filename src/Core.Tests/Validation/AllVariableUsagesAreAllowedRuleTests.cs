@@ -33,7 +33,8 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The variable `intArg` type is not " +
                     "compatible with the type of the " +
-                    "argument `booleanArg`.",
+                    "argument `booleanArg`." +
+                    "\r\nExpected type: `Boolean`.",
                     t.Message));
         }
 
@@ -59,7 +60,8 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The variable `booleanListArg` type is not " +
                     "compatible with the type of the " +
-                    "argument `booleanArg`.",
+                    "argument `booleanArg`." +
+                    "\r\nExpected type: `Boolean`.",
                     t.Message));
         }
 
@@ -85,7 +87,8 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The variable `booleanArg` type is not " +
                     "compatible with the type of the " +
-                    "argument `nonNullBooleanArg`.",
+                    "argument `nonNullBooleanArg`." +
+                    "\r\nExpected type: `Boolean`.",
                     t.Message));
         }
 
@@ -131,7 +134,8 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "The variable `booleanList` type is not " +
                     "compatible with the type of the " +
-                    "argument `nonNullBooleanListArg`.",
+                    "argument `nonNullBooleanListArg`." +
+                    "\r\nExpected type: `Boolean`.",
                     t.Message));
         }
 

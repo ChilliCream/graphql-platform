@@ -104,7 +104,8 @@ namespace HotChocolate.Validation
                     Errors.Add(new ValidationError(
                         $"The variable `{variableName}` type is not " +
                         "compatible with the type of the argument " +
-                        $"`{variableUsage.InputField.Name}`.",
+                        $"`{variableUsage.InputField.Name}`.\r\n" +
+                        $"Expected type: `{variableUsage.Type.TypeName()}`.",
                         variableUsage.Argument, variableDefinition));
                 }
             }
