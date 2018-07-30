@@ -32,7 +32,7 @@ namespace HotChocolate.Resolvers
 
         T Service<T>();
 
-        T State<T>();
+        T CustomContext<T>();
 
         T DataLoader<T>(string key);
     }

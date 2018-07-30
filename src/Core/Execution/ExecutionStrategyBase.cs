@@ -89,9 +89,12 @@ namespace HotChocolate.Execution
             IDataLoaderProvider dataLoaders,
             CancellationToken cancellationToken)
         {
-            await Task.WhenAll(dataLoaders.Touched
-                .Select(t => t.TriggerAsync(cancellationToken)));
-            dataLoaders.Reset();
+            if (dataLoaders != null)
+            {
+                await Task.WhenAll(dataLoaders.Touched
+                    .Select(t => t.TriggerAsync(cancellationToken)));
+                dataLoaders.Reset();
+            }
         }
 
         private async Task EndExecuteResolverBatchAsync(

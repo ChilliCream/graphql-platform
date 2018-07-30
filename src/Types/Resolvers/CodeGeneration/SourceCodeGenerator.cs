@@ -78,7 +78,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     source.Append($"ctx.{nameof(IResolverContext.DataLoader)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 case FieldResolverArgumentKind.State:
-                    source.Append($"ctx.{nameof(IResolverContext.State)}<{GetTypeName(argumentDescriptor.Type)}>()");
+                    source.Append($"ctx.{nameof(IResolverContext.CustomContext)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 default:
                     throw new NotSupportedException();

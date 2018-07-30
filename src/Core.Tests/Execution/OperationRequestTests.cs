@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -17,9 +18,9 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             var dataLoaderDescriptors =
                 new DataLoaderDescriptorCollection(schema.DataLoaders);
-            var dataLoaderState = new DataLoaderState(
-                schema.Services, dataLoaderDescriptors,
-                Enumerable.Empty<StateObjectCollection<string>>());
+            var session = new Mock<ISession>(MockBehavior.Strict);
+            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
+            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -31,10 +32,7 @@ namespace HotChocolate.Execution
             OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services)
-                {
-                    DataLoaders = dataLoaderState
-                },
+                new OperationRequest(schema.Services, session.Object),
                 CancellationToken.None);
 
             // assert
@@ -63,11 +61,10 @@ namespace HotChocolate.Execution
                     cnf.BindResolver(ctx => state = ctx.Argument<int>("newNumber"))
                         .To("Mutation", "changeTheNumber");
                 });
-            var dataLoaderDescriptors =
-                new DataLoaderDescriptorCollection(schema.DataLoaders);
-            var dataLoaderState = new DataLoaderState(
-                schema.Services, dataLoaderDescriptors,
-                Enumerable.Empty<StateObjectCollection<string>>());
+
+            var session = new Mock<ISession>(MockBehavior.Strict);
+            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
+            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
 
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
@@ -78,10 +75,7 @@ namespace HotChocolate.Execution
             OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services)
-                {
-                    DataLoaders = dataLoaderState
-                },
+                new OperationRequest(schema.Services, session.Object),
                 CancellationToken.None);
 
             // assert

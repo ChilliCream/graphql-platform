@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
     internal readonly struct ResolverContext
         : IResolverContext
     {
-        // remove
+        // todo: remove
         private static readonly List<IInputValueConverter> _converters =
             new List<IInputValueConverter>
             {
@@ -132,9 +132,13 @@ namespace HotChocolate.Execution
             return (T)_executionContext.Services.GetService(typeof(T));
         }
 
-        public T State<T>()
+        public T CustomContext<T>()
         {
-            throw new NotImplementedException();
+            if (_executionContext.CustomContexts == null)
+            {
+                return default;
+            }
+            return _executionContext.CustomContexts.GetCustomContext<T>();
         }
 
         public T DataLoader<T>(string key)
