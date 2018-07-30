@@ -21,15 +21,17 @@ namespace HotChocolate
 
         private Schema(
             IServiceProvider services,
-            SchemaTypes types,
-            IReadOnlyCollection<Directive> directives,
-            IReadOnlyCollection<DataLoaderDescriptor> dataLoaders,
+            ISchemaContext context,
             IReadOnlySchemaOptions options)
         {
-            _types = types;
             Services = services;
-            Directives = directives;
-            DataLoaders = dataLoaders;
+            _types = SchemaTypes.Create(
+                context.Types.GetTypes(),
+                context.Types.GetTypeBindings(),
+                options);
+            Directives = context.Directives.GetDirectives();
+            DataLoaders = context.DataLoaders.ToImmutableArray();
+            CustomContexts = context.CustomContexts.ToImmutableArray();
             Options = options;
         }
 

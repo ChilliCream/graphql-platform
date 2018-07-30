@@ -6,6 +6,7 @@ using HotChocolate.Runtime;
 namespace HotChocolate.Configuration
 {
     public interface IDataLoaderConfiguration
+        : IFluent
     {
         void RegisterDataLoader<T>(
             string key,

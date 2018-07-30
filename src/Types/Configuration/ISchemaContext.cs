@@ -11,5 +11,6 @@ namespace HotChocolate.Configuration
         IDirectiveRegistry Directives { get; }
         IResolverRegistry Resolvers { get; }
         ICollection<DataLoaderDescriptor> DataLoaders { get; }
+        ICollection<CustomContextDescriptor> CustomContexts { get; }
     }
 }

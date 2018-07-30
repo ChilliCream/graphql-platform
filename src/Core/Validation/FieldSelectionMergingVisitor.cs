@@ -30,6 +30,7 @@ namespace HotChocolate.Validation
                 .OfType<OperationDefinitionNode>())
             {
                 VisitOperationDefinition(operation, path);
+                _fieldSelectionSets.Clear();
             }
 
             foreach (FragmentDefinitionNode fragment in document.Definitions
@@ -40,6 +41,7 @@ namespace HotChocolate.Validation
                 {
                     VisitFragmentDefinition(fragment, path);
                 }
+                _fieldSelectionSets.Clear();
             }
 
             FindNonMergableFields();

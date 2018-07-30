@@ -95,12 +95,7 @@ namespace HotChocolate
 
             return new Schema(
                 context.Services ?? new ServiceFactory(),
-                SchemaTypes.Create(
-                    context.Types.GetTypes(),
-                    context.Types.GetTypeBindings(),
-                    options),
-                context.Directives.GetDirectives(),
-                context.DataLoaders.ToArray(),
+                context,
                 options);
         }
 
