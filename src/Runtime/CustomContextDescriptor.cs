@@ -12,8 +12,7 @@ namespace HotChocolate.Runtime
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
-            Factory = factory
-                ?? throw new ArgumentNullException(nameof(factory));
+            Factory = factory;
             Scope = scope;
         }
 
