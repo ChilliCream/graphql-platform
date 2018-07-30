@@ -99,10 +99,10 @@ namespace HotChocolate.Execution
 
             throw new QueryException(
                new FieldError(
-                   $"Could not convert argument {name} from " +
-                   $"{argumentValue.NativeType.FullName} to " +
-                   $"{typeof(T).FullName}.",
-                   _resolverTask.FieldSelection.Node));
+                    $"Could not convert argument {name} from " +
+                    $"{argumentValue.NativeType.FullName} to " +
+                    $"{typeof(T).FullName}.",
+                    _resolverTask.FieldSelection.Node));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)

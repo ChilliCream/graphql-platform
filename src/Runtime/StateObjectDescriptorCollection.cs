@@ -31,7 +31,7 @@ namespace HotChocolate.Runtime
             IServiceProvider services,
             IScopedStateDescriptor<TKey> descriptor)
         {
-            if (descriptor.Factory == null)
+            if (descriptor.Factory != null)
             {
                 return () => descriptor.Factory(services);
             }

@@ -99,7 +99,7 @@ namespace HotChocolate
                     context.Types.GetTypes(),
                     context.Types.GetTypeBindings(),
                     options),
-                context.Directives.GetDirectives().ToArray(),
+                context.Directives.GetDirectives(),
                 context.DataLoaders.ToArray(),
                 options);
         }

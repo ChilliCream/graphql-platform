@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration
             _directives.Add(directive);
         }
 
-        public IEnumerable<Directive> GetDirectives()
+        public IReadOnlyCollection<Directive> GetDirectives()
         {
             return _directives;
         }

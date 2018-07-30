@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,8 +11,6 @@ using Xunit;
 
 namespace HotChocolate.Integration.DataLoader
 {
-
-
     public class DataLoaderTests
     {
         [Fact]
@@ -23,14 +22,15 @@ namespace HotChocolate.Integration.DataLoader
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
             results.Add(schema.Execute(
-                "{ withDataLoader(key: \"a\") withDataLoader(key: \"b\") }"));
+                "{ a: withDataLoader(key: \"a\") b: withDataLoader(key: \"b\") }"));
             results.Add(schema.Execute("{ withDataLoader(key: \"c\") }"));
             results.Add(schema.Execute("{ loads }"));
 
             // assert
             Assert.Collection(results,
-                t => Assert.False(t.Errors.Any()),
-                t => Assert.False(t.Errors.Any()));
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
             Assert.Equal(Snapshot.Current(), Snapshot.New(results));
         }
 
@@ -49,8 +49,9 @@ namespace HotChocolate.Integration.DataLoader
 
             // assert
             Assert.Collection(results,
-                t => Assert.False(t.Errors.Any()),
-                t => Assert.False(t.Errors.Any()));
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
             Assert.Equal(Snapshot.Current(), Snapshot.New(results));
         }
 
@@ -90,7 +91,7 @@ namespace HotChocolate.Integration.DataLoader
     public class TestDataLoader
         : DataLoaderBase<string, string>
     {
-        protected TestDataLoader()
+        public TestDataLoader()
             : base(new DataLoaderOptions<string>())
         {
         }
