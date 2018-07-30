@@ -60,5 +60,22 @@ namespace HotChocolate
                 return $"{error.Message} - Type: {error.Type.Name}";
             }
         }
+
+        private static void PrintErrors(IReadOnlyCollection<SchemaError> errors)
+        {
+            Debug.WriteLine("Schema Errors:");
+            foreach (SchemaError error in errors)
+            {
+                if (error.Type == null)
+                {
+                    Debug.WriteLine(error.Message);
+                }
+                else
+                {
+                    Debug.WriteLine(
+                        $"{error.Message} - Type: {error.Type.Name}");
+                }
+            }
+        }
     }
 }
