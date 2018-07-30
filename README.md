@@ -269,8 +269,8 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 ### Execution Engine
 
-- [ ] Custom Context Objects
-- [ ] Data Loader Integration / Batched Operations
+- [x] Custom Context Objects
+- [x] Data Loader Integration / Batched Operations
 
 ### Schema Creation
 

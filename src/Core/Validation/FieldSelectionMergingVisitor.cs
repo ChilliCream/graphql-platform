@@ -21,11 +21,10 @@ namespace HotChocolate.Validation
         {
         }
 
-        public override void VisitDocument(DocumentNode document)
+        protected override void VisitDocument(
+            DocumentNode document,
+            ImmutableStack<ISyntaxNode> path)
         {
-            ImmutableStack<ISyntaxNode> path =
-                ImmutableStack<ISyntaxNode>.Empty.Push(document);
-
             foreach (OperationDefinitionNode operation in document.Definitions
                 .OfType<OperationDefinitionNode>())
             {
@@ -47,7 +46,7 @@ namespace HotChocolate.Validation
 
         protected override void VisitField(
             FieldNode field,
-            Types.IType type,
+            IType type,
             ImmutableStack<ISyntaxNode> path)
         {
             if (TryGetSelectionSet(path, out SelectionSetNode selectionSet)
@@ -65,7 +64,10 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            _fieldSelectionSets.Add(selectionSet, new List<FieldInfo>());
+            if (!_fieldSelectionSets.ContainsKey(selectionSet))
+            {
+                _fieldSelectionSets.Add(selectionSet, new List<FieldInfo>());
+            }
             base.VisitSelectionSet(selectionSet, type, path);
         }
 
@@ -277,7 +279,7 @@ namespace HotChocolate.Validation
 
         private readonly struct FieldInfo
         {
-            public FieldInfo(Types.IType declaringType, FieldNode field)
+            public FieldInfo(IType declaringType, FieldNode field)
             {
                 DeclaringType = declaringType
                     ?? throw new ArgumentNullException(nameof(declaringType));
@@ -289,7 +291,7 @@ namespace HotChocolate.Validation
             }
 
             public string ResponseName { get; }
-            public Types.IType DeclaringType { get; }
+            public IType DeclaringType { get; }
             public FieldNode Field { get; }
         }
     }

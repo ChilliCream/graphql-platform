@@ -7,15 +7,10 @@ namespace HotChocolate
         : ISchemaFirstConfiguration
         , ICodeFirstConfiguration
         , IDataLoaderConfiguration
-        , IUserStateConfiguration
+        , ICustomContextConfiguration
     {
         ISchemaOptions Options { get; }
 
         void RegisterServiceProvider(IServiceProvider serviceProvider);
-    }
-
-    public interface IUserStateConfiguration
-    {
-
     }
 }

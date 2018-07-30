@@ -6,8 +6,9 @@ using HotChocolate.Runtime;
 namespace HotChocolate.Configuration
 {
     public interface IDataLoaderConfiguration
+        : IFluent
     {
-        void RegisterLoader<T>(
+        void RegisterDataLoader<T>(
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, T> loaderFactory = null,

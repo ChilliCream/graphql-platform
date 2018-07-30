@@ -8,7 +8,6 @@ using HotChocolate.Runtime;
 namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
-        : ISchemaConfiguration
     {
         private Dictionary<string, DataLoaderDescriptor> _dataLoaders =
             new Dictionary<string, DataLoaderDescriptor>();
@@ -16,7 +15,7 @@ namespace HotChocolate.Configuration
         internal IReadOnlyCollection<DataLoaderDescriptor>
             DataLoaderDescriptors => _dataLoaders.Values;
 
-        public void RegisterLoader<T>(
+        public void RegisterDataLoader<T>(
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, T> loaderFactory = null,
@@ -27,10 +26,24 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(key));
             }
 
+            Func<IServiceProvider, object> factory = null;
+            if (loaderFactory != null)
+            {
+                factory = new Func<IServiceProvider, object>(
+                    sp => loaderFactory(sp));
+            }
+
+            TriggerDataLoaderAsync trigger = null;
+            if (triggerLoaderAsync != null)
+            {
+                trigger = new TriggerDataLoaderAsync(
+                    (o, c) => triggerLoaderAsync((T)o, c));
+            }
+
             var descriptor = new DataLoaderDescriptor(
                 key, typeof(T), scope,
-                sp => loaderFactory(sp),
-                (o, c) => triggerLoaderAsync((T)o, c));
+                factory,
+                trigger);
             _dataLoaders[key] = descriptor;
         }
     }

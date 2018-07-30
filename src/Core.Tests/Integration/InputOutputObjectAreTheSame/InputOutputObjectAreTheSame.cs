@@ -31,7 +31,7 @@ namespace HotChocolate.Integration.InputOutputObjectAreTheSame
 
             // act
             IExecutionResult result = schema.Execute(@"{
-                person(person: { firstName:""a"", lastName:""b""  }) {
+                person(person: { firstName:""a"", lastName:""b"" }) {
                     lastName
                     firstName
                 }

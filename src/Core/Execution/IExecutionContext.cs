@@ -8,6 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     internal interface IExecutionContext
+        : IDisposable
     {
         // schema
         ISchema Schema { get; }
@@ -16,7 +17,8 @@ namespace HotChocolate.Execution
 
         // context
         object RootValue { get; }
-        IDataLoaderState DataLoaders { get; }
+        IDataLoaderProvider DataLoaders { get; }
+        ICustomContextProvider CustomContexts { get; }
 
         // query ast
         DocumentNode QueryDocument { get; }

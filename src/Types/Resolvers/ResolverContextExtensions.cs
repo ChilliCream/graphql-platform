@@ -2,9 +2,9 @@ namespace HotChocolate.Resolvers
 {
     public static class ResolverContextExtensions
     {
-        public static T Loader<T>(this IResolverContext resolverContext)
+        public static T DataLoader<T>(this IResolverContext resolverContext)
         {
-            return resolverContext.Loader<T>(typeof(T).FullName);
+            return resolverContext.DataLoader<T>(typeof(T).FullName);
         }
     }
 }

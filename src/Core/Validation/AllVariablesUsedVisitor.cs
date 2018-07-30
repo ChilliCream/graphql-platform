@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -17,7 +16,9 @@ namespace HotChocolate.Validation
         {
         }
 
-        public override void VisitDocument(DocumentNode document)
+        protected override void VisitDocument(
+            DocumentNode document,
+            ImmutableStack<ISyntaxNode> path)
         {
             HashSet<string> declaredVariables = new HashSet<string>();
 
@@ -33,7 +34,7 @@ namespace HotChocolate.Validation
                     }
 
                     VisitOperationDefinition(operation,
-                        ImmutableStack<ISyntaxNode>.Empty.Push(document));
+                        path.Push(document));
 
                     declaredVariables.ExceptWith(_usedVariables);
                     if (declaredVariables.Count > 0)

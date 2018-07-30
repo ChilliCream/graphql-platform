@@ -9,6 +9,6 @@ namespace HotChocolate.Configuration
 
         void RegisterDirective<T>(T directive) where T : Directive;
 
-        IEnumerable<Directive> GetDirectives();
+        IReadOnlyCollection<Directive> GetDirectives();
     }
 }

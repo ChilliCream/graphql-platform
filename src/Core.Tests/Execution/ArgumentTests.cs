@@ -76,7 +76,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:[Foo]) { a(foo:$x) { foo } }",
+                "query x($x:[FooInput]) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", list } });
 
             // assert
@@ -140,7 +140,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:Foo) { a(foo:$x) { foo } }",
+                "query x($x:FooInput) { a(foo:$x) { foo } }",
                 new Dictionary<string, IValueNode> { { "x", obj } });
 
             // assert

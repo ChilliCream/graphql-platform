@@ -62,16 +62,17 @@ namespace HotChocolate.Execution
                 CancellationTokenSource.CreateLinkedTokenSource(
                     requestTimeoutCts.Token, cancellationToken);
 
+            IExecutionContext executionContext =
+                CreateExecutionContext(request);
+
             try
             {
-                IExecutionContext executionContext =
-                    CreateExecutionContext(request);
-
                 return await _strategy.ExecuteAsync(
                     executionContext, combinedCts.Token);
             }
             finally
             {
+                executionContext.Dispose();
                 combinedCts.Dispose();
                 requestTimeoutCts.Dispose();
             }

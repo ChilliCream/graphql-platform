@@ -186,6 +186,7 @@ namespace HotChocolate.Execution
 
             return Schema.Create(c =>
             {
+                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.Options.StrictValidation = true;
                 c.RegisterQueryType<QueryType>();
             });

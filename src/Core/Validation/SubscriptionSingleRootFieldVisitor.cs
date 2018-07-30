@@ -17,7 +17,9 @@ namespace HotChocolate.Validation
         {
         }
 
-        public override void VisitDocument(DocumentNode document)
+        protected override void VisitDocument(
+            DocumentNode document,
+            ImmutableStack<ISyntaxNode> path)
         {
             foreach (OperationDefinitionNode operation in document.Definitions
                 .OfType<OperationDefinitionNode>()
@@ -26,7 +28,7 @@ namespace HotChocolate.Validation
                 _fieldCount = 0;
 
                 VisitOperationDefinition(operation,
-                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
+                    path.Push(document));
 
                 if (_fieldCount > 1)
                 {

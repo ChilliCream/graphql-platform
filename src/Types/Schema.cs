@@ -18,19 +18,24 @@ namespace HotChocolate
         : ISchema
     {
         private readonly SchemaTypes _types;
+        private bool _disposed;
 
         private Schema(
             IServiceProvider services,
-            SchemaTypes types,
-            IReadOnlyCollection<Directive> directives,
-            IReadOnlyCollection<DataLoaderDescriptor> dataLoaders,
+            ISchemaContext context,
             IReadOnlySchemaOptions options)
         {
-            _types = types;
             Services = services;
-            Directives = directives;
-            DataLoaders = dataLoaders;
+            _types = SchemaTypes.Create(
+                context.Types.GetTypes(),
+                context.Types.GetTypeBindings(),
+                options);
+            Directives = context.Directives.GetDirectives();
             Options = options;
+            Sessions = new SessionManager(
+                services,
+                context.DataLoaders,
+                context.CustomContexts);
         }
 
         /// <summary>
@@ -71,14 +76,10 @@ namespace HotChocolate
         public IReadOnlyCollection<Directive> Directives { get; }
 
         /// <summary>
-        /// Gets the data loader descriptors.
+        /// Gets the session manager which can be used to create
+        /// new query execution sessions.
         /// </summary>
-        public IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
-
-        /// <summary>
-        /// Gets the state object descriptors.
-        /// </summary>
-        public IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
+        public ISessionManager Sessions { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -156,6 +157,21 @@ namespace HotChocolate
             }
 
             return Array.Empty<ObjectType>();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                Sessions.Dispose();
+                _disposed = true;
+            }
         }
     }
 }

@@ -12,6 +12,8 @@ namespace HotChocolate.Resolvers
         OperationDefinition,
         FieldSelection,
         Context,
-        CancellationToken
+        CancellationToken,
+        CustomContext,
+        DataLoader
     }
 }

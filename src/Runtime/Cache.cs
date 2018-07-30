@@ -13,6 +13,8 @@ namespace HotChocolate.Runtime
             ImmutableDictionary<string, CacheEntry>.Empty;
         private LinkedListNode<string> _first;
 
+        public event EventHandler<CacheEntryEventArgs<TValue>> RemovedEntry;
+
         public Cache(int size)
         {
             Size = size < 10 ? 10 : size;
@@ -72,9 +74,13 @@ namespace HotChocolate.Runtime
         {
             if (_cache.Count >= Size)
             {
-                LinkedListNode<string> entry = _ranking.Last;
-                _cache = _cache.Remove(entry.Value);
-                _ranking.Remove(entry);
+                LinkedListNode<string> rank = _ranking.Last;
+                CacheEntry entry = _cache[rank.Value];
+                _cache = _cache.Remove(rank.Value);
+                _ranking.Remove(rank);
+
+                RemovedEntry?.Invoke(this,
+                    new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
             }
         }
 

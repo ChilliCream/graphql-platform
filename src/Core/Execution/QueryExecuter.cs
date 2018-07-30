@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
 using HotChocolate.Runtime;
+using System.Linq;
 
 namespace HotChocolate.Execution
 {
@@ -12,7 +13,6 @@ namespace HotChocolate.Execution
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
-        private readonly DataLoaderStateManager _dataLoaderStateManager;
         private readonly bool _useCache;
 
         public QueryExecuter(ISchema schema)
@@ -26,8 +26,6 @@ namespace HotChocolate.Execution
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
-            _dataLoaderStateManager = new DataLoaderStateManager(
-                schema.DataLoaders, cacheSize);
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
@@ -53,13 +51,14 @@ namespace HotChocolate.Execution
                 return new QueryResult(queryInfo.ValidationResult.Errors);
             }
 
+            OperationRequest operationRequest = null;
             try
             {
                 OperationExecuter operationExecuter =
                     GetOrCreateOperationExecuter(
                         queryRequest, queryInfo.QueryDocument);
 
-                OperationRequest operationRequest =
+                operationRequest =
                     CreateOperationRequest(queryRequest);
 
                 return await operationExecuter.ExecuteAsync(
@@ -72,6 +71,10 @@ namespace HotChocolate.Execution
             catch (Exception ex)
             {
                 return new QueryResult(CreateErrorFromException(ex));
+            }
+            finally
+            {
+                operationRequest?.Session.Dispose();
             }
         }
 
@@ -93,14 +96,18 @@ namespace HotChocolate.Execution
         {
             IServiceProvider services =
                 queryRequest.Services ?? _schema.Services;
-            DataLoaderState dataLoaderState = _dataLoaderStateManager
-                .CreateState(services, "anonymous");
 
-            return new OperationRequest(services, dataLoaderState)
+            return new OperationRequest(services,
+                _schema.Sessions.CreateSession(services))
             {
                 VariableValues = queryRequest.VariableValues,
-                InitialValue = queryRequest.InitialValue
+                InitialValue = queryRequest.InitialValue,
             };
+        }
+
+        private string CreateUserKey(QueryRequest queryRequest)
+        {
+            return queryRequest.UserKey ?? "none";
         }
     }
 }

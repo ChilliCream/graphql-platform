@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
     internal readonly struct ResolverContext
         : IResolverContext
     {
-        // remove
+        // todo: remove
         private static readonly List<IInputValueConverter> _converters =
             new List<IInputValueConverter>
             {
@@ -86,10 +86,9 @@ namespace HotChocolate.Execution
                 return value;
             }
 
-            Type type = typeof(T);
             if (argumentValue.Value == null)
             {
-                return default(T);
+                return default;
             }
 
             if (TryConvertValue(argumentValue, out value))
@@ -99,10 +98,10 @@ namespace HotChocolate.Execution
 
             throw new QueryException(
                new FieldError(
-                   $"Could not convert argument {name} from " +
-                   $"{argumentValue.NativeType.FullName} to " +
-                   $"{typeof(T).FullName}.",
-                   _resolverTask.FieldSelection.Node));
+                    $"Could not convert argument {name} from " +
+                    $"{argumentValue.NativeType.FullName} to " +
+                    $"{typeof(T).FullName}.",
+                    _resolverTask.FieldSelection.Node));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)
@@ -132,13 +131,21 @@ namespace HotChocolate.Execution
             return (T)_executionContext.Services.GetService(typeof(T));
         }
 
-        public T State<T>()
+        public T CustomContext<T>()
         {
-            throw new NotImplementedException();
+            if (_executionContext.CustomContexts == null)
+            {
+                return default;
+            }
+            return _executionContext.CustomContexts.GetCustomContext<T>();
         }
 
-        public T Loader<T>(string key)
+        public T DataLoader<T>(string key)
         {
+            if (_executionContext.DataLoaders == null)
+            {
+                return default;
+            }
             return _executionContext.DataLoaders.GetDataLoader<T>(key);
         }
     }

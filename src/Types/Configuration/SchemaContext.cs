@@ -22,6 +22,7 @@ namespace HotChocolate.Configuration
             _resolverRegistry = new ResolverRegistry();
             _directiveRegistry = new DirectiveRegistry();
             DataLoaders = new List<DataLoaderDescriptor>();
+            CustomContexts = new List<CustomContextDescriptor>();
         }
 
         public ITypeRegistry Types => _typeRegistry;
@@ -33,6 +34,8 @@ namespace HotChocolate.Configuration
         public IServiceProvider Services => _serviceFactory.Services;
 
         public ICollection<DataLoaderDescriptor> DataLoaders { get; }
+
+        public ICollection<CustomContextDescriptor> CustomContexts { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {

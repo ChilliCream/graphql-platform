@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Execution
 {
-    public class Location
+    public readonly struct Location
     {
         public Location(int line, int column)
         {

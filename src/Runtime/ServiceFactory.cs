@@ -45,7 +45,7 @@ namespace HotChocolate.Runtime
             {
                 throw new InvalidOperationException(
                     $"The instance type `{type.FullName}` " +
-                    "must have at least on constructor.");
+                    "must have at least on public constructor.");
             }
 
             if (services == null)
