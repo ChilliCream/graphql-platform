@@ -75,16 +75,6 @@ namespace HotChocolate
         public IReadOnlyCollection<Directive> Directives { get; }
 
         /// <summary>
-        /// Gets the data loader descriptors.
-        /// </summary>
-        public IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
-
-        /// <summary>
-        /// Gets the state object descriptors.
-        /// </summary>
-        public IReadOnlyCollection<CustomContextDescriptor> CustomContexts { get; }
-
-        /// <summary>
         /// Gets the session manager which can be used to create
         /// new query execution sessions.
         /// </summary>

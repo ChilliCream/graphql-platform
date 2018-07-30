@@ -36,7 +36,6 @@ namespace HotChocolate.Runtime
             _customContextDescriptors =
                 new StateObjectDescriptorCollection<Type>(
                         customContextDescriptors);
-
             _globalDataLoaders = new StateObjectCollection<string>(
                 ExecutionScope.Global);
             _globalCustomContexts = new StateObjectCollection<Type>(
@@ -47,7 +46,7 @@ namespace HotChocolate.Runtime
         {
             return new Session(
                 () => CreateDataLoaderProvider(requestServices),
-                null);
+                () => CreateCustomContextProvider(requestServices));
         }
 
         private IDataLoaderProvider CreateDataLoaderProvider(
@@ -56,6 +55,14 @@ namespace HotChocolate.Runtime
             return new DataLoaderProvider(
                 _globalServices, requestServices,
                 _dataLoaderDescriptors, _globalDataLoaders);
+        }
+
+        private ICustomContextProvider CreateCustomContextProvider(
+            IServiceProvider requestServices)
+        {
+            return new CustomContextProvider(
+                _globalServices, requestServices,
+                _customContextDescriptors, _globalCustomContexts);
         }
 
         public void Dispose()

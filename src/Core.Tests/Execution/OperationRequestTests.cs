@@ -16,8 +16,6 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var dataLoaderDescriptors =
-                new DataLoaderDescriptorCollection(schema.DataLoaders);
             var session = new Mock<ISession>(MockBehavior.Strict);
             session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
             session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);

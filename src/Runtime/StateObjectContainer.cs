@@ -27,6 +27,8 @@ namespace HotChocolate.Runtime
             _globalStates = globalStates
                 ?? throw new ArgumentNullException(nameof(globalStates));
             _requestServices = requestServices ?? globalServices;
+            _requestStates = new StateObjectCollection<TKey>(
+                ExecutionScope.Request);
         }
 
         protected object GetStateObject(TKey key)

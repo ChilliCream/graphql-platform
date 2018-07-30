@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GreenDonut" Version="0.2.0-preview-8" />
+    <PackageReference Include="GreenDonut" Version="0.2.0" />
   </ItemGroup>
 
   <ItemGroup>

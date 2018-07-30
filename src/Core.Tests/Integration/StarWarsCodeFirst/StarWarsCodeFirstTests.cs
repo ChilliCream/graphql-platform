@@ -107,9 +107,9 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 rightComparison: hero(episode: JEDI) {
                     ...comparisonFields
                 }
-                }
+            }
 
-                fragment comparisonFields on Character {
+            fragment comparisonFields on Character {
                 name
                 appearsIn
                 friends {

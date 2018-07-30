@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate
 {
@@ -12,14 +13,14 @@ namespace HotChocolate
             : base(CreateErrorMessage(errors))
         {
             Errors = errors;
-            PrintErrors(Errors);
+            Debug.WriteLine(Message);
         }
 
         public SchemaException(IEnumerable<SchemaError> errors)
             : base(CreateErrorMessage(errors.ToArray()))
         {
             Errors = errors.ToArray();
-            PrintErrors(Errors);
+            Debug.WriteLine(Message);
         }
 
         public IReadOnlyCollection<SchemaError> Errors { get; }
@@ -31,24 +32,32 @@ namespace HotChocolate
             {
                 return "Unexpected schema exception occured.";
             }
-            else if (errors.Count == 1)
+
+            if (errors.Count == 1)
             {
-                return errors.First().Message;
+                return CreateErrorMessage(errors.First());
+            }
+
+            var message = new StringBuilder();
+
+            message.AppendLine("Multiple schema errors occured:");
+            foreach (SchemaError error in errors)
+            {
+                message.AppendLine(CreateErrorMessage(error));
+            }
+
+            return message.ToString();
+        }
+
+        private static string CreateErrorMessage(SchemaError error)
+        {
+            if (error.Type == null)
+            {
+                return error.Message;
             }
             else
             {
-                return "Multiple schema errors occured. " +
-                    "For more details check `Errors` property.";
-            }
-        }
-
-        private static void PrintErrors(IReadOnlyCollection<SchemaError> errors)
-        {
-            Debug.WriteLine("Schema Errors:");
-            foreach (SchemaError error in errors)
-            {
-                Debug.WriteLine(
-                    $"Type: {error.Type.Name} - Message: {error.Message}");
+                return $"{error.Message} - Type: {error.Type.Name}";
             }
         }
     }
