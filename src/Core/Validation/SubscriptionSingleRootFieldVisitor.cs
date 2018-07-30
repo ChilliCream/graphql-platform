@@ -8,19 +8,18 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class SubscriptionSingleRootFieldVisitor
-        : QueryVisitor
+        : QueryVisitorErrorBase
     {
         private int _fieldCount;
-        private List<ValidationError> _errors = new List<ValidationError>();
 
         public SubscriptionSingleRootFieldVisitor(ISchema schema)
             : base(schema)
         {
         }
 
-        public IReadOnlyCollection<ValidationError> Errors => _errors;
-
-        public override void VisitDocument(DocumentNode document)
+        protected override void VisitDocument(
+            DocumentNode document,
+            ImmutableStack<ISyntaxNode> path)
         {
             foreach (OperationDefinitionNode operation in document.Definitions
                 .OfType<OperationDefinitionNode>()
@@ -29,11 +28,11 @@ namespace HotChocolate.Validation
                 _fieldCount = 0;
 
                 VisitOperationDefinition(operation,
-                    ImmutableStack<ISyntaxNode>.Empty.Push(document));
+                    path.Push(document));
 
                 if (_fieldCount > 1)
                 {
-                    _errors.Add(new ValidationError(
+                    Errors.Add(new ValidationError(
                         $"Subscription operation `{operation.Name.Value}` " +
                         "must have exactly one root field.", operation));
                 }
@@ -59,6 +58,7 @@ namespace HotChocolate.Validation
                     .OfType<FragmentDefinitionNode>()
                     .FirstOrDefault(t =>
                         t.Name.Value.EqualsOrdinal(fragmentSpread.Name.Value));
+
                 if (fragment != null)
                 {
                     VisitFragmentDefinition(fragment, path.Push(fragmentSpread));

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
@@ -8,28 +9,67 @@ namespace HotChocolate.Validation
 {
     internal class QueryVisitor
     {
+        private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
+            new Dictionary<string, FragmentDefinitionNode>();
+        private readonly HashSet<string> _visitedFragments =
+            new HashSet<string>();
+
         protected QueryVisitor(ISchema schema)
         {
-            Schema = schema
-                ?? throw new System.ArgumentNullException(nameof(schema));
+            Schema = schema ?? throw new ArgumentNullException(nameof(schema));
         }
 
         protected ISchema Schema { get; }
 
-        public virtual void VisitDocument(DocumentNode document)
+        public void VisitDocument(DocumentNode document)
         {
-            foreach (OperationDefinitionNode operation in document.Definitions
-                .OfType<OperationDefinitionNode>())
-            {
-                VisitOperationDefinition(operation,
-                    ImmutableStack<ISyntaxNode>.Empty);
-            }
+            ImmutableStack<ISyntaxNode> path =
+                ImmutableStack<ISyntaxNode>.Empty.Push(document);
 
+            // create fragment definition set.
             foreach (FragmentDefinitionNode fragment in document.Definitions
                 .OfType<FragmentDefinitionNode>())
             {
-                VisitFragmentDefinition(fragment,
-                    ImmutableStack<ISyntaxNode>.Empty);
+                if (!_fragments.ContainsKey(fragment.Name.Value))
+                {
+                    _fragments[fragment.Name.Value] = fragment;
+                }
+            }
+
+            VisitDocument(document, path);
+        }
+
+
+        protected virtual void VisitDocument(
+            DocumentNode document,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            VisitOperationDefinitions(
+                document.Definitions.OfType<OperationDefinitionNode>(),
+                path);
+
+            VisitFragmentDefinitions(
+                _fragments.Values,
+                path);
+        }
+
+        protected virtual void VisitOperationDefinitions(
+            IEnumerable<OperationDefinitionNode> oprationDefinitions,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            foreach (OperationDefinitionNode operation in oprationDefinitions)
+            {
+                VisitOperationDefinition(operation, path);
+            }
+        }
+
+        protected virtual void VisitFragmentDefinitions(
+            IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            foreach (FragmentDefinitionNode fragment in fragmentDefinitions)
+            {
+                VisitFragmentDefinition(fragment, path);
             }
         }
 
@@ -38,8 +78,10 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            VisitSelectionSet(operation.SelectionSet, null,
-                path.Push(operation));
+            ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
+            VisitSelectionSet(operation.SelectionSet, operationType, newPath);
+            VisitDirectives(operation.Directives, newPath);
+            _visitedFragments.Clear();
         }
 
         protected virtual void VisitSelectionSet(
@@ -47,21 +89,26 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            foreach (ISelectionNode selection in selectionSet.Selections)
+            if (selectionSet.Selections.Count > 0)
             {
-                if (selection is FieldNode field)
+                ImmutableStack<ISyntaxNode> newpath = path.Push(selectionSet);
+                foreach (ISelectionNode selection in selectionSet.Selections)
                 {
-                    VisitField(field, type, path);
-                }
 
-                if (selection is FragmentSpreadNode fragmentSpread)
-                {
-                    VisitFragmentSpread(fragmentSpread, type, path);
-                }
+                    if (selection is FieldNode field)
+                    {
+                        VisitField(field, type, newpath);
+                    }
 
-                if (selection is InlineFragmentNode inlineFragment)
-                {
-                    VisitInlineFragment(inlineFragment, type, path);
+                    if (selection is FragmentSpreadNode fragmentSpread)
+                    {
+                        VisitFragmentSpread(fragmentSpread, type, newpath);
+                    }
+
+                    if (selection is InlineFragmentNode inlineFragment)
+                    {
+                        VisitInlineFragment(inlineFragment, type, newpath);
+                    }
                 }
             }
         }
@@ -71,7 +118,7 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            ImmutableStack<ISyntaxNode> current = path.Push(field);
+            ImmutableStack<ISyntaxNode> newpath = path.Push(field);
 
             if (type is IComplexOutputType complexType
                 && complexType.Fields.ContainsField(field.Name.Value))
@@ -79,12 +126,12 @@ namespace HotChocolate.Validation
                 if (field.SelectionSet != null)
                 {
                     VisitSelectionSet(field.SelectionSet,
-                        complexType.Fields[field.Name.Value].Type,
-                        path);
+                        complexType.Fields[field.Name.Value].Type.NamedType(),
+                        newpath);
                 }
             }
 
-            VisitDirectives(field.Directives, path.Push(field));
+            VisitDirectives(field.Directives, newpath);
         }
 
         protected virtual void VisitFragmentSpread(
@@ -92,7 +139,20 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
+            ImmutableStack<ISyntaxNode> newpath = path.Push(fragmentSpread);
 
+            if (path.Last() is DocumentNode d)
+            {
+                string fragmentName = fragmentSpread.Name.Value;
+                if (_visitedFragments.Add(fragmentName)
+                    && _fragments.TryGetValue(fragmentName,
+                        out FragmentDefinitionNode fragment))
+                {
+                    VisitFragmentDefinition(fragment, newpath);
+                }
+            }
+
+            VisitDirectives(fragmentSpread.Directives, newpath);
         }
 
         protected virtual void VisitInlineFragment(
@@ -101,18 +161,20 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             if (inlineFragment.TypeCondition?.Name?.Value != null
-                && Schema.TryGetType<INamedOutputType>(
+                && Schema.TryGetType(
                     inlineFragment.TypeCondition.Name.Value,
                     out INamedOutputType typeCondition))
             {
+                ImmutableStack<ISyntaxNode> newpath = path.Push(inlineFragment);
+
                 VisitSelectionSet(
                     inlineFragment.SelectionSet,
                     typeCondition,
-                    path.Push(inlineFragment));
+                    newpath);
 
                 VisitDirectives(
                     inlineFragment.Directives,
-                    path.Push(inlineFragment));
+                    newpath);
             }
         }
 
@@ -121,21 +183,25 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             if (fragmentDefinition.TypeCondition?.Name?.Value != null
-                && Schema.TryGetType<INamedOutputType>(
+                && Schema.TryGetType(
                     fragmentDefinition.TypeCondition.Name.Value,
                     out INamedOutputType typeCondition))
             {
+                ImmutableStack<ISyntaxNode> newpath = path
+                    .Push(fragmentDefinition);
+
                 VisitSelectionSet(
                     fragmentDefinition.SelectionSet,
                     typeCondition,
-                    path.Push(fragmentDefinition));
+                    newpath);
 
-                VisitDirectives(fragmentDefinition.Directives,
-                    path.Push(fragmentDefinition));
+                VisitDirectives(
+                    fragmentDefinition.Directives,
+                    newpath);
             }
         }
 
-        private void VisitDirectives(
+        protected virtual void VisitDirectives(
             IReadOnlyCollection<DirectiveNode> directives,
             ImmutableStack<ISyntaxNode> path)
         {
@@ -150,6 +216,11 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
 
+        }
+
+        protected void ClearVisitedFragments()
+        {
+            _visitedFragments.Clear();
         }
     }
 }

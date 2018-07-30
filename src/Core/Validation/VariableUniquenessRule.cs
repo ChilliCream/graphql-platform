@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -18,6 +19,16 @@ namespace HotChocolate.Validation
             ISchema schema,
             DocumentNode queryDocument)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (queryDocument == null)
+            {
+                throw new ArgumentNullException(nameof(queryDocument));
+            }
+
             HashSet<string> names = new HashSet<string>();
 
             foreach (OperationDefinitionNode operation in queryDocument

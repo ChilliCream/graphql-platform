@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
             Dictionary<string, IValueNode> variableValues =
                 new Dictionary<string, IValueNode>()
                 {
-                    { "a", new NullValueNode() }
+                    { "a", NullValueNode.Default }
                 };
 
             Schema schema = CreateSchema();
@@ -176,7 +176,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }");
+                "query a { a } query b { a }");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);
@@ -193,7 +193,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }", "a");
+                "query a { a } query b { a }", "a");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);
@@ -210,7 +210,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }", "c");
+                "query a { a } query b { a }", "c");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);

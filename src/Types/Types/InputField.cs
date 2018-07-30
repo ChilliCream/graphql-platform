@@ -60,7 +60,7 @@ namespace HotChocolate.Types
                 {
                     if (_nativeDefaultValue == null)
                     {
-                        DefaultValue = new NullValueNode();
+                        DefaultValue = NullValueNode.Default;
                     }
                     else
                     {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Internal;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -9,25 +10,32 @@ namespace HotChocolate.Configuration
     internal class SchemaContext
         : ISchemaContext
     {
+        private readonly ServiceFactory _serviceFactory;
         private readonly TypeRegistry _typeRegistry;
         private readonly DirectiveRegistry _directiveRegistry;
         private readonly ResolverRegistry _resolverRegistry;
 
-        public SchemaContext(ServiceManager serviceManager)
+        public SchemaContext()
         {
-            ServiceManager = serviceManager;
-            _typeRegistry = new TypeRegistry(serviceManager);
+            _serviceFactory = new ServiceFactory();
+            _typeRegistry = new TypeRegistry(_serviceFactory);
             _resolverRegistry = new ResolverRegistry();
             _directiveRegistry = new DirectiveRegistry();
+            DataLoaders = new List<DataLoaderDescriptor>();
+            CustomContexts = new List<CustomContextDescriptor>();
         }
 
         public ITypeRegistry Types => _typeRegistry;
 
         public IResolverRegistry Resolvers => _resolverRegistry;
 
-        public ServiceManager ServiceManager { get; }
-
         public IDirectiveRegistry Directives => _directiveRegistry;
+
+        public IServiceProvider Services => _serviceFactory.Services;
+
+        public ICollection<DataLoaderDescriptor> DataLoaders { get; }
+
+        public ICollection<CustomContextDescriptor> CustomContexts { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {
@@ -59,6 +67,11 @@ namespace HotChocolate.Configuration
                 directive.CompleteType(initializationContext);
             }
             return errors;
+        }
+
+        public void RegisterServiceProvider(IServiceProvider services)
+        {
+            _serviceFactory.Services = services;
         }
     }
 }

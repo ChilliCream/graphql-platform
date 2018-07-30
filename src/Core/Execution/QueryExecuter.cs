@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
+using HotChocolate.Runtime;
+using System.Linq;
 
 namespace HotChocolate.Execution
 {
@@ -49,15 +51,18 @@ namespace HotChocolate.Execution
                 return new QueryResult(queryInfo.ValidationResult.Errors);
             }
 
+            OperationRequest operationRequest = null;
             try
             {
-                OperationExecuter operationRequest =
-                    GetOrCreateOperationRequest(
+                OperationExecuter operationExecuter =
+                    GetOrCreateOperationExecuter(
                         queryRequest, queryInfo.QueryDocument);
 
-                return await operationRequest.ExecuteAsync(
-                    queryRequest.VariableValues, queryRequest.InitialValue,
-                    cancellationToken);
+                operationRequest =
+                    CreateOperationRequest(queryRequest);
+
+                return await operationExecuter.ExecuteAsync(
+                    operationRequest, cancellationToken);
             }
             catch (QueryException ex)
             {
@@ -66,6 +71,10 @@ namespace HotChocolate.Execution
             catch (Exception ex)
             {
                 return new QueryResult(CreateErrorFromException(ex));
+            }
+            finally
+            {
+                operationRequest?.Session.Dispose();
             }
         }
 
@@ -80,6 +89,25 @@ namespace HotChocolate.Execution
             {
                 return new QueryError("Unexpected execution error.");
             }
+        }
+
+        private OperationRequest CreateOperationRequest(
+            QueryRequest queryRequest)
+        {
+            IServiceProvider services =
+                queryRequest.Services ?? _schema.Services;
+
+            return new OperationRequest(services,
+                _schema.Sessions.CreateSession(services))
+            {
+                VariableValues = queryRequest.VariableValues,
+                InitialValue = queryRequest.InitialValue,
+            };
+        }
+
+        private string CreateUserKey(QueryRequest queryRequest)
+        {
+            return queryRequest.UserKey ?? "none";
         }
     }
 }

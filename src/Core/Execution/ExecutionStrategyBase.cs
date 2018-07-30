@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
+using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
@@ -48,6 +48,11 @@ namespace HotChocolate.Execution
             BeginExecuteResolverBatch(
                 executionContext, currentBatch, cancellationToken);
 
+            // execute batch data loaders
+            await CompleteDataLoadersAsync(
+                executionContext.DataLoaders,
+                cancellationToken);
+
             // await field resolver results
             await EndExecuteResolverBatchAsync(
                 executionContext, currentBatch, nextBatch, cancellationToken);
@@ -60,7 +65,8 @@ namespace HotChocolate.Execution
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                if (resolverTask.Path.Depth <= executionContext.Options.MaxExecutionDepth)
+                if (resolverTask.Path.Depth <= executionContext
+                    .Options.MaxExecutionDepth)
                 {
                     resolverTask.ResolverResult = ExecuteResolver(
                         resolverTask, executionContext.Options.DeveloperMode,
@@ -69,12 +75,25 @@ namespace HotChocolate.Execution
                 else
                 {
                     executionContext.ReportError(resolverTask.CreateError(
-                        $"The field has a depth of {resolverTask.Path.Depth}, " +
+                        "The field has a depth of " +
+                        $"{resolverTask.Path.Depth}, " +
                         "which exceeds max allowed depth of " +
                         $"{executionContext.Options.MaxExecutionDepth}"));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected async Task CompleteDataLoadersAsync(
+            IDataLoaderProvider dataLoaders,
+            CancellationToken cancellationToken)
+        {
+            if (dataLoaders != null)
+            {
+                await Task.WhenAll(dataLoaders.Touched
+                    .Select(t => t.TriggerAsync(cancellationToken)));
+                dataLoaders.Reset();
             }
         }
 

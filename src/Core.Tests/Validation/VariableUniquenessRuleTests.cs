@@ -4,7 +4,13 @@ using Xunit;
 namespace HotChocolate.Validation
 {
     public class VariableUniquenessRuleTests
+        : ValidationTestBase
     {
+        public VariableUniquenessRuleTests()
+            : base(new VariableUniquenessRule())
+        {
+        }
+
         [Fact]
         public void OperationWithTwoVariablesThatHaveTheSameName()
         {
@@ -19,8 +25,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new VariableUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -48,8 +53,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            var validator = new VariableUniquenessRule();
-            QueryValidationResult result = validator.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);

@@ -3,9 +3,17 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// The Boolean scalar type represents true or false.
+    /// Response formats should use a built‐in boolean type if supported;
+    /// otherwise, they should use their representation of the integers 1 and 0.
+    /// </summary>
     public sealed class BooleanType
         : ScalarType
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BooleanType"/> class.
+        /// </summary>
         public BooleanType()
             : base("Boolean")
         {
@@ -50,7 +58,7 @@ namespace HotChocolate.Types
         {
             if (value == null)
             {
-                return new NullValueNode();
+                return NullValueNode.Default;
             }
 
             if (value is bool b)

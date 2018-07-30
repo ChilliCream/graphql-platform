@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
             if (!variableValues.TryGetValue(variable.Name,
                 out IValueNode variableValue))
             {
-                variableValue = variable.DefaultValue ?? new NullValueNode();
+                variableValue = variable.DefaultValue ?? NullValueNode.Default;
             }
 
             // TODO : this is a workaround for the serialization issue with enum values.

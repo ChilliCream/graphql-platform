@@ -25,8 +25,7 @@ namespace HotChocolate.Types
                 "Simple", "a",
                 (c, r) => "hello");
 
-            var serviceManager = new ServiceManager();
-            var schemaContext = new SchemaContext(serviceManager);
+            var schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(scalarType);
             schemaContext.Resolvers.RegisterResolver(resolverBinding);
 
@@ -68,10 +67,9 @@ namespace HotChocolate.Types
             UnionTypeDefinitionNode unionTypeDefinition = document
                 .Definitions.OfType<UnionTypeDefinitionNode>().First();
 
-            var serviceManager = new ServiceManager();
-            var context = new SchemaContext(serviceManager);
+            var context = new SchemaContext();
             var configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                context.RegisterServiceProvider,
                 context.Types);
             configuration.RegisterType(new ObjectType(d =>
                 d.Name("A").Field("a").Type<StringType>()));
@@ -102,10 +100,9 @@ namespace HotChocolate.Types
             EnumTypeDefinitionNode typeDefinition = document
                 .Definitions.OfType<EnumTypeDefinitionNode>().First();
 
-            var serviceManager = new ServiceManager();
-            var context = new SchemaContext(serviceManager);
+            var context = new SchemaContext();
             var configuration = new SchemaConfiguration(
-                serviceManager.RegisterServiceProvider,
+                context.RegisterServiceProvider,
                 context.Types);
 
             // act

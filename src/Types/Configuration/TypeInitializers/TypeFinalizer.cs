@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -29,6 +30,9 @@ namespace HotChocolate.Configuration
             // finalize and register field resolver bindings
             RegisterFieldResolvers(context);
 
+            // register state object descriptors
+            RegisterStateObjects(context);
+
             // compile resolvers and finalize types
             _errors.AddRange(context.CompleteTypes());
             _errors.AddRange(context.CompleteDirectives());
@@ -55,6 +59,21 @@ namespace HotChocolate.Configuration
             var resolverRegistrar = new ResolverRegistrar(
                 _schemaConfiguration.ResolverBindings);
             resolverRegistrar.RegisterResolvers(context);
+        }
+
+        private void RegisterStateObjects(ISchemaContext context)
+        {
+            foreach (DataLoaderDescriptor descriptor in
+                _schemaConfiguration.DataLoaderDescriptors)
+            {
+                context.DataLoaders.Add(descriptor);
+            }
+
+            foreach (CustomContextDescriptor descriptor in
+                _schemaConfiguration.CustomContextDescriptors)
+            {
+                context.CustomContexts.Add(descriptor);
+            }
         }
     }
 }

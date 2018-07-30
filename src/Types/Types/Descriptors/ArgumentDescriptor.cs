@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             InputDescription = new ArgumentDescription();
             InputDescription.Name = argumentName;
             InputDescription.TypeReference = new TypeReference(argumentType);
-            InputDescription.DefaultValue = new NullValueNode();
+            InputDescription.DefaultValue = NullValueNode.Default;
         }
 
         public ArgumentDescriptor(string argumentName)
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
 
             InputDescription = new ArgumentDescription();
             InputDescription.Name = argumentName;
-            InputDescription.DefaultValue = new NullValueNode();
+            InputDescription.DefaultValue = NullValueNode.Default;
         }
 
         protected ArgumentDescription InputDescription { get; }
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
 
         protected void DefaultValue(IValueNode valueNode)
         {
-            InputDescription.DefaultValue = valueNode ?? new NullValueNode();
+            InputDescription.DefaultValue = valueNode ?? NullValueNode.Default;
             InputDescription.NativeDefaultValue = null;
         }
 
@@ -88,7 +88,7 @@ namespace HotChocolate.Types
         {
             if (defaultValue == null)
             {
-                InputDescription.DefaultValue = new NullValueNode();
+                InputDescription.DefaultValue = NullValueNode.Default;
                 InputDescription.NativeDefaultValue = null;
             }
             else

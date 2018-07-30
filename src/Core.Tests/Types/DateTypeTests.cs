@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         {
             // arrange
             DateType dateType = new DateType();
-            NullValueNode literal = new NullValueNode();
+            NullValueNode literal = NullValueNode.Default;
 
             // act
             object value = dateType.ParseLiteral(literal);

@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Validation;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Runtime
 {
-    internal class Cache<TValue>
+    public class Cache<TValue>
     {
         private readonly object _sync = new object();
         private readonly LinkedList<string> _ranking =
@@ -17,6 +12,8 @@ namespace HotChocolate.Execution
         private ImmutableDictionary<string, CacheEntry> _cache =
             ImmutableDictionary<string, CacheEntry>.Empty;
         private LinkedListNode<string> _first;
+
+        public event EventHandler<CacheEntryEventArgs<TValue>> RemovedEntry;
 
         public Cache(int size)
         {
@@ -77,9 +74,13 @@ namespace HotChocolate.Execution
         {
             if (_cache.Count >= Size)
             {
-                LinkedListNode<string> entry = _ranking.Last;
-                _cache = _cache.Remove(entry.Value);
-                _ranking.Remove(entry);
+                LinkedListNode<string> rank = _ranking.Last;
+                CacheEntry entry = _cache[rank.Value];
+                _cache = _cache.Remove(rank.Value);
+                _ranking.Remove(rank);
+
+                RemovedEntry?.Invoke(this,
+                    new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
             }
         }
 

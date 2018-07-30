@@ -10,6 +10,15 @@ namespace HotChocolate.Internal
     public class DotNetTypeInfoFactoryTests
     {
         [InlineData(typeof(string), "String")]
+        [InlineData(typeof(IResolverResult<string>), "String")]
+        [InlineData(typeof(IResolverResult<string[]>), "[String]")]
+        [InlineData(typeof(IResolverResult<List<string>>), "[String]")]
+        [InlineData(typeof(Task<IResolverResult<string>>), "String")]
+        [InlineData(typeof(Task<IResolverResult<string[]>>), "[String]")]
+        [InlineData(typeof(Task<IResolverResult<List<string>>>), "[String]")]
+        [InlineData(typeof(ResolverResult<string>), "String")]
+        [InlineData(typeof(ResolverResult<string[]>), "[String]")]
+        [InlineData(typeof(ResolverResult<List<string>>), "[String]")]
         [InlineData(typeof(Task<string>), "String")]
         [InlineData(typeof(List<string>), "[String]")]
         [InlineData(typeof(Task<List<string>>), "[String]")]

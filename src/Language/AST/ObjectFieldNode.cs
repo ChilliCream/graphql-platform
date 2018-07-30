@@ -4,7 +4,10 @@ namespace HotChocolate.Language
 {
     public sealed class ObjectFieldNode
         : ISyntaxNode
+        , IEquatable<ObjectFieldNode>
     {
+        private int? _hash;
+
         public ObjectFieldNode(
             string name,
             IValueNode value)
@@ -36,5 +39,83 @@ namespace HotChocolate.Language
         public Location Location { get; }
         public NameNode Name { get; }
         public IValueNode Value { get; }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="ObjectFieldNode"/>
+        /// is equal to the current <see cref="ObjectFieldNode"/>.
+        /// </summary>
+        /// <param name="other">
+        /// The <see cref="ObjectFieldNode"/> to compare with the current
+        /// <see cref="ObjectFieldNode"/>.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the specified <see cref="ObjectFieldNode"/> is equal
+        /// to the current <see cref="ObjectFieldNode"/>;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public bool Equals(ObjectFieldNode other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            return other.Name.Equals(Name) && other.Value.Equals(Value);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="object"/> is equal to
+        /// the current <see cref="ObjectFieldNode"/>.
+        /// </summary>
+        /// <param name="obj">
+        /// The <see cref="object"/> to compare with the current
+        /// <see cref="ObjectFieldNode"/>.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the specified <see cref="object"/> is equal to the
+        /// current <see cref="ObjectFieldNode"/>; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(obj, this))
+            {
+                return true;
+            }
+
+            return Equals(obj as ObjectFieldNode);
+        }
+
+        /// <summary>
+        /// Serves as a hash function for a <see cref="ObjectFieldNode"/>
+        /// object.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance that is suitable for use in
+        /// hashing algorithms and data structures such as a hash table.
+        /// </returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                if (_hash == null)
+                {
+                    _hash = (Kind.GetHashCode() * 397)
+                        ^ (Name.GetHashCode() * 97)
+                        ^ (Value.GetHashCode() * 7);
+                }
+
+                return _hash.Value;
+            }
+        }
     }
 }

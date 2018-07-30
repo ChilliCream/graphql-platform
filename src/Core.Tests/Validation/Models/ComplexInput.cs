@@ -1,9 +1,9 @@
 namespace HotChocolate.Validation
 {
-    public class Alient
-        : ISentient
+    public class ComplexInput
     {
         public string Name { get; set; }
-        public string HomePlanet { get; set; }
+
+        public string Owner { get; set; }
     }
 }

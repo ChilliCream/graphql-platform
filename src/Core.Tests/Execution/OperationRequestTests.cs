@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Runtime;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -14,6 +16,9 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
+            var session = new Mock<ISession>(MockBehavior.Strict);
+            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
+            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
@@ -22,11 +27,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationRequest =
+            OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
-            IExecutionResult result = await operationRequest.ExecuteAsync(
-                new Dictionary<string, IValueNode>(),
-                null, CancellationToken.None);
+            IExecutionResult result = await operationExecuter.ExecuteAsync(
+                new OperationRequest(schema.Services, session.Object),
+                CancellationToken.None);
 
             // assert
             Assert.NotNull(result);
@@ -55,15 +60,21 @@ namespace HotChocolate.Execution
                         .To("Mutation", "changeTheNumber");
                 });
 
+            var session = new Mock<ISession>(MockBehavior.Strict);
+            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
+            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
+
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationRequest =
+            OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
-            IExecutionResult result = await operationRequest.ExecuteAsync();
+            IExecutionResult result = await operationExecuter.ExecuteAsync(
+                new OperationRequest(schema.Services, session.Object),
+                CancellationToken.None);
 
             // assert
             Assert.Null(result.Errors);

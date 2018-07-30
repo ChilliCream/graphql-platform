@@ -60,7 +60,7 @@ namespace HotChocolate.AspNetCore
                 new Execution.QueryRequest(request.Query, request.OperationName)
                 {
                     VariableValues = DeserializeVariables(request.Variables),
-                    InitialValue = null
+                    Services = CreateRequestServices(context)
                 },
                 cancellationToken).ConfigureAwait(false);
 
@@ -74,7 +74,7 @@ namespace HotChocolate.AspNetCore
         {
             if (executionResult is IQueryExecutionResult queryResult)
             {
-                // TODO : refactor this ...
+                // TODO : refactor this, we dont need this string...
                 string json = queryResult.ToJson();
                 byte[] buffer = Encoding.UTF8.GetBytes(json);
                 await response.Body.WriteAsync(buffer, 0, buffer.Length);
@@ -170,6 +170,17 @@ namespace HotChocolate.AspNetCore
                 default:
                     return new StringValueNode(value.Value<string>());
             }
+        }
+
+        private IServiceProvider CreateRequestServices(HttpContext context)
+        {
+            Dictionary<Type, object> services = new Dictionary<Type, object>
+            {
+                { typeof(HttpContext), context }
+            };
+
+            return new RequestServiceProvider(
+                context.RequestServices, services);
         }
     }
 }

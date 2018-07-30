@@ -102,8 +102,8 @@ namespace HotChocolate.Resolvers
 
             foreach (ParameterInfo parameter in method.GetParameters())
             {
-                FieldResolverArgumentKind kind = FieldResolverArgumentDescriptor
-                    .LookupKind(parameter.ParameterType, sourceType);
+                FieldResolverArgumentKind kind = FieldResolverArgumentHelper
+                    .LookupKind(parameter, sourceType);
                 string variableName = $"v{i++}_{parameter.Name}";
                 arguments.Add(new FieldResolverArgumentDescriptor(
                     parameter.Name, variableName, kind, parameter.ParameterType));

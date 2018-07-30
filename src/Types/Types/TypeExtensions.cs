@@ -27,6 +27,13 @@ namespace HotChocolate.Types
             return false;
         }
 
+        public static bool IsCompositeType(this IType type)
+        {
+            return IsType<ObjectType>(type)
+                || IsType<UnionType>(type)
+                || IsType<InterfaceType>(type);
+        }
+
         public static bool IsListType(this IType type)
         {
             return IsType<ListType>(type);
@@ -106,6 +113,15 @@ namespace HotChocolate.Types
                 return l.ElementType;
             }
 
+            return type;
+        }
+
+        public static IType NullableType(this IType type)
+        {
+            if (type is NonNullType nnt)
+            {
+                return nnt.Type;
+            }
             return type;
         }
 

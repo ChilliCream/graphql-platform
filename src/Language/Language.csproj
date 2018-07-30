@@ -26,10 +26,4 @@
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Lexer\" />
-    <Folder Include="AST\" />
-    <Folder Include="Parser\" />
-  </ItemGroup>
-
 </Project>

@@ -6,6 +6,8 @@ namespace HotChocolate
     public interface ISchemaConfiguration
         : ISchemaFirstConfiguration
         , ICodeFirstConfiguration
+        , IDataLoaderConfiguration
+        , ICustomContextConfiguration
     {
         ISchemaOptions Options { get; }
 

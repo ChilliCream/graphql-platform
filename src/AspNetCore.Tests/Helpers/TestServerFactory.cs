@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore
 {
@@ -16,6 +17,7 @@ namespace HotChocolate.AspNetCore
                 .Configure(app => app.UseGraphQL(route))
                 .ConfigureServices(services =>
                 {
+                    services.AddScoped<TestService>();
                     services.AddGraphQL(configure);
                 });
 

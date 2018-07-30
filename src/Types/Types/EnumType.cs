@@ -101,7 +101,7 @@ namespace HotChocolate.Types
         {
             if (value == null)
             {
-                return new NullValueNode();
+                return NullValueNode.Default;
             }
 
             if (_valueToValues.TryGetValue(value, out EnumValue enumValue))
