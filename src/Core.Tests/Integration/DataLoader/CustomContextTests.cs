@@ -63,7 +63,7 @@ namespace HotChocolate.Integration.DataLoader
         {
             return Schema.Create("type Query { a: String }", c =>
             {
-                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(10);
+                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.RegisterCustomContext<MyCustomContext>(scope);
                 c.BindResolver(ctx =>
                 {

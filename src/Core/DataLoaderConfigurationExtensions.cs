@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Configuration;
 using HotChocolate.Runtime;
 
 namespace HotChocolate
