@@ -9,7 +9,7 @@ namespace HotChocolate
         object Value { get; }
     }
 
-    public interface IResolverResult<TValue>
+    public interface IResolverResult<out TValue>
         : IResolverResult
     {
         new TValue Value { get; }

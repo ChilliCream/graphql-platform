@@ -86,10 +86,9 @@ namespace HotChocolate.Execution
                 return value;
             }
 
-            Type type = typeof(T);
             if (argumentValue.Value == null)
             {
-                return default(T);
+                return default;
             }
 
             if (TryConvertValue(argumentValue, out value))

@@ -11,7 +11,6 @@ namespace HotChocolate.Runtime
         private readonly object _sync = new object();
         private ImmutableDictionary<string, DataLoaderInfo> _touchedDataLoaders =
             ImmutableDictionary<string, DataLoaderInfo>.Empty;
-        private bool _disposed;
 
         public DataLoaderProvider(
             IServiceProvider globalServices,
