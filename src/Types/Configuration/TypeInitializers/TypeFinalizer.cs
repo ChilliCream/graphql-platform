@@ -63,10 +63,16 @@ namespace HotChocolate.Configuration
 
         private void RegisterStateObjects(ISchemaContext context)
         {
-            foreach (DataLoaderDescriptor dataLoaderDescriptor in
+            foreach (DataLoaderDescriptor descriptor in
                 _schemaConfiguration.DataLoaderDescriptors)
             {
-                context.DataLoaders.Add(dataLoaderDescriptor);
+                context.DataLoaders.Add(descriptor);
+            }
+
+            foreach (CustomContextDescriptor descriptor in
+                _schemaConfiguration.CustomContextDescriptors)
+            {
+                context.CustomContexts.Add(descriptor);
             }
         }
     }
