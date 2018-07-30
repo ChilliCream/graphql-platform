@@ -31,7 +31,10 @@ namespace HotChocolate.Execution
             OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services, dataLoaderState),
+                new OperationRequest(schema.Services)
+                {
+                    DataLoaders = dataLoaderState
+                },
                 CancellationToken.None);
 
             // assert
@@ -75,7 +78,10 @@ namespace HotChocolate.Execution
             OperationExecuter operationExecuter =
                 new OperationExecuter(schema, query, operation);
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services, dataLoaderState),
+                new OperationRequest(schema.Services)
+                {
+                    DataLoaders = dataLoaderState
+                },
                 CancellationToken.None);
 
             // assert

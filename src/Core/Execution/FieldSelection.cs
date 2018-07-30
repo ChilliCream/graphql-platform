@@ -6,7 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     [DebuggerDisplay("{Field.Name}: {Field.Type}")]
-    public class FieldSelection
+    internal class FieldSelection
     {
         public FieldSelection(FieldNode node, ObjectField field, string responseName)
         {

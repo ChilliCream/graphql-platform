@@ -72,6 +72,7 @@ namespace HotChocolate.Runtime
                 {
                     disposable.Dispose();
                 }
+                _disposed = true;
             }
         }
     }

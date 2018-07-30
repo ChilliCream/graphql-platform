@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
@@ -47,8 +48,13 @@ namespace HotChocolate.Execution
             BeginExecuteResolverBatch(
                 executionContext, currentBatch, cancellationToken);
 
-            // execute batch data loaders
-            await CompleteDataLoadersAsync(executionContext, cancellationToken);
+            if (executionContext.DataLoaders != null)
+            {
+                // execute batch data loaders
+                await CompleteDataLoadersAsync(
+                    executionContext.DataLoaders,
+                    cancellationToken);
+            }
 
             // await field resolver results
             await EndExecuteResolverBatchAsync(
@@ -83,13 +89,12 @@ namespace HotChocolate.Execution
         }
 
         protected async Task CompleteDataLoadersAsync(
-            IExecutionContext executionContext,
+            IDataLoaderState dataLoaders,
             CancellationToken cancellationToken)
         {
-            await Task.WhenAll(executionContext
-                .DataLoaders.Touched
+            await Task.WhenAll(dataLoaders.Touched
                 .Select(t => t.TriggerAsync(cancellationToken)));
-            executionContext.DataLoaders.Reset();
+            dataLoaders.Reset();
         }
 
         private async Task EndExecuteResolverBatchAsync(

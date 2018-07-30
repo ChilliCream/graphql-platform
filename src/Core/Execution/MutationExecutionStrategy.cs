@@ -70,7 +70,12 @@ namespace HotChocolate.Execution
                 resolverTask, executionContext.Options.DeveloperMode,
                 cancellationToken);
 
-            await CompleteDataLoadersAsync(executionContext, cancellationToken);
+            if (executionContext.DataLoaders != null)
+            {
+                await CompleteDataLoadersAsync(
+                    executionContext.DataLoaders,
+                    cancellationToken);
+            }
 
             // await async results
             resolverTask.ResolverResult = await FinalizeResolverResultAsync(

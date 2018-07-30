@@ -5,20 +5,17 @@ using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
-    public class OperationRequest
+    internal class OperationRequest
     {
         public OperationRequest(
-            IServiceProvider services,
-            IDataLoaderState dataLoaders)
+            IServiceProvider services)
         {
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
-            DataLoaders = dataLoaders
-                ?? throw new ArgumentNullException(nameof(dataLoaders));
         }
 
         public IServiceProvider Services { get; }
-        public IDataLoaderState DataLoaders { get; }
+        public DataLoaderState DataLoaders { get; set; }
         public IReadOnlyDictionary<string, IValueNode> VariableValues { get; set; }
         public object InitialValue { get; set; }
     }

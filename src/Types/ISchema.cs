@@ -56,9 +56,9 @@ namespace HotChocolate
         IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
 
         /// <summary>
-        /// Gets the state object descriptors.
+        /// Gets the custom context descriptors.
         /// </summary>
-        IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
+        IReadOnlyCollection<CustomContextDescriptor> CustomContexts { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.

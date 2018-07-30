@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Runtime
 {
     public class DataLoaderStateManager
     {
         private readonly StateObjectCollection<string> _globalStateObjects;
-        private readonly Cache<StateObjectCollection<string>> _cache;
+        private readonly UserStateManager<string> _userState;
         private readonly DataLoaderDescriptorCollection _dataLoaderDescriptors;
 
         public DataLoaderStateManager(
@@ -20,12 +21,10 @@ namespace HotChocolate.Runtime
 
             _dataLoaderDescriptors =
                 new DataLoaderDescriptorCollection(descriptors);
-            _cache = new Cache<StateObjectCollection<string>>(
-                size < 10 ? 10 : size);
+            _userState = new UserStateManager<string>(size);
             _globalStateObjects =
                 new StateObjectCollection<string>(ExecutionScope.Global);
         }
-
 
         public DataLoaderState CreateState(
             IServiceProvider services, string userKey)
@@ -41,7 +40,7 @@ namespace HotChocolate.Runtime
             }
 
             StateObjectCollection<string> userStateObjects =
-                GetOrCreateUserState(userKey);
+                _userState.CreateUserState(userKey);
 
             var requestStateObjects =
                 new StateObjectCollection<string>(ExecutionScope.Request);
@@ -57,11 +56,19 @@ namespace HotChocolate.Runtime
                 services, _dataLoaderDescriptors, stateObjects);
         }
 
-        private StateObjectCollection<string> GetOrCreateUserState(
-            string userKey)
+        public void FinalizeState(DataLoaderState dataLoaderState)
         {
-            return _cache.GetOrCreate(userKey,
-                () => new StateObjectCollection<string>(ExecutionScope.User));
+            if (dataLoaderState == null)
+            {
+                throw new ArgumentNullException(nameof(dataLoaderState));
+            }
+
+            StateObjectCollection<string> userState = dataLoaderState.Scopes
+                .FirstOrDefault(t => t.Scope == ExecutionScope.User);
+            if (userState != null)
+            {
+                _userState.FinalizeUserState(userState);
+            }
         }
     }
 }

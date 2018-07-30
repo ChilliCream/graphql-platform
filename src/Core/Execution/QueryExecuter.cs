@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
 using HotChocolate.Runtime;
+using System.Linq;
 
 namespace HotChocolate.Execution
 {
@@ -14,6 +15,8 @@ namespace HotChocolate.Execution
         private readonly Cache<OperationExecuter> _operationCache;
         private readonly DataLoaderStateManager _dataLoaderStateManager;
         private readonly bool _useCache;
+        private readonly bool _hasDataLoaders;
+        private readonly bool _hasCustomContexts;
 
         public QueryExecuter(ISchema schema)
             : this(schema, 100)
@@ -28,6 +31,8 @@ namespace HotChocolate.Execution
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
             _dataLoaderStateManager = new DataLoaderStateManager(
                 schema.DataLoaders, cacheSize);
+            _hasDataLoaders = schema.DataLoaders.Any();
+            _hasCustomContexts = schema.CustomContexts.Any();
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
@@ -53,13 +58,14 @@ namespace HotChocolate.Execution
                 return new QueryResult(queryInfo.ValidationResult.Errors);
             }
 
+            OperationRequest operationRequest = null;
             try
             {
                 OperationExecuter operationExecuter =
                     GetOrCreateOperationExecuter(
                         queryRequest, queryInfo.QueryDocument);
 
-                OperationRequest operationRequest =
+                operationRequest =
                     CreateOperationRequest(queryRequest);
 
                 return await operationExecuter.ExecuteAsync(
@@ -72,6 +78,13 @@ namespace HotChocolate.Execution
             catch (Exception ex)
             {
                 return new QueryResult(CreateErrorFromException(ex));
+            }
+            finally
+            {
+                if (operationRequest != null)
+                {
+                    FinalizeOperationRequest(operationRequest);
+                }
             }
         }
 
@@ -93,14 +106,33 @@ namespace HotChocolate.Execution
         {
             IServiceProvider services =
                 queryRequest.Services ?? _schema.Services;
-            DataLoaderState dataLoaderState = _dataLoaderStateManager
-                .CreateState(services, "anonymous");
 
-            return new OperationRequest(services, dataLoaderState)
+            DataLoaderState dataLoaderState = _hasDataLoaders
+                ? _dataLoaderStateManager.CreateState(
+                    services, CreateUserKey(queryRequest))
+                : null;
+
+            return new OperationRequest(services)
             {
                 VariableValues = queryRequest.VariableValues,
-                InitialValue = queryRequest.InitialValue
+                InitialValue = queryRequest.InitialValue,
+                DataLoaders = dataLoaderState
             };
+        }
+
+        private string CreateUserKey(QueryRequest queryRequest)
+        {
+            return queryRequest.UserKey ?? "none";
+        }
+
+        private void FinalizeOperationRequest(
+            OperationRequest operationRequest)
+        {
+            if (operationRequest.DataLoaders != null)
+            {
+                _dataLoaderStateManager.FinalizeState(
+                    operationRequest.DataLoaders);
+            }
         }
     }
 }

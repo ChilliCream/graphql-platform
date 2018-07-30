@@ -139,6 +139,10 @@ namespace HotChocolate.Execution
 
         public T DataLoader<T>(string key)
         {
+            if (_executionContext.DataLoaders == null)
+            {
+                return default;
+            }
             return _executionContext.DataLoaders.GetDataLoader<T>(key);
         }
     }

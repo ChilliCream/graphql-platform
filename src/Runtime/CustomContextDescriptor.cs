@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 
 namespace HotChocolate.Runtime
 {
-    public class StateObjectDescriptor
+    public class CustomContextDescriptor
         : IScopedStateDescriptor<Type>
     {
-        public StateObjectDescriptor(
+        public CustomContextDescriptor(
             Type type,
             Func<IServiceProvider, object> factory,
             ExecutionScope scope)

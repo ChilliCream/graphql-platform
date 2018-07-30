@@ -78,7 +78,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets the state object descriptors.
         /// </summary>
-        public IReadOnlyCollection<StateObjectDescriptor> StateObjects { get; }
+        public IReadOnlyCollection<CustomContextDescriptor> CustomContexts { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
