@@ -202,6 +202,8 @@ namespace HotChocolate.AspNetCore
                 Query = @"
                 {
                     requestPath
+                    requestPath2
+                    requestPath3
                 }"
             };
 

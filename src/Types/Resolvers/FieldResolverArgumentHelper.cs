@@ -127,7 +127,7 @@ namespace HotChocolate.Resolvers
 
             if (parameter.IsState())
             {
-                argumentKind = FieldResolverArgumentKind.State;
+                argumentKind = FieldResolverArgumentKind.CustomContext;
                 return true;
             }
 

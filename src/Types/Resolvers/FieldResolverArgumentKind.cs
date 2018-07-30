@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers
         FieldSelection,
         Context,
         CancellationToken,
-        State,
+        CustomContext,
         DataLoader
     }
 }

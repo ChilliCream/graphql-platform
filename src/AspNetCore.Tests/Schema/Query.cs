@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
@@ -24,6 +25,16 @@ namespace HotChocolate.AspNetCore
         public string GetRequestPath()
         {
             return _context.Request.Path;
+        }
+
+        public string GetRequestPath2(IResolverContext context)
+        {
+            return context.Service<HttpContext>().Request.Path;
+        }
+
+        public string GetRequestPath3([Service]HttpContext context)
+        {
+            return context.Request.Path;
         }
 
         public Foo GetBasic()
