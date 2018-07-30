@@ -8,14 +8,17 @@ namespace HotChocolate.Execution
     internal class OperationRequest
     {
         public OperationRequest(
-            IServiceProvider services)
+            IServiceProvider services,
+            ISession session)
         {
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            Session = session
+                ?? throw new ArgumentNullException(nameof(session));
         }
 
         public IServiceProvider Services { get; }
-        public DataLoaderState DataLoaders { get; set; }
+        public ISession Session { get; }
         public IReadOnlyDictionary<string, IValueNode> VariableValues { get; set; }
         public object InitialValue { get; set; }
     }

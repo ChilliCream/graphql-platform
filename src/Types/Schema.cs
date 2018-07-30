@@ -30,9 +30,11 @@ namespace HotChocolate
                 context.Types.GetTypeBindings(),
                 options);
             Directives = context.Directives.GetDirectives();
-            DataLoaders = context.DataLoaders.ToImmutableArray();
-            CustomContexts = context.CustomContexts.ToImmutableArray();
             Options = options;
+            Sessions = new SessionManager(
+                services,
+                context.DataLoaders,
+                context.CustomContexts);
         }
 
         /// <summary>
@@ -81,6 +83,12 @@ namespace HotChocolate
         /// Gets the state object descriptors.
         /// </summary>
         public IReadOnlyCollection<CustomContextDescriptor> CustomContexts { get; }
+
+        /// <summary>
+        /// Gets the session manager which can be used to create
+        /// new query execution sessions.
+        /// </summary>
+        public ISessionManager Sessions { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -158,6 +166,11 @@ namespace HotChocolate
             }
 
             return Array.Empty<ObjectType>();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

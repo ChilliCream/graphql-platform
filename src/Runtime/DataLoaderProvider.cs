@@ -1,30 +1,24 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Runtime
 {
-    public class DataLoaderState
+    public class DataLoaderProvider
         : StateObjectContainer<string>
-        , IDataLoaderState
+        , IDataLoaderProvider
     {
-        private static readonly HashSet<ExecutionScope> _scopes =
-            new HashSet<ExecutionScope>
-            {
-                ExecutionScope.Global,
-                ExecutionScope.User,
-                ExecutionScope.Request
-            };
-
         private readonly object _sync = new object();
         private ImmutableDictionary<string, DataLoaderInfo> _touchedDataLoaders =
             ImmutableDictionary<string, DataLoaderInfo>.Empty;
+        private bool _disposed;
 
-        public DataLoaderState(
-            IServiceProvider root,
-            DataLoaderDescriptorCollection descriptors,
-            IEnumerable<StateObjectCollection<string>> objectCollections)
-            : base(root, descriptors, _scopes, objectCollections)
+        public DataLoaderProvider(
+            IServiceProvider globalServices,
+            IServiceProvider requestServices,
+            StateObjectDescriptorCollection<string> descriptors,
+            StateObjectCollection<string> globalStates)
+            : base(globalServices, requestServices, descriptors, globalStates)
         {
         }
 
@@ -42,7 +36,8 @@ namespace HotChocolate.Runtime
         {
             lock (_sync)
             {
-                _touchedDataLoaders = _touchedDataLoaders.Clear();
+                _touchedDataLoaders =
+                    ImmutableDictionary<string, DataLoaderInfo>.Empty;
             }
         }
 

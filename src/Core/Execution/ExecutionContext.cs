@@ -12,6 +12,7 @@ namespace HotChocolate.Execution
     {
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly FieldCollector _fieldCollector;
+        private readonly ISession _session;
 
         public ExecutionContext(
             ISchema schema,
@@ -27,8 +28,10 @@ namespace HotChocolate.Execution
 
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
+
             Services = request.Services;
-            DataLoaders = request.DataLoaders;
+            _session = request.Session;
+
             QueryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
             Operation = operation
@@ -61,7 +64,9 @@ namespace HotChocolate.Execution
 
         public VariableCollection Variables { get; }
 
-        public IDataLoaderState DataLoaders { get; }
+        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+
+        public ICustomContextProvider CustomContexts => _session.CustomContexts;
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)

@@ -1,8 +1,10 @@
+﻿using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Runtime
 {
-    public interface IDataLoaderState
+    public interface IDataLoaderProvider
+        : IDisposable
     {
         /// <summary>
         /// Gets the data loaders that have been requested since the last reset.

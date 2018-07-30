@@ -13,10 +13,7 @@ namespace HotChocolate.Execution
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
-        private readonly DataLoaderStateManager _dataLoaderStateManager;
         private readonly bool _useCache;
-        private readonly bool _hasDataLoaders;
-        private readonly bool _hasCustomContexts;
 
         public QueryExecuter(ISchema schema)
             : this(schema, 100)
@@ -29,10 +26,6 @@ namespace HotChocolate.Execution
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
-            _dataLoaderStateManager = new DataLoaderStateManager(
-                schema.DataLoaders, cacheSize);
-            _hasDataLoaders = schema.DataLoaders.Any();
-            _hasCustomContexts = schema.CustomContexts.Any();
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
@@ -81,10 +74,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                if (operationRequest != null)
-                {
-                    FinalizeOperationRequest(operationRequest);
-                }
+                operationRequest?.Session.Dispose();
             }
         }
 
@@ -107,32 +97,17 @@ namespace HotChocolate.Execution
             IServiceProvider services =
                 queryRequest.Services ?? _schema.Services;
 
-            DataLoaderState dataLoaderState = _hasDataLoaders
-                ? _dataLoaderStateManager.CreateState(
-                    services, CreateUserKey(queryRequest))
-                : null;
-
-            return new OperationRequest(services)
+            return new OperationRequest(services,
+                _schema.Sessions.CreateSession(services))
             {
                 VariableValues = queryRequest.VariableValues,
                 InitialValue = queryRequest.InitialValue,
-                DataLoaders = dataLoaderState
             };
         }
 
         private string CreateUserKey(QueryRequest queryRequest)
         {
             return queryRequest.UserKey ?? "none";
-        }
-
-        private void FinalizeOperationRequest(
-            OperationRequest operationRequest)
-        {
-            if (operationRequest.DataLoaders != null)
-            {
-                _dataLoaderStateManager.FinalizeState(
-                    operationRequest.DataLoaders);
-            }
         }
     }
 }

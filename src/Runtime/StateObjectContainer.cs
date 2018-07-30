@@ -5,76 +5,51 @@ using System.Linq;
 namespace HotChocolate.Runtime
 {
     public class StateObjectContainer<TKey>
+        : IDisposable
     {
-        private readonly IServiceProvider _root;
+        private readonly IServiceProvider _globalServices;
+        private readonly IServiceProvider _requestServices;
         private readonly StateObjectDescriptorCollection<TKey> _descriptors;
-        private readonly Dictionary<ExecutionScope, StateObjectCollection<TKey>> _scopes;
+        private readonly StateObjectCollection<TKey> _globalStates;
+        private readonly StateObjectCollection<TKey> _requestStates;
+        private bool _disposed;
 
         protected StateObjectContainer(
-            IServiceProvider root,
+            IServiceProvider globalServices,
+            IServiceProvider requestServices,
             StateObjectDescriptorCollection<TKey> descriptors,
-            ISet<ExecutionScope> scopes,
-            IEnumerable<StateObjectCollection<TKey>> objectCollections)
+            StateObjectCollection<TKey> globalStates)
         {
-            if (scopes == null)
-            {
-                throw new ArgumentNullException(nameof(scopes));
-            }
-
-            if (objectCollections == null)
-            {
-                throw new ArgumentNullException(nameof(objectCollections));
-            }
-
-            _root = root
-                ?? throw new ArgumentNullException(nameof(root));
+            _globalServices = globalServices
+                ?? throw new ArgumentNullException(nameof(globalServices));
             _descriptors = descriptors
                 ?? throw new ArgumentNullException(nameof(descriptors));
-
-            _scopes =
-                new Dictionary<ExecutionScope, StateObjectCollection<TKey>>();
-
-            foreach (StateObjectCollection<TKey> collection in
-                objectCollections)
-            {
-                _scopes[collection.Scope] = collection;
-            }
-
-            foreach (ExecutionScope scope in scopes)
-            {
-                if (!_scopes.ContainsKey(scope))
-                {
-                    _scopes[scope] = new StateObjectCollection<TKey>(scope);
-                }
-            }
+            _globalStates = globalStates
+                ?? throw new ArgumentNullException(nameof(globalStates));
+            _requestServices = requestServices ?? globalServices;
         }
-
-        protected StateObjectContainer(
-            IServiceProvider root,
-            StateObjectDescriptorCollection<TKey> descriptors,
-            ISet<ExecutionScope> scopes)
-            : this(root, descriptors, scopes,
-                Enumerable.Empty<StateObjectCollection<TKey>>())
-        {
-        }
-
-        public IEnumerable<StateObjectCollection<TKey>> Scopes =>
-            _scopes.Values;
 
         protected object GetStateObject(TKey key)
         {
             if (_descriptors.TryGetDescriptor(key,
                 out IScopedStateDescriptor<TKey> descriptor))
             {
-                StateObjectCollection<TKey> objects = _scopes[descriptor.Scope];
+                IServiceProvider services = _globalServices;
+                StateObjectCollection<TKey> stateObjects = _globalStates;
 
-                if (objects.TryGetObject(key, out object instance))
+                if (descriptor.Scope == ExecutionScope.Request)
+                {
+                    services = _requestServices;
+                    stateObjects = _requestStates;
+                }
+
+                if (stateObjects.TryGetObject(key, out object instance))
                 {
                     return instance;
                 }
 
-                return objects.CreateObject(
-                    descriptor, _descriptors.CreateFactory(_root, descriptor));
+                return stateObjects.CreateObject(descriptor,
+                    _descriptors.CreateFactory(services, descriptor));
             }
 
             return null;
@@ -93,6 +68,21 @@ namespace HotChocolate.Runtime
 
             descriptor = default(T);
             return false;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                _requestStates.Dispose();
+                _disposed = true;
+            }
         }
     }
 }

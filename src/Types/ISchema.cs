@@ -12,6 +12,7 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public interface ISchema
+        : IDisposable
     {
         /// <summary>
         /// Gets the schema options.
@@ -51,14 +52,10 @@ namespace HotChocolate
         IReadOnlyCollection<Directive> Directives { get; }
 
         /// <summary>
-        /// Gets the data loader descriptors.
+        /// Gets the session manager which can be used to create
+        /// new query execution sessions.
         /// </summary>
-        IReadOnlyCollection<DataLoaderDescriptor> DataLoaders { get; }
-
-        /// <summary>
-        /// Gets the custom context descriptors.
-        /// </summary>
-        IReadOnlyCollection<CustomContextDescriptor> CustomContexts { get; }
+        ISessionManager Sessions { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.

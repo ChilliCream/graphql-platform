@@ -16,7 +16,8 @@ namespace HotChocolate.Execution
 
         // context
         object RootValue { get; }
-        IDataLoaderState DataLoaders { get; }
+        IDataLoaderProvider DataLoaders { get; }
+        ICustomContextProvider CustomContexts { get; }
 
         // query ast
         DocumentNode QueryDocument { get; }
