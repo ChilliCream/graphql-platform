@@ -137,7 +137,7 @@ namespace HotChocolate.Execution
             throw new NotImplementedException();
         }
 
-        public T Loader<T>(string key)
+        public T DataLoader<T>(string key)
         {
             return _executionContext.DataLoaders.GetDataLoader<T>(key);
         }

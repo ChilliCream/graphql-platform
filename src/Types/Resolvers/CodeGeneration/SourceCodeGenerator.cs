@@ -75,7 +75,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     source.Append($"ct");
                     break;
                 case FieldResolverArgumentKind.DataLoader:
-                    source.Append($"ctx.{nameof(IResolverContext.Loader)}<{GetTypeName(argumentDescriptor.Type)}>()");
+                    source.Append($"ctx.{nameof(IResolverContext.DataLoader)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 case FieldResolverArgumentKind.State:
                     source.Append($"ctx.{nameof(IResolverContext.State)}<{GetTypeName(argumentDescriptor.Type)}>()");

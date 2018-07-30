@@ -34,6 +34,6 @@ namespace HotChocolate.Resolvers
 
         T State<T>();
 
-        T Loader<T>(string key);
+        T DataLoader<T>(string key);
     }
 }

@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration
         internal IReadOnlyCollection<DataLoaderDescriptor>
             DataLoaderDescriptors => _dataLoaders.Values;
 
-        public void RegisterLoader<T>(
+        public void RegisterDataLoader<T>(
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, T> loaderFactory = null,
