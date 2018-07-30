@@ -8,6 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     internal interface IExecutionContext
+        : IDisposable
     {
         // schema
         ISchema Schema { get; }

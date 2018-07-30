@@ -13,6 +13,8 @@ namespace HotChocolate.Execution
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly FieldCollector _fieldCollector;
         private readonly ISession _session;
+        private readonly bool _disposeRootValue;
+        private bool _disposed;
 
         public ExecutionContext(
             ISchema schema,
@@ -44,6 +46,11 @@ namespace HotChocolate.Execution
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);
+            if (RootValue == null)
+            {
+                RootValue = CreateRootValue(Services, schema, OperationType);
+                _disposeRootValue = true;
+            }
         }
 
         public ISchema Schema { get; }
@@ -109,19 +116,43 @@ namespace HotChocolate.Execution
             if (initialValue == null && schema.TryGetNativeType(
                operationType.Name, out Type nativeType))
             {
-                initialValue = services.GetService(nativeType)
-                    ?? CreateRootValue(services, nativeType);
+                initialValue = services.GetService(nativeType);
             }
             return initialValue;
         }
 
         private static object CreateRootValue(
             IServiceProvider services,
-            Type nativeType)
+            ISchema schema,
+            ObjectType operationType)
         {
-            ServiceFactory serviceFactory = new ServiceFactory();
-            serviceFactory.Services = services;
-            return serviceFactory.CreateInstance(nativeType);
+            if (schema.TryGetNativeType(
+                operationType.Name,
+                out Type nativeType))
+            {
+                ServiceFactory serviceFactory = new ServiceFactory();
+                serviceFactory.Services = services;
+                return serviceFactory.CreateInstance(nativeType);
+            }
+            return null;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                if (_disposeRootValue && RootValue is IDisposable d)
+                {
+                    d.Dispose();
+                }
+                _disposed = true;
+            }
         }
     }
 }
