@@ -126,7 +126,7 @@ namespace HotChocolate.Validation
                 if (field.SelectionSet != null)
                 {
                     VisitSelectionSet(field.SelectionSet,
-                        complexType.Fields[field.Name.Value].Type,
+                        complexType.Fields[field.Name.Value].Type.NamedType(),
                         newpath);
                 }
             }

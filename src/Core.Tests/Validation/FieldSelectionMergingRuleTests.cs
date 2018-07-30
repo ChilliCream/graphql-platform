@@ -348,35 +348,5 @@ namespace HotChocolate.Validation
             // assert
             Assert.False(result.HasErrors);
         }
-
-        [Fact]
-        public void FalsePositive()
-        {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
-            {
-                leftComparison: hero(episode: EMPIRE) {
-                    ...comparisonFields
-                }
-                rightComparison: hero(episode: JEDI) {
-                    ...comparisonFields
-                }
-            }
-
-            fragment comparisonFields on Character {
-                name
-                appearsIn
-                friends {
-                    name
-                }
-            }");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
-        }
     }
 }

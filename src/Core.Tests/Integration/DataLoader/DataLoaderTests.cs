@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -80,6 +81,7 @@ namespace HotChocolate.Integration.DataLoader
         {
             return Schema.Create(c =>
             {
+                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(10);
                 c.RegisterDataLoader<TestDataLoader>(scope);
                 c.RegisterQueryType<Query>();
             });

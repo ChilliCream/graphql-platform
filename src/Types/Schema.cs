@@ -18,6 +18,7 @@ namespace HotChocolate
         : ISchema
     {
         private readonly SchemaTypes _types;
+        private bool _disposed;
 
         private Schema(
             IServiceProvider services,
@@ -160,7 +161,17 @@ namespace HotChocolate
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                Sessions.Dispose();
+                _disposed = true;
+            }
         }
     }
 }
