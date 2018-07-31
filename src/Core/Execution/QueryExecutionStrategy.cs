@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
     internal class QueryExecutionStrategy
         : ExecutionStrategyBase
     {
-        public override async Task<IExecutionResult> ExecuteAsync(
+        public override Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -17,6 +17,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
+            return ExecuteInternalAsync(executionContext, cancellationToken);
+        }
+
+        private async Task<IExecutionResult> ExecuteInternalAsync(
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
             var data = new OrderedDictionary();
 
             IEnumerable<ResolverTask> rootResolverTasks =

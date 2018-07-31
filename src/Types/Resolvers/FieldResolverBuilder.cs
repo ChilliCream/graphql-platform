@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
     public class FieldResolverBuilder
         : IFieldResolverBuilder
     {
-        private FieldResolverSourceCodeGenerator _codeGenerator =
+        private readonly FieldResolverSourceCodeGenerator _codeGenerator =
             new FieldResolverSourceCodeGenerator();
 
         public IEnumerable<FieldResolver> Build(

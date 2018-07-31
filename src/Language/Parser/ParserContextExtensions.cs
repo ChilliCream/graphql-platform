@@ -170,7 +170,7 @@ namespace HotChocolate.Language
 
         public static void SkipWhile(this ParserContext context, TokenKind kind)
         {
-            while (context.Skip(kind)) { }
+            while (context.Skip(kind));
         }
 
         public static bool Skip(this ParserContext context, TokenKind kind)

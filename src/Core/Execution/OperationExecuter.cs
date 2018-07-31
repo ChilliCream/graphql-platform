@@ -14,17 +14,13 @@ namespace HotChocolate.Execution
                 { OperationType.Query, new QueryExecutionStrategy() },
                 { OperationType.Mutation, new MutationExecutionStrategy() }
             };
-
-        private static readonly FieldValueCompleter _valueCompleter =
-            new FieldValueCompleter();
-
         private readonly ISchema _schema;
         private readonly DocumentNode _queryDocument;
         private readonly OperationDefinitionNode _operation;
         private readonly int _maxExecutionDepth;
         private readonly TimeSpan _executionTimeout;
         private readonly VariableValueBuilder _variableValueBuilder;
-        private IExecutionStrategy _strategy;
+        private readonly IExecutionStrategy _strategy;
 
         public OperationExecuter(
             ISchema schema,

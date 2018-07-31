@@ -290,3 +290,5 @@ Moreover, we are working on the following parts that are not defined in the spec
 ## Documentation
 
 For more examples and detailed documentation, click [here](http://hotchocolate.io).
+
+For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/greendonut).

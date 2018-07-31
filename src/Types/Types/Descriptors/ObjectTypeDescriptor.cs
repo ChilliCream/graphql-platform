@@ -204,14 +204,14 @@ namespace HotChocolate.Types
         }
 
         protected ObjectFieldDescriptor Field<TValue>(
-            Expression<Func<T, TValue>> methodOrProperty)
+            Expression<Func<T, TValue>> propertyOrMethod)
         {
-            if (methodOrProperty == null)
+            if (propertyOrMethod == null)
             {
-                throw new ArgumentNullException(nameof(methodOrProperty));
+                throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = methodOrProperty.ExtractMember();
+            MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
                 var fieldDescriptor = new ObjectFieldDescriptor(
