@@ -22,7 +22,7 @@ namespace HotChocolate.Language
         public static bool IsLetter(in this char c)
         {
             char normalized = (char)(c | 0x20);
-            return ((normalized >= 'a' && normalized <= 'z'));
+            return (normalized >= 'a' && normalized <= 'z');
         }
 
         public static ref readonly bool IsLetterOrUnderscore(in this char c)
