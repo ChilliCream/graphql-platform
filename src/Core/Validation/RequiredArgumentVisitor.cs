@@ -57,7 +57,7 @@ namespace HotChocolate.Validation
             ILookup<string, ArgumentNode> providedArgumentLookup =
                 providedArguments.ToLookup(t => t.Name.Value);
 
-            foreach (InputField requiredArgument in arguments
+            foreach (IInputField requiredArgument in arguments
                 .Where(t => IsRequiredArgument(t)))
             {
                 ArgumentNode providedArgument =

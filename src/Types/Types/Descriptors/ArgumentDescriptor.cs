@@ -78,9 +78,10 @@ namespace HotChocolate.Types
                 .GetMoreSpecific(type);
         }
 
-        protected void DefaultValue(IValueNode valueNode)
+        protected void DefaultValue(IValueNode defaultValue)
         {
-            InputDescription.DefaultValue = valueNode ?? NullValueNode.Default;
+            InputDescription.DefaultValue =
+                defaultValue ?? NullValueNode.Default;
             InputDescription.NativeDefaultValue = null;
         }
 
@@ -109,7 +110,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Description(string description)
+        IArgumentDescriptor IArgumentDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
@@ -121,19 +123,22 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Type(ITypeNode type)
+        IArgumentDescriptor IArgumentDescriptor.Type(
+            ITypeNode type)
         {
             Type(type);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.DefaultValue(IValueNode valueNode)
+        IArgumentDescriptor IArgumentDescriptor.DefaultValue(
+            IValueNode valueNode)
         {
             DefaultValue(valueNode);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.DefaultValue(object defaultValue)
+        IArgumentDescriptor IArgumentDescriptor.DefaultValue(
+            object defaultValue)
         {
             DefaultValue(defaultValue);
             return this;
