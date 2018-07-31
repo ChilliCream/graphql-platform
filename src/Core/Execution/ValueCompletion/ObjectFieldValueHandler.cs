@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
                         completionContext.Selection.Node));
                     return;
                 }
-                CompleteObjectValue(completionContext, nextHandler, objectType);
+                CompleteObjectValue(completionContext, objectType);
             }
             else
             {
