@@ -131,9 +131,9 @@ namespace HotChocolate.Types
         }
 
         IArgumentDescriptor IArgumentDescriptor.DefaultValue(
-            IValueNode valueNode)
+            IValueNode defaultValue)
         {
-            DefaultValue(valueNode);
+            DefaultValue(defaultValue);
             return this;
         }
 
