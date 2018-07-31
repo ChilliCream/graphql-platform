@@ -114,10 +114,5 @@ namespace HotChocolate.Execution
                 InitialValue = queryRequest.InitialValue,
             };
         }
-
-        private string CreateUserKey(QueryRequest queryRequest)
-        {
-            return queryRequest.UserKey ?? "none";
-        }
     }
 }

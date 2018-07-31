@@ -37,7 +37,6 @@ namespace HotChocolate.Execution
 
         private void CompleteObjectValue(
             IFieldValueCompletionContext context,
-            Action<IFieldValueCompletionContext> nextHandler,
             ObjectType objectType)
         {
             var objectResult = new OrderedDictionary();
