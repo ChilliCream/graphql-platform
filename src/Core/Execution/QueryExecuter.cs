@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
 
         public int CachedOperations => _queryCache.Usage;
 
-        public async Task<IExecutionResult> ExecuteAsync(
+        public Task<IExecutionResult> ExecuteAsync(
             QueryRequest queryRequest,
             CancellationToken cancellationToken = default)
         {
@@ -48,9 +48,19 @@ namespace HotChocolate.Execution
             QueryInfo queryInfo = GetOrCreateQuery(queryRequest.Query);
             if (queryInfo.ValidationResult.HasErrors)
             {
-                return new QueryResult(queryInfo.ValidationResult.Errors);
+                return Task.FromResult<IExecutionResult>(
+                    new QueryResult(queryInfo.ValidationResult.Errors));
             }
 
+            return ExecuteInternalAsync(
+                queryRequest, queryInfo, cancellationToken);
+        }
+
+        private async Task<IExecutionResult> ExecuteInternalAsync(
+            QueryRequest queryRequest,
+            QueryInfo queryInfo,
+            CancellationToken cancellationToken)
+        {
             OperationRequest operationRequest = null;
             try
             {
