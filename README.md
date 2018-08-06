@@ -210,7 +210,7 @@ We currently support the following parts of the current [draft spec](http://face
 
 - [x] Skip
 - [x] Continue
-- [ ] Depricated
+- [ ] Deprecated
 
 ### Validation
 
