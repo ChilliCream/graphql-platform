@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -8,7 +9,6 @@ namespace HotChocolate.Execution
     internal class ArgumentResolver
     {
         public Dictionary<string, ArgumentValue> CoerceArgumentValues(
-            ObjectType objectType,
             FieldSelection fieldSelection,
             VariableCollection variables)
         {

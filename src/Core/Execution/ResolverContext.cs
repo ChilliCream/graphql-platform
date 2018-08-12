@@ -44,8 +44,7 @@ namespace HotChocolate.Execution
             _executionContext = executionContext;
             _resolverTask = resolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-                resolverTask.ObjectType, resolverTask.FieldSelection,
-                executionContext.Variables);
+resolverTask.FieldSelection, executionContext.Variables);
         }
 
         public ISchema Schema => _executionContext.Schema;
