@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             ?? throw new ArgumentNullException(nameof(resolverContext));
             Source = resolverContext.Source;
             Selection = resolverTask.FieldSelection;
-            SelectionSet = resolverTask.FieldSelection.Node.SelectionSet;
+            SelectionSet = resolverTask.FieldSelection.Selection.SelectionSet;
             Type = resolverContext.Field.Type;
             Path = resolverContext.Path;
             Value = resolverTask.ResolverResult;
@@ -124,7 +124,7 @@ namespace HotChocolate.Execution
             }
 
             ExecutionContext.ReportError(
-                new FieldError(message, Selection.Node));
+                new FieldError(message, Selection.Selection));
             _integrateResult(null);
         }
 
@@ -132,7 +132,7 @@ namespace HotChocolate.Execution
         {
             ReportError(new FieldError(
                 "Cannot return null for non-nullable field.",
-                Selection.Node));
+                Selection.Selection));
         }
 
         public void IntegrateResult(object value)

@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
                 new Dictionary<string, ArgumentValue>();
 
             Dictionary<string, IValueNode> argumentValues =
-                fieldSelection.Node.Arguments
+                fieldSelection.Selection.Arguments
                     .Where(t => t.Value != null)
                     .ToDictionary(t => t.Name.Value, t => t.Value);
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
                 {
                     throw new QueryException(new ArgumentError(
                         $"The argument type of '{argumentName}' is a non-null type.",
-                        argumentName, fieldSelection.Node));
+                        argumentName, fieldSelection.Selection));
                 }
 
                 coercedArgumentValues[argumentName] = new ArgumentValue(
