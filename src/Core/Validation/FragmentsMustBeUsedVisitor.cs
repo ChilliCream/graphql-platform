@@ -46,6 +46,8 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             _fragments.Remove(fragmentDefinition.Name.Value);
+
+            base.VisitFragmentDefinition(fragmentDefinition, path);
         }
     }
 }

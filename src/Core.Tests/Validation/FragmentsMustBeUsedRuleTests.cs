@@ -45,7 +45,37 @@ namespace HotChocolate.Validation
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
-                fragment nameFragment on Dog { # unused
+                fragment nameFragment on Dog {
+                    name
+                }
+
+                {
+                    dog {
+                        name
+                        ... nameFragment
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+         [Fact]
+        public void UsedNestedFragment()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment nameFragment on Dog {
+                    name
+                    ... nestedNameFragment
+                }
+
+                fragment nestedNameFragment on Dog {
                     name
                 }
 
