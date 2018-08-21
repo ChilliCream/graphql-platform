@@ -1,42 +1,17 @@
-using System.Collections.Immutable;
-using HotChocolate.Language;
-using HotChocolate.Types;
-
 namespace HotChocolate.Validation
 {
+    /// <summary>
+    /// Every argument provided to a field or directive must be defined 
+    /// in the set of possible arguments of that field or directive.
+    /// 
+    /// http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+    /// </summary>
     internal sealed class ArgumentNamesRule
+        : QueryVisitorValidationErrorBase
     {
-
-    }
-
-    internal sealed class ArgumentNamesVisitor
-        : QueryVisitorErrorBase
-    {
-        public ArgumentNamesVisitor(ISchema schema)
-            : base(schema)
+        protected override QueryVisitorErrorBase CreateVisitor(ISchema schema)
         {
-        }
-
-        protected override void VisitField(
-            FieldNode field,
-            IType type,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            if (type is IComplexOutputType t
-                && t.Fields.TryGetField(field.Name.Value, out IOutputField f))
-            {
-                foreach (ArgumentNode argument in field.Arguments)
-                {
-                    if (!f.Arguments.ContainsField(argument.Name.Value))
-                    {
-                        Errors.Add(new ValidationError(
-                            $"The argument `{argument.Name.Value}` does not " +
-                            "exist.", argument));
-                    }
-                }
-            }
-
-            base.VisitField(field, type, path);
+            return new ArgumentNamesVisitor(schema);
         }
     }
 }

@@ -414,5 +414,32 @@ namespace HotChocolate.Validation
                         "The query has non-mergable fields.",
                         t.Message));
         }
+
+        [Fact]
+        public void InvalidFieldArgName()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment invalidArgName on Dog {
+                    doesKnowCommand(command: CLEAN_UP_HOUSE)
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The argument `dogCommand` is required and does not " +
+                    "allow null values.", 
+                    t.Message),
+                t => Assert.Equal(
+                    "The argument `command` does not exist.", t.Message));
+        }
     }
 }

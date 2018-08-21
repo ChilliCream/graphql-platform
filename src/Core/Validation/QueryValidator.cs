@@ -23,6 +23,7 @@ namespace HotChocolate.Validation
                 new VariablesAreInputTypesRule(),
                 new FieldSelectionMergingRule(),
                 new AllVariableUsagesAreAllowedRule(),
+                new ArgumentNamesRule(),
             };
 
         private readonly ISchema _schema;
