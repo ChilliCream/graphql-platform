@@ -1,60 +1,16 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using HotChocolate.Language;
-
 namespace HotChocolate.Validation
 {
+    /// <summary>
+    /// Defined fragments must be used within a document.
+    /// 
+    /// http://facebook.github.io/graphql/June2018/#sec-Fragments-Must-Be-Used
+    /// </summary>
     internal sealed class FragmentsMustBeUsedRule
         : QueryVisitorValidationErrorBase
     {
         protected override QueryVisitorErrorBase CreateVisitor(ISchema schema)
         {
             return new FragmentsMustBeUsedVisitor(schema);
-        }
-    }
-
-    internal sealed class FragmentsMustBeUsedVisitor
-        : QueryVisitorErrorBase
-    {
-        private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
-            new Dictionary<string, FragmentDefinitionNode>();
-
-        public FragmentsMustBeUsedVisitor(ISchema schema)
-            : base(schema)
-        {
-        }
-
-        protected override void VisitDocument(
-            DocumentNode document,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            _fragments.Clear();
-
-            foreach (FragmentDefinitionNode fragment in
-                document.Definitions.OfType<FragmentDefinitionNode>())
-            {
-                _fragments[fragment.Name.Value] = fragment;
-            }
-
-            VisitOperationDefinitions(
-                document.Definitions.OfType<OperationDefinitionNode>(),
-                path);
-
-            foreach (FragmentDefinitionNode fragment in _fragments.Values)
-            {
-                Errors.Add(new ValidationError(
-                    $"The specified fragment `{fragment.Name.Value}` " +
-                    "is not used within the current document.",
-                    fragment));
-            }
-        }
-
-        protected override void VisitFragmentDefinition(
-            FragmentDefinitionNode fragmentDefinition,
-            ImmutableStack<ISyntaxNode> path)
-        {
-            _fragments.Remove(fragmentDefinition.Name.Value);
         }
     }
 }

@@ -24,6 +24,7 @@ namespace HotChocolate.Validation
                 new FieldSelectionMergingRule(),
                 new AllVariableUsagesAreAllowedRule(),
                 new ArgumentNamesRule(),
+                new FragmentsMustBeUsedRule(),
             };
 
         private readonly ISchema _schema;

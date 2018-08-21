@@ -187,7 +187,11 @@ namespace HotChocolate.Validation
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
-                    $"Arguments are not unique.", t.Message));
+                    $"Arguments are not unique.", t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `goodNonNullArg` " +
+                    "is not used within the current document.",
+                    t.Message));
         }
 
         [Fact]
@@ -211,7 +215,11 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     $"The argument `nonNullBooleanArg` is required " +
-                    "and does not allow null values.", t.Message));
+                    "and does not allow null values.", t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `missingRequiredArg` " +
+                    "is not used within the current document.",
+                    t.Message));
         }
 
         [Fact]
@@ -273,7 +281,15 @@ namespace HotChocolate.Validation
                     "on the type `Dog`.", t.Message),
                 t => Assert.Equal(
                     "The field `kawVolume` does not exist " +
-                    "on the type `Dog`.", t.Message));
+                    "on the type `Dog`.", t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `fieldNotDefined` " +
+                    "is not used within the current document.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `aliasedLyingFieldTargetNotDefined` " +
+                    "is not used within the current document.",
+                    t.Message));
         }
 
         [Fact]
@@ -411,8 +427,12 @@ namespace HotChocolate.Validation
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
-                        "The query has non-mergable fields.",
-                        t.Message));
+                    "The query has non-mergable fields.",
+                    t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `conflictingBecauseAlias` " +
+                    "is not used within the current document.",
+                    t.Message));
         }
 
         [Fact]
@@ -436,10 +456,44 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "The argument `dogCommand` is required and does not " +
-                    "allow null values.", 
+                    "allow null values.",
                     t.Message),
                 t => Assert.Equal(
-                    "The argument `command` does not exist.", t.Message));
+                    "The argument `command` does not exist.", t.Message),
+                t => Assert.Equal(
+                    "The specified fragment `invalidArgName` " +
+                    "is not used within the current document.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void UnusedFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment nameFragment on Dog { # unused
+                    name
+                }
+
+                {
+                    dog {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified fragment `nameFragment` " +
+                    "is not used within the current document.", t.Message));
         }
     }
 }
