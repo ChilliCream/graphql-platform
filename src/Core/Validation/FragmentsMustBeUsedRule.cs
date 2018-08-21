@@ -43,12 +43,15 @@ namespace HotChocolate.Validation
 
             foreach (FragmentDefinitionNode fragment in _fragments.Values)
             {
-                Errors.Add(new ValidationError())
+                Errors.Add(new ValidationError(
+                    $"The specified fragment `{fragment.Name.Value}` " +
+                    "is not used within the current document.",
+                    fragment));
             }
         }
 
         protected override void VisitFragmentDefinition(
-            FragmentDefinitionNode fragmentDefinition, 
+            FragmentDefinitionNode fragmentDefinition,
             ImmutableStack<ISyntaxNode> path)
         {
             _fragments.Remove(fragmentDefinition.Name.Value);
