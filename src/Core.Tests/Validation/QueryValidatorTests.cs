@@ -495,5 +495,41 @@ namespace HotChocolate.Validation
                     "The specified fragment `nameFragment` " +
                     "is not used within the current document.", t.Message));
         }
+
+         [Fact]
+        public void DuplicateFragments()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...fragmentOne
+                    }
+                }
+
+                fragment fragmentOne on Dog {
+                    name
+                }
+
+                fragment fragmentOne on Dog {
+                    owner {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "There are multiple fragments with the name `fragmentOne`.",
+                    t.Message));
+        }
     }
 }
