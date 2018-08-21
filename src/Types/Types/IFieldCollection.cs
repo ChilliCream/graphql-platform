@@ -25,7 +25,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            field = default(T);
+            field = default;
             return false;
         }
     }

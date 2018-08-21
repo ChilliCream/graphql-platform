@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
             var requestTimeoutCts =
                 new CancellationTokenSource(_executionTimeout);
 
-            CancellationTokenSource combinedCts =
+            var combinedCts =
                 CancellationTokenSource.CreateLinkedTokenSource(
                     requestTimeoutCts.Token, cancellationToken);
 
@@ -80,7 +80,7 @@ namespace HotChocolate.Execution
             VariableCollection variables = _variableValueBuilder
                 .CreateValues(request.VariableValues);
 
-            ExecutionContext executionContext = new ExecutionContext(
+            var executionContext = new ExecutionContext(
                 _schema, _queryDocument, _operation, request, variables);
 
             return executionContext;
