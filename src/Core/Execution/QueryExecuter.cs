@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
 using HotChocolate.Runtime;
-using System.Linq;
 
 namespace HotChocolate.Execution
 {
