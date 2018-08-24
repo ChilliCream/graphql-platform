@@ -12,7 +12,7 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
-        public void ScalarSelectionsNotAllowedOnInt()
+        public void FragOnObject()
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
@@ -32,12 +32,115 @@ namespace HotChocolate.Validation
             QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void FragOnInterface()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... fragOnInterface
+                    }
+                }
+
+                fragment fragOnInterface on Pet {
+                    name
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void FragOnUnion()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... fragOnUnion
+                    }
+                }
+
+                fragment fragOnUnion on CatOrDog {
+                    ... on Dog {
+                        name
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void FragOnScalar()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... fragOnScalar
+                    }
+                }
+
+                fragment fragOnScalar on Int {
+                    something
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
                 t => Assert.Equal(t.Message,
-                    "`barkVolume` is a scalar field. Selections on scalars " +
-                    "or enums are never allowed, because they are the leaf " +
-                    "nodes of any GraphQL query."));
+                    "Fragments can only be declared on unions, interfaces, " +
+                    "and objects."));
+        }
+
+        [Fact]
+        public void InlineFragOnScalar()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... inlineFragOnScalar
+                    }
+                }
+
+                fragment inlineFragOnScalar on Dog {
+                    ... on Boolean {
+                        somethingElse
+                    }
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "Fragments can only be declared on unions, interfaces, " +
+                    "and objects."));
         }
     }
 }
