@@ -34,7 +34,8 @@ namespace HotChocolate.Execution
         }
 
         protected static async Task<object> FinalizeResolverResultAsync(
-            FieldNode fieldSelection, object resolverResult,
+            FieldNode fieldSelection,
+            object resolverResult,
             bool isDeveloperMode)
         {
             switch (resolverResult)
@@ -44,13 +45,7 @@ namespace HotChocolate.Execution
                         fieldSelection, task, isDeveloperMode);
 
                 case IResolverResult result:
-                    if (result.IsError)
-                    {
-                        return new FieldError(
-                            result.ErrorMessage,
-                            fieldSelection);
-                    }
-                    return result.Value;
+                    return CompleteResolverResult(fieldSelection, result);
 
                 default:
                     return resolverResult;
@@ -58,12 +53,18 @@ namespace HotChocolate.Execution
         }
 
         private static async Task<object> FinalizeResolverResultTaskAsync(
-            FieldNode fieldSelection, Task<object> task,
+            FieldNode fieldSelection,
+            Task<object> task,
             bool isDeveloperMode)
         {
             try
             {
-                return await task;
+                object resolverResult = await task;
+                if (resolverResult is IResolverResult r)
+                {
+                    return CompleteResolverResult(fieldSelection, r);
+                }
+                return resolverResult;
             }
             catch (QueryException ex)
             {
@@ -77,7 +78,8 @@ namespace HotChocolate.Execution
         }
 
         private static IQueryError CreateErrorFromException(
-            Exception exception, FieldNode fieldSelection,
+            Exception exception,
+            FieldNode fieldSelection,
             bool isDeveloperMode)
         {
             if (isDeveloperMode)
@@ -94,9 +96,23 @@ namespace HotChocolate.Execution
             }
         }
 
-        protected void CompleteValue(FieldValueCompletionContext completionContext)
+        protected void CompleteValue(
+            FieldValueCompletionContext completionContext)
         {
             _fieldValueCompleter.CompleteValue(completionContext);
+        }
+
+        private static object CompleteResolverResult(
+            FieldNode fieldSelection,
+            IResolverResult resolverResult)
+        {
+            if (resolverResult.IsError)
+            {
+                return new FieldError(
+                    resolverResult.ErrorMessage,
+                    fieldSelection);
+            }
+            return resolverResult.Value;
         }
     }
 }
