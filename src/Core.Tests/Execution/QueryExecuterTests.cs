@@ -229,7 +229,7 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
-            QueryRequest request = new QueryRequest("{ x }");
+            QueryRequest request = new QueryRequest("{ x xasync }");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);
@@ -248,7 +248,7 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
-            QueryRequest request = new QueryRequest("{ y }");
+            QueryRequest request = new QueryRequest("{ y yasync }");
 
             // act
             IExecutionResult result = await executer.ExecuteAsync(request);
@@ -267,12 +267,15 @@ namespace HotChocolate.Execution
                     b(a: String!): String
                     x: String
                     y: String
+                    xasync: String
+                    yasync: String
                 }
                 ", c =>
             {
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
-                c.BindResolver(ctx => "hello world " + ctx.Argument<string>("a"))
+                c.BindResolver(
+                    ctx => "hello world " + ctx.Argument<string>("a"))
                     .To("Query", "b");
                 c.BindResolver(
                     () => ResolverResult<string>.CreateValue("hello world x"))
@@ -280,6 +283,14 @@ namespace HotChocolate.Execution
                 c.BindResolver(
                     () => ResolverResult<string>.CreateError("hello world y"))
                     .To("Query", "y");
+                c.BindResolver(
+                    async () => await Task.FromResult(
+                        ResolverResult<string>.CreateValue("hello world xasync")))
+                    .To("Query", "xasync");
+                c.BindResolver(
+                    async () => await Task.FromResult(
+                        ResolverResult<string>.CreateError("hello world yasync")))
+                    .To("Query", "yasync");
             });
         }
     }
