@@ -220,12 +220,53 @@ namespace HotChocolate.Execution
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+        [Fact]
+        public async Task ExecuteFieldWithResolverResult()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>();
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest("{ x }");
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteFieldWithResolverResultError()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>();
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest("{ y }");
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+
         private Schema CreateSchema()
         {
             return Schema.Create(@"
                 type Query {
                     a: String
                     b(a: String!): String
+                    x: String
+                    y: String
                 }
                 ", c =>
             {
@@ -233,6 +274,12 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
                 c.BindResolver(ctx => "hello world " + ctx.Argument<string>("a"))
                     .To("Query", "b");
+                c.BindResolver(
+                    () => ResolverResult<string>.CreateValue("hello world x"))
+                    .To("Query", "x");
+                c.BindResolver(
+                    () => ResolverResult<string>.CreateError("hello world y"))
+                    .To("Query", "y");
             });
         }
     }

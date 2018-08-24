@@ -5,7 +5,7 @@ namespace HotChocolate
     public readonly struct ResolverResult<TValue>
         : IResolverResult<TValue>
     {
-        public ResolverResult(string errorMessage)
+        private ResolverResult(string errorMessage)
         {
             Value = default;
             ErrorMessage = errorMessage
@@ -13,9 +13,9 @@ namespace HotChocolate
             IsError = true;
         }
 
-        public ResolverResult(TValue value)
+        private ResolverResult(TValue value)
         {
-            Value = default;
+            Value = value;
             ErrorMessage = null;
             IsError = false;
         }
@@ -27,5 +27,15 @@ namespace HotChocolate
         public bool IsError { get; }
 
         object IResolverResult.Value => Value;
+
+        public static ResolverResult<TValue> CreateError(string errorMessage)
+        {
+            return new ResolverResult<TValue>(errorMessage);
+        }
+
+        public static ResolverResult<TValue> CreateValue(TValue value)
+        {
+            return new ResolverResult<TValue>(value);
+        }
     }
 }
