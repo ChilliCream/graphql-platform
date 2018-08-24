@@ -39,7 +39,6 @@ namespace HotChocolate
             string schemaSource,
             Action<ISchemaConfiguration> configure)
         {
-            Schema schema = Schema.Create(schemaSource, configure);
             serviceCollection.AddSingleton<Schema>(s => Schema.Create(
                 schemaSource, c =>
             {

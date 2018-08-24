@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace HotChocolate
 {
+    [Serializable]
     public class SchemaException
         : Exception
     {
@@ -21,6 +23,13 @@ namespace HotChocolate
         {
             Errors = errors.ToArray();
             Debug.WriteLine(Message);
+        }
+
+        protected SchemaException(
+            SerializationInfo info,
+            StreamingContext context)
+            : base(info, context)
+        {
         }
 
         public IReadOnlyCollection<SchemaError> Errors { get; }
@@ -58,23 +67,6 @@ namespace HotChocolate
             else
             {
                 return $"{error.Message} - Type: {error.Type.Name}";
-            }
-        }
-
-        private static void PrintErrors(IReadOnlyCollection<SchemaError> errors)
-        {
-            Debug.WriteLine("Schema Errors:");
-            foreach (SchemaError error in errors)
-            {
-                if (error.Type == null)
-                {
-                    Debug.WriteLine(error.Message);
-                }
-                else
-                {
-                    Debug.WriteLine(
-                        $"{error.Message} - Type: {error.Type.Name}");
-                }
             }
         }
     }

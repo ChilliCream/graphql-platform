@@ -10,10 +10,10 @@ namespace HotChocolate
             this ISchemaConfiguration configuration,
             string key,
             ExecutionScope scope,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
-            configuration.RegisterDataLoader(
+            configuration.RegisterDataLoader<TLoader>(
                 key, scope, loaderFactory,
                 (d, c) => d.DispatchAsync());
         }
@@ -21,7 +21,7 @@ namespace HotChocolate
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             ExecutionScope scope,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
             RegisterDataLoader<TLoader>(
@@ -31,7 +31,7 @@ namespace HotChocolate
 
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
             RegisterDataLoader<TLoader>(

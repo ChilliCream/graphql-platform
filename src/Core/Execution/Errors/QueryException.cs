@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 
 namespace HotChocolate.Execution
 {
+    [Serializable]
     public class QueryException
         : Exception
     {
@@ -36,6 +38,13 @@ namespace HotChocolate.Execution
         {
             Errors = errors?.ToImmutableList()
                 ?? ImmutableList<IQueryError>.Empty;
+        }
+
+        protected QueryException(
+            SerializationInfo info,
+            StreamingContext context)
+            : base(info, context)
+        {
         }
 
         public IReadOnlyCollection<IQueryError> Errors { get; }

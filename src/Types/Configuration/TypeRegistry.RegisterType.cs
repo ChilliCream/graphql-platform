@@ -29,26 +29,21 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (!_sealed)
+            if (!_sealed
+                && typeReference.IsNativeTypeReference()
+                && !BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
             {
-                if (typeReference.IsNativeTypeReference())
-                {
-                    if (!BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
-                    {
-                        RegisterNativeType(typeReference.NativeType);
-                    }
-                }
+                RegisterNativeType(typeReference.NativeType);
             }
         }
 
         private void RegisterNativeType(Type type)
         {
-            if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
+            if (_typeInspector.TryCreate(type, out TypeInfo typeInfo)
+                && typeof(INamedType).IsAssignableFrom(
+                    typeInfo.NativeNamedType))
             {
-                if (typeof(INamedType).IsAssignableFrom(typeInfo.NativeNamedType))
-                {
-                    TryUpdateNamedType(typeInfo.NativeNamedType);
-                }
+                TryUpdateNamedType(typeInfo.NativeNamedType);
             }
         }
 

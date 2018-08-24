@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(variables));
 
             Fragments = new FragmentCollection(schema, queryDocument);
-            _fieldCollector = new FieldCollector(schema, variables, Fragments);
+            _fieldCollector = new FieldCollector(variables, Fragments);
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);

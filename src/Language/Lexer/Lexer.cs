@@ -179,7 +179,7 @@ namespace HotChocolate.Language
             int start = state.Position;
 
             while (++state.Position < state.SourceText.Length
-                && !state.SourceText[state.Position].IsControlCharacter());
+                && !state.SourceText[state.Position].IsControlCharacter()) ;
 
             string comment = state.SourceText.Substring(start, state.Position - start);
             return CreateToken(state, previous, TokenKind.Comment,
@@ -294,7 +294,7 @@ namespace HotChocolate.Language
             }
 
             while (++state.Position < state.SourceText.Length
-                && state.SourceText[state.Position].IsDigit());
+                && state.SourceText[state.Position].IsDigit()) ;
         }
 
         /// <summary>
