@@ -14,10 +14,10 @@ namespace HotChocolate.Execution
                 { OperationType.Query, new QueryExecutionStrategy() },
                 { OperationType.Mutation, new MutationExecutionStrategy() }
             };
+
         private readonly ISchema _schema;
         private readonly DocumentNode _queryDocument;
         private readonly OperationDefinitionNode _operation;
-        private readonly int _maxExecutionDepth;
         private readonly TimeSpan _executionTimeout;
         private readonly VariableValueBuilder _variableValueBuilder;
         private readonly IExecutionStrategy _strategy;
@@ -34,7 +34,6 @@ namespace HotChocolate.Execution
             _operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
 
-            _maxExecutionDepth = schema.Options.MaxExecutionDepth;
             _executionTimeout = schema.Options.ExecutionTimeout;
 
             _variableValueBuilder = new VariableValueBuilder(schema, _operation);
