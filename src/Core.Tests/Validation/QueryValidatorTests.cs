@@ -560,5 +560,37 @@ namespace HotChocolate.Validation
                     "or enums are never allowed, because they are the leaf " +
                     "nodes of any GraphQL query."));
         }
+
+        [Fact]
+        public void InlineFragOnScalar()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... inlineFragOnScalar
+                    }
+                }
+
+                fragment inlineFragOnScalar on Dog {
+                    ... on Boolean {
+                        somethingElse
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "Fragments can only be declared on unions, interfaces, " +
+                    "and objects."));
+        }
     }
 }
