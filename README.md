@@ -188,7 +188,7 @@ dotnet new graphql-server
 
 ## Features
 
-We currently support the following parts of the current [draft spec](http://facebook.github.io/graphql/draft/) of GraphQL.
+We currently support the following parts of the current [June 2018 specification](http://facebook.github.io/graphql/June2018/) of GraphQL.
 
 ### Types
 
@@ -210,11 +210,11 @@ We currently support the following parts of the current [draft spec](http://face
 
 - [x] Skip
 - [x] Continue
-- [ ] Deprecated
+- [ ] _Deprecated_ (in development)
 
 ### Validation
 
-- [ ] [Validation](https://github.com/ChilliCream/hotchocolate/projects/3)
+- [ ] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3)
 
 ### Execution
 
@@ -225,18 +225,20 @@ We currently support the following parts of the current [draft spec](http://face
 ### Introspection
 
 - Fields
-  - [x] __typename
-  - [x] __type
-  - [x] __schema
 
-- __Schema
+  - [x] \_\_typename
+  - [x] \_\_type
+  - [x] \_\_schema
+
+- \_\_Schema
+
   - [x] types
   - [x] queryType
   - [x] mutationType
   - [x] subscriptionType
   - [x] directives
 
-- __Type
+- \_\_Type
   - [x] kind
   - [x] name
   - [x] fields
@@ -254,6 +256,7 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [x] Date
 - [ ] Time
 - [ ] URL
+- [ ] UUID
 - [x] Decimal
 - [x] Short (Int16)
 - [x] Long (Int64)
@@ -264,8 +267,8 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Export
 - [ ] Defer
 - [ ] Stream
-- [ ] Custom Schema Directives
-- [ ] Custom Execution Directives
+- [ ] _Custom Schema Directives_ (in development)
+- [ ] _Custom Execution Directives_ (in development)
 
 ### Execution Engine
 
@@ -280,6 +283,7 @@ Moreover, we are working on the following parts that are not defined in the spec
 ## Supported Frameworks
 
 - [ ] ASP.NET Classic
+
   - [ ] Get
   - [ ] Post
 
