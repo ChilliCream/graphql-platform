@@ -42,7 +42,7 @@ namespace HotChocolate.Validation
                 Errors.Add(new ValidationError(
                     $"`{field.Name}` is {type} field. Selections on scalars " +
                     "or enums are never allowed, because they are the leaf " +
-                    "nodes of any GraphQL query", fieldSelection));
+                    "nodes of any GraphQL query.", fieldSelection));
             }
         }
 
@@ -53,9 +53,9 @@ namespace HotChocolate.Validation
             if (fieldSelection.SelectionSet == null)
             {
                 Errors.Add(new ValidationError(
-                    $"`{field.Name}` is a object, interface or union type " +
+                    $"`{field.Name}` is an object, interface or union type " +
                     "field. Leaf selections on objects, interfaces, and " +
-                    "unions without subfields are disallowed. ",
+                    "unions without subfields are disallowed.",
                     fieldSelection));
             }
         }

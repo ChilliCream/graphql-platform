@@ -16,5 +16,20 @@ namespace HotChocolate.Validation
         {
             return true;
         }
+
+        public Human GetHuman()
+        {
+            return null;
+        }
+
+        public Human GetPet()
+        {
+            return null;
+        }
+
+        public object GetCatOrDog()
+        {
+            return null;
+        }
     }
 }

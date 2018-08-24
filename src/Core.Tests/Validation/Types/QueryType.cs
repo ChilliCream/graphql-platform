@@ -10,6 +10,9 @@ namespace HotChocolate.Validation
             descriptor.Field("arguments")
                 .Type<ArgumentsType>()
                 .Resolver(() => null);
+
+            descriptor.Field(t => t.GetCatOrDog())
+                .Type<CatOrDogType>();
         }
     }
 }
