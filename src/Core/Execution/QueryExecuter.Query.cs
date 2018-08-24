@@ -21,7 +21,6 @@ namespace HotChocolate.Execution
         private QueryInfo CreateQueryInfo(string queryText)
         {
             DocumentNode queryDocument = Parser.Default.Parse(queryText);
-            var rank = new LinkedListNode<string>(NormalizeQuery(queryText));
             QueryValidationResult validationResult =
                 _queryValidator.Validate(queryDocument);
             return new QueryInfo(queryText, queryDocument, validationResult);
