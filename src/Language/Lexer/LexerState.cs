@@ -84,7 +84,7 @@ namespace HotChocolate.Language
         /// <returns></returns>
         public bool IsEndOfStream()
         {
-            return !(Position < SourceText.Length);
+            return Position >= SourceText.Length;
         }
     }
 }
