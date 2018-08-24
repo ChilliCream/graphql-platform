@@ -83,7 +83,7 @@ namespace HotChocolate.Internal
             IEnumerable<string> arguments = type.GetGenericArguments()
                 .Select(GetTypeName);
             return CreateTypeName(type,
-                $"{name}<{string.Join(", ", arguments)}>");;
+                $"{name}<{string.Join(", ", arguments)}>");
         }
 
         private static string CreateTypeName(Type type, string typeName)

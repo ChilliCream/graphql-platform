@@ -11,17 +11,13 @@ namespace HotChocolate.Execution
     /// </summary>
     internal class FieldCollector
     {
-        private readonly ISchema _schema;
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldCollector(
-            ISchema schema,
             VariableCollection variables,
             FragmentCollection fragments)
         {
-            _schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
             _variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
             _fragments = fragments
