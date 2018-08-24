@@ -496,7 +496,7 @@ namespace HotChocolate.Validation
                     "is not used within the current document.", t.Message));
         }
 
-         [Fact]
+        [Fact]
         public void DuplicateFragments()
         {
             // arrange
@@ -530,6 +530,35 @@ namespace HotChocolate.Validation
                 t => Assert.Equal(
                     "There are multiple fragments with the name `fragmentOne`.",
                     t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionsNotAllowedOnInt()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        barkVolume {
+                            sinceWhen
+                        }
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "`barkVolume` is a scalar field. Selections on scalars " +
+                    "or enums are never allowed, because they are the leaf " +
+                    "nodes of any GraphQL query."));
         }
     }
 }
