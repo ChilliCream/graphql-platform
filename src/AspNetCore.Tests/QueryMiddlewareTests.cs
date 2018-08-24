@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -49,6 +50,36 @@ namespace HotChocolate.AspNetCore
                 Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "a", "A"}
+                })
+            };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task HttpPost_NestedEnumArgument()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = "query a($a: BarInput) { withNestedEnum(bar: $a) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "a",  new Dictionary<string, object>
+                            {
+                                { "a",  "B" }
+                            }
+                    }
                 })
             };
 
@@ -222,7 +253,11 @@ namespace HotChocolate.AspNetCore
         private TestServer CreateTestServer()
         {
             return TestServerFactory.Create(
-                c => c.RegisterQueryType<QueryType>(), null);
+                c =>
+                {
+                    c.RegisterQueryType<QueryType>();
+                    c.RegisterType<InputObjectType<Bar>>();
+                }, null);
         }
     }
 }

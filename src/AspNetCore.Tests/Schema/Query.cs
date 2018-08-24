@@ -71,5 +71,10 @@ namespace HotChocolate.AspNetCore
         {
             return true;
         }
+
+        public TestEnum GetWithNestedEnum(Bar bar)
+        {
+            return bar.A;
+        }
     }
 }
