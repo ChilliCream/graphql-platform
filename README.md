@@ -214,7 +214,7 @@ We currently support the following parts of the current [June 2018 specification
 
 ### Validation
 
-- [ ] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3) (in development - 0.4.5)
+- [x] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3)
 
 ### Execution
 
