@@ -39,7 +39,6 @@ namespace HotChocolate.Validation
             VisitDocument(document, path);
         }
 
-
         protected virtual void VisitDocument(
             DocumentNode document,
             ImmutableStack<ISyntaxNode> path)
@@ -94,7 +93,6 @@ namespace HotChocolate.Validation
                 ImmutableStack<ISyntaxNode> newpath = path.Push(selectionSet);
                 foreach (ISelectionNode selection in selectionSet.Selections)
                 {
-
                     if (selection is FieldNode field)
                     {
                         VisitField(field, type, newpath);
@@ -144,9 +142,8 @@ namespace HotChocolate.Validation
             if (path.Last() is DocumentNode d)
             {
                 string fragmentName = fragmentSpread.Name.Value;
-                if (_visitedFragments.Add(fragmentName)
-                    && _fragments.TryGetValue(fragmentName,
-                        out FragmentDefinitionNode fragment))
+                if (_fragments.TryGetValue(fragmentName,
+                    out FragmentDefinitionNode fragment))
                 {
                     VisitFragmentDefinition(fragment, newpath);
                 }
@@ -182,7 +179,8 @@ namespace HotChocolate.Validation
             FragmentDefinitionNode fragmentDefinition,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (fragmentDefinition.TypeCondition?.Name?.Value != null
+            if (_visitedFragments.Add(fragmentDefinition.Name.Value)
+                && fragmentDefinition.TypeCondition?.Name?.Value != null
                 && Schema.TryGetType(
                     fragmentDefinition.TypeCondition.Name.Value,
                     out INamedOutputType typeCondition))
@@ -221,6 +219,13 @@ namespace HotChocolate.Validation
         protected void ClearVisitedFragments()
         {
             _visitedFragments.Clear();
+        }
+
+        protected bool TryGetFragment(
+            string fragmentName,
+            out FragmentDefinitionNode fragment)
+        {
+            return _fragments.TryGetValue(fragmentName, out fragment);
         }
     }
 }

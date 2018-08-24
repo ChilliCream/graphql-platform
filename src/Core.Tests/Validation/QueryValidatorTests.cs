@@ -592,5 +592,43 @@ namespace HotChocolate.Validation
                     "Fragments can only be declared on unions, interfaces, " +
                     "and objects."));
         }
+
+        [Fact]
+        public void FragmentCycle1()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...nameFragment
+                    }
+                }
+
+                fragment nameFragment on Dog {
+                    name
+                    ...barkVolumeFragment
+                }
+
+                fragment barkVolumeFragment on Dog {
+                    barkVolume
+                    ...nameFragment
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The graph of fragment spreads must not form any " +
+                    "cycles including spreading itself. Otherwise an " +
+                    "operation could infinitely spread or infinitely " +
+                    "execute on cycles in the underlying data."));
+        }
     }
 }
