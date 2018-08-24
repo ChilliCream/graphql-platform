@@ -210,17 +210,17 @@ We currently support the following parts of the current [June 2018 specification
 
 - [x] Skip
 - [x] Continue
-- [ ] _Deprecated_ (in development)
+- [ ] _Deprecated_ (in development - 0.5.0)
 
 ### Validation
 
-- [ ] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3)
+- [ ] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3) (in development - 0.4.5)
 
 ### Execution
 
 - [x] Query
 - [x] Mutation
-- [ ] Subscription
+- [ ] _Subscription_ (in development - 0.5.0)
 
 ### Introspection
 
@@ -267,8 +267,8 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Export
 - [ ] Defer
 - [ ] Stream
-- [ ] _Custom Schema Directives_ (in development)
-- [ ] _Custom Execution Directives_ (in development)
+- [ ] _Custom Schema Directives_ (in development - 0.5.0)
+- [ ] _Custom Execution Directives_ (in development - 0.5.0)
 
 ### Execution Engine
 
