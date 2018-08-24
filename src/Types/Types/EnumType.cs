@@ -87,6 +87,13 @@ namespace HotChocolate.Types
                 return ev.Value;
             }
 
+            // TODO : This fixes a deserialisation issue when an input object is deserialized from a json string. We should however fix this in the aspnet middleware.
+            if (literal is StringValueNode svn
+                && _nameToValues.TryGetValue(svn.Value, out ev))
+            {
+                return ev.Value;
+            }
+
             if (literal is NullValueNode)
             {
                 return null;
