@@ -685,5 +685,37 @@ namespace HotChocolate.Validation
                     "The parent type does not match the type condition on " +
                     "the fragment `fragmentDoesNotMatchType`."));
         }
+
+        [Fact]
+        public void NotExistingTypeOnInlineFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...inlineNotExistingType
+                    }
+                }
+
+                fragment inlineNotExistingType on Dog {
+                    ... on NotInSchema {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The specified inline fragment " +
+                    "does not exist in the current schema."));
+        }
     }
 }

@@ -31,6 +31,7 @@ namespace HotChocolate.Validation
                 new FragmentSpreadsMustNotFormCyclesRule(),
                 new FragmentSpreadTargetDefinedRule(),
                 new FragmentSpreadIsPossibleRule(),
+                new FragmentSpreadTypeExistenceRule(),
             };
 
         private readonly ISchema _schema;
