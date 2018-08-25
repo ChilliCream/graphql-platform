@@ -5,5 +5,7 @@ namespace HotChocolate.Validation
         public string Name { get; set; }
 
         public string Owner { get; set; }
+
+        public ComplexInput Child { get; set; }
     }
 }

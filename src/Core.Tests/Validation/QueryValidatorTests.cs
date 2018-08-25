@@ -717,5 +717,33 @@ namespace HotChocolate.Validation
                     "The specified inline fragment " +
                     "does not exist in the current schema."));
         }
+
+        [Fact]
+        public void InvalidInputObjectFieldsExist()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified input object field " +
+                    "`favoriteCookieFlavor` does not exist.",
+                    t.Message));
+        }
     }
 }
