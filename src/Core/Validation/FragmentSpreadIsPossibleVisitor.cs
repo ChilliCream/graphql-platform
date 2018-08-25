@@ -12,8 +12,6 @@ namespace HotChocolate.Validation
         private HashSet<FragmentDefinitionNode> _visited =
             new HashSet<FragmentDefinitionNode>();
 
-        private bool _cycleDetected;
-
         public FragmentSpreadIsPossibleVisitor(ISchema schema)
             : base(schema)
         {

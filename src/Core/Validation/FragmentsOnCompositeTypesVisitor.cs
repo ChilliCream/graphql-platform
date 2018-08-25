@@ -45,22 +45,38 @@ namespace HotChocolate.Validation
 
         protected override void VisitInlineFragment(
             InlineFragmentNode inlineFragment,
-            IType type,
+            IType parentType,
+            IType typeCondition,
             ImmutableStack<ISyntaxNode> path)
         {
             ValidateTypeCondition(
                 inlineFragment,
-                inlineFragment.TypeCondition.Name.Value);
+                typeCondition);
 
-            base.VisitInlineFragment(inlineFragment, type, path);
+            base.VisitInlineFragment(
+                inlineFragment,
+                parentType,
+                typeCondition,
+                path);
         }
 
         private void ValidateTypeCondition(
             ISyntaxNode syntaxNode,
             string typeCondition)
         {
-            if (Schema.TryGetType(typeCondition, out INamedType type)
-                && !type.IsCompositeType())
+            if (typeCondition != null
+                && Schema.TryGetType(typeCondition, out INamedType type))
+            {
+                ValidateTypeCondition(syntaxNode, type);
+            }
+        }
+
+        private void ValidateTypeCondition(
+            ISyntaxNode syntaxNode,
+            IType typeCondition)
+        {
+            if (typeCondition != null
+                && !typeCondition.IsCompositeType())
             {
                 _fragmentErrors.Add(syntaxNode);
             }

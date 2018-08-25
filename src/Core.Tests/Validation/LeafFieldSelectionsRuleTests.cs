@@ -32,6 +32,24 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void StringList()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    stringList
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
         public void ScalarSelectionsNotAllowedOnInt()
         {
             // arrange

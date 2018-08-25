@@ -31,5 +31,10 @@ namespace HotChocolate.Validation
         {
             return null;
         }
+
+        public string[] GetStringList()
+        {
+            return null;
+        }
     }
 }

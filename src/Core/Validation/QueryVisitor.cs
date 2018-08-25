@@ -105,7 +105,7 @@ namespace HotChocolate.Validation
 
                     if (selection is InlineFragmentNode inlineFragment)
                     {
-                        VisitInlineFragment(inlineFragment, type, newpath);
+                        VisitInlineFragmentInternal(inlineFragment, type, newpath);
                     }
                 }
             }
@@ -150,15 +150,34 @@ namespace HotChocolate.Validation
             VisitDirectives(fragmentSpread.Directives, newpath);
         }
 
-        protected virtual void VisitInlineFragment(
+        private void VisitInlineFragmentInternal(
             InlineFragmentNode inlineFragment,
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (inlineFragment.TypeCondition?.Name?.Value != null
-                && Schema.TryGetType(
-                    inlineFragment.TypeCondition.Name.Value,
-                    out INamedOutputType typeCondition))
+            if (inlineFragment.TypeCondition?.Name?.Value == null)
+            {
+                VisitInlineFragment(inlineFragment, type, type, path);
+            }
+            else if (Schema.TryGetType(
+                  inlineFragment.TypeCondition.Name.Value,
+                  out INamedOutputType typeCondition))
+            {
+                VisitInlineFragment(inlineFragment, type, typeCondition, path);
+            }
+            else
+            {
+                VisitInlineFragment(inlineFragment, type, null, path);
+            }
+        }
+
+        protected virtual void VisitInlineFragment(
+            InlineFragmentNode inlineFragment,
+            IType parentType,
+            IType typeCondition,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            if (typeCondition != null)
             {
                 ImmutableStack<ISyntaxNode> newpath = path.Push(inlineFragment);
 

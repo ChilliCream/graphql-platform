@@ -112,6 +112,7 @@ namespace HotChocolate.Validation
 
                 if (node == fragmentDefinition)
                 {
+                    _cycleDetected = true;
                     Errors.Add(new ValidationError(
                         "The graph of fragment spreads must not form any " +
                         "cycles including spreading itself. Otherwise an " +
