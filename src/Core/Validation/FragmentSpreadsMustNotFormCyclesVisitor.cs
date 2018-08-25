@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
     internal sealed class FragmentSpreadsMustNotFormCyclesVisitor
         : QueryVisitorErrorBase
     {
-        private HashSet<FragmentDefinitionNode> _visited =
+        private readonly HashSet<FragmentDefinitionNode> _visited =
             new HashSet<FragmentDefinitionNode>();
 
         private bool _cycleDetected;
@@ -38,6 +38,7 @@ namespace HotChocolate.Validation
             IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
             ImmutableStack<ISyntaxNode> path)
         {
+            // we do not want do visit any fragments separately.
         }
 
         protected override void VisitFragmentSpread(

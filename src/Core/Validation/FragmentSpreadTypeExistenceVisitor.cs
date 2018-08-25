@@ -8,9 +8,6 @@ namespace HotChocolate.Validation
     internal sealed class FragmentSpreadTypeExistenceVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, List<FragmentSpreadNode>> _missingFragments =
-            new Dictionary<string, List<FragmentSpreadNode>>();
-
         public FragmentSpreadTypeExistenceVisitor(ISchema schema)
             : base(schema)
         {
@@ -20,18 +17,16 @@ namespace HotChocolate.Validation
             FragmentDefinitionNode fragmentDefinition,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (!IsFragmentVisited(fragmentDefinition))
-            {
-                if (fragmentDefinition.TypeCondition?.Name?.Value == null
+            if (!IsFragmentVisited(fragmentDefinition)
+                && (fragmentDefinition.TypeCondition?.Name?.Value == null
                     || !Schema.TryGetType(
                             fragmentDefinition.TypeCondition.Name.Value,
-                            out INamedOutputType typeCondition))
-                {
-                    Errors.Add(new ValidationError(
-                        $"The type of fragment `{fragmentDefinition.Name.Value}` " +
-                        "does not exist in the current schema.",
-                        fragmentDefinition));
-                }
+                            out INamedOutputType typeCondition)))
+            {
+                Errors.Add(new ValidationError(
+                    $"The type of fragment `{fragmentDefinition.Name.Value}` " +
+                    "does not exist in the current schema.",
+                    fragmentDefinition));
             }
 
             base.VisitFragmentDefinition(fragmentDefinition, path);

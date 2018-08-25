@@ -9,9 +9,6 @@ namespace HotChocolate.Validation
     internal sealed class FragmentSpreadIsPossibleVisitor
         : QueryVisitorErrorBase
     {
-        private HashSet<FragmentDefinitionNode> _visited =
-            new HashSet<FragmentDefinitionNode>();
-
         public FragmentSpreadIsPossibleVisitor(ISchema schema)
             : base(schema)
         {
