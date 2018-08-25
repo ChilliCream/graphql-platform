@@ -11,8 +11,10 @@ namespace HotChocolate.Validation
     {
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
             new Dictionary<string, FragmentDefinitionNode>();
-        private readonly HashSet<string> _visitedFragments =
-            new HashSet<string>();
+        private readonly HashSet<FragmentDefinitionNode> _visitedFragments =
+            new HashSet<FragmentDefinitionNode>();
+        private readonly HashSet<FragmentDefinitionNode> _touchedFragments =
+            new HashSet<FragmentDefinitionNode>();
 
         protected QueryVisitor(ISchema schema)
         {
@@ -66,7 +68,9 @@ namespace HotChocolate.Validation
             IEnumerable<FragmentDefinitionNode> fragmentDefinitions,
             ImmutableStack<ISyntaxNode> path)
         {
-            foreach (FragmentDefinitionNode fragment in fragmentDefinitions)
+            foreach (FragmentDefinitionNode fragment in
+                fragmentDefinitions.Where(
+                    t => !_touchedFragments.Contains(t)))
             {
                 VisitFragmentDefinition(fragment, path);
             }
@@ -194,7 +198,7 @@ namespace HotChocolate.Validation
             FragmentDefinitionNode fragmentDefinition,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_visitedFragments.Add(fragmentDefinition.Name.Value)
+            if (MarkFragmentVisited(fragmentDefinition)
                 && fragmentDefinition.TypeCondition?.Name?.Value != null
                 && Schema.TryGetType(
                     fragmentDefinition.TypeCondition.Name.Value,
@@ -246,6 +250,27 @@ namespace HotChocolate.Validation
         protected bool ContainsFragment(string fragmentName)
         {
             return _fragments.ContainsKey(fragmentName);
+        }
+
+        protected bool IsFragmentVisited(FragmentDefinitionNode fragmentDefinition)
+        {
+            if (fragmentDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(fragmentDefinition));
+            }
+
+            return _visitedFragments.Contains(fragmentDefinition);
+        }
+
+        protected bool MarkFragmentVisited(FragmentDefinitionNode fragmentDefinition)
+        {
+            if (fragmentDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(fragmentDefinition));
+            }
+
+            _touchedFragments.Add(fragmentDefinition);
+            return _visitedFragments.Add(fragmentDefinition);
         }
     }
 }
