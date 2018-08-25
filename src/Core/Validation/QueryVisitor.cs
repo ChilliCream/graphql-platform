@@ -227,5 +227,10 @@ namespace HotChocolate.Validation
         {
             return _fragments.TryGetValue(fragmentName, out fragment);
         }
+
+        protected bool ContainsFragment(string fragmentName)
+        {
+            return _fragments.ContainsKey(fragmentName);
+        }
     }
 }

@@ -630,5 +630,30 @@ namespace HotChocolate.Validation
                     "operation could infinitely spread or infinitely " +
                     "execute on cycles in the underlying data."));
         }
+
+        [Fact]
+        public void UndefinedFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...undefinedFragment
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The specified fragment `undefinedFragment` does not exist."));
+        }
     }
 }
