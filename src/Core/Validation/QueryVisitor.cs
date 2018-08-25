@@ -119,14 +119,12 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> newpath = path.Push(field);
 
             if (type is IComplexOutputType complexType
-                && complexType.Fields.ContainsField(field.Name.Value))
+                && complexType.Fields.ContainsField(field.Name.Value)
+                && field.SelectionSet != null)
             {
-                if (field.SelectionSet != null)
-                {
-                    VisitSelectionSet(field.SelectionSet,
-                        complexType.Fields[field.Name.Value].Type.NamedType(),
-                        newpath);
-                }
+                VisitSelectionSet(field.SelectionSet,
+                    complexType.Fields[field.Name.Value].Type.NamedType(),
+                    newpath);
             }
 
             VisitDirectives(field.Directives, newpath);

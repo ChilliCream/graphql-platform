@@ -9,8 +9,7 @@ namespace HotChocolate.Validation
     internal sealed class RequiredArgumentVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, Directive> _directives =
-            new Dictionary<string, Directive>();
+        private readonly Dictionary<string, Directive> _directives;
 
         public RequiredArgumentVisitor(ISchema schema)
             : base(schema)
@@ -23,14 +22,13 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (type is IComplexOutputType complexType)
+            if (type is IComplexOutputType complexType
+                && complexType.Fields.ContainsField(field.Name.Value))
             {
-                if (complexType.Fields.ContainsField(field.Name.Value))
-                {
-                    ValidateRequiredArguments(field, field.Arguments,
-                        complexType.Fields[field.Name.Value].Arguments);
-                }
+                ValidateRequiredArguments(field, field.Arguments,
+                    complexType.Fields[field.Name.Value].Arguments);
             }
+
 
             base.VisitField(field, type, path);
         }
