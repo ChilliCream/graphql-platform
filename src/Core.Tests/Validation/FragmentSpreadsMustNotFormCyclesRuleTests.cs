@@ -112,7 +112,7 @@ namespace HotChocolate.Validation
                     }
                 }
 
-                fragment ownerFragment on Dog {
+                fragment ownerFragment on Human {
                     name
                     pets {
                         ...dogFragment

@@ -20,7 +20,8 @@ namespace HotChocolate.Validation
             if (type is IComplexOutputType t
                 && t.Fields.TryGetField(field.Name.Value, out IOutputField f))
             {
-                if (f.Type.IsScalarType() || f.Type.IsEnumType())
+                if (f.Type.NamedType().IsScalarType()
+                    || f.Type.NamedType().IsEnumType())
                 {
                     ValidateLeafField(field, f);
                 }
