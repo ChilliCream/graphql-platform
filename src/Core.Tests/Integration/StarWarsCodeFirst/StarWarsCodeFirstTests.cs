@@ -467,7 +467,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Schema schema = CreateSchema();
             string query = @"
             {
-                heroes(episodes: EMPIRE) {
+                heroes(episodes: [EMPIRE]) {
                     name
                     ... @include(if: true) {
                         height
