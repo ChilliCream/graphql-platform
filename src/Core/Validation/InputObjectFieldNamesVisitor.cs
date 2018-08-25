@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
     internal sealed class InputObjectFieldNamesVisitor
         : InputObjectFieldVisitorBase
     {
-        private HashSet<ObjectValueNode> _visited =
+        private readonly HashSet<ObjectValueNode> _visited =
             new HashSet<ObjectValueNode>();
 
         public InputObjectFieldNamesVisitor(ISchema schema)
