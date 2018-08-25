@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
     public class QueryValidatorTests
     {
         [Fact]
-        public void SchemaIsNulll()
+        public void SchemaIsNull()
         {
             // act
             Action a = () => new QueryValidator(null);
@@ -654,6 +654,36 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(t.Message,
                     "The specified fragment `undefinedFragment` does not exist."));
+        }
+
+        [Fact]
+        public void FragmentDoesNotMatchType()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...fragmentDoesNotMatchType
+                    }
+                }
+
+                fragment fragmentDoesNotMatchType on Human {
+                    name
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The parent type does not match the type condition on " +
+                    "the fragment `fragmentDoesNotMatchType`."));
         }
     }
 }
