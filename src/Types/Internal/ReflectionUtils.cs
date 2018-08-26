@@ -191,7 +191,7 @@ namespace HotChocolate.Internal
         private static MethodInfo GetBestMatchingMethod(
             Type type, MethodInfo method)
         {
-            if (method.DeclaringType == type)
+            if (type.IsInterface || method.DeclaringType == type)
             {
                 return method;
             }
@@ -219,7 +219,7 @@ namespace HotChocolate.Internal
         private static PropertyInfo GetBestMatchingProperty(
             Type type, PropertyInfo property)
         {
-            if (property.DeclaringType == type)
+            if (type.IsInterface || property.DeclaringType == type)
             {
                 return property;
             }
