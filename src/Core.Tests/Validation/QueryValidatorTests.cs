@@ -772,5 +772,32 @@ namespace HotChocolate.Validation
                     "`name` is a required field and cannot be null.",
                     t.Message));
         }
+
+        [Fact]
+        public void NameFieldIsAmbiguous()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog(complex: { name: ""A"", name: ""B"" })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "Field `name` is ambiguous.",
+                    t.Message));
+        }
     }
 }
