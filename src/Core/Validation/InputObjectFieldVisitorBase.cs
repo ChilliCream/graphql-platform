@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     {
         private readonly Dictionary<string, Directive> _directives;
 
-        public InputObjectFieldVisitorBase(ISchema schema)
+        protected InputObjectFieldVisitorBase(ISchema schema)
             : base(schema)
         {
             _directives = schema.Directives.ToDictionary(t => t.Name);

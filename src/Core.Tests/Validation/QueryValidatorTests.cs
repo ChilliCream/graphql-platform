@@ -826,5 +826,36 @@ namespace HotChocolate.Validation
                     "is not supported by the current schema.",
                     t.Message));
         }
+
+        [Fact]
+        public void StringIntoInt()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    arguments {
+                        ...stringIntoInt
+                    }
+                }
+
+                fragment stringIntoInt on Arguments {
+                    intArgField(intArg: ""123"")
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified value type of argument `intArg` " +
+                    "does not match the argument type.",
+                    t.Message));
+        }
     }
 }

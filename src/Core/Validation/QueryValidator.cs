@@ -36,6 +36,7 @@ namespace HotChocolate.Validation
                 new InputObjectRequiredFieldsRule(),
                 new InputObjectFieldUniquenessRule(),
                 new DirectivesAreDefinedRule(),
+                new ValuesOfCorrectTypeRule()
             };
 
         private readonly ISchema _schema;

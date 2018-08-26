@@ -55,21 +55,5 @@ namespace HotChocolate.Validation
                     fieldValue));
             }
         }
-
-        private Dictionary<string, ObjectFieldNode> CreateFieldMap(
-            ObjectValueNode objectValue)
-        {
-            var fields = new Dictionary<string, ObjectFieldNode>();
-
-            foreach (ObjectFieldNode fieldValue in objectValue.Fields)
-            {
-                if (!fields.ContainsKey(fieldValue.Name.Value))
-                {
-                    fields[fieldValue.Name.Value] = fieldValue;
-                }
-            }
-
-            return fields;
-        }
     }
 }
