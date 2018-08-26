@@ -7,7 +7,7 @@ namespace HotChocolate.Validation
     public class QueryValidatorTests
     {
         [Fact]
-        public void SchemaIsNulll()
+        public void SchemaIsNull()
         {
             // act
             Action a = () => new QueryValidator(null);
@@ -496,7 +496,7 @@ namespace HotChocolate.Validation
                     "is not used within the current document.", t.Message));
         }
 
-         [Fact]
+        [Fact]
         public void DuplicateFragments()
         {
             // arrange
@@ -529,6 +529,332 @@ namespace HotChocolate.Validation
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
                     "There are multiple fragments with the name `fragmentOne`.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionsNotAllowedOnInt()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        barkVolume {
+                            sinceWhen
+                        }
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "`barkVolume` is a scalar field. Selections on scalars " +
+                    "or enums are never allowed, because they are the leaf " +
+                    "nodes of any GraphQL query."));
+        }
+
+        [Fact]
+        public void InlineFragOnScalar()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                       ... inlineFragOnScalar
+                    }
+                }
+
+                fragment inlineFragOnScalar on Dog {
+                    ... on Boolean {
+                        somethingElse
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "Fragments can only be declared on unions, interfaces, " +
+                    "and objects."));
+        }
+
+        [Fact]
+        public void FragmentCycle1()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...nameFragment
+                    }
+                }
+
+                fragment nameFragment on Dog {
+                    name
+                    ...barkVolumeFragment
+                }
+
+                fragment barkVolumeFragment on Dog {
+                    barkVolume
+                    ...nameFragment
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The graph of fragment spreads must not form any " +
+                    "cycles including spreading itself. Otherwise an " +
+                    "operation could infinitely spread or infinitely " +
+                    "execute on cycles in the underlying data."));
+        }
+
+        [Fact]
+        public void UndefinedFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...undefinedFragment
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The specified fragment `undefinedFragment` does not exist."));
+        }
+
+        [Fact]
+        public void FragmentDoesNotMatchType()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...fragmentDoesNotMatchType
+                    }
+                }
+
+                fragment fragmentDoesNotMatchType on Human {
+                    name
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The parent type does not match the type condition on " +
+                    "the fragment `fragmentDoesNotMatchType`."));
+        }
+
+        [Fact]
+        public void NotExistingTypeOnInlineFragment()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        ...inlineNotExistingType
+                    }
+                }
+
+                fragment inlineNotExistingType on Dog {
+                    ... on NotInSchema {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(t.Message,
+                    "The specified inline fragment " +
+                    "does not exist in the current schema."));
+        }
+
+        [Fact]
+        public void InvalidInputObjectFieldsExist()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified input object field " +
+                    "`favoriteCookieFlavor` does not exist.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void RequiredFieldIsNull()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog2(complex: { name: null })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "`name` is a required field and cannot be null.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void NameFieldIsAmbiguous()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog(complex: { name: ""A"", name: ""B"" })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "Field `name` is ambiguous.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void UnsupportedDirective()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        name @foo(bar: true)
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified directive `foo` " +
+                    "is not supported by the current schema.",
+                    t.Message));
+        }
+
+        [Fact]
+        public void StringIntoInt()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    arguments {
+                        ...stringIntoInt
+                    }
+                }
+
+                fragment stringIntoInt on Arguments {
+                    intArgField(intArg: ""123"")
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified value type of argument `intArg` " +
+                    "does not match the argument type.",
                     t.Message));
         }
     }

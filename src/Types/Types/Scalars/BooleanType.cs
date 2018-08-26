@@ -7,6 +7,8 @@ namespace HotChocolate.Types
     /// The Boolean scalar type represents true or false.
     /// Response formats should use a built‐in boolean type if supported;
     /// otherwise, they should use their representation of the integers 1 and 0.
+    ///
+    /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
     public sealed class BooleanType
         : ScalarType

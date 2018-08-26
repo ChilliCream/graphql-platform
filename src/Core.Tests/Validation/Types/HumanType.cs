@@ -9,6 +9,9 @@ namespace HotChocolate.Validation
         {
             descriptor.Interface<SentientType>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
+            descriptor.Field("pets")
+                .Type<ListType<PetType>>()
+                .Resolver(() => "");
         }
     }
 }

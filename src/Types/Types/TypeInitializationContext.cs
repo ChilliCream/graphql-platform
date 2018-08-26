@@ -158,26 +158,28 @@ namespace HotChocolate.Types
         public bool TryGetProperty<T>(INamedType namedType, string fieldName, out T member)
             where T : MemberInfo
         {
-            if (namedType is ObjectType)
+            if (namedType is ObjectType
+                && _schemaContext.Types.TryGetTypeBinding(namedType,
+                    out ObjectTypeBinding binding)
+                && binding.Fields.TryGetValue(fieldName,
+                    out FieldBinding fieldBinding)
+                && fieldBinding.Member is T m)
             {
-                if (_schemaContext.Types.TryGetTypeBinding(namedType, out ObjectTypeBinding binding)
-                    && binding.Fields.TryGetValue(fieldName, out FieldBinding fieldBinding)
-                    && fieldBinding.Member is T m)
-                {
-                    member = m;
-                    return true;
-                }
+                member = m;
+                return true;
             }
 
-            if (namedType is InputObjectType)
+
+            if (namedType is InputObjectType
+                && _schemaContext.Types.TryGetTypeBinding(namedType,
+                    out InputObjectTypeBinding inputBinding)
+                && inputBinding.Fields.TryGetValue(fieldName,
+                    out InputFieldBinding inputFieldBinding)
+                && inputFieldBinding.Property is T p)
             {
-                if (_schemaContext.Types.TryGetTypeBinding(namedType, out InputObjectTypeBinding binding)
-                    && binding.Fields.TryGetValue(fieldName, out InputFieldBinding fieldBinding)
-                    && fieldBinding.Property is T p)
-                {
-                    member = p;
-                    return true;
-                }
+                member = p;
+                return true;
+
             }
 
             member = null;

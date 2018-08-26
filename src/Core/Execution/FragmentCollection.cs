@@ -62,34 +62,54 @@ namespace HotChocolate.Execution
             }
         }
 
-        public Fragment GetFragment(InlineFragmentNode inlineFragment)
+        public Fragment GetFragment(
+            ObjectType parentType,
+            InlineFragmentNode inlineFragment)
         {
+            if (parentType == null)
+            {
+                throw new ArgumentNullException(nameof(parentType));
+            }
+
             if (inlineFragment == null)
             {
                 throw new ArgumentNullException(nameof(inlineFragment));
             }
 
             string fragmentName = CreateInlineFragmentName(inlineFragment);
+
             if (!_fragments.TryGetValue(fragmentName,
                 out List<Fragment> fragments))
             {
                 fragments = new List<Fragment>();
-                fragments.Add(CreateFragment(inlineFragment));
+                fragments.Add(CreateFragment(parentType, inlineFragment));
                 _fragments[fragmentName] = fragments;
             }
 
             return fragments.First();
         }
 
-        private Fragment CreateFragment(InlineFragmentNode inlineFragment)
+        private Fragment CreateFragment(
+            ObjectType parentType,
+            InlineFragmentNode inlineFragment)
         {
-            // TODO : maybe introduce a tryget to the schema
-            INamedType type = _schema.GetType<INamedType>(
-                inlineFragment.TypeCondition.Name.Value);
+            INamedType type;
+
+            if (inlineFragment.TypeCondition == null)
+            {
+                type = parentType;
+            }
+            else
+            {
+                type = _schema.GetType<INamedType>(
+                    inlineFragment.TypeCondition.Name.Value);
+            }
+
             return new Fragment(type, inlineFragment.SelectionSet);
         }
 
-        private string CreateInlineFragmentName(InlineFragmentNode inlineFragment)
+        private string CreateInlineFragmentName(
+            InlineFragmentNode inlineFragment)
         {
             return $"^__{inlineFragment.Location.Start}_{inlineFragment.Location.End}";
         }

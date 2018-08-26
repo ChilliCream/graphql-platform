@@ -26,6 +26,17 @@ namespace HotChocolate.Validation
                 new ArgumentNamesRule(),
                 new FragmentsMustBeUsedRule(),
                 new FragmentNameUniquenessRule(),
+                new LeafFieldSelectionsRule(),
+                new FragmentsOnCompositeTypesRule(),
+                new FragmentSpreadsMustNotFormCyclesRule(),
+                new FragmentSpreadTargetDefinedRule(),
+                new FragmentSpreadIsPossibleRule(),
+                new FragmentSpreadTypeExistenceRule(),
+                new InputObjectFieldNamesRule(),
+                new InputObjectRequiredFieldsRule(),
+                new InputObjectFieldUniquenessRule(),
+                new DirectivesAreDefinedRule(),
+                new ValuesOfCorrectTypeRule()
             };
 
         private readonly ISchema _schema;

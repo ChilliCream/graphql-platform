@@ -460,6 +460,28 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+        [Fact]
+        public void ConditionalInlineFragment()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            {
+                heroes(episodes: [EMPIRE]) {
+                    name
+                    ... @include(if: true) {
+                        height
+                    }
+                }
+            }";
+
+            // act
+            IExecutionResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         private static Schema CreateSchema()
         {
             CharacterRepository repository = new CharacterRepository();

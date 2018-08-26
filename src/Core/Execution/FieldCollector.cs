@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
             }
             else if (selection is InlineFragmentNode inlineFragment)
             {
-                Fragment fragment = _fragments.GetFragment(inlineFragment);
+                Fragment fragment = _fragments.GetFragment(type, inlineFragment);
                 if (DoesFragmentTypeApply(type, fragment.TypeCondition))
                 {
                     CollectFields(type, fragment.SelectionSet, reportError, fields);

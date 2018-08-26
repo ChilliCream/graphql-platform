@@ -24,6 +24,4 @@ namespace HotChocolate.Validation
             return null;
         }
     }
-
-
 }
