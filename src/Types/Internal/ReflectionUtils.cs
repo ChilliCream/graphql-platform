@@ -17,30 +17,12 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(memberExpression));
             }
 
-            Type type = typeof(T);
-
-            if (memberExpression.Body is MemberExpression m && m.Member.IsPublic())
+            if (TryExtractMemberFromMemberExpression(
+                    memberExpression, out MemberInfo member)
+                || TryExtractMemberFromMemberCallExpression(
+                    memberExpression, out member))
             {
-                if (m.Member is PropertyInfo pi
-                    && pi.DeclaringType.IsAssignableFrom(type)
-                    && !pi.IsSpecialName)
-                {
-                    return pi;
-                }
-                else if (m.Member is MethodInfo mi
-                    && mi.DeclaringType.IsAssignableFrom(type)
-                    && !mi.IsSpecialName)
-                {
-                    return mi;
-                }
-            }
-
-            if (memberExpression.Body is MethodCallExpression mc
-                && mc.Method.IsPublic()
-                && mc.Method.DeclaringType.IsAssignableFrom(type)
-                && !mc.Method.IsSpecialName)
-            {
-                return mc.Method;
+                return member;
             }
 
             throw new ArgumentException(
@@ -48,6 +30,54 @@ namespace HotChocolate.Internal
                 "that is public and that belongs to the " +
                 $"type {typeof(T).FullName}",
                 nameof(memberExpression));
+        }
+
+        private static bool TryExtractMemberFromMemberExpression<T, TPropertyType>(
+            Expression<Func<T, TPropertyType>> memberExpression,
+            out MemberInfo member)
+        {
+            Type type = typeof(T);
+
+            if (memberExpression.Body is MemberExpression m
+                && m.Member.IsPublic())
+            {
+                if (m.Member is PropertyInfo pi
+                    && pi.DeclaringType.IsAssignableFrom(type)
+                    && !pi.IsSpecialName)
+                {
+                    member = GetBestMatchingProperty(type, pi);
+                    return true;
+                }
+                else if (m.Member is MethodInfo mi
+                    && mi.DeclaringType.IsAssignableFrom(type)
+                    && !mi.IsSpecialName)
+                {
+                    member = GetBestMatchingMethod(type, mi);
+                    return true;
+                }
+            }
+
+            member = null;
+            return false;
+        }
+
+        private static bool TryExtractMemberFromMemberCallExpression<T, TPropertyType>(
+            Expression<Func<T, TPropertyType>> memberExpression,
+            out MemberInfo member)
+        {
+            Type type = typeof(T);
+
+            if (memberExpression.Body is MethodCallExpression mc
+                && mc.Method.IsPublic()
+                && mc.Method.DeclaringType.IsAssignableFrom(type)
+                && !mc.Method.IsSpecialName)
+            {
+                member = GetBestMatchingMethod(type, mc.Method);
+                return true;
+            }
+
+            member = null;
+            return false;
         }
 
         private static bool IsPublic(this MemberInfo member)
@@ -156,6 +186,60 @@ namespace HotChocolate.Internal
             }
 
             return members;
+        }
+
+        private static MethodInfo GetBestMatchingMethod(
+            Type type, MethodInfo method)
+        {
+            if (method.DeclaringType == type)
+            {
+                return method;
+            }
+
+            Type[] parameters = method.GetParameters()
+                .Select(t => t.ParameterType).ToArray();
+            Type current = type;
+
+            while (current != typeof(object))
+            {
+                MethodInfo betterMatching = current
+                    .GetMethod(method.Name, parameters);
+
+                if (betterMatching != null)
+                {
+                    return betterMatching;
+                }
+
+                current = current.BaseType;
+            }
+
+            return method;
+        }
+
+        private static PropertyInfo GetBestMatchingProperty(
+            Type type, PropertyInfo property)
+        {
+            if (property.DeclaringType == type)
+            {
+                return property;
+            }
+
+            Type current = type;
+
+            while (current != typeof(object))
+            {
+                PropertyInfo betterMatching = current
+                    .GetProperty(property.Name);
+
+                if (betterMatching != null)
+                {
+                    return betterMatching;
+                }
+
+                current = current.BaseType;
+            }
+
+            return property;
         }
     }
 }
