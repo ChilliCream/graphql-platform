@@ -12,6 +12,11 @@ namespace HotChocolate.Validation
             return null;
         }
 
+        public Dog FindDog2(ComplexInput2 complex)
+        {
+            return null;
+        }
+
         public bool BooleanList(bool[] booleanListArg)
         {
             return true;

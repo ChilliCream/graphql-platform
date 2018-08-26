@@ -18,6 +18,7 @@ namespace HotChocolate.Validation
                 c.RegisterType<ArgumentsType>();
                 c.RegisterSubscriptionType<SubscriptionType>();
                 c.RegisterType<ComplexInputType>();
+                c.RegisterType<ComplexInput2Type>();
             });
         }
     }

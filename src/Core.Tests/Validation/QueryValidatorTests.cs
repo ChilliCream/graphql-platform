@@ -745,5 +745,32 @@ namespace HotChocolate.Validation
                     "`favoriteCookieFlavor` does not exist.",
                     t.Message));
         }
+
+        [Fact]
+        public void RequiredFieldIsNull()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    findDog2(complex: { name: null })
+                    {
+                        name
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "`name` is a required field and cannot be null.",
+                    t.Message));
+        }
     }
 }
