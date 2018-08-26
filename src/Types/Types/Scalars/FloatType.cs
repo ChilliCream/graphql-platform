@@ -5,6 +5,14 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// The Float scalar type represents signed double‐precision fractional
+    /// values as specified by IEEE 754. Response formats that support an
+    /// appropriate double‐precision number type should use that type to
+    /// represent this scalar.
+    ///
+    /// http://facebook.github.io/graphql/June2018/#sec-Float
+    /// </summary>
     public sealed class FloatType
         : NumberType<double, FloatValueNode>
     {
