@@ -799,5 +799,32 @@ namespace HotChocolate.Validation
                     "Field `name` is ambiguous.",
                     t.Message));
         }
+
+        [Fact]
+        public void UnsupportedDirective()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    dog {
+                        name @foo(bar: true)
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = new QueryValidator(schema);
+
+            // act
+            QueryValidationResult result = queryValidator.Validate(query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The specified directive `foo` " +
+                    "is not supported by the current schema.",
+                    t.Message));
+        }
     }
 }
