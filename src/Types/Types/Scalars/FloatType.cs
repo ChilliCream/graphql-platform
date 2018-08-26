@@ -13,6 +13,39 @@ namespace HotChocolate.Types
         {
         }
 
+        public override bool IsInstanceOfType(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            // Input coercion rules specify that float values can be coerced
+            // from IntValueNode and FloatValueNode:
+            // http://facebook.github.io/graphql/June2018/#sec-Float
+            return base.IsInstanceOfType(literal) || literal is IntValueNode;
+        }
+
+        public override object ParseLiteral(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            // Input coercion rules specify that float values can be coerced
+            // from IntValueNode and FloatValueNode:
+            // http://facebook.github.io/graphql/June2018/#sec-Float
+            if (literal is IntValueNode node)
+            {
+                return double.Parse(node.Value,
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture);
+            }
+
+            return base.ParseLiteral(literal);
+        }
+
         protected override double OnParseLiteral(FloatValueNode node) =>
             double.Parse(node.Value, NumberStyles.Float, CultureInfo.InvariantCulture);
 

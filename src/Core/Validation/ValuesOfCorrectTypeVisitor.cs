@@ -33,7 +33,7 @@ namespace HotChocolate.Validation
                     IValueNode defaultValue = variableDefinition.DefaultValue;
 
                     if (type is IInputType inputType
-                        && !inputType.IsInstanceOfType(defaultValue))
+                        && !IsInstanceOfType(inputType, defaultValue))
                     {
                         Errors.Add(new ValidationError(
                             "The specified value type of variable " +
@@ -97,7 +97,7 @@ namespace HotChocolate.Validation
                     if (type.Fields.TryGetField(fieldValue.Name.Value,
                         out InputField field))
                     {
-                        if (field.Type.IsInstanceOfType(fieldValue.Value))
+                        if (IsInstanceOfType(field.Type, fieldValue.Value))
                         {
                             if (fieldValue.Value is ObjectValueNode ov
                                 && field.Type.NamedType() is InputObjectType it)
@@ -127,7 +127,7 @@ namespace HotChocolate.Validation
                 out IInputField argumentField))
             {
                 if (!(argument.Value is VariableNode)
-                    && !argumentField.Type.IsInstanceOfType(argument.Value))
+                    && !IsInstanceOfType(argumentField.Type, argument.Value))
                 {
                     Errors.Add(new ValidationError(
                         "The specified value type of argument " +
@@ -156,6 +156,16 @@ namespace HotChocolate.Validation
             }
 
             throw new NotSupportedException();
+        }
+
+        private bool IsInstanceOfType(IInputType inputType, IValueNode value)
+        {
+            IInputType internalType = inputType;
+            if (inputType.IsNonNullType())
+            {
+                internalType = (IInputType)inputType.InnerType();
+            }
+            return internalType.IsInstanceOfType(value);
         }
     }
 }

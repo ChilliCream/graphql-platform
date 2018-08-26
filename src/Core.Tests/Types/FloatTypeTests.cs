@@ -11,7 +11,7 @@ namespace HotChocolate.Types
             new FloatValueNode("1.000000E+000");
 
         protected override IValueNode GetWrongValueNode =>
-            new IntValueNode("1");
+            new StringValueNode("1");
 
         protected override double GetValue => 1.0d;
 
@@ -53,6 +53,35 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal("-3.402823E+038", literal.Value);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_IntValueNode()
+        {
+            // arrange
+            FloatType type = new FloatType();
+            IntValueNode input = new IntValueNode("123");
+
+            // act
+            bool result = type.IsInstanceOfType(input);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void ParseLiteral_IntValueNode()
+        {
+            // arrange
+            FloatType type = new FloatType();
+            IntValueNode input = new IntValueNode("123");
+
+            // act
+            object result = type.ParseLiteral(input);
+
+            // assert
+            Assert.IsType<double>(result);
+            Assert.Equal(123d, result);
         }
     }
 }
