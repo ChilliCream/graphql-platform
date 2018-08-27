@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class FragmentDefinitionNode
         : IExecutableDefinitionNode
+        , IHasDirectives
     {
         public FragmentDefinitionNode(
             Location location,

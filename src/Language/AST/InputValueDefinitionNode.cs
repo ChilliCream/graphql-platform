@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class InputValueDefinitionNode
         : ISyntaxNode
+        , IHasDirectives
     {
         public InputValueDefinitionNode(Location location,
             NameNode name, StringValueNode description,

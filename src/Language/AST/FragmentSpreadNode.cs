@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class FragmentSpreadNode
         : ISelectionNode
+        , IHasDirectives
     {
         public FragmentSpreadNode(
             Location location,

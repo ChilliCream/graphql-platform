@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class FieldNode
         : ISelectionNode
+        , IHasDirectives
     {
         public FieldNode(
             Location location,

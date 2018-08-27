@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class EnumValueDefinitionNode
         : ISyntaxNode
+        , IHasDirectives
     {
         public EnumValueDefinitionNode(
             Location location,

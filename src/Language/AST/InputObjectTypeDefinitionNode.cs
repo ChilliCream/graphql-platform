@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class InputObjectTypeDefinitionNode
         : ITypeDefinitionNode
+        , IHasDirectives
     {
         public InputObjectTypeDefinitionNode(
             Location location,

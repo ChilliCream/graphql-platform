@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class ScalarTypeDefinitionNode
         : ITypeDefinitionNode
+        , IHasDirectives
     {
         public ScalarTypeDefinitionNode(
             Location location,
