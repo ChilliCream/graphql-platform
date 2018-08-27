@@ -12,7 +12,8 @@ namespace HotChocolate.Types
     {
         private readonly ISchemaContext _schemaContext;
         private readonly Action<SchemaError> _reportError;
-        private readonly FieldResolverDiscoverer _resolverDiscoverer;
+        private readonly FieldResolverDiscoverer _resolverDiscoverer =
+            new FieldResolverDiscoverer();
 
         public TypeInitializationContext(ISchemaContext schemaContext,
             Action<SchemaError> reportError, INamedType namedType,

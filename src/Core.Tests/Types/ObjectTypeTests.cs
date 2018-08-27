@@ -133,6 +133,29 @@ namespace HotChocolate.Types
             Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
         }
 
+        [Fact]
+        public void BindFieldToResolverTypeField()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new ObjectType<Foo>(
+                d => d.Field<FooResolver, string>(t => t.GetBar(default)));
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
+            Assert.NotNull(fooType.Fields["bar"].Resolver);
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -141,6 +164,11 @@ namespace HotChocolate.Types
         public class Foo
         {
             public string Description { get; } = "hello";
+        }
+
+        public class FooResolver
+        {
+            public string GetBar(string foo) => "hello foo";
         }
 
         public class FooType
