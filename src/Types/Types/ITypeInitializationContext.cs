@@ -18,7 +18,11 @@ namespace HotChocolate.Types
 
         void RegisterType(TypeReference typeReference);
 
-        void RegisterResolver(string fieldName, MemberInfo fieldMember);
+        void RegisterResolver(
+            Type sourceType,
+            Type resolverType,
+            string fieldName,
+            MemberInfo fieldMember);
 
         FieldResolverDelegate GetResolver(string fieldName);
 

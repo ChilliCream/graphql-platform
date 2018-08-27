@@ -29,6 +29,14 @@ namespace HotChocolate.Resolvers
             }
         }
 
+        public FieldResolverDescriptor GetSelectedResolver(
+            Type resolverType, Type sourceType,
+            FieldResolverMember selectedResolver)
+        {
+            return GetSelectedResolvers(resolverType, sourceType,
+                new[] { selectedResolver }).Single();
+        }
+
         public IEnumerable<FieldResolverDescriptor> GetSelectedResolvers(
             Type resolverType, Type sourceType,
             IEnumerable<FieldResolverMember> selectedResolvers)

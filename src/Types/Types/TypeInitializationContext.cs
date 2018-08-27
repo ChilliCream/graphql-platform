@@ -12,6 +12,7 @@ namespace HotChocolate.Types
     {
         private readonly ISchemaContext _schemaContext;
         private readonly Action<SchemaError> _reportError;
+        private readonly FieldResolverDiscoverer _resolverDiscoverer;
 
         public TypeInitializationContext(ISchemaContext schemaContext,
             Action<SchemaError> reportError, INamedType namedType,
@@ -102,8 +103,13 @@ namespace HotChocolate.Types
             return _schemaContext.Types.GetType<T>(typeReference);
         }
 
-        public void RegisterResolver(string fieldName, MemberInfo fieldMember)
+        public void RegisterResolver(Type sourceType, Type resolverType, string fieldName, MemberInfo fieldMember)
         {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
             if (string.IsNullOrEmpty(fieldName))
             {
                 throw new ArgumentException(
@@ -116,8 +122,22 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fieldMember));
             }
 
-            _schemaContext.Resolvers.RegisterResolver(
-                new MemberResolverBinding(Type.Name, fieldName, fieldMember));
+            if (resolverType == null)
+            {
+                _schemaContext.Resolvers.RegisterResolver(
+                    new MemberResolverBinding(
+                        Type.Name, fieldName, fieldMember));
+            }
+            else
+            {
+                FieldResolverDescriptor fieldResolverDescriptor =
+                    _resolverDiscoverer.GetSelectedResolver(
+                        resolverType, sourceType,
+                        new FieldResolverMember(
+                            Type.Name, fieldName, fieldMember));
+
+                _schemaContext.Resolvers.RegisterResolver(fieldResolverDescriptor);
+            }
         }
 
         public void RegisterType(INamedType namedType, ITypeBinding typeBinding = null)
