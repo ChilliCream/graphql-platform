@@ -210,11 +210,11 @@ We currently support the following parts of the current [June 2018 specification
 
 - [x] Skip
 - [x] Continue
-- [ ] _Deprecated_ (in development - 0.5.0)
+- [x] Deprecated
 
 ### Validation
 
-- [x] [_Validation_](https://github.com/ChilliCream/hotchocolate/projects/3)
+- [x] [Validation](https://github.com/ChilliCream/hotchocolate/projects/3)
 
 ### Execution
 
