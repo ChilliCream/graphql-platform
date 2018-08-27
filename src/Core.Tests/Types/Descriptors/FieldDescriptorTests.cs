@@ -50,7 +50,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField).GetProperty("Arguments"),
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
@@ -70,7 +71,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField).GetProperty("Arguments"),
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
@@ -87,7 +89,8 @@ namespace HotChocolate.Types
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField).GetProperty("Arguments"),
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
@@ -104,7 +107,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField).GetProperty("Arguments"),
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
@@ -125,7 +129,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField).GetProperty("Arguments"),
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
@@ -138,6 +143,42 @@ namespace HotChocolate.Types
             ObjectFieldDescription description = descriptor.CreateDescription();
             Assert.Equal(typeof(__Type), description.TypeReference.NativeType);
             Assert.NotNull(description.Resolver);
+        }
+
+        [Fact]
+        public void SourceTypeIsSet()
+        {
+            // arrange
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(IReadOnlyDictionary<string, InputField>));
+
+            // act
+            ((IObjectFieldDescriptor)descriptor)
+               .Name("args");
+
+            // assert
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(ObjectField), description.SourceType);
+        }
+
+        [Fact]
+        public void ResolverTypeIsSet()
+        {
+            // arrange
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField),
+                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(IReadOnlyDictionary<string, InputField>));
+
+            // act
+            descriptor.ResolverType(typeof(string));
+
+            // assert
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(ObjectField), description.SourceType);
+            Assert.Equal(typeof(string), description.ResolverType);
         }
     }
 }
