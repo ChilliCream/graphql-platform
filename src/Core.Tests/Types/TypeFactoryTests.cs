@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using HotChocolate.Configuration;
@@ -14,111 +15,250 @@ namespace HotChocolate.Types
         public void CreateObjectType()
         {
             // arrange
-            var scalarType = new StringType();
+            ObjectTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<ObjectTypeDefinitionNode>(@"
+                    type Simple { a: String b: [String] }");
 
-            var parser = new Parser();
-            DocumentNode document = parser.Parse(
-                "type Simple { a: String b: [String] }");
-            ObjectTypeDefinitionNode objectTypeDefinition = document
-                .Definitions.OfType<ObjectTypeDefinitionNode>().First();
             var resolverBinding = new DelegateResolverBinding(
-                "Simple", "a",
-                (c, r) => "hello");
-
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(scalarType);
-            schemaContext.Resolvers.RegisterResolver(resolverBinding);
+                "Simple", "a", (c, r) => "hello");
 
             // act
             var factory = new ObjectTypeFactory();
-            ObjectType objectType = factory.Create(objectTypeDefinition);
-            schemaContext.Types.RegisterType(objectType);
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, error => { }, objectType, false);
-            ((INeedsInitialization)objectType)
-                .RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            ObjectType type = factory.Create(typeDefinition);
+            CompleteType(type,
+                s => s.Resolvers.RegisterResolver(resolverBinding));
 
             // assert
-            Assert.Equal("Simple", objectType.Name);
-            Assert.Equal(3, objectType.Fields.Count);
-            Assert.True(objectType.Fields.ContainsField("a"));
-            Assert.True(objectType.Fields.ContainsField("b"));
-            Assert.False(objectType.Fields["a"].Type.IsNonNullType());
-            Assert.False(objectType.Fields["a"].Type.IsListType());
-            Assert.True(objectType.Fields["a"].Type.IsScalarType());
-            Assert.Equal("String", objectType.Fields["a"].Type.TypeName());
-            Assert.False(objectType.Fields["b"].Type.IsNonNullType());
-            Assert.True(objectType.Fields["b"].Type.IsListType());
-            Assert.False(objectType.Fields["b"].Type.IsScalarType());
-            Assert.Equal("String", objectType.Fields["b"].Type.TypeName());
-            Assert.Equal("hello", (objectType.Fields["a"]
+            Assert.Equal("Simple", type.Name);
+            Assert.Equal(3, type.Fields.Count);
+
+            Assert.True(type.Fields.ContainsField("a"));
+            Assert.False(type.Fields["a"].Type.IsNonNullType());
+            Assert.False(type.Fields["a"].Type.IsListType());
+            Assert.True(type.Fields["a"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["a"].Type.TypeName());
+
+            Assert.True(type.Fields.ContainsField("b"));
+            Assert.False(type.Fields["b"].Type.IsNonNullType());
+            Assert.True(type.Fields["b"].Type.IsListType());
+            Assert.False(type.Fields["b"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["b"].Type.TypeName());
+
+            Assert.Equal("hello", (type.Fields["a"]
                 .Resolver(null, CancellationToken.None)));
         }
 
+        [Fact]
+        public void ObjectFieldDeprecationReason()
+        {
+            // arrange
+            ObjectTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<ObjectTypeDefinitionNode>(@"
+                    type Simple {
+                        a: String @deprecated(reason: ""reason123"")
+                    }");
+
+            // act
+            var factory = new ObjectTypeFactory();
+            ObjectType type = factory.Create(typeDefinition);
+            CompleteType(type);
+
+            // assert
+            Assert.True(type.Fields["a"].IsDeprecated);
+            Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
+        }
+
+        [Fact]
+        public void CreateInterfaceType()
+        {
+            // arrange
+            InterfaceTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<InterfaceTypeDefinitionNode>(
+                    "interface Simple { a: String b: [String] }");
+
+            // act
+            var factory = new InterfaceTypeFactory();
+            InterfaceType type = factory.Create(typeDefinition);
+            CompleteType(type);
+
+            // assert
+            Assert.Equal("Simple", type.Name);
+            Assert.Equal(2, type.Fields.Count);
+
+            Assert.True(type.Fields.ContainsField("a"));
+            Assert.False(type.Fields["a"].Type.IsNonNullType());
+            Assert.False(type.Fields["a"].Type.IsListType());
+            Assert.True(type.Fields["a"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["a"].Type.TypeName());
+
+            Assert.True(type.Fields.ContainsField("b"));
+            Assert.False(type.Fields["b"].Type.IsNonNullType());
+            Assert.True(type.Fields["b"].Type.IsListType());
+            Assert.False(type.Fields["b"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["b"].Type.TypeName());
+        }
+
+        [Fact]
+        public void InterfaceFieldDeprecationReason()
+        {
+            // arrange
+            InterfaceTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<InterfaceTypeDefinitionNode>(@"
+                    interface Simple {
+                        a: String @deprecated(reason: ""reason123"")
+                    }");
+
+            // act
+            var factory = new InterfaceTypeFactory();
+            InterfaceType type = factory.Create(typeDefinition);
+            CompleteType(type);
+
+            // assert
+            Assert.True(type.Fields["a"].IsDeprecated);
+            Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
+        }
 
         [Fact]
         public void CreateUnion()
         {
             // arrange
-            DocumentNode document = Parser.Default.Parse(
-                "union X = A | B");
-            UnionTypeDefinitionNode unionTypeDefinition = document
-                .Definitions.OfType<UnionTypeDefinitionNode>().First();
+            var objectTypeA = new ObjectType(d =>
+                d.Name("A").Field("a").Type<StringType>());
+            var objectTypeB = new ObjectType(d =>
+                d.Name("B").Field("a").Type<StringType>());
 
-            var context = new SchemaContext();
-            var configuration = new SchemaConfiguration(
-                context.RegisterServiceProvider,
-                context.Types);
-            configuration.RegisterType(new ObjectType(d =>
-                d.Name("A").Field("a").Type<StringType>()));
-            configuration.RegisterType(new ObjectType(d =>
-                d.Name("B").Field("a").Type<StringType>()));
+            UnionTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<UnionTypeDefinitionNode>(
+                    "union X = A | B");
 
             // act
             var factory = new UnionTypeFactory();
-            UnionType unionType = factory.Create(unionTypeDefinition);
-            configuration.RegisterType(unionType);
-
-            var typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(context, null);
+            UnionType type = factory.Create(typeDefinition);
+            CompleteType(type, s =>
+            {
+                s.Types.RegisterType(objectTypeA);
+                s.Types.RegisterType(objectTypeB);
+            });
 
             // assert
-            Assert.Equal("X", unionType.Name);
-            Assert.Equal(2, unionType.Types.Count);
-            Assert.Equal("A", unionType.Types.First().Key);
-            Assert.Equal("B", unionType.Types.Last().Key);
+            Assert.Equal("X", type.Name);
+            Assert.Equal(2, type.Types.Count);
+            Assert.Equal("A", type.Types.First().Key);
+            Assert.Equal("B", type.Types.Last().Key);
         }
 
         [Fact]
         public void CreateEnum()
         {
             // arrange
-            DocumentNode document = Parser.Default.Parse(
-                "enum Abc { A B C }");
-            EnumTypeDefinitionNode typeDefinition = document
-                .Definitions.OfType<EnumTypeDefinitionNode>().First();
-
-            var context = new SchemaContext();
-            var configuration = new SchemaConfiguration(
-                context.RegisterServiceProvider,
-                context.Types);
+            EnumTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<EnumTypeDefinitionNode>(
+                    "enum Abc { A B C }");
 
             // act
             var factory = new EnumTypeFactory();
-            EnumType enumType = factory.Create(typeDefinition);
-            configuration.RegisterType(enumType);
-
-            var typeFinalizer = new TypeFinalizer(configuration);
-            typeFinalizer.FinalizeTypes(context, null);
+            EnumType type = factory.Create(typeDefinition);
+            CompleteType(type);
 
             // assert
-            Assert.Equal("Abc", enumType.Name);
-            Assert.Collection(enumType.Values,
+            Assert.Equal("Abc", type.Name);
+            Assert.Collection(type.Values,
                 t => Assert.Equal("A", t.Name),
                 t => Assert.Equal("B", t.Name),
                 t => Assert.Equal("C", t.Name));
+        }
+
+        [Fact]
+        public void EnumValueDeprecationReason()
+        {
+            // arrange
+            EnumTypeDefinitionNode typeDefinition =
+                CreateTypeDefinition<EnumTypeDefinitionNode>(@"
+                    enum Abc {
+                        A
+                        B @deprecated(reason: ""reason123"")
+                        C
+                    }");
+
+            // act
+            var factory = new EnumTypeFactory();
+            EnumType type = factory.Create(typeDefinition);
+            CompleteType(type);
+
+            // assert
+            EnumValue value = type.Values.FirstOrDefault(t => t.Name == "B");
+            Assert.NotNull(value);
+            Assert.True(value.IsDeprecated);
+            Assert.Equal("reason123", value.DeprecationReason);
+        }
+
+        [Fact]
+        public void CreateInputObjectType()
+        {
+            // arrange
+            string schemaSdl = "input Simple { a: String b: [String] }";
+
+            // act
+            Schema schema = Schema.Create(
+                schemaSdl,
+                c =>
+                {
+                    c.Options.StrictValidation = false;
+                    c.BindType<SimpleInputObject>().To("Simple")
+                        .Field(t => t.Name).Name("a")
+                        .Field(t => t.Friends).Name("b");
+                });
+            InputObjectType type = schema.GetType<InputObjectType>("Simple");
+
+            // assert
+            Assert.Equal("Simple", type.Name);
+            Assert.Equal(2, type.Fields.Count);
+
+            Assert.True(type.Fields.ContainsField("a"));
+            Assert.False(type.Fields["a"].Type.IsNonNullType());
+            Assert.False(type.Fields["a"].Type.IsListType());
+            Assert.True(type.Fields["a"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["a"].Type.TypeName());
+
+            Assert.True(type.Fields.ContainsField("b"));
+            Assert.False(type.Fields["b"].Type.IsNonNullType());
+            Assert.True(type.Fields["b"].Type.IsListType());
+            Assert.False(type.Fields["b"].Type.IsScalarType());
+            Assert.Equal("String", type.Fields["b"].Type.TypeName());
+        }
+
+        private void CompleteType(
+            INamedType namedType,
+            Action<SchemaContext> configure = null)
+        {
+            var schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(new StringType());
+            schemaContext.Types.RegisterType(namedType);
+
+            if (configure != null)
+            {
+                configure(schemaContext);
+            }
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, error => { }, namedType, false);
+            ((INeedsInitialization)namedType)
+                .RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+        }
+
+        private T CreateTypeDefinition<T>(string schema)
+            where T : ISyntaxNode
+        {
+            var parser = new Parser();
+            DocumentNode document = parser.Parse(schema);
+            return document.Definitions.OfType<T>().First();
+        }
+
+        public class SimpleInputObject
+        {
+            public string Name { get; set; }
+            public string[] Friends { get; set; }
         }
     }
 }

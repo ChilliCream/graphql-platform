@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class InlineFragmentNode
         : ISelectionNode
+        , IHasDirectives
     {
         public InlineFragmentNode(
             Location location,

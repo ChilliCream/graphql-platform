@@ -14,6 +14,7 @@ namespace HotChocolate.Types.Factories
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
+
                 DeclareValues(d, node.Values);
             });
         }
@@ -24,7 +25,14 @@ namespace HotChocolate.Types.Factories
         {
             foreach (EnumValueDefinitionNode value in values)
             {
-                typeDescriptor.Item(value.Name.Value);
+                IEnumValueDescriptor valueDescriptor =
+                    typeDescriptor.Item(value.Name.Value);
+
+                string deprecactionReason = value.DeprecationReason();
+                if (!string.IsNullOrEmpty(deprecactionReason))
+                {
+                    valueDescriptor.DeprecationReason(deprecactionReason);
+                }
             }
         }
     }

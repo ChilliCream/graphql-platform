@@ -32,6 +32,12 @@ namespace HotChocolate.Types.Factories
                     .Type(fieldDefinition.Type)
                     .SyntaxNode(fieldDefinition);
 
+                string deprecactionReason = fieldDefinition.DeprecationReason();
+                if (!string.IsNullOrEmpty(deprecactionReason))
+                {
+                    fieldDescriptor.DeprecationReason(deprecactionReason);
+                }
+
                 DeclareFieldArguments(fieldDescriptor, fieldDefinition);
             }
         }

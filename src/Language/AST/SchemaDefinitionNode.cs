@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class SchemaDefinitionNode
         : ITypeSystemDefinitionNode
+        , IHasDirectives
     {
         public SchemaDefinitionNode(
             Location location,
