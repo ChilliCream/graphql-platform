@@ -99,7 +99,7 @@
         },
         {
           "kind": "SCALAR",
-          "name": "Guid",
+          "name": "Uuid",
           "description": null,
           "fields": null,
           "inputFields": null,

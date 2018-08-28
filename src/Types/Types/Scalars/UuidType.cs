@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     public class UuidType: ScalarType
     {
         public UuidType()
-            : base("Guid")
+            : base("Uuid")
         {
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
             }
 
             if (literal is StringValueNode stringLiteral
-                && TryParseLiteral(stringLiteral, out object obj))
+                && Guid.TryParse(stringLiteral.Value, out Guid obj))
             {
                 return obj;
             }
@@ -77,19 +77,6 @@ namespace HotChocolate.Types
 
             throw new ArgumentException(
                 "The specified value cannot be serialized by the Guid type.");
-        }
-
-        private bool TryParseLiteral(
-            StringValueNode literal, out object obj)
-        {
-            if (Guid.TryParse(literal.Value, out Guid guid))
-            {
-                obj = guid;
-                return true;
-            }
-
-            obj = null;
-            return false;
         }
 
         private string Serialize(Guid value)
