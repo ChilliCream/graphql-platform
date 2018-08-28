@@ -142,7 +142,7 @@ namespace HotChocolate.Types
 
             // act
             var fooType = new ObjectType<Foo>(
-                d => d.Field<FooResolver, string>(t => t.GetBar(default)));
+                d => d.Field<FooResolver>(t => t.GetBar(default)));
             INeedsInitialization init = fooType;
 
             var initializationContext = new TypeInitializationContext(
@@ -154,6 +154,7 @@ namespace HotChocolate.Types
             Assert.Empty(errors);
             Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
             Assert.NotNull(fooType.Fields["bar"].Resolver);
+            Assert.IsType<StringType>(fooType.Fields["bar"].Type);
         }
 
         public class GenericFoo<T>

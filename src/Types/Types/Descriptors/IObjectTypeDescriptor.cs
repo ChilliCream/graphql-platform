@@ -126,8 +126,8 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="T"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(
-            Expression<Func<T, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field(
+            Expression<Func<T, object>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field which is bound to a resolver type.
@@ -136,7 +136,7 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="TResolver"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TResolver, TValue>(
-            Expression<Func<TResolver, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod);
     }
 }

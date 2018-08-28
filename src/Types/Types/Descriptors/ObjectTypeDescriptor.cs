@@ -203,8 +203,8 @@ namespace HotChocolate.Types
             ObjectDescription.FieldBindingBehavior = bindingBehavior;
         }
 
-        protected ObjectFieldDescriptor Field<TResolver, TValue>(
-           Expression<Func<TResolver, TValue>> propertyOrMethod)
+        protected ObjectFieldDescriptor Field<TResolver>(
+           Expression<Func<TResolver, object>> propertyOrMethod)
         {
             if (propertyOrMethod == null)
             {
@@ -216,7 +216,7 @@ namespace HotChocolate.Types
             {
                 var fieldDescriptor = new ObjectFieldDescriptor(
                     ObjectDescription.Name, ObjectDescription.NativeType,
-                    member, typeof(TValue));
+                    member, member.GetReturnType());
 
                 if (typeof(TResolver) != ObjectDescription.NativeType)
                 {
@@ -363,14 +363,14 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TValue>(
-            Expression<Func<T, TValue>> propertyOrMethod)
+        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field(
+            Expression<Func<T, object>> propertyOrMethod)
         {
             return Field(propertyOrMethod);
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TResolver, TValue>(
-            Expression<Func<TResolver, TValue>> propertyOrMethod)
+        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod)
         {
             return Field(propertyOrMethod);
         }
