@@ -17,12 +17,14 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             descriptor.Field("height").Type<FloatType>()
                 .Argument("unit", a => a.Type<EnumType<Unit>>());
         }
+    }
 
-        public static IEnumerable<ICharacter> GetCharacter(
-            IResolverContext context)
+    public class CommonResolvers
+    {
+        public IEnumerable<ICharacter> GetCharacter(
+            [Parent]ICharacter character,
+            [Service]CharacterRepository repository)
         {
-            ICharacter character = context.Parent<ICharacter>();
-            CharacterRepository repository = context.Service<CharacterRepository>();
             foreach (string friendId in character.Friends)
             {
                 ICharacter friend = repository.GetCharacter(friendId);
@@ -33,11 +35,10 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             }
         }
 
-        public static double GetHeight(
-            IResolverContext context)
+        public double GetHeight(Unit? unit, [Parent]ICharacter character)
         {
-            double height = context.Parent<ICharacter>().Height;
-            if (context.Argument<Unit?>("unit") == Unit.Foot)
+            double height = character.Height;
+            if (unit == Unit.Foot)
             {
                 return height * 3.28084d;
             }

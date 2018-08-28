@@ -8,12 +8,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         protected override void Configure(IObjectTypeDescriptor<Droid> descriptor)
         {
             descriptor.Interface<CharacterType>();
-            descriptor.Field(t => t.Friends)
+            descriptor.Field<CommonResolvers>(r => r.GetCharacter(default, default))
                 .Type<ListType<CharacterType>>()
-                .Resolver(c => CharacterType.GetCharacter(c));
-            descriptor.Field(t => t.Height)
+                .Name("friends");
+            descriptor.Field<CommonResolvers>(t => t.GetHeight(default, default))
                 .Argument("unit", a => a.Type<EnumType<Unit>>())
-                .Resolver(c => CharacterType.GetHeight(c));
+                .Name("height");
         }
     }
 
