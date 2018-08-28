@@ -15,15 +15,16 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor("Type", "field");
+            var descriptor = new ObjectFieldDescriptor("Type", "field");
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                 .Type<ListType<StringType>>()
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
             // assert
-            TypeReference typeRef = fieldDescriptor.TypeReference;
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -31,15 +32,16 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor("Type", "field");
+            var descriptor = new ObjectFieldDescriptor("Type", "field");
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>()
                 .Type<ListType<StringType>>();
 
             // assert
-            TypeReference typeRef = fieldDescriptor.TypeReference;
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -47,18 +49,19 @@ namespace HotChocolate.Types
         public void ResolverTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
-                "Field", typeof(Field).GetProperty("Arguments"),
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                .Name("args")
                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-               .Resolver(c => c.Parent<Field>().Arguments.Values);
+                .Resolver(c => c.Parent<ObjectField>().Arguments);
 
             // assert
-            TypeReference typeRef = fieldDescriptor.TypeReference;
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(NonNullType<ListType<NonNullType<__InputValue>>>), typeRef.NativeType);
         }
 
@@ -66,16 +69,16 @@ namespace HotChocolate.Types
         public void OverwriteName()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
-                "Field", typeof(Field).GetProperty("Arguments"),
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                .Name("args");
 
             // assert
-            Assert.Equal("args", fieldDescriptor.Name);
+            Assert.Equal("args", descriptor.CreateDescription().Name);
         }
 
         [Fact]
@@ -83,55 +86,58 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
-                "Field", typeof(Field).GetProperty("Arguments"),
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                .Description(expectedDescription);
 
             // assert
-            Assert.Equal(expectedDescription, fieldDescriptor.Description);
+            Assert.Equal(expectedDescription,
+                descriptor.CreateDescription().Description);
         }
 
         [Fact]
         public void SetResolverAndInferTypeFromResolver()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
-                "Field", typeof(Field).GetProperty("Arguments"),
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                .Resolver(() => "ThisIsAString");
 
             // assert
-            Assert.Equal(typeof(NativeType<string>), fieldDescriptor.TypeReference.NativeType);
-            Assert.NotNull(fieldDescriptor.Resolver);
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(NativeType<string>), description.TypeReference.NativeType);
+            Assert.NotNull(description.Resolver);
 
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
-            Assert.Equal("ThisIsAString", fieldDescriptor.Resolver(context.Object, default));
+            Assert.Equal("ThisIsAString", description.Resolver(context.Object, default));
         }
 
         [Fact]
         public void SetResolverAndInferTypeIsAlwaysRecognosedAsDotNetType()
         {
             // arrange
-            FieldDescriptor fieldDescriptor = new FieldDescriptor(
-                "Field", typeof(Field).GetProperty("Arguments"),
+            var descriptor = new ObjectFieldDescriptor(
+                "Field", typeof(ObjectField).GetProperty("Arguments"),
                 typeof(IReadOnlyDictionary<string, InputField>));
 
             // act
-            ((IFieldDescriptor)fieldDescriptor)
+            ((IObjectFieldDescriptor)descriptor)
                .Type<__Type>()
                 .Resolver(ctx => ctx.Schema
                     .GetType<INamedType>(ctx.Argument<string>("type")));
 
             // assert
-            Assert.Equal(typeof(__Type), fieldDescriptor.TypeReference.NativeType);
-            Assert.NotNull(fieldDescriptor.Resolver);
+            ObjectFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(__Type), description.TypeReference.NativeType);
+            Assert.NotNull(description.Resolver);
         }
     }
 }

@@ -4,137 +4,84 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class FloatTests
+    public class FloatTypeTests
+        : NumberTypeTests<double, FloatType, FloatValueNode>
     {
+        protected override FloatValueNode GetValueNode =>
+            new FloatValueNode("1.000000E+000");
+
+        protected override IValueNode GetWrongValueNode =>
+            new StringValueNode("1");
+
+        protected override double GetValue => 1.0d;
+
+        protected override object GetWrongValue => 1.0m;
+
+        protected override double GetAssertValue => 1.0d;
+
+        protected override double GetMaxValue => double.MaxValue;
+        protected override string GetAssertMaxValue => "1.797693E+308";
+
+        protected override double GetMinValue => double.MinValue;
+        protected override string GetAssertMinValue => "-1.797693E+308";
+
         [Fact]
-        public void Serialize_Float()
+        public void ParseValue_Float_Max()
         {
             // arrange
             FloatType type = new FloatType();
-            float input = 1.0f;
-
-            // act
-            object serializedValue = type.Serialize(input);
-
-            // assert
-            Assert.IsType<float>(serializedValue);
-            Assert.Equal(1.0f, serializedValue);
-        }
-
-        [Fact]
-        public void Serialize_Double()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            double input = 1.0d;
-
-            // act
-            object serializedValue = type.Serialize(input);
-
-            // assert
-            Assert.IsType<double>(serializedValue);
-            Assert.Equal(1.0d, serializedValue);
-        }
-
-        [Fact]
-        public void Serialize_Null()
-        {
-            // arrange
-            FloatType type = new FloatType();
-
-            // act
-            object serializedValue = type.Serialize(null);
-
-            // assert
-            Assert.Null(serializedValue);
-        }
-
-        [Fact]
-        public void ParseLiteral_FloatValueNode()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            FloatValueNode input = new FloatValueNode("1.000000e+000");
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.IsType<double>(output);
-            Assert.Equal(1.0d, output);
-        }
-
-        [Fact]
-        public void ParseLiteral_NullValueNode()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            NullValueNode input = new NullValueNode();
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.Null(output);
-        }
-
-        [Fact]
-        public void ParseValue_Float()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            float input = 1.0f;
-            string expectedLiteralValue = "1.000000e+000";
+            float input = float.MaxValue;
 
             // act
             FloatValueNode literal =
                 (FloatValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
+            Assert.Equal("3.402823E+038", literal.Value);
         }
 
         [Fact]
-        public void ParseValue_Double()
+        public void ParseValue_Float_Min()
         {
             // arrange
             FloatType type = new FloatType();
-            double input = 1.0d;
-            string expectedLiteralValue = "1.000000e+000";
+            float input = float.MinValue;
 
             // act
             FloatValueNode literal =
                 (FloatValueNode)type.ParseValue(input);
 
             // assert
-            Assert.Equal(expectedLiteralValue, literal.Value);
+            Assert.Equal("-3.402823E+038", literal.Value);
         }
 
         [Fact]
-        public void ParseValue_Null()
+        public void IsInstanceOfType_IntValueNode()
         {
             // arrange
             FloatType type = new FloatType();
-            object input = null;
+            IntValueNode input = new IntValueNode("123");
 
             // act
-            object output = type.ParseValue(input);
+            bool result = type.IsInstanceOfType(input);
 
             // assert
-            Assert.IsType<NullValueNode>(output);
+            Assert.True(result);
         }
 
         [Fact]
-        public void EnsureFloatTypeKindIsCorret()
+        public void ParseLiteral_IntValueNode()
         {
             // arrange
             FloatType type = new FloatType();
+            IntValueNode input = new IntValueNode("123");
 
             // act
-            TypeKind kind = type.Kind;
+            object result = type.ParseLiteral(input);
 
             // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
+            Assert.IsType<double>(result);
+            Assert.Equal(123d, result);
         }
     }
 }

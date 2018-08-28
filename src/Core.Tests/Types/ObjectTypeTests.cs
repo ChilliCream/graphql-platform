@@ -12,60 +12,57 @@ namespace HotChocolate.Types
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager();
-            List<SchemaError> errors = new List<SchemaError>();
-            SchemaContext context = new SchemaContext(services);
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
 
             // act
-            ObjectType<Foo> fooType = new ObjectType<Foo>(
+            var fooType = new ObjectType<Foo>(
                 d => d.Field(f => f.Description).Name("a"));
-            ((INeedsInitialization)fooType).RegisterDependencies(
-                context, e => errors.Add(e));
-            context.CompleteTypes();
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
 
             // assert
             Assert.Empty(errors);
-            Assert.NotNull(fooType.Fields.Values.First().Resolver);
+            Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
         [Fact]
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
-            ServiceManager services = new ServiceManager();
-            List<SchemaError> errors = new List<SchemaError>();
-            SchemaContext context = new SchemaContext(services);
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
 
             // act
-            ObjectType<Foo> fooType = new ObjectType<Foo>();
-            ((INeedsInitialization)fooType).RegisterDependencies(
-                context, e => errors.Add(e));
-            context.CompleteTypes();
+            var fooType = new ObjectType<Foo>();
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
 
             // assert
             Assert.Empty(errors);
-            Assert.NotNull(fooType.Fields.Values.First().Resolver);
+            Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
         [Fact]
         public void EnsureObjectTypeKindIsCorret()
         {
             // arrange
-            ServiceManager services = new ServiceManager();
-            List<SchemaError> errors = new List<SchemaError>();
-            SchemaContext context = new SchemaContext(services);
-
-            ObjectType<Foo> someObject = new ObjectType<Foo>(
-                d => d.Field(f => f.Description).Name("a"));
-            ((INeedsInitialization)someObject).RegisterDependencies(
-                context, e => errors.Add(e));
-            context.CompleteTypes();
+            var errors = new List<SchemaError>();
+            var context = new SchemaContext();
 
             // act
-            TypeKind kind = someObject.Kind;
+            var someObject = new ObjectType<Foo>();
 
             // assert
-            Assert.Equal(TypeKind.Object, kind);
+            Assert.Equal(TypeKind.Object, someObject.Kind);
         }
 
         /// <summary>
@@ -83,7 +80,7 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.Options.StrictValidation = false;
                 c.RegisterType<FooType>();
@@ -91,10 +88,54 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            bool hasDynamicField = type.Fields.TryGetValue("test", out Field field);
+            bool hasDynamicField = type.Fields.TryGetField("test", out ObjectField field);
             Assert.True(hasDynamicField);
             Assert.IsType<ListType>(field.Type);
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
+        }
+
+        [Fact]
+        public void GenericObjectTypes()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var genericType = new ObjectType<GenericFoo<string>>();
+            INeedsInitialization init = genericType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+            // assert
+            Assert.Equal("GenericFooOfString", genericType.Name);
+        }
+
+        [Fact]
+        public void NestedGenericObjectTypes()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var genericType = new ObjectType<GenericFoo<GenericFoo<string>>>();
+            INeedsInitialization init = genericType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), genericType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
+        }
+
+        public class GenericFoo<T>
+        {
+            public T Value { get; }
         }
 
         public class Foo

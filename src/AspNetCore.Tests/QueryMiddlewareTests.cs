@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace HotChocolate.AspNetCore
 {
     public class QueryMiddlewareTests
-         : IClassFixture<TestServerFactory>
+        : IClassFixture<TestServerFactory>
     {
         public QueryMiddlewareTests(TestServerFactory testServerFactory)
         {
@@ -24,6 +26,62 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateTestServer();
             QueryRequestDto request = new QueryRequestDto { Query = "{ basic { a } }" };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task HttpPost_EnumArgument()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = "query a($a: TestEnum) { withEnum(test: $a) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "a", "A"}
+                })
+            };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task HttpPost_NestedEnumArgument()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = "query a($a: BarInput) { withNestedEnum(bar: $a) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "a",  new Dictionary<string, object>
+                            {
+                                { "a",  "B" }
+                            }
+                    }
+                })
+            };
 
             // act
             HttpResponseMessage message = await server.SendRequestAsync(request);
@@ -61,7 +119,6 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateTestServer();
-            string query = "{ basic { a } }";
 
             // act
             HttpResponseMessage message = await server.CreateClient()
@@ -86,10 +143,10 @@ namespace HotChocolate.AspNetCore
                         c
                     }
                 }",
-                Variables = new Dictionary<string, object>
+                Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "a", "1234567890"}
-                }
+                })
             };
 
             // act
@@ -119,14 +176,66 @@ namespace HotChocolate.AspNetCore
                         c
                     }
                 }",
-                Variables = new Dictionary<string, object>
+                Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "a", new Dictionary<string, object> {
                         {"a", "44"},
                         {"b", "55"},
                         {"c", 66}
                     } }
-                }
+                })
+            };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task HttpPost_WithScopedService()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = @"
+                {
+                    sayHello
+                }"
+            };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task HttpPost_WithHttpContext()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto
+            {
+                Query = @"
+                {
+                    requestPath
+                    requestPath2
+                    requestPath3
+                }"
             };
 
             // act
@@ -144,7 +253,11 @@ namespace HotChocolate.AspNetCore
         private TestServer CreateTestServer()
         {
             return TestServerFactory.Create(
-                c => c.RegisterQueryType<QueryType>(), null);
+                c =>
+                {
+                    c.RegisterQueryType<QueryType>();
+                    c.RegisterType<InputObjectType<Bar>>();
+                }, null);
         }
     }
 }

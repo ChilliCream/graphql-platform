@@ -20,7 +20,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
                 "{ hello state }");
 
             // assert
@@ -28,7 +28,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-         [Fact]
+        [Fact]
         public void ExecuteHelloWorldCodeFirstQueryWithArgument()
         {
             // arrange
@@ -40,7 +40,45 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
+                "{ hello(to: \"me\") state }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void ExecuteHelloWorldCodeFirstClrQuery()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(CreateServiceProvider());
+                c.RegisterQueryType<QueryHelloWorldClr>();
+            });
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ hello state }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void ExecuteHelloWorldCodeFirstClrQueryWithArgument()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterServiceProvider(CreateServiceProvider());
+                c.RegisterQueryType<QueryHelloWorldClr>();
+            });
+
+            // act
+            IExecutionResult result = schema.Execute(
                 "{ hello(to: \"me\") state }");
 
             // assert
@@ -60,7 +98,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            QueryResult result = schema.Execute(
+            IExecutionResult result = schema.Execute(
                 "mutation { newState(state:\"1234567\") }");
 
             // assert
@@ -70,10 +108,12 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
         private IServiceProvider CreateServiceProvider()
         {
-            Dictionary<Type, object> services = new Dictionary<Type, object>();
+            var services = new Dictionary<Type, object>();
             services[typeof(DataStoreHelloWorld)] = new DataStoreHelloWorld();
+            services[typeof(QueryHelloWorldClr)] =
+                new QueryHelloWorldClr(new DataStoreHelloWorld());
 
-            Func<Type, object> serviceResolver = new Func<Type, object>(
+            var serviceResolver = new Func<Type, object>(
                 t =>
                 {
                     if (services.TryGetValue(t, out object s))
@@ -83,8 +123,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     return null;
                 });
 
-            Mock<IServiceProvider> serviceProvider =
-                new Mock<IServiceProvider>(MockBehavior.Strict);
+            var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
             serviceProvider.Setup(t => t.GetService(It.IsAny<Type>()))
                 .Returns(serviceResolver);
             return serviceProvider.Object;

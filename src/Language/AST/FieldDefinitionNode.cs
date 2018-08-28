@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class FieldDefinitionNode
         : ISyntaxNode
+        , IHasDirectives
     {
         public FieldDefinitionNode(
             Location location,

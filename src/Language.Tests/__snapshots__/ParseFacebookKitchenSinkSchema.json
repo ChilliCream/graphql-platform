@@ -102,7 +102,12 @@
             "Location": null,
             "Value": "two"
           },
-          "Description": null,
+          "Description": {
+            "Kind": "StringValue",
+            "Location": null,
+            "Value": "This is a description of the `two` field.",
+            "Block": true
+          },
           "Arguments": [
             {
               "Kind": "InputValueDefinition",
@@ -112,7 +117,12 @@
                 "Location": null,
                 "Value": "argument"
               },
-              "Description": null,
+              "Description": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "This is a description of the `argument` argument.",
+                "Block": true
+              },
               "Type": {
                 "Kind": "NonNullType",
                 "Location": null,
@@ -410,7 +420,8 @@
               },
               "DefaultValue": {
                 "Kind": "NullValue",
-                "Location": null
+                "Location": null,
+                "Value": null
               },
               "Directives": []
             }
@@ -1639,6 +1650,55 @@
           "Kind": "Name",
           "Location": null,
           "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": "SchemaExtension",
+      "Location": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onSchema"
+          },
+          "Arguments": []
+        }
+      ],
+      "OperationTypes": null
+    },
+    {
+      "Kind": "SchemaExtension",
+      "Location": null,
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "onSchema"
+          },
+          "Arguments": []
+        }
+      ],
+      "OperationTypes": [
+        {
+          "Kind": "OperationTypeDefinition",
+          "Location": null,
+          "Operation": "Subscription",
+          "Type": {
+            "Kind": "NamedType",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "SubscriptionType"
+            }
+          }
         }
       ]
     }

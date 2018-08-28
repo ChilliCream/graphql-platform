@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class EnumTypeDefinitionNode
         : ITypeDefinitionNode
+        , IHasDirectives
     {
         public EnumTypeDefinitionNode(
             Location location,

@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class InterfaceTypeDefinitionNode
         : ITypeDefinitionNode
+        , IHasDirectives
     {
         public InterfaceTypeDefinitionNode(
             Location location,

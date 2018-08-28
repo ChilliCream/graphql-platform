@@ -1,0 +1,27 @@
+[
+  {
+    "Data": {
+      "a": "a",
+      "b": "b"
+    },
+    "Errors": null
+  },
+  {
+    "Data": {
+      "a": "a"
+    },
+    "Errors": null
+  },
+  {
+    "Data": {
+      "c": "c"
+    },
+    "Errors": null
+  },
+  {
+    "Data": {
+      "loads": []
+    },
+    "Errors": null
+  }
+]

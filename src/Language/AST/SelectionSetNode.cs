@@ -10,13 +10,9 @@ namespace HotChocolate.Language
             Location location,
             IReadOnlyCollection<ISelectionNode> selections)
         {
-            if (selections == null)
-            {
-                throw new ArgumentNullException(nameof(selections));
-            }
-
             Location = location;
-            Selections = selections;
+            Selections = selections 
+                ?? throw new ArgumentNullException(nameof(selections));
         }
 
         public NodeKind Kind { get; } = NodeKind.SelectionSet;

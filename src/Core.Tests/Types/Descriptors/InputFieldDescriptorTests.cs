@@ -11,16 +11,17 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .Type<ListType<StringType>>()
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
             // assert
-            TypeReference typeRef = inputFieldDescriptor.TypeReference;
+            InputFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -28,16 +29,17 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>()
                 .Type<ListType<StringType>>();
 
             // assert
-            TypeReference typeRef = inputFieldDescriptor.TypeReference;
+            InputFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
         }
 
@@ -45,29 +47,31 @@ namespace HotChocolate.Types
         public void OverwriteName()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor("1234");
+            var descriptor = new InputFieldDescriptor("1234");
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .Name("args");
 
             // assert
-            Assert.Equal("args", inputFieldDescriptor.Name);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal("args", description.Name);
         }
 
         [Fact]
         public void OverwriteName2()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .Name("args");
 
             // assert
-            Assert.Equal("args", inputFieldDescriptor.Name);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal("args", description.Name);
         }
 
         [Fact]
@@ -75,97 +79,103 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .Description(expectedDescription);
 
             // assert
-            Assert.Equal(expectedDescription, inputFieldDescriptor.Description);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(expectedDescription, description.Description);
         }
 
         [Fact]
         public void SetDefaultValueAndInferType()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .DefaultValue("string");
 
             // assert
-            Assert.Equal(typeof(string), inputFieldDescriptor.TypeReference.NativeType);
-            Assert.Equal("string", inputFieldDescriptor.NativeDefaultValue);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(string), description.TypeReference.NativeType);
+            Assert.Equal("string", description.NativeDefaultValue);
         }
 
         [Fact]
         public void OverwriteDefaultValueLiteralWithNativeDefaultValue()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .DefaultValue(new StringValueNode("123"))
                 .DefaultValue("string");
 
-            // assert
-            Assert.Null(inputFieldDescriptor.DefaultValue);
-            Assert.Equal("string", inputFieldDescriptor.NativeDefaultValue);
+            // asser
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Null(description.DefaultValue);
+            Assert.Equal("string", description.NativeDefaultValue);
         }
 
         [Fact]
         public void SettingTheNativeDefaultValueToNullCreatesNullLiteral()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .DefaultValue(new StringValueNode("123"))
                 .DefaultValue("string")
                 .DefaultValue(null);
 
             // assert
-            Assert.IsType<NullValueNode>(inputFieldDescriptor.DefaultValue);
-            Assert.Null(inputFieldDescriptor.NativeDefaultValue);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.IsType<NullValueNode>(description.DefaultValue);
+            Assert.Null(description.NativeDefaultValue);
         }
 
         [Fact]
         public void OverwriteNativeDefaultValueWithDefaultValueLiteral()
         {
             // arrange
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)inputFieldDescriptor)
+            ((IInputFieldDescriptor)descriptor)
                 .DefaultValue("string")
                 .DefaultValue(new StringValueNode("123"));
 
             // assert
-            Assert.IsType<StringValueNode>(inputFieldDescriptor.DefaultValue);
-            Assert.Equal("123", ((StringValueNode)inputFieldDescriptor.DefaultValue).Value);
-            Assert.Null(inputFieldDescriptor.NativeDefaultValue);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.IsType<StringValueNode>(description.DefaultValue);
+            Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
+            Assert.Null(description.NativeDefaultValue);
         }
 
         [Fact]
         public void InferTypeFromProperty()
         {
             // act
-            InputFieldDescriptor inputFieldDescriptor = new InputFieldDescriptor(
-                typeof(Field).GetProperty("Arguments"));
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
 
             // assert
-            Assert.Equal(typeof(IReadOnlyDictionary<string, InputField>),
-                inputFieldDescriptor.TypeReference.NativeType);
-            Assert.Equal("arguments", inputFieldDescriptor.Name);
+            InputFieldDescription description = descriptor.CreateDescription();
+            Assert.Equal(typeof(FieldCollection<InputField>),
+                description.TypeReference.NativeType);
+            Assert.Equal("arguments", description.Name);
         }
     }
 }

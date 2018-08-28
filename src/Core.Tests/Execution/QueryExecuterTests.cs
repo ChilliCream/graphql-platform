@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
             QueryRequest request = new QueryRequest("{ a }");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -60,9 +60,9 @@ namespace HotChocolate.Execution
             QueryRequest requestb = new QueryRequest("{ b(a: \"foo\") }");
 
             // act
-            QueryResult resulta1 = await executer.ExecuteAsync(requesta);
-            QueryResult resultb = await executer.ExecuteAsync(requestb);
-            QueryResult resulta2 = await executer.ExecuteAsync(requesta);
+            IExecutionResult resulta1 = await executer.ExecuteAsync(requesta);
+            IExecutionResult resultb = await executer.ExecuteAsync(requestb);
+            IExecutionResult resulta2 = await executer.ExecuteAsync(requesta);
 
             // assert
             Assert.Equal(2, executer.CachedOperations);
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
             Dictionary<string, IValueNode> variableValues =
                 new Dictionary<string, IValueNode>()
                 {
-                    { "a", new NullValueNode() }
+                    { "a", NullValueNode.Default }
                 };
 
             Schema schema = CreateSchema();
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -136,7 +136,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -162,7 +162,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -176,10 +176,10 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }");
+                "query a { a } query b { a }");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -193,10 +193,10 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }", "a");
+                "query a { a } query b { a }", "a");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.Null(result.Errors);
@@ -210,15 +210,54 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
             QueryRequest request = new QueryRequest(
-                "query a { a } query b { b }", "c");
+                "query a { a } query b { a }", "c");
 
             // act
-            QueryResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executer.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
+
+        [Fact]
+        public async Task ExecuteFieldWithResolverResult()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>();
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest("{ x xasync }");
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public async Task ExecuteFieldWithResolverResultError()
+        {
+            // arrange
+            Dictionary<string, IValueNode> variableValues =
+                new Dictionary<string, IValueNode>();
+
+            Schema schema = CreateSchema();
+            QueryExecuter executer = new QueryExecuter(schema);
+            QueryRequest request = new QueryRequest("{ y yasync }");
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
 
         private Schema CreateSchema()
         {
@@ -226,13 +265,32 @@ namespace HotChocolate.Execution
                 type Query {
                     a: String
                     b(a: String!): String
+                    x: String
+                    y: String
+                    xasync: String
+                    yasync: String
                 }
                 ", c =>
             {
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
-                c.BindResolver(ctx => "hello world " + ctx.Argument<string>("a"))
+                c.BindResolver(
+                    ctx => "hello world " + ctx.Argument<string>("a"))
                     .To("Query", "b");
+                c.BindResolver(
+                    () => ResolverResult<string>.CreateValue("hello world x"))
+                    .To("Query", "x");
+                c.BindResolver(
+                    () => ResolverResult<string>.CreateError("hello world y"))
+                    .To("Query", "y");
+                c.BindResolver(
+                    async () => await Task.FromResult(
+                        ResolverResult<string>.CreateValue("hello world xasync")))
+                    .To("Query", "xasync");
+                c.BindResolver(
+                    async () => await Task.FromResult(
+                        ResolverResult<string>.CreateError("hello world yasync")))
+                    .To("Query", "yasync");
             });
         }
     }

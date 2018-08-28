@@ -10,84 +10,77 @@ namespace HotChocolate.Execution
     internal readonly struct FieldValueCompletionContext
         : IFieldValueCompletionContext
     {
-        private readonly Action<object> _setResult;
+        private readonly Action<object> _integrateResult;
+        private readonly Action<ResolverTask> _enqueueResolverTask;
 
         public FieldValueCompletionContext(
-            ExecutionContext executionContext,
+            IExecutionContext executionContext,
             IResolverContext resolverContext,
-            FieldSelection selection,
-            Action<object> setResult,
-            object value)
+            ResolverTask resolverTask,
+            Action<ResolverTask> enqueueResolverTask)
         {
-            if (executionContext == null)
+            if (resolverTask == null)
             {
-                throw new ArgumentNullException(nameof(executionContext));
+                throw new ArgumentNullException(nameof(resolverTask));
             }
 
-            if (resolverContext == null)
-            {
-                throw new ArgumentNullException(nameof(resolverContext));
-            }
+            _integrateResult = resolverTask.IntegrateResult;
+            _enqueueResolverTask = enqueueResolverTask
+                ?? throw new ArgumentNullException(nameof(enqueueResolverTask));
 
-            if (selection == null)
-            {
-                throw new ArgumentNullException(nameof(selection));
-            }
-
-            if (setResult == null)
-            {
-                throw new ArgumentNullException(nameof(setResult));
-            }
-
-            _setResult = setResult;
-
-            ExecutionContext = executionContext;
-            ResolverContext = resolverContext;
+            ExecutionContext = executionContext
+                ?? throw new ArgumentNullException(nameof(executionContext));
+            ResolverContext = resolverContext
+            ?? throw new ArgumentNullException(nameof(resolverContext));
             Source = resolverContext.Source;
-            Selection = selection;
-            SelectionSet = selection.Node.SelectionSet;
+            Selection = resolverTask.FieldSelection;
+            SelectionSet = resolverTask.FieldSelection.Node.SelectionSet;
             Type = resolverContext.Field.Type;
             Path = resolverContext.Path;
-            Value = value;
+            Value = resolverTask.ResolverResult;
             IsNullable = true;
         }
 
         private FieldValueCompletionContext(
-            FieldValueCompletionContext context,
+            FieldValueCompletionContext completionContext,
             IType type, bool isNullable)
         {
-            _setResult = context._setResult;
-            ExecutionContext = context.ExecutionContext;
-            ResolverContext = context.ResolverContext;
-            Source = context.Source;
-            Selection = context.Selection;
-            SelectionSet = context.SelectionSet;
-            Path = context.Path;
-            Value = context.Value;
+            _integrateResult = completionContext._integrateResult;
+            _enqueueResolverTask = completionContext._enqueueResolverTask;
+
+            ExecutionContext = completionContext.ExecutionContext;
+            ResolverContext = completionContext.ResolverContext;
+            Source = completionContext.Source;
+            Selection = completionContext.Selection;
+            SelectionSet = completionContext.SelectionSet;
+            Path = completionContext.Path;
+            Value = completionContext.Value;
 
             Type = type;
             IsNullable = isNullable;
         }
 
         private FieldValueCompletionContext(
-            FieldValueCompletionContext context,
+            FieldValueCompletionContext completionContext,
             Path elementPath, IType elementType,
             object element, Action<object> addElementToList)
         {
-            ExecutionContext = context.ExecutionContext;
-            ResolverContext = context.ResolverContext;
-            Source = context.Source;
-            Selection = context.Selection;
-            SelectionSet = context.SelectionSet;
-            IsNullable = context.IsNullable;
+            _integrateResult = addElementToList;
+            _enqueueResolverTask = completionContext._enqueueResolverTask;
+
+            ExecutionContext = completionContext.ExecutionContext;
+            ResolverContext = completionContext.ResolverContext;
+            Source = completionContext.Source;
+            Selection = completionContext.Selection;
+            SelectionSet = completionContext.SelectionSet;
+            IsNullable = completionContext.IsNullable;
 
             Path = elementPath;
             Type = elementType;
             Value = element;
-            _setResult = addElementToList;
         }
 
-        public ExecutionContext ExecutionContext { get; }
+        public IExecutionContext ExecutionContext { get; }
         public IResolverContext ResolverContext { get; }
         public ImmutableStack<object> Source { get; }
         public FieldSelection Selection { get; }
@@ -97,52 +90,73 @@ namespace HotChocolate.Execution
         public object Value { get; }
         public bool IsNullable { get; }
 
-        public void AddErrors(IEnumerable<IQueryError> errors)
+        public void ReportError(IEnumerable<IQueryError> errors)
         {
             if (errors == null)
             {
                 throw new ArgumentNullException(nameof(errors));
             }
 
-            ExecutionContext.Errors.AddRange(errors);
-            _setResult(null);
+            foreach (IQueryError error in errors)
+            {
+                ExecutionContext.ReportError(error);
+            }
+
+            _integrateResult(null);
         }
 
-        public void AddError(IQueryError error)
+        public void ReportError(IQueryError error)
         {
             if (error == null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
 
-            ExecutionContext.Errors.Add(error);
-            _setResult(null);
+            ExecutionContext.ReportError(error);
+            _integrateResult(null);
         }
 
-        public void AddError(string message)
+        public void ReportError(string message)
         {
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            ExecutionContext.Errors.Add(new FieldError(message, Selection.Node));
-            _setResult(null);
+            ExecutionContext.ReportError(
+                new FieldError(message, Selection.Node));
+            _integrateResult(null);
         }
 
-        private void AddNonNullError()
+        private void ReportNonNullError()
         {
-            AddError(new FieldError(
+            ReportError(new FieldError(
                 "Cannot return null for non-nullable field.",
                 Selection.Node));
         }
 
-        public void SetResult(object value)
+        public void IntegrateResult(object value)
         {
-            _setResult(value);
+            _integrateResult(value);
             if (!IsNullable && value == null)
             {
-                AddNonNullError();
+                ReportNonNullError();
+            }
+        }
+
+        public void EnqueueForProcessing(
+            ObjectType objectType,
+            OrderedDictionary objectResult)
+        {
+            IReadOnlyCollection<FieldSelection> fields =
+                ExecutionContext.CollectFields(objectType, SelectionSet);
+
+            foreach (FieldSelection field in fields)
+            {
+                _enqueueResolverTask(new ResolverTask(
+                    ExecutionContext, objectType, field,
+                    Path.Append(field.ResponseName), Source.Push(Value),
+                    objectResult));
             }
         }
 

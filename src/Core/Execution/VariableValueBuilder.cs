@@ -9,10 +9,10 @@ namespace HotChocolate.Execution
     // http://facebook.github.io/graphql/draft/#sec-Coercing-Variable-Values
     internal sealed class VariableValueBuilder
     {
-        private readonly Schema _schema;
+        private readonly ISchema _schema;
         private readonly OperationDefinitionNode _operation;
 
-        public VariableValueBuilder(Schema schema, OperationDefinitionNode operation)
+        public VariableValueBuilder(ISchema schema, OperationDefinitionNode operation)
         {
             _schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -77,7 +77,14 @@ namespace HotChocolate.Execution
             if (!variableValues.TryGetValue(variable.Name,
                 out IValueNode variableValue))
             {
-                variableValue = variable.DefaultValue ?? new NullValueNode();
+                variableValue = variable.DefaultValue ?? NullValueNode.Default;
+            }
+
+            // TODO : this is a workaround for the serialization issue with enum values.
+            // once fixed this has to be removed.
+            if (variable.Type is EnumType && variableValue is StringValueNode v)
+            {
+                variableValue = new EnumValueNode(v.Value);
             }
 
             variable = variable.WithValue(variableValue);

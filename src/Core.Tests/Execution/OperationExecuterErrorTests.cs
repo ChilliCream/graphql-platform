@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
 
@@ -17,7 +14,7 @@ namespace HotChocolate.Execution
             string query = "{ error1 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -31,7 +28,7 @@ namespace HotChocolate.Execution
             string query = "{ error4 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -45,7 +42,7 @@ namespace HotChocolate.Execution
             string query = "{ error7 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -59,7 +56,7 @@ namespace HotChocolate.Execution
             string query = "{ error10 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -73,7 +70,7 @@ namespace HotChocolate.Execution
             string query = "{ error2 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -87,7 +84,7 @@ namespace HotChocolate.Execution
             string query = "{ error5 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -101,7 +98,7 @@ namespace HotChocolate.Execution
             string query = "{ error8 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -115,7 +112,7 @@ namespace HotChocolate.Execution
             string query = "{ error11 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -129,7 +126,7 @@ namespace HotChocolate.Execution
             string query = "{ error3 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -143,7 +140,7 @@ namespace HotChocolate.Execution
             string query = "{ error6 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -157,7 +154,7 @@ namespace HotChocolate.Execution
             string query = "{ error9 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -171,14 +168,14 @@ namespace HotChocolate.Execution
             string query = "{ error12 }";
 
             // act
-            QueryResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query);
 
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        private async Task<QueryResult> ExecuteQuery(string query)
+        private async Task<IExecutionResult> ExecuteQuery(string query)
         {
             Schema schema = CreateSchema();
             return await schema.ExecuteAsync(query);
@@ -189,6 +186,7 @@ namespace HotChocolate.Execution
 
             return Schema.Create(c =>
             {
+                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.Options.StrictValidation = true;
                 c.RegisterQueryType<QueryType>();
             });

@@ -4,7 +4,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>HotChocolate.Utilities</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

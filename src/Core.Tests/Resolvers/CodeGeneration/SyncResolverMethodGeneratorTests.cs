@@ -41,7 +41,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor =
-                FieldResolverArgumentDescriptor.Create("a",
+                new FieldResolverArgumentDescriptor("a", "b",
                     FieldResolverArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
@@ -67,12 +67,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
-                FieldResolverArgumentDescriptor.Create("a",
+                new FieldResolverArgumentDescriptor("a", "b",
                     FieldResolverArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             FieldResolverArgumentDescriptor argumentDescriptor2 =
-                FieldResolverArgumentDescriptor.Create("b",
+                new FieldResolverArgumentDescriptor("b", "c",
                     FieldResolverArgumentKind.Argument,
                     typeof(string));
 
@@ -98,17 +98,17 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             FieldResolverArgumentDescriptor argumentDescriptor1 =
-                FieldResolverArgumentDescriptor.Create("a",
+                new FieldResolverArgumentDescriptor("a", "b",
                     FieldResolverArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             FieldResolverArgumentDescriptor argumentDescriptor2 =
-                FieldResolverArgumentDescriptor.Create("b",
+                new FieldResolverArgumentDescriptor("b", "c",
                     FieldResolverArgumentKind.Argument,
                     typeof(string));
 
             FieldResolverArgumentDescriptor argumentDescriptor3 =
-                FieldResolverArgumentDescriptor.Create("c",
+                new FieldResolverArgumentDescriptor("c", "d",
                     FieldResolverArgumentKind.Argument,
                     typeof(int));
 

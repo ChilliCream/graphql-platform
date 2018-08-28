@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -27,7 +28,7 @@ namespace HotChocolate.Execution
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.SetResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -73,7 +74,7 @@ namespace HotChocolate.Execution
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.SetResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -119,7 +120,7 @@ namespace HotChocolate.Execution
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.SetResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -134,7 +135,7 @@ namespace HotChocolate.Execution
                         element = value;
                     }))
                 .Returns(context.Object);
-            context.Setup(t => t.AddError(Moq.It.IsAny<string>()))
+            context.Setup(t => t.ReportError(Moq.It.IsAny<string>()))
                 .Callback(() => errorWasRaised = true);
 
             // act
@@ -182,7 +183,7 @@ namespace HotChocolate.Execution
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(1);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.AddError(Moq.It.IsAny<string>()))
+            context.Setup(t => t.ReportError(Moq.It.IsAny<string>()))
                 .Callback(() => errorWasRaised = true);
 
             // act

@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Types;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Resolvers
@@ -19,13 +13,13 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             PropertyInfo property = typeof(GeneratorTestDummy).GetProperties().Single();
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
+            var descriptor = FieldResolverDescriptor
                 .CreateSourceProperty(new FieldReference("Foo", "bar"),
                     property.ReflectedType, property);
 
             // act
-            StringBuilder source = new StringBuilder();
-            SourcePropertyGenerator generator = new SourcePropertyGenerator();
+            var source = new StringBuilder();
+            var generator = new SourcePropertyGenerator();
             string result = generator.Generate("abc", descriptor);
 
             // assert

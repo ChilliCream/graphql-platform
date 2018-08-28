@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class OperationDefinitionNode
         : IExecutableDefinitionNode
+        , IHasDirectives
     {
         public OperationDefinitionNode(
             Location location,

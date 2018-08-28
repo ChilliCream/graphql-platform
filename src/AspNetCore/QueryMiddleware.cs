@@ -13,8 +13,6 @@ namespace HotChocolate.AspNetCore
 {
     public class QueryMiddleware
     {
-        private static readonly Parser _parser = Parser.Default;
-
         private readonly RequestDelegate _next;
         private readonly string _route;
 
@@ -58,11 +56,11 @@ namespace HotChocolate.AspNetCore
                 ? GetRequest.ReadRequest(context)
                 : await PostRequest.ReadRequestAsync(context);
 
-            QueryResult result = await queryExecuter.ExecuteAsync(
+            IExecutionResult result = await queryExecuter.ExecuteAsync(
                 new Execution.QueryRequest(request.Query, request.OperationName)
                 {
                     VariableValues = DeserializeVariables(request.Variables),
-                    InitialValue = null
+                    Services = CreateRequestServices(context)
                 },
                 cancellationToken).ConfigureAwait(false);
 
@@ -70,11 +68,28 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteResponseAsync(HttpResponse response, QueryResult queryResult)
+        private async Task WriteResponseAsync(
+            HttpResponse response,
+            IExecutionResult executionResult)
         {
-            string json = queryResult.ToString(false);
-            byte[] buffer = Encoding.UTF8.GetBytes(json);
-            await response.Body.WriteAsync(buffer, 0, buffer.Length);
+            if (executionResult is IQueryExecutionResult queryResult)
+            {
+                // TODO : refactor this, we dont need this string...
+                string json = queryResult.ToJson();
+                byte[] buffer = Encoding.UTF8.GetBytes(json);
+                await response.Body.WriteAsync(buffer, 0, buffer.Length);
+            }
+        }
+
+        private Dictionary<string, IValueNode> DeserializeVariables(
+            JObject input)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+
+            return DeserializeVariables(input.ToObject<Dictionary<string, JToken>>());
         }
 
         private Dictionary<string, IValueNode> DeserializeVariables(
@@ -85,8 +100,7 @@ namespace HotChocolate.AspNetCore
                 return null;
             }
 
-            Dictionary<string, IValueNode> values =
-                new Dictionary<string, IValueNode>();
+            var values = new Dictionary<string, IValueNode>();
             foreach (string key in input.Keys.ToArray())
             {
                 values[key] = DeserializeVariableValue(input[key]);
@@ -102,7 +116,7 @@ namespace HotChocolate.AspNetCore
                 return null;
             }
 
-            List<ObjectFieldNode> fields = new List<ObjectFieldNode>();
+            var fields = new List<ObjectFieldNode>();
             foreach (string key in input.Keys.ToArray())
             {
                 fields.Add(new ObjectFieldNode(null,
@@ -135,7 +149,7 @@ namespace HotChocolate.AspNetCore
 
         private IValueNode DeserializeVariableListValue(JArray array)
         {
-            List<IValueNode> list = new List<IValueNode>();
+            var list = new List<IValueNode>();
             foreach (JToken token in array.Children())
             {
                 list.Add(DeserializeVariableValue(token));
@@ -156,6 +170,17 @@ namespace HotChocolate.AspNetCore
                 default:
                     return new StringValueNode(value.Value<string>());
             }
+        }
+
+        private IServiceProvider CreateRequestServices(HttpContext context)
+        {
+            Dictionary<Type, object> services = new Dictionary<Type, object>
+            {
+                { typeof(HttpContext), context }
+            };
+
+            return new RequestServiceProvider(
+                context.RequestServices, services);
         }
     }
 }

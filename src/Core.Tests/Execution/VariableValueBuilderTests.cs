@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
                 "query test($test: String! = \"foo\") { a }");
             Dictionary<string, IValueNode> variableValues =
                 new Dictionary<string, IValueNode>();
-            variableValues.Add("test", new NullValueNode(null));
+            variableValues.Add("test", NullValueNode.Default);
 
             // act
             VariableValueBuilder resolver =
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
                 "query test($test: String) { a }");
             Dictionary<string, IValueNode> variableValues =
                 new Dictionary<string, IValueNode>();
-            variableValues.Add("test", new NullValueNode(null));
+            variableValues.Add("test", NullValueNode.Default);
 
             // act
             VariableValueBuilder resolver =

@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
     public static class SchemaExtensions
     {
-        public static Task<QueryResult> ExecuteAsync(
-            this Schema schema, string query,
+        public static Task<IExecutionResult> ExecuteAsync(
+            this ISchema schema, string query,
             CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(schema,
@@ -18,8 +19,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static Task<QueryResult> ExecuteAsync(
-            this Schema schema, string query, string operationName,
+        public static Task<IExecutionResult> ExecuteAsync(
+            this ISchema schema, string query, string operationName,
             CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(schema,
@@ -27,8 +28,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static Task<QueryResult> ExecuteAsync(
-            this Schema schema, string query,
+        public static Task<IExecutionResult> ExecuteAsync(
+            this ISchema schema, string query,
             IReadOnlyDictionary<string, IValueNode> variableValues,
             CancellationToken cancellationToken = default)
         {
@@ -37,8 +38,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static Task<QueryResult> ExecuteAsync(
-            this Schema schema, string query,
+        public static Task<IExecutionResult> ExecuteAsync(
+            this ISchema schema, string query,
             Action<QueryRequest> configure,
             CancellationToken cancellationToken = default)
         {
@@ -47,16 +48,16 @@ namespace HotChocolate
             return ExecuteAsync(schema, request, cancellationToken);
         }
 
-        public static async Task<QueryResult> ExecuteAsync(
-           this Schema schema, QueryRequest request,
+        public static async Task<IExecutionResult> ExecuteAsync(
+           this ISchema schema, QueryRequest request,
            CancellationToken cancellationToken = default)
         {
             QueryExecuter executer = new QueryExecuter(schema, 0);
             return await executer.ExecuteAsync(request, cancellationToken);
         }
 
-        public static QueryResult Execute(
-            this Schema schema, string query,
+        public static IExecutionResult Execute(
+            this ISchema schema, string query,
             CancellationToken cancellationToken = default)
         {
             return Execute(schema,
@@ -64,8 +65,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static QueryResult Execute(
-            this Schema schema, string query, string operationName,
+        public static IExecutionResult Execute(
+            this ISchema schema, string query, string operationName,
             CancellationToken cancellationToken = default)
         {
             return Execute(schema,
@@ -73,8 +74,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static QueryResult Execute(
-            this Schema schema, string query,
+        public static IExecutionResult Execute(
+            this ISchema schema, string query,
             IReadOnlyDictionary<string, IValueNode> variableValues,
             CancellationToken cancellationToken = default)
         {
@@ -83,8 +84,8 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
-        public static QueryResult Execute(
-            this Schema schema, string query,
+        public static IExecutionResult Execute(
+            this ISchema schema, string query,
             Action<QueryRequest> configure,
             CancellationToken cancellationToken = default)
         {
@@ -93,8 +94,8 @@ namespace HotChocolate
             return Execute(schema, request, cancellationToken);
         }
 
-        public static QueryResult Execute(
-            this Schema schema, QueryRequest request,
+        public static IExecutionResult Execute(
+            this ISchema schema, QueryRequest request,
            CancellationToken cancellationToken = default)
         {
             return Task.Factory.StartNew(
@@ -102,6 +103,21 @@ namespace HotChocolate
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
+        }
+
+        public static ObjectType GetOperationType(this ISchema schema, OperationType operation)
+        {
+            switch (operation)
+            {
+                case Language.OperationType.Query:
+                    return schema.QueryType;
+                case Language.OperationType.Mutation:
+                    return schema.MutationType;
+                case Language.OperationType.Subscription:
+                    return schema.SubscriptionType;
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }

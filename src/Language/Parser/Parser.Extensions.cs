@@ -14,6 +14,8 @@ namespace HotChocolate.Language
             {
                 switch (keywordToken.Value)
                 {
+                    case Keywords.Schema:
+                        return ParseSchemaExtension(context);
                     case Keywords.Scalar:
                         return ParseScalarTypeExtension(context);
                     case Keywords.Type:
@@ -30,6 +32,47 @@ namespace HotChocolate.Language
             }
 
             throw context.Unexpected(keywordToken);
+        }
+
+        /// <summary>
+        /// Parse schema definition extension.
+        /// <see cref="SchemaExtensionNode" />:
+        /// * - extend schema Directives[Const]? { OperationTypeDefinition+ }
+        /// * - extend schema Directives[Const]
+        /// </summary>
+        /// <param name="context">The parser context.</param>
+        private SchemaExtensionNode ParseSchemaExtension(ParserContext context)
+        {
+            SyntaxToken start = context.Current;
+            context.ExpectExtendKeyword();
+            context.ExpectSchemaKeyword();
+
+            List<DirectiveNode> directives =
+                ParseDirectives(context, true);
+
+            List<OperationTypeDefinitionNode> operationTypeDefinitions = null;
+            if (context.Current.IsLeftBrace())
+            {
+                operationTypeDefinitions =
+                    ParseMany(context,
+                        TokenKind.LeftBrace,
+                        ParseOperationTypeDefinition,
+                        TokenKind.RightBrace);
+            }
+
+            if (directives.Count == 0 && operationTypeDefinitions?.Count == 0)
+            {
+                throw context.Unexpected(start);
+            }
+
+            Location location = context.CreateLocation(start);
+
+            return new SchemaExtensionNode
+            (
+                location,
+                directives,
+                operationTypeDefinitions
+            );
         }
 
         private ScalarTypeExtensionNode ParseScalarTypeExtension(

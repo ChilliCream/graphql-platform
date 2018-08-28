@@ -22,7 +22,8 @@
               "Kind": "Name",
               "Location": null,
               "Value": "foo"
-            }
+            },
+            "Value": "foo"
           },
           "Type": {
             "Kind": "NamedType",
@@ -45,7 +46,8 @@
               "Kind": "Name",
               "Location": null,
               "Value": "site"
-            }
+            },
+            "Value": "site"
           },
           "Type": {
             "Kind": "NamedType",
@@ -220,7 +222,8 @@
                                           "Kind": "Name",
                                           "Location": null,
                                           "Value": "foo"
-                                        }
+                                        },
+                                        "Value": "foo"
                                       }
                                     }
                                   ]
@@ -256,7 +259,8 @@
                                       "Kind": "Name",
                                       "Location": null,
                                       "Value": "foo"
-                                    }
+                                    },
+                                    "Value": "foo"
                                   }
                                 }
                               ],
@@ -325,7 +329,8 @@
                               "Kind": "Name",
                               "Location": null,
                               "Value": "foo"
-                            }
+                            },
+                            "Value": "foo"
                           }
                         }
                       ]
@@ -495,7 +500,8 @@
               "Kind": "Name",
               "Location": null,
               "Value": "input"
-            }
+            },
+            "Value": "input"
           },
           "Type": {
             "Kind": "NamedType",
@@ -540,7 +546,8 @@
                     "Kind": "Name",
                     "Location": null,
                     "Value": "input"
-                  }
+                  },
+                  "Value": "input"
                 }
               }
             ],
@@ -683,7 +690,8 @@
                     "Kind": "Name",
                     "Location": null,
                     "Value": "size"
-                  }
+                  },
+                  "Value": "size"
                 }
               },
               {
@@ -701,7 +709,8 @@
                     "Kind": "Name",
                     "Location": null,
                     "Value": "b"
-                  }
+                  },
+                  "Value": "b"
                 }
               },
               {
@@ -815,7 +824,8 @@
                 },
                 "Value": {
                   "Kind": "NullValue",
-                  "Location": null
+                  "Location": null,
+                  "Value": null
                 }
               }
             ],

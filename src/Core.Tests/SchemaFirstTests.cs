@@ -19,7 +19,7 @@ namespace HotChocolate
                 c => c.BindType<Query>());
 
             // act
-            QueryResult result = await schema.ExecuteAsync("{ test }");
+            IExecutionResult result = await schema.ExecuteAsync("{ test }");
 
             // assert
             Assert.Null(result.Errors);
@@ -37,5 +37,5 @@ namespace HotChocolate
         public string TestProp => "Hello World!";
     }
 
-    
+
 }

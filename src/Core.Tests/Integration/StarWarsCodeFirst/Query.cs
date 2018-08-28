@@ -17,6 +17,17 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             return _repository.GetHero(episode);
         }
 
+        public IEnumerable<ICharacter> GetHeroes(Episode[] episodes)
+        {
+            List<ICharacter> result = new List<ICharacter>();
+            foreach (Episode episode in episodes)
+            {
+                result.Add(_repository.GetHero(episode));
+            }
+
+            return result;
+        }
+
         public Human GetHuman(string id)
         {
             return _repository.GetHuman(id);

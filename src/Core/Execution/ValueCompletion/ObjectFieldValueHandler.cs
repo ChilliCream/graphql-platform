@@ -10,48 +10,38 @@ namespace HotChocolate.Execution
         : IFieldValueHandler
     {
         public void CompleteValue(
-            IFieldValueCompletionContext context,
+            IFieldValueCompletionContext completionContext,
             Action<IFieldValueCompletionContext> nextHandler)
         {
-            if (context.Type.IsObjectType()
-                || context.Type.IsInterfaceType()
-                || context.Type.IsUnionType())
+            if (completionContext.Type.IsObjectType()
+                || completionContext.Type.IsInterfaceType()
+                || completionContext.Type.IsUnionType())
             {
                 ObjectType objectType = ResolveObjectType(
-                    context.ResolverContext, context.Type, context.Value);
+                    completionContext.ResolverContext, completionContext.Type, completionContext.Value);
                 if (objectType == null)
                 {
-                    context.AddError(new FieldError(
+                    completionContext.ReportError(new FieldError(
                         "Could not resolve the schema type from " +
-                        $"`{context.Value.GetType().GetTypeName()}`.",
-                        context.Selection.Node));
+                        $"`{completionContext.Value.GetType().GetTypeName()}`.",
+                        completionContext.Selection.Node));
                     return;
                 }
-                CompleteObjectValue(context, nextHandler, objectType);
+                CompleteObjectValue(completionContext, objectType);
             }
             else
             {
-                nextHandler?.Invoke(context);
+                nextHandler?.Invoke(completionContext);
             }
         }
 
         private void CompleteObjectValue(
             IFieldValueCompletionContext context,
-            Action<IFieldValueCompletionContext> nextHandler,
             ObjectType objectType)
         {
-            OrderedDictionary objectResult = new OrderedDictionary();
-            context.SetResult(objectResult);
-
-            IReadOnlyCollection<FieldSelection> fields = context.ExecutionContext
-                .CollectFields(objectType, context.SelectionSet);
-
-            foreach (FieldSelection field in fields)
-            {
-                context.ExecutionContext.NextBatch.Add(new FieldResolverTask(
-                    context.Source.Push(context.Value), objectType, field,
-                    context.Path.Append(field.ResponseName), objectResult));
-            }
+            var objectResult = new OrderedDictionary();
+            context.IntegrateResult(objectResult);
+            context.EnqueueForProcessing(objectType, objectResult);
         }
 
         private ObjectType ResolveObjectType(

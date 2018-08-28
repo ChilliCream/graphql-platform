@@ -1,12 +1,18 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
 {
     internal static class GetRequest
     {
-        private const string _queryIdentifier = "query";
-        private const string _getMethod = "Get";
+        private static readonly string _queryIdentifier = "query";
+        private static readonly string _operationNameIdentifier = "operationName";
+        private static readonly string _variablesIdentifier = "variables";
+        private static readonly string _namedQueryIdentifier = "namedQuery";
+        private static readonly string _getMethod = "Get";
 
         internal static bool IsGet(this HttpRequest request)
         {
@@ -16,9 +22,15 @@ namespace HotChocolate.AspNetCore
 
         internal static QueryRequest ReadRequest(HttpContext context)
         {
-            return new QueryRequest()
+            IQueryCollection requestQuery = context.Request.Query;
+
+            StringValues variables = requestQuery[_variablesIdentifier];
+            return new QueryRequest
             {
-                Query = context.Request.Query[_queryIdentifier].ToString()
+                Query = requestQuery[_queryIdentifier].ToString(),
+                NamedQuery = requestQuery[_namedQueryIdentifier].ToString(),
+                OperationName = requestQuery[_operationNameIdentifier].ToString(),
+                Variables = variables.Any() ? JObject.Parse(variables) : null
             };
         }
 
