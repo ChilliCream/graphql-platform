@@ -4,18 +4,18 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class GuidTypeTests
+    public class UuidTypeTests
     {
         [Fact]
         public void Serialize_Guid()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
             Guid guid = Guid.NewGuid();
             string expectedValue = guid.ToString();
 
             // act
-            string serializedValue = (string)guidType.Serialize(guid);
+            string serializedValue = (string)uuidType.Serialize(guid);
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -25,10 +25,10 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
 
             // act
-            object serializedValue = guidType.Serialize(null);
+            object serializedValue = uuidType.Serialize(null);
 
             // assert
             Assert.Null(serializedValue);
@@ -38,12 +38,12 @@ namespace HotChocolate.Types
         public void ParseLiteral_StringValueNode()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
             Guid expected = Guid.NewGuid();
             StringValueNode literal = new StringValueNode(expected.ToString());
 
             // act
-            Guid actual = (Guid)guidType
+            Guid actual = (Guid)uuidType
                 .ParseLiteral(literal);
 
             // assert
@@ -54,11 +54,11 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object value = guidType.ParseLiteral(literal);
+            object value = uuidType.ParseLiteral(literal);
 
             // assert
             Assert.Null(value);
@@ -68,13 +68,13 @@ namespace HotChocolate.Types
         public void ParseValue_Guid()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
             Guid expected = Guid.NewGuid();
             string expectedLiteralValue = expected.ToString();
 
             // act
             StringValueNode stringLiteral =
-                (StringValueNode)guidType.ParseValue(expected);
+                (StringValueNode)uuidType.ParseValue(expected);
 
             // assert
             Assert.Equal(expectedLiteralValue, stringLiteral.Value);
@@ -84,12 +84,12 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            GuidType guidType = new GuidType();
+            UuidType uuidType = new UuidType();
             Guid? guid = null;
 
             // act
             IValueNode stringLiteral =
-                guidType.ParseValue(guid);
+                uuidType.ParseValue(guid);
 
             // assert
             Assert.True(stringLiteral is NullValueNode);
@@ -100,7 +100,7 @@ namespace HotChocolate.Types
         public void EnsureDateTypeKindIsCorret()
         {
             // arrange
-            GuidType type = new GuidType();
+            UuidType type = new UuidType();
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);

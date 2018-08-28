@@ -3,9 +3,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public class GuidType: ScalarType
+    public class UuidType: ScalarType
     {
-        public GuidType()
+        public UuidType()
             : base("Guid")
         {
         }
