@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, sourceType, method, false,
-                    Enumerable.Empty<FieldResolverArgumentDescriptor>());
+                    Enumerable.Empty<Types.ArgumentDescriptor>());
 
             // act
             StringBuilder source = new StringBuilder();
@@ -40,9 +40,9 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgument()
         {
             // arrange
-            FieldResolverArgumentDescriptor argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+            Types.ArgumentDescriptor argumentDescriptor =
+                new Types.ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             Type sourceType = typeof(GeneratorTestDummy);
@@ -66,14 +66,14 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
         {
             // arrange
-            FieldResolverArgumentDescriptor argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+            Types.ArgumentDescriptor argumentDescriptor1 =
+                new Types.ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
-            FieldResolverArgumentDescriptor argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
+            Types.ArgumentDescriptor argumentDescriptor2 =
+                new Types.ArgumentDescriptor("b", "c",
+                    ArgumentKind.Argument,
                     typeof(string));
 
             Type sourceType = typeof(GeneratorTestDummy);
@@ -97,19 +97,19 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndTwoArguments()
         {
             // arrange
-            FieldResolverArgumentDescriptor argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+            Types.ArgumentDescriptor argumentDescriptor1 =
+                new Types.ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
-            FieldResolverArgumentDescriptor argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
+            Types.ArgumentDescriptor argumentDescriptor2 =
+                new Types.ArgumentDescriptor("b", "c",
+                    ArgumentKind.Argument,
                     typeof(string));
 
-            FieldResolverArgumentDescriptor argumentDescriptor3 =
-                new FieldResolverArgumentDescriptor("c", "d",
-                    FieldResolverArgumentKind.Argument,
+            Types.ArgumentDescriptor argumentDescriptor3 =
+                new Types.ArgumentDescriptor("c", "d",
+                    ArgumentKind.Argument,
                     typeof(int));
 
             Type sourceType = typeof(GeneratorTestDummy);

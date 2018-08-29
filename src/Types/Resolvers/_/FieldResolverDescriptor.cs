@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers
             Type resolverType,
             Type sourceType,
             MemberInfo member,
-            IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors,
+            IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors,
             bool isAsync,
             bool isMethod)
         {
@@ -48,14 +48,14 @@ namespace HotChocolate.Resolvers
             return new FieldResolverDescriptor(
                 field, FieldResolverKind.Source,
                 sourceType, sourceType, property,
-                Array.Empty<FieldResolverArgumentDescriptor>(),
+                Array.Empty<ArgumentDescriptor>(),
                 false, false);
         }
 
         public static FieldResolverDescriptor CreateSourceMethod(
             FieldReference field, Type sourceType,
             MethodInfo method, bool isAsync,
-            IEnumerable<FieldResolverArgumentDescriptor> argumentDescriptors)
+            IEnumerable<ArgumentDescriptor> argumentDescriptors)
         {
             if (field == null)
             {
@@ -111,14 +111,14 @@ namespace HotChocolate.Resolvers
             return new FieldResolverDescriptor(field,
                 FieldResolverKind.Collection,
                 resolverType, sourceType, property,
-                Array.Empty<FieldResolverArgumentDescriptor>(),
+                Array.Empty<ArgumentDescriptor>(),
                 false, false);
         }
 
         public static FieldResolverDescriptor CreateCollectionMethod(
             FieldReference field, Type resolverType, Type sourceType,
             MethodInfo method, bool isAsync,
-            IEnumerable<FieldResolverArgumentDescriptor> argumentDescriptors)
+            IEnumerable<ArgumentDescriptor> argumentDescriptors)
         {
             if (field == null)
             {
@@ -186,7 +186,7 @@ namespace HotChocolate.Resolvers
         /// defining the structure of the arguments
         /// that the resolver demands.
         /// </summary>
-        public IReadOnlyCollection<FieldResolverArgumentDescriptor> ArgumentDescriptors { get; }
+        public IReadOnlyCollection<ArgumentDescriptor> ArgumentDescriptors { get; }
 
         /// <summary>
         /// Defines if the resolver is an asynchronous resolver.

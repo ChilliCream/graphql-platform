@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers
             var descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, sourceType, method, true,
-                    Enumerable.Empty<FieldResolverArgumentDescriptor>());
+                    Enumerable.Empty<ArgumentDescriptor>());
 
             // act
             var source = new StringBuilder();
@@ -36,8 +36,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -62,13 +62,13 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             var argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("b", "c",
+                    ArgumentKind.Argument,
                     typeof(string));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -93,18 +93,18 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Source,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
             var argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("b", "c",
+                    ArgumentKind.Argument,
                     typeof(string));
 
             var argumentDescriptor3 =
-                new FieldResolverArgumentDescriptor("c", "d",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("c", "d",
+                    ArgumentKind.Argument,
                     typeof(int));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -129,8 +129,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.CancellationToken,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.CancellationToken,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -155,8 +155,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Context,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Context,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -181,8 +181,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Field,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Field,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -207,8 +207,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.FieldSelection,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.FieldSelection,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -233,8 +233,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.ObjectType,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.ObjectType,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -259,8 +259,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.OperationDefinition,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.OperationDefinition,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -285,8 +285,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.QueryDocument,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.QueryDocument,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -311,8 +311,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Schema,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Schema,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);
@@ -337,8 +337,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Service,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Service,
                     typeof(GeneratorTestDummy));
 
             var sourceType = typeof(GeneratorTestDummy);

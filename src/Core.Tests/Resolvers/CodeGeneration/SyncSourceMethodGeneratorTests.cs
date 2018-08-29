@@ -17,7 +17,7 @@ namespace HotChocolate.Resolvers
             var descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, method, false,
-                    Enumerable.Empty<FieldResolverArgumentDescriptor>());
+                    Enumerable.Empty<ArgumentDescriptor>());
 
             // act
             var source = new StringBuilder();
@@ -34,8 +34,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Argument,
                     typeof(string));
 
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
@@ -59,13 +59,13 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("a", "b",
+                    ArgumentKind.Argument,
                     typeof(string));
 
             var argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
+                new ArgumentDescriptor("b", "c",
+                    ArgumentKind.Argument,
                     typeof(int));
 
             MethodInfo method = typeof(GeneratorTestDummy).GetMethods()

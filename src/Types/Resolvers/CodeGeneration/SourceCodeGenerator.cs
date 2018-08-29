@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
-            foreach (FieldResolverArgumentDescriptor argumentDescriptor in
+            foreach (ArgumentDescriptor argumentDescriptor in
                 resolverDescriptor.ArgumentDescriptors)
             {
                 GenerateArgumentInvocation(argumentDescriptor, source);
@@ -35,49 +35,49 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         private void GenerateArgumentInvocation(
-            FieldResolverArgumentDescriptor argumentDescriptor,
+            ArgumentDescriptor argumentDescriptor,
             StringBuilder source)
         {
             source.Append($"var {argumentDescriptor.VariableName} = ");
             switch (argumentDescriptor.Kind)
             {
-                case FieldResolverArgumentKind.Argument:
+                case ArgumentKind.Argument:
                     source.Append($"ctx.{nameof(IResolverContext.Argument)}<{GetTypeName(argumentDescriptor.Type)}>(\"{argumentDescriptor.Name}\")");
                     break;
-                case FieldResolverArgumentKind.Field:
+                case ArgumentKind.Field:
                     source.Append($"ctx.{nameof(IResolverContext.Field)}");
                     break;
-                case FieldResolverArgumentKind.FieldSelection:
+                case ArgumentKind.FieldSelection:
                     source.Append($"ctx.{nameof(IResolverContext.FieldSelection)}");
                     break;
-                case FieldResolverArgumentKind.ObjectType:
+                case ArgumentKind.ObjectType:
                     source.Append($"ctx.{nameof(IResolverContext.ObjectType)}");
                     break;
-                case FieldResolverArgumentKind.OperationDefinition:
+                case ArgumentKind.OperationDefinition:
                     source.Append($"ctx.{nameof(IResolverContext.Operation)}");
                     break;
-                case FieldResolverArgumentKind.QueryDocument:
+                case ArgumentKind.QueryDocument:
                     source.Append($"ctx.{nameof(IResolverContext.QueryDocument)}");
                     break;
-                case FieldResolverArgumentKind.Schema:
+                case ArgumentKind.Schema:
                     source.Append($"ctx.{nameof(IResolverContext.Schema)}");
                     break;
-                case FieldResolverArgumentKind.Service:
+                case ArgumentKind.Service:
                     source.Append($"ctx.{nameof(IResolverContext.Service)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
-                case FieldResolverArgumentKind.Source:
+                case ArgumentKind.Source:
                     source.Append($"ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
-                case FieldResolverArgumentKind.Context:
+                case ArgumentKind.Context:
                     source.Append($"ctx");
                     break;
-                case FieldResolverArgumentKind.CancellationToken:
+                case ArgumentKind.CancellationToken:
                     source.Append($"ct");
                     break;
-                case FieldResolverArgumentKind.DataLoader:
+                case ArgumentKind.DataLoader:
                     source.Append($"ctx.{nameof(IResolverContext.DataLoader)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
-                case FieldResolverArgumentKind.CustomContext:
+                case ArgumentKind.CustomContext:
                     source.Append($"ctx.{nameof(IResolverContext.CustomContext)}<{GetTypeName(argumentDescriptor.Type)}>()");
                     break;
                 default:

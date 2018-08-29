@@ -116,7 +116,7 @@ namespace HotChocolate.Types
         {
             return (FieldResolverArgumentHelper
                 .LookupKind(parameter, FieldDescription.Member.ReflectedType) ==
-                    FieldResolverArgumentKind.Argument);
+                    ArgumentKind.Argument);
         }
 
         #region IObjectFieldDescriptor

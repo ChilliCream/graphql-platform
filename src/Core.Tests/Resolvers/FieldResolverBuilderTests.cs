@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateSourceMethod(fieldReference, typeof(FooType),
                     typeof(FooType).GetMethod("Bar"), false,
-                    Array.Empty<FieldResolverArgumentDescriptor>());
+                    Array.Empty<ArgumentDescriptor>());
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
@@ -48,9 +48,9 @@ namespace HotChocolate.Resolvers
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
             context.Setup(t => t.Service<FooTypeResolver>()).Returns(new FooTypeResolver());
 
-            FieldResolverArgumentDescriptor argumentDescriptor =
-                new FieldResolverArgumentDescriptor(
-                    "foo", "b", FieldResolverArgumentKind.Source,
+            ArgumentDescriptor argumentDescriptor =
+                new ArgumentDescriptor(
+                    "foo", "b", ArgumentKind.Source,
                     typeof(FooType));
 
             FieldReference fieldReference = new FieldReference("type", "field");
@@ -86,9 +86,9 @@ namespace HotChocolate.Resolvers
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
             context.Setup(t => t.Service<FooTypeResolver>()).Returns(new FooTypeResolver());
 
-            FieldResolverArgumentDescriptor argumentDescriptor =
-                new FieldResolverArgumentDescriptor(
-                    "foo", "b", FieldResolverArgumentKind.Source,
+            ArgumentDescriptor argumentDescriptor =
+                new ArgumentDescriptor(
+                    "foo", "b", ArgumentKind.Source,
                     typeof(FooType));
 
             FieldReference fieldReference = new FieldReference("type", "field");

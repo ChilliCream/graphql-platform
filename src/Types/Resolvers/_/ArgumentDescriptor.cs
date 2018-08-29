@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
-    public class FieldResolverArgumentDescriptor
+    public class ArgumentDescriptor
     {
-        internal FieldResolverArgumentDescriptor(
+        internal ArgumentDescriptor(
             string name, string variableName,
-            FieldResolverArgumentKind kind,
+            ArgumentKind kind,
             Type type)
         {
             Name = name;
@@ -33,10 +33,10 @@ namespace HotChocolate.Resolvers
         /// Defines the argument kind.
         /// </summary>
         /// <returns></returns>
-        public FieldResolverArgumentKind Kind { get; }
+        public ArgumentKind Kind { get; }
 
         /// <summary>
-        /// Gets the argument type.
+        /// Gets the CLR argument type.
         /// </summary>
         public Type Type { get; }
     }

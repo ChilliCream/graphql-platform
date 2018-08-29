@@ -61,7 +61,7 @@ namespace HotChocolate.Resolvers
             if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
-                IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
+                IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
                     CreateResolverArgumentDescriptors(m, sourceType);
                 return FieldResolverDescriptor.CreateCollectionMethod(
                     fieldResolverMember, resolverType, sourceType, m,
@@ -84,7 +84,7 @@ namespace HotChocolate.Resolvers
             if (fieldResolverMember.Member is MethodInfo m)
             {
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
-                IReadOnlyCollection<FieldResolverArgumentDescriptor> argumentDescriptors =
+                IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
                     CreateResolverArgumentDescriptors(m, sourceType);
                 return FieldResolverDescriptor.CreateSourceMethod(
                     fieldResolverMember, sourceType, m, isAsync,
@@ -94,18 +94,18 @@ namespace HotChocolate.Resolvers
             throw new NotSupportedException();
         }
 
-        internal static IReadOnlyCollection<FieldResolverArgumentDescriptor> CreateResolverArgumentDescriptors(
+        internal static IReadOnlyCollection<ArgumentDescriptor> CreateResolverArgumentDescriptors(
             MethodInfo method, Type sourceType)
         {
-            var arguments = new List<FieldResolverArgumentDescriptor>();
+            var arguments = new List<ArgumentDescriptor>();
             int i = 0;
 
             foreach (ParameterInfo parameter in method.GetParameters())
             {
-                FieldResolverArgumentKind kind = FieldResolverArgumentHelper
+                ArgumentKind kind = FieldResolverArgumentHelper
                     .LookupKind(parameter, sourceType);
                 string variableName = $"v{i++}_{parameter.Name}";
-                arguments.Add(new FieldResolverArgumentDescriptor(
+                arguments.Add(new ArgumentDescriptor(
                     parameter.Name, variableName, kind, parameter.ParameterType));
             }
 
