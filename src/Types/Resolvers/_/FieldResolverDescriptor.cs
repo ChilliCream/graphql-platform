@@ -5,6 +5,9 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers
 {
+
+
+
     internal class FieldResolverDescriptor
     {
         private FieldResolverDescriptor(

@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 namespace HotChocolate.Resolvers
 {
@@ -19,6 +20,16 @@ namespace HotChocolate.Resolvers
         public FieldReference WithFieldName(string fieldName)
         {
             return new FieldReference(TypeName, fieldName);
+        }
+
+        public FieldMember WithMember(MemberInfo member)
+        {
+            return new FieldMember(TypeName, FieldName, member);
+        }
+
+        public FieldResolver WithResolver(FieldResolverDelegate resolver)
+        {
+            return new FieldResolver(TypeName, FieldName, resolver);
         }
 
         public bool Equals(FieldReference other)
