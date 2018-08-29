@@ -5,7 +5,55 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 {
     public class HelloWorldSchemaFirstTests
     {
-        [Fact(Skip = "Fix it!")]
+        [Fact]
+        public void SimpleHelloWorldWithoutTypeBinding()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                    type Query {
+                        hello: String
+                    }
+                ",
+                c =>
+                {
+                    c.BindResolver(() => "world")
+                        .To("Query", "hello");
+                });
+
+            // act
+            IExecutionResult result = schema.Execute("{ hello }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void SimpleHelloWorldWithArgumentWithoutTypeBinding()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                    type Query {
+                        hello(a: String!): String
+                    }
+                ",
+                c =>
+                {
+                    c.BindResolver(ctx => ctx.Argument<string>("a"))
+                        .To("Query", "hello");
+                });
+
+            // act
+            IExecutionResult result = schema.Execute("{ hello(a: \"foo\") }");
+
+            // assert
+            Assert.Null(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public void Foo()
         {
             // arrange
