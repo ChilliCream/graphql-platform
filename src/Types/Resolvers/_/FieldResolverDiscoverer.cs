@@ -6,113 +6,117 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Resolvers
 {
-    internal class FieldResolverDiscoverer
+    internal static class FieldResolverDiscoverer
     {
-        public IEnumerable<FieldResolverDescriptor> GetPossibleResolvers(
+        public static IEnumerable<IFieldResolverDescriptor> DiscoverResolvers(
             Type resolverType, Type sourceType, string typeName,
             Func<FieldMember, string> lookupFieldName)
         {
-            foreach (FieldMember fieldResolverMember in
-                GetPossibleResolverMembers(resolverType, typeName)
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (typeName == null)
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
+            if (lookupFieldName == null)
+            {
+                throw new ArgumentNullException(nameof(lookupFieldName));
+            }
+
+            foreach (FieldMember fieldMember in
+                DiscoverResolvableMembers(resolverType, typeName)
                     .Select(t => t.WithFieldName(lookupFieldName(t))))
             {
-                if (resolverType == sourceType)
+                if (resolverType == null || resolverType == sourceType)
                 {
-                    yield return CreateSourceResolverDescriptor(
-                        fieldResolverMember, resolverType, sourceType);
+                    yield return CreateMemberResolverDescriptor(
+                        sourceType, fieldMember);
                 }
                 else
                 {
                     yield return CreateResolverDescriptor(
-                        fieldResolverMember, resolverType, sourceType);
+                        resolverType, sourceType, fieldMember);
                 }
             }
         }
 
-        public IEnumerable<FieldResolverDescriptor> GetSelectedResolvers(
+        public static IEnumerable<IFieldResolverDescriptor> CreateResolverDescriptors(
             Type resolverType, Type sourceType,
-            IEnumerable<FieldMember> selectedResolvers)
+            IEnumerable<FieldMember> fieldMembers)
         {
-            foreach (FieldMember fieldResolverMember in selectedResolvers)
+            foreach (FieldMember fieldResolverMember in fieldMembers)
             {
                 if (resolverType == sourceType)
                 {
-                    yield return CreateSourceResolverDescriptor(
-                        fieldResolverMember, resolverType, sourceType);
+                    yield return CreateMemberResolverDescriptor(
+                        sourceType, fieldResolverMember);
                 }
                 else
                 {
                     yield return CreateResolverDescriptor(
-                        fieldResolverMember, resolverType, sourceType);
+                        resolverType, sourceType, fieldResolverMember);
                 }
             }
         }
 
-        private FieldResolverDescriptor CreateResolverDescriptor(
-            FieldMember fieldResolverMember,
-            Type resolverType, Type sourceType)
+        private static ResolverDescriptor CreateResolverDescriptor(
+            Type resolverType, Type sourceType, FieldMember fieldMember)
         {
-            if (fieldResolverMember.Member is PropertyInfo p)
-            {
-                return FieldResolverDescriptor.CreateCollectionProperty(
-                    fieldResolverMember, resolverType, sourceType, p);
-            }
+            ArgumentDescriptor[] arguments =
+                (fieldMember.Member is MethodInfo m)
+                    ? DiscoverArguments(m, sourceType)
+                    : Array.Empty<ArgumentDescriptor>();
 
-            if (fieldResolverMember.Member is MethodInfo m)
-            {
-                bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
-                IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, sourceType);
-                return FieldResolverDescriptor.CreateCollectionMethod(
-                    fieldResolverMember, resolverType, sourceType, m,
-                    isAsync, argumentDescriptors);
-            }
+            return new ResolverDescriptor(
+                    resolverType,
+                    sourceType,
+                    fieldMember,
+                    arguments);
 
             throw new NotSupportedException();
         }
 
-        private FieldResolverDescriptor CreateSourceResolverDescriptor(
-           FieldMember fieldResolverMember,
-           Type resolverType, Type sourceType)
+        private static MemberResolverDescriptor CreateMemberResolverDescriptor(
+           Type sourceType, FieldMember fieldMember)
         {
-            if (fieldResolverMember.Member is PropertyInfo p)
-            {
-                return FieldResolverDescriptor.CreateSourceProperty(
-                    fieldResolverMember, sourceType, p);
-            }
+            ArgumentDescriptor[] arguments =
+                (fieldMember.Member is MethodInfo m)
+                    ? DiscoverArguments(m, sourceType)
+                    : Array.Empty<ArgumentDescriptor>();
 
-            if (fieldResolverMember.Member is MethodInfo m)
-            {
-                bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
-                IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
-                    CreateResolverArgumentDescriptors(m, sourceType);
-                return FieldResolverDescriptor.CreateSourceMethod(
-                    fieldResolverMember, sourceType, m, isAsync,
-                    argumentDescriptors);
-            }
+            return new MemberResolverDescriptor(
+                sourceType,
+                fieldMember,
+                arguments);
 
             throw new NotSupportedException();
         }
 
-        internal static IReadOnlyCollection<ArgumentDescriptor> CreateResolverArgumentDescriptors(
+        internal static ArgumentDescriptor[] DiscoverArguments(
             MethodInfo method, Type sourceType)
         {
-            var arguments = new List<ArgumentDescriptor>();
-            int i = 0;
+            ParameterInfo[] parameters = method.GetParameters();
+            var arguments = new ArgumentDescriptor[parameters.Length];
 
-            foreach (ParameterInfo parameter in method.GetParameters())
+            for (int i = 0; i < parameters.Length; i++)
             {
-                ArgumentKind kind = ArgumentHelper
-                    .LookupKind(parameter, sourceType);
-                string variableName = $"v{i++}_{parameter.Name}";
-                arguments.Add(new ArgumentDescriptor(
-                    parameter.Name, variableName, kind, parameter.ParameterType));
+                ParameterInfo parameter = parameters[i];
+
+                arguments[i] = new ArgumentDescriptor(
+                    parameter.Name,
+                    $"v{i}_{parameter.Name}",
+                    ArgumentHelper.LookupKind(parameter, sourceType),
+                    parameter.ParameterType);
             }
 
             return arguments;
         }
 
-        public static IEnumerable<FieldMember> GetPossibleResolverMembers(
+        public static IEnumerable<FieldMember> DiscoverResolvableMembers(
             Type resolverType, string typeName)
         {
             return GetProperties(resolverType, typeName)

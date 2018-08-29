@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers
             IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
         {
             FieldResolverDescriptor[] descriptors = fieldResolverDescriptors.ToArray();
-            if(descriptors.Length == 0)
+            if (descriptors.Length == 0)
             {
                 yield break;
             }

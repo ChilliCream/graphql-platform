@@ -165,7 +165,7 @@ namespace HotChocolate.Configuration
                 }
 
                 foreach (FieldResolverDescriptor descriptor in discoverer
-                    .GetSelectedResolvers(typeBinding.Type, typeBinding.Type,
+                    .CreateResolverDescriptors(typeBinding.Type, typeBinding.Type,
                         missingResolvers))
                 {
                     schemaContext.Resolvers.RegisterResolver(descriptor);

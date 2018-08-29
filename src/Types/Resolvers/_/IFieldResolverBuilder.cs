@@ -6,6 +6,6 @@ namespace HotChocolate.Resolvers
     internal interface IFieldResolverBuilder
     {
         IEnumerable<FieldResolver> Build(
-            IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors);
+            IEnumerable<IFieldResolverDescriptor> descriptors);
     }
 }

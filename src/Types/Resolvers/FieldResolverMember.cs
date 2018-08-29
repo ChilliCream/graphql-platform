@@ -17,16 +17,31 @@ namespace HotChocolate.Resolvers
 
         public FieldMember WithTypeName(string typeName)
         {
+            if (string.Equals(TypeName, typeName))
+            {
+                return this;
+            }
+
             return new FieldMember(typeName, FieldName, Member);
         }
 
         public FieldMember WithFieldName(string fieldName)
         {
+            if (string.Equals(FieldName, fieldName))
+            {
+                return this;
+            }
+
             return new FieldMember(TypeName, fieldName, Member);
         }
 
         public FieldMember WithMember(MemberInfo member)
         {
+            if (string.Equals(Member, member))
+            {
+                return this;
+            }
+
             return new FieldMember(TypeName, FieldName, member);
         }
 

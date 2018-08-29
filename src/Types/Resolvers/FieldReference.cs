@@ -14,11 +14,21 @@ namespace HotChocolate.Resolvers
 
         public FieldReference WithTypeName(string typeName)
         {
+            if (string.Equals(TypeName, typeName))
+            {
+                return this;
+            }
+
             return new FieldReference(typeName, FieldName);
         }
 
         public FieldReference WithFieldName(string fieldName)
         {
+            if (string.Equals(FieldName, fieldName))
+            {
+                return this;
+            }
+
             return new FieldReference(TypeName, fieldName);
         }
 

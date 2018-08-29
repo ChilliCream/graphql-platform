@@ -19,16 +19,31 @@ namespace HotChocolate.Resolvers
 
         public FieldResolver WithTypeName(string typeName)
         {
+            if (string.Equals(TypeName, typeName))
+            {
+                return this;
+            }
+
             return new FieldResolver(typeName, FieldName, Resolver);
         }
 
         public FieldResolver WithFieldName(string fieldName)
         {
+            if (string.Equals(FieldName, fieldName))
+            {
+                return this;
+            }
+
             return new FieldResolver(TypeName, fieldName, Resolver);
         }
 
         public FieldResolver WithResolver(FieldResolverDelegate resolver)
         {
+            if (string.Equals(Resolver, resolver))
+            {
+                return this;
+            }
+
             return new FieldResolver(TypeName, FieldName, resolver);
         }
 

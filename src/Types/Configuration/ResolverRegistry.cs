@@ -119,7 +119,7 @@ namespace HotChocolate.Configuration
                 var fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
                 bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
                 IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
-                    FieldResolverDiscoverer.CreateResolverArgumentDescriptors(
+                    FieldResolverDiscoverer.DiscoverArguments(
                         m, m.ReflectedType);
                 resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(
                     fieldReference, m.ReflectedType, m, isAsync,
