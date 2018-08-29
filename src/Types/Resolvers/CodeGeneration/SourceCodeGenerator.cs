@@ -8,7 +8,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
     {
         public string Generate(
             string resolverName,
-            FieldResolverDescriptor resolverDescriptor)
+            IFieldResolverDescriptor resolverDescriptor)
         {
             var source = new StringBuilder();
             source.AppendLine($"/* {resolverDescriptor.Field.TypeName}.{resolverDescriptor.Field.FieldName} */");
@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine();
 
             foreach (ArgumentDescriptor argumentDescriptor in
-                resolverDescriptor.ArgumentDescriptors)
+                resolverDescriptor.Arguments)
             {
                 GenerateArgumentInvocation(argumentDescriptor, source);
                 source.AppendLine();
@@ -87,11 +87,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         protected abstract void GenerateResolverInvocation(
-            FieldResolverDescriptor resolverDescriptor,
+            IFieldResolverDescriptor resolverDescriptor,
             StringBuilder source);
 
         public abstract bool CanGenerate(
-            FieldResolverDescriptor resolverDescriptor);
+            IFieldResolverDescriptor resolverDescriptor);
 
         protected string GetTypeName(Type type)
         {
@@ -100,7 +100,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
         {
-            // TODO : move HotChocolate.Execution.QueryException to abstractions and go back to the part where we used a strongly typed solution
             source.AppendLine("try");
             source.AppendLine("{");
             code(source);
@@ -111,5 +110,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"return ex.Errors;");
             source.AppendLine("}");
         }
+    }
+
+    internal abstract class SourceCodeGenerator<T>
+        : SourceCodeGenerator
+        where T : IFieldResolverDescriptor
+    {
+        protected sealed override void GenerateResolverInvocation(
+            IFieldResolverDescriptor resolverDescriptor,
+            StringBuilder source)
+        {
+            GenerateResolverInvocation((T)resolverDescriptor, source);
+        }
+
+        protected abstract void GenerateResolverInvocation(
+            T resolverDescriptor,
+            StringBuilder source);
     }
 }

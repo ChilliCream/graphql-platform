@@ -13,9 +13,10 @@ namespace HotChocolate.Resolvers
             new FieldResolverSourceCodeGenerator();
 
         public IEnumerable<FieldResolver> Build(
-            IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
+            IEnumerable<IFieldResolverDescriptor> fieldResolverDescriptors)
         {
-            FieldResolverDescriptor[] descriptors = fieldResolverDescriptors.ToArray();
+            IFieldResolverDescriptor[] descriptors =
+                fieldResolverDescriptors.ToArray();
             if (descriptors.Length == 0)
             {
                 yield break;

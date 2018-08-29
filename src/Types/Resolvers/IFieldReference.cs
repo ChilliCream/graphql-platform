@@ -1,5 +1,8 @@
 namespace HotChocolate.Resolvers
 {
+    /// <summary>
+    /// A reference to a specific field of a GraphQL schema.
+    /// </summary>
     public interface IFieldReference
     {
         /// <summary>
