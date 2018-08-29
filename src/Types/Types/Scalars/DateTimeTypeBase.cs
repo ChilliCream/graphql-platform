@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public sealed override bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
             {
@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public sealed override object ParseLiteral(IValueNode literal)
         {
             if (literal == null)
             {
@@ -41,51 +41,82 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The date time type can only parse string literals.",
+                $"The {Name} can only parse string literals.",
                 nameof(literal));
         }
 
-        public override IValueNode ParseValue(object value)
+        public sealed override IValueNode ParseValue(object value)
         {
-            if (value == null)
+            if (TryParseValue(value, out IValueNode valueNode))
             {
-                return new NullValueNode(null);
-            }
-
-            if (value is DateTimeOffset dateTimeOffset)
-            {
-                return new StringValueNode(Serialize(dateTimeOffset));
-            }
-
-            if (value is DateTime dateTime)
-            {
-                return new StringValueNode(Serialize(dateTime));
+                return valueNode;
             }
 
             throw new ArgumentException(
-                "The specified value has to be a DateTime in order " +
-                "to be parsed by the date time type.");
+                $"The specified value has to be a valid {Name} " +
+                $"in order to be parsed by the {Name}.");
         }
 
-        public override object Serialize(object value)
+        protected bool TryParseValue(
+            object value,
+            out IValueNode valueNode)
+        {
+            if (value == null)
+            {
+                valueNode = new NullValueNode(null);
+                return true;
+            }
+
+            if (TrySerialize(value, out string serializedValue))
+            {
+                valueNode = new StringValueNode(serializedValue);
+                return true;
+            }
+
+            valueNode = null;
+            return false;
+        }
+
+        public sealed override object Serialize(object value)
         {
             if (value == null)
             {
                 return null;
             }
 
+            if (TrySerialize(value, out string serializedValue))
+            {
+                return serializedValue;
+            }
+
+            throw new ArgumentException(
+                $"The specified value cannot be serialized by {Name}.");
+        }
+
+        protected virtual bool TrySerialize(
+            object value,
+            out string serializedValue)
+        {
+            if (value == null)
+            {
+                serializedValue = null;
+                return true;
+            }
+
             if (value is DateTimeOffset dateTimeOffset)
             {
-                return Serialize(dateTimeOffset);
+                serializedValue = Serialize(dateTimeOffset);
+                return true;
             }
 
             if (value is DateTime dateTime)
             {
-                return Serialize(dateTime);
+                serializedValue = Serialize(dateTime);
+                return true;
             }
 
-            throw new ArgumentException(
-                "The specified value cannot be serialized by the DateTimeType.");
+            serializedValue = null;
+            return false;
         }
 
         protected abstract bool TryParseLiteral(StringValueNode literal, out object obj);

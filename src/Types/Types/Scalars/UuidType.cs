@@ -3,7 +3,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public class UuidType: ScalarType
+    public sealed class UuidType
+        : ScalarType
     {
         public UuidType()
             : base("Uuid")
