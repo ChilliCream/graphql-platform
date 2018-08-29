@@ -4,6 +4,7 @@ using HotChocolate.Internal;
 namespace HotChocolate.Resolvers
 {
     public class FieldReferenceBase
+        : IFieldReference
     {
         protected FieldReferenceBase(string typeName, string fieldName)
         {

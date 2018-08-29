@@ -13,20 +13,8 @@ namespace HotChocolate.Configuration
         {
             if (resolverBindingInfo is ResolverDelegateBindingInfo b)
             {
-                if (b.AsyncFieldResolver == null)
-                {
-                    schemaContext.Resolvers.RegisterResolver(
-                        new DelegateResolverBinding(
-                            b.ObjectTypeName, b.FieldName, b.FieldResolver));
-                }
-                else
-                {
-                    FieldResolverDelegate fieldResolverDelegate =
-                        (ctx, ct) => b.AsyncFieldResolver(ctx, ct);
-                    schemaContext.Resolvers.RegisterResolver(
-                        new DelegateResolverBinding(
-                            b.ObjectTypeName, b.FieldName, fieldResolverDelegate));
-                }
+                schemaContext.Resolvers.RegisterResolver(
+                    b.CreateFieldResolver());
             }
             else
             {
