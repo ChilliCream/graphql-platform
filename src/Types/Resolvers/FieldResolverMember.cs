@@ -3,11 +3,11 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers
 {
-    public class FieldResolverMember
-        : FieldReference
-        , IEquatable<FieldResolverMember>
+    public sealed class FieldMember
+        : FieldReferenceBase
+        , IEquatable<FieldMember>
     {
-        public FieldResolverMember(string typeName, string fieldName, MemberInfo member)
+        public FieldMember(string typeName, string fieldName, MemberInfo member)
             : base(typeName, fieldName)
         {
             Member = member ?? throw new ArgumentNullException(nameof(member));
@@ -15,41 +15,40 @@ namespace HotChocolate.Resolvers
 
         public MemberInfo Member { get; }
 
-        public FieldResolverMember WithTypeName(string typeName)
+        public FieldMember WithTypeName(string typeName)
         {
-            return new FieldResolverMember(typeName, FieldName, Member);
+            return new FieldMember(typeName, FieldName, Member);
         }
 
-        public FieldResolverMember WithFieldName(string fieldName)
+        public FieldMember WithFieldName(string fieldName)
         {
-            return new FieldResolverMember(TypeName, fieldName, Member);
+            return new FieldMember(TypeName, fieldName, Member);
         }
 
-        public bool Equals(FieldResolverMember other)
+        public FieldMember WithMember(MemberInfo member)
         {
-            if (other is null)
-            {
-                return false;
-            }
+            return new FieldMember(TypeName, FieldName, member);
+        }
 
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return other.TypeName.Equals(TypeName)
-                && other.FieldName.Equals(FieldName)
-                && other.Member.Equals(Member);
+        public bool Equals(FieldMember other)
+        {
+            return IsEqualTo(other);
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is null)
+            if (IsReferenceEqualTo(obj))
             {
-                return false;
+                return true;
             }
 
-            return Equals(obj as FieldResolverMember);
+            return IsEqualTo(obj as FieldMember);
+        }
+
+        private bool IsEqualTo(FieldMember other)
+        {
+            return base.IsEqualTo(other)
+                && other.Member.Equals(Member);
         }
 
         public override int GetHashCode()

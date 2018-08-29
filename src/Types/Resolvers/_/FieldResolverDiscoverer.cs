@@ -10,9 +10,9 @@ namespace HotChocolate.Resolvers
     {
         public IEnumerable<FieldResolverDescriptor> GetPossibleResolvers(
             Type resolverType, Type sourceType, string typeName,
-            Func<FieldResolverMember, string> lookupFieldName)
+            Func<FieldMember, string> lookupFieldName)
         {
-            foreach (FieldResolverMember fieldResolverMember in
+            foreach (FieldMember fieldResolverMember in
                 GetPossibleResolverMembers(resolverType, typeName)
                     .Select(t => t.WithFieldName(lookupFieldName(t))))
             {
@@ -31,9 +31,9 @@ namespace HotChocolate.Resolvers
 
         public IEnumerable<FieldResolverDescriptor> GetSelectedResolvers(
             Type resolverType, Type sourceType,
-            IEnumerable<FieldResolverMember> selectedResolvers)
+            IEnumerable<FieldMember> selectedResolvers)
         {
-            foreach (FieldResolverMember fieldResolverMember in selectedResolvers)
+            foreach (FieldMember fieldResolverMember in selectedResolvers)
             {
                 if (resolverType == sourceType)
                 {
@@ -49,7 +49,7 @@ namespace HotChocolate.Resolvers
         }
 
         private FieldResolverDescriptor CreateResolverDescriptor(
-            FieldResolverMember fieldResolverMember,
+            FieldMember fieldResolverMember,
             Type resolverType, Type sourceType)
         {
             if (fieldResolverMember.Member is PropertyInfo p)
@@ -72,7 +72,7 @@ namespace HotChocolate.Resolvers
         }
 
         private FieldResolverDescriptor CreateSourceResolverDescriptor(
-           FieldResolverMember fieldResolverMember,
+           FieldMember fieldResolverMember,
            Type resolverType, Type sourceType)
         {
             if (fieldResolverMember.Member is PropertyInfo p)
@@ -112,14 +112,14 @@ namespace HotChocolate.Resolvers
             return arguments;
         }
 
-        public static IEnumerable<FieldResolverMember> GetPossibleResolverMembers(
+        public static IEnumerable<FieldMember> GetPossibleResolverMembers(
             Type resolverType, string typeName)
         {
             return GetProperties(resolverType, typeName)
                 .Concat(GetMethods(resolverType, typeName));
         }
 
-        private static IEnumerable<FieldResolverMember> GetProperties(
+        private static IEnumerable<FieldMember> GetProperties(
             Type resolverType, string typeName)
         {
             PropertyInfo[] properties = resolverType.GetProperties(
@@ -132,18 +132,18 @@ namespace HotChocolate.Resolvers
                     GraphQLNameAttribute name = property
                         .GetCustomAttribute<GraphQLNameAttribute>();
 
-                    yield return new FieldResolverMember(
+                    yield return new FieldMember(
                         typeName, name.Name, property);
                 }
                 else
                 {
-                    yield return new FieldResolverMember(
+                    yield return new FieldMember(
                         typeName, AdjustCasing(property.Name), property);
                 }
             }
         }
 
-        private static IEnumerable<FieldResolverMember> GetMethods(
+        private static IEnumerable<FieldMember> GetMethods(
             Type resolverType, string typeName)
         {
             MethodInfo[] methods = resolverType.GetMethods(
@@ -156,7 +156,7 @@ namespace HotChocolate.Resolvers
                     GraphQLNameAttribute name = method
                         .GetCustomAttribute<GraphQLNameAttribute>();
 
-                    yield return new FieldResolverMember(
+                    yield return new FieldMember(
                         typeName, name.Name, method);
                 }
                 else
@@ -164,13 +164,13 @@ namespace HotChocolate.Resolvers
                     if (method.Name.StartsWith("Get", StringComparison.Ordinal)
                         && method.Name.Length > 3)
                     {
-                        yield return new FieldResolverMember(
+                        yield return new FieldMember(
                             typeName,
                             AdjustCasing(method.Name.Substring(3)),
                             method);
                     }
 
-                    yield return new FieldResolverMember(
+                    yield return new FieldMember(
                            typeName,
                            AdjustCasing(method.Name),
                            method);

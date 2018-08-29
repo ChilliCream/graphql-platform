@@ -71,9 +71,9 @@ namespace HotChocolate.Configuration
                 ILookup<string, FieldResolverDescriptor> descriptorLookup =
                     descriptors.ToLookup(t => t.Field.FieldName);
 
-                IEnumerable<FieldResolverMember> selectedResolvers =
+                IEnumerable<FieldMember> selectedResolvers =
                     resolverBinding.Fields.Select(
-                        t => new FieldResolverMember(
+                        t => new FieldMember(
                             resolverBinding.ObjectTypeName,
                             t.FieldName, t.ResolverMember)).ToArray();
 
@@ -144,7 +144,7 @@ namespace HotChocolate.Configuration
             return true;
         }
 
-        private string LookupFieldName(ITypeRegistry typeRegistry, FieldResolverMember fieldResolverMember)
+        private string LookupFieldName(ITypeRegistry typeRegistry, FieldMember fieldResolverMember)
         {
             foreach (ResolverCollectionBindingInfo resolverBinding in
                 _resolverBindings[fieldResolverMember.TypeName])
