@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
             catch (Exception ex)
             {
                 return CreateErrorFromException(ex,
-                    resolverTask.FieldSelection.Node,
+                    resolverTask.FieldSelection.Selection,
                     isDeveloperMode);
             }
         }

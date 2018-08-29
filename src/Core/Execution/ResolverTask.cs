@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
                     nameof(message));
             }
 
-            return new FieldError(message, FieldSelection.Node);
+            return new FieldError(message, FieldSelection.Selection);
         }
     }
 }

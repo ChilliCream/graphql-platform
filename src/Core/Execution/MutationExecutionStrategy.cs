@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
 
             // await async results
             resolverTask.ResolverResult = await FinalizeResolverResultAsync(
-                resolverTask.FieldSelection.Node,
+                resolverTask.FieldSelection.Selection,
                 resolverTask.ResolverResult,
                 executionContext.Options.DeveloperMode);
 

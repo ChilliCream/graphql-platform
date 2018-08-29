@@ -44,8 +44,7 @@ namespace HotChocolate.Execution
             _executionContext = executionContext;
             _resolverTask = resolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-                resolverTask.ObjectType, resolverTask.FieldSelection,
-                executionContext.Variables);
+resolverTask.FieldSelection, executionContext.Variables);
         }
 
         public ISchema Schema => _executionContext.Schema;
@@ -58,7 +57,7 @@ namespace HotChocolate.Execution
 
         public OperationDefinitionNode Operation => _executionContext.Operation;
 
-        public FieldNode FieldSelection => _resolverTask.FieldSelection.Node;
+        public FieldNode FieldSelection => _resolverTask.FieldSelection.Selection;
 
         public ImmutableStack<object> Source => _resolverTask.Source;
 
@@ -101,7 +100,7 @@ namespace HotChocolate.Execution
                     $"Could not convert argument {name} from " +
                     $"{argumentValue.NativeType.FullName} to " +
                     $"{typeof(T).FullName}.",
-                    _resolverTask.FieldSelection.Node));
+                    _resolverTask.FieldSelection.Selection));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)

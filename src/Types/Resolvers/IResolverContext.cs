@@ -5,6 +5,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
+
+    // TODO : should we rename this to IFieldResolverContext to make the naming more consistent?
     public interface IResolverContext
     {
         // schema context
