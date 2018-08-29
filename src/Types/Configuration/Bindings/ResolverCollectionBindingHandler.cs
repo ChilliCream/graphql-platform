@@ -130,7 +130,7 @@ namespace HotChocolate.Configuration
 
         private bool AllArgumentsMatch(ObjectField field, FieldResolverDescriptor resolverDescriptor)
         {
-            foreach (Types.ArgumentDescriptor argumentDescriptor in
+            foreach (Resolvers.ArgumentDescriptor argumentDescriptor in
                 resolverDescriptor.Arguments())
             {
                 if (!field.Arguments.ContainsField(argumentDescriptor.Name))

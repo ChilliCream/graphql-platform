@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
-    public class ArgumentDescriptor
+    internal class ArgumentDescriptor
     {
         internal ArgumentDescriptor(
             string name, string variableName,

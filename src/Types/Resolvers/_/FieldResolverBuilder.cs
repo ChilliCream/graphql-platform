@@ -6,7 +6,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers
 {
-    public class FieldResolverBuilder
+    internal class FieldResolverBuilder
         : IFieldResolverBuilder
     {
         private readonly FieldResolverSourceCodeGenerator _codeGenerator =

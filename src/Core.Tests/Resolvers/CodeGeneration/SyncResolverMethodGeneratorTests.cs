@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
             FieldResolverDescriptor descriptor = FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, sourceType, method, false,
-                    Enumerable.Empty<Types.ArgumentDescriptor>());
+                    Enumerable.Empty<Resolvers.ArgumentDescriptor>());
 
             // act
             StringBuilder source = new StringBuilder();
@@ -40,8 +40,8 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgument()
         {
             // arrange
-            Types.ArgumentDescriptor argumentDescriptor =
-                new Types.ArgumentDescriptor("a", "b",
+            Resolvers.ArgumentDescriptor argumentDescriptor =
+                new Resolvers.ArgumentDescriptor("a", "b",
                     ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
@@ -66,13 +66,13 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
         {
             // arrange
-            Types.ArgumentDescriptor argumentDescriptor1 =
-                new Types.ArgumentDescriptor("a", "b",
+            Resolvers.ArgumentDescriptor argumentDescriptor1 =
+                new Resolvers.ArgumentDescriptor("a", "b",
                     ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
-            Types.ArgumentDescriptor argumentDescriptor2 =
-                new Types.ArgumentDescriptor("b", "c",
+            Resolvers.ArgumentDescriptor argumentDescriptor2 =
+                new Resolvers.ArgumentDescriptor("b", "c",
                     ArgumentKind.Argument,
                     typeof(string));
 
@@ -97,18 +97,18 @@ namespace HotChocolate.Resolvers
         public void SyncResolverMethodGenerator_GenerateWithSourceArgumentAndTwoArguments()
         {
             // arrange
-            Types.ArgumentDescriptor argumentDescriptor1 =
-                new Types.ArgumentDescriptor("a", "b",
+            Resolvers.ArgumentDescriptor argumentDescriptor1 =
+                new Resolvers.ArgumentDescriptor("a", "b",
                     ArgumentKind.Source,
                     typeof(GeneratorTestDummy));
 
-            Types.ArgumentDescriptor argumentDescriptor2 =
-                new Types.ArgumentDescriptor("b", "c",
+            Resolvers.ArgumentDescriptor argumentDescriptor2 =
+                new Resolvers.ArgumentDescriptor("b", "c",
                     ArgumentKind.Argument,
                     typeof(string));
 
-            Types.ArgumentDescriptor argumentDescriptor3 =
-                new Types.ArgumentDescriptor("c", "d",
+            Resolvers.ArgumentDescriptor argumentDescriptor3 =
+                new Resolvers.ArgumentDescriptor("c", "d",
                     ArgumentKind.Argument,
                     typeof(int));
 

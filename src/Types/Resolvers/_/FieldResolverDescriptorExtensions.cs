@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace HotChocolate.Resolvers
 {
-    public static class FieldResolverDescriptorExtensions
+    internal static class FieldResolverDescriptorExtensions
     {
         public static int ArgumentCount(this FieldResolverDescriptor descriptor)
         {
