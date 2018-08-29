@@ -38,5 +38,11 @@ namespace HotChocolate.Resolvers
         /// otherwise the resolver is expected to be a property.
         /// </summary>
         bool IsMethod { get; }
+
+        /// <summary>
+        /// Defines if the resolver is a property;
+        /// otherwise the resolver is expected to be a method.
+        /// </summary>
+        bool IsProperty { get; }
     }
 }

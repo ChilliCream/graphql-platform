@@ -21,13 +21,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             new SourcePropertyGenerator()
         };
 
-        public string Generate(IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
+        public string Generate(
+            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
         {
-            return GenerateClass(fieldResolverDescriptors);
+            return GenerateClass(resolverDescriptors);
         }
 
         private string GenerateClass(
-            IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors)
+            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
         {
             var source = new StringBuilder();
 
@@ -47,7 +48,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"public static class {ClassName}");
             source.AppendLine("{");
 
-            GenerateResolvers(fieldResolverDescriptors, source);
+            GenerateResolvers(resolverDescriptors, source);
 
             source.AppendLine("}");
             source.AppendLine("}");
@@ -55,18 +56,17 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         private void GenerateResolvers(
-            IEnumerable<FieldResolverDescriptor> fieldResolverDescriptors,
+            IEnumerable<IFieldResolverDescriptor> resolverDescriptors,
             StringBuilder source)
         {
             var i = 0;
-            foreach (FieldResolverDescriptor resolverDescriptor in
-                fieldResolverDescriptors)
+            foreach (IFieldResolverDescriptor resolverDescriptor in
+                resolverDescriptors)
             {
-                string resolverName = GetResolverName(i++);
                 SourceCodeGenerator generator = _generators.First(
                     t => t.CanGenerate(resolverDescriptor));
                 source.AppendLine(generator.Generate(
-                    resolverName, resolverDescriptor));
+                    GetResolverName(i++), resolverDescriptor));
             }
         }
 

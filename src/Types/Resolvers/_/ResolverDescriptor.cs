@@ -44,5 +44,7 @@ namespace HotChocolate.Resolvers
         public bool IsAsync { get; }
 
         public bool IsMethod { get; }
+
+        public bool IsProperty => IsMethod;
     }
 }

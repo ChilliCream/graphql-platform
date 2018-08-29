@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             HandleExceptions(source, s =>
             {
                 s.Append($"return await resolver.{resolverDescriptor.Field.Member.Name}(");
-                if (resolverDescriptor.Arguments.Any())
+                if (resolverDescriptor.Arguments.Count > 0)
                 {
                     string arguments = string.Join(", ",
                         resolverDescriptor.Arguments
