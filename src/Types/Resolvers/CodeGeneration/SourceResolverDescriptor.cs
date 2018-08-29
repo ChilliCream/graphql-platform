@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,15 +8,15 @@ namespace HotChocolate.Resolvers.CodeGeneration
     /// <summary>
     /// Describes a resolver that is based on the data types.
     /// </summary>
-    internal class MemberResolverDescriptor
+    internal class SourceResolverDescriptor
         : IFieldResolverDescriptor
     {
-        public MemberResolverDescriptor(FieldMember field)
+        public SourceResolverDescriptor(FieldMember field)
             : this(field?.Member.ReflectedType, field)
         {
         }
 
-        public MemberResolverDescriptor(
+        public SourceResolverDescriptor(
             Type sourceType,
             FieldMember field)
         {
@@ -38,7 +38,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
         }
 
-        public MemberResolverDescriptor(
+        public SourceResolverDescriptor(
             Type sourceType,
             FieldMember field,
             IReadOnlyCollection<ArgumentDescriptor> arguments)

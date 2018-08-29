@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers.CodeGeneration;
 using Moq;
 using Xunit;
 
@@ -120,16 +121,16 @@ namespace HotChocolate.Resolvers
         public void CreateSourcePropertyResolver()
         {
             // arrange
-            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
 
-            FieldReference fieldReference = new FieldReference("type", "field");
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateSourceProperty(fieldReference, typeof(FooType),
-                    typeof(FooType).GetProperty("BarProperty"));
+            FieldMember fieldMember = new FieldMember(
+                "type", "field", typeof(FooType).GetProperty("BarProperty"));
+            var descriptor = new SourceResolverDescriptor(
+                typeof(FooType), fieldMember);
 
             // act
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
+            var fieldResolverBuilder = new FieldResolverBuilder();
             FieldResolver[] resolvers = fieldResolverBuilder.Build(
                 new[] { descriptor }).ToArray();
 

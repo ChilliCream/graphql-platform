@@ -80,7 +80,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             throw new NotSupportedException();
         }
 
-        private static MemberResolverDescriptor CreateMemberResolverDescriptor(
+        private static SourceResolverDescriptor CreateMemberResolverDescriptor(
            Type sourceType, FieldMember fieldMember)
         {
             ArgumentDescriptor[] arguments =
@@ -88,7 +88,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     ? DiscoverArguments(m, sourceType)
                     : Array.Empty<ArgumentDescriptor>();
 
-            return new MemberResolverDescriptor(
+            return new SourceResolverDescriptor(
                 sourceType,
                 fieldMember,
                 arguments);

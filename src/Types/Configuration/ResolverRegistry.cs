@@ -87,7 +87,7 @@ namespace HotChocolate.Configuration
             foreach (FieldMember binding in _resolverBindings.Values
                 .OfType<FieldMember>())
             {
-                resolverDescriptors.Add(new MemberResolverDescriptor(binding));
+                resolverDescriptors.Add(new SourceResolverDescriptor(binding));
             }
 
             resolverDescriptors.AddRange(_resolverDescriptors.Values);
