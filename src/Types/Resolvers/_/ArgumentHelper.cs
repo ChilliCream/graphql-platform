@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
-    internal static class FieldResolverArgumentHelper
+    internal static class ArgumentHelper
     {
         internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
