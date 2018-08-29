@@ -40,7 +40,8 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolverDescriptor));
             }
 
-            _resolverDescriptors[resolverDescriptor.Field] = resolverDescriptor;
+            _resolverDescriptors[resolverDescriptor.Field.ToFieldReference()] =
+                resolverDescriptor;
         }
 
         public bool ContainsResolver(FieldReference fieldReference)
@@ -69,8 +70,7 @@ namespace HotChocolate.Configuration
             var fieldResolvers = new List<FieldResolver>();
             fieldResolvers.AddRange(CompileResolvers());
             fieldResolvers.AddRange(_resolverBindings.Values
-                .OfType<DelegateResolverBinding>()
-                .Select(CreateDelegateResolver));
+                .OfType<FieldResolver>());
 
             foreach (FieldResolver resolver in fieldResolvers)
             {
@@ -82,56 +82,22 @@ namespace HotChocolate.Configuration
 
         private IEnumerable<FieldResolver> CompileResolvers()
         {
-            var resolverDescriptors = new List<FieldResolverDescriptor>();
+            var resolverDescriptors = new List<IFieldResolverDescriptor>();
 
-            foreach (MemberResolverBinding binding in _resolverBindings.Values
-                .OfType<MemberResolverBinding>())
+            foreach (FieldMember binding in _resolverBindings.Values
+                .OfType<FieldMember>())
             {
-                TryAddPropertyResolver(binding, resolverDescriptors);
-                TryAddMethodResolver(binding, resolverDescriptors);
+                resolverDescriptors.Add(new MemberResolverDescriptor(binding));
             }
+
             resolverDescriptors.AddRange(_resolverDescriptors.Values);
 
-            if (resolverDescriptors.Any())
+            if (resolverDescriptors.Count > 0)
             {
                 return _resolverBuilder.Build(resolverDescriptors);
             }
+
             return Enumerable.Empty<FieldResolver>();
-        }
-
-        private void TryAddPropertyResolver(
-            MemberResolverBinding binding,
-            List<FieldResolverDescriptor> resolverDescriptors)
-        {
-            if (binding.FieldMember is PropertyInfo p)
-            {
-                var fieldReference = new FieldReference(
-                    binding.TypeName, binding.FieldName);
-                resolverDescriptors.Add(FieldResolverDescriptor
-                    .CreateSourceProperty(fieldReference, p.ReflectedType, p));
-            }
-        }
-
-        private void TryAddMethodResolver(
-            MemberResolverBinding binding,
-            List<FieldResolverDescriptor> resolverDescriptors)
-        {
-            if (binding.FieldMember is MethodInfo m)
-            {
-                var fieldReference = new FieldReference(binding.TypeName, binding.FieldName);
-                bool isAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
-                IReadOnlyCollection<ArgumentDescriptor> argumentDescriptors =
-                    FieldResolverDiscoverer.DiscoverArguments(
-                        m, m.ReflectedType);
-                resolverDescriptors.Add(FieldResolverDescriptor.CreateSourceMethod(
-                    fieldReference, m.ReflectedType, m, isAsync,
-                    argumentDescriptors));
-            }
-        }
-
-        private FieldResolver CreateDelegateResolver(DelegateResolverBinding binding)
-        {
-            return new FieldResolver(binding.TypeName, binding.FieldName, binding.FieldResolver);
         }
     }
 }
