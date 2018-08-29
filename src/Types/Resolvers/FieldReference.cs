@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal static class FieldResolverDiscoverer
     {

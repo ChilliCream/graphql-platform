@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Configuration
 {
@@ -14,12 +15,12 @@ namespace HotChocolate.Configuration
             new FieldResolverBuilder();
         private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
             new Dictionary<FieldReference, FieldResolverDelegate>();
-        private readonly Dictionary<FieldReference, ResolverBinding> _resolverBindings =
-            new Dictionary<FieldReference, ResolverBinding>();
-        private readonly Dictionary<FieldReference, FieldResolverDescriptor> _resolverDescriptors =
-            new Dictionary<FieldReference, FieldResolverDescriptor>();
+        private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
+            new Dictionary<FieldReference, IFieldReference>();
+        private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
+            new Dictionary<FieldReference, IFieldResolverDescriptor>();
 
-        public void RegisterResolver(ResolverBinding resolverBinding)
+        public void RegisterResolver(IFieldReference resolverBinding)
         {
             if (resolverBinding == null)
             {
@@ -31,7 +32,8 @@ namespace HotChocolate.Configuration
             _resolverBindings[fieldReference] = resolverBinding;
         }
 
-        public void RegisterResolver(FieldResolverDescriptor resolverDescriptor)
+        public void RegisterResolver(
+            IFieldResolverDescriptor resolverDescriptor)
         {
             if (resolverDescriptor == null)
             {

@@ -63,7 +63,11 @@ namespace HotChocolate.Resolvers
                 {
                     references.Add(MetadataReference.CreateFromFile(assembly.Location));
                 }
-                catch { } // TODO : fix this
+                catch
+                {
+
+
+                } // TODO : fix this
             }
             return references;
         }

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal class FieldResolverBuilder
         : IFieldResolverBuilder
     {
-        private readonly FieldResolverSourceCodeGenerator _codeGenerator =
-            new FieldResolverSourceCodeGenerator();
+        private readonly ClassSourceCodeGenerator _codeGenerator =
+            new ClassSourceCodeGenerator();
 
         public IEnumerable<FieldResolver> Build(
             IEnumerable<IFieldResolverDescriptor> fieldResolverDescriptors)
@@ -24,7 +24,8 @@ namespace HotChocolate.Resolvers
 
             string sourceText = _codeGenerator.Generate(descriptors);
             Assembly assembly = CSharpCompiler.Compile(sourceText);
-            Type type = assembly.GetType(FieldResolverSourceCodeGenerator.FullClassName);
+            Type type = assembly.GetType(
+                ClassSourceCodeGenerator.FullClassName);
 
             for (var i = 0; i < descriptors.Length; i++)
             {

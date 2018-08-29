@@ -1,15 +1,24 @@
 using System;
 using System.Reflection;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     public sealed class FieldMember
         : FieldReferenceBase
         , IEquatable<FieldMember>
     {
+        private FieldReference _fieldReference;
+
         public FieldMember(string typeName, string fieldName, MemberInfo member)
             : base(typeName, fieldName)
         {
+            Member = member ?? throw new ArgumentNullException(nameof(member));
+        }
+
+        public FieldMember(FieldReference fieldReference, MemberInfo member)
+            : base(fieldReference)
+        {
+            _fieldReference = fieldReference;
             Member = member ?? throw new ArgumentNullException(nameof(member));
         }
 
@@ -78,6 +87,16 @@ namespace HotChocolate.Resolvers
         public override string ToString()
         {
             return $"{base.ToString()} => {Member.Name}";
+        }
+
+        public FieldReference ToFieldReference()
+        {
+            if (_fieldReference == null)
+            {
+                _fieldReference = new FieldReference(TypeName, FieldName);
+            }
+
+            return _fieldReference;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -9,8 +10,6 @@ namespace HotChocolate.Configuration
     internal class ResolverCollectionBindingHandler
         : IResolverBindingHandler
     {
-        private readonly FieldResolverDiscoverer _fieldResolverDiscoverer =
-            new FieldResolverDiscoverer();
         private readonly ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
 
         public ResolverCollectionBindingHandler(
@@ -29,13 +28,13 @@ namespace HotChocolate.Configuration
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)
             {
-                List<FieldResolverDescriptor> descriptors =
+                List<IFieldResolverDescriptor> descriptors =
                     CollectPossibleDescriptors(schemaContext.Types, b);
 
-                IEnumerable<FieldResolverDescriptor> mostSpecificFieldResolvers =
+                IEnumerable<IFieldResolverDescriptor> mostSpecificFieldResolvers =
                     GetMostSpecificFieldResolvers(schemaContext.Types, descriptors);
 
-                foreach (FieldResolverDescriptor descriptor in
+                foreach (IFieldResolverDescriptor descriptor in
                     mostSpecificFieldResolvers)
                 {
                     schemaContext.Resolvers.RegisterResolver(descriptor);
@@ -48,12 +47,12 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private List<FieldResolverDescriptor> CollectPossibleDescriptors(
+        private List<IFieldResolverDescriptor> CollectPossibleDescriptors(
             ITypeRegistry typeRegistry,
             ResolverCollectionBindingInfo resolverBinding)
         {
-            List<FieldResolverDescriptor> descriptors =
-                new List<FieldResolverDescriptor>();
+            List<IFieldResolverDescriptor> descriptors =
+                new List<IFieldResolverDescriptor>();
 
             // if implicit resolver discovery is on get all possible
             // resolver members from the resolver type.

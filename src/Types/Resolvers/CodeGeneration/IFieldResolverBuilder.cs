@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal interface IFieldResolverBuilder
     {

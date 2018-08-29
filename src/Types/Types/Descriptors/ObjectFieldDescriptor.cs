@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System.Linq;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Types
 {

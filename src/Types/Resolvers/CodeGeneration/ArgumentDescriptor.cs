@@ -3,7 +3,7 @@ using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal class ArgumentDescriptor
     {

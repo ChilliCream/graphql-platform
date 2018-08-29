@@ -6,11 +6,23 @@ namespace HotChocolate.Resolvers
         : FieldReferenceBase
         , IEquatable<FieldResolver>
     {
+        private FieldReference _fieldReference;
+
         public FieldResolver(
             string typeName, string fieldName,
             FieldResolverDelegate resolver)
             : base(typeName, fieldName)
         {
+            Resolver = resolver
+                ?? throw new ArgumentNullException(nameof(resolver));
+        }
+
+        public FieldResolver(
+            FieldReference fieldReference,
+            FieldResolverDelegate resolver)
+            : base(fieldReference)
+        {
+            _fieldReference = fieldReference;
             Resolver = resolver
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
@@ -76,6 +88,16 @@ namespace HotChocolate.Resolvers
         public override string ToString()
         {
             return $"{TypeName}.{FieldName}";
+        }
+
+        public FieldReference ToFieldReference()
+        {
+            if (_fieldReference == null)
+            {
+                _fieldReference = new FieldReference(TypeName, FieldName);
+            }
+
+            return _fieldReference;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers
 {
@@ -16,8 +17,33 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
+            if (!ValidationHelper.IsTypeNameValid(typeName))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL type name.",
+                    nameof(typeName));
+            }
+
+            if (!ValidationHelper.IsTypeNameValid(fieldName))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid GraphQL field name.",
+                    nameof(typeName));
+            }
+
             TypeName = typeName;
             FieldName = fieldName;
+        }
+
+        protected FieldReferenceBase(FieldReferenceBase fieldReference)
+        {
+            if (fieldReference == null)
+            {
+                throw new ArgumentNullException(nameof(fieldReference));
+            }
+
+            TypeName = fieldReference.TypeName;
+            FieldName = fieldReference.FieldName;
         }
 
         public string TypeName { get; }

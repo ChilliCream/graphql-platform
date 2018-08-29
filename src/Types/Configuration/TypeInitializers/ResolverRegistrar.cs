@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Configuration
 {
@@ -148,7 +149,6 @@ namespace HotChocolate.Configuration
         private void TryRegisterMissingResolvers(
             ISchemaContext schemaContext)
         {
-            FieldResolverDiscoverer discoverer = new FieldResolverDiscoverer();
             foreach (ObjectTypeBinding typeBinding in schemaContext.Types
                 .GetTypeBindings().OfType<ObjectTypeBinding>())
             {
@@ -164,9 +164,9 @@ namespace HotChocolate.Configuration
                     }
                 }
 
-                foreach (FieldResolverDescriptor descriptor in discoverer
-                    .CreateResolverDescriptors(typeBinding.Type, typeBinding.Type,
-                        missingResolvers))
+                foreach (IFieldResolverDescriptor descriptor in
+                    FieldResolverDiscoverer.CreateResolverDescriptors(
+                        null, typeBinding.Type, missingResolvers))
                 {
                     schemaContext.Resolvers.RegisterResolver(descriptor);
                 }

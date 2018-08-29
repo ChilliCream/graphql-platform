@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal class FieldResolverSourceCodeGenerator
+    internal class ClassSourceCodeGenerator
     {
         internal const string Namespace = "HotChocolate.Resolvers.CodeGeneration";
         internal const string ClassName = "___CompiledResolvers";
