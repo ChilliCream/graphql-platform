@@ -19,12 +19,13 @@ namespace HotChocolate.Resolvers
         }
 
         /// <summary>
-        /// Gets the name of the argument.
+        /// Gets the name of the argument that is defined in the GraphQL schema.
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Gets the variable name of the argument.
+        /// Gets the internal c# variable name of the argument that is used to
+        /// refer to this argment in the generated c# code..
         /// </summary>
         public string VariableName { get; }
 
