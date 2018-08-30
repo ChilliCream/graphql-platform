@@ -29,6 +29,11 @@ namespace HotChocolate.Configuration
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)
             {
+                if (b.ObjectType == null)
+                {
+                    b.ObjectType = typeof(object);
+                }
+
                 List<IFieldResolverDescriptor> descriptors =
                     CollectPossibleDescriptors(schemaContext.Types, b);
 
@@ -52,8 +57,7 @@ namespace HotChocolate.Configuration
             ITypeRegistry typeRegistry,
             ResolverCollectionBindingInfo resolverBinding)
         {
-            List<IFieldResolverDescriptor> descriptors =
-                new List<IFieldResolverDescriptor>();
+            var descriptors = new List<IFieldResolverDescriptor>();
 
             // if implicit resolver discovery is on get all possible
             // resolver members from the resolver type.
@@ -180,7 +184,8 @@ namespace HotChocolate.Configuration
                 ResolverDescriptor = resolverDescriptor;
                 Arguments = resolverDescriptor.Arguments
                     .Where(t => t.Kind == ArgumentKind.Argument)
-                    .ToArray(); ;
+                    .ToArray();
+                ;
             }
 
             public IFieldResolverDescriptor ResolverDescriptor { get; }
