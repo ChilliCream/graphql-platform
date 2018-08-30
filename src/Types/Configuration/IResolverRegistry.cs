@@ -1,12 +1,13 @@
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Configuration
 {
     internal interface IResolverRegistry
     {
-        void RegisterResolver(ResolverBinding resolverBinding);
+        void RegisterResolver(IFieldReference resolverBinding);
 
-        void RegisterResolver(FieldResolverDescriptor resolverDescriptor);
+        void RegisterResolver(IFieldResolverDescriptor resolverDescriptor);
 
         bool ContainsResolver(FieldReference fieldReference);
 

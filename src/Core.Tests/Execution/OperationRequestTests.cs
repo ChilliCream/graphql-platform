@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using Moq;
 using Xunit;
@@ -16,21 +16,21 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var session = new Mock<ISession>(MockBehavior.Strict);
-            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
-            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
+
             DocumentNode query = Parser.Default.Parse(@"
                 {
                     a
                 }");
+
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationExecuter =
+            var operationExecuter =
                 new OperationExecuter(schema, query, operation);
+
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services, session.Object),
+                new OperationRequest(schema.Services, CreateSession()),
                 CancellationToken.None);
 
             // assert
@@ -48,32 +48,32 @@ namespace HotChocolate.Execution
         public async Task ExecuteMutationSerially()
         {
             // arrange
-            int state = 0;
+            var state = 0;
 
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 FileResource.Open("MutationExecutionSchema.graphql"),
                 cnf =>
                 {
-                    cnf.BindResolver(() => state).To("Query", "state");
-                    cnf.BindResolver(() => state).To("CurrentState", "theNumber");
+                    cnf.BindResolver(() => state)
+                        .To("Query", "state");
+                    cnf.BindResolver(() => state)
+                        .To("CurrentState", "theNumber");
                     cnf.BindResolver(ctx => state = ctx.Argument<int>("newNumber"))
                         .To("Mutation", "changeTheNumber");
                 });
 
-            var session = new Mock<ISession>(MockBehavior.Strict);
-            session.Setup(t => t.DataLoaders).Returns((IDataLoaderProvider)null);
-            session.Setup(t => t.CustomContexts).Returns((ICustomContextProvider)null);
-
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
+
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().FirstOrDefault();
 
             // act
-            OperationExecuter operationExecuter =
+            var operationExecuter =
                 new OperationExecuter(schema, query, operation);
+
             IExecutionResult result = await operationExecuter.ExecuteAsync(
-                new OperationRequest(schema.Services, session.Object),
+                new OperationRequest(schema.Services, CreateSession()),
                 CancellationToken.None);
 
             // assert
@@ -90,6 +90,23 @@ namespace HotChocolate.Execution
                 c.BindResolver(() => "hello world")
                     .To("Query", "a");
             });
+        }
+
+        private ISession CreateSession()
+        {
+            var resolverCache = new Mock<IResolverCache>();
+
+            var customContexts = new Mock<ICustomContextProvider>();
+            customContexts.Setup(t => t.GetCustomContext<IResolverCache>())
+                          .Returns(resolverCache.Object);
+
+            var session = new Mock<ISession>(MockBehavior.Strict);
+            session.Setup(t => t.DataLoaders)
+                   .Returns((IDataLoaderProvider)null);
+            session.Setup(t => t.CustomContexts)
+                   .Returns(customContexts.Object);
+
+            return session.Object;
         }
     }
 }

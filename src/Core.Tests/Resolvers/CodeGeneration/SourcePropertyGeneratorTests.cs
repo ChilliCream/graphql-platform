@@ -12,10 +12,11 @@ namespace HotChocolate.Resolvers
         public void SourcePropertyGenerator_Generate()
         {
             // arrange
-            PropertyInfo property = typeof(GeneratorTestDummy).GetProperties().Single();
-            var descriptor = FieldResolverDescriptor
-                .CreateSourceProperty(new FieldReference("Foo", "bar"),
-                    property.ReflectedType, property);
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetProperty());
+
+            var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -24,6 +25,12 @@ namespace HotChocolate.Resolvers
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        private PropertyInfo GetProperty()
+        {
+            return typeof(GeneratorTestDummy)
+                .GetProperties().Single();
         }
     }
 }

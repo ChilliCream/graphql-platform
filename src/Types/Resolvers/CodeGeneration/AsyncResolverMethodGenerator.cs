@@ -4,22 +4,23 @@ using System.Text;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class AsyncResolverMethodGenerator
-        : SourceCodeGenerator
+        : SourceCodeGenerator<ResolverDescriptor>
     {
         protected override void GenerateResolverInvocation(
-            FieldResolverDescriptor resolverDescriptor,
+            ResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
             source.AppendLine("Func<Task<object>> f = async () => {");
 
             HandleExceptions(source, s =>
             {
-                s.Append($"return await resolver.{resolverDescriptor.Member.Name}(");
-                if (resolverDescriptor.ArgumentDescriptors.Any())
+                s.Append($"return await resolver.{resolverDescriptor.Field.Member.Name}(");
+                if (resolverDescriptor.Arguments.Count > 0)
                 {
                     string arguments = string.Join(", ",
-                        resolverDescriptor.ArgumentDescriptors.Select(t => t.VariableName));
+                        resolverDescriptor.Arguments
+                            .Select(t => t.VariableName));
                     s.Append(arguments);
                 }
                 s.Append(");");
@@ -30,9 +31,10 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         public override bool CanGenerate(
-            FieldResolverDescriptor resolverDescriptor)
-                => resolverDescriptor.IsAsync
-                    && resolverDescriptor.IsMethod
-                    && resolverDescriptor.Kind == FieldResolverKind.Collection;
+            IFieldResolverDescriptor resolverDescriptor)
+        {
+            return resolverDescriptor is ResolverDescriptor d
+                && d.IsAsync && d.IsMethod;
+        }
     }
 }

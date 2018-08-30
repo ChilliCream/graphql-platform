@@ -3,22 +3,24 @@ using System.Text;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class SourcePropertyGenerator
-       : SourceCodeGenerator
+       : SourceCodeGenerator<SourceResolverDescriptor>
     {
         protected override void GenerateResolverInvocation(
-            FieldResolverDescriptor resolverDescriptor,
+            SourceResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.SourceType)}>();");
             HandleExceptions(source, s =>
             {
-                s.Append($"return source.{resolverDescriptor.Member.Name};");
+                s.Append($"return source.{resolverDescriptor.Field.Member.Name};");
             });
         }
 
         public override bool CanGenerate(
-            FieldResolverDescriptor resolverDescriptor)
-                => resolverDescriptor.Kind == FieldResolverKind.Source
-                    && !resolverDescriptor.IsMethod;
+            IFieldResolverDescriptor resolverDescriptor)
+        {
+            return resolverDescriptor is SourceResolverDescriptor d
+                && d.IsProperty;
+        }
     }
 }

@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
+using CodeGenArgument = HotChocolate.Resolvers.CodeGeneration.ArgumentDescriptor;
 
 namespace HotChocolate.Configuration
 {
     internal class ResolverCollectionBindingHandler
         : IResolverBindingHandler
     {
-        private readonly FieldResolverDiscoverer _fieldResolverDiscoverer =
-            new FieldResolverDiscoverer();
         private readonly ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
 
         public ResolverCollectionBindingHandler(
@@ -29,13 +29,18 @@ namespace HotChocolate.Configuration
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)
             {
-                List<FieldResolverDescriptor> descriptors =
+                if (b.ObjectType == null)
+                {
+                    b.ObjectType = typeof(object);
+                }
+
+                List<IFieldResolverDescriptor> descriptors =
                     CollectPossibleDescriptors(schemaContext.Types, b);
 
-                IEnumerable<FieldResolverDescriptor> mostSpecificFieldResolvers =
+                IEnumerable<IFieldResolverDescriptor> mostSpecificFieldResolvers =
                     GetMostSpecificFieldResolvers(schemaContext.Types, descriptors);
 
-                foreach (FieldResolverDescriptor descriptor in
+                foreach (IFieldResolverDescriptor descriptor in
                     mostSpecificFieldResolvers)
                 {
                     schemaContext.Resolvers.RegisterResolver(descriptor);
@@ -48,37 +53,36 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private List<FieldResolverDescriptor> CollectPossibleDescriptors(
+        private List<IFieldResolverDescriptor> CollectPossibleDescriptors(
             ITypeRegistry typeRegistry,
             ResolverCollectionBindingInfo resolverBinding)
         {
-            List<FieldResolverDescriptor> descriptors =
-                new List<FieldResolverDescriptor>();
+            var descriptors = new List<IFieldResolverDescriptor>();
 
             // if implicit resolver discovery is on get all possible
             // resolver members from the resolver type.
             if (resolverBinding.Behavior == BindingBehavior.Implicit)
             {
-                descriptors.AddRange(_fieldResolverDiscoverer
-                    .GetPossibleResolvers(resolverBinding.ResolverType,
+                descriptors.AddRange(FieldResolverDiscoverer.DiscoverResolvers(
+                        resolverBinding.ResolverType,
                         resolverBinding.ObjectType,
                         resolverBinding.ObjectTypeName,
                         m => LookupFieldName(typeRegistry, m)));
             }
 
-            if (resolverBinding.Fields.Any())
+            if (resolverBinding.Fields.Count > 0)
             {
-                ILookup<string, FieldResolverDescriptor> descriptorLookup =
+                ILookup<string, IFieldResolverDescriptor> descriptorLookup =
                     descriptors.ToLookup(t => t.Field.FieldName);
 
-                IEnumerable<FieldResolverMember> selectedResolvers =
+                IEnumerable<FieldMember> selectedResolvers =
                     resolverBinding.Fields.Select(
-                        t => new FieldResolverMember(
+                        t => new FieldMember(
                             resolverBinding.ObjectTypeName,
                             t.FieldName, t.ResolverMember)).ToArray();
 
-                foreach (FieldResolverDescriptor explicitDescriptor in
-                    _fieldResolverDiscoverer.GetSelectedResolvers(
+                foreach (IFieldResolverDescriptor explicitDescriptor in
+                    FieldResolverDiscoverer.CreateResolverDescriptors(
                         resolverBinding.ResolverType, resolverBinding.ObjectType,
                         selectedResolvers))
                 {
@@ -96,31 +100,32 @@ namespace HotChocolate.Configuration
         }
 
         private void RemoveDescriptors(
-            List<FieldResolverDescriptor> descriptors,
-            IEnumerable<FieldResolverDescriptor> descriptorsToRemove)
+            List<IFieldResolverDescriptor> descriptors,
+            IEnumerable<IFieldResolverDescriptor> descriptorsToRemove)
         {
-            foreach (FieldResolverDescriptor item in descriptorsToRemove)
+            foreach (IFieldResolverDescriptor item in descriptorsToRemove)
             {
                 descriptors.Remove(item);
             }
         }
 
-        private IEnumerable<FieldResolverDescriptor> GetMostSpecificFieldResolvers(
+        private IEnumerable<IFieldResolverDescriptor> GetMostSpecificFieldResolvers(
             ITypeRegistry typeRegistry,
-            IEnumerable<FieldResolverDescriptor> resolverDescriptors)
+            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
         {
-            foreach (IGrouping<FieldReference, FieldResolverDescriptor> resolverGroup in
-                resolverDescriptors.GroupBy(r => r.Field))
+            foreach (IGrouping<FieldReference, IFieldResolverDescriptor> resolverGroup in
+                resolverDescriptors.GroupBy(r => r.Field.ToFieldReference()))
             {
                 FieldReference fieldReference = resolverGroup.Key;
                 if (typeRegistry.TryGetObjectTypeField(fieldReference, out ObjectField field))
                 {
-                    foreach (FieldResolverDescriptor resolverDescriptor in
-                        resolverGroup.OrderByDescending(t => t.ArgumentCount()))
+                    foreach (DescriptorWithArguments descriptor in resolverGroup
+                        .Select(t => new DescriptorWithArguments(t))
+                        .OrderByDescending(t => t.Arguments.Count))
                     {
-                        if (AllArgumentsMatch(field, resolverDescriptor))
+                        if (AllArgumentsMatch(field, descriptor.Arguments))
                         {
-                            yield return resolverDescriptor;
+                            yield return descriptor.ResolverDescriptor;
                             break;
                         }
                     }
@@ -128,10 +133,11 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool AllArgumentsMatch(ObjectField field, FieldResolverDescriptor resolverDescriptor)
+        private bool AllArgumentsMatch(
+            ObjectField field,
+            IReadOnlyCollection<CodeGenArgument> arguments)
         {
-            foreach (FieldResolverArgumentDescriptor argumentDescriptor in
-                resolverDescriptor.Arguments())
+            foreach (CodeGenArgument argumentDescriptor in arguments)
             {
                 if (!field.Arguments.ContainsField(argumentDescriptor.Name))
                 {
@@ -144,7 +150,7 @@ namespace HotChocolate.Configuration
             return true;
         }
 
-        private string LookupFieldName(ITypeRegistry typeRegistry, FieldResolverMember fieldResolverMember)
+        private string LookupFieldName(ITypeRegistry typeRegistry, FieldMember fieldResolverMember)
         {
             foreach (ResolverCollectionBindingInfo resolverBinding in
                 _resolverBindings[fieldResolverMember.TypeName])
@@ -168,6 +174,21 @@ namespace HotChocolate.Configuration
             }
 
             return fieldResolverMember.FieldName;
+        }
+
+        private class DescriptorWithArguments
+        {
+            public DescriptorWithArguments(
+                IFieldResolverDescriptor resolverDescriptor)
+            {
+                ResolverDescriptor = resolverDescriptor;
+                Arguments = resolverDescriptor.Arguments
+                    .Where(t => t.Kind == ArgumentKind.Argument)
+                    .ToArray();
+            }
+
+            public IFieldResolverDescriptor ResolverDescriptor { get; }
+            public IReadOnlyCollection<CodeGenArgument> Arguments { get; }
         }
     }
 }

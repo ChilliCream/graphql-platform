@@ -28,7 +28,9 @@ namespace HotChocolate.Resolvers
                 SourceText.From(sourceText));
         }
 
-        private static Assembly Compile(string sourceText, SyntaxTree syntaxTree)
+        private static Assembly Compile(
+            string sourceText,
+            SyntaxTree syntaxTree)
         {
             var assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
                 $"._{Guid.NewGuid().ToString("N")}.dll";
@@ -61,9 +63,15 @@ namespace HotChocolate.Resolvers
             {
                 try
                 {
-                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                    references.Add(MetadataReference
+                        .CreateFromFile(assembly.Location));
                 }
-                catch { } // TODO : fix this
+                catch
+                {
+                    // ignore references that cannot be added to the memory
+                    // assembly. there are some unit testing assemblies that
+                    // case these exceptions.
+                }
             }
             return references;
         }

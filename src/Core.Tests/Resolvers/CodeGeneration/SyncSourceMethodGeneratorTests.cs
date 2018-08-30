@@ -12,12 +12,11 @@ namespace HotChocolate.Resolvers
         public void SyncSourceMethodGenerator_GenerateWithoutArguments()
         {
             // arrange
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 0);
-            var descriptor = FieldResolverDescriptor
-                .CreateSourceMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method, false,
-                    Enumerable.Empty<FieldResolverArgumentDescriptor>());
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetMethod<GeneratorTestDummy>("GetFoo", 0));
+
+            var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -28,22 +27,15 @@ namespace HotChocolate.Resolvers
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-
         [Fact]
         public void SyncSourceMethodGenerator_GenerateWithOneArgument()
         {
             // arrange
-            var argumentDescriptor =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Argument,
-                    typeof(string));
+            var fieldMember = new FieldMember(
+               "Foo", "bar",
+               GetMethod<GeneratorTestDummy>("GetFoo", 1));
 
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 1);
-            var descriptor = FieldResolverDescriptor
-                .CreateSourceMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method, false,
-                    new[] { argumentDescriptor });
+            var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -58,22 +50,11 @@ namespace HotChocolate.Resolvers
         public void SyncSourceMethodGenerator_GenerateWithTwoArgument()
         {
             // arrange
-            var argumentDescriptor1 =
-                new FieldResolverArgumentDescriptor("a", "b",
-                    FieldResolverArgumentKind.Argument,
-                    typeof(string));
+            var fieldMember = new FieldMember(
+              "Foo", "bar",
+              GetMethod<GeneratorTestDummy>("GetFoo", 2));
 
-            var argumentDescriptor2 =
-                new FieldResolverArgumentDescriptor("b", "c",
-                    FieldResolverArgumentKind.Argument,
-                    typeof(int));
-
-            MethodInfo method = typeof(GeneratorTestDummy).GetMethods()
-                .Single(t => t.Name == "GetFoo" && t.GetParameters().Length == 2);
-            var descriptor = FieldResolverDescriptor
-                .CreateSourceMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, method, false,
-                    new[] { argumentDescriptor1, argumentDescriptor2 });
+            var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -82,6 +63,14 @@ namespace HotChocolate.Resolvers
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        private MethodInfo GetMethod<T>(string name, int parameters)
+        {
+            return typeof(T)
+                .GetMethods()
+                .Single(t => t.Name == name
+                    && t.GetParameters().Length == parameters);
         }
     }
 }

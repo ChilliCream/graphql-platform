@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public class FieldResolverArgumentDescriptor
+    internal class ArgumentDescriptor
     {
-        internal FieldResolverArgumentDescriptor(
+        internal ArgumentDescriptor(
             string name, string variableName,
-            FieldResolverArgumentKind kind,
+            ArgumentKind kind,
             Type type)
         {
             Name = name;
@@ -19,12 +19,13 @@ namespace HotChocolate.Resolvers
         }
 
         /// <summary>
-        /// Gets the name of the argument.
+        /// Gets the name of the argument that is defined in the GraphQL schema.
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Gets the variable name of the argument.
+        /// Gets the internal c# variable name of the argument that is used to
+        /// refer to this argment in the generated c# code..
         /// </summary>
         public string VariableName { get; }
 
@@ -32,10 +33,10 @@ namespace HotChocolate.Resolvers
         /// Defines the argument kind.
         /// </summary>
         /// <returns></returns>
-        public FieldResolverArgumentKind Kind { get; }
+        public ArgumentKind Kind { get; }
 
         /// <summary>
-        /// Gets the argument type.
+        /// Gets the CLR argument type.
         /// </summary>
         public Type Type { get; }
     }

@@ -1,6 +1,6 @@
-namespace HotChocolate.Resolvers
+﻿namespace HotChocolate.Resolvers.CodeGeneration
 {
-    public enum FieldResolverArgumentKind
+    internal enum ArgumentKind
     {
         Argument,
         Source,

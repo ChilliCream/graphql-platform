@@ -1,10 +1,10 @@
 /* Foo.bar */
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var b = ctx.Argument<System.String>("a");
+var v0_a = ctx.Argument<System.String>("a");
 var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 try
 {
-return source.GetFoo(b);
+return source.GetFoo(v0_a);
 }
 catch(HotChocolate.Execution.QueryException ex)
 {
