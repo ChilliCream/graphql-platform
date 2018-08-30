@@ -55,17 +55,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
-<<<<<<< HEAD:src/Types/Resolvers/FieldResolverArgumentHelper.cs
             if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType))
-=======
-            if (parameter.ParameterType == typeof(ISchema))
-            {
-                argumentKind = ArgumentKind.Schema;
-                return true;
-            }
-
-            if (parameter.ParameterType == typeof(Schema))
->>>>>>> master:src/Types/Resolvers/CodeGeneration/ArgumentHelper.cs
             {
                 argumentKind = ArgumentKind.Schema;
                 return true;
@@ -77,17 +67,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-<<<<<<< HEAD:src/Types/Resolvers/FieldResolverArgumentHelper.cs
             if (typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
-=======
-            if (parameter.ParameterType == typeof(IOutputField))
-            {
-                argumentKind = ArgumentKind.Field;
-                return true;
-            }
-
-            if (parameter.ParameterType == typeof(ObjectField))
->>>>>>> master:src/Types/Resolvers/CodeGeneration/ArgumentHelper.cs
             {
                 argumentKind = ArgumentKind.Field;
                 return true;
