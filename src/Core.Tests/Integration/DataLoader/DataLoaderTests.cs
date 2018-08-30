@@ -82,6 +82,8 @@ namespace HotChocolate.Integration.DataLoader
             return Schema.Create(c =>
             {
                 c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
+                c.Options.DeveloperMode = true;
+
                 c.RegisterDataLoader<TestDataLoader>(scope);
                 c.RegisterQueryType<Query>();
             });

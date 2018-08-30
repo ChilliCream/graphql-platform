@@ -43,7 +43,8 @@ namespace HotChocolate.Types
 
         public bool IsDirective { get; }
 
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes(INamedType abstractType)
+        public IReadOnlyCollection<ObjectType> GetPossibleTypes(
+            INamedType abstractType)
         {
             if (abstractType == null)
             {
@@ -64,7 +65,8 @@ namespace HotChocolate.Types
                 "The specified type is not a supported abstract type.");
         }
 
-        private IEnumerable<ObjectType> GetPossibleInterfaceTypes(INamedType abstractType)
+        private IEnumerable<ObjectType> GetPossibleInterfaceTypes(
+            INamedType abstractType)
         {
             foreach (ObjectType objectType in _schemaContext.Types
                 .GetTypes().OfType<ObjectType>())
@@ -103,8 +105,15 @@ namespace HotChocolate.Types
             return _schemaContext.Types.GetType<T>(typeReference);
         }
 
-        public void RegisterResolver(string fieldName, MemberInfo fieldMember)
+        public void RegisterResolver(
+            Type sourceType, Type resolverType,
+            string fieldName, MemberInfo fieldMember)
         {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
             if (string.IsNullOrEmpty(fieldName))
             {
                 throw new ArgumentException(
@@ -117,11 +126,29 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fieldMember));
             }
 
-            _schemaContext.Resolvers.RegisterResolver(
-                new FieldMember(Type.Name, fieldName, fieldMember));
+            RegisterResolverInternal(
+                sourceType, resolverType, fieldName, fieldMember);
         }
 
-        public void RegisterType(INamedType namedType, ITypeBinding typeBinding = null)
+        private void RegisterResolverInternal(
+            Type sourceType, Type resolverType,
+            string fieldName, MemberInfo fieldMember)
+        {
+            if (resolverType == null)
+            {
+                _schemaContext.Resolvers.RegisterResolver(
+                    new FieldMember(Type.Name, fieldName, fieldMember));
+            }
+            else
+            {
+                _schemaContext.Resolvers.RegisterResolver(
+                    new ResolverDescriptor(resolverType, sourceType,
+                        new FieldMember(Type.Name, fieldName, fieldMember)));
+            }
+        }
+
+        public void RegisterType(
+            INamedType namedType, ITypeBinding typeBinding = null)
         {
             if (namedType == null)
             {
@@ -156,7 +183,8 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public bool TryGetProperty<T>(INamedType namedType, string fieldName, out T member)
+        public bool TryGetProperty<T>(
+            INamedType namedType, string fieldName, out T member)
             where T : MemberInfo
         {
             if (namedType is ObjectType

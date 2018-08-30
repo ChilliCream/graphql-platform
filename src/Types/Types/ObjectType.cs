@@ -104,7 +104,8 @@ namespace HotChocolate.Types
                 var field = new ObjectField(fieldDescription);
                 fields.Add(field);
 
-                if (fieldDescription.Member != null)
+                if (fieldDescription.ResolverType == null
+                    && fieldDescription.Member != null)
                 {
                     fieldBindings.Add(new FieldBinding(
                         field.Name, fieldDescription.Member, field));

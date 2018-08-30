@@ -7,6 +7,8 @@ namespace HotChocolate.Types
     public class ObjectField
         : InterfaceField
     {
+        private readonly Type _sourceType;
+        private readonly Type _resolverType;
         private readonly MemberInfo _member;
 
         internal ObjectField(string fieldName,
@@ -23,7 +25,10 @@ namespace HotChocolate.Types
         internal ObjectField(ObjectFieldDescription fieldDescription)
             : base(fieldDescription)
         {
+            _sourceType = fieldDescription.SourceType;
+            _resolverType = fieldDescription.ResolverType;
             _member = fieldDescription.Member;
+
             Resolver = fieldDescription.Resolver;
         }
 
@@ -50,7 +55,8 @@ namespace HotChocolate.Types
 
             if (_member != null)
             {
-                context.RegisterResolver(Name, _member);
+                context.RegisterResolver(
+                    _sourceType, _resolverType, Name, _member);
             }
         }
 

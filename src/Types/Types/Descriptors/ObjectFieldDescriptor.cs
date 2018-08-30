@@ -39,10 +39,12 @@ namespace HotChocolate.Types
 
         }
 
-        public ObjectFieldDescriptor(string typeName, MemberInfo member, Type nativeFieldType)
+        public ObjectFieldDescriptor(string typeName, Type sourceType,
+            MemberInfo member, Type nativeFieldType)
             : base(new ObjectFieldDescription())
         {
             _typeName = typeName;
+            FieldDescription.SourceType = sourceType;
             FieldDescription.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
             FieldDescription.Name = member.GetGraphQLName();
@@ -56,6 +58,11 @@ namespace HotChocolate.Types
         {
             CompleteArguments();
             return FieldDescription;
+        }
+
+        public void ResolverType(Type resolverType)
+        {
+            FieldDescription.ResolverType = resolverType;
         }
 
         protected void Ignore()

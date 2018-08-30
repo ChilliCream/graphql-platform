@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             Type sourceType,
             out ArgumentKind argumentKind)
         {
-            if (parameter.ParameterType == sourceType)
+            if (parameter.ParameterType == sourceType || parameter.IsParent())
             {
                 argumentKind = ArgumentKind.Source;
                 return true;
@@ -55,13 +55,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
-            if (parameter.ParameterType == typeof(ISchema))
-            {
-                argumentKind = ArgumentKind.Schema;
-                return true;
-            }
-
-            if (parameter.ParameterType == typeof(Schema))
+            if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType))
             {
                 argumentKind = ArgumentKind.Schema;
                 return true;
@@ -73,13 +67,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (parameter.ParameterType == typeof(IOutputField))
-            {
-                argumentKind = ArgumentKind.Field;
-                return true;
-            }
-
-            if (parameter.ParameterType == typeof(ObjectField))
+            if (typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
             {
                 argumentKind = ArgumentKind.Field;
                 return true;
@@ -154,6 +142,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private static bool IsService(this ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ServiceAttribute));
+        }
+
+        private static bool IsParent(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ParentAttribute));
         }
     }
 }

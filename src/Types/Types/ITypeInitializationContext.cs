@@ -14,11 +14,16 @@ namespace HotChocolate.Types
 
         bool IsQueryType { get; }
 
-        void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
+        void RegisterType(
+            INamedType namedType, ITypeBinding typeBinding = null);
 
         void RegisterType(TypeReference typeReference);
 
-        void RegisterResolver(string fieldName, MemberInfo fieldMember);
+        void RegisterResolver(
+            Type sourceType,
+            Type resolverType,
+            string fieldName,
+            MemberInfo fieldMember);
 
         FieldResolverDelegate GetResolver(string fieldName);
 
@@ -29,7 +34,8 @@ namespace HotChocolate.Types
 
         bool TryGetNativeType(INamedType namedType, out Type nativeType);
 
-        bool TryGetProperty<T>(INamedType namedType, string fieldName, out T member)
+        bool TryGetProperty<T>(
+            INamedType namedType, string fieldName, out T member)
             where T : MemberInfo;
 
         void ReportError(SchemaError error);
