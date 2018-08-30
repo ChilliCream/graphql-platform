@@ -17,6 +17,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         public SourceResolverDescriptor(
+                FieldMember field,
+                ArgumentDescriptor argument)
+            : this(field?.Member.ReflectedType, field, new[] { argument })
+        {
+        }
+
+        public SourceResolverDescriptor(
             Type sourceType,
             FieldMember field)
         {
