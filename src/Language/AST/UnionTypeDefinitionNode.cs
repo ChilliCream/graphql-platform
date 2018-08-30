@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class UnionTypeDefinitionNode
-        : ITypeDefinitionNode
-        , IHasDirectives
+        : UnionTypeDefinitionNodeBase
+        , ITypeDefinitionNode
     {
         public UnionTypeDefinitionNode(
             Location location,
@@ -13,34 +13,12 @@ namespace HotChocolate.Language
             StringValueNode description,
             IReadOnlyCollection<DirectiveNode> directives,
             IReadOnlyCollection<NamedTypeNode> types)
+            : base(location, name, directives, types)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            if (types == null)
-            {
-                throw new ArgumentNullException(nameof(types));
-            }
-
-            Location = location;
-            Name = name;
             Description = description;
-            Directives = directives;
-            Types = types;
         }
 
-        public NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
-        public Location Location { get; }
-        public NameNode Name { get; }
+        public override NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
         public StringValueNode Description { get; }
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
-        public IReadOnlyCollection<NamedTypeNode> Types { get; }
     }
 }

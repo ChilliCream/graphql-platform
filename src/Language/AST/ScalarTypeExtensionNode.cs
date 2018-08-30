@@ -4,32 +4,17 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class ScalarTypeExtensionNode
-        : ITypeExtensionNode
-        , IHasDirectives
+        : ScalarTypeDefinitionNodeBase
+        , ITypeExtensionNode
     {
         public ScalarTypeExtensionNode(
             Location location,
             NameNode name,
             IReadOnlyCollection<DirectiveNode> directives)
+            : base(location, name, directives)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            Location = location;
-            Name = name;
-            Directives = directives;
         }
 
-        public NodeKind Kind { get; } = NodeKind.ScalarTypeExtension;
-        public Location Location { get; }
-        public NameNode Name { get; }
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public override NodeKind Kind { get; } = NodeKind.ScalarTypeExtension;
     }
 }
