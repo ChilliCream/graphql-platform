@@ -47,7 +47,7 @@ namespace HotChocolate.Resolvers
             // arrange
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
-            context.Setup(t => t.Service<FooTypeResolver>()).Returns(new FooTypeResolver());
+            context.Setup(t => t.Resolver<FooTypeResolver>()).Returns(new FooTypeResolver());
 
             ArgumentDescriptor argumentDescriptor =
                new ArgumentDescriptor(
@@ -88,7 +88,7 @@ namespace HotChocolate.Resolvers
             // arrange
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
-            context.Setup(t => t.Service<FooTypeResolver>()).Returns(new FooTypeResolver());
+            context.Setup(t => t.Resolver<FooTypeResolver>()).Returns(new FooTypeResolver());
 
             ArgumentDescriptor argumentDescriptor =
                 new ArgumentDescriptor(
