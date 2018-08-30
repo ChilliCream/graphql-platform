@@ -50,17 +50,10 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
 
-            List<OperationTypeDefinitionNode> operationTypeDefinitions = null;
-            if (context.Current.IsLeftBrace())
-            {
-                operationTypeDefinitions =
-                    ParseMany(context,
-                        TokenKind.LeftBrace,
-                        ParseOperationTypeDefinition,
-                        TokenKind.RightBrace);
-            }
+            List<OperationTypeDefinitionNode> operationTypeDefinitions =
+                ParseOperationTypeDefinitions(context);
 
-            if (directives.Count == 0 && operationTypeDefinitions?.Count == 0)
+            if (directives.Count == 0 && operationTypeDefinitions.Count == 0)
             {
                 throw context.Unexpected(start);
             }
@@ -73,6 +66,19 @@ namespace HotChocolate.Language
                 directives,
                 operationTypeDefinitions
             );
+        }
+
+        private List<OperationTypeDefinitionNode> ParseOperationTypeDefinitions(
+            ParserContext context)
+        {
+            if (context.Current.IsLeftBrace())
+            {
+                return ParseMany(context,
+                    TokenKind.LeftBrace,
+                    ParseOperationTypeDefinition,
+                    TokenKind.RightBrace);
+            }
+            return new List<OperationTypeDefinitionNode>();
         }
 
         private ScalarTypeExtensionNode ParseScalarTypeExtension(
