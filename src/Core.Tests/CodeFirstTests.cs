@@ -14,7 +14,7 @@ namespace HotChocolate
         public async Task ExecuteOneFieldQueryWithProperty()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 c => c.RegisterType<QueryTypeWithProperty>());
 
             // act
@@ -29,7 +29,7 @@ namespace HotChocolate
         public async Task ExecuteOneFieldQueryWithMethod()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 c => c.RegisterType<QueryTypeWithMethod>());
 
             // act
@@ -61,7 +61,7 @@ namespace HotChocolate
             // arrange
             Schema schema = CreateSchema();
 
-            Mock<IResolverContext> context = new Mock<IResolverContext>(
+            var context = new Mock<IResolverContext>(
                 MockBehavior.Strict);
 
             // act
@@ -94,7 +94,7 @@ namespace HotChocolate
         {
             // arrange
             Schema schema = CreateSchema();
-            Mock<IResolverContext> context = new Mock<IResolverContext>(
+            var context = new Mock<IResolverContext>(
                 MockBehavior.Strict);
 
             // act

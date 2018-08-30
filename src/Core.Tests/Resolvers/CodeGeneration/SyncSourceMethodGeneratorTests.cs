@@ -27,7 +27,6 @@ namespace HotChocolate.Resolvers
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-
         [Fact]
         public void SyncSourceMethodGenerator_GenerateWithOneArgument()
         {

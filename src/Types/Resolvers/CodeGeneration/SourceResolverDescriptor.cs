@@ -74,6 +74,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         public bool IsMethod { get; }
 
-        public bool IsProperty => IsMethod;
+        public bool IsProperty => !IsMethod;
     }
 }
