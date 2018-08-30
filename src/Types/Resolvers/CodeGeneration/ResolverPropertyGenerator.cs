@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
             HandleExceptions(source, s =>
             {
                 s.Append($"return resolver.{resolverDescriptor.Field.Member.Name};");

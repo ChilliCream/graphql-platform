@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Service)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
             source.AppendLine("Func<Task<object>> f = async () => {");
 
             HandleExceptions(source, s =>

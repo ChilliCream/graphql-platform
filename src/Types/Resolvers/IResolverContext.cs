@@ -111,5 +111,16 @@ namespace HotChocolate.Resolvers
         /// Returns the specific DataLoader.
         /// </returns>
         T DataLoader<T>(string key);
+
+        /// <summary>
+        /// Gets a resolver object containing one or more resolvers.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the resolver object.
+        /// </typeparam>
+        /// <returns>
+        /// Returns a resolver object containing one or more resolvers.
+        /// </returns>
+        T Resolver<T>();
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace HotChocolate.Resolvers.CodeGeneration
+namespace HotChocolate.Resolvers
 {
     public sealed class FieldMember
         : FieldReferenceBase

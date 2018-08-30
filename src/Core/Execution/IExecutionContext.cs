@@ -34,5 +34,6 @@ namespace HotChocolate.Execution
 
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet);
+        T GetResolver<T>();
     }
 }
