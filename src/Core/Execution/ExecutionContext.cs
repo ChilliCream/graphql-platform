@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
 
             Services = _serviceFactory.Services = request.Services;
             _session = request.Session;
-            _resolverCache = request.Session?.CustomContexts
+            _resolverCache = request.Session.CustomContexts
                 .GetCustomContext<IResolverCache>();
 
             Fragments = new FragmentCollection(schema, queryDocument);
@@ -136,8 +136,10 @@ namespace HotChocolate.Execution
                 operationType.Name,
                 out Type nativeType))
             {
-                ServiceFactory serviceFactory = new ServiceFactory();
-                serviceFactory.Services = services;
+                var serviceFactory = new ServiceFactory
+                {
+                    Services = services
+                };
                 return serviceFactory.CreateInstance(nativeType);
             }
             return null;
@@ -145,24 +147,12 @@ namespace HotChocolate.Execution
 
         public T GetResolver<T>()
         {
-            if (_resolverCache == null)
+            if (!_resolverCache.TryGetResolver(out T resolver))
             {
-                throw new NotSupportedException(
-                    "The resolver cache is disabled and resolver types are " +
-                    "not supported in the current schema.");
-            }
-
-            if (!_resolverCache.TryGetResolver<T>(out T resolver))
-            {
-                if (Services.GetService(typeof(T)) is T res)
-                {
-                    resolver = res;
-                }
-                else
-                {
-                    resolver = _resolverCache.AddOrGetResolver(
+                resolver = Services.GetService(typeof(T)) is T res
+                    ? res
+                    : _resolverCache.AddOrGetResolver(
                         () => CreateResolver<T>());
-                }
             }
 
             return resolver;
