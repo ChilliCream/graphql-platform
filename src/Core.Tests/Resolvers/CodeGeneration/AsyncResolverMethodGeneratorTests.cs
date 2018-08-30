@@ -14,9 +14,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var sourceType = typeof(GeneratorTestDummy);
-            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 0);
-            var descriptor = FieldResolverDescriptor
+            MethodInfo method = typeof(GeneratorTestDummyResolver)
+                .GetMethods()
+                .Single(t => t.Name == "GetFooAsync"
+                    && t.GetParameters().Length == 0);
+
+            var descriptor = new ResolverDescriptor() FieldResolverDescriptor
                 .CreateCollectionMethod(new FieldReference("Foo", "bar"),
                     method.ReflectedType, sourceType, method, true,
                     Enumerable.Empty<ArgumentDescriptor>());

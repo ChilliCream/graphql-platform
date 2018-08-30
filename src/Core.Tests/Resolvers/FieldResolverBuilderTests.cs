@@ -17,11 +17,11 @@ namespace HotChocolate.Resolvers
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
 
-            FieldReference fieldReference = new FieldReference("type", "field");
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateSourceMethod(fieldReference, typeof(FooType),
-                    typeof(FooType).GetMethod("Bar"), false,
-                    Array.Empty<ArgumentDescriptor>());
+            FieldMember fieldMember = new FieldMember(
+                "type", "field",
+                typeof(FooType).GetMethod("Bar"));
+
+            var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
@@ -50,16 +50,19 @@ namespace HotChocolate.Resolvers
             context.Setup(t => t.Service<FooTypeResolver>()).Returns(new FooTypeResolver());
 
             ArgumentDescriptor argumentDescriptor =
-                new ArgumentDescriptor(
-                    "foo", "b", ArgumentKind.Source,
-                    typeof(FooType));
+               new ArgumentDescriptor(
+                   "foo", "b", ArgumentKind.Source,
+                   typeof(FooType));
 
-            FieldReference fieldReference = new FieldReference("type", "field");
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(fieldReference,
-                    typeof(FooTypeResolver), typeof(FooType),
-                    typeof(FooTypeResolver).GetMethod("BarResolver"), false,
-                    new[] { argumentDescriptor });
+            FieldMember fieldMember = new FieldMember(
+                "type", "field",
+                typeof(FooTypeResolver).GetMethod("BarResolver"));
+
+            ResolverDescriptor descriptor = new ResolverDescriptor(
+                typeof(FooTypeResolver),
+                typeof(FooType),
+                fieldMember,
+                new[] { argumentDescriptor });
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
@@ -92,12 +95,15 @@ namespace HotChocolate.Resolvers
                     "foo", "b", ArgumentKind.Source,
                     typeof(FooType));
 
-            FieldReference fieldReference = new FieldReference("type", "field");
-            FieldResolverDescriptor descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(fieldReference,
-                    typeof(FooTypeResolver), typeof(FooType),
-                    typeof(FooTypeResolver).GetMethod("BarResolverAsync"), true,
-                    new[] { argumentDescriptor });
+            FieldMember fieldMember = new FieldMember(
+                "type", "field",
+                typeof(FooTypeResolver).GetMethod("BarResolverAsync"));
+
+            ResolverDescriptor descriptor = new ResolverDescriptor(
+                typeof(FooTypeResolver),
+                typeof(FooType),
+                fieldMember,
+                new[] { argumentDescriptor });
 
             // act
             FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();

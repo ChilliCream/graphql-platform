@@ -12,6 +12,38 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : IFieldResolverDescriptor
     {
         public ResolverDescriptor(
+            Type sourceType,
+            FieldMember field)
+            : this(field?.Member.ReflectedType, sourceType, field)
+        {
+        }
+
+        public ResolverDescriptor(
+            Type resolverType,
+            Type sourceType,
+            FieldMember field)
+        {
+            ResolverType = resolverType
+                ?? throw new ArgumentNullException(nameof(resolverType));
+            SourceType = sourceType
+                ?? throw new ArgumentNullException(nameof(sourceType));
+            Field = field
+                ?? throw new ArgumentNullException(nameof(field));
+
+            if (field.Member is MethodInfo m)
+            {
+                Arguments = FieldResolverDiscoverer
+                    .DiscoverArguments(m, sourceType);
+                IsAsync = typeof(Task).IsAssignableFrom(m.ReturnType);
+                IsMethod = true;
+            }
+            else
+            {
+                Arguments = Array.Empty<ArgumentDescriptor>();
+            }
+        }
+
+        public ResolverDescriptor(
             Type resolverType,
             Type sourceType,
             FieldMember field,
