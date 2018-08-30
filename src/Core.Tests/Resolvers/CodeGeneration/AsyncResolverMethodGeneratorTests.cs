@@ -13,16 +13,13 @@ namespace HotChocolate.Resolvers
         public void AsyncResolverMethodGenerator_GenerateWithoutArguments()
         {
             // arrange
-            var sourceType = typeof(GeneratorTestDummy);
-            MethodInfo method = typeof(GeneratorTestDummyResolver)
-                .GetMethods()
-                .Single(t => t.Name == "GetFooAsync"
-                    && t.GetParameters().Length == 0);
+            Type sourceType = typeof(GeneratorTestDummy);
 
-            var descriptor = new ResolverDescriptor() FieldResolverDescriptor
-                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, true,
-                    Enumerable.Empty<ArgumentDescriptor>());
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 0));
+
+            var descriptor = new ResolverDescriptor(sourceType, fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -38,18 +35,13 @@ namespace HotChocolate.Resolvers
         public void AsyncResolverMethodGenerator_GenerateWithSourceArgument()
         {
             // arrange
-            var argumentDescriptor =
-                new ArgumentDescriptor("a", "b",
-                    ArgumentKind.Source,
-                    typeof(GeneratorTestDummy));
+            Type sourceType = typeof(GeneratorTestDummy);
 
-            var sourceType = typeof(GeneratorTestDummy);
-            MethodInfo method = typeof(GeneratorTestDummyResolver).GetMethods()
-                .Single(t => t.Name == "GetFooAsync" && t.GetParameters().Length == 1);
-            var descriptor = FieldResolverDescriptor
-                .CreateCollectionMethod(new FieldReference("Foo", "bar"),
-                    method.ReflectedType, sourceType, method, true,
-                    new[] { argumentDescriptor });
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 1));
+
+            var descriptor = new ResolverDescriptor(sourceType, fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -64,6 +56,14 @@ namespace HotChocolate.Resolvers
         public void AsyncResolverMethodGenerator_GenerateWithSourceArgumentAndArgument()
         {
             // arrange
+            Type sourceType = typeof(GeneratorTestDummy);
+
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 1));
+
+            var descriptor = new ResolverDescriptor(sourceType, fieldMember);
+
             var argumentDescriptor1 =
                 new ArgumentDescriptor("a", "b",
                     ArgumentKind.Source,
@@ -359,6 +359,14 @@ namespace HotChocolate.Resolvers
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        private MethodInfo GetMethod<T>(string name, int parameters)
+        {
+            return typeof(GeneratorTestDummyResolver)
+                .GetMethods()
+                .Single(t => t.Name == name
+                    && t.GetParameters().Length == parameters);
         }
     }
 }
