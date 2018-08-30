@@ -237,11 +237,11 @@ namespace HotChocolate.Resolvers
                 "Foo", "bar",
                 GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 1));
 
-            var argumentDescriptor = new ArgumentDescriptor(
+            var argument = new ArgumentDescriptor(
                     "a", "b", argumentKind,
                     typeof(GeneratorTestDummy));
 
-            return new ResolverDescriptor(sourceType, fieldMember);
+            return new ResolverDescriptor(sourceType, fieldMember, argument);
         }
 
         private MethodInfo GetMethod<T>(string name, int parameters)
