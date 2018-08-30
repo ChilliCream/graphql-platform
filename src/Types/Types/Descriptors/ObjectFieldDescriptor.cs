@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System.Linq;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Types
 {
@@ -121,9 +122,9 @@ namespace HotChocolate.Types
 
         private bool IsArgumentType(ParameterInfo parameter)
         {
-            return (FieldResolverArgumentHelper
+            return (ArgumentHelper
                 .LookupKind(parameter, FieldDescription.Member.ReflectedType) ==
-                    FieldResolverArgumentKind.Argument);
+                    ArgumentKind.Argument);
         }
 
         #region IObjectFieldDescriptor

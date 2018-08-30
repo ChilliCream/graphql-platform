@@ -200,8 +200,9 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return context.GetType().Name
-                .Equals(Name, StringComparison.Ordinal);
+
+            Type type = result.GetType();
+            return type.Name.Equals(Name, StringComparison.Ordinal);
         }
 
         private void CompleteInterfaces(

@@ -4,14 +4,14 @@ using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal static class FieldResolverArgumentHelper
+    internal static class ArgumentHelper
     {
-        internal static FieldResolverArgumentKind LookupKind(
+        internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
         {
-            FieldResolverArgumentKind argumentKind;
+            ArgumentKind argumentKind;
             if (TryCheckForResolverArguments(
                     parameter, sourceType, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
@@ -21,111 +21,131 @@ namespace HotChocolate.Resolvers
                 return argumentKind;
             }
 
-            return FieldResolverArgumentKind.Argument;
+            return ArgumentKind.Argument;
         }
 
         private static bool TryCheckForResolverArguments(
             this ParameterInfo parameter,
             Type sourceType,
-            out FieldResolverArgumentKind argumentKind)
+            out ArgumentKind argumentKind)
         {
             if (parameter.ParameterType == sourceType || parameter.IsParent())
             {
-                argumentKind = FieldResolverArgumentKind.Source;
+                argumentKind = ArgumentKind.Source;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(IResolverContext))
             {
-                argumentKind = FieldResolverArgumentKind.Context;
+                argumentKind = ArgumentKind.Context;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(CancellationToken))
             {
-                argumentKind = FieldResolverArgumentKind.CancellationToken;
+                argumentKind = ArgumentKind.CancellationToken;
                 return true;
             }
 
-            argumentKind = default(FieldResolverArgumentKind);
+            argumentKind = default(ArgumentKind);
             return false;
         }
 
         private static bool TryCheckForSchemaTypes(
             this ParameterInfo parameter,
-            out FieldResolverArgumentKind argumentKind)
+            out ArgumentKind argumentKind)
         {
+<<<<<<< HEAD:src/Types/Resolvers/FieldResolverArgumentHelper.cs
             if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType))
+=======
+            if (parameter.ParameterType == typeof(ISchema))
             {
-                argumentKind = FieldResolverArgumentKind.Schema;
+                argumentKind = ArgumentKind.Schema;
+                return true;
+            }
+
+            if (parameter.ParameterType == typeof(Schema))
+>>>>>>> master:src/Types/Resolvers/CodeGeneration/ArgumentHelper.cs
+            {
+                argumentKind = ArgumentKind.Schema;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(ObjectType))
             {
-                argumentKind = FieldResolverArgumentKind.ObjectType;
+                argumentKind = ArgumentKind.ObjectType;
                 return true;
             }
 
+<<<<<<< HEAD:src/Types/Resolvers/FieldResolverArgumentHelper.cs
             if (typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
+=======
+            if (parameter.ParameterType == typeof(IOutputField))
             {
-                argumentKind = FieldResolverArgumentKind.Field;
+                argumentKind = ArgumentKind.Field;
                 return true;
             }
 
-            argumentKind = default(FieldResolverArgumentKind);
+            if (parameter.ParameterType == typeof(ObjectField))
+>>>>>>> master:src/Types/Resolvers/CodeGeneration/ArgumentHelper.cs
+            {
+                argumentKind = ArgumentKind.Field;
+                return true;
+            }
+
+            argumentKind = default(ArgumentKind);
             return false;
         }
 
         private static bool TryCheckForQueryTypes(
             this ParameterInfo parameter,
-            out FieldResolverArgumentKind argumentKind)
+            out ArgumentKind argumentKind)
         {
             if (parameter.ParameterType == typeof(DocumentNode))
             {
-                argumentKind = FieldResolverArgumentKind.QueryDocument;
+                argumentKind = ArgumentKind.QueryDocument;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(OperationDefinitionNode))
             {
-                argumentKind = FieldResolverArgumentKind.OperationDefinition;
+                argumentKind = ArgumentKind.OperationDefinition;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(FieldNode))
             {
-                argumentKind = FieldResolverArgumentKind.FieldSelection;
+                argumentKind = ArgumentKind.FieldSelection;
                 return true;
             }
 
-            argumentKind = default(FieldResolverArgumentKind);
+            argumentKind = default(ArgumentKind);
             return false;
         }
 
         private static bool TryCheckForExtensions(
             this ParameterInfo parameter,
-            out FieldResolverArgumentKind argumentKind)
+            out ArgumentKind argumentKind)
         {
             if (parameter.IsDataLoader())
             {
-                argumentKind = FieldResolverArgumentKind.DataLoader;
+                argumentKind = ArgumentKind.DataLoader;
                 return true;
             }
 
             if (parameter.IsState())
             {
-                argumentKind = FieldResolverArgumentKind.CustomContext;
+                argumentKind = ArgumentKind.CustomContext;
                 return true;
             }
 
             if (parameter.IsService())
             {
-                argumentKind = FieldResolverArgumentKind.Service;
+                argumentKind = ArgumentKind.Service;
                 return true;
             }
 
-            argumentKind = default(FieldResolverArgumentKind);
+            argumentKind = default(ArgumentKind);
             return false;
         }
 

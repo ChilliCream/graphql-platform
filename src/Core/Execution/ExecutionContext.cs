@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 
@@ -11,9 +12,12 @@ namespace HotChocolate.Execution
         : IExecutionContext
     {
         private readonly List<IQueryError> _errors = new List<IQueryError>();
+        private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly FieldCollector _fieldCollector;
         private readonly ISession _session;
+        private readonly IResolverCache _resolverCache;
         private readonly bool _disposeRootValue;
+
         private bool _disposed;
 
         public ExecutionContext(
@@ -30,10 +34,6 @@ namespace HotChocolate.Execution
 
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
-
-            Services = request.Services;
-            _session = request.Session;
-
             QueryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
             Operation = operation
@@ -41,11 +41,17 @@ namespace HotChocolate.Execution
             Variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
 
+            Services = _serviceFactory.Services = request.Services;
+            _session = request.Session;
+            _resolverCache = request.Session?.CustomContexts
+                .GetCustomContext<IResolverCache>();
+
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);
+
             if (RootValue == null)
             {
                 RootValue = CreateRootValue(Services, schema, OperationType);
@@ -135,6 +141,36 @@ namespace HotChocolate.Execution
                 return serviceFactory.CreateInstance(nativeType);
             }
             return null;
+        }
+
+        public T GetResolver<T>()
+        {
+            if (_resolverCache == null)
+            {
+                throw new NotSupportedException(
+                    "The resolver cache is disabled and resolver types are " +
+                    "not supported in the current schema.");
+            }
+
+            if (!_resolverCache.TryGetResolver<T>(out T resolver))
+            {
+                if (Services.GetService(typeof(T)) is T res)
+                {
+                    resolver = res;
+                }
+                else
+                {
+                    resolver = _resolverCache.AddOrGetResolver(
+                        () => CreateResolver<T>());
+                }
+            }
+
+            return resolver;
+        }
+
+        private T CreateResolver<T>()
+        {
+            return (T)_serviceFactory.CreateInstance(typeof(T));
         }
 
         public void Dispose()

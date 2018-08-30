@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Types
 {
@@ -123,6 +124,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fieldMember));
             }
 
+<<<<<<< HEAD
             if (resolverType == null)
             {
                 _schemaContext.Resolvers.RegisterResolver(
@@ -139,6 +141,10 @@ namespace HotChocolate.Types
 
                 _schemaContext.Resolvers.RegisterResolver(fieldResolverDescriptor);
             }
+=======
+            _schemaContext.Resolvers.RegisterResolver(
+                new FieldMember(Type.Name, fieldName, fieldMember));
+>>>>>>> master
         }
 
         public void RegisterType(INamedType namedType, ITypeBinding typeBinding = null)
