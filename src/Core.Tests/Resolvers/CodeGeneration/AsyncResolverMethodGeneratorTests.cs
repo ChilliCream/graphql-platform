@@ -246,7 +246,7 @@ namespace HotChocolate.Resolvers
 
         private MethodInfo GetMethod<T>(string name, int parameters)
         {
-            return typeof(GeneratorTestDummyResolver)
+            return typeof(T)
                 .GetMethods()
                 .Single(t => t.Name == name
                     && t.GetParameters().Length == parameters);
