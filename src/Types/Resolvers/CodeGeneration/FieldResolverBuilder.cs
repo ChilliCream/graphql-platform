@@ -13,28 +13,28 @@ namespace HotChocolate.Resolvers.CodeGeneration
             new ClassSourceCodeGenerator();
 
         public IEnumerable<FieldResolver> Build(
-            IEnumerable<IFieldResolverDescriptor> fieldResolverDescriptors)
+            IEnumerable<IFieldResolverDescriptor> descriptors)
         {
-            IFieldResolverDescriptor[] descriptors =
-                fieldResolverDescriptors.ToArray();
-            if (descriptors.Length == 0)
+            IFieldResolverDescriptor[] descriptorArr =
+                descriptors.ToArray();
+            if (descriptorArr.Length == 0)
             {
                 yield break;
             }
 
-            string sourceText = _codeGenerator.Generate(descriptors);
+            string sourceText = _codeGenerator.Generate(descriptorArr);
             Assembly assembly = CSharpCompiler.Compile(sourceText);
             Type type = assembly.GetType(
                 ClassSourceCodeGenerator.FullClassName);
 
-            for (var i = 0; i < descriptors.Length; i++)
+            for (var i = 0; i < descriptorArr.Length; i++)
             {
                 string resolverName = _codeGenerator.GetResolverName(i);
                 FieldInfo field = type.GetField(resolverName,
                     BindingFlags.Static | BindingFlags.Public);
                 yield return new FieldResolver(
-                    descriptors[i].Field.TypeName,
-                    descriptors[i].Field.FieldName,
+                    descriptorArr[i].Field.TypeName,
+                    descriptorArr[i].Field.FieldName,
                     (FieldResolverDelegate)field.GetValue(field));
             }
         }

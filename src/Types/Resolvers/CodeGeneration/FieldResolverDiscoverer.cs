@@ -27,6 +27,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 throw new ArgumentNullException(nameof(lookupFieldName));
             }
 
+            return DiscoverResolversInternal(
+                resolverType, sourceType, typeName, lookupFieldName);
+        }
+
+        private static IEnumerable<IFieldResolverDescriptor> DiscoverResolversInternal(
+            Type resolverType, Type sourceType, string typeName,
+            Func<FieldMember, string> lookupFieldName)
+        {
             foreach (FieldMember fieldMember in
                 DiscoverResolvableMembers(resolverType, typeName)
                     .Select(t => t.WithFieldName(lookupFieldName(t))))

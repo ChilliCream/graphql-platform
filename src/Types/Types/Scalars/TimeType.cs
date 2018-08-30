@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     public sealed class TimeType
         : DateTimeTypeBase
     {
-        private bool _withTimeZone;
+        private readonly bool _withTimeZone;
 
         public TimeType(bool withTimeZone)
             : base("Time", "ISO-8601 compliant time type.")

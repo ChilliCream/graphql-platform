@@ -185,7 +185,6 @@ namespace HotChocolate.Configuration
                 Arguments = resolverDescriptor.Arguments
                     .Where(t => t.Kind == ArgumentKind.Argument)
                     .ToArray();
-                ;
             }
 
             public IFieldResolverDescriptor ResolverDescriptor { get; }
