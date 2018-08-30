@@ -53,31 +53,33 @@ namespace HotChocolate.Resolvers
 
         public override bool Equals(object obj)
         {
+            if (obj is null)
+            {
+                return false;
+            }
+
             return IsReferenceEqualTo(obj)
                 || IsEqualTo(obj as FieldReferenceBase);
         }
 
         protected bool IsEqualTo(FieldReferenceBase other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             if (IsReferenceEqualTo(other))
             {
                 return true;
             }
 
-            return other.TypeName.Equals(TypeName)
-                && other.FieldName.Equals(FieldName);
+            return other.TypeName.Equals(TypeName, StringComparison.Ordinal)
+                && other.FieldName.Equals(FieldName, StringComparison.Ordinal);
         }
 
-        protected bool IsReferenceEqualTo<T>(T value)
-            where T : class
-        {
-            if (value is null)
-            {
-                return false;
-            }
-
-            return ReferenceEquals(this, value);
-        }
+        protected bool IsReferenceEqualTo<T>(T value) where T : class
+            => ReferenceEquals(this, value);
 
         public override int GetHashCode()
         {

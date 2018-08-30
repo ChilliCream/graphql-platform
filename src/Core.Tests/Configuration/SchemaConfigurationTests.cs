@@ -51,7 +51,7 @@ namespace HotChocolate.Configuration
             // arrange
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
             resolverContext.Setup(t => t.Parent<TestObjectA>()).Returns(new TestObjectA());
-            resolverContext.Setup(t => t.Service<TestResolverCollectionA>())
+            resolverContext.Setup(t => t.Resolver<TestResolverCollectionA>())
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
 
@@ -96,7 +96,7 @@ namespace HotChocolate.Configuration
             TestObjectB dummyObjectType = new TestObjectB();
 
             Mock<IResolverContext> resolverContext = new Mock<IResolverContext>();
-            resolverContext.Setup(t => t.Service<TestResolverCollectionB>())
+            resolverContext.Setup(t => t.Resolver<TestResolverCollectionB>())
                .Returns(new TestResolverCollectionB());
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);

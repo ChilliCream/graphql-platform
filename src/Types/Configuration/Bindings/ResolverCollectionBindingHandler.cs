@@ -110,7 +110,7 @@ namespace HotChocolate.Configuration
             IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
         {
             foreach (IGrouping<FieldReference, IFieldResolverDescriptor> resolverGroup in
-                resolverDescriptors.GroupBy(r => r.Field))
+                resolverDescriptors.GroupBy(r => r.Field.ToFieldReference()))
             {
                 FieldReference fieldReference = resolverGroup.Key;
                 if (typeRegistry.TryGetObjectTypeField(fieldReference, out ObjectField field))

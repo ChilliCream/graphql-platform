@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers
 {
@@ -15,7 +14,7 @@ namespace HotChocolate.Resolvers
 
         public FieldReference WithTypeName(string typeName)
         {
-            if (string.Equals(TypeName, typeName))
+            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -25,7 +24,7 @@ namespace HotChocolate.Resolvers
 
         public FieldReference WithFieldName(string fieldName)
         {
-            if (string.Equals(FieldName, fieldName))
+            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -45,7 +44,7 @@ namespace HotChocolate.Resolvers
 
         public bool Equals(FieldReference other)
         {
-            return base.IsEqualTo(other);
+            return IsEqualTo(other);
         }
     }
 }

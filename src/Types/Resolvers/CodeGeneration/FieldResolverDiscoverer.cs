@@ -50,7 +50,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             foreach (FieldMember fieldResolverMember in fieldMembers)
             {
-                if (resolverType == sourceType)
+                if (resolverType == null || resolverType == sourceType)
                 {
                     yield return CreateMemberResolverDescriptor(
                         sourceType, fieldResolverMember);

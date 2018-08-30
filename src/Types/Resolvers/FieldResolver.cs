@@ -31,7 +31,7 @@ namespace HotChocolate.Resolvers
 
         public FieldResolver WithTypeName(string typeName)
         {
-            if (string.Equals(TypeName, typeName))
+            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -41,7 +41,7 @@ namespace HotChocolate.Resolvers
 
         public FieldResolver WithFieldName(string fieldName)
         {
-            if (string.Equals(FieldName, fieldName))
+            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -51,7 +51,7 @@ namespace HotChocolate.Resolvers
 
         public FieldResolver WithResolver(FieldResolverDelegate resolver)
         {
-            if (string.Equals(Resolver, resolver))
+            if (Equals(Resolver, resolver))
             {
                 return this;
             }
@@ -66,6 +66,11 @@ namespace HotChocolate.Resolvers
 
         public override bool Equals(object obj)
         {
+            if (obj is null)
+            {
+                return false;
+            }
+
             return IsReferenceEqualTo(obj)
                 || IsEqualTo(obj as FieldResolver);
         }

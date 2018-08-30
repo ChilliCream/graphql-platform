@@ -26,7 +26,7 @@ namespace HotChocolate.Resolvers
 
         public FieldMember WithTypeName(string typeName)
         {
-            if (string.Equals(TypeName, typeName))
+            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -36,7 +36,7 @@ namespace HotChocolate.Resolvers
 
         public FieldMember WithFieldName(string fieldName)
         {
-            if (string.Equals(FieldName, fieldName))
+            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {
                 return this;
             }
@@ -46,7 +46,7 @@ namespace HotChocolate.Resolvers
 
         public FieldMember WithMember(MemberInfo member)
         {
-            if (string.Equals(Member, member))
+            if (Equals(Member, member))
             {
                 return this;
             }
@@ -61,6 +61,11 @@ namespace HotChocolate.Resolvers
 
         public override bool Equals(object obj)
         {
+            if (obj is null)
+            {
+                return false;
+            }
+
             if (IsReferenceEqualTo(obj))
             {
                 return true;
@@ -71,6 +76,16 @@ namespace HotChocolate.Resolvers
 
         private bool IsEqualTo(FieldMember other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (IsReferenceEqualTo(other))
+            {
+                return true;
+            }
+
             return base.IsEqualTo(other)
                 && other.Member.Equals(Member);
         }
