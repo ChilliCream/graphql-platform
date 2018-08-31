@@ -6,17 +6,50 @@ namespace HotChocolate.Types
 {
     public class InputCoercionTests
     {
-        public void Boolean_True_True()
+        /// <summary>
+        /// Converts according to input coercion rules.
+        /// </summary>
+        [Fact]
+        public void ConvertAccordingToInputCoercionRules()
         {
-            // arrange
-            var type = new BooleanType();
-            var value = new BooleanValueNode(true);
+            InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
+                new BooleanValueNode(true), true);
+            InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
+                new BooleanValueNode(false), false);
+            InputIsCoercedCorrectly<IntType, IntValueNode, int>(
+                new IntValueNode("123"), 123);
+            InputIsCoercedCorrectly<FloatType, IntValueNode, double>(
+                new IntValueNode("123"), 123d);
+            InputIsCoercedCorrectly<FloatType, FloatValueNode, double>(
+                new FloatValueNode("123.456"), 123.456d);
+            InputIsCoercedCorrectly<StringType, StringValueNode, string>(
+                new StringValueNode("abc123"), "abc123");
+            InputIsCoercedCorrectly<IdType, StringValueNode, string>(
+                new StringValueNode("123456"), "123456");
+        }
 
-            // act
-
-
-
-            // assert
+        /// <summary>
+        /// Does not convert when input coercion rules reject a value.
+        /// </summary>
+        [Fact]
+        public void ConvertAccordingToInputCoercionRules2()
+        {
+            InputCannotBeCoercedCorrectly<BooleanType, IntValueNode>(
+                new IntValueNode("123"));
+            InputCannotBeCoercedCorrectly<IntType, FloatValueNode>(
+                new FloatValueNode("123.123"));
+            InputCannotBeCoercedCorrectly<IntType, BooleanValueNode>(
+                new BooleanValueNode(true));
+            InputCannotBeCoercedCorrectly<IntType, StringValueNode>(
+                new StringValueNode("123.123"));
+            InputCannotBeCoercedCorrectly<FloatType, StringValueNode>(
+                new StringValueNode("123"));
+            InputCannotBeCoercedCorrectly<StringType, FloatValueNode>(
+                new FloatValueNode("123.456"));
+            InputCannotBeCoercedCorrectly<StringType, BooleanValueNode>(
+                new BooleanValueNode(false));
+            InputIsCoercedCorrectly<IdType, StringValueNode, string>(
+                new StringValueNode("123456"), "123456");
         }
 
         private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
@@ -34,28 +67,20 @@ namespace HotChocolate.Types
             Assert.IsType<TExpected>(coercedValue);
             Assert.Equal(expectedValue, coercedValue);
         }
+
+        private void InputCannotBeCoercedCorrectly<TType, TLiteral>(
+            TLiteral literal)
+            where TType : ScalarType, new()
+            where TLiteral : IValueNode
+        {
+            // arrange
+            var type = new TType();
+
+            // act
+            Action action = () => type.ParseLiteral(literal);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
     }
 }
-
-
-it('converts according to input coercion rules', () => {
-    testCase(GraphQLBoolean, 'true', true);
-    testCase(GraphQLBoolean, 'false', false);
-    testCase(GraphQLInt, '123', 123);
-    testCase(GraphQLFloat, '123', 123);
-    testCase(GraphQLFloat, '123.456', 123.456);
-    testCase(GraphQLString, '"abc123"', 'abc123');
-    testCase(GraphQLID, '123456', '123456');
-    testCase(GraphQLID, '"123456"', '123456');
-});
-
-  it('does not convert when input coercion rules reject a value', () => {
-    testCase(GraphQLBoolean, '123', undefined);
-    testCase(GraphQLInt, '123.456', undefined);
-    testCase(GraphQLInt, 'true', undefined);
-    testCase(GraphQLInt, '"123"', undefined);
-    testCase(GraphQLFloat, '"123"', undefined);
-    testCase(GraphQLString, '123', undefined);
-    testCase(GraphQLString, 'true', undefined);
-    testCase(GraphQLID, '123.456', undefined);
-});
