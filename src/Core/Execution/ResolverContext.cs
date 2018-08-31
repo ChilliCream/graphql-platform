@@ -154,5 +154,11 @@ namespace HotChocolate.Execution
         {
             return _executionContext.GetResolver<T>();
         }
+
+        public void ReportError(string errorMessage)
+            => ReportError(new FieldError(errorMessage, FieldSelection));
+
+        public void ReportError(IQueryError error)
+            => _executionContext.ReportError(error);
     }
 }

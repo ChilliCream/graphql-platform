@@ -122,5 +122,16 @@ namespace HotChocolate.Resolvers
         /// Returns a resolver object containing one or more resolvers.
         /// </returns>
         T Resolver<T>();
+
+        /// <summary>
+        /// Report a non-terminating resolver error to the execution enhgine.
+        /// The error will be displayed in the errorsection with a reference to
+        /// the field selection that is associated with the current
+        /// resolver context.
+        /// </summary>
+        /// <param name="errorMessage">
+        /// The error message.
+        /// </param>
+        void ReportError(string errorMessage);
     }
 }
