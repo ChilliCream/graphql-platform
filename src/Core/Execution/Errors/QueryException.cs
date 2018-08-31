@@ -12,32 +12,35 @@ namespace HotChocolate.Execution
         public QueryException(string message)
             : base(message)
         {
-            Errors = ImmutableList<IQueryError>.Empty
-                .Add(new QueryError(message));
+            var errors = new List<IQueryError> { new QueryError(message) };
+            Errors = errors.AsReadOnly();
         }
 
         public QueryException(IQueryError error)
         {
             if (error == null)
             {
-                Errors = ImmutableList<IQueryError>.Empty;
+                Errors = Array.Empty<IQueryError>();
             }
             else
             {
-                Errors = ImmutableList<IQueryError>.Empty.Add(error);
+                var errors = new List<IQueryError> { error };
+                Errors = errors.AsReadOnly();
             }
         }
 
         public QueryException(params IQueryError[] errors)
         {
-            Errors = errors?.ToImmutableList()
-                ?? ImmutableList<IQueryError>.Empty;
+            Errors = new List<IQueryError>(
+                errors ?? Array.Empty<IQueryError>())
+                    .AsReadOnly();
         }
 
         public QueryException(IEnumerable<IQueryError> errors)
         {
-            Errors = errors?.ToImmutableList()
-                ?? ImmutableList<IQueryError>.Empty;
+            Errors = new List<IQueryError>(
+               errors ?? Array.Empty<IQueryError>())
+                   .AsReadOnly();
         }
 
         protected QueryException(
