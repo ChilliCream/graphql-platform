@@ -54,31 +54,38 @@ namespace HotChocolate.Types
 
             if (_isInputType)
             {
-                if (literal is NullValueNode)
-                {
-                    return true;
-                }
-
-                if (literal is ListValueNode listValueLiteral)
-                {
-                    if (listValueLiteral.Items.Any())
-                    {
-                        IValueNode value = listValueLiteral.Items.First();
-                        if (!_inputType.IsInstanceOfType(value))
-                        {
-                            return !ElementType.IsNonNullType()
-                                   && value is NullValueNode;
-                        }
-
-                        return true;
-                    }
-                    return true;
-                }
-                return false;
+                return IsInstanceOfTypeInternal(literal);
             }
 
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
+        }
+
+        private bool IsInstanceOfTypeInternal(IValueNode literal)
+        {
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (_inputType.IsInstanceOfType(literal))
+            {
+                return true;
+            }
+
+            if (literal is ListValueNode listValueLiteral)
+            {
+                foreach (IValueNode element in listValueLiteral.Items)
+                {
+                    if (!_inputType.IsInstanceOfType(element))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            return false;
         }
 
         public object ParseLiteral(IValueNode literal)
@@ -88,18 +95,35 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (_isInputType)
+            {
+                return ParseLiteralInternal(literal);
+            }
+
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
+        private object ParseLiteralInternal(IValueNode literal)
+        {
             if (literal is NullValueNode)
             {
                 return null;
             }
+
+            if (_inputType.IsInstanceOfType(literal))
+            {
+                return CreateArray(new ListValueNode(literal));
+            }
+
 
             if (_isInputType && literal is ListValueNode listValueLiteral)
             {
                 return CreateArray(listValueLiteral);
             }
 
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
+            throw new ArgumentException(
+                "The specified literal cannot be handled by this list type.");
         }
 
         private object CreateArray(ListValueNode listValueLiteral)

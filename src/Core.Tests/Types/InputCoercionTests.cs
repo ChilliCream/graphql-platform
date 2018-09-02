@@ -59,6 +59,80 @@ namespace HotChocolate.Types
                 new ListValueNode(new BooleanValueNode(true)));
             InputListIsInstanceOfInternal<BooleanType>(
                 new BooleanValueNode(true));
+
+            InputListIsNotInstanceOfInternal<BooleanType>(
+                new ListValueNode(new IValueNode[] {
+                    new BooleanValueNode(true),
+                    new StringValueNode("123") }));
+            InputListIsNotInstanceOfInternal<BooleanType>(
+                new StringValueNode("123"));
+        }
+
+        [Fact]
+        public void ListCanBeCoercedFromListValue()
+        {
+            // arrange
+            var type = new ListType(new BooleanType());
+            var list = new ListValueNode(
+                new[] {
+                    new BooleanValueNode(true),
+                    new BooleanValueNode(false)});
+
+            // act
+            object coercedValue = type.ParseLiteral(list);
+
+            // assert
+            Assert.IsType<bool[]>(coercedValue);
+            Assert.Collection((bool[])coercedValue,
+                t => Assert.True(t),
+                t => Assert.False(t));
+        }
+
+        [Fact]
+        public void ListCanBeCoercedFromListElementValue()
+        {
+            // arrange
+            var type = new ListType(new BooleanType());
+            var element = new BooleanValueNode(true);
+
+            // act
+            object coercedValue = type.ParseLiteral(element);
+
+            // assert
+            Assert.IsType<bool[]>(coercedValue);
+            Assert.Collection((bool[])coercedValue,
+                t => Assert.True(t));
+        }
+
+        [Fact]
+        public void ListCannotBeCoercedFromMixedList()
+        {
+            // arrange
+            var type = new ListType(new BooleanType());
+            var list = new ListValueNode(
+                new IValueNode[] {
+                    new BooleanValueNode(true),
+                    new StringValueNode("foo")});
+
+            // act
+            Action action = () => type.ParseLiteral(list);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
+        {
+            // arrange
+            var type = new ListType(new BooleanType());
+            var element = new StringValueNode("foo");
+
+            // act
+            Action action = () => type.ParseLiteral(element);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
         }
 
         private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
@@ -92,22 +166,6 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentException>(action);
         }
 
-        private void InputListIsCoercedCorrectly<TElement, TLiteral, TExpected>(
-            TLiteral literal, TExpected expectedValue)
-            where TElement : ScalarType, new()
-            where TLiteral : IValueNode
-        {
-            // arrange
-            var type = new ListType(new TElement());
-
-            // act
-            object coercedValue = type.ParseLiteral(literal);
-
-            // assert
-            Assert.IsType<TExpected>(coercedValue);
-            Assert.Equal(expectedValue, coercedValue);
-        }
-
         private void InputListIsInstanceOfInternal<TElement>(
            IValueNode literal)
            where TElement : ScalarType, new()
@@ -120,6 +178,20 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(isInstanceOfType);
+        }
+
+        private void InputListIsNotInstanceOfInternal<TElement>(
+           IValueNode literal)
+           where TElement : ScalarType, new()
+        {
+            // arrange
+            var type = new ListType(new TElement());
+
+            // act
+            bool isInstanceOfType = type.IsInstanceOfType(literal);
+
+            // assert
+            Assert.False(isInstanceOfType);
         }
     }
 }
