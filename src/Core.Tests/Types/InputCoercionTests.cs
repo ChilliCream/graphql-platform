@@ -52,6 +52,15 @@ namespace HotChocolate.Types
                 new StringValueNode("123456"), "123456");
         }
 
+        [Fact]
+        public void InputListIsInstanceOf()
+        {
+            InputListIsInstanceOfInternal<BooleanType>(
+                new ListValueNode(new BooleanValueNode(true)));
+            InputListIsInstanceOfInternal<BooleanType>(
+                new BooleanValueNode(true));
+        }
+
         private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
             TLiteral literal, TExpected expectedValue)
             where TType : ScalarType, new()
@@ -81,6 +90,36 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<ArgumentException>(action);
+        }
+
+        private void InputListIsCoercedCorrectly<TElement, TLiteral, TExpected>(
+            TLiteral literal, TExpected expectedValue)
+            where TElement : ScalarType, new()
+            where TLiteral : IValueNode
+        {
+            // arrange
+            var type = new ListType(new TElement());
+
+            // act
+            object coercedValue = type.ParseLiteral(literal);
+
+            // assert
+            Assert.IsType<TExpected>(coercedValue);
+            Assert.Equal(expectedValue, coercedValue);
+        }
+
+        private void InputListIsInstanceOfInternal<TElement>(
+           IValueNode literal)
+           where TElement : ScalarType, new()
+        {
+            // arrange
+            var type = new ListType(new TElement());
+
+            // act
+            bool isInstanceOfType = type.IsInstanceOfType(literal);
+
+            // assert
+            Assert.True(isInstanceOfType);
         }
     }
 }
