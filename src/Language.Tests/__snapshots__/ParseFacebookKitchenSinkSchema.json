@@ -39,17 +39,17 @@
     },
     {
       "Kind": "ObjectTypeDefinition",
-      "Location": null,
-      "Name": {
-        "Kind": "Name",
-        "Location": null,
-        "Value": "Foo"
-      },
       "Description": {
         "Kind": "StringValue",
         "Location": null,
         "Value": "This is a description\nof the `Foo` type.",
         "Block": true
+      },
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "Foo"
       },
       "Directives": [],
       "Interfaces": [
@@ -441,13 +441,13 @@
     },
     {
       "Kind": "ObjectTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedObject"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -552,13 +552,13 @@
     },
     {
       "Kind": "ObjectTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "UndefinedType"
       },
-      "Description": null,
       "Directives": [],
       "Interfaces": [],
       "Fields": []
@@ -648,13 +648,13 @@
     },
     {
       "Kind": "InterfaceTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "Bar"
       },
-      "Description": null,
       "Directives": [],
       "Fields": [
         {
@@ -730,13 +730,13 @@
     },
     {
       "Kind": "InterfaceTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedInterface"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -819,13 +819,13 @@
     },
     {
       "Kind": "InterfaceTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "UndefinedInterface"
       },
-      "Description": null,
       "Directives": [],
       "Fields": []
     },
@@ -912,13 +912,13 @@
     },
     {
       "Kind": "UnionTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "Feed"
       },
-      "Description": null,
       "Directives": [],
       "Types": [
         {
@@ -952,13 +952,13 @@
     },
     {
       "Kind": "UnionTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedUnion"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -994,13 +994,13 @@
     },
     {
       "Kind": "UnionTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedUnionTwo"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -1036,13 +1036,13 @@
     },
     {
       "Kind": "UnionTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "UndefinedUnion"
       },
-      "Description": null,
       "Directives": [],
       "Types": []
     },
@@ -1100,24 +1100,24 @@
     },
     {
       "Kind": "ScalarTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "CustomScalar"
       },
-      "Description": null,
       "Directives": []
     },
     {
       "Kind": "ScalarTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedScalar"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -1154,13 +1154,13 @@
     },
     {
       "Kind": "EnumTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "Site"
       },
-      "Description": null,
       "Directives": [],
       "Values": [
         {
@@ -1189,13 +1189,13 @@
     },
     {
       "Kind": "EnumTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedEnum"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -1246,13 +1246,13 @@
     },
     {
       "Kind": "EnumTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "UndefinedEnum"
       },
-      "Description": null,
       "Directives": [],
       "Values": []
     },
@@ -1303,13 +1303,13 @@
     },
     {
       "Kind": "InputObjectTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "InputType"
       },
-      "Description": null,
       "Directives": [],
       "Fields": [
         {
@@ -1366,13 +1366,13 @@
     },
     {
       "Kind": "InputObjectTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "AnnotatedInput"
       },
-      "Description": null,
       "Directives": [
         {
           "Kind": "Directive",
@@ -1422,13 +1422,13 @@
     },
     {
       "Kind": "InputObjectTypeDefinition",
+      "Description": null,
       "Location": null,
       "Name": {
         "Kind": "Name",
         "Location": null,
         "Value": "UndefinedInput"
       },
-      "Description": null,
       "Directives": [],
       "Fields": []
     },
@@ -1668,7 +1668,7 @@
           "Arguments": []
         }
       ],
-      "OperationTypes": null
+      "OperationTypes": []
     },
     {
       "Kind": "SchemaExtension",

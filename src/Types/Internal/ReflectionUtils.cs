@@ -17,10 +17,11 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(memberExpression));
             }
 
+            Expression unwrappedExpr = Unwrap(memberExpression);
             if (TryExtractMemberFromMemberExpression(
-                    memberExpression, out MemberInfo member)
+                    typeof(T), unwrappedExpr, out MemberInfo member)
                 || TryExtractMemberFromMemberCallExpression(
-                    memberExpression, out member))
+                    typeof(T), unwrappedExpr, out member))
             {
                 return member;
             }
@@ -32,13 +33,12 @@ namespace HotChocolate.Internal
                 nameof(memberExpression));
         }
 
-        private static bool TryExtractMemberFromMemberExpression<T, TPropertyType>(
-            Expression<Func<T, TPropertyType>> memberExpression,
+        private static bool TryExtractMemberFromMemberExpression(
+            Type type,
+            Expression memberExpression,
             out MemberInfo member)
         {
-            Type type = typeof(T);
-
-            if (memberExpression.Body is MemberExpression m
+            if (memberExpression is MemberExpression m
                 && m.Member.IsPublic())
             {
                 if (m.Member is PropertyInfo pi
@@ -61,13 +61,22 @@ namespace HotChocolate.Internal
             return false;
         }
 
-        private static bool TryExtractMemberFromMemberCallExpression<T, TPropertyType>(
-            Expression<Func<T, TPropertyType>> memberExpression,
+        private static Expression Unwrap<T, TPropertyType>(
+            Expression<Func<T, TPropertyType>> memberExpression)
+        {
+            if (memberExpression.Body is UnaryExpression u)
+            {
+                return u.Operand;
+            }
+            return memberExpression.Body;
+        }
+
+        private static bool TryExtractMemberFromMemberCallExpression(
+            Type type,
+            Expression memberExpression,
             out MemberInfo member)
         {
-            Type type = typeof(T);
-
-            if (memberExpression.Body is MethodCallExpression mc
+            if (memberExpression is MethodCallExpression mc
                 && mc.Method.IsPublic()
                 && mc.Method.DeclaringType.IsAssignableFrom(type)
                 && !mc.Method.IsSpecialName)

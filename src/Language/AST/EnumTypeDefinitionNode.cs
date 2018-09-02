@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class EnumTypeDefinitionNode
-        : ITypeDefinitionNode
-        , IHasDirectives
+        : EnumTypeDefinitionNodeBase
+        , ITypeDefinitionNode
     {
         public EnumTypeDefinitionNode(
             Location location,
@@ -13,34 +13,12 @@ namespace HotChocolate.Language
             StringValueNode description,
             IReadOnlyCollection<DirectiveNode> directives,
             IReadOnlyCollection<EnumValueDefinitionNode> values)
+            : base(location, name, directives, values)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            if (values == null)
-            {
-                throw new ArgumentNullException(nameof(values));
-            }
-
-            Location = location;
-            Name = name;
             Description = description;
-            Directives = directives;
-            Values = values;
         }
 
-        public NodeKind Kind { get; } = NodeKind.EnumTypeDefinition;
-        public Location Location { get; }
-        public NameNode Name { get; }
+        public override NodeKind Kind { get; } = NodeKind.EnumTypeDefinition;
         public StringValueNode Description { get; }
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
-        public IReadOnlyCollection<EnumValueDefinitionNode> Values { get; }
     }
 }

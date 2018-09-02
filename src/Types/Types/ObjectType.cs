@@ -104,7 +104,8 @@ namespace HotChocolate.Types
                 var field = new ObjectField(fieldDescription);
                 fields.Add(field);
 
-                if (fieldDescription.Member != null)
+                if (fieldDescription.ResolverType == null
+                    && fieldDescription.Member != null)
                 {
                     fieldBindings.Add(new FieldBinding(
                         field.Name, fieldDescription.Member, field));
@@ -199,8 +200,9 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return context.GetType().Name
-                .Equals(Name, StringComparison.Ordinal);
+
+            Type type = result.GetType();
+            return type.Name.Equals(Name, StringComparison.Ordinal);
         }
 
         private void CompleteInterfaces(

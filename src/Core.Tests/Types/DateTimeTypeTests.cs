@@ -124,16 +124,12 @@ namespace HotChocolate.Types
         {
             // arrange
             DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime =
-                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            string expectedLiteralValue = "2018-06-11T08:46:14+00:00";
 
             // act
-            StringValueNode stringLiteral =
-                (StringValueNode)dateTimeType.ParseValue(dateTime);
+            IValueNode literal = dateTimeType.ParseValue(null);
 
             // assert
-            Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+            Assert.IsType<NullValueNode>(literal);
         }
 
         [Fact]

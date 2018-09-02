@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -16,32 +15,6 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             descriptor.Field("appearsIn").Type<ListType<EpisodeType>>();
             descriptor.Field("height").Type<FloatType>()
                 .Argument("unit", a => a.Type<EnumType<Unit>>());
-        }
-
-        public static IEnumerable<ICharacter> GetCharacter(
-            IResolverContext context)
-        {
-            ICharacter character = context.Parent<ICharacter>();
-            CharacterRepository repository = context.Service<CharacterRepository>();
-            foreach (string friendId in character.Friends)
-            {
-                ICharacter friend = repository.GetCharacter(friendId);
-                if (friend != null)
-                {
-                    yield return friend;
-                }
-            }
-        }
-
-        public static double GetHeight(
-            IResolverContext context)
-        {
-            double height = context.Parent<ICharacter>().Height;
-            if (context.Argument<Unit?>("unit") == Unit.Foot)
-            {
-                return height * 3.28084d;
-            }
-            return height;
         }
     }
 }

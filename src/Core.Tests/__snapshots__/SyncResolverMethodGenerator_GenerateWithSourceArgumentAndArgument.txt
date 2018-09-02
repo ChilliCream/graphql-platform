@@ -1,11 +1,11 @@
 /* Foo.bar */
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var b = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
-var c = ctx.Argument<System.String>("b");
-var resolver = ctx.Service<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
+var v0_a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
+var v1_b = ctx.Argument<System.String>("b");
+var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
 try
 {
-return resolver.GetFoo(b, c);
+return resolver.GetFoo(v0_a, v1_b);
 }
 catch(HotChocolate.Execution.QueryException ex)
 {

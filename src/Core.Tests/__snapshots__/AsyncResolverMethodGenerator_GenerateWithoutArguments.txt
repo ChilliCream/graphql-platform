@@ -1,6 +1,6 @@
 /* Foo.bar */
 public static FieldResolverDelegate abc  = (ctx, ct) => {
-var resolver = ctx.Service<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
+var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
 Func<Task<object>> f = async () => {
 try
 {

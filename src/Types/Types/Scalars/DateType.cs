@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public class DateType
+    public sealed class DateType
         : DateTimeTypeBase
     {
         public DateType()

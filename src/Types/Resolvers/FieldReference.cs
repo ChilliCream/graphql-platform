@@ -1,73 +1,50 @@
 using System;
+using System.Reflection;
 
 namespace HotChocolate.Resolvers
 {
-    public class FieldReference
-        : IEquatable<FieldReference>
+    public sealed class FieldReference
+        : FieldReferenceBase
+        , IEquatable<FieldReference>
     {
         public FieldReference(string typeName, string fieldName)
+            : base(typeName, fieldName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
-
-            TypeName = typeName;
-            FieldName = fieldName;
         }
 
-        public string TypeName { get; }
+        public FieldReference WithTypeName(string typeName)
+        {
+            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
+            {
+                return this;
+            }
 
-        public string FieldName { get; }
+            return new FieldReference(typeName, FieldName);
+        }
+
+        public FieldReference WithFieldName(string fieldName)
+        {
+            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
+            {
+                return this;
+            }
+
+            return new FieldReference(TypeName, fieldName);
+        }
+
+        public FieldMember WithMember(MemberInfo member)
+        {
+            return new FieldMember(TypeName, FieldName, member);
+        }
+
+        public FieldResolver WithResolver(FieldResolverDelegate resolver)
+        {
+            return new FieldResolver(TypeName, FieldName, resolver);
+        }
 
         public bool Equals(FieldReference other)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return other.TypeName.Equals(TypeName)
-                && other.FieldName.Equals(FieldName);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            return Equals(obj as FieldReference);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (TypeName.GetHashCode() * 397)
-                    ^ (FieldName.GetHashCode() * 17);
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{TypeName}.{FieldName}";
+            return IsEqualTo(other);
         }
     }
 }

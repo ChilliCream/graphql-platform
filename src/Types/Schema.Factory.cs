@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
@@ -110,6 +111,10 @@ namespace HotChocolate
                 var configuration = new SchemaConfiguration(
                     context.RegisterServiceProvider,
                     context.Types);
+
+                configuration.RegisterCustomContext<IResolverCache>(
+                    ExecutionScope.Global,
+                    s => new ResolverCache());
 
                 configure(configuration);
 

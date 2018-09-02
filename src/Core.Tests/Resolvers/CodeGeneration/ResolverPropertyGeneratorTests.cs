@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,12 +13,13 @@ namespace HotChocolate.Resolvers
         public void ResolverPropertyGenerator_Generate()
         {
             // arrange
-            PropertyInfo property = typeof(GeneratorTestDummyResolver)
-                .GetProperties().Single();
-            
-            var descriptor = FieldResolverDescriptor
-                .CreateCollectionProperty(new FieldReference("Foo", "bar"),
-                    property.ReflectedType, typeof(GeneratorTestDummy), property);
+            Type sourceType = typeof(GeneratorTestDummy);
+
+            var fieldMember = new FieldMember(
+                "Foo", "bar",
+                GetProperty());
+
+            var descriptor = new ResolverDescriptor(sourceType, fieldMember);
 
             // act
             var source = new StringBuilder();
@@ -26,6 +28,12 @@ namespace HotChocolate.Resolvers
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        private PropertyInfo GetProperty()
+        {
+            return typeof(GeneratorTestDummyResolver)
+                .GetProperties().Single();
         }
     }
 }

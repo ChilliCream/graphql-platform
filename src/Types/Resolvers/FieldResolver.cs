@@ -2,11 +2,12 @@ using System;
 
 namespace HotChocolate.Resolvers
 {
-    // TODO : Rename this class or Execution.FieldResolver
     public sealed class FieldResolver
-        : FieldReference
+        : FieldReferenceBase
         , IEquatable<FieldResolver>
     {
+        private FieldReference _fieldReference;
+
         public FieldResolver(
             string typeName, string fieldName,
             FieldResolverDelegate resolver)
@@ -16,23 +17,51 @@ namespace HotChocolate.Resolvers
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
 
+        public FieldResolver(
+            FieldReference fieldReference,
+            FieldResolverDelegate resolver)
+            : base(fieldReference)
+        {
+            _fieldReference = fieldReference;
+            Resolver = resolver
+                ?? throw new ArgumentNullException(nameof(resolver));
+        }
+
         public FieldResolverDelegate Resolver { get; }
+
+        public FieldResolver WithTypeName(string typeName)
+        {
+            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
+            {
+                return this;
+            }
+
+            return new FieldResolver(typeName, FieldName, Resolver);
+        }
+
+        public FieldResolver WithFieldName(string fieldName)
+        {
+            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
+            {
+                return this;
+            }
+
+            return new FieldResolver(TypeName, fieldName, Resolver);
+        }
+
+        public FieldResolver WithResolver(FieldResolverDelegate resolver)
+        {
+            if (Equals(Resolver, resolver))
+            {
+                return this;
+            }
+
+            return new FieldResolver(TypeName, FieldName, resolver);
+        }
 
         public bool Equals(FieldResolver other)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return other.TypeName.Equals(TypeName)
-                && other.FieldName.Equals(FieldName)
-                && other.Resolver.Equals(Resolver);
+            return IsEqualTo(other);
         }
 
         public override bool Equals(object obj)
@@ -42,27 +71,38 @@ namespace HotChocolate.Resolvers
                 return false;
             }
 
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
+            return IsReferenceEqualTo(obj)
+                || IsEqualTo(obj as FieldResolver);
+        }
 
-            return Equals(obj as FieldResolver);
+        private bool IsEqualTo(FieldResolver other)
+        {
+            return base.IsEqualTo(other)
+                && other.Resolver.Equals(Resolver);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return (TypeName.GetHashCode() * 397)
-                    ^ (FieldName.GetHashCode() * 17)
-                    ^ (Resolver.GetHashCode() * 3);
+                return (base.GetHashCode() * 397)
+                    ^ (Resolver.GetHashCode() * 17);
             }
         }
 
         public override string ToString()
         {
             return $"{TypeName}.{FieldName}";
+        }
+
+        public FieldReference ToFieldReference()
+        {
+            if (_fieldReference == null)
+            {
+                _fieldReference = new FieldReference(TypeName, FieldName);
+            }
+
+            return _fieldReference;
         }
     }
 }
