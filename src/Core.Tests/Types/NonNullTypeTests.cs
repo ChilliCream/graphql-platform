@@ -37,7 +37,7 @@ namespace HotChocolate.Types
 
             NonNullType type = new NonNullType(innerType);
             bool shouldBeFalse = type.IsInstanceOfType(
-                new StringValueNode("foo"));
+                new IntValueNode("123"));
             bool shouldBeTrue = type.IsInstanceOfType(
                 new ListValueNode(new[] { new StringValueNode("foo") }));
 
