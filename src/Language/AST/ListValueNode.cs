@@ -9,6 +9,25 @@ namespace HotChocolate.Language
     {
         private int? _hash;
 
+        public ListValueNode(IValueNode item)
+            : this(null, item)
+        {
+        }
+
+        public ListValueNode(Location location, IValueNode item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            var items = new List<IValueNode>(1);
+            items.Add(item);
+
+            Location = location;
+            Items = items.AsReadOnly();
+        }
+
         public ListValueNode(
             IReadOnlyList<IValueNode> items)
             : this(null, items)
