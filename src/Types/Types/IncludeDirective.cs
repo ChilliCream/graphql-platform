@@ -1,7 +1,7 @@
 namespace HotChocolate.Types
 {
     public class IncludeDirective
-        : Directive
+        : DirectiveType
     {
         internal IncludeDirective()
         {

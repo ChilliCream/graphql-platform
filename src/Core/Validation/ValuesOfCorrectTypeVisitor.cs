@@ -12,7 +12,7 @@ namespace HotChocolate.Validation
     {
         private readonly HashSet<ObjectValueNode> _visited =
             new HashSet<ObjectValueNode>();
-        private readonly Dictionary<string, Directive> _directives;
+        private readonly Dictionary<string, DirectiveType> _directives;
 
         public ValuesOfCorrectTypeVisitor(ISchema schema)
             : base(schema)
@@ -75,7 +75,7 @@ namespace HotChocolate.Validation
         {
             if (_directives.TryGetValue(
                 directive.Name.Value,
-                out Directive d))
+                out DirectiveType d))
             {
                 foreach (ArgumentNode argument in directive.Arguments)
                 {

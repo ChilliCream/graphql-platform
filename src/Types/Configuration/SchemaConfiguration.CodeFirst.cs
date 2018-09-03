@@ -89,12 +89,12 @@ namespace HotChocolate.Configuration
 
         #region Directives
 
-        public void RegisterDirective<T>() where T : Directive
+        public void RegisterDirective<T>() where T : DirectiveType
         {
             throw new NotImplementedException();
         }
 
-        public void RegisterDirective<T>(T directive) where T : Directive
+        public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
             throw new NotImplementedException();
         }

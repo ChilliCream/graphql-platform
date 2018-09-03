@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,15 +7,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
 
-    public class Directive
+    public class DirectiveType
         : TypeSystemBase
     {
-        internal Directive(Action<IDirectiveDescriptor> configure)
+        internal DirectiveType(Action<IDirectiveDescriptor> configure)
         {
             Initialize(configure);
         }
 
-        protected Directive()
+        protected DirectiveType()
         {
             Initialize(Configure);
         }
@@ -84,5 +84,11 @@ namespace HotChocolate.Types
         }
 
         #endregion
+    }
+
+    public class DirectiveType<TDirective>
+        : TypeSystemBase
+    {
+
     }
 }

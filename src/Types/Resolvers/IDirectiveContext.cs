@@ -14,4 +14,10 @@ namespace HotChocolate.Resolvers
 
         Task<T> ResolveFieldAsync<T>();
     }
+
+    public interface IDirectiveContext<T>
+        where T : class
+    {
+        T Directive { get; }
+    }
 }

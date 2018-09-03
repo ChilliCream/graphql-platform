@@ -73,7 +73,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
-        public IReadOnlyCollection<Directive> Directives { get; }
+        public IReadOnlyCollection<DirectiveType> Directives { get; }
 
         /// <summary>
         /// Gets the session manager which can be used to create

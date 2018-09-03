@@ -18,7 +18,7 @@ namespace HotChocolate.Types
             typeFinalizer.FinalizeTypes(schemaContext, null);
 
             // assert
-            Directive directive = schemaContext.Directives
+            DirectiveType directive = schemaContext.Directives
                 .GetDirectives().FirstOrDefault(t => t.Name == "skip");
 
             // assert
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
             typeFinalizer.FinalizeTypes(schemaContext, null);
 
             // assert
-            Directive directive = schemaContext.Directives
+            DirectiveType directive = schemaContext.Directives
                 .GetDirectives().FirstOrDefault(t => t.Name == "include");
 
             // assert
@@ -74,7 +74,7 @@ namespace HotChocolate.Types
         public void ConfigureIsNull()
         {
             // act
-            Action a = () => new Directive(null);
+            Action a = () => new DirectiveType(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
         public void NoName()
         {
             // act
-            Action a = () => new Directive(d => { });
+            Action a = () => new DirectiveType(d => { });
 
             // assert
             Assert.Throws<InvalidOperationException>(a);

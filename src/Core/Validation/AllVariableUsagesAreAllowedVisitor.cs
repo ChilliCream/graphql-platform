@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
     internal sealed class AllVariableUsagesAreAllowedVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, Directive> _directives;
+        private readonly Dictionary<string, DirectiveType> _directives;
         private readonly Dictionary<string, VariableDefinitionNode> _variableDefinitions
             = new Dictionary<string, VariableDefinitionNode>();
         private readonly List<VariableUsage> _variablesUsages =
@@ -65,7 +65,7 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out Directive d))
+            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d))
             {
                 ValidateArguments(d.Arguments, directive.Arguments);
             }

@@ -1,7 +1,7 @@
 namespace HotChocolate.Types
 {
     public class SkipDirective
-        : Directive
+        : DirectiveType
     {
         internal SkipDirective()
         {

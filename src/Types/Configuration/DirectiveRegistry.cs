@@ -7,15 +7,15 @@ namespace HotChocolate.Configuration
     internal class DirectiveRegistry
         : IDirectiveRegistry
     {
-        private readonly List<Directive> _directives = new List<Directive>();
+        private readonly List<DirectiveType> _directives = new List<DirectiveType>();
 
         public void RegisterDirective<T>()
-            where T : Directive, new()
+            where T : DirectiveType, new()
         {
             RegisterDirective(new T());
         }
 
-        public void RegisterDirective<T>(T directive) where T : Directive
+        public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
             if (directive == null)
             {
@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration
             _directives.Add(directive);
         }
 
-        public IReadOnlyCollection<Directive> GetDirectives()
+        public IReadOnlyCollection<DirectiveType> GetDirectives()
         {
             return _directives;
         }

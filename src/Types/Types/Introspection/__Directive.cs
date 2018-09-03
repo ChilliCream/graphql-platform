@@ -20,19 +20,19 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field("name")
                 .Type<NonNullType<StringType>>()
-                .Resolver(c => c.Parent<Directive>().Name);
+                .Resolver(c => c.Parent<DirectiveType>().Name);
 
             descriptor.Field("description")
                 .Type<StringType>()
-                .Resolver(c => c.Parent<Directive>().Description);
+                .Resolver(c => c.Parent<DirectiveType>().Description);
 
             descriptor.Field("locations")
                 .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
-                .Resolver(c => c.Parent<Directive>().Locations);
+                .Resolver(c => c.Parent<DirectiveType>().Locations);
 
             descriptor.Field("args")
                 .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolver(c => c.Parent<Directive>().Arguments);
+                .Resolver(c => c.Parent<DirectiveType>().Arguments);
 
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Introspection
         private static bool GetOnOperation(IResolverContext context)
         {
             IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+                context.Parent<DirectiveType>().Locations;
 
             return Contains(locations, DirectiveLocation.Query)
                 || Contains(locations, DirectiveLocation.Mutation)
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Introspection
         private static bool GetOnFragment(IResolverContext context)
         {
             IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+                context.Parent<DirectiveType>().Locations;
 
             return Contains(locations, DirectiveLocation.InlineFragment)
                 || Contains(locations, DirectiveLocation.FragmentSpread)
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Introspection
         private static bool GetOnField(IResolverContext context)
         {
             IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+                context.Parent<DirectiveType>().Locations;
 
             return Contains(locations, DirectiveLocation.Field);
         }
