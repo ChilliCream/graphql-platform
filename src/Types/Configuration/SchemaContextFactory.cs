@@ -46,6 +46,8 @@ namespace HotChocolate.Configuration
                 new TypeReference(typeof(DateType)));
             schemaContext.Types.RegisterType(
                 new TypeReference(typeof(UuidType)));
+            schemaContext.Types.RegisterType(
+                new TypeReference(typeof(UrlType)));
         }
 
         private static void RegisterIntrospectionTypes(
