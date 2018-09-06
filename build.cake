@@ -128,9 +128,21 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
     };
 
+    var settings2 = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}/66",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args.Append($"/p:CollectCoverage=true")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
+    };
+
     DotNetCoreTest("./src/Language.Tests", settings);
     DotNetCoreTest("./src/Runtime.Tests", settings);
-    DotNetCoreTest("./src/Core.Tests", settings);
+    DotNetCoreTest("./src/Core.Tests", settings2);
     DotNetCoreTest("./src/AspNetCore.Tests", settings);
 });
 
