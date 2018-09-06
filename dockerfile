@@ -1,5 +1,5 @@
 # Build image
-FROM microsoft/dotnet:2.1-sdk-stretch AS builder
+FROM microsoft/dotnet:2.1.401-sdk-stretch AS builder
 
 # Install mono for Cake
 ENV MONO_VERSION 5.14
