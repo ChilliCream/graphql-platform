@@ -3,7 +3,7 @@ jobs:
   pull-request:
     working_directory: ~/tmp
     docker:
-      - image: microsoft/dotnet:2.1-sdk-stretch
+      - image: chillicream/dotnet-build
     steps:
       - checkout
       - run:
@@ -12,7 +12,7 @@ jobs:
   release:
     working_directory: ~/tmp
     docker:
-      - image: microsoft/dotnet:2.1-sdk-stretch
+      - image: chillicream/dotnet-build
     steps:
       - checkout
       - run:
