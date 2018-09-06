@@ -1,7 +1,7 @@
 version: 2
 jobs:
   pull-request:
-    working_directory: ~/tmp
+    working_directory: /work
     docker:
       - image: chillicream/dotnet-build:1.0
     steps:
@@ -12,7 +12,7 @@ jobs:
       - store_test_results:
           path: testoutput
   release:
-    working_directory: ~/tmp
+    working_directory: /work
     docker:
       - image: chillicream/dotnet-build:1.0
     steps:

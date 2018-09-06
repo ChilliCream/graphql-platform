@@ -1,17 +1,10 @@
-# Build image
-FROM microsoft/dotnet:2.1.401-sdk-stretch AS builder
+FROM chillicream/dotnet-build:1.0 AS builder
 
-# Install mono for Cake
-ENV MONO_VERSION 5.14
+COPY ./ ./work
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+ENV Version 0.5.0-build
+ENV sonarLogin eab9e4c6dc7d68aca12a4784520831344e7d2ed7
 
-RUN echo "deb http://download.mono-project.com/repo/debian stretch/snapshots/$MONO_VERSION main" > /etc/apt/sources.list.d/mono-official.list \
-  && apt-get update \
-  && apt-get install -y mono-runtime \
-  && rm -rf /var/lib/apt/lists/* /tmp/*
+WORKDIR ./work
 
-RUN apt-get update \
-  && apt-get install -y binutils curl mono-devel ca-certificates-mono fsharp mono-vbnc nuget referenceassemblies-pcl \
-  && rm -rf /var/lib/apt/lists/* /tmp/*
-
+RUN ./build.sh -t release
