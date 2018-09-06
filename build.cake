@@ -10,13 +10,14 @@ var configuration = Argument("configuration", "Release");
 var sonarLogin = Argument("sonarLogin", default(string));
 var sonarBranch = Argument("sonarBranch", default(string));
 var sonarBranchTitle = Argument("sonarBranchTitle", default(string));
+var packageVersion = Argument("packageVersion", default(string));
 
 
 //////////////////////////////////////////////////////////////////////
 // PREPARATION
 //////////////////////////////////////////////////////////////////////
-// Define directories.
 var testOutputDir = Directory("./testoutput");
+var publishOutputDir = Directory("./artifacts");
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -24,21 +25,17 @@ var testOutputDir = Directory("./testoutput");
 Task("EnvironmentSetup")
     .Does(() =>
 {
-    string version = EnvironmentVariable("APPVEYOR_REPO_TAG_NAME");
+    string version = packageVersion;
     if(string.IsNullOrEmpty(version))
     {
-        version = EnvironmentVariable("APPVEYOR_BUILD_VERSION");
-    }
-
-    if(string.IsNullOrEmpty(version))
-    {
-        version = EnvironmentVariable("Version");
+        version =  EnvironmentVariable("CIRCLE_TAG")
+            ?? EnvironmentVariable("Version");
     }
 
     if(string.IsNullOrEmpty(sonarBranch))
     {
-        sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
-        sonarBranchTitle = EnvironmentVariable("APPVEYOR_PULL_REQUEST_TITLE");
+        sonarBranch = EnvironmentVariable("CIRCLE_PR_NUMBER");
+        sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST");
     }
 
     Environment.SetEnvironmentVariable("Version", version);
@@ -65,8 +62,38 @@ Task("Build")
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
+        NoRestore = true
     };
     DotNetCoreBuild("./src", settings);
+});
+
+Task("Publish")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    var settings = new DotNetCorePackSettings
+    {
+        Configuration = configuration,
+        OutputDirectory = publishOutputDir,
+        NoRestore = true,
+        NoBuild = true,
+        IncludeSource = true,
+        IncludeSymbols = true,
+        ArgumentCustomization = args =>
+        {
+            var a = args;
+            var version = EnvironmentVariable("Version");
+
+            if(!string.IsNullOrEmpty(version))
+            {
+                a = a.Append($"/p:PackageVersion={version}");
+                a = a.Append($"/p:VersionPrefix={version.Split('-').First()}");
+            }
+
+            return a;
+        }
+    };
+    DotNetCorePack("./src", settings);
 });
 
 Task("Tests")
@@ -77,12 +104,12 @@ Task("Tests")
     var settings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
-        ArgumentCustomization = args => args.Append($"/p:CollectCoverage=true")
-            .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\""),
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = true
+        NoRestore = true,
+        ArgumentCustomization = args => args.Append($"/p:CollectCoverage=true")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
     };
 
     DotNetCoreTest("./src/Language.Tests", settings);
@@ -137,10 +164,14 @@ Task("Default")
     .IsDependentOn("Tests");
 
 Task("Sonar")
-  .IsDependentOn("SonarBegin")
-  .IsDependentOn("Build")
-  .IsDependentOn("Tests")
-  .IsDependentOn("SonarEnd");
+    .IsDependentOn("SonarBegin")
+    .IsDependentOn("Build")
+    .IsDependentOn("Tests")
+    .IsDependentOn("SonarEnd");
+
+Task("Release")
+    .IsDependentOn("Sonar")
+    .IsDependentOn("Publish");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

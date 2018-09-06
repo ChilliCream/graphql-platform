@@ -1,5 +1,0 @@
-version: 1.0.{build}
-image: Visual Studio 2015
-build_script:
-- cmd: PowerShell -Version 2.0 .\build.ps1
-test: off
