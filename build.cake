@@ -25,12 +25,12 @@ var publishOutputDir = Directory("./artifacts");
 Task("EnvironmentSetup")
     .Does(() =>
 {
-    string version = packageVersion;
-    if(string.IsNullOrEmpty(version))
+    if(string.IsNullOrEmpty(packageVersion))
     {
-        version =  EnvironmentVariable("CIRCLE_TAG")
+        packageVersion = EnvironmentVariable("CIRCLE_TAG")
             ?? EnvironmentVariable("Version");
     }
+    Environment.SetEnvironmentVariable("Version", packageVersion);
 
     if(string.IsNullOrEmpty(sonarBranch))
     {
@@ -38,7 +38,10 @@ Task("EnvironmentSetup")
         sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST");
     }
 
-    Environment.SetEnvironmentVariable("Version", version);
+    if(string.IsNullOrEmpty(sonarLogin))
+    {
+        sonarLogin = EnvironmentVariable("SONAR_TOKEN");
+    }
 });
 
 Task("Clean")
@@ -82,12 +85,11 @@ Task("Publish")
         ArgumentCustomization = args =>
         {
             var a = args;
-            var version = EnvironmentVariable("Version");
 
-            if(!string.IsNullOrEmpty(version))
+            if(!string.IsNullOrEmpty(packageVersion))
             {
-                a = a.Append($"/p:PackageVersion={version}");
-                a = a.Append($"/p:VersionPrefix={version.Split('-').First()}");
+                a = a.Append($"/p:PackageVersion={packageVersion}");
+                a = a.Append($"/p:VersionPrefix={packageVersion.Split('-').First()}");
             }
 
             return a;
@@ -130,7 +132,7 @@ Task("SonarBegin")
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
         Verbose = true,
-        Version = EnvironmentVariable("Version"),
+        Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
 
