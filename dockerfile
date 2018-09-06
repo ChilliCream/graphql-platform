@@ -30,12 +30,3 @@ RUN apt-get install apt-transport-https \
 RUN apt-get update \
   && apt-get install default-jdk -y \
   && apt-get install git -y
-
-COPY ./ ./work
-
-ENV Version 0.5.0-build
-ENV SONAR_TOKEN 9333dd56fa2a4a28cb61ac99b74b3bb9b139d4cb
-
-WORKDIR ./work
-
-RUN ./build.sh -t release
