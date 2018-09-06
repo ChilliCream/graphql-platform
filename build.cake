@@ -70,6 +70,19 @@ Task("Build")
     DotNetCoreBuild("./src", settings);
 });
 
+
+Task("Build-Debug")
+    .IsDependentOn("Restore")
+    .Does(() =>
+{
+    var settings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = true
+    };
+    DotNetCoreBuild("./src", settings);
+});
+
 Task("Publish")
     .IsDependentOn("Build")
     .Does(() =>
@@ -99,7 +112,7 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("Restore")
+    .IsDependentOn("Build-Debug")
     .Does(() =>
 {
     int i = 0;
@@ -109,6 +122,7 @@ Task("Tests")
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
         NoRestore = true,
+        NoBuild = true,
         ArgumentCustomization = args => args.Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
@@ -167,7 +181,6 @@ Task("Default")
 
 Task("Sonar")
     .IsDependentOn("SonarBegin")
-    .IsDependentOn("Build")
     .IsDependentOn("Tests")
     .IsDependentOn("SonarEnd");
 
