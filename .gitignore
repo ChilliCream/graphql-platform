@@ -294,3 +294,10 @@ coverage.json
 BenchmarkDotNet.Artifacts
 .sonarqube/
 .testresults
+
+# Build related
+tools/**
+!tools/packages.config
+
+testoutput/
+artifacts/
