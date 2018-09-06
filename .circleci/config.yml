@@ -3,7 +3,7 @@ jobs:
   pull-request:
     working_directory: ~/tmp
     docker:
-      - image: chillicream/dotnet-build
+      - image: chillicream/dotnet-build:1.0
     steps:
       - checkout
       - run:
@@ -12,7 +12,7 @@ jobs:
   release:
     working_directory: ~/tmp
     docker:
-      - image: chillicream/dotnet-build
+      - image: chillicream/dotnet-build:1.0
     steps:
       - checkout
       - run:
