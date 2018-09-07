@@ -76,7 +76,7 @@ namespace HotChocolate.Types
         ///   .Type<ListType<StringType>>();
         ///   .Resolver<List<string>>(() => new List<string>())
         /// </summary>
-        [Fact(Skip = "Fix this for circle CI")]
+        [Fact]
         public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
         {
             // act
