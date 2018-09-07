@@ -118,7 +118,6 @@ Task("Tests")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => args
-            .Append($"-v diag")
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
