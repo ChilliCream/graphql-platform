@@ -1,5 +1,7 @@
 FROM chillicream/dotnet-build:2.0 AS Build
 
-COPY ./build.sh ./build.cake ./NuGet.config ./tools/ ./build/
+COPY ./ /build/
 
-RUN ./build/build.sh -t Clean
+WORKDIR /build/
+
+RUN ./build.sh -t Clean
