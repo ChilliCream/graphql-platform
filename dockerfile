@@ -1,4 +1,4 @@
-FROM  ubuntu:18.10 AS builder
+FROM ubuntu:18.10 AS Base
 
 ENV MONO_VERSION 5.4.1.6
 
@@ -30,3 +30,6 @@ RUN apt-get install apt-transport-https \
 RUN apt-get update \
   && apt-get install default-jdk -y \
   && apt-get install git -y
+
+
+

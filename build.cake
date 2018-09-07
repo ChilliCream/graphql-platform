@@ -123,15 +123,17 @@ Task("Tests")
         Logger = "trx",
         NoRestore = true,
         NoBuild = true,
-        ArgumentCustomization = args => args.Append($"/p:CollectCoverage=true")
+        ArgumentCustomization = args => args
+            .Append($"-v diag")
+            .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
     };
 
-    DotNetCoreTest("./src/Language.Tests", settings);
-    DotNetCoreTest("./src/Runtime.Tests", settings);
+    // DotNetCoreTest("./src/Language.Tests", settings);
+    // DotNetCoreTest("./src/Runtime.Tests", settings);
     DotNetCoreTest("./src/Core.Tests", settings);
-    DotNetCoreTest("./src/AspNetCore.Tests", settings);
+    // DotNetCoreTest("./src/AspNetCore.Tests", settings);
 });
 
 Task("SonarBegin")
