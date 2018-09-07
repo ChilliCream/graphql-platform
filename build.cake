@@ -28,14 +28,17 @@ Task("EnvironmentSetup")
     if(string.IsNullOrEmpty(packageVersion))
     {
         packageVersion = EnvironmentVariable("CIRCLE_TAG")
+            ?? EnvironmentVariable("APPVEYOR_REPO_TAG_NAME")
             ?? EnvironmentVariable("Version");
     }
     Environment.SetEnvironmentVariable("Version", packageVersion);
 
     if(string.IsNullOrEmpty(sonarBranch))
     {
-        sonarBranch = EnvironmentVariable("CIRCLE_PR_NUMBER");
-        sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST");
+        sonarBranch = EnvironmentVariable("CIRCLE_PR_NUMBER")
+            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
+        sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST")
+            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_TITLE");
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
