@@ -3,12 +3,12 @@ jobs:
   pull-request:
     working_directory: /work
     docker:
-      - image: docker:stable
+      - image: microsoft/dotnet:2.1.401-sdk
     steps:
       - checkout
       - run:
           name: Pull Request Build
-          command: docker build .
+          command: dotnet test src/Core.Tests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
