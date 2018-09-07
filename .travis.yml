@@ -8,7 +8,7 @@ matrix:
       osx_image: xcode9
 branches:
   only:
-  - build
+  - master
 install:
   - git clone https://github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_REPO_SLUG
   - cd $TRAVIS_REPO_SLUG
