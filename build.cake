@@ -12,7 +12,6 @@ var sonarBranch = Argument("sonarBranch", default(string));
 var sonarBranchTitle = Argument("sonarBranchTitle", default(string));
 var packageVersion = Argument("packageVersion", default(string));
 
-
 //////////////////////////////////////////////////////////////////////
 // PREPARATION
 //////////////////////////////////////////////////////////////////////
