@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Pull Request Build
-          command: dotnet test src/Core.Tests
+          command: dotnet test src/Core.Tests --blame
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
