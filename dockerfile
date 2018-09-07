@@ -31,5 +31,8 @@ RUN apt-get update \
   && apt-get install default-jdk -y \
   && apt-get install git -y
 
+FROM Base AS Builder
 
+COPY ./build.sh ./build.cake ./NuGet.config ./tools/ ./build/
 
+RUN ./build/build.sh -t Clean
