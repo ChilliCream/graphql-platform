@@ -255,7 +255,7 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [x] DateTime
 - [x] Date
 - [x] Time
-- [ ] URL
+- [x] URL
 - [x] UUID
 - [x] Decimal
 - [x] Short (Int16)
