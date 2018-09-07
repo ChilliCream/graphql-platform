@@ -70,19 +70,6 @@ Task("Build")
     DotNetCoreBuild("./src", settings);
 });
 
-
-Task("Build-Debug")
-    .IsDependentOn("Restore")
-    .Does(() =>
-{
-    var settings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug",
-        NoRestore = true
-    };
-    DotNetCoreBuild("./src", settings);
-});
-
 Task("Publish")
     .IsDependentOn("Build")
     .Does(() =>
@@ -112,11 +99,18 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("Build-Debug")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = true
+    };
+    DotNetCoreBuild("./src", buildSettings);
+
     int i = 0;
-    var settings = new DotNetCoreTestSettings
+    var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
@@ -130,10 +124,10 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
     };
 
-    // DotNetCoreTest("./src/Language.Tests", settings);
-    // DotNetCoreTest("./src/Runtime.Tests", settings);
-    DotNetCoreTest("./src/Core.Tests", settings);
-    // DotNetCoreTest("./src/AspNetCore.Tests", settings);
+    DotNetCoreTest("./src/Language.Tests", testSettings);
+    DotNetCoreTest("./src/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Core.Tests", testSettings);
+    DotNetCoreTest("./src/AspNetCore.Tests", testSettings);
 });
 
 Task("SonarBegin")
