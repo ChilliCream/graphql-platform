@@ -3,12 +3,12 @@ jobs:
   pull-request:
     working_directory: /work
     docker:
-      - image: microsoft/dotnet:2.1.401-sdk
+      - image: chillicream/dotnet-build:2.0
     steps:
       - checkout
       - run:
           name: Pull Request Build
-          command: dotnet test src/Core.Tests --blame
+          command: ./build.sh -t Sonar
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
