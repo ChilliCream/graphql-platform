@@ -10,9 +10,9 @@ jobs:
           name: Pull Request Build
           command: ./build.sh -t Sonar
       - store_test_results:
-          path: /testoutput
+          path: /work/testoutput
       - store_artifacts:
-          path: /testoutput
+          path: /work/testoutput
   release:
     working_directory: /work
     docker:
@@ -23,9 +23,9 @@ jobs:
           name: Release Build
           command: ./build.sh -t Release
       - store_test_results:
-          path: /testoutput
+          path: /work/testoutput
       - store_artifacts:
-          path: /testoutput
+          path: /work/testoutput
 
 workflows:
   version: 2
