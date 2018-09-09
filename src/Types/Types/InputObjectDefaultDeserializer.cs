@@ -51,7 +51,8 @@ namespace HotChocolate.Types
             {
                 if (property.PropertyType.IsAssignableFrom(field.Type.NativeType))
                 {
-                    property.SetValue(nativeInputObject, field.Type.ParseLiteral(literal));
+                    property.SetValue(nativeInputObject, field.Type.ParseLiteral(
+                        literal ?? NullValueNode.Default));
                 }
                 else
                 {

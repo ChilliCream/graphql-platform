@@ -1,0 +1,39 @@
+version: 2
+jobs:
+  pull-request:
+    working_directory: ~/tmp
+    docker:
+      - image: microsoft/dotnet:2.1-sdk-stretch
+    steps:
+      - checkout
+      - run:
+          name: Pull Request Build
+          command: ./build.sh -t Sonar
+  release:
+    working_directory: ~/tmp
+    docker:
+      - image: microsoft/dotnet:2.1-sdk-stretch
+    steps:
+      - checkout
+      - run:
+          name: Release Build
+          command: ./build.sh -t Release
+
+workflows:
+  version: 2
+  pull-request:
+    jobs:
+      - pull-request:
+          filters:
+            branches:
+              only: master
+            tags:
+              ignore: /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(\-\w*?\.[1-9]\d*)?$/
+  release:
+    jobs:
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(\-\w*?\.[1-9]\d*)?$/

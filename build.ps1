@@ -1,132 +1,234 @@
-param([switch]$DisableBuild, [switch]$RunTests, [switch]$EnableCoverage, [switch]$EnableSonar, [switch]$Pack, [switch]$PR)
+##########################################################################
+# This is the Cake bootstrapper script for PowerShell.
+# This file was downloaded from https://github.com/cake-build/resources
+# Feel free to change this file to fit your needs.
+##########################################################################
 
-$testResults = Join-Path -Path $PSScriptRoot -ChildPath ".testresults"
+<#
 
-if (!!$env:APPVEYOR_REPO_TAG_NAME) {
-    $version = $env:APPVEYOR_REPO_TAG_NAME
-}
-elseif (!!$env:APPVEYOR_BUILD_VERSION) {
-    $version = $env:APPVEYOR_BUILD_VERSION
-}
+.SYNOPSIS
+This is a Powershell script to bootstrap a Cake build.
 
-$prKey = $env:APPVEYOR_PULL_REQUEST_NUMBER
-$prName = $env:APPVEYOR_PULL_REQUEST_TITLE
-$sonarLogin = $env:SONAR_TOKEN
+.DESCRIPTION
+This Powershell script will download NuGet if missing, restore NuGet tools (including Cake)
+and execute your Cake build script with the parameters you provide.
 
-if ($PR) {
-    Write-Host "PR Key: " $prKey
-    Write-Host "PR Name: " $prName
-}
+.PARAMETER Script
+The build script to execute.
+.PARAMETER Target
+The build script target to run.
+.PARAMETER Configuration
+The build configuration to use.
+.PARAMETER Verbosity
+Specifies the amount of information to be displayed.
+.PARAMETER ShowDescription
+Shows description about tasks.
+.PARAMETER DryRun
+Performs a dry run.
+.PARAMETER Experimental
+Uses the nightly builds of the Roslyn script engine.
+.PARAMETER Mono
+Uses the Mono Compiler rather than the Roslyn script engine.
+.PARAMETER SkipToolPackageRestore
+Skips restoring of packages.
+.PARAMETER ScriptArgs
+Remaining arguments are added here.
 
-if ($null -ne $version) {
-    $env:Version = $version
-}
+.LINK
+https://cakebuild.net
 
-if ($env:Version.Contains("-")) {
-    $index = $env:Version.IndexOf("-");
-    $env:VersionPrefix = $env:Version.Substring(0, $index)
-    $env:VersionSuffix = $env:Version.Substring($index + 1)
-    $env:PreVersion = $true
-}
-else {
-    $env:VersionPrefix = $env:Version
-    $env:VersionSuffix = $null
-    $env:PreVersion = $false
-}
+#>
 
-if ($EnableSonar) {
-    dotnet tool install --global dotnet-sonarscanner
+[CmdletBinding()]
+Param(
+    [string]$Script = "build.cake",
+    [string]$Target,
+    [string]$Configuration,
+    [ValidateSet("Quiet", "Minimal", "Normal", "Verbose", "Diagnostic")]
+    [string]$Verbosity,
+    [switch]$ShowDescription,
+    [Alias("WhatIf", "Noop")]
+    [switch]$DryRun,
+    [switch]$Experimental,
+    [switch]$Mono,
+    [switch]$SkipToolPackageRestore,
+    [Parameter(Position=0,Mandatory=$false,ValueFromRemainingArguments=$true)]
+    [string[]]$ScriptArgs
+)
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to install sonar scanner."
+[Reflection.Assembly]::LoadWithPartialName("System.Security") | Out-Null
+function MD5HashFile([string] $filePath)
+{
+    if ([string]::IsNullOrEmpty($filePath) -or !(Test-Path $filePath -PathType Leaf))
+    {
+        return $null
     }
 
-
-    if ($PR) {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\coverage.xml" /d:sonar.pullrequest.branch="$prName" /d:sonar.pullrequest.key="$prKey"
+    [System.IO.Stream] $file = $null;
+    [System.Security.Cryptography.MD5] $md5 = $null;
+    try
+    {
+        $md5 = [System.Security.Cryptography.MD5]::Create()
+        $file = [System.IO.File]::OpenRead($filePath)
+        return [System.BitConverter]::ToString($md5.ComputeHash($file))
     }
-    else {
-        dotnet sonarscanner begin /k:"HotChocolate" /d:sonar.organization="chillicream" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.login="$sonarLogin" /v:"$version" /d:sonar.cs.vstest.reportsPaths="$testResults\*.trx" /d:sonar.cs.opencover.reportsPaths="$PSScriptRoot\coverage.xml"
-    }
-}
-
-if ($DisableBuild -eq $false) {
-    dotnet build src
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "There are compilation errors."
-    }
-}
-
-if ($RunTests -or $EnableCoverage) {
-    # Test
-    $serachDirs = [System.IO.Path]::Combine($PSScriptRoot, "src", "*", "bin", "Debug", "netcoreapp2.0")
-    $runTestsCmd = [System.Guid]::NewGuid().ToString("N") + ".cmd"
-    $runTestsCmd = Join-Path -Path $env:TEMP -ChildPath $runTestsCmd
-    $testAssemblies = ""
-
-    Get-ChildItem src -Directory -Filter *.Tests | Where-Object {$_.Name.StartsWith("Benchmark") -eq $false} | % { $testAssemblies += "dotnet test `"" + $_.FullName + "`" -r `"" + $testResults + "`" -l trx`n" }
-
-    if (!!$testAssemblies) {
-        # Has test assemblies {
-        $userDirectory = $env:USERPROFILE
-        if ($IsMacOS) {
-            $userDirectory = $env:HOME
-        }
-
-        [System.IO.File]::WriteAllText($runTestsCmd, $testAssemblies)
-        Write-Host $runTestsCmd
-
-        if ($EnableCoverage) {
-            # Test & Code Coverage
-            $nugetPackages = [System.IO.Path]::Combine($userDirectory, ".nuget", "packages")
-
-            $openCover = [System.IO.Path]::Combine($nugetPackages, "OpenCover", "*", "tools", "OpenCover.Console.exe")
-            $openCover = Resolve-Path $openCover
-
-            $coveralls = [System.IO.Path]::Combine($nugetPackages, "coveralls.io", "*", "tools", "coveralls.net.exe")
-            $coveralls = Resolve-Path $coveralls
-
-            & $openCover -register:user -target:"$runTestsCmd" -searchdirs:"$serachDirs" -oldstyle -output:coverage.xml -skipautoprops -returntargetcode -filter:"+[HotChocolate*]*"
-
-            Get-ChildItem $RootDirectory *.trx -Recurse | ForEach-Object {
-                $report = [xml](Get-Content $_.FullName)
-                if ($report.TestRun.ResultSummary.Counters.executed -ne $report.TestRun.ResultSummary.Counters.passed) {
-                    throw "Some tests failed."
-                }
-            }
-
-            if ($PR -eq $false) {
-                & $coveralls --opencover coverage.xml
-            }
-        }
-        else {
-            # Test
-            & $runTestsCmd
+    finally
+    {
+        if ($file -ne $null)
+        {
+            $file.Dispose()
         }
     }
 }
 
-if ($EnableSonar) {
-    dotnet sonarscanner end /d:sonar.login="$sonarLogin"
+function GetProxyEnabledWebClient
+{
+    $wc = New-Object System.Net.WebClient
+    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+    $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials        
+    $wc.Proxy = $proxy
+    return $wc
+}
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Could not submit the sonar scanner result to sonar.io."
+Write-Host "Preparing to run build script..."
+
+if(!$PSScriptRoot){
+    $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
+}
+
+$TOOLS_DIR = Join-Path $PSScriptRoot "tools"
+$ADDINS_DIR = Join-Path $TOOLS_DIR "Addins"
+$MODULES_DIR = Join-Path $TOOLS_DIR "Modules"
+$NUGET_EXE = Join-Path $TOOLS_DIR "nuget.exe"
+$CAKE_EXE = Join-Path $TOOLS_DIR "Cake/Cake.exe"
+$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+$PACKAGES_CONFIG = Join-Path $TOOLS_DIR "packages.config"
+$PACKAGES_CONFIG_MD5 = Join-Path $TOOLS_DIR "packages.config.md5sum"
+$ADDINS_PACKAGES_CONFIG = Join-Path $ADDINS_DIR "packages.config"
+$MODULES_PACKAGES_CONFIG = Join-Path $MODULES_DIR "packages.config"
+
+# Make sure tools folder exists
+if ((Test-Path $PSScriptRoot) -and !(Test-Path $TOOLS_DIR)) {
+    Write-Verbose -Message "Creating tools directory..."
+    New-Item -Path $TOOLS_DIR -Type directory | out-null
+}
+
+# Make sure that packages.config exist.
+if (!(Test-Path $PACKAGES_CONFIG)) {
+    Write-Verbose -Message "Downloading packages.config..."    
+    try {        
+        $wc = GetProxyEnabledWebClient
+        $wc.DownloadFile("https://cakebuild.net/download/bootstrapper/packages", $PACKAGES_CONFIG) } catch {
+        Throw "Could not download packages.config."
     }
 }
 
-if ($Pack) {
-    $dropRootDirectory = Join-Path -Path $PSScriptRoot -ChildPath "drop"
-
-    if ($env:PreVersion) {
-        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix /p:VersionSuffix=$env:VersionSuffix --include-source --include-symbols
-    }
-    else {
-        dotnet pack ./src -c Release -o $dropRootDirectory /p:PackageVersion=$env:Version /p:VersionPrefix=$env:VersionPrefix --include-source --include-symbols
-    }
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to created some or all packages."
+# Try find NuGet.exe in path if not exists
+if (!(Test-Path $NUGET_EXE)) {
+    Write-Verbose -Message "Trying to find nuget.exe in PATH..."
+    $existingPaths = $Env:Path -Split ';' | Where-Object { (![string]::IsNullOrEmpty($_)) -and (Test-Path $_ -PathType Container) }
+    $NUGET_EXE_IN_PATH = Get-ChildItem -Path $existingPaths -Filter "nuget.exe" | Select -First 1
+    if ($NUGET_EXE_IN_PATH -ne $null -and (Test-Path $NUGET_EXE_IN_PATH.FullName)) {
+        Write-Verbose -Message "Found in PATH at $($NUGET_EXE_IN_PATH.FullName)."
+        $NUGET_EXE = $NUGET_EXE_IN_PATH.FullName
     }
 }
 
+# Try download NuGet.exe if not exists
+if (!(Test-Path $NUGET_EXE)) {
+    Write-Verbose -Message "Downloading NuGet.exe..."
+    try {
+        $wc = GetProxyEnabledWebClient
+        $wc.DownloadFile($NUGET_URL, $NUGET_EXE)
+    } catch {
+        Throw "Could not download NuGet.exe."
+    }
+}
+
+# Save nuget.exe path to environment to be available to child processed
+$ENV:NUGET_EXE = $NUGET_EXE
+
+# Restore tools from NuGet?
+if(-Not $SkipToolPackageRestore.IsPresent) {
+    Push-Location
+    Set-Location $TOOLS_DIR
+
+    # Check for changes in packages.config and remove installed tools if true.
+    [string] $md5Hash = MD5HashFile($PACKAGES_CONFIG)
+    if((!(Test-Path $PACKAGES_CONFIG_MD5)) -Or
+      ($md5Hash -ne (Get-Content $PACKAGES_CONFIG_MD5 ))) {
+        Write-Verbose -Message "Missing or changed package.config hash..."
+        Remove-Item * -Recurse -Exclude packages.config,nuget.exe
+    }
+
+    Write-Verbose -Message "Restoring tools from NuGet..."
+    $NuGetOutput = Invoke-Expression "&`"$NUGET_EXE`" install -ExcludeVersion -OutputDirectory `"$TOOLS_DIR`""
+
+    if ($LASTEXITCODE -ne 0) {
+        Throw "An error occurred while restoring NuGet tools."
+    }
+    else
+    {
+        $md5Hash | Out-File $PACKAGES_CONFIG_MD5 -Encoding "ASCII"
+    }
+    Write-Verbose -Message ($NuGetOutput | out-string)
+
+    Pop-Location
+}
+
+# Restore addins from NuGet
+if (Test-Path $ADDINS_PACKAGES_CONFIG) {
+    Push-Location
+    Set-Location $ADDINS_DIR
+
+    Write-Verbose -Message "Restoring addins from NuGet..."
+    $NuGetOutput = Invoke-Expression "&`"$NUGET_EXE`" install -ExcludeVersion -OutputDirectory `"$ADDINS_DIR`""
+
+    if ($LASTEXITCODE -ne 0) {
+        Throw "An error occurred while restoring NuGet addins."
+    }
+
+    Write-Verbose -Message ($NuGetOutput | out-string)
+
+    Pop-Location
+}
+
+# Restore modules from NuGet
+if (Test-Path $MODULES_PACKAGES_CONFIG) {
+    Push-Location
+    Set-Location $MODULES_DIR
+
+    Write-Verbose -Message "Restoring modules from NuGet..."
+    $NuGetOutput = Invoke-Expression "&`"$NUGET_EXE`" install -ExcludeVersion -OutputDirectory `"$MODULES_DIR`""
+
+    if ($LASTEXITCODE -ne 0) {
+        Throw "An error occurred while restoring NuGet modules."
+    }
+
+    Write-Verbose -Message ($NuGetOutput | out-string)
+
+    Pop-Location
+}
+
+# Make sure that Cake has been installed.
+if (!(Test-Path $CAKE_EXE)) {
+    Throw "Could not find Cake.exe at $CAKE_EXE"
+}
+
+
+
+# Build Cake arguments
+$cakeArguments = @("$Script");
+if ($Target) { $cakeArguments += "-target=$Target" }
+if ($Configuration) { $cakeArguments += "-configuration=$Configuration" }
+if ($Verbosity) { $cakeArguments += "-verbosity=$Verbosity" }
+if ($ShowDescription) { $cakeArguments += "-showdescription" }
+if ($DryRun) { $cakeArguments += "-dryrun" }
+if ($Experimental) { $cakeArguments += "-experimental" }
+if ($Mono) { $cakeArguments += "-mono" }
+$cakeArguments += $ScriptArgs
+
+# Start Cake
+Write-Host "Running build script..."
+&$CAKE_EXE $cakeArguments
+exit $LASTEXITCODE
