@@ -30,8 +30,10 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The specified fragment `undefinedFragment` does not exist."));
+                t => Assert.Equal(
+                    "The specified fragment `undefinedFragment` " +
+                    "does not exist.",
+                    t.Message));
         }
 
         [Fact]

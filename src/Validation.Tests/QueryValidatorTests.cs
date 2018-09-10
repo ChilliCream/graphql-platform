@@ -652,8 +652,10 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The specified fragment `undefinedFragment` does not exist."));
+                t => Assert.Equal(
+                    "The specified fragment `undefinedFragment` " +
+                    "does not exist.",
+                    t.Message));
         }
 
         [Fact]
@@ -681,9 +683,10 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
+                t => Assert.Equal(
                     "The parent type does not match the type condition on " +
-                    "the fragment `fragmentDoesNotMatchType`."));
+                    "the fragment `fragmentDoesNotMatchType`.",
+                    t.Message));
         }
 
         [Fact]
@@ -713,9 +716,10 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
+                t => Assert.Equal(
                     "The specified inline fragment " +
-                    "does not exist in the current schema."));
+                    "does not exist in the current schema.",
+                    t.Message));
         }
 
         [Fact]
