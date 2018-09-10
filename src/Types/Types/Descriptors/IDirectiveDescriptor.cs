@@ -35,8 +35,16 @@ namespace HotChocolate.Types
         /// <param name="description">The object type description.</param>
         IDirectiveTypeDescriptor Description(string description);
 
+        /// <summary>
+        /// Specifies a directive argument.
+        /// </summary>
+        /// <param name="name">The name of the argument.</param>
         IArgumentDescriptor Argument(string name);
 
+        /// <summary>
+        /// Specifies in which location the directive belongs in.
+        /// </summary>
+        /// <param name="location">The directive location.</param>
         IDirectiveTypeDescriptor Location(DirectiveLocation location);
     }
 
@@ -92,7 +100,7 @@ namespace HotChocolate.Types
             BindingBehavior bindingBehavior);
 
         /// <summary>
-        /// Specifies an directive argument.
+        /// Specifies a directive argument.
         /// </summary>
         /// <param name="property">
         /// An expression selecting a property <typeparamref name="T"/>.
@@ -100,10 +108,9 @@ namespace HotChocolate.Types
         IArgumentDescriptor Argument(Expression<Func<T, object>> property);
 
         /// <summary>
-        /// Specifies wher
+        /// Specifies in which location the directive belongs in.
         /// </summary>
-        /// <param name="location"></param>
-        /// <returns></returns>
+        /// <param name="location">The directive location.</param>
         new IDirectiveTypeDescriptor<T> Location(DirectiveLocation location);
     }
 }
