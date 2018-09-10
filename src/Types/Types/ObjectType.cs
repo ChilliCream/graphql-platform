@@ -36,7 +36,8 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        public IReadOnlyDictionary<string, InterfaceType> Interfaces => _interfaceMap;
+        public IReadOnlyDictionary<string, InterfaceType> Interfaces =>
+            _interfaceMap;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
@@ -99,7 +100,8 @@ namespace HotChocolate.Types
             List<FieldBinding> fieldBindings,
             List<ObjectField> fields)
         {
-            foreach (ObjectFieldDescription fieldDescription in fieldDescriptions)
+            foreach (ObjectFieldDescription fieldDescription in
+                fieldDescriptions)
             {
                 var field = new ObjectField(fieldDescription);
                 fields.Add(field);
@@ -147,17 +149,20 @@ namespace HotChocolate.Types
                 Fields = new FieldCollection<ObjectField>(fields);
             }
 
-            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
+            foreach (INeedsInitialization field in
+                Fields.Cast<INeedsInitialization>())
             {
                 field.RegisterDependencies(context);
             }
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
-            foreach (INeedsInitialization field in Fields.Cast<INeedsInitialization>())
+            foreach (INeedsInitialization field in
+                Fields.Cast<INeedsInitialization>())
             {
                 field.CompleteType(context);
             }
@@ -221,6 +226,7 @@ namespace HotChocolate.Types
             }
         }
 
+        // TODO : Refactor
         private void CheckIfAllInterfaceFieldsAreImplemented(
             ITypeInitializationContext context)
         {
@@ -275,7 +281,8 @@ namespace HotChocolate.Types
         internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
             new ObjectTypeDescriptor<T>();
 
-        protected sealed override void Configure(IObjectTypeDescriptor descriptor)
+        protected sealed override void Configure(
+            IObjectTypeDescriptor descriptor)
         {
             Configure((IObjectTypeDescriptor<T>)descriptor);
         }

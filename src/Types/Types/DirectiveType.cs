@@ -9,14 +9,14 @@ namespace HotChocolate.Types
     public class DirectiveType
         : TypeSystemBase
     {
-        internal DirectiveType(Action<IDirectiveTypeDescriptor> configure)
-        {
-            Initialize(configure);
-        }
-
         protected DirectiveType()
         {
             Initialize(Configure);
+        }
+
+        public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
+        {
+            Initialize(configure);
         }
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
@@ -25,7 +25,8 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        public IReadOnlyCollection<DirectiveLocation> Locations { get; private set; }
+        public IReadOnlyCollection<DirectiveLocation> Locations
+        { get; private set; }
 
         public FieldCollection<InputField> Arguments { get; private set; }
 
@@ -34,7 +35,9 @@ namespace HotChocolate.Types
         internal virtual DirectiveTypeDescriptor CreateDescriptor() =>
             new DirectiveTypeDescriptor();
 
-        protected virtual void Configure(IDirectiveTypeDescriptor descriptor) { }
+        protected virtual void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+        }
 
         #endregion
 
@@ -50,7 +53,8 @@ namespace HotChocolate.Types
             DirectiveTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
-            DirectiveTypeDescription description = descriptor.CreateDescription();
+            DirectiveTypeDescription description =
+                descriptor.CreateDescription();
 
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
@@ -60,7 +64,8 @@ namespace HotChocolate.Types
                 description.Arguments.Select(t => new InputField(t)));
         }
 
-        protected override void OnRegisterDependencies(ITypeInitializationContext context)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
 
@@ -71,7 +76,8 @@ namespace HotChocolate.Types
             }
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
@@ -86,8 +92,34 @@ namespace HotChocolate.Types
     }
 
     public class DirectiveType<TDirective>
-        : TypeSystemBase
+        : DirectiveType
     {
+        protected DirectiveType()
+        {
+        }
 
+        public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
+            : base(configure)
+        {
+        }
+
+        #region Configuration
+
+        internal sealed override DirectiveTypeDescriptor CreateDescriptor() =>
+            new DirectiveTypeDescriptor<TDirective>();
+
+        protected sealed override void Configure(
+            IDirectiveTypeDescriptor descriptor)
+        {
+            Configure((IDirectiveTypeDescriptor<TDirective>)descriptor);
+        }
+
+        protected virtual void Configure(
+            IDirectiveTypeDescriptor<TDirective> descriptor)
+        {
+
+        }
+
+        #endregion
     }
 }

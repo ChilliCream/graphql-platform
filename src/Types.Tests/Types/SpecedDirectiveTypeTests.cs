@@ -1,11 +1,10 @@
-using System;
-using System.Linq;
+﻿using System.Linq;
 using HotChocolate.Configuration;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class DirectiveTests
+    public class SpecedDirectiveTypeTests
     {
         [Fact]
         public void CreateSkipDirective()
@@ -67,27 +66,6 @@ namespace HotChocolate.Types
                 t => Assert.Equal(DirectiveLocation.Field, t),
                 t => Assert.Equal(DirectiveLocation.FragmentSpread, t),
                 t => Assert.Equal(DirectiveLocation.InlineFragment, t));
-        }
-
-
-        [Fact]
-        public void ConfigureIsNull()
-        {
-            // act
-            Action a = () => new DirectiveType(null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void NoName()
-        {
-            // act
-            Action a = () => new DirectiveType(d => { });
-
-            // assert
-            Assert.Throws<InvalidOperationException>(a);
         }
     }
 }
