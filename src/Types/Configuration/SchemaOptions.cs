@@ -5,15 +5,20 @@ namespace HotChocolate.Configuration
     public class SchemaOptions
         : ISchemaOptions
     {
+        private const int _defaultMaxExecutionDepth = 8;
+        private const int _defaultMaxExecutionTimeout = 30;
+
         public string QueryTypeName { get; set; }
 
         public string MutationTypeName { get; set; }
 
         public string SubscriptionTypeName { get; set; }
 
-        public int MaxExecutionDepth { get; set; } = 8;
+        public int MaxExecutionDepth { get; set; } =
+            _defaultMaxExecutionDepth;
 
-        public TimeSpan ExecutionTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan ExecutionTimeout { get; set; } =
+            TimeSpan.FromSeconds(_defaultMaxExecutionTimeout);
 
         public IServiceProvider Services { get; set; }
 
