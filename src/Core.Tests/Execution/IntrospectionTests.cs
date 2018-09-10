@@ -1,15 +1,8 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Types;
-using Newtonsoft.Json;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Execution
 {
     public class IntrospectionTests
     {

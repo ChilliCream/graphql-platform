@@ -35,9 +35,11 @@ namespace HotChocolate
                 return NormalizeLineBreaks(File.ReadAllText(fielPath));
             }
 
-            throw new SnapshotNotFoundException(
-                $"The snapshot `{snapshotName}` does not exist." +
-                $"{Environment.NewLine}`{fielPath}`");
+            return null;
+
+            // throw new SnapshotNotFoundException(
+            //     $"The snapshot `{snapshotName}` does not exist." +
+            //     $"{Environment.NewLine}`{fielPath}`");
         }
 
         public static string New(object obj,

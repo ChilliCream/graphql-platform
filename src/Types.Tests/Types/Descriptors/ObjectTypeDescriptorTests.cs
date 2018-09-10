@@ -71,11 +71,14 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-                descriptor.CreateDescription().Fields.Select(t => t.Name),
+                descriptor.CreateDescription().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
                 t => Assert.Equal("c", t),
-                t => Assert.Equal("equals", t));
+                t => Assert.Equal("equals", t),
+                t => Assert.Equal("hashCode", t));
         }
 
         [Fact]
@@ -90,10 +93,13 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-               descriptor.CreateDescription().Fields.Select(t => t.Name),
-               t => Assert.Equal("a", t),
-               t => Assert.Equal("c", t),
-                t => Assert.Equal("equals", t));
+                descriptor.CreateDescription().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("equals", t),
+                t => Assert.Equal("hashCode", t));
         }
 
 
@@ -109,10 +115,13 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-               descriptor.CreateDescription().Fields.Select(t => t.Name),
-               t => Assert.Equal("a", t),
-               t => Assert.Equal("b", t),
-               t => Assert.Equal("c", t));
+                descriptor.CreateDescription().Fields
+                    .Select(t => t.Name)
+                    .OrderBy(t => t),
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t),
+                t => Assert.Equal("c", t),
+                t => Assert.Equal("hashCode", t));
         }
 
         [Fact]
@@ -140,6 +149,8 @@ namespace HotChocolate.Types
             public string C { get; set; }
 
             public override bool Equals(object obj) => true;
+
+            public override int GetHashCode() => 0;
         }
 
         [GraphQLName("FooAttr")]
