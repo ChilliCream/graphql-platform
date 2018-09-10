@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Pull Request Build
-          command: ./build.sh -t Sonar
+          command: ./build.sh -t Tests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
