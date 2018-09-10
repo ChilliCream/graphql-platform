@@ -131,7 +131,6 @@ namespace HotChocolate.Language
             throw context.Unexpected(context.Current);
         }
 
-        // public static Parser Default { get; } = new Parser();
-        public static Parser Default { get => new Parser(); }
+        public static Parser Default { get; } = new Parser();
     }
 }
