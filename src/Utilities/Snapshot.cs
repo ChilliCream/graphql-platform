@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -34,7 +36,9 @@ namespace HotChocolate
                 return NormalizeLineBreaks(File.ReadAllText(fielPath));
             }
 
-            return null;
+            throw new SnapshotNotFoundException(
+                $"The snapshot `{snapshotName}` does not exist." +
+                $"{Environment.NewLine}`{fielPath}`");
         }
 
         public static string New(object obj,
@@ -84,5 +88,20 @@ namespace HotChocolate
             }
             return s + "\n";
         }
+    }
+
+    [Serializable]
+    public class SnapshotNotFoundException
+        : Exception
+    {
+        public SnapshotNotFoundException() { }
+        public SnapshotNotFoundException(string message)
+            : base(message) { }
+        public SnapshotNotFoundException(string message, Exception inner)
+            : base(message, inner) { }
+        protected SnapshotNotFoundException(
+            SerializationInfo info,
+            StreamingContext context)
+            : base(info, context) { }
     }
 }
