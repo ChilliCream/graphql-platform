@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type NativeType => typeof(DateTime);
+        public override Type ClrType => typeof(DateTime);
 
         protected override string Serialize(DateTime value)
         {

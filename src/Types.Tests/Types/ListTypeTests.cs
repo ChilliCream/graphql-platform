@@ -42,7 +42,7 @@ namespace HotChocolate.Types
             ListType type = new ListType(innerType);
 
             // assert
-            Assert.Equal(typeof(string[]), type.NativeType);
+            Assert.Equal(typeof(string[]), type.ClrType);
         }
 
         [Fact]

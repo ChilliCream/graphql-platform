@@ -195,7 +195,7 @@ namespace HotChocolate.Types
         public ObjectTypeDescriptor()
             : base(typeof(T))
         {
-            ObjectDescription.NativeType = typeof(T);
+            ObjectDescription.ClrType = typeof(T);
         }
 
         protected void BindFields(BindingBehavior bindingBehavior)
@@ -215,10 +215,10 @@ namespace HotChocolate.Types
             if (member is PropertyInfo || member is MethodInfo)
             {
                 var fieldDescriptor = new ObjectFieldDescriptor(
-                    ObjectDescription.Name, ObjectDescription.NativeType,
+                    ObjectDescription.Name, ObjectDescription.ClrType,
                     member, member.GetReturnType());
 
-                if (typeof(TResolver) != ObjectDescription.NativeType)
+                if (typeof(TResolver) != ObjectDescription.ClrType)
                 {
                     fieldDescriptor.ResolverType(typeof(TResolver));
                 }
@@ -274,7 +274,7 @@ namespace HotChocolate.Types
             List<MemberInfo> handledMembers)
         {
             Dictionary<MemberInfo, string> members = GetMembers(
-                ObjectDescription.NativeType);
+                ObjectDescription.ClrType);
 
             foreach (MemberInfo member in handledMembers)
             {
@@ -297,7 +297,7 @@ namespace HotChocolate.Types
                     {
                         var fieldDescriptor = new ObjectFieldDescriptor(
                             ObjectDescription.Name,
-                            ObjectDescription.NativeType,
+                            ObjectDescription.ClrType,
                             member.Key, returnType);
 
                         descriptors[member.Value] = fieldDescriptor

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -90,5 +91,37 @@ namespace HotChocolate.Types
         : TypeSystemBase
     {
 
+    }
+
+    public interface IDirective
+    {
+        string Name { get; }
+
+        DirectiveType Type { get; }
+
+        Type ClrType { get; }
+
+        DirectiveNode Node { get; }
+
+        bool IsMiddleware { get; }
+
+        bool IsResolver { get; }
+
+        IDirectiveFieldResolver CreateResolver();
+
+        IDirectiveFieldResolverHandler CreateMiddleware();
+
+        T CreateArguments<T>();
+
+        T CreateArgument<T>(string argumentName);
+    }
+
+    public interface IDirectiveCollection<out T>
+        : IEnumerable<T>
+        where T : IDirective
+    {
+        T this[string fieldName] { get; }
+
+        bool ContainsDirective(string directiveName);
     }
 }

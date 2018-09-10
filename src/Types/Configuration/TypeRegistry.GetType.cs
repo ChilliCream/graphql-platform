@@ -59,10 +59,10 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (typeReference.IsNativeTypeReference())
+            if (typeReference.IsClrTypeReference())
             {
                 return TryGetTypeFromNativeType(
-                    typeReference.NativeType, out type);
+                    typeReference.ClrType, out type);
             }
             else
             {

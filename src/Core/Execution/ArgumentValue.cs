@@ -5,26 +5,26 @@ namespace HotChocolate.Execution
 {
     internal readonly struct ArgumentValue
     {
-        public ArgumentValue(IInputType type, Type nativeType, object value)
+        public ArgumentValue(IInputType type, Type clrType, object value)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (nativeType == null)
+            if (clrType == null)
             {
-                throw new ArgumentNullException(nameof(nativeType));
+                throw new ArgumentNullException(nameof(clrType));
             }
 
             Type = type;
-            NativeType = nativeType;
+            ClrType = clrType;
             Value = value;
         }
 
         public IInputType Type { get; }
 
-        public Type NativeType { get; }
+        public Type ClrType { get; }
 
         public object Value { get; }
     }

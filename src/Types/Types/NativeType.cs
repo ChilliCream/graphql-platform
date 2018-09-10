@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     {
         public TypeKind Kind => throw new NotImplementedException();
 
-        Type IInputType.NativeType => throw new NotImplementedException();
+        Type IInputType.ClrType => throw new NotImplementedException();
 
         public bool IsInstanceOfType(IValueNode literal)
         {

@@ -30,12 +30,12 @@ namespace HotChocolate.Types
             _inputType = type as IInputType;
 
             Type = type;
-            NativeType = _inputType?.NativeType;
+            ClrType = _inputType?.ClrType;
         }
 
         public IType Type { get; }
 
-        public Type NativeType { get; }
+        public Type ClrType { get; }
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public Type NativeType => throw new NotImplementedException();
+        public Type ClrType => throw new NotImplementedException();
 
         public TypeKind Kind => throw new NotImplementedException();
 

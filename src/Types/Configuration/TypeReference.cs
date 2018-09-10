@@ -14,30 +14,30 @@ namespace HotChocolate.Types
 
         public TypeReference(Type nativeType)
         {
-            NativeType = nativeType
+            ClrType = nativeType
                 ?? throw new ArgumentNullException(nameof(nativeType));
         }
 
-        public Type NativeType { get; }
+        public Type ClrType { get; }
 
         public ITypeNode Type { get; }
 
         public override string ToString()
         {
-            if (NativeType == null)
+            if (ClrType == null)
             {
                 return Type.ToString();
             }
-            return NativeType.GetTypeName();
+            return ClrType.GetTypeName();
         }
     }
 
     internal static class TypeReferenceExtensions
     {
-        public static bool IsNativeTypeReference(
+        public static bool IsClrTypeReference(
             this TypeReference typeReference)
         {
-            return typeReference.NativeType != null;
+            return typeReference.ClrType != null;
         }
 
         public static bool IsTypeMoreSpecific(
@@ -49,8 +49,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (typeReference.IsNativeTypeReference()
-                && !BaseTypes.IsSchemaType(typeReference.NativeType))
+            if (typeReference.IsClrTypeReference()
+                && !BaseTypes.IsSchemaType(typeReference.ClrType))
             {
                 return true;
             }
@@ -61,9 +61,9 @@ namespace HotChocolate.Types
         public static bool IsTypeMoreSpecific(
            this TypeReference typeReference, ITypeNode typeNode)
         {
-            return typeNode != null 
+            return typeNode != null
                 && (typeReference == null
-                    || !typeReference.IsNativeTypeReference());
+                    || !typeReference.IsClrTypeReference());
         }
 
         public static TypeReference GetMoreSpecific(

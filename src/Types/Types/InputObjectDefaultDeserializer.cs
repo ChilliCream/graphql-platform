@@ -16,7 +16,7 @@ namespace HotChocolate.Types
                 .ToDictionary(t => t.Name.Value, t => t.Value);
 
             object nativeInputObject = Activator.CreateInstance(
-                inputObjectType.NativeType);
+                inputObjectType.ClrType);
 
             foreach (InputField field in inputObjectType.Fields)
             {
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
         {
             if (property != null)
             {
-                if (property.PropertyType.IsAssignableFrom(field.Type.NativeType))
+                if (property.PropertyType.IsAssignableFrom(field.Type.ClrType))
                 {
                     property.SetValue(nativeInputObject, field.Type.ParseLiteral(
                         literal ?? NullValueNode.Default));

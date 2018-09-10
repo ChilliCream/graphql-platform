@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type NativeType => typeof(Uri);
+        public override Type ClrType => typeof(Uri);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {

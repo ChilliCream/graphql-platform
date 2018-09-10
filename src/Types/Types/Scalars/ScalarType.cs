@@ -30,7 +30,7 @@ namespace HotChocolate.Types
 
         public virtual string Description { get; }
 
-        public abstract Type NativeType { get; }
+        public abstract Type ClrType { get; }
 
         public abstract bool IsInstanceOfType(IValueNode literal);
 

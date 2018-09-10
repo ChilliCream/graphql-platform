@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
             TypeReference typeRef = description.TypeReference;
-            Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
+            Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
             TypeReference typeRef = description.TypeReference;
-            Assert.Equal(typeof(ListType<StringType>), typeRef.NativeType);
+            Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
             TypeReference typeRef = description.TypeReference;
-            Assert.Equal(typeof(NonNullType<ListType<NonNullType<__InputValue>>>), typeRef.NativeType);
+            Assert.Equal(typeof(NonNullType<ListType<NonNullType<__InputValue>>>), typeRef.ClrType);
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(NativeType<string>), description.TypeReference.NativeType);
+            Assert.Equal(typeof(NativeType<string>), description.TypeReference.ClrType);
             Assert.NotNull(description.Resolver);
 
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -141,7 +141,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(__Type), description.TypeReference.NativeType);
+            Assert.Equal(typeof(__Type), description.TypeReference.ClrType);
             Assert.NotNull(description.Resolver);
         }
 

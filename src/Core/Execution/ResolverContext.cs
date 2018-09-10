@@ -99,7 +99,7 @@ resolverTask.FieldSelection, executionContext.Variables);
             throw new QueryException(
                new FieldError(
                     $"Could not convert argument {name} from " +
-                    $"{argumentValue.NativeType.FullName} to " +
+                    $"{argumentValue.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
                     _resolverTask.FieldSelection.Selection));
         }
@@ -109,7 +109,7 @@ resolverTask.FieldSelection, executionContext.Variables);
             foreach (IInputValueConverter converter in _converters
                 .Where(t => t.CanConvert(argumentValue.Type)))
             {
-                if (converter.TryConvert(argumentValue.NativeType, typeof(T),
+                if (converter.TryConvert(argumentValue.ClrType, typeof(T),
                     argumentValue.Value, out object cv))
                 {
                     value = (T)cv;

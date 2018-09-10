@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
                 }
 
                 coercedArgumentValues[argumentName] = new ArgumentValue(
-                    argumentType, argumentType.NativeType, argumentValue);
+                    argumentType, argumentType.ClrType, argumentValue);
             }
 
             return coercedArgumentValues;

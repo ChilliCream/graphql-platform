@@ -21,7 +21,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type NativeType { get; } = typeof(bool);
+        public override Type ClrType { get; } = typeof(bool);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {

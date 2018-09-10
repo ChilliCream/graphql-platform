@@ -84,10 +84,10 @@ namespace HotChocolate.Types
 
             CreateFieldsAndBindings(description.Fields, fieldBindings, fields);
 
-            if (description.NativeType != null)
+            if (description.ClrType != null)
             {
                 _typeBinding = new ObjectTypeBinding(
-                    description.Name, description.NativeType,
+                    description.Name, description.ClrType,
                     this, fieldBindings);
             }
 

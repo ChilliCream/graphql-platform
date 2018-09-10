@@ -30,10 +30,10 @@ namespace HotChocolate.Configuration
             }
 
             if (!_sealed
-                && typeReference.IsNativeTypeReference()
-                && !BaseTypes.IsNonGenericBaseType(typeReference.NativeType))
+                && typeReference.IsClrTypeReference()
+                && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
             {
-                RegisterNativeType(typeReference.NativeType);
+                RegisterNativeType(typeReference.ClrType);
             }
         }
 
@@ -71,9 +71,9 @@ namespace HotChocolate.Configuration
             }
 
             if (namedTypeRef is IInputType inputType
-                && inputType.NativeType != null)
+                && inputType.ClrType != null)
             {
-                AddNativeTypeBinding(inputType.NativeType, namedType.Name);
+                AddNativeTypeBinding(inputType.ClrType, namedType.Name);
             }
         }
 

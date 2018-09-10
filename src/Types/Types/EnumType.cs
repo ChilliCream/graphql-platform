@@ -37,7 +37,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public Type NativeType { get; private set; }
+        public Type ClrType { get; private set; }
 
         public bool TryGetValue(string name, out object value)
         {
@@ -118,7 +118,7 @@ namespace HotChocolate.Types
 
             throw new ArgumentException(
                 "The specified value has to be a defined enum value of the type " +
-                $"{NativeType.FullName} to be parsed by this enum type.");
+                $"{ClrType.FullName} to be parsed by this enum type.");
         }
 
         public object Serialize(object value)
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (NativeType.IsInstanceOfType(value)
+            if (ClrType.IsInstanceOfType(value)
                 && _valueToValues.TryGetValue(value, out EnumValue enumValue))
             {
                 return enumValue.Name;
@@ -173,7 +173,7 @@ namespace HotChocolate.Types
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;
-            NativeType = description.NativeType;
+            ClrType = description.NativeType;
         }
 
         protected override void OnCompleteType(ITypeInitializationContext context)

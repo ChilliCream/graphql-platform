@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     public interface IInputType
         : IType
     {
-        Type NativeType { get; }
+        Type ClrType { get; }
 
         bool IsInstanceOfType(IValueNode literal);
 
