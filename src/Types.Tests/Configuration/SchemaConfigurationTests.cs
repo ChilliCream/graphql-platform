@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
