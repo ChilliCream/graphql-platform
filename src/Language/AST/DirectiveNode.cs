@@ -6,6 +6,20 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public DirectiveNode(
+            string name,
+            IReadOnlyCollection<ArgumentNode> arguments)
+            : this(new NameNode(name), arguments)
+        {
+        }
+
+        public DirectiveNode(
+            NameNode name,
+            IReadOnlyCollection<ArgumentNode> arguments)
+            : this(null, name, arguments)
+        {
+        }
+
+        public DirectiveNode(
             Location location,
             NameNode name,
             IReadOnlyCollection<ArgumentNode> arguments)
