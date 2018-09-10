@@ -3,9 +3,9 @@ mono: latest
 dotnet: 2.1.401
 matrix:
   include:
-    - os: linux
     - os: osx
       osx_image: xcode9
+    - os: linux
 branches:
   only:
     - master
