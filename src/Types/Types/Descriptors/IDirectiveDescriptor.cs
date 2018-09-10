@@ -105,7 +105,8 @@ namespace HotChocolate.Types
         /// <param name="property">
         /// An expression selecting a property <typeparamref name="T"/>.
         /// </param>
-        IArgumentDescriptor Argument(Expression<Func<T, object>> property);
+        IDirectiveArgumentDescriptor Argument(
+            Expression<Func<T, object>> property);
 
         /// <summary>
         /// Specifies in which location the directive belongs in.

@@ -11,5 +11,10 @@ namespace HotChocolate.Internal
         {
             return true;
         }
+
+        public static bool IsArgumentNameValid(string typeName)
+        {
+            return true;
+        }
     }
 }

@@ -13,8 +13,8 @@ namespace HotChocolate.Types
         : IDirectiveTypeDescriptor
         , IDescriptionFactory<DirectiveTypeDescription>
     {
-        private readonly List<ArgumentDescriptor> _arguments =
-            new List<ArgumentDescriptor>();
+        private readonly List<DirectiveArgumentDescriptor> _arguments =
+            new List<DirectiveArgumentDescriptor>();
 
         protected DirectiveTypeDescription DirectiveDescription { get; } =
             new DirectiveTypeDescription();
@@ -70,9 +70,31 @@ namespace HotChocolate.Types
             DirectiveDescription.Description = description;
         }
 
-        protected ArgumentDescriptor Argument(string name)
+        protected DirectiveArgumentDescriptor Argument(string name)
         {
-            ArgumentDescriptor descriptor = new ArgumentDescriptor(name);
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The directive argument name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            if (!ValidationHelper.IsArgumentNameValid(name))
+            {
+                throw new ArgumentException(
+                    "The specified name is not a valid " +
+                    "GraphQL directive argument name.",
+                    nameof(name));
+            }
+
+            var descriptor = new DirectiveArgumentDescriptor(name);
+            _arguments.Add(descriptor);
+            return descriptor;
+        }
+
+        protected DirectiveArgumentDescriptor Argument(
+            DirectiveArgumentDescriptor descriptor)
+        {
             _arguments.Add(descriptor);
             return descriptor;
         }
@@ -116,13 +138,21 @@ namespace HotChocolate.Types
         #endregion
     }
 
-    internal class DirectiveDescriptor<T>
+    internal class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
 
     {
+        public DirectiveTypeDescriptor()
+        {
+            DirectiveDescription.ClrType = typeof(T);
+            DirectiveDescription.Name = typeof(T).GetGraphQLName();
+        }
+
         protected override void CompleteArguments()
         {
+            base.CompleteArguments();
+
             var descriptions =
                 new Dictionary<string, DirectiveArgumentDescription>();
             var handledProperties = new List<PropertyInfo>();
@@ -209,10 +239,29 @@ namespace HotChocolate.Types
             return members;
         }
 
-
         protected void BindArguments(BindingBehavior bindingBehavior)
         {
             DirectiveDescription.ArgumentBindingBehavior = bindingBehavior;
+        }
+
+        protected DirectiveArgumentDescriptor Argument(
+            Expression<Func<T, object>> property)
+        {
+            if (property == null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                var descriptor = new DirectiveArgumentDescriptor(
+                    p.GetGraphQLName(), p);
+                return Argument(descriptor);
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed in this expression.",
+                nameof(property));
         }
 
         #region IDirectiveDescriptor<T>
@@ -245,10 +294,10 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IArgumentDescriptor IDirectiveTypeDescriptor<T>.Argument(
+        IDirectiveArgumentDescriptor IDirectiveTypeDescriptor<T>.Argument(
             Expression<Func<T, object>> property)
         {
-            throw new NotImplementedException();
+            return Argument(property);
         }
 
         IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Location(

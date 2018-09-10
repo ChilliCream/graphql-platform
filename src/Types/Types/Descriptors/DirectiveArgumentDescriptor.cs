@@ -10,21 +10,19 @@ namespace HotChocolate.Types
         , IDescriptionFactory<DirectiveArgumentDescription>
     {
         public DirectiveArgumentDescriptor(string argumentName)
-            : base(argumentName)
+            : base(new DirectiveArgumentDescription())
         {
-        }
-
-        public DirectiveArgumentDescriptor(
-            string argumentName, Type argumentType)
-            : base(argumentName, argumentType)
-        {
+            InputDescription.Name = argumentName;
+            InputDescription.DefaultValue = NullValueNode.Default;
         }
 
         public DirectiveArgumentDescriptor(
             string argumentName, PropertyInfo property)
-            : base(argumentName, property.PropertyType)
+            : this(argumentName)
         {
             InputDescription.Property = property;
+            InputDescription.TypeReference =
+                new TypeReference(property.PropertyType);
         }
 
         protected new DirectiveArgumentDescription InputDescription
