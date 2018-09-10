@@ -1,23 +1,31 @@
 version: 2
 jobs:
   pull-request:
-    working_directory: ~/tmp
+    working_directory: /work
     docker:
-      - image: microsoft/dotnet:2.1-sdk-stretch
+      - image: chillicream/dotnet-build:2.0
     steps:
       - checkout
       - run:
           name: Pull Request Build
           command: ./build.sh -t Sonar
+      - store_test_results:
+          path: /work/testoutput
+      - store_artifacts:
+          path: /work/testoutput
   release:
-    working_directory: ~/tmp
+    working_directory: /work
     docker:
-      - image: microsoft/dotnet:2.1-sdk-stretch
+      - image: chillicream/dotnet-build:2.0
     steps:
       - checkout
       - run:
           name: Release Build
           command: ./build.sh -t Release
+      - store_test_results:
+          path: /work/testoutput
+      - store_artifacts:
+          path: /work/testoutput
 
 workflows:
   version: 2
@@ -26,7 +34,7 @@ workflows:
       - pull-request:
           filters:
             branches:
-              only: master
+              ignore: master
             tags:
               ignore: /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(\-\w*?\.[1-9]\d*)?$/
   release:

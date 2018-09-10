@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -34,7 +35,9 @@ namespace HotChocolate
                 return NormalizeLineBreaks(File.ReadAllText(fielPath));
             }
 
-            return null;
+            throw new SnapshotNotFoundException(
+                $"The snapshot `{snapshotName}` does not exist." +
+                $"{Environment.NewLine}`{fielPath}`");
         }
 
         public static string New(object obj,
