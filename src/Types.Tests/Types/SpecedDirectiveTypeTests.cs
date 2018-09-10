@@ -18,7 +18,7 @@ namespace HotChocolate.Types
 
             // assert
             DirectiveType directive = schemaContext.Directives
-                .GetDirectives().FirstOrDefault(t => t.Name == "skip");
+                .GetDirectiveTypes().FirstOrDefault(t => t.Name == "skip");
 
             // assert
             Assert.NotNull(directive);
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
 
             // assert
             DirectiveType directive = schemaContext.Directives
-                .GetDirectives().FirstOrDefault(t => t.Name == "include");
+                .GetDirectiveTypes().FirstOrDefault(t => t.Name == "include");
 
             // assert
             Assert.NotNull(directive);

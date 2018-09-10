@@ -115,7 +115,7 @@ namespace HotChocolate.Configuration
         private void RegisterDirectiveDependencies(ISchemaContext schemaContext)
         {
             foreach (INeedsInitialization directive in schemaContext.Directives
-                .GetDirectives().Cast<INeedsInitialization>())
+                .GetDirectiveTypes().Cast<INeedsInitialization>())
             {
                 var initializationContext =
                     new TypeInitializationContext(schemaContext,

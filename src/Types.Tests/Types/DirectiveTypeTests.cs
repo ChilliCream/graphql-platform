@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         {
             var schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(new StringType());
-            schemaContext.Directives.RegisterDirective<T>();
+            schemaContext.Directives.RegisterDirectiveType<T>();
 
             var schemaConfiguration = new SchemaConfiguration(
                 sp => { }, schemaContext.Types);
@@ -56,7 +56,7 @@ namespace HotChocolate.Types
             var typeFinalizer = new TypeFinalizer(schemaConfiguration);
             typeFinalizer.FinalizeTypes(schemaContext, null);
 
-            return schemaContext.Directives.GetDirectives().Single();
+            return schemaContext.Directives.GetDirectiveTypes().Single();
         }
 
         public class CustomDirectiveType

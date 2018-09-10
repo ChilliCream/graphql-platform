@@ -5,10 +5,12 @@ namespace HotChocolate.Configuration
 {
     internal interface IDirectiveRegistry
     {
-        void RegisterDirective<T>() where T : DirectiveType, new();
+        void RegisterDirectiveType<T>() where T : DirectiveType, new();
 
-        void RegisterDirective<T>(T directive) where T : DirectiveType;
+        void RegisterDirectiveType<T>(T directive) where T : DirectiveType;
 
-        IReadOnlyCollection<DirectiveType> GetDirectives();
+        IReadOnlyCollection<DirectiveType> GetDirectiveTypes();
+
+        DirectiveType GetDirectiveType(DirectiveReference directiveReference);
     }
 }

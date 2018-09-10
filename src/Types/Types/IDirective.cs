@@ -24,4 +24,45 @@ namespace HotChocolate.Types
 
         IDirectiveFieldResolverHandler CreateMiddleware();
     }
+
+    internal sealed class Directive
+    {
+        public Directive(DirectiveNode directiveNode)
+        {
+
+        }
+
+        public Directive(object customDirective)
+        {
+
+        }
+
+        public string Name { get; }
+
+        public DirectiveType Type { get; }
+
+        public DirectiveNode Node { get; }
+
+        public bool IsMiddleware { get; }
+
+        public bool IsResolver { get; }
+
+        public T CreateArguments<T>() => throw new NotImplementedException();
+
+        public T CreateArgument<T>(string argumentName) => throw new NotImplementedException();
+
+        public IDirectiveFieldResolver CreateResolver() => throw new NotImplementedException();
+
+        public IDirectiveFieldResolverHandler CreateMiddleware() => throw new NotImplementedException();
+
+        internal void CompleteDirective(DirectiveType directive)
+        {
+
+        }
+
+        internal static Directive FromObject()
+        {
+
+        }
+    }
 }

@@ -214,5 +214,16 @@ namespace HotChocolate.Types
             member = null;
             return false;
         }
+
+        public DirectiveType GetDirectiveType(DirectiveReference directiveReference)
+        {
+            if (directiveReference == null)
+            {
+                throw new ArgumentNullException(nameof(directiveReference));
+            }
+
+            return _schemaContext.Directives
+                .GetDirectiveType(directiveReference);
+        }
     }
 }

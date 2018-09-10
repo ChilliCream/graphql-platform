@@ -26,21 +26,25 @@ namespace HotChocolate.Types
             string name,
             IEnumerable<ArgumentNode> arguments)
         {
-            if (string.IsNullOrEmpty(name))
+            name.EnsureDirectiveNameIsValid();
+            directives.Add(new DirectiveNode(name, arguments.ToArray()));
+        }
+
+        public static void EnsureDirectiveNameIsValid(this string directiveName)
+        {
+            if (string.IsNullOrEmpty(directiveName))
             {
                 throw new ArgumentException(
                     "The directive name cannot be null or empty.",
-                    nameof(name));
+                    nameof(directiveName));
             }
 
-            if (!ValidationHelper.IsTypeNameValid(name))
+            if (!ValidationHelper.IsTypeNameValid(directiveName))
             {
                 throw new ArgumentException(
                     "The specified name is not a valid GraphQL directive name.",
-                    nameof(name));
+                    nameof(directiveName));
             }
-
-            directives.Add(new DirectiveNode(name, arguments.ToArray()));
         }
     }
 }

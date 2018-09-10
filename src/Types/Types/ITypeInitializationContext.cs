@@ -29,6 +29,8 @@ namespace HotChocolate.Types
 
         T GetType<T>(TypeReference typeReference) where T : IType;
 
+        DirectiveType GetDirectiveType(DirectiveReference directiveReference);
+
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
 

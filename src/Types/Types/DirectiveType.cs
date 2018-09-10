@@ -19,6 +19,8 @@ namespace HotChocolate.Types
             Initialize(configure);
         }
 
+        internal Type ClrType { get; private set; }
+
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
         public string Name { get; private set; }
@@ -56,6 +58,7 @@ namespace HotChocolate.Types
             DirectiveTypeDescription description =
                 descriptor.CreateDescription();
 
+            ClrType = description.ClrType;
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;

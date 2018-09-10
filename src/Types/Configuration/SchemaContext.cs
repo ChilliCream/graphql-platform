@@ -59,7 +59,7 @@ namespace HotChocolate.Configuration
         public IEnumerable<SchemaError> CompleteDirectives()
         {
             List<SchemaError> errors = new List<SchemaError>();
-            foreach (INeedsInitialization directive in _directiveRegistry.GetDirectives()
+            foreach (INeedsInitialization directive in _directiveRegistry.GetDirectiveTypes()
                 .Cast<INeedsInitialization>())
             {
                 var initializationContext = new TypeInitializationContext(

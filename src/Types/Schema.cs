@@ -30,7 +30,7 @@ namespace HotChocolate
                 context.Types.GetTypes(),
                 context.Types.GetTypeBindings(),
                 options);
-            Directives = context.Directives.GetDirectives();
+            Directives = context.Directives.GetDirectiveTypes();
             Options = options;
             Sessions = new SessionManager(
                 services,
