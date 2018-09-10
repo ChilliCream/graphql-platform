@@ -1,19 +1,109 @@
+using System;
+using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public interface IDirectiveDescriptor
+    public interface IDirectiveTypeDescriptor
         : IFluent
     {
-        IDirectiveDescriptor SyntaxNode(DirectiveDefinitionNode syntaxNode);
+        // <summary>
+        /// Associates the specified <paramref name="syntaxNode"/>
+        /// with the <see cref="DirectiveType"/>.
+        /// </summary>
+        /// <param name="syntaxNode">
+        /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
+        /// </param>
 
-        IDirectiveDescriptor Name(string name);
+        IDirectiveTypeDescriptor SyntaxNode(DirectiveDefinitionNode syntaxNode);
 
-        IDirectiveDescriptor Description(string description);
+        /// <summary>
+        /// Defines the name of the <see cref="DirectiveType"/>.
+        /// </summary>
+        /// <param name="name">The directive type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="name"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        IDirectiveTypeDescriptor Name(string name);
+
+        /// <summary>
+        /// Adds explanatory text to the <see cref="DirectiveType"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="description">The object type description.</param>
+        IDirectiveTypeDescriptor Description(string description);
 
         IArgumentDescriptor Argument(string name);
 
-        IDirectiveDescriptor Location(DirectiveLocation location);
+        IDirectiveTypeDescriptor Location(DirectiveLocation location);
+    }
+
+    public interface IDirectiveTypeDescriptor<T>
+        : IDirectiveTypeDescriptor
+    {
+        // <summary>
+        /// Associates the specified <paramref name="syntaxNode"/>
+        /// with the <see cref="DirectiveType"/>.
+        /// </summary>
+        /// <param name="syntaxNode">
+        /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
+        /// </param>
+
+        new IDirectiveTypeDescriptor<T> SyntaxNode(
+            DirectiveDefinitionNode syntaxNode);
+
+        /// <summary>
+        /// Defines the name of the <see cref="DirectiveType"/>.
+        /// </summary>
+        /// <param name="name">The directive type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// </exception>
+        new IDirectiveTypeDescriptor<T> Name(string name);
+
+        /// <summary>
+        /// Adds explanatory text to the <see cref="DirectiveType"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="description">The object type description.</param>
+        new IDirectiveTypeDescriptor<T> Description(string description);
+
+        /// <summary>
+        /// Defines the argument binding behavior.
+        ///
+        /// The default binding behaviour is set to
+        /// <see cref="BindingBehavior.Implicit"/>.
+        /// </summary>
+        /// <param name="bindingBehavior">
+        /// The binding behavior.
+        ///
+        /// Implicit:
+        /// The directive type descriptor will try to infer the directive type
+        /// arguments from the specified .net directive type representation
+        /// (<typeparamref name="T"/>).
+        ///
+        /// Explicit:
+        /// All arguments have to specified explicitly via
+        /// <see cref="IDirectiveTypeDescriptor{T}.Field{TValue}(Expression{Func{T, TValue}})"/>.
+        /// </param>
+        IDirectiveTypeDescriptor<T> BindArguments(
+            BindingBehavior bindingBehavior);
+
+        /// <summary>
+        /// Specifies an directive argument.
+        /// </summary>
+        /// <param name="property">
+        /// An expression selecting a property <typeparamref name="T"/>.
+        /// </param>
+        IArgumentDescriptor Argument(Expression<Func<T, object>> property);
+
+        /// <summary>
+        /// Specifies wher
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        new IDirectiveTypeDescriptor<T> Location(DirectiveLocation location);
     }
 }

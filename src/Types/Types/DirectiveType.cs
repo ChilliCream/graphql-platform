@@ -6,11 +6,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-
     public class DirectiveType
         : TypeSystemBase
     {
-        internal DirectiveType(Action<IDirectiveDescriptor> configure)
+        internal DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
             Initialize(configure);
         }
@@ -35,13 +34,13 @@ namespace HotChocolate.Types
         internal virtual DirectiveDescriptor CreateDescriptor() =>
             new DirectiveDescriptor();
 
-        protected virtual void Configure(IDirectiveDescriptor descriptor) { }
+        protected virtual void Configure(IDirectiveTypeDescriptor descriptor) { }
 
         #endregion
 
         #region  Initialization
 
-        private void Initialize(Action<IDirectiveDescriptor> configure)
+        private void Initialize(Action<IDirectiveTypeDescriptor> configure)
         {
             if (configure == null)
             {
@@ -90,14 +89,5 @@ namespace HotChocolate.Types
         : TypeSystemBase
     {
 
-    }
-
-    public interface IDirectiveCollection<out T>
-        : IEnumerable<T>
-        where T : IDirective
-    {
-        T this[string fieldName] { get; }
-
-        bool ContainsDirective(string directiveName);
     }
 }

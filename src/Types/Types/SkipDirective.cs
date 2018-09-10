@@ -7,7 +7,7 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override void Configure(IDirectiveDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("skip");
             descriptor.Description(

@@ -27,7 +27,7 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Name(string name);
 
         /// <summary>
-        /// Adds explanatory text of the <see cref="ObjectType"/>
+        /// Adds explanatory text to the <see cref="ObjectType"/>
         /// that can be accessd via introspection.
         /// </summary>
         /// <param name="description">The object type description.</param>

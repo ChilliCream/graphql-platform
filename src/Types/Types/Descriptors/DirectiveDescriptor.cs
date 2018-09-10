@@ -7,7 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class DirectiveDescriptor
-        : IDirectiveDescriptor
+        : IDirectiveTypeDescriptor
         , IDescriptionFactory<DirectiveDescription>
     {
         private readonly List<ArgumentDescriptor> _arguments =
@@ -75,30 +75,30 @@ namespace HotChocolate.Types
 
         #region IDirectiveDescriptor
 
-        IDirectiveDescriptor IDirectiveDescriptor.SyntaxNode(DirectiveDefinitionNode syntaxNode)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.SyntaxNode(DirectiveDefinitionNode syntaxNode)
         {
             SyntaxNode(syntaxNode);
             return this;
         }
 
-        IDirectiveDescriptor IDirectiveDescriptor.Name(string name)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Name(string name)
         {
             Name(name);
             return this;
         }
 
-        IDirectiveDescriptor IDirectiveDescriptor.Description(string description)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Description(string description)
         {
             Description(description);
             return this;
         }
 
-        IArgumentDescriptor IDirectiveDescriptor.Argument(string name)
+        IArgumentDescriptor IDirectiveTypeDescriptor.Argument(string name)
         {
             return Argument(name);
         }
 
-        IDirectiveDescriptor IDirectiveDescriptor.Location(DirectiveLocation location)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Location(DirectiveLocation location)
         {
             Location(location);
             return this;

@@ -13,7 +13,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             desc.Name("Foo");
 
             // assert
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             Action a = () => desc.Name(null);
 
             // assert
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             Action a = () => desc.Name(string.Empty);
 
             // assert
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             desc.Name("Foo");
             desc.Description("Desc");
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             desc.Name("Foo");
             desc.Argument("arg").Type<BooleanType>(); ;
 
@@ -99,7 +99,7 @@ namespace HotChocolate.Types
             var descriptor = new DirectiveDescriptor();
 
             // act
-            IDirectiveDescriptor desc = descriptor;
+            IDirectiveTypeDescriptor desc = descriptor;
             desc.Name("Foo");
             desc.Location(DirectiveLocation.Enum);
             desc.Location(DirectiveLocation.Enum);
