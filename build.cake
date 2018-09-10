@@ -122,7 +122,7 @@ Task("Tests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\"")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
     DotNetCoreTest("./src/Language.Tests", testSettings);
