@@ -127,6 +127,7 @@ Task("Tests")
 
     DotNetCoreTest("./src/Language.Tests", testSettings);
     DotNetCoreTest("./src/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Types.Tests", testSettings);
     DotNetCoreTest("./src/Core.Tests", testSettings);
     DotNetCoreTest("./src/AspNetCore.Tests", testSettings);
 });
