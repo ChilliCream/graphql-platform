@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        protected static async Task<object> FinalizeResolverResultAsync(
+        protected static Task<object> FinalizeResolverResultAsync(
             FieldNode fieldSelection,
             object resolverResult,
             bool isDeveloperMode)
@@ -41,14 +41,15 @@ namespace HotChocolate.Execution
             switch (resolverResult)
             {
                 case Task<object> task:
-                    return await FinalizeResolverResultTaskAsync(
+                    return FinalizeResolverResultTaskAsync(
                         fieldSelection, task, isDeveloperMode);
 
                 case IResolverResult result:
-                    return CompleteResolverResult(fieldSelection, result);
+                    return Task.FromResult(
+                        CompleteResolverResult(fieldSelection, result));
 
                 default:
-                    return resolverResult;
+                    return Task.FromResult(resolverResult);
             }
         }
 
@@ -59,7 +60,10 @@ namespace HotChocolate.Execution
         {
             try
             {
-                object resolverResult = await task;
+                object resolverResult = task.IsCompleted
+                    ? task.Result
+                    : await task;
+
                 if (resolverResult is IResolverResult r)
                 {
                     return CompleteResolverResult(fieldSelection, r);

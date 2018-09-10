@@ -13,7 +13,7 @@ namespace HotChocolate.Configuration
 
         public int MaxExecutionDepth { get; set; } = 8;
 
-        public TimeSpan ExecutionTimeout { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan ExecutionTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         public IServiceProvider Services { get; set; }
 

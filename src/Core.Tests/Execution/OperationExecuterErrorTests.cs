@@ -260,6 +260,5 @@ namespace HotChocolate.Execution
 
             public object Error12 => new QueryError("query error 12");
         }
-
     }
 }
