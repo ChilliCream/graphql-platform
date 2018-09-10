@@ -156,7 +156,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
+        IObjectTypeDescriptor IObjectTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
@@ -168,7 +169,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(
+            NamedTypeNode type)
         {
             Interface(type);
             return this;
@@ -241,7 +243,8 @@ namespace HotChocolate.Types
 
             AddExplicitFields(descriptions, handledMembers);
 
-            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
+            if (ObjectDescription.FieldBindingBehavior ==
+                BindingBehavior.Implicit)
             {
                 Dictionary<MemberInfo, string> members =
                     GetPossibleImplicitFields(handledMembers);
@@ -256,7 +259,8 @@ namespace HotChocolate.Types
             Dictionary<string, ObjectFieldDescription> descriptors,
             List<MemberInfo> handledMembers)
         {
-            foreach (ObjectFieldDescription fieldDescription in ObjectDescription.Fields)
+            foreach (ObjectFieldDescription fieldDescription in
+                ObjectDescription.Fields)
             {
                 if (!fieldDescription.Ignored)
                 {
@@ -320,7 +324,8 @@ namespace HotChocolate.Types
 
             foreach (MethodInfo method in type.GetMethods(
                 BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => !m.IsSpecialName && m.DeclaringType != typeof(object)))
+                .Where(m => !m.IsSpecialName
+                    && m.DeclaringType != typeof(object)))
             {
                 members[method] = method.GetGraphQLName();
             }

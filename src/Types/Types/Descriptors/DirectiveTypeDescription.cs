@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class DirectiveDescription
+    internal class DirectiveTypeDescription
     {
         public DirectiveDefinitionNode SyntaxNode { get; set; }
 
@@ -11,10 +13,14 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
+        public Type ClrType { get; set; }
+
+        public BindingBehavior ArgumentBindingBehavior { get; set; }
+
         public HashSet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();
 
-        public List<ArgumentDescription> Arguments { get; } =
-            new List<ArgumentDescription>();
+        public List<DirectiveArgumentDescription> Arguments { get; } =
+            new List<DirectiveArgumentDescription>();
     }
 }

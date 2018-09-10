@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         public void DeclareName()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         public void DeclareNullName()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -38,7 +38,7 @@ namespace HotChocolate.Types
         public void DeclareEmptyName()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         public void CreateDescriptionWithEmptyName()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             Action a = () => descriptor.CreateDescription();
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         public void DeclareDescription()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
         public void DeclareArgument()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -88,7 +88,7 @@ namespace HotChocolate.Types
             desc.Argument("arg").Type<BooleanType>(); ;
 
             // assert
-            DirectiveDescription description = descriptor.CreateDescription();
+            DirectiveTypeDescription description = descriptor.CreateDescription();
             Assert.Equal("arg", description.Arguments.Single().Name);
         }
 
@@ -96,7 +96,7 @@ namespace HotChocolate.Types
         public void DeclareLocation()
         {
             // arrange
-            var descriptor = new DirectiveDescriptor();
+            var descriptor = new DirectiveTypeDescriptor();
 
             // act
             IDirectiveTypeDescriptor desc = descriptor;
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
             desc.Location(DirectiveLocation.EnumValue);
 
             // assert
-            DirectiveDescription description = descriptor.CreateDescription();
+            DirectiveTypeDescription description = descriptor.CreateDescription();
             Assert.Collection(description.Locations,
                 t => Assert.Equal(DirectiveLocation.Enum, t),
                 t => Assert.Equal(DirectiveLocation.EnumValue, t));

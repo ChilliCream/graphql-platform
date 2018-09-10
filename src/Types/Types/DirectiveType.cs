@@ -31,8 +31,8 @@ namespace HotChocolate.Types
 
         #region Configuration
 
-        internal virtual DirectiveDescriptor CreateDescriptor() =>
-            new DirectiveDescriptor();
+        internal virtual DirectiveTypeDescriptor CreateDescriptor() =>
+            new DirectiveTypeDescriptor();
 
         protected virtual void Configure(IDirectiveTypeDescriptor descriptor) { }
 
@@ -47,10 +47,10 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            DirectiveDescriptor descriptor = CreateDescriptor();
+            DirectiveTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
-            DirectiveDescription description = descriptor.CreateDescription();
+            DirectiveTypeDescription description = descriptor.CreateDescription();
 
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;

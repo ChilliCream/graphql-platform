@@ -12,4 +12,4 @@ branches:
 install:
   - ./build.sh -t Clean
 script:
-  - ./build.sh -t Sonar
+  - ./build.sh -t Tests

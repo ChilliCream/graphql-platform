@@ -9,35 +9,35 @@ namespace HotChocolate.Validation
     public class QueryValidator
     {
         private static readonly IQueryValidationRule[] _rules =
-            {
-                new ExecutableDefinitionsRule(),
-                new LoneAnonymousOperationRule(),
-                new OperationNameUniquenessRule(),
-                new VariableUniquenessRule(),
-                new ArgumentUniquenessRule(),
-                new RequiredArgumentRule(),
-                new SubscriptionSingleRootFieldRule(),
-                new FieldMustBeDefinedRule(),
-                new AllVariablesUsedRule(),
-                new DirectivesAreInValidLocationsRule(),
-                new VariablesAreInputTypesRule(),
-                new FieldSelectionMergingRule(),
-                new AllVariableUsagesAreAllowedRule(),
-                new ArgumentNamesRule(),
-                new FragmentsMustBeUsedRule(),
-                new FragmentNameUniquenessRule(),
-                new LeafFieldSelectionsRule(),
-                new FragmentsOnCompositeTypesRule(),
-                new FragmentSpreadsMustNotFormCyclesRule(),
-                new FragmentSpreadTargetDefinedRule(),
-                new FragmentSpreadIsPossibleRule(),
-                new FragmentSpreadTypeExistenceRule(),
-                new InputObjectFieldNamesRule(),
-                new InputObjectRequiredFieldsRule(),
-                new InputObjectFieldUniquenessRule(),
-                new DirectivesAreDefinedRule(),
-                new ValuesOfCorrectTypeRule()
-            };
+        {
+            new ExecutableDefinitionsRule(),
+            new LoneAnonymousOperationRule(),
+            new OperationNameUniquenessRule(),
+            new VariableUniquenessRule(),
+            new ArgumentUniquenessRule(),
+            new RequiredArgumentRule(),
+            new SubscriptionSingleRootFieldRule(),
+            new FieldMustBeDefinedRule(),
+            new AllVariablesUsedRule(),
+            new DirectivesAreInValidLocationsRule(),
+            new VariablesAreInputTypesRule(),
+            new FieldSelectionMergingRule(),
+            new AllVariableUsagesAreAllowedRule(),
+            new ArgumentNamesRule(),
+            new FragmentsMustBeUsedRule(),
+            new FragmentNameUniquenessRule(),
+            new LeafFieldSelectionsRule(),
+            new FragmentsOnCompositeTypesRule(),
+            new FragmentSpreadsMustNotFormCyclesRule(),
+            new FragmentSpreadTargetDefinedRule(),
+            new FragmentSpreadIsPossibleRule(),
+            new FragmentSpreadTypeExistenceRule(),
+            new InputObjectFieldNamesRule(),
+            new InputObjectRequiredFieldsRule(),
+            new InputObjectFieldUniquenessRule(),
+            new DirectivesAreDefinedRule(),
+            new ValuesOfCorrectTypeRule()
+        };
 
         private readonly ISchema _schema;
 
