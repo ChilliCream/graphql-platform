@@ -98,8 +98,8 @@ namespace HotChocolate.Validation
                 {
                     Assert.Equal(
                         "GraphQL allows a short‐hand form for defining query " +
-                        "operations when only that one operation exists in the " +
-                        "document.", t.Message);
+                        "operations when only that one operation exists in " +
+                        "the document.", t.Message);
                 });
         }
 
@@ -142,7 +142,8 @@ namespace HotChocolate.Validation
         {
             // arrange
             DocumentNode query = Parser.Default.Parse(@"
-                query houseTrainedQuery($atOtherHomes: Boolean, $atOtherHomes: Boolean) {
+                query houseTrainedQuery(
+                    $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
                         isHousetrained(atOtherHomes: $atOtherHomes)
                     }
@@ -173,7 +174,8 @@ namespace HotChocolate.Validation
             // arrange
             DocumentNode query = Parser.Default.Parse(@"
                 fragment goodNonNullArg on Arguments {
-                    nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
+                    nonNullBooleanArgField(
+                        nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }
             ");
 
@@ -287,7 +289,8 @@ namespace HotChocolate.Validation
                     "is not used within the current document.",
                     t.Message),
                 t => Assert.Equal(
-                    "The specified fragment `aliasedLyingFieldTargetNotDefined` " +
+                    "The specified fragment " +
+                    "`aliasedLyingFieldTargetNotDefined` " +
                     "is not used within the current document.",
                     t.Message));
         }
