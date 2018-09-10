@@ -9,6 +9,7 @@ matrix:
 branches:
   only:
     - master
-
+install:
+  - ./build.sh -t Clean
 script:
   - ./build.sh -t Tests
