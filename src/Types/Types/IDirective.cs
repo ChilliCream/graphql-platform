@@ -26,13 +26,14 @@ namespace HotChocolate.Types
     }
 
     internal sealed class Directive
+        : IDirective
     {
-        public Directive(DirectiveNode directiveNode)
+        public Directive(DirectiveType directiveType, DirectiveNode parsedDirective)
         {
 
         }
 
-        public Directive(object customDirective)
+        public Directive(DirectiveType directiveType, object customDirective)
         {
 
         }
@@ -60,9 +61,9 @@ namespace HotChocolate.Types
 
         }
 
-        internal static Directive FromObject()
+        internal static Directive FromDescription(DirectiveType directiveType, DirectiveDescription description)
         {
-
+            return null;
         }
     }
 }

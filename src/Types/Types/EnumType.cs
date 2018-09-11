@@ -16,19 +16,17 @@ namespace HotChocolate.Types
             new Dictionary<string, EnumValue>();
         private readonly Dictionary<object, EnumValue> _valueToValues =
             new Dictionary<object, EnumValue>();
-        private readonly List<IDirective> _directives = new List<IDirective>();
+        private DirectiveCollection _directives;
 
         protected EnumType()
             : base(TypeKind.Enum)
         {
-            Directives = _directives.AsReadOnly();
             Initialize(Configure);
         }
 
         public EnumType(Action<IEnumTypeDescriptor> configure)
             : base(TypeKind.Enum)
         {
-            Directives = _directives.AsReadOnly();
             Initialize(configure);
         }
 
@@ -42,7 +40,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public IReadOnlyCollection<IDirective> Directives { get; }
+        public IDirectiveCollection Directives { get; }
 
         public bool TryGetValue(string name, out object value)
         {
@@ -179,6 +177,11 @@ namespace HotChocolate.Types
             Name = description.Name;
             Description = description.Description;
             ClrType = description.NativeType;
+
+            _directives = new DirectiveCollection(
+                DirectiveLocation.Enum,
+                description.Directives);
+            RegisterForInitialization(_directives);
         }
 
         protected override void OnCompleteType(ITypeInitializationContext context)
@@ -188,8 +191,6 @@ namespace HotChocolate.Types
                 context.ReportError(new SchemaError(
                     $"The enum type `{Name}` has no values."));
             }
-
-            foreach(object directive in Descriptio)
         }
 
         #endregion

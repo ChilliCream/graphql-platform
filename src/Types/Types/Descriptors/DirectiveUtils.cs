@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     internal static class DirectiveUtils
     {
         public static void AddDirective<T>(
-            this IList<object> directives,
+            this IList<DirectiveDescription> directives,
             T directive)
             where T : class
         {
@@ -18,16 +18,17 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(directive));
             }
 
-            directives.Add(directive);
+            directives.Add(new DirectiveDescription(directive));
         }
 
         public static void AddDirective(
-            this IList<object> directives,
+            this IList<DirectiveDescription> directives,
             string name,
             IEnumerable<ArgumentNode> arguments)
         {
             name.EnsureDirectiveNameIsValid();
-            directives.Add(new DirectiveNode(name, arguments.ToArray()));
+            directives.Add(new DirectiveDescription(
+                new DirectiveNode(name, arguments.ToArray())));
         }
 
         public static void EnsureDirectiveNameIsValid(this string directiveName)

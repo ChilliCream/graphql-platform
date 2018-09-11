@@ -1,16 +1,30 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Types
 {
     public class TypeSystemBase
         : INeedsInitialization
     {
-        private bool _completed;
+        private readonly List<INeedsInitialization> _dependencies =
+            new List<INeedsInitialization>();
+
+        private TypeStatus _status = TypeStatus.Created;
 
         private void RegisterDependencies(
             ITypeInitializationContext context)
         {
-            if (!_completed)
+            if (_status == TypeStatus.Created)
             {
+                _status = TypeStatus.Registering;
+
                 OnRegisterDependencies(context);
+
+                foreach (INeedsInitialization dependency in _dependencies)
+                {
+                    dependency.RegisterDependencies(context);
+                }
+
+                _status = TypeStatus.Registered;
             }
         }
 
@@ -28,10 +42,18 @@ namespace HotChocolate.Types
         private void CompleteType(
             ITypeInitializationContext context)
         {
-            if (!_completed)
+            if (_status == TypeStatus.Registered)
             {
+                _status = TypeStatus.Completing;
+
                 OnCompleteType(context);
-                _completed = true;
+
+                foreach (INeedsInitialization dependency in _dependencies)
+                {
+                    dependency.CompleteType(context);
+                }
+
+                _status = TypeStatus.Completed;
             }
         }
 
@@ -45,6 +67,24 @@ namespace HotChocolate.Types
             ITypeInitializationContext context)
         {
 
+        }
+
+        internal void RegisterForInitialization(
+            INeedsInitialization dependency)
+        {
+            if (_status == TypeStatus.Created)
+            {
+                _dependencies.Add(dependency);
+            }
+        }
+
+        private enum TypeStatus
+        {
+            Created,
+            Registering,
+            Registered,
+            Completing,
+            Completed
         }
     }
 }

@@ -52,42 +52,30 @@ namespace HotChocolate.Types.Introspection
 
         private static bool GetOnOperation(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
+            ICollection<DirectiveLocation> locations =
                 context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.Query)
-                || Contains(locations, DirectiveLocation.Mutation)
-                || Contains(locations, DirectiveLocation.Subscription);
+            return locations.Contains(DirectiveLocation.Query)
+                || locations.Contains(DirectiveLocation.Mutation)
+                || locations.Contains(DirectiveLocation.Subscription);
         }
 
         private static bool GetOnFragment(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
+            ICollection<DirectiveLocation> locations =
                 context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.InlineFragment)
-                || Contains(locations, DirectiveLocation.FragmentSpread)
-                || Contains(locations, DirectiveLocation.FragmentDefinition);
+            return locations.Contains(DirectiveLocation.InlineFragment)
+                || locations.Contains(DirectiveLocation.FragmentSpread)
+                || locations.Contains(DirectiveLocation.FragmentDefinition);
         }
 
         private static bool GetOnField(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
+            ICollection<DirectiveLocation> locations =
                 context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.Field);
-        }
-
-        private static bool Contains<T>(IReadOnlyCollection<T> collection, T item)
-        {
-            foreach (T element in collection)
-            {
-                if (element.Equals(item))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return locations.Contains(DirectiveLocation.Field);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Language;
 
@@ -27,8 +28,7 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
-        public IReadOnlyCollection<DirectiveLocation> Locations
-        { get; private set; }
+        public ICollection<DirectiveLocation> Locations { get; private set; }
 
         public FieldCollection<InputField> Arguments { get; private set; }
 
@@ -62,7 +62,7 @@ namespace HotChocolate.Types
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;
-            Locations = description.Locations.ToImmutableList();
+            Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));
         }

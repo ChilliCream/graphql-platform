@@ -17,6 +17,7 @@ namespace HotChocolate.Types
 
         public BindingBehavior ValueBindingBehavior { get; set; }
 
-        public List<object> Directives { get; set; } = new List<object>();
+        public List<DirectiveDescription> Directives { get; set; } =
+            new List<DirectiveDescription>();
     }
 }

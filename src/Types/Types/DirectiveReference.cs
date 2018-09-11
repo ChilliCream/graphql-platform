@@ -21,19 +21,22 @@ namespace HotChocolate.Types
 
         public string Name { get; }
 
-        internal static DirectiveReference FromObject(object obj)
+        internal static DirectiveReference FromDescription(
+            DirectiveDescription description)
         {
-            if (obj == null)
+            if (description == null)
             {
-                throw new ArgumentNullException(nameof(obj));
+                throw new ArgumentNullException(nameof(description));
             }
 
-            if (obj is DirectiveNode node)
+            if (description.ParsedDirective != null)
             {
-                return new DirectiveReference(node.Name.Value);
+                return new DirectiveReference(
+                    description.ParsedDirective.Name.Value);
             }
 
-            return new DirectiveReference(obj.GetType());
+            return new DirectiveReference(
+                description.CustomDirective.GetType());
         }
     }
 }
