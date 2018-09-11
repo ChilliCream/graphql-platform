@@ -4,30 +4,73 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal abstract class SourceCodeGenerator
+    internal interface ISourceCodeGenerator
+    {
+        string Generate(string delegateName, IDelegateDescriptor descriptor);
+
+        bool CanHandle(IDelegateDescriptor descriptor);
+    }
+
+    internal abstract class SourceCodeGenerator<TDescriptor>
+        : ISourceCodeGenerator
+        where TDescriptor : IDelegateDescriptor
     {
         public string Generate(
-            string resolverName,
-            IFieldResolverDescriptor resolverDescriptor)
+            string delegateName,
+            IDelegateDescriptor descriptor)
+        {
+            if (descriptor is TDescriptor d)
+            {
+                return Generate(delegateName, descriptor);
+            }
+
+            throw new NotSupportedException("Descriptor not supported.");
+        }
+
+        public bool CanHandle(IDelegateDescriptor descriptor)
+        {
+            if (descriptor is TDescriptor d)
+            {
+                return CanHandle(d);
+            }
+
+            return false;
+        }
+
+        protected abstract string Generate(
+            string delegateName, TDescriptor descriptor);
+
+        protected virtual bool CanHandle(TDescriptor descriptor) => true;
+    }
+
+
+
+    internal abstract class ResolverSourceCodeGenerator<T>
+        : SourceCodeGenerator<T>
+        where T : IFieldResolverDescriptor
+    {
+        protected override string Generate(
+            string delegateName,
+            T descriptor)
         {
             var source = new StringBuilder();
-            source.AppendLine($"/* {resolverDescriptor.Field.TypeName}.{resolverDescriptor.Field.FieldName} */");
+            source.AppendLine($"/* {descriptor.Field.TypeName}.{descriptor.Field.FieldName} */");
             source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
-            source.Append(resolverName);
+            source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
             source.Append("(ctx, ct) => {");
             source.AppendLine();
 
             foreach (ArgumentDescriptor argumentDescriptor in
-                resolverDescriptor.Arguments)
+                descriptor.Arguments)
             {
                 GenerateArgumentInvocation(argumentDescriptor, source);
                 source.AppendLine();
             }
 
-            GenerateResolverInvocation(resolverDescriptor, source);
+            GenerateResolverInvocation(descriptor, source);
 
             source.AppendLine();
             source.Append("};");
@@ -74,12 +117,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 case ArgumentKind.CancellationToken:
                     source.Append($"ct");
                     break;
-                case ArgumentKind.DataLoader:
-                    source.Append($"ctx.{nameof(IResolverContext.DataLoader)}<{GetTypeName(argumentDescriptor.Type)}>()");
-                    break;
-                case ArgumentKind.CustomContext:
-                    source.Append($"ctx.{nameof(IResolverContext.CustomContext)}<{GetTypeName(argumentDescriptor.Type)}>()");
-                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -87,11 +124,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         protected abstract void GenerateResolverInvocation(
-            IFieldResolverDescriptor resolverDescriptor,
+            T resolverDescriptor,
             StringBuilder source);
-
-        public abstract bool CanGenerate(
-            IFieldResolverDescriptor resolverDescriptor);
 
         protected string GetTypeName(Type type)
         {
@@ -112,19 +146,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
     }
 
-    internal abstract class SourceCodeGenerator<T>
-        : SourceCodeGenerator
-        where T : IFieldResolverDescriptor
+    internal abstract class ArgumentSourceCodeGenerator
+        : SourceCodeGenerator<ArgumentDescriptor>
     {
-        protected sealed override void GenerateResolverInvocation(
-            IFieldResolverDescriptor resolverDescriptor,
-            StringBuilder source)
-        {
-            GenerateResolverInvocation((T)resolverDescriptor, source);
-        }
+        protected abstract ArgumentKind Kind { get; }
 
-        protected abstract void GenerateResolverInvocation(
-            T resolverDescriptor,
-            StringBuilder source);
+        protected sealed override bool CanHandle(ArgumentDescriptor descriptor)
+        {
+            return descriptor.Kind == Kind;
+        }
     }
 }

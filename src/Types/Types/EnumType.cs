@@ -11,6 +11,7 @@ namespace HotChocolate.Types
         , INamedOutputType
         , INamedInputType
         , ISerializableType
+        , IHasDirectives
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();

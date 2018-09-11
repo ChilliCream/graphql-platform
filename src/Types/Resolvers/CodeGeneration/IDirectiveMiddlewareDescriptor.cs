@@ -1,20 +1,30 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal interface IFieldResolverDescriptor
+    internal interface IDirectiveMiddlewareDescriptor
         : IDelegateDescriptor
     {
         /// <summary>
-        /// Gets the type of the source object.
-        /// The source object is the object type providing
-        /// the fields for the reslver.
-        /// <see cref="IResolverContext.Parent{T}" />
-        /// /// </summary>
-        Type SourceType { get; }
+        /// Gets the name of the directive to which this middleware belongs to.
+        /// </summary>
+        /// <value></value>
+        string DirectiveName { get; }
+
+        /// <summary>
+        /// Gets the type that holds the middleware method.
+        /// </summary>
+        Type Type { get; }
+
+        /// <summary>
+        /// Gets the middleware method.
+        /// </summary>
+        /// <value></value>
+        MethodInfo Method { get; }
+
+        MiddlewareKind Kind { get; }
 
         /// <summary>
         /// Gets a field reference with the member that
@@ -25,7 +35,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// <summary>
         /// Gets a collection of argument descriptors
         /// defining the structure of the arguments
-        /// that the resolver demands.
+        /// that the middleware demands.
         /// </summary>
         IReadOnlyCollection<ArgumentDescriptor> Arguments { get; }
 
@@ -39,11 +49,5 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// otherwise the resolver is expected to be a property.
         /// </summary>
         bool IsMethod { get; }
-
-        /// <summary>
-        /// Defines if the resolver is a property;
-        /// otherwise the resolver is expected to be a method.
-        /// </summary>
-        bool IsProperty { get; }
     }
 }

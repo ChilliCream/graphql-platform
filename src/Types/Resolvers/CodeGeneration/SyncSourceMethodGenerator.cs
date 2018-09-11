@@ -4,7 +4,7 @@ using System.Text;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class SyncSourceMethodGenerator
-        : SourceCodeGenerator<SourceResolverDescriptor>
+        : ResolverSourceCodeGenerator<SourceResolverDescriptor>
     {
         protected override void GenerateResolverInvocation(
             SourceResolverDescriptor resolverDescriptor,

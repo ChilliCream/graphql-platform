@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal const string ClassName = "___CompiledResolvers";
         internal const string FullClassName = Namespace + "." + ClassName;
 
-        private static readonly SourceCodeGenerator[] _generators =
+        private static readonly ResolverSourceCodeGenerator[] _generators =
         {
             new AsyncResolverMethodGenerator(),
             new SyncResolverMethodGenerator(),
@@ -63,7 +63,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             foreach (IFieldResolverDescriptor resolverDescriptor in
                 resolverDescriptors)
             {
-                SourceCodeGenerator generator = _generators.First(
+                ResolverSourceCodeGenerator generator = _generators.First(
                     t => t.CanGenerate(resolverDescriptor));
                 source.AppendLine(generator.Generate(
                     GetResolverName(i++), resolverDescriptor));

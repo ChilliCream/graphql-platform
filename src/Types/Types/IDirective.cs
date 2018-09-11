@@ -9,18 +9,10 @@ namespace HotChocolate.Types
 
         DirectiveType Type { get; }
 
-        DirectiveNode Node { get; }
+        T ToObject<T>();
 
-        bool IsMiddleware { get; }
+        DirectiveNode ToNode();
 
-        bool IsResolver { get; }
-
-        T CreateArguments<T>();
-
-        T CreateArgument<T>(string argumentName);
-
-        IDirectiveFieldResolver CreateResolver();
-
-        IDirectiveFieldResolverHandler CreateMiddleware();
+        T GetArgument<T>(string argumentName);
     }
 }

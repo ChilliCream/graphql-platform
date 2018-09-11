@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -66,7 +69,50 @@ namespace HotChocolate.Types
                 IDirectiveTypeDescriptor<CustomDirective> descriptor)
             {
                 descriptor.Name("Custom");
+                descriptor.Location(DirectiveLocation.Enum);
+                descriptor.Location(DirectiveLocation.Field);
             }
+        }
+
+        public class CustomEnumType
+            : EnumType
+        {
+            protected override void Configure(IEnumTypeDescriptor descriptor)
+            {
+                descriptor.Directive(new CustomDirective { Argument = "foo" });
+            }
+        }
+
+        public class CustomMiddleware
+            : IDirectiveFieldResolver
+            , IDirectiveFieldResolverHandler
+        {
+            public void OnBeforeInvoke(
+                IDirectiveContext directiveContext,
+                IResolverContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public Task<object> OnAfterInvokeAsync(
+                IDirectiveContext directiveContext,
+                IResolverContext context,
+                object resolverResult,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<object> ResolveAsync(
+                IDirectiveContext directiveContext,
+                IResolverContext resolverContext,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+
         }
 
         public class CustomDirective

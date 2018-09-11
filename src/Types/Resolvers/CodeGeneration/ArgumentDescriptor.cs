@@ -6,6 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal class ArgumentDescriptor
+        : IDelegateDescriptor
     {
         internal ArgumentDescriptor(
             string name, string variableName,
