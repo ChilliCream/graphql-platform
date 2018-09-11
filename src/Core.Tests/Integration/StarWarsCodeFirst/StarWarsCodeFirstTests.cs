@@ -483,6 +483,28 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public void NonNullEnumsSerializeCorrectlyFromVariables()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+                query getHero($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }";
+
+            var variables = new Dictionary<string, IValueNode>();
+            variables["episode"] = new StringValueNode("NEWHOPE");
+
+            // act
+            IExecutionResult result = schema.Execute(query, variables);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public void EnumValueIsCoercedToListValue()
         {
             // arrange
