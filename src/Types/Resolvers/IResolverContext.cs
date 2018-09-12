@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -133,5 +134,27 @@ namespace HotChocolate.Resolvers
         /// The error message.
         /// </param>
         void ReportError(string errorMessage);
+
+        /// <summary>
+        /// Gets a directive by its name.
+        /// </summary>
+        /// <param name="name">
+        /// The directive name.
+        /// </param>
+        /// <returns>
+        /// Returns the directive that matches the specified name.
+        /// </returns>
+        IDirective Directive(string name);
+
+        /// <summary>
+        /// Gets all directive that lie in the specified scope.
+        /// </summary>
+        /// <param name="scope">
+        /// The directive scope.
+        /// </param>
+        /// <returns>
+        /// Returns all directive that lie in the specified scope.
+        /// </returns>
+        IEnumerable<IDirective> Directives(DirectiveScope scope);
     }
 }
