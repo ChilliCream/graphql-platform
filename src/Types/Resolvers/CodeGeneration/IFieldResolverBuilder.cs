@@ -5,7 +5,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal interface IFieldResolverBuilder
     {
-        IEnumerable<FieldResolver> Build(
+        IReadOnlyCollection<FieldResolver> Build(
             IEnumerable<IFieldResolverDescriptor> descriptors);
     }
 }

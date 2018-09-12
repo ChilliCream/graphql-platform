@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             if (descriptor is TDescriptor d)
             {
-                return Generate(delegateName, descriptor);
+                return Generate(delegateName, d);
             }
 
             throw new NotSupportedException("Descriptor not supported.");

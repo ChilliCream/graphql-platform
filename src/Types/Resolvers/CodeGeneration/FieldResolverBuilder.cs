@@ -12,29 +12,40 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private readonly ClassSourceCodeGenerator _codeGenerator =
             new ClassSourceCodeGenerator();
 
-        public IEnumerable<FieldResolver> Build(
+        public IReadOnlyCollection<FieldResolver> Build(
             IEnumerable<IFieldResolverDescriptor> descriptors)
         {
+            if (descriptors == null)
+            {
+                throw new ArgumentNullException(nameof(descriptors));
+            }
+
             IFieldResolverDescriptor[] descriptorArr =
                 descriptors.ToArray();
             if (descriptorArr.Length == 0)
             {
-                yield break;
+                Array.Empty<FieldResolver>();
             }
 
-            string sourceText = _codeGenerator.Generate(descriptorArr);
+            return BuildInternal(descriptorArr).ToArray();
+        }
+
+        private IEnumerable<FieldResolver> BuildInternal(
+            IFieldResolverDescriptor[] descriptors)
+        {
+            string sourceText = _codeGenerator.Generate(descriptors);
             Assembly assembly = CSharpCompiler.Compile(sourceText);
             Type type = assembly.GetType(
                 ClassSourceCodeGenerator.FullClassName);
 
-            for (var i = 0; i < descriptorArr.Length; i++)
+            for (var i = 0; i < descriptors.Length; i++)
             {
                 string resolverName = _codeGenerator.GetResolverName(i);
                 FieldInfo field = type.GetField(resolverName,
                     BindingFlags.Static | BindingFlags.Public);
                 yield return new FieldResolver(
-                    descriptorArr[i].Field.TypeName,
-                    descriptorArr[i].Field.FieldName,
+                    descriptors[i].Field.TypeName,
+                    descriptors[i].Field.FieldName,
                     (FieldResolverDelegate)field.GetValue(field));
             }
         }
