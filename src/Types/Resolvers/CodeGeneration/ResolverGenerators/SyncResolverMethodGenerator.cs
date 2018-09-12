@@ -25,11 +25,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
             });
         }
 
-        public override bool CanGenerate(
-            IFieldResolverDescriptor resolverDescriptor)
+        protected override bool CanHandle(ResolverDescriptor descriptor)
         {
-            return resolverDescriptor is ResolverDescriptor d
-                && !d.IsAsync && d.IsMethod;
+            return !descriptor.IsAsync && descriptor.IsMethod;
         }
     }
 }

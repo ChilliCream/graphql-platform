@@ -84,8 +84,8 @@ namespace HotChocolate.Types
         }
 
         public class CustomMiddleware
-            : IDirectiveFieldResolver
-            , IDirectiveFieldResolverHandler
+        // : IDirectiveFieldResolver
+        // , IDirectiveFieldResolverHandler
         {
             public void OnBeforeInvoke(
                 IDirectiveContext directiveContext,

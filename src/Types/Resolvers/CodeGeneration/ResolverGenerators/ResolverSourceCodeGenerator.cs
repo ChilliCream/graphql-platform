@@ -80,5 +80,4 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine("}");
         }
     }
-
 }
