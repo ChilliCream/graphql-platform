@@ -13,7 +13,6 @@ namespace HotChocolate.Types
         private readonly List<IDirective> _directives = new List<IDirective>();
         private readonly DirectiveLocation _location;
         private IReadOnlyCollection<DirectiveDescription> _descriptions;
-        private bool _sealed;
 
         internal DirectiveCollection(
             DirectiveLocation location,
@@ -36,7 +35,6 @@ namespace HotChocolate.Types
             {
                 CompleteDirecive(context, description);
             }
-            _sealed = true;
         }
 
         private void CompleteDirecive(
