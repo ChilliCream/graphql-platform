@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             SourceResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{GetTypeName(resolverDescriptor.SourceType)}>();");
+            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.SourceType.GetTypeName()}>();");
             source.AppendLine("Func<Task<object>> f = async () => {");
 
             HandleExceptions(source, s =>

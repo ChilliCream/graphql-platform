@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,20 +6,20 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal abstract class ResolverSourceCodeGenerator<T>
+    internal abstract class DirectiveResolverSourceCodeGenerator<T>
         : ResolverSourceCodeGeneratorBase<T>
-        where T : IFieldResolverDescriptor
+        where T : IDirectiveMiddlewareDescriptor
     {
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {
-            source.AppendLine($"/* {descriptor.Field.TypeName}.{descriptor.Field.FieldName} */");
-            source.Append($"public static {nameof(FieldResolverDelegate)}");
+            source.AppendLine($"/* @{descriptor.DirectiveName} */");
+            source.Append($"public static {nameof(DirectiveResolver)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, ct) => {");
+            source.Append("(dctx, ctx, ct) => {");
             source.AppendLine();
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         protected override IEnumerable<ArgumentDescriptor> GetArguments(
-            T descriptor)
+           T descriptor)
         {
             return descriptor.Arguments;
         }

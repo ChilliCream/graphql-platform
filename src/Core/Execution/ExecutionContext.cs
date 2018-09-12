@@ -190,5 +190,12 @@ namespace HotChocolate.Execution
                 _disposed = true;
             }
         }
+
+        public IReadOnlyCollection<IDirective> CollectDirectives(
+            ObjectType objectType,
+            SelectionSetNode selectionSet)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

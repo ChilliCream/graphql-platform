@@ -27,12 +27,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         MiddlewareKind Kind { get; }
 
         /// <summary>
-        /// Gets a field reference with the member that
-        /// shall be act as resolver.
-        /// </summary>
-        FieldMember Field { get; }
-
-        /// <summary>
         /// Gets a collection of argument descriptors
         /// defining the structure of the arguments
         /// that the middleware demands.
@@ -43,11 +37,22 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// Defines if the resolver is an asynchronous resolver.
         /// </summary>
         bool IsAsync { get; }
-
-        /// <summary>
-        /// Defines if the resolver is a method;
-        /// otherwise the resolver is expected to be a property.
-        /// </summary>
-        bool IsMethod { get; }
     }
+
+    internal sealed class DirectiveResolverDescriptor
+        : IDirectiveMiddlewareDescriptor
+    {
+        public string DirectiveName => throw new NotImplementedException();
+
+        public Type Type => throw new NotImplementedException();
+
+        public MethodInfo Method => throw new NotImplementedException();
+
+        public MiddlewareKind Kind => throw new NotImplementedException();
+
+        public IReadOnlyCollection<ArgumentDescriptor> Arguments => throw new NotImplementedException();
+
+        public bool IsAsync => throw new NotImplementedException();
+    }
+
 }

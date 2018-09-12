@@ -34,6 +34,8 @@ namespace HotChocolate.Types
 
         public DirectiveType Type { get; }
 
+        public DirectiveResolver Resolver => throw new NotImplementedException();
+
         public T ToObject<T>()
         {
             throw new NotImplementedException();

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{GetTypeName(resolverDescriptor.ResolverType)}>();");
+            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.ResolverType.GetTypeName()}>();");
             HandleExceptions(source, s =>
             {
                 s.Append($"return resolver.{resolverDescriptor.Field.Member.Name}(");

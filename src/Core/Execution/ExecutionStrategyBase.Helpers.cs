@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -18,6 +20,31 @@ namespace HotChocolate.Execution
             try
             {
                 return resolverTask.FieldSelection.Field.Resolver(
+                    resolverTask.ResolverContext,
+                    cancellationToken);
+            }
+            catch (QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorFromException(ex,
+                    resolverTask.FieldSelection.Selection,
+                    isDeveloperMode);
+            }
+        }
+
+        private static object ExecuteDirectiveResolver(
+            IDirectiveContext directiveContext,
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return directiveContext.Directive.Resolver(
+                    directiveContext,
                     resolverTask.ResolverContext,
                     cancellationToken);
             }

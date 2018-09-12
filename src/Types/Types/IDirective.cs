@@ -9,6 +9,8 @@ namespace HotChocolate.Types
 
         DirectiveType Type { get; }
 
+        DirectiveResolver Resolver { get; }
+
         T ToObject<T>();
 
         DirectiveNode ToNode();
