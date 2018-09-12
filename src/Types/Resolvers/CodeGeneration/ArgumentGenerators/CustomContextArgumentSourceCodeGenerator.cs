@@ -8,7 +8,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override ArgumentKind Kind => ArgumentKind.CustomContext;
 
         protected override string Generate(
-            string delegateName,
             ArgumentDescriptor descriptor)
         {
             return $"ctx.{nameof(IResolverContext.CustomContext)}<{descriptor.Type.GetTypeName()}>()";

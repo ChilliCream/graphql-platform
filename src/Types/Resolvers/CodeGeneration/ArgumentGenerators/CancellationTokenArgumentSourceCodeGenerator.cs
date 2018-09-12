@@ -6,7 +6,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override ArgumentKind Kind => ArgumentKind.CancellationToken;
 
         protected override string Generate(
-            string delegateName,
             ArgumentDescriptor descriptor)
         {
             return "ct";

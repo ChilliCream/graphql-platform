@@ -8,11 +8,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override ArgumentKind Kind => ArgumentKind.DataLoader;
 
         protected override string Generate(
-            string delegateName,
             ArgumentDescriptor descriptor)
         {
             return $"ctx.{nameof(IResolverContext.DataLoader)}<{descriptor.Type.GetTypeName()}>()";
-
         }
     }
 }
