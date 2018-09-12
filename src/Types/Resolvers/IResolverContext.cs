@@ -72,7 +72,7 @@ namespace HotChocolate.Resolvers
         /// The argument name.
         /// </param>
         /// <typeparam name="T">
-        /// The type to which the argument shall be casted.
+        /// The type to which the argument shall be casted to.
         /// </typeparam>
         /// <returns>
         /// Returns a specific field argument.

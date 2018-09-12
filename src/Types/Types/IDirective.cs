@@ -11,6 +11,8 @@ namespace HotChocolate.Types
 
         DirectiveResolver Resolver { get; }
 
+        bool IsExecutable { get; }
+
         T ToObject<T>();
 
         DirectiveNode ToNode();
