@@ -36,6 +36,8 @@ namespace HotChocolate.Types
 
         public DirectiveResolver Resolver => throw new NotImplementedException();
 
+        public bool IsExecutable => throw new NotImplementedException();
+
         public T ToObject<T>()
         {
             throw new NotImplementedException();
