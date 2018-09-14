@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -46,6 +47,27 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="location">The directive location.</param>
         IDirectiveTypeDescriptor Location(DirectiveLocation location);
+
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="resolver">
+        /// The delegate that represents the resolver.
+        /// </param>
+        IDirectiveTypeDescriptor Resolver(DirectiveResolver resolver);
+
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="resolver">
+        /// The delegate that represents the resolver.
+        /// </param>
+        IDirectiveTypeDescriptor Resolver(AsyncDirectiveResolver resolver);
+
+        IDirectiveTypeDescriptor Resolver<TResolver>(
+            Expression<Func<TResolver, object>> method);
     }
 
     public interface IDirectiveTypeDescriptor<T>

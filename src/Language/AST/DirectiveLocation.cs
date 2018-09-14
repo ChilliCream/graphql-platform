@@ -7,14 +7,10 @@ namespace HotChocolate.Language
     public sealed class DirectiveLocation
         : IEquatable<DirectiveLocation>
     {
-        private readonly static Dictionary<string, DirectiveLocation> _cache;
+        private readonly static Dictionary<string, DirectiveLocation> _cache =
+            GetAll().ToDictionary(t => t._value);
 
         private readonly string _value;
-
-        static DirectiveLocation()
-        {
-            _cache = GetAll().ToDictionary(t => t._value);
-        }
 
         private DirectiveLocation(string value)
         {

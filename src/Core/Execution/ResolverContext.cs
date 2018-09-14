@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
             _executionContext = executionContext;
             _resolverTask = resolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-resolverTask.FieldSelection, executionContext.Variables);
+                resolverTask.FieldSelection, executionContext.Variables);
         }
 
         public ISchema Schema => _executionContext.Schema;
@@ -175,8 +175,6 @@ resolverTask.FieldSelection, executionContext.Variables);
     internal readonly struct DirectiveContext
         : IDirectiveContext
     {
-
-
         public IDirective Directive => throw new NotImplementedException();
 
         public T Argument<T>(string name)
