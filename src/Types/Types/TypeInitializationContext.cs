@@ -225,5 +225,10 @@ namespace HotChocolate.Types
             return _schemaContext.Directives
                 .GetDirectiveType(directiveReference);
         }
+
+        public void RegisterMiddleware(IDirectiveMiddleware middleware)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

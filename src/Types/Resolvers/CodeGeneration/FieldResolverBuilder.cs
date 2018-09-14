@@ -40,9 +40,10 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             for (var i = 0; i < descriptors.Length; i++)
             {
-                string resolverName = _codeGenerator.GetResolverName(i);
-                FieldInfo field = type.GetField(resolverName,
+                string delegateName = _codeGenerator.GetDelegateName(i);
+                FieldInfo field = type.GetField(delegateName,
                     BindingFlags.Static | BindingFlags.Public);
+
                 yield return new FieldResolver(
                     descriptors[i].Field.TypeName,
                     descriptors[i].Field.FieldName,

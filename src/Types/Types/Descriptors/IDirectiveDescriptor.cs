@@ -66,6 +66,16 @@ namespace HotChocolate.Types
         /// </param>
         IDirectiveTypeDescriptor Resolver(AsyncDirectiveResolver resolver);
 
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="method">
+        /// The method that shall be used as a resolver,
+        /// </param>
+        /// <typeparam name="TResolver">
+        /// The type that contains the resolver method.
+        /// </typeparam>
         IDirectiveTypeDescriptor Resolver<TResolver>(
             Expression<Func<TResolver, object>> method);
     }
@@ -135,5 +145,36 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="location">The directive location.</param>
         new IDirectiveTypeDescriptor<T> Location(DirectiveLocation location);
+
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="resolver">
+        /// The delegate that represents the resolver.
+        /// </param>
+        new IDirectiveTypeDescriptor<T> Resolver(DirectiveResolver resolver);
+
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="resolver">
+        /// The delegate that represents the resolver.
+        /// </param>
+        new IDirectiveTypeDescriptor<T> Resolver(AsyncDirectiveResolver resolver);
+
+        /// <summary>
+        /// Specifies a resolver for this directive that will be chained
+        /// into the field resolver pipeline.
+        /// </summary>
+        /// <param name="method">
+        /// The method that shall be used as a resolver,
+        /// </param>
+        /// <typeparam name="TResolver">
+        /// The type that contains the resolver method.
+        /// </typeparam>
+        new IDirectiveTypeDescriptor<T> Resolver<TResolver>(
+          Expression<Func<TResolver, object>> method);
     }
 }

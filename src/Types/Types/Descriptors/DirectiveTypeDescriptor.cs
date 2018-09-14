@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -104,9 +105,51 @@ namespace HotChocolate.Types
             DirectiveDescription.Locations.Add(location);
         }
 
+        protected void Resolver(DirectiveResolver resolver)
+        {
+            if (resolver == null)
+            {
+                throw new ArgumentNullException(nameof(resolver));
+            }
+
+            DirectiveDescription.Resolver = resolver;
+            DirectiveDescription.ResolverMethod = null;
+        }
+
+        protected void Resolver(AsyncDirectiveResolver resolver)
+        {
+            if (resolver == null)
+            {
+                throw new ArgumentNullException(nameof(resolver));
+            }
+
+            Resolver(new DirectiveResolver(
+                (dc, rc, ct) => resolver(dc, rc, ct)));
+        }
+
+        protected void Resolver<TResolver>(
+            Expression<Func<TResolver, object>> method)
+        {
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
+            if (method.ExtractMember() is MethodInfo m)
+            {
+                DirectiveDescription.Resolver = null;
+                DirectiveDescription.ResolverMethod = m;
+            }
+
+            throw new ArgumentException(
+                "Only methods can be bound as directive resolvers.",
+                nameof(method));
+        }
+
         #region IDirectiveDescriptor
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.SyntaxNode(DirectiveDefinitionNode syntaxNode)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.SyntaxNode(
+            DirectiveDefinitionNode syntaxNode)
         {
             SyntaxNode(syntaxNode);
             return this;
@@ -118,7 +161,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Description(string description)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
@@ -129,9 +173,31 @@ namespace HotChocolate.Types
             return Argument(name);
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Location(DirectiveLocation location)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Location(
+            DirectiveLocation location)
         {
             Location(location);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Resolver(
+            DirectiveResolver resolver)
+        {
+            Resolver(resolver);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Resolver(
+            AsyncDirectiveResolver resolver)
+        {
+            Resolver(resolver);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Resolver<TResolver>(
+            Expression<Func<TResolver, object>> method)
+        {
+            Resolver(method);
             return this;
         }
 
@@ -304,6 +370,27 @@ namespace HotChocolate.Types
             DirectiveLocation location)
         {
             Location(location);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Resolver(
+            DirectiveResolver resolver)
+        {
+            Resolver(resolver);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Resolver(
+            AsyncDirectiveResolver resolver)
+        {
+            Resolver(resolver);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Resolver<TResolver>(
+            Expression<Func<TResolver, object>> method)
+        {
+            Resolver(method);
             return this;
         }
 

@@ -66,11 +66,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 ISourceCodeGenerator generator = _generators.First(
                     t => t.CanHandle(resolverDescriptor));
                 source.AppendLine(generator.Generate(
-                    GetResolverName(i++), resolverDescriptor));
+                    GetDelegateName(i++), resolverDescriptor));
             }
         }
 
-        public string GetResolverName(int index)
+        public string GetDelegateName(int index)
         {
             return "_" + index;
         }

@@ -18,7 +18,8 @@ namespace HotChocolate.Configuration
             RegisterDirectiveType(new T());
         }
 
-        public void RegisterDirectiveType<T>(T directive) where T : DirectiveType
+        public void RegisterDirectiveType<T>(T directive)
+            where T : DirectiveType
         {
             if (directive == null)
             {
@@ -44,7 +45,8 @@ namespace HotChocolate.Configuration
             return _nameLookup.Values;
         }
 
-        public DirectiveType GetDirectiveType(DirectiveReference directiveReference)
+        public DirectiveType GetDirectiveType(
+            DirectiveReference directiveReference)
         {
             if (directiveReference.Name != null
                 && _nameLookup.TryGetValue(

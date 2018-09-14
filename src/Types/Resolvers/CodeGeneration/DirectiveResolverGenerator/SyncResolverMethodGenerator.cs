@@ -5,10 +5,10 @@ using HotChocolate.Internal;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class SyncDirectiveResolverMethodGenerator
-        : DirectiveResolverSourceCodeGenerator<DirectiveResolverDescriptor>
+        : DirectiveResolverSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
         protected override void GenerateResolverInvocation(
-            DirectiveResolverDescriptor resolverDescriptor,
+            DirectiveMiddlewareDescriptor resolverDescriptor,
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
@@ -27,7 +27,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         protected override bool CanHandle(
-            DirectiveResolverDescriptor descriptor)
+            DirectiveMiddlewareDescriptor descriptor)
         {
             return !descriptor.IsAsync;
         }

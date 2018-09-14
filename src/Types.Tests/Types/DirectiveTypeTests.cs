@@ -71,6 +71,7 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
+                descriptor.Resolver((dctx, rctx, ct) => "foo");
             }
         }
 

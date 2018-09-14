@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -16,6 +18,10 @@ namespace HotChocolate.Types
         public Type ClrType { get; set; }
 
         public BindingBehavior ArgumentBindingBehavior { get; set; }
+
+        public DirectiveResolver Resolver { get; set; }
+
+        public MethodInfo ResolverMethod { get; set; }
 
         public HashSet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();

@@ -38,21 +38,4 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// </summary>
         bool IsAsync { get; }
     }
-
-    internal sealed class DirectiveResolverDescriptor
-        : IDirectiveMiddlewareDescriptor
-    {
-        public string DirectiveName => throw new NotImplementedException();
-
-        public Type Type => throw new NotImplementedException();
-
-        public MethodInfo Method => throw new NotImplementedException();
-
-        public MiddlewareKind Kind => throw new NotImplementedException();
-
-        public IReadOnlyCollection<ArgumentDescriptor> Arguments => throw new NotImplementedException();
-
-        public bool IsAsync => throw new NotImplementedException();
-    }
-
 }
