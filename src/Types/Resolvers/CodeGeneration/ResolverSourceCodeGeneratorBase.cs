@@ -10,6 +10,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : SourceCodeGenerator<T>
         where T : IDelegateDescriptor
     {
+        protected abstract IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators { get; }
+
         protected override string Generate(
             string delegateName,
             T descriptor)
@@ -51,9 +53,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             source.Append($"var {argumentDescriptor.VariableName} = ");
 
-            ArgumentSourceCodeGenerator generator =
-                ArgumentGeneratorCollections.ResolverArguments
-                    .FirstOrDefault(t => t.CanHandle(argumentDescriptor));
+            ArgumentSourceCodeGenerator generator = ArgumentGenerators
+                .FirstOrDefault(t => t.CanHandle(argumentDescriptor));
+
             if (generator == null)
             {
                 throw new NotSupportedException();

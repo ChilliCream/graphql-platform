@@ -10,6 +10,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : ResolverSourceCodeGeneratorBase<T>
         where T : IDirectiveMiddlewareDescriptor
     {
+        protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
+            ArgumentGeneratorCollections.MiddlewareArguments;
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {

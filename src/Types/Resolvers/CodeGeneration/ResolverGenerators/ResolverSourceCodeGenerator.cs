@@ -10,6 +10,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : ResolverSourceCodeGeneratorBase<T>
         where T : IFieldResolverDescriptor
     {
+        protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
+            ArgumentGeneratorCollections.ResolverArguments;
+
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {
