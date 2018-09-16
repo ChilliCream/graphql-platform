@@ -11,19 +11,13 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly FieldResolverBuilder _resolverBuilder =
-            new FieldResolverBuilder();
         private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
             new Dictionary<FieldReference, FieldResolverDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
             new Dictionary<FieldReference, IFieldResolverDescriptor>();
-
         private readonly Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware> _middlewares =
-            new Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware>();
-
-        private readonly Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware> _compiledMiddlewares =
             new Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware>();
 
         public void RegisterResolver(IFieldReference resolverBinding)
@@ -90,7 +84,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(directiveName));
             }
 
-            if (_compiledMiddlewares.TryGetValue(
+            if (_middlewares.TryGetValue(
                 CreateReference(directiveName, kind),
                 out IDirectiveMiddleware middleware))
             {
@@ -102,7 +96,7 @@ namespace HotChocolate.Configuration
 
         internal void BuildResolvers()
         {
-            BuilderResult result = CompileResolvers();
+            ResolverBuilderResult result = CompileResolvers();
             CompleteResolvers(result.Resolvers);
             CompleteMiddlewares(result.Middlewares);
         }
@@ -125,13 +119,13 @@ namespace HotChocolate.Configuration
         {
             foreach (IDirectiveMiddleware middleware in middlewares)
             {
-                _compiledMiddlewares[CreateReference(middleware)] = middleware;
+                _middlewares[CreateReference(middleware)] = middleware;
             }
         }
 
-        private BuilderResult CompileResolvers()
+        private ResolverBuilderResult CompileResolvers()
         {
-            IResolverBuilder resolverBuilder = null;
+            var resolverBuilder = new ResolverBuilder();
 
             resolverBuilder.AddDescriptors(CreateResolverDescriptors());
             resolverBuilder.AddDescriptors(CreateMiddlewareDescriptors());

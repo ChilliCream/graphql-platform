@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         };
 
         public GeneratedClass Generate(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
+            IEnumerable<IDelegateDescriptor> resolverDescriptors)
         {
             if (resolverDescriptors == null)
             {
@@ -36,7 +36,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         private static string GenerateClass(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors,
+            IEnumerable<IDelegateDescriptor> resolverDescriptors,
             string className)
         {
             var source = new StringBuilder();
@@ -65,7 +65,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         private static void GenerateResolvers(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors,
+            IEnumerable<IDelegateDescriptor> resolverDescriptors,
             StringBuilder source)
         {
             var i = 0;

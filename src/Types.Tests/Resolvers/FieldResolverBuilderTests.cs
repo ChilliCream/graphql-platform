@@ -14,30 +14,31 @@ namespace HotChocolate.Resolvers
         public void CreateSyncSourceMethodResolver()
         {
             // arrange
-            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
 
-            FieldMember fieldMember = new FieldMember(
+            var fieldMember = new FieldMember(
                 "type", "field",
                 typeof(FooType).GetMethod("Bar"));
 
             var descriptor = new SourceResolverDescriptor(fieldMember);
 
             // act
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-            FieldResolver[] resolvers = fieldResolverBuilder.Build(
-                new[] { descriptor }).ToArray();
+            var resolverBuilder = new ResolverBuilder();
+            resolverBuilder.AddDescriptor(descriptor);
+            ResolverBuilderResult result = resolverBuilder.Build();
 
             // assert
-            Assert.Collection(resolvers,
+            Assert.Collection(result.Resolvers,
                 r =>
                 {
                     Assert.Equal("type", r.TypeName);
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = r.Resolver(context.Object, CancellationToken.None);
-                    Assert.Equal("Hello World", result);
+                    object resolvedValue =
+                        r.Resolver(context.Object, CancellationToken.None);
+                    Assert.Equal("Hello World", resolvedValue);
                 });
         }
 
@@ -45,40 +46,42 @@ namespace HotChocolate.Resolvers
         public void CreateSyncCollectionMethodResolver()
         {
             // arrange
-            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
-            context.Setup(t => t.Resolver<FooTypeResolver>()).Returns(new FooTypeResolver());
+            context.Setup(t => t.Resolver<FooTypeResolver>())
+                .Returns(new FooTypeResolver());
 
-            ArgumentDescriptor argumentDescriptor =
+            var argumentDescriptor =
                new ArgumentDescriptor(
                    "foo", "b", ArgumentKind.Source,
                    typeof(FooType));
 
-            FieldMember fieldMember = new FieldMember(
+            var fieldMember = new FieldMember(
                 "type", "field",
                 typeof(FooTypeResolver).GetMethod("BarResolver"));
 
-            ResolverDescriptor descriptor = new ResolverDescriptor(
+            var descriptor = new ResolverDescriptor(
                 typeof(FooTypeResolver),
                 typeof(FooType),
                 fieldMember,
                 new[] { argumentDescriptor });
 
             // act
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-            FieldResolver[] resolvers = fieldResolverBuilder.Build(
-                new[] { descriptor }).ToArray();
+            var resolverBuilder = new ResolverBuilder();
+            resolverBuilder.AddDescriptor(descriptor);
+            ResolverBuilderResult result = resolverBuilder.Build();
 
             // assert
-            Assert.Collection(resolvers,
+            Assert.Collection(result.Resolvers,
                 r =>
                 {
                     Assert.Equal("type", r.TypeName);
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = r.Resolver(context.Object, CancellationToken.None);
-                    Assert.Equal("Hello World_123", result);
+                    object resolvedValue =
+                        r.Resolver(context.Object, CancellationToken.None);
+                    Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
 
@@ -86,40 +89,42 @@ namespace HotChocolate.Resolvers
         public void CreateAsyncCollectionMethodResolver()
         {
             // arrange
-            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
-            context.Setup(t => t.Resolver<FooTypeResolver>()).Returns(new FooTypeResolver());
+            context.Setup(t => t.Resolver<FooTypeResolver>())
+                .Returns(new FooTypeResolver());
 
-            ArgumentDescriptor argumentDescriptor =
+            var argumentDescriptor =
                 new ArgumentDescriptor(
                     "foo", "b", ArgumentKind.Source,
                     typeof(FooType));
 
-            FieldMember fieldMember = new FieldMember(
+            var fieldMember = new FieldMember(
                 "type", "field",
                 typeof(FooTypeResolver).GetMethod("BarResolverAsync"));
 
-            ResolverDescriptor descriptor = new ResolverDescriptor(
+            var descriptor = new ResolverDescriptor(
                 typeof(FooTypeResolver),
                 typeof(FooType),
                 fieldMember,
                 new[] { argumentDescriptor });
 
             // act
-            FieldResolverBuilder fieldResolverBuilder = new FieldResolverBuilder();
-            FieldResolver[] resolvers = fieldResolverBuilder.Build(
-                new[] { descriptor }).ToArray();
+            var resolverBuilder = new ResolverBuilder();
+            resolverBuilder.AddDescriptor(descriptor);
+            ResolverBuilderResult result = resolverBuilder.Build();
 
             // assert
-            Assert.Collection(resolvers,
+            Assert.Collection(result.Resolvers,
                 r =>
                 {
                     Assert.Equal("type", r.TypeName);
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = ((Task<object>)r.Resolver(context.Object, CancellationToken.None)).Result;
-                    Assert.Equal("Hello World_123", result);
+                    object resolvedValue = ((Task<object>)r.Resolver(
+                            context.Object, CancellationToken.None)).Result;
+                    Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
 
@@ -130,26 +135,27 @@ namespace HotChocolate.Resolvers
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
 
-            FieldMember fieldMember = new FieldMember(
+            var fieldMember = new FieldMember(
                 "type", "field", typeof(FooType).GetProperty("BarProperty"));
             var descriptor = new SourceResolverDescriptor(
                 typeof(FooType), fieldMember);
 
             // act
-            var fieldResolverBuilder = new FieldResolverBuilder();
-            FieldResolver[] resolvers = fieldResolverBuilder.Build(
-                new[] { descriptor }).ToArray();
+            var resolverBuilder = new ResolverBuilder();
+            resolverBuilder.AddDescriptor(descriptor);
+            ResolverBuilderResult result = resolverBuilder.Build();
 
             // assert
-            Assert.Collection(resolvers,
+            Assert.Collection(result.Resolvers,
                 r =>
                 {
                     Assert.Equal("type", r.TypeName);
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object result = r.Resolver(context.Object, CancellationToken.None);
-                    Assert.Equal("Hello World Property", result);
+                    object resolvedResult =
+                        r.Resolver(context.Object, CancellationToken.None);
+                    Assert.Equal("Hello World Property", resolvedResult);
                 });
         }
     }
