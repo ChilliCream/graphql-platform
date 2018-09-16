@@ -33,7 +33,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private IEnumerable<FieldResolver> BuildInternal(
             IFieldResolverDescriptor[] descriptors)
         {
-            string sourceText = _codeGenerator.Generate(descriptors);
+            GeneratedClass generatedClass =
+                _codeGenerator.Generate(descriptors);
             Assembly assembly = CSharpCompiler.Compile(sourceText);
             Type type = assembly.GetType(
                 ClassSourceCodeGenerator.FullClassName);

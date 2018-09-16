@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Resolvers
 {
-    internal class DirectiveOnBeforeInvokeMiddleware
+    internal sealed class DirectiveOnBeforeInvokeMiddleware
         : IDirectiveMiddleware
     {
         public DirectiveOnBeforeInvokeMiddleware(
