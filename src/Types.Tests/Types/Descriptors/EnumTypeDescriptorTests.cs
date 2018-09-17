@@ -138,7 +138,7 @@ namespace HotChocolate.Types
 
             // act
             IEnumTypeDescriptor desc = descriptor;
-            desc.Directive(new DirectiveNode("bar"));
+            desc.Directive(new DirectiveNode("Bar"));
 
             // assert
             EnumTypeDescription description = descriptor.CreateDescription();
