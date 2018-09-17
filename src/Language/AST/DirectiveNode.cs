@@ -7,6 +7,13 @@ namespace HotChocolate.Language
     {
         public DirectiveNode(
             string name,
+            params ArgumentNode[] arguments)
+            : this(new NameNode(name), arguments)
+        {
+        }
+
+        public DirectiveNode(
+            string name,
             IReadOnlyCollection<ArgumentNode> arguments)
             : this(new NameNode(name), arguments)
         {

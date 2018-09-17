@@ -110,7 +110,8 @@ namespace HotChocolate
                 // configure resolvers, custom types and type mappings.
                 var configuration = new SchemaConfiguration(
                     context.RegisterServiceProvider,
-                    context.Types);
+                    context.Types,
+                    context.Directives);
 
                 configuration.RegisterCustomContext<IResolverCache>(
                     ExecutionScope.Global,

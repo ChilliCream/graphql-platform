@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
             where T : class;
 
         void RegisterDirective<T>()
-            where T : DirectiveType;
+            where T : DirectiveType, new();
 
         void RegisterType<T>(T namedType)
             where T : class, INamedType;

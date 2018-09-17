@@ -18,7 +18,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(directive));
             }
 
-            directives.Add(new DirectiveDescription(directive));
+            if (directive is DirectiveNode node)
+            {
+                directives.Add(new DirectiveDescription(node));
+            }
+            else
+            {
+                directives.Add(new DirectiveDescription(directive));
+            }
         }
 
         public static void AddDirective(

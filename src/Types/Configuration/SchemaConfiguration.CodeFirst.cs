@@ -67,19 +67,22 @@ namespace HotChocolate.Configuration
             _typeRegistry.RegisterType(namedType);
         }
 
-        public void RegisterQueryType<T>(T objectType) where T : ObjectType
+        public void RegisterQueryType<T>(T objectType)
+            where T : ObjectType
         {
             Options.QueryTypeName = objectType.Name;
             _typeRegistry.RegisterType(objectType);
         }
 
-        public void RegisterMutationType<T>(T objectType) where T : ObjectType
+        public void RegisterMutationType<T>(T objectType)
+            where T : ObjectType
         {
             Options.MutationTypeName = objectType.Name;
             _typeRegistry.RegisterType(objectType);
         }
 
-        public void RegisterSubscriptionType<T>(T objectType) where T : ObjectType
+        public void RegisterSubscriptionType<T>(T objectType)
+            where T : ObjectType
         {
             Options.SubscriptionTypeName = objectType.Name;
             _typeRegistry.RegisterType(objectType);
@@ -89,14 +92,14 @@ namespace HotChocolate.Configuration
 
         #region Directives
 
-        public void RegisterDirective<T>() where T : DirectiveType
+        public void RegisterDirective<T>() where T : DirectiveType, new()
         {
-            throw new NotImplementedException();
+            _directiveRegistry.RegisterDirectiveType<T>();
         }
 
         public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
-            throw new NotImplementedException();
+            _directiveRegistry.RegisterDirectiveType<T>(directive);
         }
 
         #endregion

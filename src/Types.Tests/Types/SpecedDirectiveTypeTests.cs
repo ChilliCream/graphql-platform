@@ -12,7 +12,10 @@ namespace HotChocolate.Types
             // arrange
             SchemaContext schemaContext = SchemaContextFactory.Create();
             SchemaConfiguration schemaConfiguration =
-                new SchemaConfiguration(sp => { }, schemaContext.Types);
+                new SchemaConfiguration(
+                    sp => { },
+                    schemaContext.Types,
+                    schemaContext.Directives);
             TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
             typeFinalizer.FinalizeTypes(schemaContext, null);
 
@@ -43,7 +46,10 @@ namespace HotChocolate.Types
             // arrange
             SchemaContext schemaContext = SchemaContextFactory.Create();
             SchemaConfiguration schemaConfiguration =
-                new SchemaConfiguration(sp => { }, schemaContext.Types);
+                new SchemaConfiguration(
+                        sp => { },
+                        schemaContext.Types,
+                        schemaContext.Directives);
             TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
             typeFinalizer.FinalizeTypes(schemaContext, null);
 

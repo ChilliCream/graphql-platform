@@ -76,7 +76,9 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType(directiveType);
 
             var schemaConfiguration = new SchemaConfiguration(
-                sp => { }, schemaContext.Types);
+                sp => { },
+                schemaContext.Types,
+                schemaContext.Directives);
 
             var typeFinalizer = new TypeFinalizer(schemaConfiguration);
             typeFinalizer.FinalizeTypes(schemaContext, null);
@@ -94,15 +96,6 @@ namespace HotChocolate.Types
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Resolver((dctx, rctx, ct) => "foo");
-            }
-        }
-
-        public class CustomEnumType
-            : EnumType
-        {
-            protected override void Configure(IEnumTypeDescriptor descriptor)
-            {
-                descriptor.Directive(new CustomDirective { Argument = "foo" });
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -110,6 +111,65 @@ namespace HotChocolate.Types
                 {
                     Assert.Equal("FOOBAR", t.Name);
                     Assert.Equal(FooEnum.Bar1, t.Value);
+                });
+        }
+
+        [Fact]
+        public void AddDirective()
+        {
+            // arrange
+            var descriptor = new EnumTypeDescriptor("Foo");
+
+            // act
+            IEnumTypeDescriptor desc = descriptor;
+            desc.Directive("Bar");
+
+            // assert
+            EnumTypeDescription description = descriptor.CreateDescription();
+            Assert.Collection(description.Directives,
+                t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
+        }
+
+        [Fact]
+        public void AddDirectiveWithDirectiveNode()
+        {
+            // arrange
+            var descriptor = new EnumTypeDescriptor("Foo");
+
+            // act
+            IEnumTypeDescriptor desc = descriptor;
+            desc.Directive(new DirectiveNode("bar"));
+
+            // assert
+            EnumTypeDescription description = descriptor.CreateDescription();
+            Assert.Collection(description.Directives,
+                t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
+        }
+
+        [Fact]
+        public void AddDirectiveWithArgument()
+        {
+            // arrange
+            var descriptor = new EnumTypeDescriptor("Foo");
+
+            // act
+            IEnumTypeDescriptor desc = descriptor;
+            desc.Directive("Bar",
+                new ArgumentNode("a", new StringValueNode("b")));
+
+            // assert
+            EnumTypeDescription description = descriptor.CreateDescription();
+            Assert.Collection(description.Directives,
+                t =>
+                {
+                    Assert.Equal("Bar", t.ParsedDirective.Name.Value);
+                    Assert.Collection(t.ParsedDirective.Arguments,
+                        x =>
+                        {
+                            Assert.Equal("a", x.Name.Value);
+                            Assert.IsType<StringValueNode>(x.Value);
+                            Assert.Equal("b", ((StringValueNode)x.Value).Value);
+                        });
                 });
         }
 

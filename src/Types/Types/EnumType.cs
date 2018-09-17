@@ -41,7 +41,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
 
-        public IDirectiveCollection Directives { get; }
+        public IDirectiveCollection Directives => _directives;
 
         public bool TryGetValue(string name, out object value)
         {

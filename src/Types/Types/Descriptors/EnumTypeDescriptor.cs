@@ -133,8 +133,6 @@ namespace HotChocolate.Types
             EnumDescription.ValueBindingBehavior = bindingBehavior;
         }
 
-
-
         #region IEnumTypeDescriptor
 
         IEnumTypeDescriptor IEnumTypeDescriptor.SyntaxNode(
@@ -182,7 +180,7 @@ namespace HotChocolate.Types
 
         IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
             string name,
-            IEnumerable<ArgumentNode> arguments)
+            params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);
             return this;
@@ -248,7 +246,7 @@ namespace HotChocolate.Types
         }
 
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
-            string name, IEnumerable<ArgumentNode> arguments)
+            string name, params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);
             return this;
