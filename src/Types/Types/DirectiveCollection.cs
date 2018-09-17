@@ -8,7 +8,6 @@ namespace HotChocolate.Types
     internal sealed class DirectiveCollection
         : TypeSystemBase
         , IDirectiveCollection
-
     {
         private readonly List<IDirective> _directives = new List<IDirective>();
         private readonly DirectiveLocation _location;

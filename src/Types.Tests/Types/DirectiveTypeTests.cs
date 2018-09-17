@@ -10,9 +10,8 @@ namespace HotChocolate.Types
 {
     public class DirectiveTypeTests
     {
-        /*
         [Fact]
-        public void D()
+        public void ConfigureTypedDirectiveWithResolver()
         {
             // arrange
             // act
@@ -20,11 +19,28 @@ namespace HotChocolate.Types
                 CreateDirective<CustomDirectiveType>();
 
             // assert
-
-
+            Assert.True(directiveType.IsExecutable);
+            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
         }
-         */
 
+        [Fact]
+        public void ConfigureDirectiveWithResolver()
+        {
+            // arrange
+            DirectiveType directiveType = new DirectiveType(
+                t => t.Name("Foo")
+                    .Location(DirectiveLocation.Field)
+                    .Resolver((dctx, rctx, ct) => "foo"));
+
+            // act
+            directiveType = CreateDirective(directiveType);
+
+            // assert
+            Assert.True(directiveType.IsExecutable);
+            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.Null(directiveType.ClrType);
+        }
 
         [Fact]
         public void ConfigureIsNull()
@@ -49,9 +65,15 @@ namespace HotChocolate.Types
         private DirectiveType CreateDirective<T>()
             where T : DirectiveType, new()
         {
+            return CreateDirective(new T());
+        }
+
+        private DirectiveType CreateDirective<T>(T directiveType)
+            where T : DirectiveType
+        {
             var schemaContext = new SchemaContext();
             schemaContext.Types.RegisterType(new StringType());
-            schemaContext.Directives.RegisterDirectiveType<T>();
+            schemaContext.Directives.RegisterDirectiveType(directiveType);
 
             var schemaConfiguration = new SchemaConfiguration(
                 sp => { }, schemaContext.Types);
@@ -82,38 +104,6 @@ namespace HotChocolate.Types
             {
                 descriptor.Directive(new CustomDirective { Argument = "foo" });
             }
-        }
-
-        public class CustomMiddleware
-        // : IDirectiveFieldResolver
-        // , IDirectiveFieldResolverHandler
-        {
-            public void OnBeforeInvoke(
-                IDirectiveContext directiveContext,
-                IResolverContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public Task<object> OnAfterInvokeAsync(
-                IDirectiveContext directiveContext,
-                IResolverContext context,
-                object resolverResult,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<object> ResolveAsync(
-                IDirectiveContext directiveContext,
-                IResolverContext resolverContext,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-
         }
 
         public class CustomDirective
