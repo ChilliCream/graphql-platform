@@ -215,7 +215,8 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public DirectiveType GetDirectiveType(DirectiveReference directiveReference)
+        public DirectiveType GetDirectiveType(
+            DirectiveReference directiveReference)
         {
             if (directiveReference == null)
             {
@@ -228,7 +229,24 @@ namespace HotChocolate.Types
 
         public void RegisterMiddleware(IDirectiveMiddleware middleware)
         {
-            throw new NotImplementedException();
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _schemaContext.Resolvers.RegisterMiddleware(middleware);
+        }
+
+        public IDirectiveMiddleware GetMiddleware(
+            string directiveName,
+            MiddlewareKind kind)
+        {
+            if (string.IsNullOrEmpty(directiveName))
+            {
+                throw new ArgumentNullException(nameof(directiveName));
+            }
+
+            return _schemaContext.Resolvers.GetMiddleware(directiveName, kind);
         }
     }
 }

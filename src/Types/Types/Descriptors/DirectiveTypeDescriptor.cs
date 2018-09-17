@@ -17,6 +17,9 @@ namespace HotChocolate.Types
         private readonly List<DirectiveArgumentDescriptor> _arguments =
             new List<DirectiveArgumentDescriptor>();
 
+        private readonly Dictionary<MiddlewareKind, Func<string, IDirectiveMiddleware>> _middlewares
+            = new Dictionary<MiddlewareKind, Func<string, IDirectiveMiddleware>>();
+
         protected DirectiveTypeDescription DirectiveDescription { get; } =
             new DirectiveTypeDescription();
 
@@ -29,16 +32,31 @@ namespace HotChocolate.Types
             }
 
             CompleteArguments();
+            CompleteMiddlewares();
 
             return DirectiveDescription;
         }
 
         protected virtual void CompleteArguments()
         {
+            DirectiveDescription.Arguments.Clear();
+
             foreach (DirectiveArgumentDescriptor descriptor in _arguments)
             {
                 DirectiveDescription.Arguments.Add(
                     descriptor.CreateDescription());
+            }
+        }
+
+        private void CompleteMiddlewares()
+        {
+            DirectiveDescription.Middlewares.Clear();
+
+            foreach (Func<string, IDirectiveMiddleware> middlewareFactory in
+                _middlewares.Values)
+            {
+                DirectiveDescription.Middlewares.Add(
+                    middlewareFactory(DirectiveDescription.Name));
             }
         }
 
@@ -112,8 +130,10 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            DirectiveDescription.Resolver = resolver;
-            DirectiveDescription.ResolverMethod = null;
+            _middlewares[MiddlewareKind.OnInvoke] = directiveName =>
+                new DirectiveResolverMiddleware(
+                    directiveName,
+                    resolver);
         }
 
         protected void Resolver(AsyncDirectiveResolver resolver)
@@ -137,8 +157,12 @@ namespace HotChocolate.Types
 
             if (method.ExtractMember() is MethodInfo m)
             {
-                DirectiveDescription.Resolver = null;
-                DirectiveDescription.ResolverMethod = m;
+                _middlewares[MiddlewareKind.OnInvoke] = directiveName =>
+                    new DirectiveMethodMiddleware(
+                        directiveName,
+                        MiddlewareKind.OnInvoke,
+                        typeof(TResolver),
+                        m);
             }
 
             throw new ArgumentException(

@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
         {
             try
             {
-                return directiveContext.Directive.Resolver(
+                return directiveContext.Directive.OnInvokeResolver(
                     directiveContext,
                     resolverTask.ResolverContext,
                     cancellationToken);

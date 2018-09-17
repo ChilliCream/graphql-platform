@@ -19,9 +19,8 @@ namespace HotChocolate.Types
 
         public BindingBehavior ArgumentBindingBehavior { get; set; }
 
-        public DirectiveResolver Resolver { get; set; }
-
-        public MethodInfo ResolverMethod { get; set; }
+        public List<IDirectiveMiddleware> Middlewares { get; } =
+            new List<IDirectiveMiddleware>();
 
         public HashSet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();

@@ -34,9 +34,16 @@ namespace HotChocolate.Types
 
         public DirectiveType Type { get; }
 
-        public DirectiveResolver Resolver => throw new NotImplementedException();
+        public OnBeforeInvokeResolver OnBeforeInvokeResolver =>
+            Type.OnBeforeInvokeResolver;
 
-        public bool IsExecutable => throw new NotImplementedException();
+        public DirectiveResolver OnInvokeResolver =>
+            Type.OnInvokeResolver;
+
+        public OnAfterInvokeResolver OnAfterInvokeResolver =>
+            Type.OnAfterInvokeResolver;
+
+        public bool IsExecutable => Type.IsExecutable;
 
         public T ToObject<T>()
         {
@@ -62,7 +69,5 @@ namespace HotChocolate.Types
         {
             return null;
         }
-
-
     }
 }

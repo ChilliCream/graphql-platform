@@ -4,12 +4,16 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
     public class DirectiveType
         : TypeSystemBase
     {
+        private readonly List<IDirectiveMiddleware> _middlewares =
+            new List<IDirectiveMiddleware>();
+
         protected DirectiveType()
         {
             Initialize(Configure);
@@ -31,6 +35,14 @@ namespace HotChocolate.Types
         public ICollection<DirectiveLocation> Locations { get; private set; }
 
         public FieldCollection<InputField> Arguments { get; private set; }
+
+        public OnBeforeInvokeResolver OnBeforeInvokeResolver { get; private set; }
+
+        public DirectiveResolver OnInvokeResolver { get; private set; }
+
+        public OnAfterInvokeResolver OnAfterInvokeResolver { get; private set; }
+
+        public bool IsExecutable { get; private set; }
 
         #region Configuration
 
@@ -65,6 +77,7 @@ namespace HotChocolate.Types
             Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));
+            _middlewares.AddRange(description.Middlewares);
         }
 
         protected override void OnRegisterDependencies(
@@ -76,6 +89,11 @@ namespace HotChocolate.Types
                 .Cast<INeedsInitialization>())
             {
                 argument.RegisterDependencies(context);
+            }
+
+            foreach (IDirectiveMiddleware middleware in _middlewares)
+            {
+                context.RegisterMiddleware(middleware);
             }
         }
 
@@ -89,6 +107,31 @@ namespace HotChocolate.Types
             {
                 argument.CompleteType(context);
             }
+
+            IDirectiveMiddleware middleware =
+                context.GetMiddleware(Name, MiddlewareKind.OnBeforeInvoke);
+            if (middleware is DirectiveOnBeforeInvokeMiddleware obm)
+            {
+                OnBeforeInvokeResolver = obm.OnBeforeInvokeResolver;
+            }
+
+            middleware =
+                context.GetMiddleware(Name, MiddlewareKind.OnInvoke);
+            if (middleware is DirectiveResolverMiddleware rm)
+            {
+                OnInvokeResolver = rm.Resolver;
+            }
+
+            middleware =
+                context.GetMiddleware(Name, MiddlewareKind.OnAfterInvoke);
+            if (middleware is DirectiveOnAfterInvokeMiddleware oam)
+            {
+                OnAfterInvokeResolver = oam.OnAfterInvokeResolver;
+            }
+
+            IsExecutable = OnBeforeInvokeResolver != null
+                || OnInvokeResolver != null
+                || OnAfterInvokeResolver != null;
         }
 
         #endregion
