@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class FragmentCollection
+    internal sealed class FragmentCollection
     {
         private readonly Dictionary<string, List<Fragment>> _fragments =
             new Dictionary<string, List<Fragment>>();

@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class ResolverTask
+    internal sealed class ResolverTask
     {
         public ResolverTask(
             IExecutionContext executionContext,
@@ -22,6 +24,16 @@ namespace HotChocolate.Execution
             Path = path;
             Result = result;
             ResolverContext = new ResolverContext(executionContext, this);
+
+            Directives = executionContext.CollectDirectives(
+                objectType, fieldSelection, DirectiveScope.All);
+
+            if (Directives.Count > 0)
+            {
+                ExecutableDirectives =
+                    Directives.Where(t => t.IsExecutable).ToArray();
+                HasExecutableDirectives = ExecutableDirectives.Count > 0;
+            }
         }
 
         public ImmutableStack<object> Source { get; }
@@ -40,6 +52,12 @@ namespace HotChocolate.Execution
 
         public object ResolverResult { get; set; }
 
+        public IReadOnlyCollection<IDirective> Directives { get; }
+
+        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+
+        public bool HasExecutableDirectives { get; }
+
         public void IntegrateResult(object value)
         {
             Result[FieldSelection.ResponseName] = value;
@@ -50,7 +68,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "A field error mustn't be null or empty.", 
+                    "A field error mustn't be null or empty.",
                     nameof(message));
             }
 

@@ -14,6 +14,7 @@ namespace HotChocolate.Execution
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly FieldCollector _fieldCollector;
+        private readonly DirectiveCollector _directiveCollector;
         private readonly ISession _session;
         private readonly IResolverCache _resolverCache;
         private readonly bool _disposeRootValue;
@@ -48,6 +49,7 @@ namespace HotChocolate.Execution
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);
+            _directiveCollector = new DirectiveCollector(schema);
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);
@@ -112,43 +114,12 @@ namespace HotChocolate.Execution
 
         public IReadOnlyCollection<IDirective> CollectDirectives(
             ObjectType objectType,
-            ObjectField field,
-            FieldNode fieldSelection)
+            FieldSelection fieldSelection,
+            DirectiveScope scope)
         {
-            // 1. selection
-            // 2. field
-            // 3. interface fields
-            // 4. objects
-            // 5. interfaces
-            // 6. schema
-
-            Stack<IDirective> directives = new Stack<IDirective>();
-
-            CollectDirectives(directives, objectType.Interfaces.Values);
-            CollectDirectives(directives, objectType);
-            // CollectDirectives(directives, field);
-
-
-            throw new NotImplementedException();
-        }
-
-        private void CollectDirectives(Stack<IDirective> directives, IEnumerable<TypeBase> types)
-        {
-            foreach (TypeBase type in types)
-            {
-                CollectDirectives(directives, type);
-            }
-        }
-
-        private void CollectDirectives(Stack<IDirective> directives, TypeBase type)
-        {
-            if (type is Types.IHasDirectives d)
-            {
-                foreach (IDirective directive in d.Directives)
-                {
-                    directives.Push(directive);
-                }
-            }
+            return _directiveCollector.CollectDirectives(
+                objectType, fieldSelection.Field,
+                fieldSelection.Selection, scope);
         }
 
         public T GetResolver<T>()

@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class FieldCollector
+    internal sealed class FieldCollector
     {
         private readonly VariableCollection _variables;
         private readonly FragmentCollection _fragments;

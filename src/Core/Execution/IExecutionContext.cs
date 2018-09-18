@@ -47,8 +47,8 @@ namespace HotChocolate.Execution
 
         IReadOnlyCollection<IDirective> CollectDirectives(
             ObjectType objectType,
-            ObjectField field,
-            FieldNode fieldSelection);
+            FieldSelection fieldSelection,
+            DirectiveScope scope);
 
         T GetResolver<T>();
     }

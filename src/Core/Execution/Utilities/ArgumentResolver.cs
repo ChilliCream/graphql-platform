@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class ArgumentResolver
+    internal sealed class ArgumentResolver
     {
         public Dictionary<string, ArgumentValue> CoerceArgumentValues(
             FieldSelection fieldSelection,

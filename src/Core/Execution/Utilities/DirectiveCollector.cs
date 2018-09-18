@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -7,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class DirectiveCollector
+    internal sealed class DirectiveCollector
     {
         private readonly ISchema _schema;
 
@@ -18,11 +19,19 @@ namespace HotChocolate.Execution
         }
 
 
-        public IDirectiveCollection CollectDirectives(
+        public IReadOnlyCollection<IDirective> CollectDirectives(
             ObjectType objectType,
             ObjectField field,
-            FieldNode fieldSelection)
+            FieldNode fieldSelection,
+            DirectiveScope scope)
         {
+            HashSet<string> processed = new HashSet<string>();
+            Stack<IDirective> directives = new Stack<IDirective>();
+            CollectSelectionDirectives(processed, directives, fieldSelection);
+            CollectFieldDirectives(processed, directives, field);
+
+
+
             // 1. selection
             // 2. field
             // 3. interface fields
@@ -30,11 +39,10 @@ namespace HotChocolate.Execution
             // 5. interfaces
             // 6. schema
 
-            Stack<IDirective> directives = new Stack<IDirective>();
-
             CollectDirectives(directives, objectType.Interfaces.Values);
             CollectDirectives(directives, objectType);
-            // CollectDirectives(directives, field);
+
+
 
 
             throw new NotImplementedException();
@@ -48,7 +56,10 @@ namespace HotChocolate.Execution
             foreach (IDirective directive in
                 GetFieldSelectionDirectives(fieldSelection))
             {
-                directives.Push(directive);
+                if (processed.Add(directive.Name))
+                {
+                    directives.Push(directive);
+                }
             }
         }
 
@@ -61,6 +72,34 @@ namespace HotChocolate.Execution
                     out DirectiveType directiveType))
                 {
                     yield return new Directive(directiveType, directive);
+                }
+            }
+        }
+
+        private void CollectFieldDirectives(
+            HashSet<string> processed,
+            Stack<IDirective> directives,
+            IEnumerable<IField> fields)
+        {
+            foreach (IField field in fields)
+            {
+                CollectFieldDirectives(processed, directives, field);
+            }
+        }
+
+        private void CollectFieldDirectives(
+            HashSet<string> processed,
+            Stack<IDirective> directives,
+            IField field)
+        {
+            if (field is Types.IHasDirectives d)
+            {
+                foreach (IDirective directive in d.Directives)
+                {
+                    if (processed.Add(directive.Name))
+                    {
+                        directives.Push(directive);
+                    }
                 }
             }
         }
@@ -83,12 +122,5 @@ namespace HotChocolate.Execution
                 }
             }
         }
-    }
-
-    internal interface IDirectiveCollection
-    {
-        IReadOnlyCollection<IDirective> Inherited { get; }
-        IReadOnlyCollection<IDirective> FromSelection { get; }
-
     }
 }
