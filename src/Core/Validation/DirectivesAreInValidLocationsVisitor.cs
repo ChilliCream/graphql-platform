@@ -14,7 +14,7 @@ namespace HotChocolate.Validation
         public DirectivesAreInValidLocationsVisitor(ISchema schema)
             : base(schema)
         {
-            _directives = schema.Directives.ToDictionary(t => t.Name);
+            _directives = schema.DirectiveTypes.ToDictionary(t => t.Name);
         }
 
         protected override void VisitDirective(

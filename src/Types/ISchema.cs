@@ -47,9 +47,9 @@ namespace HotChocolate
         IReadOnlyCollection<INamedType> Types { get; }
 
         /// <summary>
-        /// Gets all the direcives that are supported by this schema.
+        /// Gets all the direcive types that are supported by this schema.
         /// </summary>
-        IReadOnlyCollection<DirectiveType> Directives { get; }
+        IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
 
         /// <summary>
         /// Gets the session manager which can be used to create
@@ -104,5 +104,35 @@ namespace HotChocolate
         /// </returns>
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);
+
+        /// <summary>
+        /// Gets a directive type by its name.
+        /// </summary>
+        /// <param name="directiveName">
+        /// The directive name.
+        /// </param>
+        /// <returns>
+        /// Returns directive type that was resolved by the given name
+        /// or <c>null</c> if there is no directive with the specified name.
+        /// </returns>
+        DirectiveType GetDirectiveType(string directiveName);
+
+        /// <summary>
+        /// Tries to get a directive type by its name.
+        /// </summary>
+        /// <param name="directiveName">
+        /// The directive name.
+        /// </param>
+        /// <param name="directiveType">
+        /// The directive type that was resolved by the given name
+        /// or <c>null</c> if there is no directive with the specified name.
+        /// </param>
+        /// <returns>
+        /// <c>true</c>, if a directive type with the specified
+        /// name exists; otherwise, <c>false</c>.
+        /// </returns>
+        bool TryGetDirectiveType(
+            string directiveName,
+            out DirectiveType directiveType);
     }
 }

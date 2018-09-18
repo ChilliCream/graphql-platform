@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("directives")
                 .Description("A list of all directives supported by this server.")
                 .Type<NonNullType<ListType<NonNullType<__Directive>>>>()
-                .Resolver(c => c.Schema.Directives);
+                .Resolver(c => c.Schema.DirectiveTypes);
         }
     }
 }

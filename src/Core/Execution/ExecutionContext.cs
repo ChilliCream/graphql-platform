@@ -67,6 +67,10 @@ namespace HotChocolate.Execution
 
         public object RootValue { get; }
 
+        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+
+        public ICustomContextProvider CustomContexts => _session.CustomContexts;
+
         public DocumentNode QueryDocument { get; }
 
         public OperationDefinitionNode Operation { get; }
@@ -77,9 +81,17 @@ namespace HotChocolate.Execution
 
         public VariableCollection Variables { get; }
 
-        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+        public void ReportError(IQueryError error)
+        {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
 
-        public ICustomContextProvider CustomContexts => _session.CustomContexts;
+            _errors.Add(error);
+        }
+
+        public IEnumerable<IQueryError> GetErrors() => _errors;
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)
@@ -98,19 +110,70 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, ReportError);
         }
 
-        public void ReportError(IQueryError error)
+        public IReadOnlyCollection<IDirective> CollectDirectives(
+            ObjectType objectType,
+            ObjectField field,
+            FieldNode fieldSelection)
         {
-            if (error == null)
-            {
-                throw new ArgumentNullException(nameof(error));
-            }
+            // 1. selection
+            // 2. field
+            // 3. interface fields
+            // 4. objects
+            // 5. interfaces
+            // 6. schema
 
-            _errors.Add(error);
+            Stack<IDirective> directives = new Stack<IDirective>();
+
+            CollectDirectives(directives, objectType.Interfaces.Values);
+            CollectDirectives(directives, objectType);
+            // CollectDirectives(directives, field);
+
+
+            throw new NotImplementedException();
         }
 
-        public IEnumerable<IQueryError> GetErrors()
+        private void CollectDirectives(Stack<IDirective> directives, IEnumerable<TypeBase> types)
         {
-            return _errors;
+            foreach (TypeBase type in types)
+            {
+                CollectDirectives(directives, type);
+            }
+        }
+
+        private void CollectDirectives(Stack<IDirective> directives, TypeBase type)
+        {
+            if (type is Types.IHasDirectives d)
+            {
+                foreach (IDirective directive in d.Directives)
+                {
+                    directives.Push(directive);
+                }
+            }
+        }
+
+        public T GetResolver<T>()
+        {
+            if (_resolverCache == null)
+            {
+                throw new NotSupportedException(
+                    "The resolver cache is disabled and resolver types are " +
+                    "not supported in the current schema.");
+            }
+
+            if (!_resolverCache.TryGetResolver<T>(out T resolver))
+            {
+                if (Services.GetService(typeof(T)) is T res)
+                {
+                    resolver = res;
+                }
+                else
+                {
+                    resolver = _resolverCache.AddOrGetResolver(
+                        () => CreateResolver<T>());
+                }
+            }
+
+            return resolver;
         }
 
         private static object ResolveRootValue(
@@ -143,35 +206,8 @@ namespace HotChocolate.Execution
             return null;
         }
 
-        public T GetResolver<T>()
-        {
-            if (_resolverCache == null)
-            {
-                throw new NotSupportedException(
-                    "The resolver cache is disabled and resolver types are " +
-                    "not supported in the current schema.");
-            }
-
-            if (!_resolverCache.TryGetResolver<T>(out T resolver))
-            {
-                if (Services.GetService(typeof(T)) is T res)
-                {
-                    resolver = res;
-                }
-                else
-                {
-                    resolver = _resolverCache.AddOrGetResolver(
-                        () => CreateResolver<T>());
-                }
-            }
-
-            return resolver;
-        }
-
-        private T CreateResolver<T>()
-        {
-            return (T)_serviceFactory.CreateInstance(typeof(T));
-        }
+        private T CreateResolver<T>() =>
+            (T)_serviceFactory.CreateInstance(typeof(T));
 
         public void Dispose()
         {
@@ -189,13 +225,6 @@ namespace HotChocolate.Execution
                 }
                 _disposed = true;
             }
-        }
-
-        public IReadOnlyCollection<IDirective> CollectDirectives(
-            ObjectType objectType,
-            SelectionSetNode selectionSet)
-        {
-            throw new NotImplementedException();
         }
     }
 }
