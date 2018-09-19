@@ -121,7 +121,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as ListValueNode);
+            if (other is ListValueNode l)
+            {
+                return Equals(l);
+            }
+
+            return false;
         }
 
         /// <summary>
