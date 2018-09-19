@@ -6,6 +6,7 @@ namespace HotChocolate.Runtime
 {
     public class Cache<TValue>
     {
+        private const int _defaultCacheSize = 10;
         private readonly object _sync = new object();
         private readonly LinkedList<string> _ranking =
             new LinkedList<string>();
@@ -17,7 +18,7 @@ namespace HotChocolate.Runtime
 
         public Cache(int size)
         {
-            Size = size < 10 ? 10 : size;
+            Size = size < _defaultCacheSize ? _defaultCacheSize : size;
         }
 
         public int Size { get; }

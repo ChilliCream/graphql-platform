@@ -37,7 +37,8 @@ namespace HotChocolate.Configuration
             _bindingInfo.FieldName = fieldName;
         }
 
-        public void To<TObjectType>(Expression<Func<TObjectType, object>> resolver)
+        public void To<TObjectType>(
+            Expression<Func<TObjectType, object>> resolver)
             where TObjectType : class
         {
             if (resolver == null)

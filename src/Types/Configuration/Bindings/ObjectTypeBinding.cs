@@ -22,8 +22,10 @@ namespace HotChocolate.Configuration
             }
 
             Name = name;
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            ObjectType = objectType ?? throw new ArgumentNullException(nameof(objectType));
+            Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            ObjectType = objectType
+                ?? throw new ArgumentNullException(nameof(objectType));
             Fields = fields.ToImmutableDictionary(t => t.Name);
         }
 
