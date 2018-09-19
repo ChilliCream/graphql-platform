@@ -2,26 +2,26 @@ using Xunit;
 
 namespace HotChocolate.Language
 {
-    public class BooleanValueNodeTests
+    public class FloatValueNodeTests
     {
-        [InlineData(false)]
-        [InlineData(true)]
+        [InlineData("1.568")]
+        [InlineData("2.0")]
         [Theory]
-        public void CreateBooleanValue(bool value)
+        public void CreateFloatValue(string value)
         {
             // act
-            var booleanValueNode = new BooleanValueNode(value);
+            var floatValueNode = new FloatValueNode(value);
 
             // assert
-            Assert.Equal(value, booleanValueNode.Value);
-            Assert.Equal(NodeKind.BooleanValue, booleanValueNode.Kind);
-            Assert.Null(booleanValueNode.Location);
+            Assert.Equal(value, floatValueNode.Value);
+            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Null(floatValueNode.Location);
         }
 
-        [InlineData(false)]
-        [InlineData(true)]
+        [InlineData("1.568")]
+        [InlineData("2.0")]
         [Theory]
-        public void CreateBooleanValueWithLocation(bool value)
+        public void CreateFloatValueWithLocation(string value)
         {
             // arrange
             var token = new SyntaxToken(
@@ -29,27 +29,27 @@ namespace HotChocolate.Language
             Location location = new Location(new Source("{}"), token, token);
 
             // act
-            var booleanValueNode = new BooleanValueNode(location, value);
+            var floatValueNode = new FloatValueNode(location, value);
 
             // assert
-            Assert.Equal(value, booleanValueNode.Value);
-            Assert.Equal(NodeKind.BooleanValue, booleanValueNode.Kind);
-            Assert.Equal(location, booleanValueNode.Location);
+            Assert.Equal(value, floatValueNode.Value);
+            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Equal(location, floatValueNode.Location);
         }
 
         [Fact]
-        public void EqualsBooleanValueNode()
+        public void EqualsFloatValueNode()
         {
             // arrange
-            var a = new BooleanValueNode(false);
-            var b = new BooleanValueNode(false);
-            var c = new BooleanValueNode(true);
+            var a = new FloatValueNode("1.0");
+            var b = new FloatValueNode("1.0");
+            var c = new FloatValueNode("2.0");
 
             // act
             bool ab_result = a.Equals(b);
             bool aa_result = a.Equals(a);
             bool ac_result = a.Equals(c);
-            bool anull_result = a.Equals(default(BooleanValueNode));
+            bool anull_result = a.Equals(default(FloatValueNode));
 
             // assert
             Assert.True(ab_result);
@@ -62,9 +62,9 @@ namespace HotChocolate.Language
         public void EqualsIValueNode()
         {
             // arrange
-            var a = new BooleanValueNode(false);
-            var b = new BooleanValueNode(false);
-            var c = new BooleanValueNode(true);
+            var a = new FloatValueNode("1.0");
+            var b = new FloatValueNode("1.0");
+            var c = new FloatValueNode("2.0");
             var d = new StringValueNode("foo");
 
             // act
@@ -72,7 +72,7 @@ namespace HotChocolate.Language
             bool aa_result = a.Equals(a);
             bool ac_result = a.Equals(c);
             bool ad_result = a.Equals(d);
-            bool anull_result = a.Equals(default(BooleanValueNode));
+            bool anull_result = a.Equals(default(FloatValueNode));
 
             // assert
             Assert.True(ab_result);
@@ -86,9 +86,9 @@ namespace HotChocolate.Language
         public void EqualsObject()
         {
             // arrange
-            var a = new BooleanValueNode(false);
-            var b = new BooleanValueNode(false);
-            var c = new BooleanValueNode(true);
+            var a = new FloatValueNode("1.0");
+            var b = new FloatValueNode("1.0");
+            var c = new FloatValueNode("2.0");
             var d = "foo";
             var e = 1;
 
@@ -98,7 +98,7 @@ namespace HotChocolate.Language
             bool ac_result = a.Equals(c);
             bool ad_result = a.Equals(d);
             bool ae_result = a.Equals(e);
-            bool anull_result = a.Equals(default(BooleanValueNode));
+            bool anull_result = a.Equals(default(FloatValueNode));
 
             // assert
             Assert.True(ab_result);
@@ -113,9 +113,9 @@ namespace HotChocolate.Language
         public void CompareGetHashCode()
         {
             // arrange
-            var a = new BooleanValueNode(false);
-            var b = new BooleanValueNode(false);
-            var c = new BooleanValueNode(true);
+            var a = new FloatValueNode("1.0");
+            var b = new FloatValueNode("1.0");
+            var c = new FloatValueNode("2.0");
 
             // act
             int ahash = a.GetHashCode();
@@ -131,22 +131,22 @@ namespace HotChocolate.Language
         public void StringRepresentation()
         {
             // arrange
-            var a = new BooleanValueNode(false);
-            var b = new BooleanValueNode(true);
+            var a = new FloatValueNode("1.0");
+            var b = new FloatValueNode("2.0");
 
             // act
             string astring = a.ToString();
             string bstring = b.ToString();
 
             // assert
-            Assert.Equal("False", astring);
-            Assert.Equal("True", bstring);
+            Assert.Equal("1.0", astring);
+            Assert.Equal("2.0", bstring);
         }
 
         [Fact]
         public void ClassIsSealed()
         {
-            Assert.True(typeof(BooleanValueNode).IsSealed);
+            Assert.True(typeof(FloatValueNode).IsSealed);
         }
     }
 }
