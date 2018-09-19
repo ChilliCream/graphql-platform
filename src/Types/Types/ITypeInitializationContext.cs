@@ -15,7 +15,8 @@ namespace HotChocolate.Types
         bool IsQueryType { get; }
 
         void RegisterType(
-            INamedType namedType, ITypeBinding typeBinding = null);
+            INamedType namedType,
+            ITypeBinding typeBinding = null);
 
         void RegisterType(TypeReference typeReference);
 
@@ -25,9 +26,17 @@ namespace HotChocolate.Types
             string fieldName,
             MemberInfo fieldMember);
 
+        void RegisterMiddleware(IDirectiveMiddleware middleware);
+
         FieldResolverDelegate GetResolver(string fieldName);
 
+        IDirectiveMiddleware GetMiddleware(
+            string directiveName,
+            MiddlewareKind kind);
+
         T GetType<T>(TypeReference typeReference) where T : IType;
+
+        DirectiveType GetDirectiveType(DirectiveReference directiveReference);
 
         IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType);

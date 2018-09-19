@@ -1,13 +1,13 @@
 namespace HotChocolate.Types
 {
     public class IncludeDirective
-        : Directive
+        : DirectiveType
     {
         internal IncludeDirective()
         {
         }
 
-        protected override void Configure(IDirectiveDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("include");
             descriptor.Description(

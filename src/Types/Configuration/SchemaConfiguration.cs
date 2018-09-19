@@ -15,22 +15,29 @@ namespace HotChocolate.Configuration
             new List<TypeBindingInfo>();
         private readonly Action<IServiceProvider> _registerServiceProvider;
         private readonly ITypeRegistry _typeRegistry;
+        private readonly IDirectiveRegistry _directiveRegistry;
 
         public SchemaConfiguration(
             Action<IServiceProvider> registerServiceProvider,
-            ITypeRegistry typeRegistry)
+            ITypeRegistry typeRegistry,
+            IDirectiveRegistry directiveRegistry)
         {
             _registerServiceProvider = registerServiceProvider
-                ?? throw new ArgumentNullException(nameof(registerServiceProvider));
+                ?? throw new ArgumentNullException(
+                        nameof(registerServiceProvider));
             _typeRegistry = typeRegistry
                 ?? throw new ArgumentNullException(nameof(typeRegistry));
+            _directiveRegistry = directiveRegistry
+                ?? throw new ArgumentNullException(nameof(directiveRegistry));
         }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
-        internal IReadOnlyCollection<TypeBindingInfo> TypeBindings => _typeBindings;
+        internal IReadOnlyCollection<TypeBindingInfo> TypeBindings =>
+            _typeBindings;
 
-        internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings => _resolverBindings;
+        internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings =>
+            _resolverBindings;
 
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {

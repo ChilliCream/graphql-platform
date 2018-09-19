@@ -156,7 +156,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Description(string description)
+        IObjectTypeDescriptor IObjectTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
@@ -168,7 +169,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(NamedTypeNode type)
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface(
+            NamedTypeNode type)
         {
             Interface(type);
             return this;
@@ -195,7 +197,7 @@ namespace HotChocolate.Types
         public ObjectTypeDescriptor()
             : base(typeof(T))
         {
-            ObjectDescription.NativeType = typeof(T);
+            ObjectDescription.ClrType = typeof(T);
         }
 
         protected void BindFields(BindingBehavior bindingBehavior)
@@ -215,10 +217,10 @@ namespace HotChocolate.Types
             if (member is PropertyInfo || member is MethodInfo)
             {
                 var fieldDescriptor = new ObjectFieldDescriptor(
-                    ObjectDescription.Name, ObjectDescription.NativeType,
+                    ObjectDescription.Name, ObjectDescription.ClrType,
                     member, member.GetReturnType());
 
-                if (typeof(TResolver) != ObjectDescription.NativeType)
+                if (typeof(TResolver) != ObjectDescription.ClrType)
                 {
                     fieldDescriptor.ResolverType(typeof(TResolver));
                 }
@@ -241,7 +243,8 @@ namespace HotChocolate.Types
 
             AddExplicitFields(descriptions, handledMembers);
 
-            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
+            if (ObjectDescription.FieldBindingBehavior ==
+                BindingBehavior.Implicit)
             {
                 Dictionary<MemberInfo, string> members =
                     GetPossibleImplicitFields(handledMembers);
@@ -256,7 +259,8 @@ namespace HotChocolate.Types
             Dictionary<string, ObjectFieldDescription> descriptors,
             List<MemberInfo> handledMembers)
         {
-            foreach (ObjectFieldDescription fieldDescription in ObjectDescription.Fields)
+            foreach (ObjectFieldDescription fieldDescription in
+                ObjectDescription.Fields)
             {
                 if (!fieldDescription.Ignored)
                 {
@@ -274,7 +278,7 @@ namespace HotChocolate.Types
             List<MemberInfo> handledMembers)
         {
             Dictionary<MemberInfo, string> members = GetMembers(
-                ObjectDescription.NativeType);
+                ObjectDescription.ClrType);
 
             foreach (MemberInfo member in handledMembers)
             {
@@ -297,7 +301,7 @@ namespace HotChocolate.Types
                     {
                         var fieldDescriptor = new ObjectFieldDescriptor(
                             ObjectDescription.Name,
-                            ObjectDescription.NativeType,
+                            ObjectDescription.ClrType,
                             member.Key, returnType);
 
                         descriptors[member.Value] = fieldDescriptor
@@ -320,7 +324,8 @@ namespace HotChocolate.Types
 
             foreach (MethodInfo method in type.GetMethods(
                 BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => !m.IsSpecialName && m.DeclaringType != typeof(object)))
+                .Where(m => !m.IsSpecialName
+                    && m.DeclaringType != typeof(object)))
             {
                 members[method] = method.GetGraphQLName();
             }

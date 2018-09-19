@@ -16,28 +16,39 @@ namespace HotChocolate.Resolvers
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
                 optimizationLevel: OptimizationLevel.Debug);
 
-        public static Assembly Compile(string sourceText)
+        public static Assembly Compile(params string[] sourceText)
         {
-            SyntaxTree syntaxTree = ParseSource(sourceText);
+            if (sourceText == null)
+            {
+                throw new ArgumentNullException(nameof(sourceText));
+            }
+
+            if (sourceText.Length == 0)
+            {
+                throw new ArgumentException(
+                    "The compiler needs at least one code unit in order " +
+                    "to create an assembly.");
+            }
+
+            SyntaxTree[] syntaxTree = new SyntaxTree[sourceText.Length];
+            for (int i = 0; i < sourceText.Length; i++)
+            {
+                syntaxTree[i] = SyntaxFactory.ParseSyntaxTree(
+                    SourceText.From(sourceText[i]));
+            }
+
             return Compile(sourceText, syntaxTree);
         }
 
-        public static SyntaxTree ParseSource(string sourceText)
-        {
-            return SyntaxFactory.ParseSyntaxTree(
-                SourceText.From(sourceText));
-        }
-
         private static Assembly Compile(
-            string sourceText,
-            SyntaxTree syntaxTree)
+            string[] sourceText,
+            SyntaxTree[] syntaxTree)
         {
             var assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
                 $"._{Guid.NewGuid().ToString("N")}.dll";
 
             CSharpCompilation compilation = CSharpCompilation.Create(
-                assemblyName, new SyntaxTree[] { syntaxTree },
-                ResolveReferences(), _options);
+                assemblyName, syntaxTree, ResolveReferences(), _options);
 
             using (var stream = new MemoryStream())
             {
@@ -51,13 +62,15 @@ namespace HotChocolate.Resolvers
                 // TODO : EXCEPTION
                 throw new Exception(string.Join(Environment.NewLine,
                     result.Diagnostics.Select(t => t.ToString())) +
-                    Environment.NewLine + sourceText);
+                    Environment.NewLine +
+                    string.Join(Environment.NewLine, sourceText));
             }
         }
 
         private static IEnumerable<MetadataReference> ResolveReferences()
         {
             var references = new List<MetadataReference>();
+
             foreach (Assembly assembly in AppDomain.CurrentDomain
                 .GetAssemblies().Where(t => !t.IsDynamic))
             {
@@ -73,6 +86,7 @@ namespace HotChocolate.Resolvers
                     // case these exceptions.
                 }
             }
+
             return references;
         }
     }

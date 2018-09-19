@@ -11,14 +11,14 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly FieldResolverBuilder _resolverBuilder =
-            new FieldResolverBuilder();
         private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
             new Dictionary<FieldReference, FieldResolverDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
             new Dictionary<FieldReference, IFieldResolverDescriptor>();
+        private readonly Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware> _middlewares =
+            new Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware>();
 
         public void RegisterResolver(IFieldReference resolverBinding)
         {
@@ -44,6 +44,16 @@ namespace HotChocolate.Configuration
                 resolverDescriptor;
         }
 
+        public void RegisterMiddleware(IDirectiveMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _middlewares[CreateReference(middleware)] = middleware;
+        }
+
         public bool ContainsResolver(FieldReference fieldReference)
         {
             if (fieldReference == null)
@@ -65,39 +75,95 @@ namespace HotChocolate.Configuration
             return null;
         }
 
+        public IDirectiveMiddleware GetMiddleware(
+            string directiveName,
+            MiddlewareKind kind)
+        {
+            if (string.IsNullOrEmpty(directiveName))
+            {
+                throw new ArgumentNullException(nameof(directiveName));
+            }
+
+            if (_middlewares.TryGetValue(
+                CreateReference(directiveName, kind),
+                out IDirectiveMiddleware middleware))
+            {
+                return middleware;
+            }
+
+            return null;
+        }
+
         internal void BuildResolvers()
         {
+            ResolverBuilderResult result = CompileResolvers();
+            CompleteResolvers(result.Resolvers);
+            CompleteMiddlewares(result.Middlewares);
+        }
+
+        private void CompleteResolvers(IEnumerable<FieldResolver> resolvers)
+        {
             var fieldResolvers = new List<FieldResolver>();
-            fieldResolvers.AddRange(CompileResolvers());
+            fieldResolvers.AddRange(resolvers);
             fieldResolvers.AddRange(_resolverBindings.Values
                 .OfType<FieldResolver>());
 
             foreach (FieldResolver resolver in fieldResolvers)
             {
-                var fieldReference = new FieldReference(
-                    resolver.TypeName, resolver.FieldName);
-                _resolvers[fieldReference] = resolver.Resolver;
+                _resolvers[resolver.ToFieldReference()] = resolver.Resolver;
             }
         }
 
-        private IEnumerable<FieldResolver> CompileResolvers()
+        private void CompleteMiddlewares(
+            IEnumerable<IDirectiveMiddleware> middlewares)
         {
-            var resolverDescriptors = new List<IFieldResolverDescriptor>();
+            foreach (IDirectiveMiddleware middleware in middlewares)
+            {
+                _middlewares[CreateReference(middleware)] = middleware;
+            }
+        }
 
+        private ResolverBuilderResult CompileResolvers()
+        {
+            var resolverBuilder = new ResolverBuilder();
+
+            resolverBuilder.AddDescriptors(CreateResolverDescriptors());
+            resolverBuilder.AddDescriptors(CreateMiddlewareDescriptors());
+            resolverBuilder.AddDescriptors(_resolverDescriptors.Values);
+
+            return resolverBuilder.Build();
+        }
+
+        private IEnumerable<SourceResolverDescriptor> CreateResolverDescriptors()
+        {
             foreach (FieldMember binding in _resolverBindings.Values
                 .OfType<FieldMember>())
             {
-                resolverDescriptors.Add(new SourceResolverDescriptor(binding));
+                yield return new SourceResolverDescriptor(binding);
             }
+        }
 
-            resolverDescriptors.AddRange(_resolverDescriptors.Values);
-
-            if (resolverDescriptors.Count > 0)
+        private IEnumerable<DirectiveMiddlewareDescriptor> CreateMiddlewareDescriptors()
+        {
+            foreach (DirectiveMethodMiddleware methodMiddleware in
+                _middlewares.Values.OfType<DirectiveMethodMiddleware>())
             {
-                return _resolverBuilder.Build(resolverDescriptors);
+                yield return new DirectiveMiddlewareDescriptor(methodMiddleware);
             }
+        }
 
-            return Enumerable.Empty<FieldResolver>();
+        private static DirectiveMiddlewareReference CreateReference(
+            IDirectiveMiddleware middleware)
+        {
+            return new DirectiveMiddlewareReference(
+                middleware.DirectiveName,
+                middleware.Kind);
+        }
+
+        private static DirectiveMiddlewareReference CreateReference(
+            string directiveName, MiddlewareKind kind)
+        {
+            return new DirectiveMiddlewareReference(directiveName, kind);
         }
     }
 }

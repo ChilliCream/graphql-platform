@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
             where T : class;
 
         void RegisterDirective<T>()
-            where T : Directive;
+            where T : DirectiveType, new();
 
         void RegisterType<T>(T namedType)
             where T : class, INamedType;
@@ -33,6 +33,6 @@ namespace HotChocolate.Configuration
             where T : ObjectType;
 
         void RegisterDirective<T>(T directive)
-            where T : Directive;
+            where T : DirectiveType;
     }
 }

@@ -56,6 +56,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
             Type resolverType, Type sourceType,
             IEnumerable<FieldMember> fieldMembers)
         {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (fieldMembers == null)
+            {
+                throw new ArgumentNullException(nameof(fieldMembers));
+            }
+
             foreach (FieldMember fieldResolverMember in fieldMembers)
             {
                 if (resolverType == null || resolverType == sourceType)
@@ -105,8 +115,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         internal static ArgumentDescriptor[] DiscoverArguments(
-            MethodInfo method, Type sourceType)
+            MethodInfo method, Type sourceType = null)
         {
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
             ParameterInfo[] parameters = method.GetParameters();
             var arguments = new ArgumentDescriptor[parameters.Length];
 
@@ -127,6 +142,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
         public static IEnumerable<FieldMember> DiscoverResolvableMembers(
             Type resolverType, string typeName)
         {
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
             return GetProperties(resolverType, typeName)
                 .Concat(GetMethods(resolverType, typeName));
         }
@@ -192,6 +217,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         public static string AdjustCasing(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             return name.Substring(0, 1).ToLowerInvariant() + name.Substring(1);
         }
     }

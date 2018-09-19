@@ -30,7 +30,7 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Fields { get; private set; }
 
-        public Type NativeType { get; private set; }
+        public Type ClrType { get; private set; }
 
         #region IInputType
 
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
             configure(descriptor);
 
             InputObjectTypeDescription description = descriptor.CreateDescription();
-            NativeType = description.NativeType;
+            ClrType = description.NativeType;
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;
@@ -135,13 +135,13 @@ namespace HotChocolate.Types
         private void CompleteNativeType(
             ITypeInitializationContext context)
         {
-            if (NativeType == null
+            if (ClrType == null
                 && context.TryGetNativeType(this, out Type nativeType))
             {
-                NativeType = nativeType;
+                ClrType = nativeType;
             }
 
-            if (NativeType == null)
+            if (ClrType == null)
             {
                 context.ReportError(new SchemaError(
                     "Could not resolve the native type associated with " +
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
             }
 
             _deserialize = InputObjectDeserializerFactory.Create(
-                    context, this, NativeType);
+                    context, this, ClrType);
         }
 
         private void CompleteFields(

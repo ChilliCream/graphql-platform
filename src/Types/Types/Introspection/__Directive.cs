@@ -20,19 +20,19 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field("name")
                 .Type<NonNullType<StringType>>()
-                .Resolver(c => c.Parent<Directive>().Name);
+                .Resolver(c => c.Parent<DirectiveType>().Name);
 
             descriptor.Field("description")
                 .Type<StringType>()
-                .Resolver(c => c.Parent<Directive>().Description);
+                .Resolver(c => c.Parent<DirectiveType>().Description);
 
             descriptor.Field("locations")
                 .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
-                .Resolver(c => c.Parent<Directive>().Locations);
+                .Resolver(c => c.Parent<DirectiveType>().Locations);
 
             descriptor.Field("args")
                 .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolver(c => c.Parent<Directive>().Arguments);
+                .Resolver(c => c.Parent<DirectiveType>().Arguments);
 
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
@@ -52,42 +52,30 @@ namespace HotChocolate.Types.Introspection
 
         private static bool GetOnOperation(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+            ICollection<DirectiveLocation> locations =
+                context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.Query)
-                || Contains(locations, DirectiveLocation.Mutation)
-                || Contains(locations, DirectiveLocation.Subscription);
+            return locations.Contains(DirectiveLocation.Query)
+                || locations.Contains(DirectiveLocation.Mutation)
+                || locations.Contains(DirectiveLocation.Subscription);
         }
 
         private static bool GetOnFragment(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+            ICollection<DirectiveLocation> locations =
+                context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.InlineFragment)
-                || Contains(locations, DirectiveLocation.FragmentSpread)
-                || Contains(locations, DirectiveLocation.FragmentDefinition);
+            return locations.Contains(DirectiveLocation.InlineFragment)
+                || locations.Contains(DirectiveLocation.FragmentSpread)
+                || locations.Contains(DirectiveLocation.FragmentDefinition);
         }
 
         private static bool GetOnField(IResolverContext context)
         {
-            IReadOnlyCollection<DirectiveLocation> locations =
-                context.Parent<Directive>().Locations;
+            ICollection<DirectiveLocation> locations =
+                context.Parent<DirectiveType>().Locations;
 
-            return Contains(locations, DirectiveLocation.Field);
-        }
-
-        private static bool Contains<T>(IReadOnlyCollection<T> collection, T item)
-        {
-            foreach (T element in collection)
-            {
-                if (element.Equals(item))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return locations.Contains(DirectiveLocation.Field);
         }
     }
 }

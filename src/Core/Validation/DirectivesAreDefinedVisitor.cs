@@ -14,7 +14,7 @@ namespace HotChocolate.Validation
             : base(schema)
         {
             _directives = new HashSet<string>(
-                schema.Directives.Select(t => t.Name));
+                schema.DirectiveTypes.Select(t => t.Name));
         }
 
         protected override void VisitDirective(

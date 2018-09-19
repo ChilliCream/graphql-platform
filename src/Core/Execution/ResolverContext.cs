@@ -45,8 +45,7 @@ namespace HotChocolate.Execution
             _executionContext = executionContext;
             _resolverTask = resolverTask;
             _arguments = _argumentResolver.CoerceArgumentValues(
-                resolverTask.ObjectType, resolverTask.FieldSelection,
-                executionContext.Variables);
+                resolverTask.FieldSelection, executionContext.Variables);
         }
 
         public ISchema Schema => _executionContext.Schema;
@@ -59,7 +58,7 @@ namespace HotChocolate.Execution
 
         public OperationDefinitionNode Operation => _executionContext.Operation;
 
-        public FieldNode FieldSelection => _resolverTask.FieldSelection.Node;
+        public FieldNode FieldSelection => _resolverTask.FieldSelection.Selection;
 
         public ImmutableStack<object> Source => _resolverTask.Source;
 
@@ -100,9 +99,9 @@ namespace HotChocolate.Execution
             throw new QueryException(
                new FieldError(
                     $"Could not convert argument {name} from " +
-                    $"{argumentValue.NativeType.FullName} to " +
+                    $"{argumentValue.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
-                    _resolverTask.FieldSelection.Node));
+                    _resolverTask.FieldSelection.Selection));
         }
 
         private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)
@@ -110,7 +109,7 @@ namespace HotChocolate.Execution
             foreach (IInputValueConverter converter in _converters
                 .Where(t => t.CanConvert(argumentValue.Type)))
             {
-                if (converter.TryConvert(argumentValue.NativeType, typeof(T),
+                if (converter.TryConvert(argumentValue.ClrType, typeof(T),
                     argumentValue.Value, out object cv))
                 {
                     value = (T)cv;
@@ -160,5 +159,15 @@ namespace HotChocolate.Execution
 
         public void ReportError(IQueryError error)
             => _executionContext.ReportError(error);
+
+        public IDirective Directive(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IDirective> Directives(DirectiveScope scope)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

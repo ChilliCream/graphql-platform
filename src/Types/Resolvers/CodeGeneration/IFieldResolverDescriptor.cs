@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    interface IFieldResolverDescriptor
+    internal interface IFieldResolverDescriptor
+        : IDelegateDescriptor
     {
         /// <summary>
         /// Gets the type of the source object.

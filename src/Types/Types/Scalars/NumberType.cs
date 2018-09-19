@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type NativeType { get; } = typeof(TNative);
+        public override Type ClrType { get; } = typeof(TNative);
 
         protected virtual IEnumerable<Type> AdditionalTypes { get; } =
             Enumerable.Empty<Type>();
@@ -47,7 +47,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The {NativeType.Name} type can only parse {typeof(TNode).Name}.");
+                $"The {ClrType.Name} type can only parse {typeof(TNode).Name}.");
         }
 
         protected abstract TNative OnParseLiteral(TNode node);
@@ -67,11 +67,11 @@ namespace HotChocolate.Types
             if (AdditionalTypes.Any(t => value.GetType() == t))
             {
                 return (IValueNode)OnParseValue(
-                    (TNative)Convert.ChangeType(value, NativeType));
+                    (TNative)Convert.ChangeType(value, ClrType));
             }
 
             throw new ArgumentException(
-                $"The specified value has to be an {NativeType.Name} type.");
+                $"The specified value has to be an {ClrType.Name} type.");
         }
 
         protected abstract TNode OnParseValue(TNative value);

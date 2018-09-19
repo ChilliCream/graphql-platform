@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     {
         public ObjectTypeDefinitionNode SyntaxNode { get; set; }
 
-        public Type NativeType { get; set; }
+        public Type ClrType { get; set; }
 
         public IsOfType IsOfType { get; set; }
 

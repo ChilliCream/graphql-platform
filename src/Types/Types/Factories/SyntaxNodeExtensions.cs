@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Factories
         private const string _deprecated = "deprecated";
         private const string _deprecationReason = "reason";
 
-        public static string DeprecationReason(this IHasDirectives syntaxNode)
+        public static string DeprecationReason(this Language.IHasDirectives syntaxNode)
         {
             DirectiveNode directive = syntaxNode.Directives
                 .FirstOrDefault(t => t.Name.Value == _deprecated);

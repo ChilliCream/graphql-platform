@@ -1,20 +1,24 @@
-using System.Collections.Generic;
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class DirectiveDescription
+    internal sealed class DirectiveDescription
     {
-        public DirectiveDefinitionNode SyntaxNode { get; set; }
+        public DirectiveDescription(DirectiveNode parsedDirective)
+        {
+            ParsedDirective = parsedDirective
+                ?? throw new ArgumentNullException(nameof(parsedDirective));
+        }
 
-        public string Name { get; set; }
+        public DirectiveDescription(object customDirective)
+        {
+            CustomDirective = customDirective
+                ?? throw new ArgumentNullException(nameof(customDirective));
+        }
 
-        public string Description { get; set; }
+        public DirectiveNode ParsedDirective { get; }
 
-        public HashSet<DirectiveLocation> Locations { get; } =
-            new HashSet<DirectiveLocation>();
-
-        public List<ArgumentDescription> Arguments { get; } =
-            new List<ArgumentDescription>();
+        public object CustomDirective { get; }
     }
 }

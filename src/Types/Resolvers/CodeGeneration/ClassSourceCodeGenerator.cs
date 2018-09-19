@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -7,10 +8,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal class ClassSourceCodeGenerator
     {
         internal const string Namespace = "HotChocolate.Resolvers.CodeGeneration";
-        internal const string ClassName = "___CompiledResolvers";
-        internal const string FullClassName = Namespace + "." + ClassName;
+        private const string ClassNameTemplate = "___CompiledResolvers__";
 
-        private static readonly SourceCodeGenerator[] _generators =
+        private static readonly ISourceCodeGenerator[] _generators =
         {
             new AsyncResolverMethodGenerator(),
             new SyncResolverMethodGenerator(),
@@ -18,17 +18,29 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             new AsyncSourceMethodGenerator(),
             new SyncSourceMethodGenerator(),
-            new SourcePropertyGenerator()
+            new SourcePropertyGenerator(),
+
+            new AsyncResolverMethodGenerator(),
+            new SyncResolverMethodGenerator()
         };
 
-        public string Generate(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
+        public GeneratedClass Generate(
+            IEnumerable<IDelegateDescriptor> resolverDescriptors)
         {
-            return GenerateClass(resolverDescriptors);
+            if (resolverDescriptors == null)
+            {
+                throw new ArgumentNullException(nameof(resolverDescriptors));
+            }
+
+            string className = ClassNameTemplate + Guid.NewGuid().ToString("N");
+            string sourceText = GenerateClass(resolverDescriptors, className);
+
+            return new GeneratedClass(Namespace, className, sourceText);
         }
 
-        private string GenerateClass(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
+        private static string GenerateClass(
+            IEnumerable<IDelegateDescriptor> resolverDescriptors,
+            string className)
         {
             var source = new StringBuilder();
 
@@ -45,7 +57,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             source.AppendLine($"namespace {Namespace}");
             source.AppendLine("{");
-            source.AppendLine($"public static class {ClassName}");
+            source.AppendLine($"public static class {className}");
             source.AppendLine("{");
 
             GenerateResolvers(resolverDescriptors, source);
@@ -55,22 +67,22 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return source.ToString();
         }
 
-        private void GenerateResolvers(
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors,
+        private static void GenerateResolvers(
+            IEnumerable<IDelegateDescriptor> resolverDescriptors,
             StringBuilder source)
         {
             var i = 0;
             foreach (IFieldResolverDescriptor resolverDescriptor in
                 resolverDescriptors)
             {
-                SourceCodeGenerator generator = _generators.First(
-                    t => t.CanGenerate(resolverDescriptor));
+                ISourceCodeGenerator generator = _generators.First(
+                    t => t.CanHandle(resolverDescriptor));
                 source.AppendLine(generator.Generate(
-                    GetResolverName(i++), resolverDescriptor));
+                    GetDelegateName(i++), resolverDescriptor));
             }
         }
 
-        public string GetResolverName(int index)
+        public static string GetDelegateName(int index)
         {
             return "_" + index;
         }

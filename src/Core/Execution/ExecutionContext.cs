@@ -14,6 +14,7 @@ namespace HotChocolate.Execution
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly FieldCollector _fieldCollector;
+        private readonly DirectiveCollector _directiveCollector;
         private readonly ISession _session;
         private readonly IResolverCache _resolverCache;
         private readonly bool _disposeRootValue;
@@ -48,6 +49,7 @@ namespace HotChocolate.Execution
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);
+            _directiveCollector = new DirectiveCollector(schema);
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);
@@ -67,6 +69,10 @@ namespace HotChocolate.Execution
 
         public object RootValue { get; }
 
+        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+
+        public ICustomContextProvider CustomContexts => _session.CustomContexts;
+
         public DocumentNode QueryDocument { get; }
 
         public OperationDefinitionNode Operation { get; }
@@ -77,9 +83,17 @@ namespace HotChocolate.Execution
 
         public VariableCollection Variables { get; }
 
-        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+        public void ReportError(IQueryError error)
+        {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
 
-        public ICustomContextProvider CustomContexts => _session.CustomContexts;
+            _errors.Add(error);
+        }
+
+        public IEnumerable<IQueryError> GetErrors() => _errors;
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)
@@ -98,19 +112,39 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, ReportError);
         }
 
-        public void ReportError(IQueryError error)
+        public IReadOnlyCollection<IDirective> CollectDirectives(
+            ObjectType objectType,
+            FieldSelection fieldSelection,
+            DirectiveScope scope)
         {
-            if (error == null)
-            {
-                throw new ArgumentNullException(nameof(error));
-            }
-
-            _errors.Add(error);
+            return _directiveCollector.CollectDirectives(
+                objectType, fieldSelection.Field,
+                fieldSelection.Selection, scope);
         }
 
-        public IEnumerable<IQueryError> GetErrors()
+        public T GetResolver<T>()
         {
-            return _errors;
+            if (_resolverCache == null)
+            {
+                throw new NotSupportedException(
+                    "The resolver cache is disabled and resolver types are " +
+                    "not supported in the current schema.");
+            }
+
+            if (!_resolverCache.TryGetResolver<T>(out T resolver))
+            {
+                if (Services.GetService(typeof(T)) is T res)
+                {
+                    resolver = res;
+                }
+                else
+                {
+                    resolver = _resolverCache.AddOrGetResolver(
+                        () => CreateResolver<T>());
+                }
+            }
+
+            return resolver;
         }
 
         private static object ResolveRootValue(
@@ -143,35 +177,8 @@ namespace HotChocolate.Execution
             return null;
         }
 
-        public T GetResolver<T>()
-        {
-            if (_resolverCache == null)
-            {
-                throw new NotSupportedException(
-                    "The resolver cache is disabled and resolver types are " +
-                    "not supported in the current schema.");
-            }
-
-            if (!_resolverCache.TryGetResolver<T>(out T resolver))
-            {
-                if (Services.GetService(typeof(T)) is T res)
-                {
-                    resolver = res;
-                }
-                else
-                {
-                    resolver = _resolverCache.AddOrGetResolver(
-                        () => CreateResolver<T>());
-                }
-            }
-
-            return resolver;
-        }
-
-        private T CreateResolver<T>()
-        {
-            return (T)_serviceFactory.CreateInstance(typeof(T));
-        }
+        private T CreateResolver<T>() =>
+            (T)_serviceFactory.CreateInstance(typeof(T));
 
         public void Dispose()
         {

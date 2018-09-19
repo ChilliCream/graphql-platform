@@ -9,12 +9,12 @@ namespace HotChocolate.Validation
     internal abstract class InputObjectFieldVisitorBase
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, Directive> _directives;
+        private readonly Dictionary<string, DirectiveType> _directives;
 
         protected InputObjectFieldVisitorBase(ISchema schema)
             : base(schema)
         {
-            _directives = schema.Directives.ToDictionary(t => t.Name);
+            _directives = schema.DirectiveTypes.ToDictionary(t => t.Name);
         }
 
         protected override void VisitField(
@@ -33,7 +33,7 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out Directive d))
+            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d))
             {
                 VisitArguments(directive.Arguments, d.Arguments);
             }

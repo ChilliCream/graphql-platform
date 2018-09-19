@@ -9,19 +9,19 @@ namespace HotChocolate.Validation
     internal sealed class DirectivesAreInValidLocationsVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, Directive> _directives;
+        private readonly Dictionary<string, DirectiveType> _directives;
 
         public DirectivesAreInValidLocationsVisitor(ISchema schema)
             : base(schema)
         {
-            _directives = schema.Directives.ToDictionary(t => t.Name);
+            _directives = schema.DirectiveTypes.ToDictionary(t => t.Name);
         }
 
         protected override void VisitDirective(
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out Directive d)
+            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d)
                 && TryLookupLocation(path.Peek(),
                     out Types.DirectiveLocation location)
                 && !d.Locations.Contains(location))

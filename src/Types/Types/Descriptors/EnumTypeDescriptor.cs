@@ -166,6 +166,26 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IEnumTypeDescriptor IEnumTypeDescriptor.Directive<T>(T directive)
+        {
+            EnumDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IEnumTypeDescriptor IEnumTypeDescriptor.Directive<T>()
+        {
+            EnumDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            EnumDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 
@@ -210,6 +230,26 @@ namespace HotChocolate.Types
         IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
         {
             return Item(value);
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>(
+            TDirective directive)
+        {
+            EnumDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>()
+        {
+            EnumDescription.Directives.AddDirective(new TDirective());
+            return this;
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
+            string name, params ArgumentNode[] arguments)
+        {
+            EnumDescription.Directives.AddDirective(name, arguments);
+            return this;
         }
 
         #endregion

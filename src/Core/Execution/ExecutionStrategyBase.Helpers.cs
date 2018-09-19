@@ -1,7 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -14,6 +17,25 @@ namespace HotChocolate.Execution
            ResolverTask resolverTask,
            bool isDeveloperMode,
            CancellationToken cancellationToken)
+        {
+            if (resolverTask.HasExecutableDirectives)
+            {
+                return ExecuteDirectiveResolvers(
+                    resolverTask, isDeveloperMode,
+                    cancellationToken);
+            }
+            else
+            {
+                return ExecuteFieldResolver(
+                    resolverTask, isDeveloperMode,
+                    cancellationToken);
+            }
+        }
+
+        private static object ExecuteFieldResolver(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -28,12 +50,97 @@ namespace HotChocolate.Execution
             catch (Exception ex)
             {
                 return CreateErrorFromException(ex,
-                    resolverTask.FieldSelection.Node,
+                    resolverTask.FieldSelection.Selection,
                     isDeveloperMode);
             }
         }
 
-        protected static async Task<object> FinalizeResolverResultAsync(
+        private static Func<Task<object>> CreateFieldResolverDelegate(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            return new Func<Task<object>>(async () =>
+            {
+                object resolverResult = ExecuteFieldResolver(
+                    resolverTask, isDeveloperMode, cancellationToken);
+
+                return await FinalizeResolverResultAsync(
+                    resolverTask.FieldSelection.Selection,
+                    resolverResult,
+                    isDeveloperMode);
+            });
+        }
+
+        private static object ExecuteDirectiveResolvers(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            Func<Task<object>> current = CreateFieldResolverDelegate(
+                resolverTask, isDeveloperMode, cancellationToken);
+
+            foreach (IDirective directive in resolverTask.ExecutableDirectives)
+            {
+                if (directive.OnInvokeResolver != null)
+                {
+                    var directiveContext =
+                        new DirectiveContext(directive, current);
+
+                    current = CreateDirectiveResolverDelegate(
+                        directiveContext, resolverTask,
+                        isDeveloperMode, cancellationToken);
+                }
+            }
+
+            return current();
+        }
+
+        private static object ExecuteDirectiveResolver(
+            IDirectiveContext directiveContext,
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                return directiveContext.Directive.OnInvokeResolver(
+                    directiveContext,
+                    resolverTask.ResolverContext,
+                    cancellationToken);
+            }
+            catch (QueryException ex)
+            {
+                return ex.Errors;
+            }
+            catch (Exception ex)
+            {
+                return CreateErrorFromException(ex,
+                    resolverTask.FieldSelection.Selection,
+                    isDeveloperMode);
+            }
+        }
+
+        private static Func<Task<object>> CreateDirectiveResolverDelegate(
+            IDirectiveContext directiveContext,
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            return new Func<Task<object>>(async () =>
+            {
+                object resolverResult = ExecuteDirectiveResolver(
+                    directiveContext, resolverTask,
+                    isDeveloperMode, cancellationToken);
+
+                return await FinalizeResolverResultAsync(
+                    resolverTask.FieldSelection.Selection,
+                    resolverResult,
+                    isDeveloperMode);
+            });
+        }
+
+        protected static Task<object> FinalizeResolverResultAsync(
             FieldNode fieldSelection,
             object resolverResult,
             bool isDeveloperMode)
@@ -41,14 +148,15 @@ namespace HotChocolate.Execution
             switch (resolverResult)
             {
                 case Task<object> task:
-                    return await FinalizeResolverResultTaskAsync(
+                    return FinalizeResolverResultTaskAsync(
                         fieldSelection, task, isDeveloperMode);
 
                 case IResolverResult result:
-                    return CompleteResolverResult(fieldSelection, result);
+                    return Task.FromResult(
+                        CompleteResolverResult(fieldSelection, result));
 
                 default:
-                    return resolverResult;
+                    return Task.FromResult(resolverResult);
             }
         }
 
@@ -59,7 +167,10 @@ namespace HotChocolate.Execution
         {
             try
             {
-                object resolverResult = await task;
+                object resolverResult = task.IsCompleted
+                    ? task.Result
+                    : await task;
+
                 if (resolverResult is IResolverResult r)
                 {
                     return CompleteResolverResult(fieldSelection, r);

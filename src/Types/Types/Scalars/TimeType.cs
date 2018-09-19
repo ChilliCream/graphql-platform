@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type NativeType => typeof(TimeSpan);
+        public override Type ClrType => typeof(TimeSpan);
 
         protected override bool TrySerialize(
             object value,

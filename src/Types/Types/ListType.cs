@@ -37,13 +37,13 @@ namespace HotChocolate.Types
 
             if (_isInputType && _inputType != null)
             {
-                NativeType = CreateListType(_inputType.NativeType);
+                ClrType = CreateListType(_inputType.ClrType);
             }
         }
 
         public IType ElementType { get; }
 
-        public Type NativeType { get; }
+        public Type ClrType { get; }
 
         public bool IsInstanceOfType(IValueNode literal)
         {
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
         private object CreateArray(ListValueNode listValueLiteral)
         {
-            Type elementType = _inputType.NativeType;
+            Type elementType = _inputType.ClrType;
             var array = Array.CreateInstance(
                 elementType,
                 listValueLiteral.Items.Count);
@@ -182,7 +182,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public Type NativeType => throw new NotImplementedException();
+        public Type ClrType => throw new NotImplementedException();
 
         public TypeKind Kind => throw new NotImplementedException();
 

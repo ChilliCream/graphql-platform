@@ -11,6 +11,23 @@ namespace HotChocolate.Types
     internal static class InputObjectDefaultSerializer
     {
         public static IValueNode ParseValue(
+            IInputType inputType,
+            object obj)
+        {
+            if (inputType == null)
+            {
+                throw new ArgumentNullException(nameof(inputType));
+            }
+
+            if (obj == null)
+            {
+                return NullValueNode.Default;
+            }
+
+            return ParseValue(new HashSet<object>(), inputType, obj);
+        }
+
+        public static IValueNode ParseValue(
             InputObjectType inputObjectType,
             object obj)
         {
@@ -25,6 +42,36 @@ namespace HotChocolate.Types
             }
 
             return ParseObject(new HashSet<object>(), inputObjectType, obj);
+        }
+
+        private static IValueNode ParseValue(
+            HashSet<object> processed,
+            IInputType inputType,
+            object obj)
+        {
+            if (inputType.IsNonNullType())
+            {
+                return ParseValue(processed,
+                    (IInputType)inputType.InnerType(),
+                    obj);
+            }
+            else if (inputType.IsListType())
+            {
+                return ParseList(processed, inputType, obj);
+            }
+            else if (inputType.IsScalarType() || inputType.IsEnumType())
+            {
+                return ParseScalar(inputType, obj);
+            }
+            else if (inputType.IsInputObjectType()
+                && !processed.Contains(obj))
+            {
+                return ParseObject(processed, (InputObjectType)inputType, obj);
+            }
+            else
+            {
+                return NullValueNode.Default;
+            }
         }
 
         private static ObjectValueNode ParseObject(

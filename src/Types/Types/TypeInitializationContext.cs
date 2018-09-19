@@ -214,5 +214,39 @@ namespace HotChocolate.Types
             member = null;
             return false;
         }
+
+        public DirectiveType GetDirectiveType(
+            DirectiveReference directiveReference)
+        {
+            if (directiveReference == null)
+            {
+                throw new ArgumentNullException(nameof(directiveReference));
+            }
+
+            return _schemaContext.Directives
+                .GetDirectiveType(directiveReference);
+        }
+
+        public void RegisterMiddleware(IDirectiveMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _schemaContext.Resolvers.RegisterMiddleware(middleware);
+        }
+
+        public IDirectiveMiddleware GetMiddleware(
+            string directiveName,
+            MiddlewareKind kind)
+        {
+            if (string.IsNullOrEmpty(directiveName))
+            {
+                throw new ArgumentNullException(nameof(directiveName));
+            }
+
+            return _schemaContext.Resolvers.GetMiddleware(directiveName, kind);
+        }
     }
 }

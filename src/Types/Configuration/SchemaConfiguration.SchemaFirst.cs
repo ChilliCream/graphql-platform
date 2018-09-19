@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Runtime;
@@ -19,6 +20,7 @@ namespace HotChocolate
     {
         private readonly SchemaTypes _types;
         private bool _disposed;
+        private readonly Dictionary<string, DirectiveType> _directiveTypes;
 
         private Schema(
             IServiceProvider services,
@@ -30,7 +32,10 @@ namespace HotChocolate
                 context.Types.GetTypes(),
                 context.Types.GetTypeBindings(),
                 options);
-            Directives = context.Directives.GetDirectives();
+            _directiveTypes = context.Directives
+                .GetDirectiveTypes()
+                .ToDictionary(t => t.Name);
+            DirectiveTypes = _directiveTypes.Values;
             Options = options;
             Sessions = new SessionManager(
                 services,
@@ -73,7 +78,7 @@ namespace HotChocolate
         /// <summary>
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
-        public IReadOnlyCollection<Directive> Directives { get; }
+        public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
 
         /// <summary>
         /// Gets the session manager which can be used to create
@@ -157,6 +162,44 @@ namespace HotChocolate
             }
 
             return Array.Empty<ObjectType>();
+        }
+
+        /// <summary>
+        /// Gets a directive type by its name.
+        /// </summary>
+        /// <param name="directiveName">
+        /// The directive name.
+        /// </param>
+        /// <returns>
+        /// Returns directive type that was resolved by the given name
+        /// or <c>null</c> if there is no directive with the specified name.
+        /// </returns>
+        public DirectiveType GetDirectiveType(string directiveName)
+        {
+            _directiveTypes.TryGetValue(directiveName, out DirectiveType type);
+            return type;
+        }
+
+        /// <summary>
+        /// Tries to get a directive type by its name.
+        /// </summary>
+        /// <param name="directiveName">
+        /// The directive name.
+        /// </param>
+        /// <param name="directiveType">
+        /// The directive type that was resolved by the given name
+        /// or <c>null</c> if there is no directive with the specified name.
+        /// </param>
+        /// <returns>
+        /// <c>true</c>, if a directive type with the specified
+        /// name exists; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryGetDirectiveType(
+            string directiveName,
+            out DirectiveType directiveType)
+        {
+            return _directiveTypes
+                .TryGetValue(directiveName, out directiveType);
         }
 
         public void Dispose()
