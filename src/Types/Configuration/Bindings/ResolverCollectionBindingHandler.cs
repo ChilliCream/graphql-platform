@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
@@ -105,8 +106,8 @@ namespace HotChocolate.Configuration
             return descriptors;
         }
 
-        private void RemoveDescriptors(
-            List<IFieldResolverDescriptor> descriptors,
+        private static void RemoveDescriptors(
+            ICollection<IFieldResolverDescriptor> descriptors,
             IEnumerable<IFieldResolverDescriptor> descriptorsToRemove)
         {
             foreach (IFieldResolverDescriptor item in descriptorsToRemove)
@@ -142,7 +143,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool AllArgumentsMatch(
+        private static bool AllArgumentsMatch(
             ObjectField field,
             IReadOnlyCollection<CodeGenArgument> arguments)
         {
@@ -163,11 +164,13 @@ namespace HotChocolate.Configuration
             ITypeRegistry typeRegistry,
             FieldMember fieldResolverMember)
         {
+            MemberInfo member = fieldResolverMember.Member;
+
             foreach (ResolverCollectionBindingInfo resolverBinding in
                 _resolverBindings[fieldResolverMember.TypeName])
             {
                 FieldResolverBindungInfo fieldBinding = resolverBinding.Fields
-                    .FirstOrDefault(t => t.FieldMember == fieldResolverMember.Member);
+                    .FirstOrDefault(t => t.FieldMember == member);
                 if (fieldBinding != null)
                 {
                     return fieldBinding.FieldName;
@@ -179,8 +182,7 @@ namespace HotChocolate.Configuration
                 out ObjectTypeBinding binding))
             {
                 FieldBinding fieldBinding = binding.Fields.Values
-                    .FirstOrDefault(
-                        t => t.Member == fieldResolverMember.Member);
+                    .FirstOrDefault(t => t.Member == member);
                 if (fieldBinding != null)
                 {
                     return fieldBinding.Name;
