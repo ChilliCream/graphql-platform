@@ -40,7 +40,8 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
-        IReadOnlyCollection<ObjectFieldNode> IValueNode<IReadOnlyCollection<ObjectFieldNode>>.Value => Fields;
+        IReadOnlyCollection<ObjectFieldNode>
+            IValueNode<IReadOnlyCollection<ObjectFieldNode>>.Value => Fields;
 
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>
@@ -108,7 +109,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as ObjectValueNode);
+            if (other is ObjectValueNode o)
+            {
+                return Equals(o);
+            }
+
+            return false;
         }
 
         /// <summary>

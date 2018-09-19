@@ -4,10 +4,7 @@ namespace HotChocolate.Language
 {
     public partial class SyntaxNodeVisitor
     {
-        protected SyntaxNodeVisitor()
-        {
-
-        }
+        protected SyntaxNodeVisitor() { }
 
         public virtual void Visit(ISyntaxNode node)
         {

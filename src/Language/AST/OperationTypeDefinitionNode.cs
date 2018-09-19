@@ -21,8 +21,11 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.OperationTypeDefinition;
+
         public Location Location { get; }
+
         public OperationType Operation { get; }
+
         public NamedTypeNode Type { get; }
     }
 }

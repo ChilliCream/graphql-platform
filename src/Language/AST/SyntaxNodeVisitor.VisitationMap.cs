@@ -52,19 +52,23 @@ namespace HotChocolate.Language
                     VisitInlineFragment((InlineFragmentNode)node);
                     break;
                 case NodeKind.InputObjectTypeDefinition:
-                    VisitInputObjectTypeDefinition((InputObjectTypeDefinitionNode)node);
+                    VisitInputObjectTypeDefinition(
+                        (InputObjectTypeDefinitionNode)node);
                     break;
                 case NodeKind.InputObjectTypeExtension:
-                    VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node);
+                    VisitInputObjectTypeExtension(
+                        (InputObjectTypeExtensionNode)node);
                     break;
                 case NodeKind.InputValueDefinition:
                     VisitInputValueDefinition((InputValueDefinitionNode)node);
                     break;
                 case NodeKind.InterfaceTypeDefinition:
-                    VisitInterfaceTypeDefinition((InterfaceTypeDefinitionNode)node);
+                    VisitInterfaceTypeDefinition(
+                        (InterfaceTypeDefinitionNode)node);
                     break;
                 case NodeKind.InterfaceTypeExtension:
-                    VisitInterfaceTypeExtension((InterfaceTypeExtensionNode)node);
+                    VisitInterfaceTypeExtension(
+                        (InterfaceTypeExtensionNode)node);
                     break;
                 case NodeKind.IntValue:
                     VisitIntValue((IntValueNode)node);
@@ -103,7 +107,8 @@ namespace HotChocolate.Language
                     VisitOperationDefinition((OperationDefinitionNode)node);
                     break;
                 case NodeKind.OperationTypeDefinition:
-                    VisitOperationTypeDefinition((OperationTypeDefinitionNode)node);
+                    VisitOperationTypeDefinition(
+                        (OperationTypeDefinitionNode)node);
                     break;
                 case NodeKind.ScalarTypeDefinition:
                     VisitScalarTypeDefinition((ScalarTypeDefinitionNode)node);
@@ -134,7 +139,8 @@ namespace HotChocolate.Language
                     break;
                 default:
                     throw new NotSupportedException(
-                        $"The specified node kind {node.Kind} is not yet supported.");
+                        $"The specified node kind {node.Kind} " +
+                        "is not yet supported.");
             }
         }
     }

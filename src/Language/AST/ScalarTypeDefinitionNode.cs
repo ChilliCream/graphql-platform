@@ -17,6 +17,7 @@ namespace HotChocolate.Language
         }
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeDefinition;
+
         public StringValueNode Description { get; }
     }
 }
