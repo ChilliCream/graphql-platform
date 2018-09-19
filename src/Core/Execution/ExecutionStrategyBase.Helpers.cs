@@ -62,7 +62,7 @@ namespace HotChocolate.Execution
         {
             return new Func<Task<object>>(async () =>
             {
-                object resolverResult = ExecuteResolver(
+                object resolverResult = ExecuteFieldResolver(
                     resolverTask, isDeveloperMode, cancellationToken);
 
                 return await FinalizeResolverResultAsync(
@@ -84,7 +84,9 @@ namespace HotChocolate.Execution
             {
                 if (directive.OnInvokeResolver != null)
                 {
-                    var directiveContext = new DirectiveContext();
+                    var directiveContext =
+                        new DirectiveContext(directive, current);
+
                     current = CreateDirectiveResolverDelegate(
                         directiveContext, resolverTask,
                         isDeveloperMode, cancellationToken);

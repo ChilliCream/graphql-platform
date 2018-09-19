@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers
         /// </returns>
         T Argument<T>(string name);
 
-        IReadOnlyCollection<FieldSelection> CollectFields();
+        //IReadOnlyCollection<FieldSelection> CollectFields();
 
         Task<T> ResolveFieldAsync<T>();
     }

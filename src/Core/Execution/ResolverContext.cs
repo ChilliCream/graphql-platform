@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -167,27 +166,6 @@ namespace HotChocolate.Execution
         }
 
         public IEnumerable<IDirective> Directives(DirectiveScope scope)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal readonly struct DirectiveContext
-        : IDirectiveContext
-    {
-        public IDirective Directive => throw new NotImplementedException();
-
-        public T Argument<T>(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IReadOnlyCollection<FieldSelection> CollectFields()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T> ResolveFieldAsync<T>()
         {
             throw new NotImplementedException();
         }
