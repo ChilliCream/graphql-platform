@@ -68,11 +68,11 @@ namespace HotChocolate.Language
             var d = new StringValueNode("foo");
 
             // act
-            bool ab_result = a.Equals(b);
-            bool aa_result = a.Equals(a);
-            bool ac_result = a.Equals(c);
-            bool ad_result = a.Equals(d);
-            bool anull_result = a.Equals(default(FloatValueNode));
+            bool ab_result = a.Equals((IValueNode)b);
+            bool aa_result = a.Equals((IValueNode)a);
+            bool ac_result = a.Equals((IValueNode)c);
+            bool ad_result = a.Equals((IValueNode)d);
+            bool anull_result = a.Equals(default(IValueNode));
 
             // assert
             Assert.True(ab_result);
@@ -93,12 +93,12 @@ namespace HotChocolate.Language
             var e = 1;
 
             // act
-            bool ab_result = a.Equals(b);
-            bool aa_result = a.Equals(a);
-            bool ac_result = a.Equals(c);
-            bool ad_result = a.Equals(d);
-            bool ae_result = a.Equals(e);
-            bool anull_result = a.Equals(default(FloatValueNode));
+            bool ab_result = a.Equals((object)b);
+            bool aa_result = a.Equals((object)a);
+            bool ac_result = a.Equals((object)c);
+            bool ad_result = a.Equals((object)d);
+            bool ae_result = a.Equals((object)e);
+            bool anull_result = a.Equals(default(object));
 
             // assert
             Assert.True(ab_result);
