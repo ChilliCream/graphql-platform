@@ -14,7 +14,21 @@ namespace HotChocolate.Execution
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute("{ sayHello @Foo }");
+            IExecutionResult result = schema.Execute("{ sayHello @Dot }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void SimpleSelectionDirectiveWithArguments()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @Append(s: \" sir\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -25,6 +39,7 @@ namespace HotChocolate.Execution
             return Schema.Create(c =>
             {
                 c.RegisterDirective<AppendDotDirective>();
+                c.RegisterDirective<AppendStringDirective>();
                 c.RegisterQueryType<Query>();
             });
         }
@@ -41,13 +56,31 @@ namespace HotChocolate.Execution
             protected override void Configure(
                 IDirectiveTypeDescriptor descriptor)
             {
-                descriptor.Name("Foo");
+                descriptor.Name("Dot");
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Resolver(async (dctx, rctx, ct) =>
                 {
                     string resolverResult =
                         await dctx.ResolveFieldAsync<string>();
                     return resolverResult + ".";
+                });
+            }
+        }
+
+        public class AppendStringDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("Append");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.Resolver(async (dctx, rctx, ct) =>
+                {
+                    string resolverResult =
+                        await dctx.ResolveFieldAsync<string>();
+                    return resolverResult + " " + dctx.Argument<string>("s");
                 });
             }
         }
