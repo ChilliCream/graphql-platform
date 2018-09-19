@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
@@ -9,28 +8,43 @@ namespace HotChocolate.Types
     internal static class InputObjectDefaultDeserializer
     {
         public static object ParseLiteral(
+           InputObjectType inputObjectType,
+           ObjectValueNode literal)
+        {
+            return ParseLiteral(
+                inputObjectType,
+                inputObjectType.ClrType,
+                literal);
+        }
+
+        public static object ParseLiteral(
             InputObjectType inputObjectType,
+            Type clrType,
             ObjectValueNode literal)
         {
-            Dictionary<string, IValueNode> fieldValues = literal.Fields
+            var fieldValues = literal.Fields
                 .ToDictionary(t => t.Name.Value, t => t.Value);
 
-            object nativeInputObject = Activator.CreateInstance(
-                inputObjectType.ClrType);
+            object nativeInputObject = Activator.CreateInstance(clrType);
 
             foreach (InputField field in inputObjectType.Fields)
             {
                 if (fieldValues.TryGetValue(field.Name, out IValueNode value))
                 {
-                    DeserializeProperty(field.Property, field, value, nativeInputObject);
+                    DeserializeProperty(
+                        field.Property, field,
+                        value, nativeInputObject);
                 }
                 else if (field.DefaultValue != null)
                 {
-                    if (field.DefaultValue is NullValueNode && field.Type.IsNonNullType())
+                    if (field.DefaultValue is NullValueNode
+                        && field.Type.IsNonNullType())
                     {
                         // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
                     }
-                    DeserializeProperty(field.Property, field, value, nativeInputObject);
+                    DeserializeProperty(
+                        field.Property, field,
+                        value, nativeInputObject);
                 }
                 else if (field.Type.IsNonNullType())
                 {
@@ -51,7 +65,9 @@ namespace HotChocolate.Types
             {
                 if (property.PropertyType.IsAssignableFrom(field.Type.ClrType))
                 {
-                    property.SetValue(nativeInputObject, field.Type.ParseLiteral(
+                    property.SetValue(
+                        nativeInputObject,
+                        field.Type.ParseLiteral(
                         literal ?? NullValueNode.Default));
                 }
                 else

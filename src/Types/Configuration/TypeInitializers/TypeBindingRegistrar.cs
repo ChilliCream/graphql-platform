@@ -69,6 +69,7 @@ namespace HotChocolate.Configuration
             }
 
             return typeBindings;
+
         }
 
         private IEnumerable<FieldBinding> CreateFieldBindings(

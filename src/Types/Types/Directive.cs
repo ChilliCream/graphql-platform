@@ -10,8 +10,9 @@ namespace HotChocolate.Types
     internal sealed class Directive
         : IDirective
     {
-        private readonly object _customDirective;
-        private readonly DirectiveNode _parsedDirective;
+        private object _customDirective;
+        private DirectiveNode _parsedDirective;
+        private Dictionary<string, ArgumentNode> _arguments;
 
         public Directive(
             DirectiveType directiveType,
@@ -62,11 +63,28 @@ namespace HotChocolate.Types
         {
             if (_parsedDirective is null)
             {
+                var arguments = new List<ArgumentNode>();
+                Type type = _customDirective.GetType();
+                ILookup<string, PropertyInfo> properties = type.GetProperties()
+                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
+                foreach (InputField argument in Type.Arguments)
+                {
+                    PropertyInfo property =
+                        properties[argument.Name].FirstOrDefault();
+                    var value = property?.GetValue(_customDirective);
+
+                    IValueNode valueNode = argument.Type.ParseValue(value);
+                    arguments.Add(new ArgumentNode(argument.Name, valueNode));
+                }
+
+                _parsedDirective = new DirectiveNode(Name, arguments);
             }
 
             return _parsedDirective;
         }
+
+
 
         public T GetArgument<T>(string argumentName)
         {
@@ -75,12 +93,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(argumentName));
             }
 
-            if (GetArguments().TryGetValue(argumentName,
-                    out ArgumentNode argumentValue)
-                && Type.Arguments.TryGetField(
-                    argumentName, out InputField argument))
+            Dictionary<string, ArgumentNode> arguments = GetArguments();
+            if (arguments.TryGetValue(argumentName, out ArgumentNode argValue)
+                && Type.Arguments.TryGetField(argumentName, out InputField arg))
             {
-                return (T)argument.Type.ParseLiteral(argumentValue.Value);
+                if (arg.Type is InputObjectType iot
+                    && !typeof(T).IsAssignableFrom(iot.ClrType))
+                {
+                    return (T)InputObjectDefaultDeserializer.ParseLiteral(
+                        iot, typeof(T), (ObjectValueNode)argValue.Value);
+                }
+
+                return (T)arg.Type.ParseLiteral(argValue.Value);
             }
 
             throw new ArgumentException(
@@ -132,7 +156,12 @@ namespace HotChocolate.Types
 
         private Dictionary<string, ArgumentNode> GetArguments()
         {
-            throw new NotImplementedException();
+            if (_arguments == null)
+            {
+                _arguments = ToNode().Arguments.ToDictionary(t => t.Name.Value);
+            }
+
+            return _arguments;
         }
 
         private static DirectiveNode SerializeCustomDirective(DirectiveType directiveType, object customDirective)

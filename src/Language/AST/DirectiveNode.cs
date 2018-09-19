@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -50,5 +51,6 @@ namespace HotChocolate.Language
         public Location Location { get; }
         public NameNode Name { get; }
         public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+
     }
 }
