@@ -35,8 +35,8 @@ namespace HotChocolate.Configuration
             }
 
             // bind input object types
-            foreach (KeyValuePair<InputObjectType, InputObjectTypeBinding> item in
-                CreateInputObjectTypeBindings(typeRegistry))
+            foreach (KeyValuePair<InputObjectType, InputObjectTypeBinding> item
+                in CreateInputObjectTypeBindings(typeRegistry))
             {
                 typeRegistry.RegisterType(item.Key, item.Value);
             }
@@ -44,8 +44,8 @@ namespace HotChocolate.Configuration
 
         #region ObjectType Bindings
 
-        private Dictionary<ObjectType, ObjectTypeBinding> CreateObjectTypeBindings(
-            ITypeRegistry typeRegistry)
+        private Dictionary<ObjectType, ObjectTypeBinding>
+            CreateObjectTypeBindings(ITypeRegistry typeRegistry)
         {
             var typeBindings = new Dictionary<ObjectType, ObjectTypeBinding>();
 
@@ -53,14 +53,16 @@ namespace HotChocolate.Configuration
             {
                 if (typeBindingInfo.Name == null)
                 {
-                    typeBindingInfo.Name = typeBindingInfo.Type.GetGraphQLName();
+                    typeBindingInfo.Name =
+                        typeBindingInfo.Type.GetGraphQLName();
                 }
 
                 IEnumerable<FieldBinding> fieldBindings = null;
                 if (typeRegistry.TryGetType(
                     typeBindingInfo.Name, out ObjectType ot))
                 {
-                    fieldBindings = CreateFieldBindings(typeBindingInfo, ot.Fields);
+                    fieldBindings =
+                            CreateFieldBindings(typeBindingInfo, ot.Fields);
                     typeBindings[ot] = new ObjectTypeBinding(ot.Name,
                         typeBindingInfo.Type, ot, fieldBindings);
                 }
@@ -81,10 +83,13 @@ namespace HotChocolate.Configuration
             {
                 if (fieldBindingInfo.Name == null)
                 {
-                    fieldBindingInfo.Name = fieldBindingInfo.Member.GetGraphQLName();
+                    fieldBindingInfo.Name =
+                        fieldBindingInfo.Member.GetGraphQLName();
                 }
 
-                if (fields.TryGetField(fieldBindingInfo.Name, out ObjectField field))
+                if (fields.TryGetField(
+                        fieldBindingInfo.Name,
+                        out ObjectField field))
                 {
                     fieldBindings[field.Name] = new FieldBinding(
                         fieldBindingInfo.Name, fieldBindingInfo.Member, field);
@@ -115,8 +120,8 @@ namespace HotChocolate.Configuration
 
         #region InputObjectType Bindings
 
-        private Dictionary<InputObjectType, InputObjectTypeBinding> CreateInputObjectTypeBindings(
-            ITypeRegistry typeRegistry)
+        private Dictionary<InputObjectType, InputObjectTypeBinding>
+            CreateInputObjectTypeBindings(ITypeRegistry typeRegistry)
         {
             var typeBindings =
                 new Dictionary<InputObjectType, InputObjectTypeBinding>();
@@ -125,14 +130,16 @@ namespace HotChocolate.Configuration
             {
                 if (typeBindingInfo.Name == null)
                 {
-                    typeBindingInfo.Name = typeBindingInfo.Type.GetGraphQLName();
+                    typeBindingInfo.Name = 
+                        typeBindingInfo.Type.GetGraphQLName();
                 }
 
                 IEnumerable<InputFieldBinding> fieldBindings = null;
                 if (typeRegistry.TryGetType(typeBindingInfo.Name,
                     out InputObjectType iot))
                 {
-                    fieldBindings = CreateInputFieldBindings(typeBindingInfo, iot.Fields);
+                    fieldBindings = CreateInputFieldBindings(
+                        typeBindingInfo, iot.Fields);
                     typeBindings[iot] = new InputObjectTypeBinding(iot.Name,
                         typeBindingInfo.Type, iot, fieldBindings);
                 }
@@ -153,10 +160,13 @@ namespace HotChocolate.Configuration
             {
                 if (fieldBindingInfo.Name == null)
                 {
-                    fieldBindingInfo.Name = fieldBindingInfo.Member.GetGraphQLName();
+                    fieldBindingInfo.Name = 
+                        fieldBindingInfo.Member.GetGraphQLName();
                 }
 
-                if (fields.TryGetField(fieldBindingInfo.Name, out InputField field)
+                if (fields.TryGetField(
+                    fieldBindingInfo.Name, 
+                    out InputField field)
                     && fieldBindingInfo.Member is PropertyInfo p)
                 {
                     fieldBindings[field.Name] = new InputFieldBinding(

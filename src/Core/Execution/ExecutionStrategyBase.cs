@@ -111,6 +111,8 @@ namespace HotChocolate.Execution
                     resolverTask.ResolverResult,
                     executionContext.Options.DeveloperMode);
 
+                
+
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(
                     executionContext, resolverTask.ResolverContext,

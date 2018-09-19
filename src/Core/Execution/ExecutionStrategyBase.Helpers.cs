@@ -140,6 +140,22 @@ namespace HotChocolate.Execution
             });
         }
 
+        private static object OnAfterInvokeResolver(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            foreach (IDirective directive in resolverTask.ExecutableDirectives)
+            {
+                if (directive.OnInvokeResolver != null)
+                {
+
+                }
+            }
+
+            return resolverTask.ResolverResult;
+        }
+
         protected static Task<object> FinalizeResolverResultAsync(
             FieldNode fieldSelection,
             object resolverResult,
