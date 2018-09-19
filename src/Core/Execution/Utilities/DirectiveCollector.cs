@@ -27,25 +27,21 @@ namespace HotChocolate.Execution
         {
             HashSet<string> processed = new HashSet<string>();
             Stack<IDirective> directives = new Stack<IDirective>();
+
             CollectSelectionDirectives(processed, directives, fieldSelection);
-            CollectFieldDirectives(processed, directives, field);
 
+            if (scope == DirectiveScope.All)
+            {
+                CollectFieldDirectives(processed, directives, field);
+                CollectFieldDirectives(processed, directives,
+                    field.InterfaceFields);
 
+                CollectTypeDirectives(processed, directives, objectType);
+                CollectTypeDirectives(processed, directives,
+                    objectType.Interfaces.Values);
+            }
 
-            // 1. selection
-            // 2. field
-            // 3. interface fields
-            // 4. objects
-            // 5. interfaces
-            // 6. schema
-
-            CollectDirectives(directives, objectType.Interfaces.Values);
-            CollectDirectives(directives, objectType);
-
-
-
-
-            throw new NotImplementedException();
+            return directives;
         }
 
         private void CollectSelectionDirectives(
@@ -104,21 +100,30 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CollectDirectives(Stack<IDirective> directives, IEnumerable<TypeBase> types)
+        private void CollectTypeDirectives(
+            HashSet<string> processed,
+            Stack<IDirective> directives,
+            IEnumerable<TypeBase> types)
         {
             foreach (TypeBase type in types)
             {
-                CollectDirectives(directives, type);
+                CollectTypeDirectives(processed, directives, type);
             }
         }
 
-        private void CollectDirectives(Stack<IDirective> directives, TypeBase type)
+        private void CollectTypeDirectives(
+            HashSet<string> processed,
+            Stack<IDirective> directives,
+            TypeBase type)
         {
             if (type is Types.IHasDirectives d)
             {
                 foreach (IDirective directive in d.Directives)
                 {
-                    directives.Push(directive);
+                    if (processed.Add(directive.Name))
+                    {
+                        directives.Push(directive);
+                    }
                 }
             }
         }
