@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal static class ReflectionUtils
     {

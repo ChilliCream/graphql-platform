@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -18,7 +19,7 @@ namespace HotChocolate.Types
             IntValueNode literal = new IntValueNode("1");
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -35,7 +36,7 @@ namespace HotChocolate.Types
             var literal = new IntValueNode("1");
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -52,7 +53,7 @@ namespace HotChocolate.Types
             IntValueNode literal = new IntValueNode("1");
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -69,7 +70,7 @@ namespace HotChocolate.Types
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -85,7 +86,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -102,7 +103,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -120,7 +121,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -138,7 +139,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -156,7 +157,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -174,7 +175,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -192,7 +193,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -210,7 +211,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -228,7 +229,7 @@ namespace HotChocolate.Types
             var literal = new ListValueNode(new IntValueNode("1"));
 
             // act
-            object result = InputObjectDeserializer
+            object result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal);
 
             // assert
@@ -247,7 +248,7 @@ namespace HotChocolate.Types
             var literal = CreateFoo();
 
             // act
-            Foo result = InputObjectDeserializer
+            Foo result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal) as Foo;
 
             // assert
@@ -266,7 +267,7 @@ namespace HotChocolate.Types
             var literal = CreateFoo();
 
             // act
-            FooOnlyBar1 result = InputObjectDeserializer
+            FooOnlyBar1 result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal) as FooOnlyBar1;
 
             // assert
@@ -284,7 +285,7 @@ namespace HotChocolate.Types
             var literal = CreateFoo();
 
             // act
-            FooOnlyBar1AsInt result = InputObjectDeserializer
+            FooOnlyBar1AsInt result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal)
                     as FooOnlyBar1AsInt;
 
@@ -303,7 +304,7 @@ namespace HotChocolate.Types
             var literal = CreateBar();
 
             // act
-            Bar result = InputObjectDeserializer
+            Bar result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal)
                     as Bar;
 
@@ -325,7 +326,7 @@ namespace HotChocolate.Types
             var literal = CreateBarWithArray();
 
             // act
-            BarWithArray result = InputObjectDeserializer
+            BarWithArray result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal)
                     as BarWithArray;
 
@@ -351,7 +352,7 @@ namespace HotChocolate.Types
             var literal = CreateBarWithArray();
 
             // act
-            BarWithListOnlyGet result = InputObjectDeserializer
+            BarWithListOnlyGet result = ValueDeserializer
                 .ParseLiteral(sourceType, targetType, literal)
                     as BarWithListOnlyGet;
 

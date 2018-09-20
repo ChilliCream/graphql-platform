@@ -20,19 +20,25 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public bool TryGetTypeBinding<T>(INamedType namedType, out T typeBinding)
+        public bool TryGetTypeBinding<T>(
+            INamedType namedType,
+            out T typeBinding)
             where T : ITypeBinding
         {
             return TryGetTypeBinding(namedType.Name, out typeBinding);
         }
 
-        public bool TryGetTypeBinding<T>(Type nativeNamedType, out T typeBinding)
+        public bool TryGetTypeBinding<T>(
+            Type nativeNamedType,
+            out T typeBinding)
             where T : ITypeBinding
         {
-            if (_typeInspector.TryCreate(nativeNamedType, out Internal.TypeInfo typeInfo)
+            if (_typeInspector.TryCreate(nativeNamedType,
+                    out Utilities.TypeInfo typeInfo)
                 && _dotnetTypeToSchemaType.TryGetValue(
                     typeInfo.NativeNamedType, out string namedTypeName)
-                && _namedTypes.TryGetValue(namedTypeName, out INamedType namedType)
+                && _namedTypes.TryGetValue(namedTypeName,
+                    out INamedType namedType)
                 && TryGetTypeBinding(namedType, out typeBinding))
             {
                 return true;

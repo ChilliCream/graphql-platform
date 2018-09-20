@@ -2,7 +2,7 @@
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     public class NamedTypeInfoFactoryTests
     {

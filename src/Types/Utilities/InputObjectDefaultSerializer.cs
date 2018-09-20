@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Utilities
 {
     internal static class InputObjectDefaultSerializer
     {

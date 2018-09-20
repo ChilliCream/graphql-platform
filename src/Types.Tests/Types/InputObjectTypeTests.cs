@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -27,14 +28,17 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
-            SerializationInputObject1 object1Instance = new SerializationInputObject1
-            {
-                Foo = new SerializationInputObject2()
-            };
+            InputObjectType object1Type =
+                schema.GetType<InputObjectType>("Object1");
+            SerializationInputObject1 object1Instance =
+                new SerializationInputObject1
+                {
+                    Foo = new SerializationInputObject2()
+                };
 
             // act
-            IValueNode value = InputObjectDefaultSerializer.ParseValue(object1Type, object1Instance);
+            IValueNode value = InputObjectDefaultSerializer
+                .ParseValue(object1Type, object1Instance);
 
             // assert
             Assert.IsType<ObjectValueNode>(value);
@@ -46,15 +50,18 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
-            SerializationInputObject1 object1Instance = new SerializationInputObject1
-            {
-                Foo = new SerializationInputObject2()
-            };
+            InputObjectType object1Type =
+                schema.GetType<InputObjectType>("Object1");
+            SerializationInputObject1 object1Instance =
+                new SerializationInputObject1
+                {
+                    Foo = new SerializationInputObject2()
+                };
             object1Instance.Foo.FooList.Add(object1Instance);
 
             // act
-            IValueNode value = InputObjectDefaultSerializer.ParseValue(object1Type, object1Instance);
+            IValueNode value = InputObjectDefaultSerializer
+                .ParseValue(object1Type, object1Instance);
 
             // assert
             Assert.IsType<ObjectValueNode>(value);
@@ -66,7 +73,8 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
+            InputObjectType object1Type =
+                schema.GetType<InputObjectType>("Object1");
 
             // act
             TypeKind kind = object1Type.Kind;
@@ -79,8 +87,10 @@ namespace HotChocolate.Types
         {
             return new ObjectValueNode(new List<ObjectFieldNode>
             {
-                new ObjectFieldNode("foo", new ObjectValueNode(new List<ObjectFieldNode>())),
-                new ObjectFieldNode("bar", new StringValueNode("123"))
+                new ObjectFieldNode("foo",
+                    new ObjectValueNode(new List<ObjectFieldNode>())),
+                new ObjectFieldNode("bar",
+                    new StringValueNode("123"))
             });
         }
 
@@ -90,18 +100,23 @@ namespace HotChocolate.Types
             {
                 c.Options.StrictValidation = false;
 
-                c.RegisterType(new InputObjectType<SerializationInputObject1>(d =>
-                {
-                    d.Name("Object1");
-                    d.Field(t => t.Foo).Type<InputObjectType<SerializationInputObject2>>();
-                    d.Field(t => t.Bar).Type<StringType>();
-                }));
+                c.RegisterType(
+                    new InputObjectType<SerializationInputObject1>(d =>
+                    {
+                        d.Name("Object1");
+                        d.Field(t => t.Foo)
+                            .Type<InputObjectType<SerializationInputObject2>>();
+                        d.Field(t => t.Bar).Type<StringType>();
+                    }));
 
-                c.RegisterType(new InputObjectType<SerializationInputObject2>(d =>
-                {
-                    d.Name("Object2");
-                    d.Field(t => t.FooList).Type<NonNullType<ListType<InputObjectType<SerializationInputObject1>>>>();
-                }));
+                c.RegisterType(new InputObjectType<SerializationInputObject2>(
+                    d =>
+                    {
+                        d.Name("Object2");
+                        d.Field(t => t.FooList)
+                            .Type<NonNullType<ListType<InputObjectType<
+                                SerializationInputObject1>>>>();
+                    }));
             });
         }
     }
@@ -114,7 +129,8 @@ namespace HotChocolate.Types
 
     public class SerializationInputObject2
     {
-        public List<SerializationInputObject1> FooList { get; set; } = new List<SerializationInputObject1>
+        public List<SerializationInputObject1> FooList { get; set; } =
+            new List<SerializationInputObject1>
         {
             new SerializationInputObject1()
         };

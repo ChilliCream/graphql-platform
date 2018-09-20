@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -131,7 +131,7 @@ namespace HotChocolate.Configuration
             {
                 if (typeBindingInfo.Name == null)
                 {
-                    typeBindingInfo.Name = 
+                    typeBindingInfo.Name =
                         typeBindingInfo.Type.GetGraphQLName();
                 }
 
@@ -161,12 +161,12 @@ namespace HotChocolate.Configuration
             {
                 if (fieldBindingInfo.Name == null)
                 {
-                    fieldBindingInfo.Name = 
+                    fieldBindingInfo.Name =
                         fieldBindingInfo.Member.GetGraphQLName();
                 }
 
                 if (fields.TryGetField(
-                    fieldBindingInfo.Name, 
+                    fieldBindingInfo.Name,
                     out InputField field)
                     && fieldBindingInfo.Member is PropertyInfo p)
                 {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -72,7 +72,8 @@ namespace HotChocolate.Configuration
 
         private bool TryGetTypeFromNativeType<T>(Type nativeType, out T type)
         {
-            if (_typeInspector.TryCreate(nativeType, out Internal.TypeInfo typeInfo))
+            if (_typeInspector.TryCreate(nativeType,
+                out Utilities.TypeInfo typeInfo))
             {
                 return TryGetTypeFromNativeNamedType(typeInfo, out type)
                     || TryGetTypeFromNativeTypeBinding(typeInfo, out type);
@@ -82,7 +83,9 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private bool TryGetTypeFromNativeNamedType<T>(TypeInfo typeInfo, out T type)
+        private bool TryGetTypeFromNativeNamedType<T>(
+            TypeInfo typeInfo,
+            out T type)
         {
             if (_dotnetTypeToSchemaType.TryGetValue(
                 typeInfo.NativeNamedType, out string typeName)
@@ -101,14 +104,19 @@ namespace HotChocolate.Configuration
         }
 
         // TODO : Refactor
-        private bool TryGetTypeFromNativeTypeBinding<T>(TypeInfo typeInfo, out T type)
+        private bool TryGetTypeFromNativeTypeBinding<T>(
+            TypeInfo typeInfo
+            , out T type)
         {
             string debug = typeInfo.NativeNamedType.Name;
             if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType,
                 out HashSet<string> namedTypeNames))
             {
-                List<INamedType> namedTypes = GetNamedTypes(namedTypeNames).ToList();
-                if (typeof(T) == typeof(IInputType) || typeof(T) == typeof(IOutputType))
+                List<INamedType> namedTypes =
+                    GetNamedTypes(namedTypeNames).ToList();
+
+                if (typeof(T) == typeof(IInputType)
+                    || typeof(T) == typeof(IOutputType))
                 {
                     type = namedTypes.OfType<T>().FirstOrDefault();
                     if (type == null)
@@ -151,7 +159,9 @@ namespace HotChocolate.Configuration
         private bool TryGetTypeFromAst(ITypeNode typeNode, out IType type)
         {
             if (typeNode.Kind == NodeKind.NonNullType
-                && TryGetTypeFromAst(((NonNullTypeNode)typeNode).Type, out type))
+                && TryGetTypeFromAst(
+                    ((NonNullTypeNode)typeNode).Type,
+                    out type))
             {
                 type = new NonNullType(type);
                 return true;
@@ -176,7 +186,8 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private IEnumerable<INamedType> GetNamedTypes(IEnumerable<string> typeNames)
+        private IEnumerable<INamedType> GetNamedTypes(
+            IEnumerable<string> typeNames)
         {
             foreach (string typeName in typeNames)
             {

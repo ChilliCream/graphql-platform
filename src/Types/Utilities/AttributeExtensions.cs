@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal static class AttributeExtensions
     {

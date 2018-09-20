@@ -1,4 +1,4 @@
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal static class ValidationHelper
     {

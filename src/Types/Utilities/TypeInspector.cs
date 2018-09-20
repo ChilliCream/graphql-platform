@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal class TypeInspector
         : ITypeInfoFactory

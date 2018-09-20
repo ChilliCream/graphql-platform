@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Xunit;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     public class ExpressionUtilsTests
     {

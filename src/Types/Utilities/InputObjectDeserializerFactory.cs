@@ -2,8 +2,9 @@
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Utilities
 {
     internal static class InputObjectDeserializerFactory
     {
@@ -88,7 +89,7 @@ namespace HotChocolate.Types
                 .FirstOrDefault(t => t.GetParameters().Length == 0);
             if (nativeTypeConstructor != null)
             {
-                deserializer = literal => InputObjectDefaultDeserializer
+                deserializer = literal => InputObjectDeserializer
                     .ParseLiteral(inputObjectType, literal);
                 return true;
             }

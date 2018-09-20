@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal static class StringExtensions
     {

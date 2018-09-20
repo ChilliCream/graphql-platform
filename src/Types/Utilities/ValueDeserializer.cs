@@ -1,93 +1,23 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Utilities
 {
-    internal static class InputObjectDefaultDeserializer
+    public static class ValueDeserializer
     {
-        public static object ParseLiteral(
-           InputObjectType inputObjectType,
-           ObjectValueNode literal)
+        public static T ParseLiteral<T>(
+           IInputType sourceType,
+           IValueNode literal)
         {
-            return ParseLiteral(
-                inputObjectType,
-                inputObjectType.ClrType,
-                literal);
+            return (T)ParseLiteral(sourceType, typeof(T), literal);
         }
 
-        public static object ParseLiteral(
-            InputObjectType inputObjectType,
-            Type clrType,
-            ObjectValueNode literal)
-        {
-            var fieldValues = literal.Fields
-                .ToDictionary(t => t.Name.Value, t => t.Value);
-
-            object nativeInputObject = Activator.CreateInstance(clrType);
-
-            foreach (InputField field in inputObjectType.Fields)
-            {
-                if (fieldValues.TryGetValue(field.Name, out IValueNode value))
-                {
-                    DeserializeProperty(
-                        field.Property, field,
-                        value, nativeInputObject);
-                }
-                else if (field.DefaultValue != null)
-                {
-                    if (field.DefaultValue is NullValueNode
-                        && field.Type.IsNonNullType())
-                    {
-                        // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
-                    }
-                    DeserializeProperty(
-                        field.Property, field,
-                        value, nativeInputObject);
-                }
-                else if (field.Type.IsNonNullType())
-                {
-                    // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
-                }
-            }
-
-            return nativeInputObject;
-        }
-
-        private static void DeserializeProperty(
-            PropertyInfo property,
-            InputField field,
-            IValueNode literal,
-            object nativeInputObject)
-        {
-            if (property != null)
-            {
-                if (property.PropertyType.IsAssignableFrom(field.Type.ClrType))
-                {
-                    property.SetValue(
-                        nativeInputObject,
-                        field.Type.ParseLiteral(
-                        literal ?? NullValueNode.Default));
-                }
-                else
-                {
-                    // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
-                }
-            }
-            else
-            {
-                // TODO : thorw type deserialization exception -> InputObjectTypeDeserializationException
-            }
-        }
-    }
-
-    internal static class InputObjectDeserializer
-    {
         public static object ParseLiteral(
             IInputType sourceType,
             Type targetType,
@@ -327,29 +257,49 @@ namespace HotChocolate.Types
             object obj,
             PropertyInfo property)
         {
-            if (!fieldValues.TryGetValue(field.Name, out IValueNode value))
+            SetProperty(field, fieldValues, obj, property,
+                l => ParseLiteral(field.Type, property.PropertyType, l));
+        }
+
+        internal static void SetProperty(
+            InputField field,
+            Dictionary<string, IValueNode> fieldValues,
+            object obj,
+            PropertyInfo property,
+            Func<IValueNode, object> parseLiteral)
+        {
+            if (!fieldValues.TryGetValue(field.Name, out IValueNode literal))
             {
-                value = field.DefaultValue.ValueOrNullValue();
+                literal = field.DefaultValue.ValueOrNullValue();
             }
 
-            if (!field.Type.IsNonNullType() || !value.IsNull())
+            if (!field.Type.IsNonNullType() || !literal.IsNull())
             {
-                object parsedValue = ParseLiteral(
-                    field.Type, property.PropertyType,
-                    value);
+                object parsedValue = parseLiteral(literal);
 
-                if (property.CanWrite)
+                SetProperty(
+                    property, field.Type.IsListType(),
+                    obj, parsedValue);
+            }
+        }
+
+        internal static void SetProperty(
+            PropertyInfo property,
+            bool isListType,
+            object obj,
+            object value)
+        {
+            if (property.CanWrite)
+            {
+                property.SetValue(obj, value);
+            }
+            else if (isListType
+                && typeof(IList).IsAssignableFrom(property.PropertyType))
+            {
+                IList list = (IList)property.GetValue(obj);
+                foreach (object element in (IEnumerable)value)
                 {
-                    property.SetValue(obj, parsedValue);
-                }
-                else if (field.Type.IsListType()
-                    && typeof(IList).IsAssignableFrom(property.PropertyType))
-                {
-                    IList list = (IList)property.GetValue(obj);
-                    foreach (object element in (IEnumerable)parsedValue)
-                    {
-                        list.Add(element);
-                    }
+                    list.Add(element);
                 }
             }
         }

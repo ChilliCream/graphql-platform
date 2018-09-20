@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal static class AstUtilities
     {

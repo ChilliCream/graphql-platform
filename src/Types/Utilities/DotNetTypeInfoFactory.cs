@@ -5,12 +5,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
-namespace HotChocolate.Internal
+namespace HotChocolate.Utilities
 {
     internal class DotNetTypeInfoFactory
         : ITypeInfoFactory
     {
-        public bool TryCreate(Type type, out Internal.TypeInfo typeInfo)
+        public bool TryCreate(Type type, out TypeInfo typeInfo)
         {
             if (type == null)
             {
@@ -35,14 +35,14 @@ namespace HotChocolate.Internal
         }
 
         private static bool TryCreate3ComponentType(
-             List<Type> components, out Internal.TypeInfo typeInfo)
+             List<Type> components, out TypeInfo typeInfo)
         {
             if (components.Count == 3
                 && IsListType(components[0])
                 && IsNullableType(components[1])
                 && components[2].IsValueType)
             {
-                typeInfo = new Internal.TypeInfo(components[2], t => new ListType(t));
+                typeInfo = new TypeInfo(components[2], t => new ListType(t));
                 return true;
             }
 
@@ -51,28 +51,28 @@ namespace HotChocolate.Internal
         }
 
         private static bool TryCreate2ComponentType(
-             List<Type> components, out Internal.TypeInfo typeInfo)
+             List<Type> components, out TypeInfo typeInfo)
         {
             if (components.Count == 2)
             {
                 if (IsListType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new Internal.TypeInfo(components[1], t => new ListType(new NonNullType(t)));
+                    typeInfo = new TypeInfo(components[1], t => new ListType(new NonNullType(t)));
                     return true;
                 }
 
                 if (IsListType(components[0])
                     && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new Internal.TypeInfo(components[1], t => new ListType(t));
+                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
                     return true;
                 }
 
                 if (IsNullableType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new Internal.TypeInfo(components[1], t => t);
+                    typeInfo = new TypeInfo(components[1], t => t);
                     return true;
                 }
             }
@@ -82,19 +82,19 @@ namespace HotChocolate.Internal
         }
 
         private static bool TryCreate1ComponentType(
-             List<Type> components, out Internal.TypeInfo typeInfo)
+             List<Type> components, out TypeInfo typeInfo)
         {
             if (components.Count == 1)
             {
                 if (components[0].IsValueType)
                 {
-                    typeInfo = new Internal.TypeInfo(components[0], t => new NonNullType(t));
+                    typeInfo = new TypeInfo(components[0], t => new NonNullType(t));
                     return true;
                 }
 
                 if (IsPossibleNamedType(components[0]))
                 {
-                    typeInfo = new Internal.TypeInfo(components[0], t => t);
+                    typeInfo = new TypeInfo(components[0], t => t);
                     return true;
                 }
             }
