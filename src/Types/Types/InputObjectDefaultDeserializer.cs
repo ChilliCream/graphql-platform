@@ -179,7 +179,9 @@ namespace HotChocolate.Types
 
             if (typeof(IList<>) == typeDefinition
                 || typeof(ICollection<>) == typeDefinition
-                || typeof(IEnumerable<>) == typeDefinition)
+                || typeof(IEnumerable<>) == typeDefinition
+                || typeof(IReadOnlyList<>) == typeDefinition
+                || typeof(IReadOnlyCollection<>) == typeDefinition)
             {
                 return listType.GetGenericArguments().Single();
             }
@@ -218,7 +220,7 @@ namespace HotChocolate.Types
             }
             else if (listType.IsClass)
             {
-                return CreateList(listType, items);
+                return CreateList(listType, elementType, items);
             }
 
             throw new NotSupportedException(
@@ -256,16 +258,35 @@ namespace HotChocolate.Types
 
         private static object CreateList(
             Type listType,
+            Type elementType,
             List<object> items)
         {
-            IList list = (IList)Activator.CreateInstance(listType);
-
-            for (int i = 0; i < items.Count; i++)
+            if (typeof(IList).IsAssignableFrom(listType))
             {
-                list.Add(items[i]);
+                IList list = (IList)Activator.CreateInstance(listType);
+
+                for (int i = 0; i < items.Count; i++)
+                {
+                    list.Add(items[i]);
+                }
+
+                return list;
             }
 
-            return list;
+            if (listType.IsGenericType
+                && listType.GetGenericTypeDefinition() == typeof(HashSet<>))
+            {
+                Type enumType = typeof(IEnumerable<>)
+                    .MakeGenericType(elementType);
+                ConstructorInfo constructor =
+                    listType.GetConstructor(new[] { enumType });
+
+                object array = CreateArray(elementType, items);
+                return constructor.Invoke(new[] { array });
+            }
+
+            throw new NotSupportedException(
+                "The specified type is not supported as a list type.");
         }
 
         private static object ParseObjectType(
