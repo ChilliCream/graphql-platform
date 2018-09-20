@@ -40,9 +40,33 @@ namespace HotChocolate.Types
                         x =>
                         {
                             Assert.Equal("bar", x.Name.Value);
-                            Assert.Equal("456", ((StringValueNode)x.Value).Value);
+                            Assert.Equal("456",
+                                ((StringValueNode)x.Value).Value);
                         });
                 });
+        }
+
+        [Fact]
+        public void MapCustomDirectiveToDifferentType()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+            DirectiveType directiveType = schema.GetDirectiveType("Foo");
+            var fooDirective = new FooDirective
+            {
+                Bar = "123",
+                Child = new FooChild
+                {
+                    Bar = "456"
+                }
+            };
+
+            // act
+            var directive = new Directive(directiveType, fooDirective);
+            FooChild mappedObject = directive.ToObject<FooChild>();
+
+            // assert
+            Assert.Equal("123", mappedObject.Bar);
         }
 
         [Fact]
@@ -69,7 +93,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void GetArgumentFromCustomDirectiveAndConvertItObject()
+        public void GetArgumentFromCustomDirectiveAndConvertIt()
         {
             // arrange
             ISchema schema = CreateSchema();
