@@ -293,6 +293,78 @@ namespace HotChocolate.Types
             Assert.Equal(123, result.Bar1);
         }
 
+        [Fact]
+        public void ParseObjectGraph()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+            var sourceType = schema.GetType<INamedInputType>("BarInput");
+            var targetType = typeof(Bar);
+            var literal = CreateBar();
+
+            // act
+            Bar result = InputObjectDeserializer
+                .ParseLiteral(sourceType, targetType, literal)
+                    as Bar;
+
+            // assert
+            Assert.NotNull(result);
+            Assert.NotNull(result.Foo);
+            Assert.Equal("123", result.Foo.Bar1);
+            Assert.Equal("456", result.Foo.Bar2);
+        }
+
+        [Fact]
+        public void ParseObjectGraphWithList()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+            var sourceType = schema.GetType<INamedInputType>(
+                "BarWithArrayInput");
+            var targetType = typeof(BarWithArray);
+            var literal = CreateBarWithArray();
+
+            // act
+            BarWithArray result = InputObjectDeserializer
+                .ParseLiteral(sourceType, targetType, literal)
+                    as BarWithArray;
+
+            // assert
+            Assert.NotNull(result);
+            Assert.NotNull(result.Foos);
+            Assert.Collection(result.Foos,
+                t =>
+                {
+                    Assert.Equal("123", t.Bar1);
+                    Assert.Equal("456", t.Bar2);
+                });
+        }
+
+        [Fact]
+        public void ParseAndMapObjectGraphWithList()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+            var sourceType = schema.GetType<INamedInputType>(
+                "BarWithArrayInput");
+            var targetType = typeof(BarWithListOnlyGet);
+            var literal = CreateBarWithArray();
+
+            // act
+            BarWithListOnlyGet result = InputObjectDeserializer
+                .ParseLiteral(sourceType, targetType, literal)
+                    as BarWithListOnlyGet;
+
+            // assert
+            Assert.NotNull(result);
+            Assert.NotNull(result.Foos);
+            Assert.Collection(result.Foos,
+                t =>
+                {
+                    Assert.Equal("123", t.Bar1);
+                    Assert.Equal("456", t.Bar2);
+                });
+        }
 
         private static ISchema CreateSchema()
         {
@@ -309,6 +381,19 @@ namespace HotChocolate.Types
             return new ObjectValueNode(
                 new ObjectFieldNode("bar1", new StringValueNode("123")),
                 new ObjectFieldNode("bar2", new StringValueNode("456")));
+        }
+
+        private static IValueNode CreateBar()
+        {
+            return new ObjectValueNode(
+                new ObjectFieldNode("foo", CreateFoo()));
+        }
+
+        private static IValueNode CreateBarWithArray()
+        {
+            return new ObjectValueNode(
+                new ObjectFieldNode("foos",
+                    new ListValueNode(CreateFoo())));
         }
 
         public class Foo

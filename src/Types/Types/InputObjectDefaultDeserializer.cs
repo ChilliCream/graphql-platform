@@ -332,18 +332,26 @@ namespace HotChocolate.Types
                 value = field.DefaultValue.ValueOrNullValue();
             }
 
-            if (field.Type.IsNonNullType() && value.IsNull())
+            if (!field.Type.IsNonNullType() || !value.IsNull())
             {
-                throw new SerializationException(
-                    $"The input object `{field.DeclaringType.Name}` is " +
-                    $"missing a value for the required field `{field.Name}`.");
+                object parsedValue = ParseLiteral(
+                    field.Type, property.PropertyType,
+                    value);
+
+                if (property.CanWrite)
+                {
+                    property.SetValue(obj, parsedValue);
+                }
+                else if (field.Type.IsListType()
+                    && typeof(IList).IsAssignableFrom(property.PropertyType))
+                {
+                    IList list = (IList)property.GetValue(obj);
+                    foreach (object element in (IEnumerable)parsedValue)
+                    {
+                        list.Add(element);
+                    }
+                }
             }
-
-            object parsedValue = ParseLiteral(
-                field.Type, property.PropertyType,
-                value);
-
-            property.SetValue(obj, parsedValue);
         }
 
         private static IValueNode ValueOrNullValue(this IValueNode literal)
