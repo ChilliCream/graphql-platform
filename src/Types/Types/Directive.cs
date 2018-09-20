@@ -84,8 +84,6 @@ namespace HotChocolate.Types
             return _parsedDirective;
         }
 
-
-
         public T GetArgument<T>(string argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))
@@ -162,11 +160,6 @@ namespace HotChocolate.Types
             }
 
             return _arguments;
-        }
-
-        private static DirectiveNode SerializeCustomDirective(DirectiveType directiveType, object customDirective)
-        {
-            throw new NotImplementedException();
         }
 
         internal static Directive FromDescription(
