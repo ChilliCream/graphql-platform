@@ -16,7 +16,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal(
-                "HotChocolate.Internal.GenericNonNestedFoo<System.String>",
+                "HotChocolate.Utilities.GenericNonNestedFoo<System.String>",
                 typeName);
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal(
-                "HotChocolate.Internal.ReflectionUtilsTests",
+                "HotChocolate.Utilities.ReflectionUtilsTests",
                 typeName);
         }
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal(
-                "HotChocolate.Internal.ReflectionUtilsTests.GenericNestedFoo<System.String>",
+                "HotChocolate.Utilities.ReflectionUtilsTests.GenericNestedFoo<System.String>",
                 typeName);
         }
 
@@ -61,7 +61,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.Equal(
-                "HotChocolate.Internal.ReflectionUtilsTests.Foo",
+                "HotChocolate.Utilities.ReflectionUtilsTests.Foo",
                 typeName);
         }
 

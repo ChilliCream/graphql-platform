@@ -23,7 +23,7 @@ namespace HotChocolate.Utilities
             {
                 ValueDeserializer.SetProperty(
                     field, fieldValues, obj, field.Property,
-                    t => field.Type.ParseLiteral(literal));
+                    l => field.Type.ParseLiteral(l));
             }
 
             return obj;
