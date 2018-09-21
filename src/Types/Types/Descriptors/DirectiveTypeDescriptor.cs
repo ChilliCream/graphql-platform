@@ -214,10 +214,12 @@ namespace HotChocolate.Types
                         typeof(T),
                         m);
             }
-
-            throw new ArgumentException(
-                "Only methods can be bound as directive middlewares.",
-                nameof(method));
+            else
+            {
+                throw new ArgumentException(
+                    "Only methods can be bound as directive middlewares.",
+                    nameof(method));
+            }
         }
 
         #region IDirectiveDescriptor

@@ -38,7 +38,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 new ObjectTypeArgumentSourceCodeGenerator(),
                 new FieldSelectionArgumentSourceCodeGenerator(),
                 new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator()
+                new CustomArgumentSourceCodeGenerator(),
+                new ResolverArgumentSourceCodeGenerator(),
+                new ResultArgumentSourceCodeGenerator(),
+                new DirectiveArgumentSourceCodeGenerator(),
+                new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
     }
 }

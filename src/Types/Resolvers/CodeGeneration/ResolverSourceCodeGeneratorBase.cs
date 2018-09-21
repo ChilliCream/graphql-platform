@@ -84,5 +84,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"return ex.Errors;");
             source.AppendLine("}");
         }
+
+        protected void HandleExceptionsAsync(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return System.Threading.Tasks.Task.FromResult<object>(ex.Errors);");
+            source.AppendLine("}");
+        }
     }
 }

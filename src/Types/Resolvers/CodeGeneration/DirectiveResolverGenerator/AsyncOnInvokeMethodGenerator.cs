@@ -1,11 +1,11 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal sealed class AsyncDirectiveResolverMethodGenerator
-        : DirectiveResolverSourceCodeGenerator<DirectiveMiddlewareDescriptor>
+    internal sealed class AsyncOnInvokeMethodGenerator
+        : OnInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
         protected override void GenerateResolverInvocation(
             DirectiveMiddlewareDescriptor resolverDescriptor,
@@ -34,7 +34,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override bool CanHandle(
             DirectiveMiddlewareDescriptor descriptor)
         {
-            return descriptor.IsAsync;
+            return descriptor.Kind == MiddlewareKind.OnInvoke
+                && descriptor.IsAsync;
         }
     }
 }

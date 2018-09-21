@@ -14,6 +14,10 @@
         Context,
         CancellationToken,
         CustomContext,
-        DataLoader
+        DataLoader,
+        ResolverResult,
+        Resolver,
+        Directive,
+        DirectiveObject
     }
 }

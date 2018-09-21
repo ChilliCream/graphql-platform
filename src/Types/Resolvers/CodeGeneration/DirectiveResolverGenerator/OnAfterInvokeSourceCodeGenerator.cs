@@ -1,12 +1,9 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal abstract class DirectiveResolverSourceCodeGenerator<T>
+    internal abstract class OnAfterInvokeSourceCodeGenerator<T>
         : ResolverSourceCodeGeneratorBase<T>
         where T : IDirectiveMiddlewareDescriptor
     {
@@ -16,12 +13,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* @{descriptor.DirectiveName} */");
-            source.Append($"public static {nameof(OnInvokeResolverAsync)}");
+            source.Append($"public static {nameof(OnAfterInvokeResolverAsync)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, dir, exec, ct) => {");
+            source.Append("(ctx, dir, res, ct) => {");
             source.AppendLine();
         }
 
@@ -38,4 +35,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return descriptor.Arguments;
         }
     }
+
+    
 }

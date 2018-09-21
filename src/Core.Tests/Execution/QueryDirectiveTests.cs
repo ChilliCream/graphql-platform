@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Xunit;
 
@@ -20,8 +22,22 @@ namespace HotChocolate.Execution
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        [Fact(Skip = "Fixit")]
+        [Fact]
         public void SimpleSelectionDirectiveWithArguments()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @Append(s: \" sir\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void SimpleSelectionDirectiveWithGeneratedMiddleware()
         {
             // arrange
             ISchema schema = CreateSchema();
@@ -40,6 +56,7 @@ namespace HotChocolate.Execution
             {
                 c.RegisterDirective<AppendDotDirective>();
                 c.RegisterDirective<AppendStringDirective>();
+                c.RegisterDirective<AppendStringAfterResolveDirective>();
                 c.RegisterQueryType<Query>();
             });
         }
@@ -48,7 +65,6 @@ namespace HotChocolate.Execution
         {
             public string SayHello() => "Hello";
         }
-
 
         public class AppendDotDirective
             : DirectiveType
@@ -80,6 +96,29 @@ namespace HotChocolate.Execution
                     string resolverResult = await exec() as string;
                     return resolverResult + " " + dir.GetArgument<string>("s");
                 });
+            }
+        }
+
+        public class AppendStringAfterResolveDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnAfter");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnAfterInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnAfterInvokeResolverAsync(default, default));
+            }
+        }
+
+        public class AppendDirectiveMiddleware
+        {
+            public string OnAfterInvokeResolverAsync(
+                [Result]string resolverResult, string s)
+            {
+                return resolverResult + s;
             }
         }
     }
