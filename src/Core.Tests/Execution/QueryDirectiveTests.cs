@@ -78,8 +78,8 @@ namespace HotChocolate.Execution
 
                 c.RegisterDirective<AppendOnInvokeDirective>();
                 c.RegisterDirective<AppendOnInvokeGeneratedSyncWithResultDirective>();
-                // c.RegisterDirective<AppendOnInvokeGeneratedSyncDirective>();
-                // c.RegisterDirective<AppendOnInvokeGeneratedAsyncWithResolver>();
+                c.RegisterDirective<AppendOnInvokeGeneratedSyncDirective>();
+                c.RegisterDirective<AppendOnInvokeGeneratedAsyncWithResolver>();
 
                 c.RegisterQueryType<Query>();
             });
