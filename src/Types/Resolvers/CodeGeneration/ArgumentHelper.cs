@@ -21,7 +21,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     parameter, sourceType, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
-                || TryCheckForExtensions(parameter, out argumentKind))
+                || TryCheckForExtensions(parameter, out argumentKind)
+                || TryCheckForDirectives(parameter, out argumentKind))
             {
                 return argumentKind;
             }
@@ -140,6 +141,44 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return false;
         }
 
+        private static bool TryCheckForDirectives(
+            this ParameterInfo parameter,
+            out ArgumentKind argumentKind)
+        {
+            if (parameter.ParameterType == typeof(IDirective))
+            {
+                argumentKind = ArgumentKind.Directive;
+                return true;
+            }
+
+            if (parameter.IsDirective())
+            {
+                argumentKind = ArgumentKind.DirectiveObject;
+                return true;
+            }
+
+            if (parameter.IsDirectiveArgument())
+            {
+                argumentKind = ArgumentKind.DirectiveArgument;
+                return true;
+            }
+
+            if (parameter.IsResolver())
+            {
+                argumentKind = ArgumentKind.Resolver;
+                return true;
+            }
+
+            if (parameter.IsResolverResult())
+            {
+                argumentKind = ArgumentKind.ResolverResult;
+                return true;
+            }
+
+            argumentKind = default(ArgumentKind);
+            return false;
+        }
+
         private static bool IsDataLoader(this ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(DataLoaderAttribute));
@@ -158,6 +197,26 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private static bool IsParent(this ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ParentAttribute));
+        }
+
+        private static bool IsResolver(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ResolverAttribute));
+        }
+
+        private static bool IsResolverResult(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ResultAttribute));
+        }
+
+        private static bool IsDirective(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(DirectiveAttribute));
+        }
+
+        private static bool IsDirectiveArgument(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(DirectiveArgumentAttribute));
         }
     }
 }

@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @Append(s: \" sir\") }");
+                "{ sayHello @AppendOnAfter(s: \" sir\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution
         public class AppendDirectiveMiddleware
         {
             public string OnAfterInvokeResolverAsync(
-                [Result]string resolverResult, string s)
+                [Result]string resolverResult, [DirectiveArgument]string s)
             {
                 return resolverResult + s;
             }

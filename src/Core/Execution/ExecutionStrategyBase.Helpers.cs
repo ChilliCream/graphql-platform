@@ -140,11 +140,12 @@ namespace HotChocolate.Execution
             {
                 if (directive.OnAfterInvokeResolver != null)
                 {
-                    await directive.OnAfterInvokeResolver(
-                        resolverTask.ResolverContext,
-                        directive,
-                        resolverTask.ResolverResult,
-                        cancellationToken);
+                    resolverTask.ResolverResult =
+                        await directive.OnAfterInvokeResolver(
+                            resolverTask.ResolverContext,
+                            directive,
+                            resolverTask.ResolverResult,
+                            cancellationToken);
                 }
             }
         }

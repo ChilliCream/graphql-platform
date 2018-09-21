@@ -42,6 +42,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 new ResolverArgumentSourceCodeGenerator(),
                 new ResultArgumentSourceCodeGenerator(),
                 new DirectiveArgumentSourceCodeGenerator(),
+                new DirectiveArgumentArgumentSourceCodeGenerator(),
                 new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
     }
