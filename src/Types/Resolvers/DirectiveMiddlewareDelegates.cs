@@ -7,18 +7,18 @@ namespace HotChocolate.Resolvers
 {
     public delegate Task OnBeforeInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirective directiveContext,
+        IDirective directive,
         CancellationToken cancellationToken);
 
     public delegate Task<object> OnInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirective directiveContext,
+        IDirective directive,
         Func<Task<object>> resolveField,
         CancellationToken cancellationToken);
 
     public delegate Task<object> OnAfterInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirective directiveContext,
+        IDirective directive,
         object resolverResult,
         CancellationToken cancellationToken);
 }
