@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, dir, ct) => {");
+            source.Append("(ctx, dir, exec, ct) => {");
             source.AppendLine();
         }
 

@@ -11,9 +11,9 @@ namespace HotChocolate.Types
 
         OnBeforeInvokeResolverAsync OnBeforeInvokeResolver { get; }
 
-        DirectiveResolver OnInvokeResolver { get; }
+        OnInvokeResolverAsync OnInvokeResolver { get; }
 
-        OnAfterInvokeResolver OnAfterInvokeResolver { get; }
+        OnAfterInvokeResolverAsync OnAfterInvokeResolver { get; }
 
         bool IsExecutable { get; }
 

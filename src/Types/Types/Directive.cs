@@ -39,13 +39,13 @@ namespace HotChocolate.Types
 
         public DirectiveType Type { get; }
 
-        public OnBeforeInvokeResolver OnBeforeInvokeResolver =>
+        public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver =>
             Type.OnBeforeInvokeResolver;
 
-        public DirectiveResolver OnInvokeResolver =>
+        public OnInvokeResolverAsync OnInvokeResolver =>
             Type.OnInvokeResolver;
 
-        public OnAfterInvokeResolver OnAfterInvokeResolver =>
+        public OnAfterInvokeResolverAsync OnAfterInvokeResolver =>
             Type.OnAfterInvokeResolver;
 
         public bool IsExecutable => Type.IsExecutable;

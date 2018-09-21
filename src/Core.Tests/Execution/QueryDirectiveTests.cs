@@ -58,10 +58,9 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("Dot");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Resolver(async (dctx, rctx, ct) =>
+                descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
                 {
-                    string resolverResult =
-                        await dctx.ResolveFieldAsync<string>();
+                    string resolverResult = await exec() as string;
                     return resolverResult + ".";
                 });
             }
@@ -76,11 +75,10 @@ namespace HotChocolate.Execution
                 descriptor.Name("Append");
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.Resolver(async (dctx, rctx, ct) =>
+                descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
                 {
-                    string resolverResult =
-                        await dctx.ResolveFieldAsync<string>();
-                    return resolverResult + " " + dctx.Argument<string>("s");
+                    string resolverResult = await exec() as string;
+                    return resolverResult + " " + dir.GetArgument<string>("s");
                 });
             }
         }
