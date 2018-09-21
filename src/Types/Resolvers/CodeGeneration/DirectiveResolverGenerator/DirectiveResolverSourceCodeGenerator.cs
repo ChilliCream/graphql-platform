@@ -16,12 +16,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* @{descriptor.DirectiveName} */");
-            source.Append($"public static {nameof(DirectiveResolver)}");
+            source.Append($"public static {nameof(OnInvokeResolverAsync)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(dctx, ctx, ct) => {");
+            source.Append("(ctx, dir, ct) => {");
             source.AppendLine();
         }
 

@@ -48,36 +48,29 @@ namespace HotChocolate.Types
         /// <param name="location">The directive location.</param>
         IDirectiveTypeDescriptor Location(DirectiveLocation location);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="resolver">
-        /// The delegate that represents the resolver.
-        /// </param>
-        IDirectiveTypeDescriptor Resolver(DirectiveResolver resolver);
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnBeforeInvokeResolver(
+            OnBeforeInvokeResolverAsync onBeforeInvoke);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="resolver">
-        /// The delegate that represents the resolver.
-        /// </param>
-        IDirectiveTypeDescriptor Resolver(AsyncDirectiveResolver resolver);
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnBeforeInvokeResolver<T>(
+            Expression<Func<T, object>> method);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="method">
-        /// The method that shall be used as a resolver,
-        /// </param>
-        /// <typeparam name="TResolver">
-        /// The type that contains the resolver method.
-        /// </typeparam>
-        IDirectiveTypeDescriptor Resolver<TResolver>(
-            Expression<Func<TResolver, object>> method);
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnInvokeResolver(
+            OnInvokeResolverAsync onInvoke);
+
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnInvokeResolver<T>(
+            Expression<Func<T, object>> method);
+
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnAfterInvokeResolver(
+            OnAfterInvokeResolverAsync onAfterInvoke);
+
+        // TODO : DOCU
+        IDirectiveTypeDescriptor OnAfterInvokeResolver<T>(
+            Expression<Func<T, object>> method);
     }
 
     public interface IDirectiveTypeDescriptor<T>
@@ -146,35 +139,28 @@ namespace HotChocolate.Types
         /// <param name="location">The directive location.</param>
         new IDirectiveTypeDescriptor<T> Location(DirectiveLocation location);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="resolver">
-        /// The delegate that represents the resolver.
-        /// </param>
-        new IDirectiveTypeDescriptor<T> Resolver(DirectiveResolver resolver);
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver(
+            OnBeforeInvokeResolverAsync onBeforeInvoke);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="resolver">
-        /// The delegate that represents the resolver.
-        /// </param>
-        new IDirectiveTypeDescriptor<T> Resolver(AsyncDirectiveResolver resolver);
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver<TMiddleware>(
+            Expression<Func<TMiddleware, object>> method);
 
-        /// <summary>
-        /// Specifies a resolver for this directive that will be chained
-        /// into the field resolver pipeline.
-        /// </summary>
-        /// <param name="method">
-        /// The method that shall be used as a resolver,
-        /// </param>
-        /// <typeparam name="TResolver">
-        /// The type that contains the resolver method.
-        /// </typeparam>
-        new IDirectiveTypeDescriptor<T> Resolver<TResolver>(
-          Expression<Func<TResolver, object>> method);
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnInvokeResolver(
+            OnInvokeResolverAsync onInvoke);
+
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnInvokeResolver<TMiddleware>(
+            Expression<Func<TMiddleware, object>> method);
+
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnAfterInvokeResolver(
+            OnAfterInvokeResolverAsync onAfterInvoke);
+
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnAfterInvokeResolver<TMiddleware>(
+            Expression<Func<TMiddleware, object>> method);
     }
 }

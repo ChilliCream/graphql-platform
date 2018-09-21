@@ -14,7 +14,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
             HandleExceptions(source, s =>
             {
-                s.Append($"return resolver.{resolverDescriptor.Method.Name}(");
+                s.Append($"return System.Threading.Tasks.Task.FromResult<object>(resolver.{resolverDescriptor.Method.Name}(");
                 if (resolverDescriptor.Arguments.Count > 0)
                 {
                     string arguments = string.Join(", ",
@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                             .Select(t => t.VariableName));
                     s.Append(arguments);
                 }
-                s.Append(");");
+                s.Append("));");
             });
         }
 

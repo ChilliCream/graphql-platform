@@ -7,7 +7,7 @@ namespace HotChocolate.Resolvers
     {
         public DirectiveOnAfterInvokeMiddleware(
             string directiveName,
-            OnAfterInvokeResolver onAfterInvokeResolver)
+            OnAfterInvokeResolverAsync onAfterInvokeResolver)
         {
             if (string.IsNullOrEmpty(directiveName))
             {
@@ -22,6 +22,6 @@ namespace HotChocolate.Resolvers
 
         public string DirectiveName { get; }
         public MiddlewareKind Kind => MiddlewareKind.OnAfterInvoke;
-        public OnAfterInvokeResolver OnAfterInvokeResolver { get; }
+        public OnAfterInvokeResolverAsync OnAfterInvokeResolver { get; }
     }
 }

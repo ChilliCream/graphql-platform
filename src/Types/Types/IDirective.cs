@@ -9,7 +9,7 @@ namespace HotChocolate.Types
 
         DirectiveType Type { get; }
 
-        OnBeforeInvokeResolver OnBeforeInvokeResolver { get; }
+        OnBeforeInvokeResolverAsync OnBeforeInvokeResolver { get; }
 
         DirectiveResolver OnInvokeResolver { get; }
 

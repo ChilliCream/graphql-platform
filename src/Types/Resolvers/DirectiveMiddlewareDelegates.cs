@@ -1,21 +1,22 @@
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
     public delegate Task OnBeforeInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirectiveContext directiveContext,
+        IDirective directiveContext,
         CancellationToken cancellationToken);
 
     public delegate Task<object> OnAfterInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirectiveContext directiveContext,
+        IDirective directiveContext,
         object resolverResult,
         CancellationToken cancellationToken);
 
-    public delegate Task<object> AsyncDirectiveResolver(
+    public delegate Task<object> OnInvokeResolverAsync(
         IResolverContext resolverContext,
-        IDirectiveContext directiveContext,
+        IDirective directiveContext,
         CancellationToken cancellationToken);
 }
