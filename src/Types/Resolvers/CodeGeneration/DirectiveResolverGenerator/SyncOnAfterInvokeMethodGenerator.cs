@@ -15,13 +15,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             HandleExceptionsAsync(source, s =>
             {
                 s.Append($"return System.Threading.Tasks.Task.FromResult<object>(resolver.{resolverDescriptor.Method.Name}(");
-                if (resolverDescriptor.Arguments.Count > 0)
-                {
-                    string arguments = string.Join(", ",
-                        resolverDescriptor.Arguments
-                            .Select(t => t.VariableName));
-                    s.Append(arguments);
-                }
+                GenerateArguments(resolverDescriptor, s);
                 s.Append("));");
             });
         }

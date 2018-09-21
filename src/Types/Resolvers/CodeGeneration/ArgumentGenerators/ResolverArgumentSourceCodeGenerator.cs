@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected override string Generate(ArgumentDescriptor descriptor)
         {
-            return $"({descriptor.Type.GetTypeName()})await exec()";
+            return $"new System.Func<System.Threading.Tasks.Task<{descriptor.Type.GetTypeName()}>>(async () => ({descriptor.Type.GetTypeName()})await exec())";
         }
     }
 }

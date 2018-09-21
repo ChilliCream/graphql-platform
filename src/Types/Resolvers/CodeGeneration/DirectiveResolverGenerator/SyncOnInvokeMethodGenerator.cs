@@ -12,18 +12,42 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
-            HandleExceptionsAsync(source, s =>
+
+            if (resolverDescriptor.Arguments.Any(t => t.Kind == ArgumentKind.ResolverResult))
             {
-                s.Append($"return System.Threading.Tasks.Task.FromResult<object>(resolver.{resolverDescriptor.Method.Name}(");
-                if (resolverDescriptor.Arguments.Count > 0)
+                source.AppendLine("Func<Task<object>> f = async () => {");
+
+                base.GenerateArgumentDeclaration(resolverDescriptor, source);
+
+                HandleExceptions(source, s =>
                 {
-                    string arguments = string.Join(", ",
-                        resolverDescriptor.Arguments
-                            .Select(t => t.VariableName));
-                    s.Append(arguments);
-                }
-                s.Append("));");
-            });
+                    s.Append($"return resolver.{resolverDescriptor.Method.Name}(");
+                    GenerateArguments(resolverDescriptor, s);
+                    s.Append(");");
+                });
+
+                source.AppendLine("};");
+                source.Append("return f();");
+            }
+            else
+            {
+                base.GenerateArgumentDeclaration(resolverDescriptor, source);
+
+                HandleExceptionsAsync(source, s =>
+                {
+                    s.Append($"return System.Threading.Tasks.Task.FromResult<object>(resolver.{resolverDescriptor.Method.Name}(");
+                    GenerateArguments(resolverDescriptor, s);
+                    s.Append("));");
+                });
+            }
+        }
+
+
+        protected override void GenerateArgumentDeclaration(
+            DirectiveMiddlewareDescriptor descriptor,
+            StringBuilder source)
+        {
+            // do nothing
         }
 
         protected override bool CanHandle(
