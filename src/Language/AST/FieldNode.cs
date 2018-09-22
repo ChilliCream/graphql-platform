@@ -5,6 +5,7 @@ namespace HotChocolate.Language
 {
     public sealed class FieldNode
         : NamedSyntaxNode
+        , ISelectionNode
     {
         public FieldNode(
             Location location,
