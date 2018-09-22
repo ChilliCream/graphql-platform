@@ -19,7 +19,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.NonNullType;
+
         public Location Location { get; }
+
         public INullableType Type { get; }
 
         public override string ToString()

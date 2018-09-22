@@ -33,7 +33,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.IntValue;
+
         public Location Location { get; }
+
         public string Value { get; }
 
         /// <summary>

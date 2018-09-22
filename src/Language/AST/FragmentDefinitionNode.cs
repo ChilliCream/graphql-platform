@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class FragmentDefinitionNode
-        : IExecutableDefinitionNode
+        : NamedSyntaxNode
+        , IExecutableDefinitionNode
         , IHasDirectives
     {
         public FragmentDefinitionNode(
@@ -14,12 +15,8 @@ namespace HotChocolate.Language
             NamedTypeNode typeCondition,
             IReadOnlyCollection<DirectiveNode> directives,
             SelectionSetNode selectionSet)
+            : base(location, name, directives)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (variableDefinitions == null)
             {
                 throw new ArgumentNullException(nameof(variableDefinitions));
@@ -30,31 +27,23 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(typeCondition));
             }
 
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
             if (selectionSet == null)
             {
                 throw new ArgumentNullException(nameof(selectionSet));
             }
 
-            Location = location;
-            Name = name;
             VariableDefinitions = variableDefinitions;
             TypeCondition = typeCondition;
-            Directives = directives;
             SelectionSet = selectionSet;
         }
 
-        public NodeKind Kind { get; } = NodeKind.FragmentDefinition;
-        public Location Location { get; }
-        public NameNode Name { get; }
+        public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
+
         public IReadOnlyCollection<VariableDefinitionNode> VariableDefinitions
         { get; }
+
         public NamedTypeNode TypeCondition { get; }
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+
         public SelectionSetNode SelectionSet { get; }
     }
 }

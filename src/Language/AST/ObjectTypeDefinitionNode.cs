@@ -20,6 +20,7 @@ namespace HotChocolate.Language
         }
 
         public override NodeKind Kind { get; } = NodeKind.ObjectTypeDefinition;
+
         public StringValueNode Description { get; }
     }
 }

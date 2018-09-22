@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class FieldDefinitionNode
-        : ISyntaxNode
-        , IHasDirectives
+        : NamedSyntaxNode
     {
         public FieldDefinitionNode(
             Location location,
@@ -14,12 +13,8 @@ namespace HotChocolate.Language
             IReadOnlyCollection<InputValueDefinitionNode> arguments,
             ITypeNode type,
             IReadOnlyCollection<DirectiveNode> directives)
+            : base(location, name, directives)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (arguments == null)
             {
                 throw new ArgumentNullException(nameof(arguments));
@@ -30,31 +25,17 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            Location = location;
-            Name = name;
             Description = description;
             Arguments = arguments;
             Type = type;
-            Directives = directives;
         }
 
-        public NodeKind Kind { get; } = NodeKind.FieldDefinition;
-
-        public Location Location { get; }
-
-        public NameNode Name { get; }
+        public override NodeKind Kind { get; } = NodeKind.FieldDefinition;
 
         public StringValueNode Description { get; }
 
         public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
 
         public ITypeNode Type { get; }
-
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
     }
 }
