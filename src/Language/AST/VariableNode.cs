@@ -86,7 +86,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as VariableNode);
+            if (other is VariableNode v)
+            {
+                return Equals(v);
+            }
+
+            return false;
         }
 
         /// <summary>

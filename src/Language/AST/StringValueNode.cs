@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     /// <summary>
     /// Represents a string value literal.
-    /// 
+    ///
     /// http://facebook.github.io/graphql/June2018/#sec-String-Value
     /// </summary>
     public sealed class StringValueNode
@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         , IEquatable<StringValueNode>
     {
         /// <summary>
-        /// Initializes a new instance of the 
+        /// Initializes a new instance of the
         /// <see cref="StringValueNode"/> class.
         /// </summary>
         /// <param name="value">The string value.</param>
@@ -25,7 +25,7 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Initializes a new instance of the 
+        /// Initializes a new instance of the
         /// <see cref="StringValueNode"/> class.
         /// </summary>
         /// <param name="location">The source location.</param>
@@ -53,26 +53,26 @@ namespace HotChocolate.Language
         public string Value { get; }
 
         /// <summary>
-        /// Gets a value indicating whether this <see cref="StringValueNode"/> 
+        /// Gets a value indicating whether this <see cref="StringValueNode"/>
         /// was parsed from a block string.
         /// </summary>
         /// <value>
-        /// <c>true</c> if this string value was parsed from a block string; 
+        /// <c>true</c> if this string value was parsed from a block string;
         /// otherwise, <c>false</c>.
         /// </value>
         public bool Block { get; }
 
         /// <summary>
-        /// Determines whether the specified <see cref="StringValueNode"/> 
+        /// Determines whether the specified <see cref="StringValueNode"/>
         /// is equal to the current <see cref="StringValueNode"/>.
         /// </summary>
         /// <param name="other">
-        /// The <see cref="StringValueNode"/> to compare with the current 
+        /// The <see cref="StringValueNode"/> to compare with the current
         /// <see cref="StringValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="StringValueNode"/> is equal 
-        /// to the current <see cref="StringValueNode"/>; 
+        /// <c>true</c> if the specified <see cref="StringValueNode"/> is equal
+        /// to the current <see cref="StringValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(StringValueNode other)
@@ -91,16 +91,16 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="IValueNode"/> is equal 
+        /// Determines whether the specified <see cref="IValueNode"/> is equal
         /// to the current <see cref="StringValueNode"/>.
         /// </summary>
         /// <param name="other">
-        /// The <see cref="IValueNode"/> to compare with the current 
+        /// The <see cref="IValueNode"/> to compare with the current
         /// <see cref="StringValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal 
-        /// to the current <see cref="StringValueNode"/>; 
+        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
+        /// to the current <see cref="StringValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(IValueNode other)
@@ -115,19 +115,24 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as StringValueNode);
+            if (other is StringValueNode s)
+            {
+                return Equals(s);
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to 
+        /// Determines whether the specified <see cref="object"/> is equal to
         /// the current <see cref="StringValueNode"/>.
         /// </summary>
         /// <param name="obj">
-        /// The <see cref="object"/> to compare with the current 
+        /// The <see cref="object"/> to compare with the current
         /// <see cref="StringValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to the 
+        /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="StringValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object obj)
@@ -146,11 +151,11 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Serves as a hash function for a <see cref="StringValueNode"/> 
+        /// Serves as a hash function for a <see cref="StringValueNode"/>
         /// object.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance that is suitable for use in 
+        /// A hash code for this instance that is suitable for use in
         /// hashing algorithms and data structures such as a hash table.
         /// </returns>
         public override int GetHashCode()
@@ -163,11 +168,11 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Returns a <see cref="string"/> that represents the current 
+        /// Returns a <see cref="string"/> that represents the current
         /// <see cref="StringValueNode"/>.
         /// </summary>
         /// <returns>
-        /// A <see cref="string"/> that represents the current 
+        /// A <see cref="string"/> that represents the current
         /// <see cref="StringValueNode"/>.
         /// </returns>
         public override string ToString()

@@ -153,12 +153,13 @@ namespace HotChocolate.Execution
             ObjectType operationType,
             object initialValue)
         {
-            if (initialValue == null && schema.TryGetNativeType(
+            object initVal = initialValue;
+            if (initVal == null && schema.TryGetNativeType(
                operationType.Name, out Type nativeType))
             {
-                initialValue = services.GetService(nativeType);
+                initVal = services.GetService(nativeType);
             }
-            return initialValue;
+            return initVal;
         }
 
         private static object CreateRootValue(

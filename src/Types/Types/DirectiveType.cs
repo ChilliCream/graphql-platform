@@ -36,11 +36,13 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Arguments { get; private set; }
 
-        public OnBeforeInvokeResolver OnBeforeInvokeResolver { get; private set; }
+        public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver
+        { get; private set; }
 
-        public DirectiveResolver OnInvokeResolver { get; private set; }
+        public OnInvokeResolverAsync OnInvokeResolver { get; private set; }
 
-        public OnAfterInvokeResolver OnAfterInvokeResolver { get; private set; }
+        public OnAfterInvokeResolverAsync OnAfterInvokeResolver
+        { get; private set; }
 
         public bool IsExecutable { get; private set; }
 

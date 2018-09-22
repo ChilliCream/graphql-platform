@@ -72,18 +72,11 @@
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "node"
-            },
             "Alias": {
               "Kind": "Name",
               "Location": null,
               "Value": "whoever123is"
             },
-            "Directives": [],
             "Arguments": [
               {
                 "Kind": "Argument",
@@ -117,16 +110,16 @@
               "Selections": [
                 {
                   "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
                   "Location": null,
                   "Name": {
                     "Kind": "Name",
                     "Location": null,
                     "Value": "id"
                   },
-                  "Alias": null,
-                  "Directives": [],
-                  "Arguments": [],
-                  "SelectionSet": null
+                  "Directives": []
                 },
                 {
                   "Kind": "InlineFragment",
@@ -158,14 +151,7 @@
                     "Selections": [
                       {
                         "Kind": "Field",
-                        "Location": null,
-                        "Name": {
-                          "Kind": "Name",
-                          "Location": null,
-                          "Value": "field2"
-                        },
                         "Alias": null,
-                        "Directives": [],
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
@@ -173,62 +159,24 @@
                           "Selections": [
                             {
                               "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
                               "Location": null,
                               "Name": {
                                 "Kind": "Name",
                                 "Location": null,
                                 "Value": "id"
                               },
-                              "Alias": null,
-                              "Directives": [],
-                              "Arguments": [],
-                              "SelectionSet": null
+                              "Directives": []
                             },
                             {
                               "Kind": "Field",
-                              "Location": null,
-                              "Name": {
-                                "Kind": "Name",
-                                "Location": null,
-                                "Value": "field1"
-                              },
                               "Alias": {
                                 "Kind": "Name",
                                 "Location": null,
                                 "Value": "alias"
                               },
-                              "Directives": [
-                                {
-                                  "Kind": "Directive",
-                                  "Location": null,
-                                  "Name": {
-                                    "Kind": "Name",
-                                    "Location": null,
-                                    "Value": "include"
-                                  },
-                                  "Arguments": [
-                                    {
-                                      "Kind": "Argument",
-                                      "Location": null,
-                                      "Name": {
-                                        "Kind": "Name",
-                                        "Location": null,
-                                        "Value": "if"
-                                      },
-                                      "Value": {
-                                        "Kind": "Variable",
-                                        "Location": null,
-                                        "Name": {
-                                          "Kind": "Name",
-                                          "Location": null,
-                                          "Value": "foo"
-                                        },
-                                        "Value": "foo"
-                                      }
-                                    }
-                                  ]
-                                }
-                              ],
                               "Arguments": [
                                 {
                                   "Kind": "Argument",
@@ -270,16 +218,16 @@
                                 "Selections": [
                                   {
                                     "Kind": "Field",
+                                    "Alias": null,
+                                    "Arguments": [],
+                                    "SelectionSet": null,
                                     "Location": null,
                                     "Name": {
                                       "Kind": "Name",
                                       "Location": null,
                                       "Value": "id"
                                     },
-                                    "Alias": null,
-                                    "Directives": [],
-                                    "Arguments": [],
-                                    "SelectionSet": null
+                                    "Directives": []
                                   },
                                   {
                                     "Kind": "FragmentSpread",
@@ -292,10 +240,55 @@
                                     "Directives": []
                                   }
                                 ]
-                              }
+                              },
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "field1"
+                              },
+                              "Directives": [
+                                {
+                                  "Kind": "Directive",
+                                  "Location": null,
+                                  "Name": {
+                                    "Kind": "Name",
+                                    "Location": null,
+                                    "Value": "include"
+                                  },
+                                  "Arguments": [
+                                    {
+                                      "Kind": "Argument",
+                                      "Location": null,
+                                      "Name": {
+                                        "Kind": "Name",
+                                        "Location": null,
+                                        "Value": "if"
+                                      },
+                                      "Value": {
+                                        "Kind": "Variable",
+                                        "Location": null,
+                                        "Name": {
+                                          "Kind": "Name",
+                                          "Location": null,
+                                          "Value": "foo"
+                                        },
+                                        "Value": "foo"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
                             }
                           ]
-                        }
+                        },
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "field2"
+                        },
+                        "Directives": []
                       }
                     ]
                   }
@@ -342,16 +335,16 @@
                     "Selections": [
                       {
                         "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
                         "Location": null,
                         "Name": {
                           "Kind": "Name",
                           "Location": null,
                           "Value": "id"
                         },
-                        "Alias": null,
-                        "Directives": [],
-                        "Arguments": [],
-                        "SelectionSet": null
+                        "Directives": []
                       }
                     ]
                   }
@@ -367,22 +360,29 @@
                     "Selections": [
                       {
                         "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
                         "Location": null,
                         "Name": {
                           "Kind": "Name",
                           "Location": null,
                           "Value": "id"
                         },
-                        "Alias": null,
-                        "Directives": [],
-                        "Arguments": [],
-                        "SelectionSet": null
+                        "Directives": []
                       }
                     ]
                   }
                 }
               ]
-            }
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "node"
+            },
+            "Directives": []
           }
         ]
       }
@@ -404,25 +404,7 @@
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "like"
-            },
             "Alias": null,
-            "Directives": [
-              {
-                "Kind": "Directive",
-                "Location": null,
-                "Name": {
-                  "Kind": "Name",
-                  "Location": null,
-                  "Value": "defer"
-                },
-                "Arguments": []
-              }
-            ],
             "Arguments": [
               {
                 "Kind": "Argument",
@@ -445,14 +427,7 @@
               "Selections": [
                 {
                   "Kind": "Field",
-                  "Location": null,
-                  "Name": {
-                    "Kind": "Name",
-                    "Location": null,
-                    "Value": "story"
-                  },
                   "Alias": null,
-                  "Directives": [],
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
@@ -460,22 +435,47 @@
                     "Selections": [
                       {
                         "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
                         "Location": null,
                         "Name": {
                           "Kind": "Name",
                           "Location": null,
                           "Value": "id"
                         },
-                        "Alias": null,
-                        "Directives": [],
-                        "Arguments": [],
-                        "SelectionSet": null
+                        "Directives": []
                       }
                     ]
-                  }
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "story"
+                  },
+                  "Directives": []
                 }
               ]
-            }
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "like"
+            },
+            "Directives": [
+              {
+                "Kind": "Directive",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "defer"
+                },
+                "Arguments": []
+              }
+            ]
           }
         ]
       }
@@ -522,14 +522,7 @@
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "storyLikeSubscribe"
-            },
             "Alias": null,
-            "Directives": [],
             "Arguments": [
               {
                 "Kind": "Argument",
@@ -557,14 +550,7 @@
               "Selections": [
                 {
                   "Kind": "Field",
-                  "Location": null,
-                  "Name": {
-                    "Kind": "Name",
-                    "Location": null,
-                    "Value": "story"
-                  },
                   "Alias": null,
-                  "Directives": [],
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
@@ -572,14 +558,7 @@
                     "Selections": [
                       {
                         "Kind": "Field",
-                        "Location": null,
-                        "Name": {
-                          "Kind": "Name",
-                          "Location": null,
-                          "Value": "likers"
-                        },
                         "Alias": null,
-                        "Directives": [],
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
@@ -587,30 +566,30 @@
                           "Selections": [
                             {
                               "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
                               "Location": null,
                               "Name": {
                                 "Kind": "Name",
                                 "Location": null,
                                 "Value": "count"
                               },
-                              "Alias": null,
-                              "Directives": [],
-                              "Arguments": [],
-                              "SelectionSet": null
+                              "Directives": []
                             }
                           ]
-                        }
-                      },
-                      {
-                        "Kind": "Field",
+                        },
                         "Location": null,
                         "Name": {
                           "Kind": "Name",
                           "Location": null,
-                          "Value": "likeSentence"
+                          "Value": "likers"
                         },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
                         "Alias": null,
-                        "Directives": [],
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
@@ -618,37 +597,52 @@
                           "Selections": [
                             {
                               "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
                               "Location": null,
                               "Name": {
                                 "Kind": "Name",
                                 "Location": null,
                                 "Value": "text"
                               },
-                              "Alias": null,
-                              "Directives": [],
-                              "Arguments": [],
-                              "SelectionSet": null
+                              "Directives": []
                             }
                           ]
-                        }
+                        },
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "likeSentence"
+                        },
+                        "Directives": []
                       }
                     ]
-                  }
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "story"
+                  },
+                  "Directives": []
                 }
               ]
-            }
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "storyLikeSubscribe"
+            },
+            "Directives": []
           }
         ]
       }
     },
     {
       "Kind": "FragmentDefinition",
-      "Location": null,
-      "Name": {
-        "Kind": "Name",
-        "Location": null,
-        "Value": "frag"
-      },
       "VariableDefinitions": [],
       "TypeCondition": {
         "Kind": "NamedType",
@@ -659,21 +653,13 @@
           "Value": "Friend"
         }
       },
-      "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
         "Location": null,
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "foo"
-            },
             "Alias": null,
-            "Directives": [],
             "Arguments": [
               {
                 "Kind": "Argument",
@@ -759,10 +745,24 @@
                 }
               }
             ],
-            "SelectionSet": null
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "foo"
+            },
+            "Directives": []
           }
         ]
-      }
+      },
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "frag"
+      },
+      "Directives": []
     },
     {
       "Kind": "OperationDefinition",
@@ -777,14 +777,7 @@
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "unnamed"
-            },
             "Alias": null,
-            "Directives": [],
             "Arguments": [
               {
                 "Kind": "Argument",
@@ -829,20 +822,27 @@
                 }
               }
             ],
-            "SelectionSet": null
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "unnamed"
+            },
+            "Directives": []
           },
           {
             "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
             "Location": null,
             "Name": {
               "Kind": "Name",
               "Location": null,
               "Value": "query"
             },
-            "Alias": null,
-            "Directives": [],
-            "Arguments": [],
-            "SelectionSet": null
+            "Directives": []
           }
         ]
       }

@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     /// <summary>
     /// Represents a enum value literal.
-    /// 
+    ///
     /// http://facebook.github.io/graphql/June2018/#sec-Enum-Value
     /// </summary>
     public sealed class EnumValueNode
@@ -31,16 +31,16 @@ namespace HotChocolate.Language
         public string Value { get; }
 
         /// <summary>
-        /// Determines whether the specified <see cref="EnumValueNode"/> 
+        /// Determines whether the specified <see cref="EnumValueNode"/>
         /// is equal to the current <see cref="EnumValueNode"/>.
         /// </summary>
         /// <param name="other">
-        /// The <see cref="EnumValueNode"/> to compare with the current 
+        /// The <see cref="EnumValueNode"/> to compare with the current
         /// <see cref="EnumValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="EnumValueNode"/> is equal 
-        /// to the current <see cref="EnumValueNode"/>; 
+        /// <c>true</c> if the specified <see cref="EnumValueNode"/> is equal
+        /// to the current <see cref="EnumValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(EnumValueNode other)
@@ -59,16 +59,16 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="IValueNode"/> is equal 
+        /// Determines whether the specified <see cref="IValueNode"/> is equal
         /// to the current <see cref="EnumValueNode"/>.
         /// </summary>
         /// <param name="other">
-        /// The <see cref="IValueNode"/> to compare with the current 
+        /// The <see cref="IValueNode"/> to compare with the current
         /// <see cref="EnumValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal 
-        /// to the current <see cref="EnumValueNode"/>; 
+        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
+        /// to the current <see cref="EnumValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(IValueNode other)
@@ -83,19 +83,24 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as EnumValueNode);
+            if (other is EnumValueNode e)
+            {
+                return Equals(e);
+            }
+
+            return false;
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to 
+        /// Determines whether the specified <see cref="object"/> is equal to
         /// the current <see cref="EnumValueNode"/>.
         /// </summary>
         /// <param name="obj">
-        /// The <see cref="object"/> to compare with the current 
+        /// The <see cref="object"/> to compare with the current
         /// <see cref="EnumValueNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to the 
+        /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="EnumValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object obj)
@@ -114,11 +119,11 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Serves as a hash function for a <see cref="EnumValueNode"/> 
+        /// Serves as a hash function for a <see cref="EnumValueNode"/>
         /// object.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance that is suitable for use in 
+        /// A hash code for this instance that is suitable for use in
         /// hashing algorithms and data structures such as a hash table.
         /// </returns>
         public override int GetHashCode()
@@ -131,11 +136,11 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Returns a <see cref="string"/> that represents the current 
+        /// Returns a <see cref="string"/> that represents the current
         /// <see cref="EnumValueNode"/>.
         /// </summary>
         /// <returns>
-        /// A <see cref="string"/> that represents the current 
+        /// A <see cref="string"/> that represents the current
         /// <see cref="EnumValueNode"/>.
         /// </returns>
         public override string ToString()

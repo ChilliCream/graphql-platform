@@ -20,8 +20,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             new SyncSourceMethodGenerator(),
             new SourcePropertyGenerator(),
 
-            new AsyncResolverMethodGenerator(),
-            new SyncResolverMethodGenerator()
+            new AsyncOnBeforeInvokeMethodGenerator(),
+            new SyncOnBeforeInvokeMethodGenerator(),
+
+            new AsyncOnInvokeMethodGenerator(),
+            new SyncOnInvokeMethodGenerator(),
+
+            new AsyncOnAfterInvokeMethodGenerator(),
+            new SyncOnAfterInvokeMethodGenerator(),
         };
 
         public GeneratedClass Generate(
@@ -72,7 +78,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             var i = 0;
-            foreach (IFieldResolverDescriptor resolverDescriptor in
+            foreach (IDelegateDescriptor resolverDescriptor in
                 resolverDescriptors)
             {
                 ISourceCodeGenerator generator = _generators.First(

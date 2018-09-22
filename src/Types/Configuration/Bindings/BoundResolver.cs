@@ -1,6 +1,6 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {

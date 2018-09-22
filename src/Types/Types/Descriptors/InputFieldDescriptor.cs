@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         public InputFieldDescriptor(PropertyInfo property)
             : base(new InputFieldDescription())
         {
-            InputDescription.Property = property 
+            InputDescription.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             InputDescription.Name = property.GetGraphQLName();
             InputDescription.TypeReference = new TypeReference(property.PropertyType);

@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration

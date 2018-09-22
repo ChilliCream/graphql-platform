@@ -83,7 +83,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as FloatValueNode);
+            if (other is FloatValueNode f)
+            {
+                return Equals(f);
+            }
+
+            return false;
         }
 
         /// <summary>

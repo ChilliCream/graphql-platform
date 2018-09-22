@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
-using CodeGenArgument = HotChocolate.Resolvers.CodeGeneration.ArgumentDescriptor;
+using CodeGenArgument =
+    HotChocolate.Resolvers.CodeGeneration.ArgumentDescriptor;
 
 namespace HotChocolate.Configuration
 {
     internal class ResolverCollectionBindingHandler
         : IResolverBindingHandler
     {
-        private readonly ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
+        private readonly
+            ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
 
         public ResolverCollectionBindingHandler(
             IEnumerable<ResolverCollectionBindingInfo> resolverBindings)
@@ -20,7 +23,8 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(resolverBindings));
             }
-            _resolverBindings = resolverBindings.ToLookup(t => t.ObjectTypeName);
+            _resolverBindings = resolverBindings
+                .ToLookup(t => t.ObjectTypeName);
         }
 
         public void ApplyBinding(
@@ -37,8 +41,10 @@ namespace HotChocolate.Configuration
                 List<IFieldResolverDescriptor> descriptors =
                     CollectPossibleDescriptors(schemaContext.Types, b);
 
-                IEnumerable<IFieldResolverDescriptor> mostSpecificFieldResolvers =
-                    GetMostSpecificFieldResolvers(schemaContext.Types, descriptors);
+                IEnumerable<IFieldResolverDescriptor>
+                    mostSpecificFieldResolvers =
+                        GetMostSpecificFieldResolvers(
+                            schemaContext.Types, descriptors);
 
                 foreach (IFieldResolverDescriptor descriptor in
                     mostSpecificFieldResolvers)
@@ -83,7 +89,8 @@ namespace HotChocolate.Configuration
 
                 foreach (IFieldResolverDescriptor explicitDescriptor in
                     FieldResolverDiscoverer.CreateResolverDescriptors(
-                        resolverBinding.ResolverType, resolverBinding.ObjectType,
+                        resolverBinding.ResolverType,
+                        resolverBinding.ObjectType,
                         selectedResolvers))
                 {
                     // remove implicit declared descriptos for the
@@ -99,8 +106,8 @@ namespace HotChocolate.Configuration
             return descriptors;
         }
 
-        private void RemoveDescriptors(
-            List<IFieldResolverDescriptor> descriptors,
+        private static void RemoveDescriptors(
+            ICollection<IFieldResolverDescriptor> descriptors,
             IEnumerable<IFieldResolverDescriptor> descriptorsToRemove)
         {
             foreach (IFieldResolverDescriptor item in descriptorsToRemove)
@@ -109,15 +116,18 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private IEnumerable<IFieldResolverDescriptor> GetMostSpecificFieldResolvers(
-            ITypeRegistry typeRegistry,
-            IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
+        private IEnumerable<IFieldResolverDescriptor>
+            GetMostSpecificFieldResolvers(
+                ITypeRegistry typeRegistry,
+                IEnumerable<IFieldResolverDescriptor> resolverDescriptors)
         {
-            foreach (IGrouping<FieldReference, IFieldResolverDescriptor> resolverGroup in
+            foreach (IGrouping<FieldReference, IFieldResolverDescriptor>
+                resolverGroup in
                 resolverDescriptors.GroupBy(r => r.Field.ToFieldReference()))
             {
                 FieldReference fieldReference = resolverGroup.Key;
-                if (typeRegistry.TryGetObjectTypeField(fieldReference, out ObjectField field))
+                if (typeRegistry.TryGetObjectTypeField(
+                    fieldReference, out ObjectField field))
                 {
                     foreach (DescriptorWithArguments descriptor in resolverGroup
                         .Select(t => new DescriptorWithArguments(t))
@@ -133,7 +143,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool AllArgumentsMatch(
+        private static bool AllArgumentsMatch(
             ObjectField field,
             IReadOnlyCollection<CodeGenArgument> arguments)
         {
@@ -150,23 +160,29 @@ namespace HotChocolate.Configuration
             return true;
         }
 
-        private string LookupFieldName(ITypeRegistry typeRegistry, FieldMember fieldResolverMember)
+        private string LookupFieldName(
+            ITypeRegistry typeRegistry,
+            FieldMember fieldResolverMember)
         {
+            MemberInfo member = fieldResolverMember.Member;
+
             foreach (ResolverCollectionBindingInfo resolverBinding in
                 _resolverBindings[fieldResolverMember.TypeName])
             {
                 FieldResolverBindungInfo fieldBinding = resolverBinding.Fields
-                    .FirstOrDefault(t => t.FieldMember == fieldResolverMember.Member);
+                    .FirstOrDefault(t => t.FieldMember == member);
                 if (fieldBinding != null)
                 {
                     return fieldBinding.FieldName;
                 }
             }
 
-            if (typeRegistry.TryGetTypeBinding(fieldResolverMember.TypeName, out ObjectTypeBinding binding))
+            if (typeRegistry.TryGetTypeBinding(
+                fieldResolverMember.TypeName,
+                out ObjectTypeBinding binding))
             {
                 FieldBinding fieldBinding = binding.Fields.Values
-                    .FirstOrDefault(t => t.Member == fieldResolverMember.Member);
+                    .FirstOrDefault(t => t.Member == member);
                 if (fieldBinding != null)
                 {
                     return fieldBinding.Name;

@@ -111,6 +111,14 @@ namespace HotChocolate.Execution
                     resolverTask.ResolverResult,
                     executionContext.Options.DeveloperMode);
 
+                if (resolverTask.HasExecutableDirectives)
+                {
+                    await OnAfterInvokeResolverAsync(
+                        resolverTask,
+                        executionContext.Options.DeveloperMode,
+                        cancellationToken);
+                }
+
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(
                     executionContext, resolverTask.ResolverContext,

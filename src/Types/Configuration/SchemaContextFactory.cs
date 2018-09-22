@@ -1,4 +1,4 @@
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 

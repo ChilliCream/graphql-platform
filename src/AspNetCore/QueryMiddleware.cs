@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
             _route = route;
         }
 
-        public async Task Invoke(
+        public async Task InvokeAsync(
             HttpContext context,
             QueryExecuter queryExecuter)
         {

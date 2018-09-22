@@ -6,7 +6,10 @@ namespace HotChocolate.Configuration
 {
     internal class InputFieldBinding
     {
-        public InputFieldBinding(string name, PropertyInfo property, InputField field)
+        public InputFieldBinding(
+            string name,
+            PropertyInfo property,
+            InputField field)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -29,7 +32,9 @@ namespace HotChocolate.Configuration
         }
 
         public string Name { get; }
+
         public PropertyInfo Property { get; }
+
         public InputField Field { get; }
     }
 }

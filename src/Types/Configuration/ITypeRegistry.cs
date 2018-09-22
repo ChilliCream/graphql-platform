@@ -8,14 +8,20 @@ namespace HotChocolate.Configuration
 {
     internal interface ITypeRegistry
     {
-        void RegisterType(INamedType namedType, ITypeBinding typeBinding = null);
+        void RegisterType(
+            INamedType namedType,
+            ITypeBinding typeBinding = null);
+
         void RegisterType(TypeReference typeReference);
 
         T GetType<T>(string typeName) where T : IType;
+
         T GetType<T>(TypeReference typeReference) where T : IType;
 
         bool TryGetType<T>(string typeName, out T type) where T : IType;
-        bool TryGetType<T>(TypeReference typeReference, out T type) where T : IType;
+
+        bool TryGetType<T>(TypeReference typeReference, out T type)
+            where T : IType;
 
         IEnumerable<INamedType> GetTypes();
 
@@ -37,8 +43,10 @@ namespace HotChocolate.Configuration
             out ObjectField field)
         {
             field = null;
-            return typeRegistry.TryGetType(fieldReference.TypeName, out ObjectType ot)
-                && ot.Fields.TryGetField(fieldReference.FieldName, out field);
+            return typeRegistry.TryGetType(
+                    fieldReference.TypeName, out ObjectType ot)
+                && ot.Fields.TryGetField(
+                    fieldReference.FieldName, out field);
         }
     }
 }

@@ -23,22 +23,26 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 new CustomArgumentSourceCodeGenerator()
             }.AsReadOnly();
 
-        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> MiddlewareArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>()
+        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnBeforeInvokeArguments { get; } =
+            new List<ArgumentSourceCodeGenerator>(ResolverArguments)
             {
-                new CancellationTokenArgumentSourceCodeGenerator(),
-                new CustomContextArgumentSourceCodeGenerator(),
-                new DataLoaderArgumentSourceCodeGenerator(),
-                new ContextArgumentSourceCodeGenerator(),
-                new SourceArgumentSourceCodeGenerator(),
-                new ServiceArgumentSourceCodeGenerator(),
-                new SchemaArgumentSourceCodeGenerator(),
-                new QueryDocumentArgumentSourceCodeGenerator(),
-                new OperationDefinitionArgumentSourceCodeGenerator(),
-                new ObjectTypeArgumentSourceCodeGenerator(),
-                new FieldSelectionArgumentSourceCodeGenerator(),
-                new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator()
+                new DirectiveArgumentSourceCodeGenerator(),
+                new DirectiveArgumentArgumentSourceCodeGenerator(),
+                new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
+
+        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnInvokeArguments { get; } =
+            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
+            {
+                new ResolverArgumentSourceCodeGenerator(),
+                new OnInvokeResultArgumentSourceCodeGenerator(),
+            }.AsReadOnly();
+
+        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnAfterInvokeArguments { get; } =
+            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
+            {
+                new ResultArgumentSourceCodeGenerator(),
+            }.AsReadOnly();
+
     }
 }

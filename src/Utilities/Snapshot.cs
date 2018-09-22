@@ -9,17 +9,19 @@ namespace HotChocolate
 {
     public static class Snapshot
     {
-        private static readonly JsonSerializerSettings _settings = new JsonSerializerSettings
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            Formatting = Formatting.Indented,
-            Converters = new[]
+        private static readonly JsonSerializerSettings _settings =
+            new JsonSerializerSettings
             {
-                new StringEnumConverter()
-            }
-        };
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Formatting = Formatting.Indented,
+                Converters = new[]
+                {
+                    new StringEnumConverter()
+                }
+            };
 
-        public static string Current([CallerMemberNameAttribute]string snapshotName = null)
+        public static string Current(
+            [CallerMemberNameAttribute]string snapshotName = null)
         {
             string fielPath = Path.Combine(
                 "__snapshots__", snapshotName + ".json");
@@ -36,10 +38,6 @@ namespace HotChocolate
             }
 
             return null;
-
-            // throw new SnapshotNotFoundException(
-            //     $"The snapshot `{snapshotName}` does not exist." +
-            //     $"{Environment.NewLine}`{fielPath}`");
         }
 
         public static string New(object obj,
@@ -55,7 +53,10 @@ namespace HotChocolate
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
-                catch { }
+                catch
+                {
+                    // ignore any error
+                }
             }
 
             if (obj is string s)

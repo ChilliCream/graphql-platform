@@ -33,7 +33,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.IntValue;
+
         public Location Location { get; }
+
         public string Value { get; }
 
         /// <summary>
@@ -89,7 +91,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as IntValueNode);
+            if (other is NullValueNode n)
+            {
+                return Equals(n);
+            }
+
+            return false;
         }
 
         /// <summary>

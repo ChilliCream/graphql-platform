@@ -8,8 +8,10 @@ namespace HotChocolate.Configuration
     internal class InputObjectTypeBinding
         : ITypeBinding
     {
-        public InputObjectTypeBinding(string name, Type type,
-            InputObjectType inputObjectType, IEnumerable<InputFieldBinding> fields)
+        public InputObjectTypeBinding(
+            string name, Type type,
+            InputObjectType inputObjectType,
+            IEnumerable<InputFieldBinding> fields)
         {
             if (string.IsNullOrEmpty(name))
             {

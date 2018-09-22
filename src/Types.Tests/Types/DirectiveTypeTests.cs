@@ -31,7 +31,8 @@ namespace HotChocolate.Types
             DirectiveType directiveType = new DirectiveType(
                 t => t.Name("Foo")
                     .Location(DirectiveLocation.Field)
-                    .Resolver((dctx, rctx, ct) => "foo"));
+                    .OnInvokeResolver((ctx, dir, exec, ct) =>
+                        Task.FromResult<object>("foo")));
 
             // act
             directiveType = CreateDirective(directiveType);
@@ -95,7 +96,8 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Resolver((dctx, rctx, ct) => "foo");
+                descriptor.OnInvokeResolver((ctx, dir, exec, ct) =>
+                    Task.FromResult<object>("foo"));
             }
         }
 

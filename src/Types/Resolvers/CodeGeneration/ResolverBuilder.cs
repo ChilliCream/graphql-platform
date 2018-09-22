@@ -121,17 +121,17 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 case MiddlewareKind.OnAfterInvoke:
                     return new DirectiveOnAfterInvokeMiddleware(
                         middlewareDescriptor.DirectiveName,
-                        (OnAfterInvokeResolver)field.GetValue(field));
+                        (OnAfterInvokeResolverAsync)field.GetValue(field));
 
                 case MiddlewareKind.OnBeforeInvoke:
                     return new DirectiveOnBeforeInvokeMiddleware(
                         middlewareDescriptor.DirectiveName,
-                        (OnBeforeInvokeResolver)field.GetValue(field));
+                        (OnBeforeInvokeResolverAsync)field.GetValue(field));
 
                 case MiddlewareKind.OnInvoke:
                     return new DirectiveResolverMiddleware(
                         middlewareDescriptor.DirectiveName,
-                        (DirectiveResolver)field.GetValue(field));
+                        (OnInvokeResolverAsync)field.GetValue(field));
 
                 default:
                     throw new NotSupportedException(

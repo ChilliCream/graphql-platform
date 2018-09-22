@@ -18,7 +18,8 @@ namespace HotChocolate.Language
             Description = description;
         }
 
-        public override NodeKind Kind { get; } = NodeKind.InputObjectTypeDefinition;
+        public override NodeKind Kind { get; } =
+            NodeKind.InputObjectTypeDefinition;
         public StringValueNode Description { get; }
     }
 }

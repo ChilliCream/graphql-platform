@@ -4,14 +4,16 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     internal sealed class Directive
         : IDirective
     {
-        private readonly object _customDirective;
-        private readonly DirectiveNode _parsedDirective;
+        private object _customDirective;
+        private DirectiveNode _parsedDirective;
+        private Dictionary<string, ArgumentNode> _arguments;
 
         public Directive(
             DirectiveType directiveType,
@@ -37,13 +39,13 @@ namespace HotChocolate.Types
 
         public DirectiveType Type { get; }
 
-        public OnBeforeInvokeResolver OnBeforeInvokeResolver =>
+        public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver =>
             Type.OnBeforeInvokeResolver;
 
-        public DirectiveResolver OnInvokeResolver =>
+        public OnInvokeResolverAsync OnInvokeResolver =>
             Type.OnInvokeResolver;
 
-        public OnAfterInvokeResolver OnAfterInvokeResolver =>
+        public OnAfterInvokeResolverAsync OnAfterInvokeResolver =>
             Type.OnAfterInvokeResolver;
 
         public bool IsExecutable => Type.IsExecutable;
@@ -55,14 +57,36 @@ namespace HotChocolate.Types
                 return d;
             }
 
-            return default;
+            if (_customDirective is null)
+            {
+                d = CreateCustomDirective<T>();
+                _customDirective = d;
+                return d;
+            }
+
+            return CreateCustomDirective<T>();
         }
 
         public DirectiveNode ToNode()
         {
             if (_parsedDirective is null)
             {
+                var arguments = new List<ArgumentNode>();
+                Type type = _customDirective.GetType();
+                ILookup<string, PropertyInfo> properties = type.GetProperties()
+                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
+                foreach (InputField argument in Type.Arguments)
+                {
+                    PropertyInfo property =
+                        properties[argument.Name].FirstOrDefault();
+                    var value = property?.GetValue(_customDirective);
+
+                    IValueNode valueNode = argument.Type.ParseValue(value);
+                    arguments.Add(new ArgumentNode(argument.Name, valueNode));
+                }
+
+                _parsedDirective = new DirectiveNode(Name, arguments);
             }
 
             return _parsedDirective;
@@ -75,12 +99,19 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(argumentName));
             }
 
-            if (GetArguments().TryGetValue(argumentName,
-                    out ArgumentNode argumentValue)
-                && Type.Arguments.TryGetField(
-                    argumentName, out InputField argument))
+            Dictionary<string, ArgumentNode> arguments = GetArguments();
+            if (arguments.TryGetValue(argumentName, out ArgumentNode argValue)
+                && Type.Arguments.TryGetField(argumentName, out InputField arg))
             {
-                return (T)argument.Type.ParseLiteral(argumentValue.Value);
+                if (typeof(T).IsAssignableFrom(arg.Type.ClrType))
+                {
+                    return (T)arg.Type.ParseLiteral(argValue.Value);
+                }
+                else
+                {
+                    return ValueDeserializer
+                        .ParseLiteral<T>(arg.Type, argValue.Value);
+                }
             }
 
             throw new ArgumentException(
@@ -89,55 +120,51 @@ namespace HotChocolate.Types
         }
 
 
-        private T DeserializeNode<T>()
+        private T CreateCustomDirective<T>()
         {
-            DirectiveNode node = ToNode();
-            Type clrType = typeof(T);
             object obj = Activator.CreateInstance(typeof(T));
 
-            foreach (ArgumentNode argumentValue in node.Arguments)
+            ILookup<string, PropertyInfo> properties =
+                typeof(T).GetProperties()
+                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (InputField argument in Type.Arguments)
             {
-                if (Type.Arguments.TryGetField(
-                    argumentValue.Name.Value,
-                    out InputField argument))
+                PropertyInfo property = properties[argument.Name]
+                    .FirstOrDefault();
+
+                if (property != null)
                 {
-                    DeserializeArgument(argument, argumentValue, clrType, obj);
+                    SetProperty(argument, obj, property);
                 }
             }
 
             return (T)obj;
         }
 
-        private void DeserializeArgument(
-            InputField argument,
-            ArgumentNode argumentValue,
-            Type clrType,
-            object obj)
+        private void SetProperty(InputField argument, object obj, PropertyInfo property)
         {
-            PropertyInfo property;
-            if (argument.Property == null)
+            Dictionary<string, ArgumentNode> arguments = GetArguments();
+            if (arguments.TryGetValue(argument.Name,
+                out ArgumentNode argumentValue))
             {
-                property = clrType.GetProperties().FirstOrDefault(
-                    t => t.Name.Equals(argument.Name,
-                        StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                property = argument.Property;
-            }
+                object parsedValue = ValueDeserializer.ParseLiteral(
+                    argument.Type, property.PropertyType, argumentValue.Value);
 
-            object value = argument.Type.ParseLiteral(argumentValue.Value);
-            property.SetValue(obj, value);
+                ValueDeserializer.SetProperty(
+                    property, argument.Type.IsListType(),
+                    obj, parsedValue);
+            }
         }
 
         private Dictionary<string, ArgumentNode> GetArguments()
         {
-            throw new NotImplementedException();
-        }
+            if (_arguments == null)
+            {
+                _arguments = ToNode().Arguments.ToDictionary(t => t.Name.Value);
+            }
 
-        private static DirectiveNode SerializeCustomDirective(DirectiveType directiveType, object customDirective)
-        {
-            throw new NotImplementedException();
+            return _arguments;
         }
 
         internal static Directive FromDescription(

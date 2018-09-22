@@ -7,6 +7,7 @@ namespace HotChocolate.Language
         , IHasDirectives
     {
         NameNode Name { get; }
+
         StringValueNode Description { get; }
     }
 }

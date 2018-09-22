@@ -31,7 +31,4 @@
     <ProjectReference Include="..\Runtime\Runtime.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Execution\_\" />
-  </ItemGroup>
 </Project>

@@ -81,13 +81,21 @@ namespace HotChocolate.Execution
         }
 
         public IExecutionContext ExecutionContext { get; }
+
         public IResolverContext ResolverContext { get; }
+
         public ImmutableStack<object> Source { get; }
+
         public FieldSelection Selection { get; }
+
         public SelectionSetNode SelectionSet { get; }
+
         public IType Type { get; }
+
         public Path Path { get; }
+
         public object Value { get; }
+
         public bool IsNullable { get; }
 
         public void ReportError(IEnumerable<IQueryError> errors)

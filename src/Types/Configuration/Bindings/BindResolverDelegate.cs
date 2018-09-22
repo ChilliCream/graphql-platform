@@ -1,6 +1,6 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {
@@ -37,7 +37,8 @@ namespace HotChocolate.Configuration
             _bindingInfo.FieldName = fieldName;
         }
 
-        public void To<TObjectType>(Expression<Func<TObjectType, object>> resolver)
+        public void To<TObjectType>(
+            Expression<Func<TObjectType, object>> resolver)
             where TObjectType : class
         {
             if (resolver == null)

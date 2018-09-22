@@ -19,7 +19,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.ListType;
+
         public Location Location { get; }
+
         public ITypeNode Type { get; }
 
         public override string ToString()

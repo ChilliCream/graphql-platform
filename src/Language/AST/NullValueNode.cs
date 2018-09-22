@@ -69,7 +69,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as NullValueNode);
+            if (other is NullValueNode n)
+            {
+                return Equals(n);
+            }
+
+            return false;
         }
 
         /// <summary>

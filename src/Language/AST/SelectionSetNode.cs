@@ -11,12 +11,14 @@ namespace HotChocolate.Language
             IReadOnlyCollection<ISelectionNode> selections)
         {
             Location = location;
-            Selections = selections 
+            Selections = selections
                 ?? throw new ArgumentNullException(nameof(selections));
         }
 
         public NodeKind Kind { get; } = NodeKind.SelectionSet;
+
         public Location Location { get; }
+
         public IReadOnlyCollection<ISelectionNode> Selections { get; }
     }
 }

@@ -16,6 +16,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public override NodeKind Kind { get; } = NodeKind.InterfaceTypeExtension;
+        public override NodeKind Kind { get; } =
+            NodeKind.InterfaceTypeExtension;
     }
 }

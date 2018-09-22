@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
         {
             if (resolverTask.HasExecutableDirectives)
             {
-                return ExecuteDirectiveResolvers(
+                return ExecuteDirectiveResolversAsync(
                     resolverTask, isDeveloperMode,
                     cancellationToken);
             }
@@ -39,6 +39,11 @@ namespace HotChocolate.Execution
         {
             try
             {
+                if (resolverTask.FieldSelection.Field.Resolver == null)
+                {
+                    return null;
+                }
+
                 return resolverTask.FieldSelection.Field.Resolver(
                     resolverTask.ResolverContext,
                     cancellationToken);
@@ -72,7 +77,40 @@ namespace HotChocolate.Execution
             });
         }
 
-        private static object ExecuteDirectiveResolvers(
+        private static async Task<object> ExecuteDirectiveResolversAsync(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            await OnBeforeInvokeResolverAsync(
+                resolverTask,
+                isDeveloperMode,
+                cancellationToken);
+
+            return await OnInvokeResolverAsync(
+                resolverTask,
+                isDeveloperMode,
+                cancellationToken);
+        }
+
+        private static async Task OnBeforeInvokeResolverAsync(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            foreach (IDirective directive in resolverTask.ExecutableDirectives)
+            {
+                if (directive.OnBeforeInvokeResolver != null)
+                {
+                    await directive.OnBeforeInvokeResolver(
+                        resolverTask.ResolverContext,
+                        directive,
+                        cancellationToken);
+                }
+            }
+        }
+
+        private static Task<object> OnInvokeResolverAsync(
             ResolverTask resolverTask,
             bool isDeveloperMode,
             CancellationToken cancellationToken)
@@ -84,11 +122,8 @@ namespace HotChocolate.Execution
             {
                 if (directive.OnInvokeResolver != null)
                 {
-                    var directiveContext =
-                        new DirectiveContext(directive, current);
-
                     current = CreateDirectiveResolverDelegate(
-                        directiveContext, resolverTask,
+                        directive, resolverTask, current,
                         isDeveloperMode, cancellationToken);
                 }
             }
@@ -96,17 +131,38 @@ namespace HotChocolate.Execution
             return current();
         }
 
-        private static object ExecuteDirectiveResolver(
-            IDirectiveContext directiveContext,
+        private static async Task OnAfterInvokeResolverAsync(
             ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            foreach (IDirective directive in resolverTask.ExecutableDirectives)
+            {
+                if (directive.OnAfterInvokeResolver != null)
+                {
+                    resolverTask.ResolverResult =
+                        await directive.OnAfterInvokeResolver(
+                            resolverTask.ResolverContext,
+                            directive,
+                            resolverTask.ResolverResult,
+                            cancellationToken);
+                }
+            }
+        }
+
+        private static async Task<object> ExecuteDirectiveResolverAsync(
+            IDirective directive,
+            ResolverTask resolverTask,
+            Func<Task<object>> resolvePrevious,
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
             try
             {
-                return directiveContext.Directive.OnInvokeResolver(
-                    directiveContext,
+                return await directive.OnInvokeResolver(
                     resolverTask.ResolverContext,
+                    directive,
+                    resolvePrevious,
                     cancellationToken);
             }
             catch (QueryException ex)
@@ -122,15 +178,16 @@ namespace HotChocolate.Execution
         }
 
         private static Func<Task<object>> CreateDirectiveResolverDelegate(
-            IDirectiveContext directiveContext,
+            IDirective directive,
             ResolverTask resolverTask,
+            Func<Task<object>> resolvePrevious,
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
             return new Func<Task<object>>(async () =>
             {
-                object resolverResult = ExecuteDirectiveResolver(
-                    directiveContext, resolverTask,
+                object resolverResult = await ExecuteDirectiveResolverAsync(
+                    directive, resolverTask, resolvePrevious,
                     isDeveloperMode, cancellationToken);
 
                 return await FinalizeResolverResultAsync(

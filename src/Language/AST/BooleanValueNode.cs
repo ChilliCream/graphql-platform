@@ -79,7 +79,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as BooleanValueNode);
+            if (other is BooleanValueNode b)
+            {
+                return Equals(b);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -136,11 +141,11 @@ namespace HotChocolate.Language
         /// </returns>
         public override string ToString()
         {
-            #if NETSTANDARD1_4
+#if NETSTANDARD1_4
             return Value.ToString();
-            #else
+#else
             return Value.ToString(CultureInfo.InvariantCulture);
-            #endif
+#endif
         }
     }
 }

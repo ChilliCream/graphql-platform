@@ -53,7 +53,8 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<IValueNode> Items { get; }
 
-        IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value => Items;
+        IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value =>
+            Items;
 
         /// <summary>
         /// Determines whether the specified <see cref="ListValueNode"/>
@@ -121,7 +122,12 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(other as ListValueNode);
+            if (other is ListValueNode l)
+            {
+                return Equals(l);
+            }
+
+            return false;
         }
 
         /// <summary>

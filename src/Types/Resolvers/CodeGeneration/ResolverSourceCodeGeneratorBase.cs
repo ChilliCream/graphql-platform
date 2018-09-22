@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -20,12 +20,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             GenerateDelegateHeader(delegateName, descriptor, source);
 
-            foreach (ArgumentDescriptor argumentDescriptor in
-                GetArguments(descriptor))
-            {
-                GenerateArgumentInvocation(argumentDescriptor, source);
-                source.AppendLine();
-            }
+            GenerateArgumentDeclaration(descriptor, source);
 
             GenerateResolverInvocation(descriptor, source);
 
@@ -43,6 +38,31 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string delegateName,
             T descriptor,
             StringBuilder source);
+
+        protected void GenerateArguments(
+            DirectiveMiddlewareDescriptor resolverDescriptor,
+            StringBuilder source)
+        {
+            if (resolverDescriptor.Arguments.Count > 0)
+            {
+                string arguments = string.Join(", ",
+                    resolverDescriptor.Arguments
+                        .Select(t => t.VariableName));
+                source.Append(arguments);
+            }
+        }
+
+        protected virtual void GenerateArgumentDeclaration(
+            T descriptor,
+            StringBuilder source)
+        {
+            foreach (ArgumentDescriptor argumentDescriptor in
+                GetArguments(descriptor))
+            {
+                GenerateArgumentInvocation(argumentDescriptor, source);
+                source.AppendLine();
+            }
+        }
 
         protected abstract IEnumerable<ArgumentDescriptor> GetArguments(
             T descriptor);
@@ -82,6 +102,19 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
             source.AppendLine("{");
             source.AppendLine($"return ex.Errors;");
+            source.AppendLine("}");
+        }
+
+        protected void HandleExceptionsAsync(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return System.Threading.Tasks.Task.FromResult<object>(ex.Errors);");
             source.AppendLine("}");
         }
     }

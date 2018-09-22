@@ -27,8 +27,12 @@ namespace HotChocolate.Language
         }
 
         public abstract NodeKind Kind { get; }
+
         public Location Location { get; }
+
         public IReadOnlyCollection<DirectiveNode> Directives { get; }
-        public IReadOnlyCollection<OperationTypeDefinitionNode> OperationTypes { get; }
+
+        public IReadOnlyCollection<OperationTypeDefinitionNode> OperationTypes
+        { get; }
     }
 }

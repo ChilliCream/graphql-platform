@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 

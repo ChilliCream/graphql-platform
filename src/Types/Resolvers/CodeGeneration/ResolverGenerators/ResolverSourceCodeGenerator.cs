@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HotChocolate.Internal;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
