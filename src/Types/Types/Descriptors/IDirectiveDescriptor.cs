@@ -57,6 +57,10 @@ namespace HotChocolate.Types
             Expression<Func<T, object>> method);
 
         // TODO : DOCU
+        IDirectiveTypeDescriptor OnBeforeInvokeResolver<T>(
+            Expression<Action<T>> method);
+
+        // TODO : DOCU
         IDirectiveTypeDescriptor OnInvokeResolver(
             OnInvokeResolverAsync onInvoke);
 
@@ -146,6 +150,10 @@ namespace HotChocolate.Types
         // TODO : DOCU
         new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver<TMiddleware>(
             Expression<Func<TMiddleware, object>> method);
+
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver<TMiddleware>(
+            Expression<Action<TMiddleware>> method);
 
         // TODO : DOCU
         new IDirectiveTypeDescriptor<T> OnInvokeResolver(

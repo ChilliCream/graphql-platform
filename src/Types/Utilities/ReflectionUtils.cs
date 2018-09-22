@@ -17,20 +17,44 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(memberExpression));
             }
 
-            Expression unwrappedExpr = Unwrap(memberExpression);
-            if (TryExtractMemberFromMemberExpression(
-                    typeof(T), unwrappedExpr, out MemberInfo member)
-                || TryExtractMemberFromMemberCallExpression(
-                    typeof(T), unwrappedExpr, out member))
+            MemberInfo member = ExtractMember(
+                typeof(T),
+                Unwrap(memberExpression));
+
+            if (member == null)
             {
-                return member;
+                throw new ArgumentException(
+                    "The member expression must specify a property or method " +
+                    "that is public and that belongs to the " +
+                    $"type {typeof(T).FullName}",
+                    nameof(memberExpression));
             }
 
-            throw new ArgumentException(
-                "The member expression must specify a property or method " +
-                "that is public and that belongs to the " +
-                $"type {typeof(T).FullName}",
-                nameof(memberExpression));
+            return member;
+        }
+
+        public static MemberInfo ExtractMember<T>(
+            this Expression<Action<T>> memberExpression)
+        {
+            if (memberExpression == null)
+            {
+                throw new ArgumentNullException(nameof(memberExpression));
+            }
+
+            MemberInfo member = ExtractMember(
+                typeof(T),
+                Unwrap(memberExpression));
+
+            if (member == null)
+            {
+                throw new ArgumentException(
+                    "The member expression must specify a property or method " +
+                    "that is public and that belongs to the " +
+                    $"type {typeof(T).FullName}",
+                    nameof(memberExpression));
+            }
+
+            return member;
         }
 
         private static bool TryExtractMemberFromMemberExpression(
@@ -69,6 +93,30 @@ namespace HotChocolate.Utilities
                 return u.Operand;
             }
             return memberExpression.Body;
+        }
+
+        private static Expression Unwrap<T>(
+            Expression<Action<T>> memberExpression)
+        {
+            if (memberExpression.Body is UnaryExpression u)
+            {
+                return u.Operand;
+            }
+            return memberExpression.Body;
+        }
+
+        private static MemberInfo ExtractMember(
+            Type type, Expression unwrappedExpr)
+        {
+            if (TryExtractMemberFromMemberExpression(
+                    type, unwrappedExpr, out MemberInfo member)
+                || TryExtractMemberFromMemberCallExpression(
+                    type, unwrappedExpr, out member))
+            {
+                return member;
+            }
+
+            return null;
         }
 
         private static bool TryExtractMemberFromMemberCallExpression(

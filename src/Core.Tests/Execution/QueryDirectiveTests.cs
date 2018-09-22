@@ -12,6 +12,35 @@ namespace HotChocolate.Execution
     public class QueryDirectiveTests
     {
         [Fact]
+        public void OnBeforeInvoke_Delegate_SetState()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnBeforeInvoke(s: \" mno\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void OnBeforeInvoke_SyncGenerated_SetState()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnBeforeInvokeGeneratedSyncDirective" +
+                "(s: \" pqr\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
         public void OnInvoke_Delegate_ExecuteResolverAndAppendArgument()
         {
             // arrange
@@ -24,7 +53,6 @@ namespace HotChocolate.Execution
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
-
 
         [Fact]
         public void OnInvoke_SyncGenerated_Result()
@@ -80,6 +108,8 @@ namespace HotChocolate.Execution
                 c.RegisterDirective<AppendOnInvokeGeneratedSyncWithResultDirective>();
                 c.RegisterDirective<AppendOnInvokeGeneratedSyncDirective>();
                 c.RegisterDirective<AppendOnInvokeGeneratedAsyncWithResolver>();
+                c.RegisterDirective<AppendOnBeforeInvokeDirective>();
+                c.RegisterDirective<AppendOnBeforeInvokeGeneratedSyncDirective>();
 
                 c.RegisterQueryType<Query>();
             });
@@ -87,7 +117,14 @@ namespace HotChocolate.Execution
 
         public class Query
         {
-            public string SayHello() => "Hello";
+            public string SayHello([State]Dictionary<string, string> state)
+            {
+                if (state.TryGetValue("cached", out string s))
+                {
+                    return s;
+                }
+                return "Hello";
+            }
         }
 
         public class AppendOnInvokeDirective
@@ -149,7 +186,37 @@ namespace HotChocolate.Execution
             }
         }
 
+        public class AppendOnBeforeInvokeDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnBeforeInvoke");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnBeforeInvokeResolver((ctx, dir, ct) =>
+                {
+                    var dict = ctx.CustomContext<Dictionary<string, string>>();
+                    dict["cached"] = dir.GetArgument<string>("s");
+                    return Task.CompletedTask;
+                });
+            }
+        }
 
+        public class AppendOnBeforeInvokeGeneratedSyncDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnBeforeInvokeGeneratedSyncDirective");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnBeforeInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnBeforeInvokeResolver(default, default));
+            }
+        }
 
         public class AppendStringAfterResolveDirective
             : DirectiveType
@@ -168,10 +235,18 @@ namespace HotChocolate.Execution
         public class AppendDirectiveMiddleware
         {
             public void OnBeforeInvokeResolver(
-                [Result]string resolverResult,
+                [State]Dictionary<string, string> state,
                 [DirectiveArgument]string s)
             {
+                state["cached"] = s;
+            }
 
+            public Task OnBeforeInvokeResolverAsync(
+                [State]Dictionary<string, string> state,
+                [DirectiveArgument]string s)
+            {
+                state["cached"] = s;
+                return Task.CompletedTask;
             }
 
             public string OnInvokeResolverWithResult(

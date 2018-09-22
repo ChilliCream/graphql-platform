@@ -36,5 +36,5 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
     }
 
-    
+
 }

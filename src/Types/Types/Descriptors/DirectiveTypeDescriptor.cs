@@ -123,19 +123,6 @@ namespace HotChocolate.Types
             DirectiveDescription.Locations.Add(location);
         }
 
-        protected void Resolver(OnInvokeResolverAsync resolver)
-        {
-            if (resolver == null)
-            {
-                throw new ArgumentNullException(nameof(resolver));
-            }
-
-            _middlewares[MiddlewareKind.OnInvoke] = directiveName =>
-                new DirectiveResolverMiddleware(
-                    directiveName,
-                    resolver);
-        }
-
         protected void OnBeforeInvokeResolver(
             OnBeforeInvokeResolverAsync onBeforeInvoke)
         {
@@ -184,6 +171,12 @@ namespace HotChocolate.Types
             BindMethodAsMiddleware(method, MiddlewareKind.OnBeforeInvoke);
         }
 
+        protected void OnBeforeInvokeResolver<T>(
+            Expression<Action<T>> method)
+        {
+            BindMethodAsMiddleware(method, MiddlewareKind.OnBeforeInvoke);
+        }
+
         protected void OnInvokeResolver<T>(
             Expression<Func<T, object>> method)
         {
@@ -205,21 +198,45 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(method));
             }
 
-            if (method.ExtractMember() is MethodInfo m)
+            BindMethodAsMiddleware(
+                typeof(T),
+                method.ExtractMember() as MethodInfo,
+                middlewareKind);
+        }
+
+        private void BindMethodAsMiddleware<T>(
+            Expression<Action<T>> method,
+            MiddlewareKind middlewareKind)
+        {
+            if (method == null)
             {
-                _middlewares[middlewareKind] = directiveName =>
-                    new DirectiveMethodMiddleware(
-                        directiveName,
-                        middlewareKind,
-                        typeof(T),
-                        m);
+                throw new ArgumentNullException(nameof(method));
             }
-            else
+
+            BindMethodAsMiddleware(
+                typeof(T),
+                method.ExtractMember() as MethodInfo,
+                middlewareKind);
+        }
+
+        private void BindMethodAsMiddleware(
+            Type type,
+            MethodInfo method,
+            MiddlewareKind middlewareKind)
+        {
+            if (method == null)
             {
-                throw new ArgumentException(
-                    "Only methods can be bound as directive middlewares.",
-                    nameof(method));
+                throw new ArgumentNullException(
+                    nameof(method),
+                    "Only methods can be bound as directive middlewares.");
             }
+
+            _middlewares[middlewareKind] = directiveName =>
+                new DirectiveMethodMiddleware(
+                    directiveName,
+                    middlewareKind,
+                    type,
+                    method);
         }
 
         #region IDirectiveDescriptor
@@ -279,6 +296,13 @@ namespace HotChocolate.Types
 
         IDirectiveTypeDescriptor IDirectiveTypeDescriptor
             .OnBeforeInvokeResolver<T>(Expression<Func<T, object>> method)
+        {
+            OnBeforeInvokeResolver(method);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor
+            .OnBeforeInvokeResolver<T>(Expression<Action<T>> method)
         {
             OnBeforeInvokeResolver(method);
             return this;
@@ -480,6 +504,14 @@ namespace HotChocolate.Types
         IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
             .OnBeforeInvokeResolver<TMiddleware>(
                 Expression<Func<TMiddleware, object>> method)
+        {
+            OnBeforeInvokeResolver(method);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
+            .OnBeforeInvokeResolver<TMiddleware>(
+                    Expression<Action<TMiddleware>> method)
         {
             OnBeforeInvokeResolver(method);
             return this;

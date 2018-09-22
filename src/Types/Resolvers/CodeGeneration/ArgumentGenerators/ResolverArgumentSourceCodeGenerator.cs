@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -9,7 +11,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected override string Generate(ArgumentDescriptor descriptor)
         {
-            return $"new System.Func<System.Threading.Tasks.Task<{descriptor.Type.GetTypeName()}>>(async () => ({descriptor.Type.GetTypeName()})await exec())";
+            Type expectedValueType = descriptor.Type
+                .GetGenericArguments().Single()
+                .GetGenericArguments().Single();
+
+            return $"new System.Func<System.Threading.Tasks.Task<{expectedValueType.GetTypeName()}>>(async () => ({expectedValueType.GetTypeName()})await exec())";
         }
     }
 }
