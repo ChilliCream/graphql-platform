@@ -8,7 +8,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         where T : IDirectiveMiddlewareDescriptor
     {
         protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
-            ArgumentGeneratorCollections.OnInvokeArguments;
+            ArgumentGeneratorCollections.OnAfterInvokeArguments;
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {

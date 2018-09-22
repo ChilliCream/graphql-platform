@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class AsyncOnAfterInvokeMethodGenerator
-        : OnBeforeInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
+        : OnAfterInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
         protected override void GenerateResolverInvocation(
             DirectiveMiddlewareDescriptor resolverDescriptor,

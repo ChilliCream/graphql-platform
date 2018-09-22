@@ -111,6 +111,50 @@ namespace HotChocolate.Execution
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+        [Fact]
+        public void OnAfterInvoke_Delegate_AppendToResult()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnAfterInvoke(s: \"vw\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void OnAfterInvoke_SyncGenerated_AppendToResult()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnAfterInvokeGeneratedSyncDirective" +
+                "(s: \"xyz\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void OnAfterInvoke_AsyncGenerated_AppendToResult()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnAfterInvokeGeneratedAsyncDirective" +
+                "(s: \"123\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         public static ISchema CreateSchema()
         {
             return Schema.Create(c =>
@@ -119,13 +163,18 @@ namespace HotChocolate.Execution
                     ExecutionScope.Request,
                     s => new Dictionary<string, string>());
 
-                c.RegisterDirective<AppendOnInvokeDirective>();
-                c.RegisterDirective<AppendOnInvokeGeneratedSyncWithResultDirective>();
-                c.RegisterDirective<AppendOnInvokeGeneratedSyncDirective>();
-                c.RegisterDirective<AppendOnInvokeGeneratedAsyncWithResolver>();
-                c.RegisterDirective<AppendOnBeforeInvokeDirective>();
-                c.RegisterDirective<AppendOnBeforeInvokeGeneratedSyncDirective>();
-                c.RegisterDirective<AppendOnBeforeInvokeGeneratedAsyncDirective>();
+                c.RegisterDirective<OnInvokeDirective>();
+                c.RegisterDirective<OnInvokeGeneratedSyncWithResultDirective>();
+                c.RegisterDirective<OnInvokeGeneratedSyncDirective>();
+                c.RegisterDirective<OnInvokeGeneratedAsyncWithResolver>();
+
+                c.RegisterDirective<OnBeforeInvokeDirective>();
+                c.RegisterDirective<OnBeforeInvokeGeneratedSyncDirective>();
+                c.RegisterDirective<OnBeforeInvokeGeneratedAsyncDirective>();
+
+                c.RegisterDirective<OnAfterInvokeDirective>();
+                c.RegisterDirective<OnAfterInvokeGeneratedSyncDirective>();
+                c.RegisterDirective<OnAfterInvokeGeneratedAsyncDirective>();
 
                 c.RegisterQueryType<Query>();
             });
@@ -143,66 +192,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class AppendOnInvokeDirective
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("AppendOnInvoke");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
-                {
-                    string resolverResult = await exec() as string;
-                    return resolverResult + " " + dir.GetArgument<string>("s");
-                });
-            }
-        }
-
-        public class AppendOnInvokeGeneratedSyncWithResultDirective
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("AppendOnInvokeGenSyncWithResult");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
-                    t => t.OnInvokeResolverWithResult(default, default));
-            }
-        }
-
-        public class AppendOnInvokeGeneratedSyncDirective
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("AppendOnInvokeGenSync");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
-                    t => t.OnInvokeResolver(default));
-            }
-        }
-
-        public class AppendOnInvokeGeneratedAsyncWithResolver
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("AppendOnInvokeGenAsyncWithResolver");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
-                    t => t.OnInvokeResolverAsync(default, default));
-            }
-        }
-
-        public class AppendOnBeforeInvokeDirective
+        public class OnBeforeInvokeDirective
             : DirectiveType
         {
             protected override void Configure(
@@ -220,7 +210,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class AppendOnBeforeInvokeGeneratedSyncDirective
+        public class OnBeforeInvokeGeneratedSyncDirective
             : DirectiveType
         {
             protected override void Configure(
@@ -234,8 +224,8 @@ namespace HotChocolate.Execution
             }
         }
 
-         public class AppendOnBeforeInvokeGeneratedAsyncDirective
-            : DirectiveType
+        public class OnBeforeInvokeGeneratedAsyncDirective
+           : DirectiveType
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor descriptor)
@@ -248,13 +238,105 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class AppendStringAfterResolveDirective
+        public class OnInvokeDirective
             : DirectiveType
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor descriptor)
             {
-                descriptor.Name("AppendOnAfter");
+                descriptor.Name("AppendOnInvoke");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
+                {
+                    string resolverResult = await exec() as string;
+                    return resolverResult + " " + dir.GetArgument<string>("s");
+                });
+            }
+        }
+
+        public class OnInvokeGeneratedSyncWithResultDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnInvokeGenSyncWithResult");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnInvokeResolverWithResult(default, default));
+            }
+        }
+
+        public class OnInvokeGeneratedSyncDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnInvokeGenSync");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnInvokeResolver(default));
+            }
+        }
+
+        public class OnInvokeGeneratedAsyncWithResolver
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnInvokeGenAsyncWithResolver");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnInvokeResolverAsync(default, default));
+            }
+        }
+
+
+        public class OnAfterInvokeDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnAfterInvoke");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnAfterInvokeResolver((ctx, dir, res, ct) =>
+                {
+                    string resolverResult = (string)res + " " +
+                        dir.GetArgument<string>("s");
+                    return Task.FromResult<object>(resolverResult);
+                });
+            }
+        }
+
+        public class OnAfterInvokeGeneratedSyncDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnAfterInvokeGeneratedSyncDirective");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnAfterInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnAfterInvokeResolver(default, default));
+            }
+        }
+
+        public class OnAfterInvokeGeneratedAsyncDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnAfterInvokeGeneratedAsyncDirective");
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Argument("s").Type<NonNullType<StringType>>();
                 descriptor.OnAfterInvokeResolver<AppendDirectiveMiddleware>(
@@ -299,12 +381,18 @@ namespace HotChocolate.Execution
                 return (await resolver()) + s;
             }
 
-
-
-            public string OnAfterInvokeResolverAsync(
-                [Result]string resolverResult, [DirectiveArgument]string s)
+            public string OnAfterInvokeResolver(
+                [Result]string resolverResult,
+                [DirectiveArgument]string s)
             {
                 return resolverResult + s;
+            }
+
+            public Task<string> OnAfterInvokeResolverAsync(
+                [Result]string resolverResult,
+                [DirectiveArgument]string s)
+            {
+                return Task.FromResult(resolverResult + s);
             }
         }
     }
