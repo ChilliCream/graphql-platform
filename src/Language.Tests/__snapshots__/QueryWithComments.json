@@ -15,14 +15,7 @@
         "Selections": [
           {
             "Kind": "Field",
-            "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "hero"
-            },
             "Alias": null,
-            "Directives": [],
             "Arguments": [],
             "SelectionSet": {
               "Kind": "SelectionSet",
@@ -30,27 +23,20 @@
               "Selections": [
                 {
                   "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
                   "Location": null,
                   "Name": {
                     "Kind": "Name",
                     "Location": null,
                     "Value": "name"
                   },
-                  "Alias": null,
-                  "Directives": [],
-                  "Arguments": [],
-                  "SelectionSet": null
+                  "Directives": []
                 },
                 {
                   "Kind": "Field",
-                  "Location": null,
-                  "Name": {
-                    "Kind": "Name",
-                    "Location": null,
-                    "Value": "friends"
-                  },
                   "Alias": null,
-                  "Directives": [],
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
@@ -58,22 +44,36 @@
                     "Selections": [
                       {
                         "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
                         "Location": null,
                         "Name": {
                           "Kind": "Name",
                           "Location": null,
                           "Value": "name"
                         },
-                        "Alias": null,
-                        "Directives": [],
-                        "Arguments": [],
-                        "SelectionSet": null
+                        "Directives": []
                       }
                     ]
-                  }
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "friends"
+                  },
+                  "Directives": []
                 }
               ]
-            }
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "hero"
+            },
+            "Directives": []
           }
         ]
       }

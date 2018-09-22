@@ -24,69 +24,25 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }.AsReadOnly();
 
         public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnBeforeInvokeArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>()
+            new List<ArgumentSourceCodeGenerator>(ResolverArguments)
             {
-                new CancellationTokenArgumentSourceCodeGenerator(),
-                new CustomContextArgumentSourceCodeGenerator(),
-                new DataLoaderArgumentSourceCodeGenerator(),
-                new ContextArgumentSourceCodeGenerator(),
-                new SourceArgumentSourceCodeGenerator(),
-                new ServiceArgumentSourceCodeGenerator(),
-                new SchemaArgumentSourceCodeGenerator(),
-                new QueryDocumentArgumentSourceCodeGenerator(),
-                new OperationDefinitionArgumentSourceCodeGenerator(),
-                new ObjectTypeArgumentSourceCodeGenerator(),
-                new FieldSelectionArgumentSourceCodeGenerator(),
-                new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator(),
                 new DirectiveArgumentSourceCodeGenerator(),
                 new DirectiveArgumentArgumentSourceCodeGenerator(),
                 new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
 
         public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnInvokeArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>()
+            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
             {
-                new CancellationTokenArgumentSourceCodeGenerator(),
-                new CustomContextArgumentSourceCodeGenerator(),
-                new DataLoaderArgumentSourceCodeGenerator(),
-                new ContextArgumentSourceCodeGenerator(),
-                new SourceArgumentSourceCodeGenerator(),
-                new ServiceArgumentSourceCodeGenerator(),
-                new SchemaArgumentSourceCodeGenerator(),
-                new QueryDocumentArgumentSourceCodeGenerator(),
-                new OperationDefinitionArgumentSourceCodeGenerator(),
-                new ObjectTypeArgumentSourceCodeGenerator(),
-                new FieldSelectionArgumentSourceCodeGenerator(),
-                new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator(),
                 new ResolverArgumentSourceCodeGenerator(),
                 new OnInvokeResultArgumentSourceCodeGenerator(),
-                new DirectiveArgumentSourceCodeGenerator(),
-                new DirectiveArgumentArgumentSourceCodeGenerator(),
-                new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
 
         public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnAfterInvokeArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>()
+            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
             {
-                new CancellationTokenArgumentSourceCodeGenerator(),
-                new CustomContextArgumentSourceCodeGenerator(),
-                new DataLoaderArgumentSourceCodeGenerator(),
-                new ContextArgumentSourceCodeGenerator(),
-                new SourceArgumentSourceCodeGenerator(),
-                new ServiceArgumentSourceCodeGenerator(),
-                new SchemaArgumentSourceCodeGenerator(),
-                new QueryDocumentArgumentSourceCodeGenerator(),
-                new OperationDefinitionArgumentSourceCodeGenerator(),
-                new ObjectTypeArgumentSourceCodeGenerator(),
-                new FieldSelectionArgumentSourceCodeGenerator(),
-                new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator(),
                 new ResultArgumentSourceCodeGenerator(),
-                new DirectiveArgumentSourceCodeGenerator(),
-                new DirectiveArgumentArgumentSourceCodeGenerator(),
-                new DirectiveObjectArgumentSourceCodeGenerator()
             }.AsReadOnly();
+
     }
 }
