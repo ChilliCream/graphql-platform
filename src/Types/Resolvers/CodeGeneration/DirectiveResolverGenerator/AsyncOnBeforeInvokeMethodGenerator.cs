@@ -11,14 +11,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
-            source.AppendLine("Func<Task<object>> f = async () => {");
+            source.AppendLine("Func<Task> f = async () => {");
 
-            HandleExceptions(source, s =>
-            {
-                s.Append($"await resolver.{resolverDescriptor.Method.Name}(");
-                GenerateArguments(resolverDescriptor, s);
-                s.Append(");");
-            });
+            source.Append($"await resolver.{resolverDescriptor.Method.Name}(");
+            GenerateArguments(resolverDescriptor, source);
+            source.Append(");");
 
             source.AppendLine("};");
             source.Append("return f();");

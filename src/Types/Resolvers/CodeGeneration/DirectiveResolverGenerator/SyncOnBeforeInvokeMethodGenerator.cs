@@ -11,13 +11,10 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
-            HandleExceptionsAsync(source, s =>
-            {
-                s.Append($"resolver.{resolverDescriptor.Method.Name}(");
-                GenerateArguments(resolverDescriptor, s);
-                s.AppendLine(");");
-                s.Append("return System.Threading.Tasks.Task.CompletedTask;");
-            });
+            source.Append($"resolver.{resolverDescriptor.Method.Name}(");
+            GenerateArguments(resolverDescriptor, source);
+            source.AppendLine(");");
+            source.Append("return System.Threading.Tasks.Task.CompletedTask;");
         }
 
         protected override bool CanHandle(

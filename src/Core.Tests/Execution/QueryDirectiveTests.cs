@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @AppendOnBeforeInvoke(s: \" mno\") }");
+                "{ sayHello @AppendOnBeforeInvoke(s: \"mno\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -34,7 +34,22 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result = schema.Execute(
                 "{ sayHello @AppendOnBeforeInvokeGeneratedSyncDirective" +
-                "(s: \" pqr\") }");
+                "(s: \"pqr\") }");
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
+        [Fact]
+        public void OnBeforeInvoke_AsyncGenerated_SetState()
+        {
+            // arrange
+            ISchema schema = CreateSchema();
+
+            // act
+            IExecutionResult result = schema.Execute(
+                "{ sayHello @AppendOnBeforeInvokeGeneratedAsyncDirective" +
+                "(s: \"stu\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -48,7 +63,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @AppendOnInvoke(s: \" abc\") }");
+                "{ sayHello @AppendOnInvoke(s: \"abc\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -62,7 +77,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @AppendOnInvokeGenSyncWithResult(s: \" def\") }");
+                "{ sayHello @AppendOnInvokeGenSyncWithResult(s: \"def\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -76,7 +91,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @AppendOnInvokeGenSync(s: \" ghi\") }");
+                "{ sayHello @AppendOnInvokeGenSync(s: \"ghi\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -90,7 +105,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @AppendOnInvokeGenAsyncWithResolver(s: \" jkl\") }");
+                "{ sayHello @AppendOnInvokeGenAsyncWithResolver(s: \"jkl\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -110,6 +125,7 @@ namespace HotChocolate.Execution
                 c.RegisterDirective<AppendOnInvokeGeneratedAsyncWithResolver>();
                 c.RegisterDirective<AppendOnBeforeInvokeDirective>();
                 c.RegisterDirective<AppendOnBeforeInvokeGeneratedSyncDirective>();
+                c.RegisterDirective<AppendOnBeforeInvokeGeneratedAsyncDirective>();
 
                 c.RegisterQueryType<Query>();
             });
@@ -215,6 +231,20 @@ namespace HotChocolate.Execution
                 descriptor.Argument("s").Type<NonNullType<StringType>>();
                 descriptor.OnBeforeInvokeResolver<AppendDirectiveMiddleware>(
                     t => t.OnBeforeInvokeResolver(default, default));
+            }
+        }
+
+         public class AppendOnBeforeInvokeGeneratedAsyncDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("AppendOnBeforeInvokeGeneratedAsyncDirective");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("s").Type<NonNullType<StringType>>();
+                descriptor.OnBeforeInvokeResolver<AppendDirectiveMiddleware>(
+                    t => t.OnBeforeInvokeResolverAsync(default, default));
             }
         }
 
