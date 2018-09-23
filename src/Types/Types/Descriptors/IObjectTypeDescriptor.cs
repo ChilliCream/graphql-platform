@@ -63,6 +63,16 @@ namespace HotChocolate.Types
         /// The name that the field shall have.
         /// </param>
         IObjectFieldDescriptor Field(string name);
+
+        IObjectTypeDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IObjectTypeDescriptor Directive<T>()
+            where T : class, new();
+
+        IObjectTypeDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 
     public interface IObjectTypeDescriptor<T>
@@ -138,5 +148,15 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod);
+
+        new IObjectTypeDescriptor<T> Directive<TDirective>(TDirective directive)
+            where TDirective : class;
+
+        new IObjectTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
+
+        new IObjectTypeDescriptor<T> Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

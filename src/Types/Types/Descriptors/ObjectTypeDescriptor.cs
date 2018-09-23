@@ -187,6 +187,26 @@ namespace HotChocolate.Types
             return Field(name);
         }
 
+        IObjectTypeDescriptor IObjectTypeDescriptor.Directive<T>(T directive)
+        {
+            ObjectDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Directive<T>()
+        {
+            ObjectDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 
@@ -378,6 +398,27 @@ namespace HotChocolate.Types
             Expression<Func<TResolver, object>> propertyOrMethod)
         {
             return Field(propertyOrMethod);
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive<TDirective>(
+            TDirective directive)
+        {
+            ObjectDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive<TDirective>()
+        {
+            ObjectDescription.Directives.AddDirective(new TDirective());
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
         }
 
         #endregion

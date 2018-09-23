@@ -7,17 +7,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : TypeBase
+        : NamedTypeBase
         , INamedOutputType
         , INamedInputType
         , ISerializableType
-        , IHasDirectives
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();
         private readonly Dictionary<object, EnumValue> _valueToValues =
             new Dictionary<object, EnumValue>();
-        private DirectiveCollection _directives;
 
         protected EnumType()
             : base(TypeKind.Enum)
@@ -35,13 +33,7 @@ namespace HotChocolate.Types
 
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
-
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
-
-        public IDirectiveCollection Directives => _directives;
 
         public bool TryGetValue(string name, out object value)
         {
@@ -178,14 +170,12 @@ namespace HotChocolate.Types
             }
 
             SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
             ClrType = description.NativeType;
 
-            _directives = new DirectiveCollection(
-                DirectiveLocation.Enum,
-                description.Directives);
-            RegisterForInitialization(_directives);
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(
+                    DirectiveLocation.Enum,
+                    description.Directives));
         }
 
         protected override void OnCompleteType(
