@@ -36,6 +36,4 @@ namespace HotChocolate
 
         public string TestProp => "Hello World!";
     }
-
-
 }
