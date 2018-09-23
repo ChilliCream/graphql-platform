@@ -91,7 +91,9 @@ namespace HotChocolate.Types
                 return ev.Value;
             }
 
-            // TODO : This fixes a deserialisation issue when an input object is deserialized from a json string. We should however fix this in the aspnet middleware.
+            // TODO : This fixes a deserialisation issue when an input object
+            // is deserialized from a json string. We should however fix this
+            //in the aspnet middleware.
             if (literal is StringValueNode svn
                 && _nameToValues.TryGetValue(svn.Value, out ev))
             {
@@ -121,8 +123,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a defined enum value of the type " +
-                $"{ClrType.FullName} to be parsed by this enum type.");
+                "The specified value has to be a defined enum value of " +
+                $"the type {ClrType.FullName} to be parsed by this enum type.");
         }
 
         public object Serialize(object value)
@@ -139,7 +141,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be handled by the EnumType `{Name}`.");
+                "The specified value cannot be handled by the " +
+                $"EnumType `{Name}`.");
         }
 
         #endregion
@@ -185,7 +188,8 @@ namespace HotChocolate.Types
             RegisterForInitialization(_directives);
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             if (!Values.Any())
             {
