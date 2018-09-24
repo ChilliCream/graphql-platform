@@ -9,7 +9,7 @@ using HotChocolate.Types.Introspection;
 namespace HotChocolate.Types
 {
     public class ObjectType
-        : TypeBase
+        : NamedTypeBase
         , IComplexOutputType
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
@@ -31,10 +31,6 @@ namespace HotChocolate.Types
         }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
-
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces =>
             _interfaceMap;
@@ -74,8 +70,11 @@ namespace HotChocolate.Types
             _interfaces = description.Interfaces;
 
             SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
+
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(
+                    DirectiveLocation.Object,
+                    description.Directives));
         }
 
         private void InitializeFields(ObjectTypeDescription description)

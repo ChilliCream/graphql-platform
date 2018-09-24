@@ -18,7 +18,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(schema));
         }
 
-
         public IReadOnlyCollection<IDirective> CollectDirectives(
             ObjectType objectType,
             ObjectField field,
