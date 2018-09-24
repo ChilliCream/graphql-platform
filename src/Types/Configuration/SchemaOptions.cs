@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace HotChocolate.Configuration
 {
@@ -7,6 +8,7 @@ namespace HotChocolate.Configuration
     {
         private const int _defaultMaxExecutionDepth = 8;
         private const int _defaultMaxExecutionTimeout = 30;
+        private const int _defaultMaxDevExecutionTimeout = 360;
 
         public string QueryTypeName { get; set; }
 
@@ -18,12 +20,14 @@ namespace HotChocolate.Configuration
             _defaultMaxExecutionDepth;
 
         public TimeSpan ExecutionTimeout { get; set; } =
-            TimeSpan.FromSeconds(_defaultMaxExecutionTimeout);
+            TimeSpan.FromSeconds(Debugger.IsAttached
+                ? _defaultMaxDevExecutionTimeout
+                : _defaultMaxExecutionTimeout);
 
         public IServiceProvider Services { get; set; }
 
         public bool StrictValidation { get; set; } = true;
 
-        public bool DeveloperMode { get; set; } = false;
+        public bool DeveloperMode { get; set; } = Debugger.IsAttached;
     }
 }
