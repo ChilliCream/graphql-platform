@@ -6,7 +6,7 @@ namespace HotChocolate.Execution
     public class SchemaDirectiveTests
     {
         [Fact]
-        public void Foo()
+        public void InheritExecutableDirectiveFromObjectType()
         {
             // arrange
             ISchema schema = CreateSchema();
