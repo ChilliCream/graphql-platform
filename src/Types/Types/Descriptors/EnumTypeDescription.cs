@@ -16,8 +16,5 @@ namespace HotChocolate.Types
             new List<EnumValueDescription>();
 
         public BindingBehavior ValueBindingBehavior { get; set; }
-
-        public List<DirectiveDescription> Directives { get; set; } =
-            new List<DirectiveDescription>();
     }
 }

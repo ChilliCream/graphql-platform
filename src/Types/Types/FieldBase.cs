@@ -34,6 +34,8 @@ namespace HotChocolate.Types
 
         public T Type { get; private set; }
 
+        public IDirectiveCollection Directives { get; private set; }
+
         protected TypeReference TypeReference { get; }
 
         protected override void OnRegisterDependencies(

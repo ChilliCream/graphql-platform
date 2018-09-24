@@ -10,7 +10,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 namespace HotChocolate.Types
 {
     internal class ObjectFieldDescriptor
-        : InterfaceFieldDescriptor
+        : ObjectFieldDescriptorBase
         , IObjectFieldDescriptor
         , IDescriptionFactory<ObjectFieldDescription>
     {
@@ -36,7 +36,6 @@ namespace HotChocolate.Types
 
             _typeName = typeName;
             FieldDescription.Name = fieldName;
-
         }
 
         public ObjectFieldDescriptor(string typeName, Type sourceType,

@@ -21,8 +21,5 @@ namespace HotChocolate.Types
 
         public List<TypeReference> Interfaces { get; set; } =
             new List<TypeReference>();
-
-        public List<DirectiveDescription> Directives { get; set; } =
-            new List<DirectiveDescription>();
     }
 }
