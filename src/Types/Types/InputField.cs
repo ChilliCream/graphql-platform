@@ -10,16 +10,25 @@ namespace HotChocolate.Types
     {
         private readonly object _nativeDefaultValue;
 
-        internal InputField(ArgumentDescription argumentDescription)
-            : base(argumentDescription)
+        private InputField(
+            ArgumentDescription argumentDescription,
+            DirectiveLocation location)
+            : base(argumentDescription, location)
         {
             _nativeDefaultValue = argumentDescription.NativeDefaultValue;
             SyntaxNode = argumentDescription.SyntaxNode;
             DefaultValue = argumentDescription.DefaultValue;
         }
 
+        internal InputField(ArgumentDescription argumentDescription)
+            : this(argumentDescription, DirectiveLocation.ArgumentDefinition)
+        {
+
+        }
+
         internal InputField(InputFieldDescription inputFieldDescription)
-            : this((ArgumentDescription)inputFieldDescription)
+            : this(inputFieldDescription,
+                DirectiveLocation.InputFieldDefinition)
         {
             Property = inputFieldDescription.Property;
         }
