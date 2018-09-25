@@ -5,6 +5,7 @@ namespace HotChocolate.Types
     public class FieldBase<T>
         : TypeSystemBase
         , IField
+        , IHasDirectives
         where T : IType
     {
         protected FieldBase(

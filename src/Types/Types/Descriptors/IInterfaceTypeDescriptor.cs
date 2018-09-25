@@ -16,5 +16,15 @@ namespace HotChocolate.Types
             ResolveAbstractType resolveAbstractType);
 
         IInterfaceFieldDescriptor Field(string name);
+
+        IInterfaceTypeDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IInterfaceTypeDescriptor Directive<T>()
+            where T : class, new();
+
+        IInterfaceTypeDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

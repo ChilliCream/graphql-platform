@@ -160,14 +160,9 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
-            foreach (INeedsInitialization field in
-                Fields.Cast<INeedsInitialization>())
-            {
-                field.CompleteType(context);
-            }
-
             CompleteIsOfType();
             CompleteInterfaces(context);
+            CompleteFields(context);
         }
 
         private void CompleteIsOfType()
@@ -257,6 +252,15 @@ namespace HotChocolate.Types
                             this));
                     }
                 }
+            }
+        }
+
+        private void CompleteFields(ITypeInitializationContext context)
+        {
+            foreach (INeedsInitialization field in
+                Fields.Cast<INeedsInitialization>())
+            {
+                field.CompleteType(context);
             }
         }
 
