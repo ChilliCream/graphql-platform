@@ -18,6 +18,7 @@ namespace HotChocolate.Execution
         private readonly ISchema _schema;
         private readonly DocumentNode _queryDocument;
         private readonly OperationDefinitionNode _operation;
+        private readonly DirectiveLookup _directiveLookup;
         private readonly TimeSpan _executionTimeout;
         private readonly VariableValueBuilder _variableValueBuilder;
         private readonly IExecutionStrategy _strategy;

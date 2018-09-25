@@ -149,12 +149,9 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets all directive that lie in the specified scope.
         /// </summary>
-        /// <param name="scope">
-        /// The directive scope.
-        /// </param>
         /// <returns>
         /// Returns all directive that lie in the specified scope.
         /// </returns>
-        IEnumerable<IDirective> Directives(DirectiveScope scope);
+        IEnumerable<IDirective> Directives();
     }
 }

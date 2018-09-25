@@ -13,6 +13,7 @@ namespace HotChocolate.Execution
     {
         private readonly List<IQueryError> _errors = new List<IQueryError>();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
+        private readonly DirectiveLookup _directiveLookup;
         private readonly FieldCollector _fieldCollector;
         private readonly DirectiveCollector _directiveCollector;
         private readonly ISession _session;
@@ -23,6 +24,7 @@ namespace HotChocolate.Execution
 
         public ExecutionContext(
             ISchema schema,
+            DirectiveLookup directiveLookup,
             DocumentNode queryDocument,
             OperationDefinitionNode operation,
             OperationRequest request,
@@ -35,6 +37,8 @@ namespace HotChocolate.Execution
 
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
+            _directiveLookup = directiveLookup
+                ?? throw new ArgumentNullException(nameof(directiveLookup));
             QueryDocument = queryDocument
                 ?? throw new ArgumentNullException(nameof(queryDocument));
             Operation = operation
