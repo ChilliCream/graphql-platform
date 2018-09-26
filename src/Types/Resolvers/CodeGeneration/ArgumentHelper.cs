@@ -35,18 +35,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             Type sourceType,
             out ArgumentKind argumentKind)
         {
-            if (sourceType == null)
-            {
-                argumentKind = default(ArgumentKind);
-                return false;
-            }
-
-            if (parameter.ParameterType == sourceType || parameter.IsParent())
-            {
-                argumentKind = ArgumentKind.Source;
-                return true;
-            }
-
             if (parameter.ParameterType == typeof(IResolverContext))
             {
                 argumentKind = ArgumentKind.Context;
@@ -56,6 +44,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
             if (parameter.ParameterType == typeof(CancellationToken))
             {
                 argumentKind = ArgumentKind.CancellationToken;
+                return true;
+            }
+
+            if (sourceType == null)
+            {
+                argumentKind = default(ArgumentKind);
+                return false;
+            }
+
+            if (parameter.ParameterType == sourceType || parameter.IsParent())
+            {
+                argumentKind = ArgumentKind.Source;
                 return true;
             }
 

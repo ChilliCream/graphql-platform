@@ -86,7 +86,6 @@ namespace HotChocolate.Execution
             List<IDirective> directives = new List<IDirective>();
 
             CollectSelectionDirectives(processed, directives, fieldSelection);
-            // CollectFieldDirectives(processed, directives, field.Arguments);
             CollectFieldDirectives(processed, directives, field);
             CollectFieldDirectives(processed, directives,
                 field.InterfaceFields);

@@ -9,6 +9,8 @@ namespace HotChocolate.Types
 
         DirectiveType Type { get; }
 
+        object Source { get; }
+
         OnBeforeInvokeResolverAsync OnBeforeInvokeResolver { get; }
 
         OnInvokeResolverAsync OnInvokeResolver { get; }
