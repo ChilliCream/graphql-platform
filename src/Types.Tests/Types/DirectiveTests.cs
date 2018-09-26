@@ -22,7 +22,8 @@ namespace HotChocolate.Types
             };
 
             // act
-            var directive = new Directive(directiveType, fooDirective);
+            var directive = new Directive(
+                directiveType, fooDirective, new object());
             DirectiveNode directiveNode = directive.ToNode();
 
             // assert
@@ -62,7 +63,8 @@ namespace HotChocolate.Types
             };
 
             // act
-            var directive = new Directive(directiveType, fooDirective);
+            var directive = new Directive(
+                directiveType, fooDirective, new object());
             FooChild mappedObject = directive.ToObject<FooChild>();
 
             // assert
@@ -85,7 +87,8 @@ namespace HotChocolate.Types
             };
 
             // act
-            var directive = new Directive(directiveType, fooDirective);
+            var directive = new Directive(
+                directiveType, fooDirective, new object());
             string barValue = directive.GetArgument<string>("bar");
 
             // assert
@@ -108,7 +111,8 @@ namespace HotChocolate.Types
             };
 
             // act
-            var directive = new Directive(directiveType, fooDirective);
+            var directive = new Directive(
+                directiveType, fooDirective, new object());
             FooChild2 barValue = directive.GetArgument<FooChild2>("child");
 
             // assert

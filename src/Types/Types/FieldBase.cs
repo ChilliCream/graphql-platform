@@ -29,6 +29,7 @@ namespace HotChocolate.Types
             TypeReference = description.TypeReference;
 
             var directives = new DirectiveCollection(
+                this,
                 location,
                 description.Directives);
             RegisterForInitialization(directives);

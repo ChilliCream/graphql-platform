@@ -107,6 +107,7 @@ namespace HotChocolate.Types
 
             Initialize(description.Name, description.Description,
                 new DirectiveCollection(
+                    this,
                     DirectiveLocation.InputObject,
                     description.Directives));
         }

@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
             ");
 
             // act
-            var collector = new DirectiveCollector2(schema);
+            var collector = new DirectiveCollector(schema);
             collector.VisitDocument(query);
 
         }

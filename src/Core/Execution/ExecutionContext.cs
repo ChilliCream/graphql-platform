@@ -15,7 +15,6 @@ namespace HotChocolate.Execution
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly DirectiveLookup _directiveLookup;
         private readonly FieldCollector _fieldCollector;
-        private readonly DirectiveCollector _directiveCollector;
         private readonly ISession _session;
         private readonly IResolverCache _resolverCache;
         private readonly bool _disposeRootValue;
@@ -53,7 +52,6 @@ namespace HotChocolate.Execution
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);
-            _directiveCollector = new DirectiveCollector(schema);
             OperationType = schema.GetOperationType(operation.Operation);
             RootValue = ResolveRootValue(request.Services, schema,
                 OperationType, request.InitialValue);
@@ -116,14 +114,12 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, ReportError);
         }
 
-        public IReadOnlyCollection<IDirective> CollectDirectives(
+        public IReadOnlyCollection<IDirective> GetExecutableDirectives(
             ObjectType objectType,
-            FieldSelection fieldSelection,
-            DirectiveScope scope)
+            FieldNode fieldSelection)
         {
-            return _directiveCollector.CollectDirectives(
-                objectType, fieldSelection.Field,
-                fieldSelection.Selection, scope);
+            return _directiveLookup.GetDirectives(
+                objectType, fieldSelection);
         }
 
         public T GetResolver<T>()

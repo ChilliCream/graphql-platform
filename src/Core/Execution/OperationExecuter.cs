@@ -45,6 +45,10 @@ namespace HotChocolate.Execution
                 throw new NotSupportedException();
             }
             _strategy = strategy;
+
+            var directiveCollector = new DirectiveCollector(_schema);
+            directiveCollector.VisitDocument(_queryDocument);
+            _directiveLookup = directiveCollector.CreateLookup();
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
@@ -81,7 +85,8 @@ namespace HotChocolate.Execution
                 .CreateValues(request.VariableValues);
 
             var executionContext = new ExecutionContext(
-                _schema, _queryDocument, _operation, request, variables);
+                _schema, _directiveLookup, _queryDocument,
+                _operation, request, variables);
 
             return executionContext;
         }
