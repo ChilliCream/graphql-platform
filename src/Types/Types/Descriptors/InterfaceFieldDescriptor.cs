@@ -5,103 +5,26 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class InterfaceFieldDescriptor
-        : IInterfaceFieldDescriptor
+        : ObjectFieldDescriptorBase
+        , IInterfaceFieldDescriptor
         , IDescriptionFactory<InterfaceFieldDescription>
     {
-        protected InterfaceFieldDescriptor(
-            InterfaceFieldDescription fieldDescription)
-        {
-            FieldDescription = fieldDescription
-                ?? throw new ArgumentNullException(nameof(fieldDescription));
-        }
-
         public InterfaceFieldDescriptor(string name)
+            : base(new InterfaceFieldDescription { Name = name })
         {
-            FieldDescription = new InterfaceFieldDescription { Name = name };
         }
 
         public InterfaceFieldDescriptor()
+            : base(new InterfaceFieldDescription())
         {
-            FieldDescription = new InterfaceFieldDescription();
         }
 
-        protected InterfaceFieldDescription FieldDescription { get; }
+        protected new InterfaceFieldDescription FieldDescription =>
+            (InterfaceFieldDescription)base.FieldDescription;
 
-        public InterfaceFieldDescription CreateDescription()
+        public new InterfaceFieldDescription CreateDescription()
         {
             return FieldDescription;
-        }
-
-        protected void SyntaxNode(FieldDefinitionNode syntaxNode)
-        {
-            FieldDescription.SyntaxNode = syntaxNode;
-        }
-
-        protected void Name(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(name));
-            }
-
-            FieldDescription.Name = name;
-        }
-
-        protected void Description(string description)
-        {
-            FieldDescription.Description = description;
-        }
-
-        protected void Type<TOutputType>() where TOutputType : IOutputType
-        {
-            FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(typeof(TOutputType));
-        }
-
-        protected void Type(ITypeNode type)
-        {
-            FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(type);
-        }
-
-        protected void Argument(string name, Action<IArgumentDescriptor> argument)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The argument name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL argument name.",
-                    nameof(name));
-            }
-
-            if (argument == null)
-            {
-                throw new ArgumentNullException(nameof(argument));
-            }
-
-            var descriptor = new ArgumentDescriptor(name);
-            argument(descriptor);
-            FieldDescription.Arguments.Add(descriptor.CreateDescription());
-        }
-
-        protected void DeprecationReason(string deprecationReason)
-        {
-            FieldDescription.DeprecationReason = deprecationReason;
         }
 
         #region IInterfaceFieldDescriptor
@@ -150,6 +73,27 @@ namespace HotChocolate.Types
             string name, Action<IArgumentDescriptor> argument)
         {
             Argument(name, argument);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive<T>(
+            T directive)
+        {
+            FieldDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive<T>()
+        {
+            FieldDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            FieldDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

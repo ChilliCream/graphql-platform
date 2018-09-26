@@ -15,29 +15,39 @@ namespace HotChocolate.Types
         private DirectiveNode _parsedDirective;
         private Dictionary<string, ArgumentNode> _arguments;
 
-        public Directive(
+        internal Directive(
             DirectiveType directiveType,
-            DirectiveNode parsedDirective)
+            DirectiveNode parsedDirective,
+            object source)
         {
             Type = directiveType
                 ?? throw new ArgumentNullException(nameof(directiveType));
             _parsedDirective = parsedDirective
                 ?? throw new ArgumentNullException(nameof(parsedDirective));
+            Source = source
+                ?? throw new ArgumentNullException(nameof(source));
             Name = directiveType.Name;
         }
 
-        public Directive(DirectiveType directiveType, object customDirective)
+        internal Directive(
+            DirectiveType directiveType,
+            object customDirective,
+            object source)
         {
             Type = directiveType
                 ?? throw new ArgumentNullException(nameof(directiveType));
             _customDirective = customDirective
                 ?? throw new ArgumentNullException(nameof(customDirective));
+            Source = source
+                ?? throw new ArgumentNullException(nameof(source));
             Name = directiveType.Name;
         }
 
         public string Name { get; }
 
         public DirectiveType Type { get; }
+
+        public object Source { get; }
 
         public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver =>
             Type.OnBeforeInvokeResolver;
@@ -169,7 +179,8 @@ namespace HotChocolate.Types
 
         internal static Directive FromDescription(
             DirectiveType directiveType,
-            DirectiveDescription description)
+            DirectiveDescription description,
+            object source)
         {
             if (directiveType == null)
             {
@@ -181,15 +192,22 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(description));
             }
 
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             if (description.CustomDirective is null)
             {
                 return new Directive(directiveType,
-                    description.ParsedDirective);
+                    description.ParsedDirective,
+                    source);
             }
             else
             {
                 return new Directive(directiveType,
-                    description.CustomDirective);
+                    description.CustomDirective,
+                    source);
             }
         }
     }

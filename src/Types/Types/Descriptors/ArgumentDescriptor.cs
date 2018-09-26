@@ -144,6 +144,27 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IArgumentDescriptor IArgumentDescriptor.Directive<T>(
+            T directive)
+        {
+            InputDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IArgumentDescriptor IArgumentDescriptor.Directive<T>()
+        {
+            InputDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IArgumentDescriptor IArgumentDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            InputDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 }

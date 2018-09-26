@@ -116,7 +116,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private IEnumerable<IFieldResolverDescriptor>
+        private static IEnumerable<IFieldResolverDescriptor>
             GetMostSpecificFieldResolvers(
                 ITypeRegistry typeRegistry,
                 IEnumerable<IFieldResolverDescriptor> resolverDescriptors)

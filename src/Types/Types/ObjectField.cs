@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class ObjectField
-        : InterfaceField
+        : ObjectFieldBase
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();

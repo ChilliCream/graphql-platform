@@ -59,7 +59,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.NotNull(directive);
-            Assert.IsType<IncludeDirective>(directive);
+            Assert.IsType<IncludeDirectiveType>(directive);
             Assert.Equal("include", directive.Name);
             Assert.Collection(directive.Arguments,
                 t =>

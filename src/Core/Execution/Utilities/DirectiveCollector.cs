@@ -1,6 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -9,44 +9,96 @@ using HotChocolate.Types;
 namespace HotChocolate.Execution
 {
     internal sealed class DirectiveCollector
+        : Validation.QueryVisitor
     {
-        private readonly ISchema _schema;
+        private readonly IDictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>> _directiveLookup =
+            new Dictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>>();
 
         public DirectiveCollector(ISchema schema)
+            : base(schema)
         {
-            _schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
         }
 
+        public DirectiveLookup CreateLookup()
+        {
+            return new DirectiveLookup(_directiveLookup);
+        }
 
-        public IReadOnlyCollection<IDirective> CollectDirectives(
-            ObjectType objectType,
-            ObjectField field,
+        protected override void VisitField(
             FieldNode fieldSelection,
-            DirectiveScope scope)
+            IType type,
+            ImmutableStack<ISyntaxNode> path)
+        {
+            CollectDirectives(fieldSelection, type);
+            base.VisitField(fieldSelection, type, path);
+        }
+
+        public void CollectDirectives(
+            FieldNode fieldSelection,
+            IType type)
+        {
+            if (type is ObjectType ot)
+            {
+                if (ot.Fields.TryGetField(
+                    fieldSelection.Name.Value,
+                    out ObjectField field))
+                {
+                    UpdateDirectiveLookup(ot, fieldSelection,
+                        CollectDirectives(fieldSelection, ot, field));
+                }
+            }
+            else if (type.IsAbstractType() && type is INamedType nt)
+            {
+                foreach (ObjectType ot2 in Schema.GetPossibleTypes(nt))
+                {
+                    if (ot2.Fields.TryGetField(
+                        fieldSelection.Name.Value,
+                        out ObjectField field))
+                    {
+                        UpdateDirectiveLookup(ot2, fieldSelection,
+                            CollectDirectives(fieldSelection, ot2, field));
+                    }
+                }
+            }
+        }
+
+        private void UpdateDirectiveLookup(
+            ObjectType type,
+            FieldNode fieldSelection,
+            IReadOnlyCollection<IDirective> directives)
+        {
+            if (!_directiveLookup.TryGetValue(
+                type, out var selectionToDirectives))
+            {
+                selectionToDirectives =
+                    new Dictionary<FieldNode, IReadOnlyCollection<IDirective>>();
+                _directiveLookup[type] = selectionToDirectives;
+            }
+            selectionToDirectives[fieldSelection] = directives;
+        }
+
+        private IReadOnlyCollection<IDirective> CollectDirectives(
+            FieldNode fieldSelection,
+            ObjectType type,
+            ObjectField field)
         {
             HashSet<string> processed = new HashSet<string>();
-            Stack<IDirective> directives = new Stack<IDirective>();
+            List<IDirective> directives = new List<IDirective>();
 
             CollectSelectionDirectives(processed, directives, fieldSelection);
+            CollectFieldDirectives(processed, directives, field);
+            CollectFieldDirectives(processed, directives,
+                field.InterfaceFields);
+            CollectTypeDirectives(processed, directives, type);
+            CollectTypeDirectives(processed, directives,
+                type.Interfaces.Values);
 
-            if (scope == DirectiveScope.All)
-            {
-                CollectFieldDirectives(processed, directives, field);
-                CollectFieldDirectives(processed, directives,
-                    field.InterfaceFields);
-
-                CollectTypeDirectives(processed, directives, objectType);
-                CollectTypeDirectives(processed, directives,
-                    objectType.Interfaces.Values);
-            }
-
-            return directives;
+            return directives.AsReadOnly();
         }
 
         private void CollectSelectionDirectives(
             HashSet<string> processed,
-            Stack<IDirective> directives,
+            List<IDirective> directives,
             FieldNode fieldSelection)
         {
             foreach (IDirective directive in
@@ -54,7 +106,7 @@ namespace HotChocolate.Execution
             {
                 if (processed.Add(directive.Name))
                 {
-                    directives.Push(directive);
+                    directives.Add(directive);
                 }
             }
         }
@@ -64,17 +116,21 @@ namespace HotChocolate.Execution
         {
             foreach (DirectiveNode directive in fieldSelection.Directives)
             {
-                if (_schema.TryGetDirectiveType(directive.Name.Value,
+                if (Schema.TryGetDirectiveType(directive.Name.Value,
                     out DirectiveType directiveType))
                 {
-                    yield return new Directive(directiveType, directive);
+                    if (directiveType.IsExecutable)
+                    {
+                        yield return new Directive(
+                            directiveType, directive, fieldSelection);
+                    }
                 }
             }
         }
 
         private void CollectFieldDirectives(
             HashSet<string> processed,
-            Stack<IDirective> directives,
+            List<IDirective> directives,
             IEnumerable<IField> fields)
         {
             foreach (IField field in fields)
@@ -85,16 +141,17 @@ namespace HotChocolate.Execution
 
         private void CollectFieldDirectives(
             HashSet<string> processed,
-            Stack<IDirective> directives,
+            List<IDirective> directives,
             IField field)
         {
             if (field is Types.IHasDirectives d)
             {
-                foreach (IDirective directive in d.Directives)
+                foreach (IDirective directive in
+                    d.Directives.Where(t => t.IsExecutable))
                 {
                     if (processed.Add(directive.Name))
                     {
-                        directives.Push(directive);
+                        directives.Add(directive);
                     }
                 }
             }
@@ -102,10 +159,10 @@ namespace HotChocolate.Execution
 
         private void CollectTypeDirectives(
             HashSet<string> processed,
-            Stack<IDirective> directives,
-            IEnumerable<TypeBase> types)
+            List<IDirective> directives,
+            IEnumerable<IOutputType> types)
         {
-            foreach (TypeBase type in types)
+            foreach (IOutputType type in types)
             {
                 CollectTypeDirectives(processed, directives, type);
             }
@@ -113,16 +170,17 @@ namespace HotChocolate.Execution
 
         private void CollectTypeDirectives(
             HashSet<string> processed,
-            Stack<IDirective> directives,
-            TypeBase type)
+            List<IDirective> directives,
+            IOutputType type)
         {
             if (type is Types.IHasDirectives d)
             {
-                foreach (IDirective directive in d.Directives)
+                foreach (IDirective directive in
+                    d.Directives.Where(t => t.IsExecutable))
                 {
                     if (processed.Add(directive.Name))
                     {
-                        directives.Push(directive);
+                        directives.Add(directive);
                     }
                 }
             }

@@ -12,27 +12,27 @@ namespace HotChocolate.Types
         protected List<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
-        protected InterfaceTypeDescription ObjectDescription { get; } =
+        protected InterfaceTypeDescription InterfaceDescription { get; } =
             new InterfaceTypeDescription();
 
         public InterfaceTypeDescription CreateDescription()
         {
             CompleteFields();
-            return ObjectDescription;
+            return InterfaceDescription;
         }
 
         protected virtual void CompleteFields()
         {
             foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
             {
-                ObjectDescription.Fields.Add(
+                InterfaceDescription.Fields.Add(
                     fieldDescriptor.CreateDescription());
             }
         }
 
         protected void SyntaxNode(InterfaceTypeDefinitionNode syntaxNode)
         {
-            ObjectDescription.SyntaxNode = syntaxNode;
+            InterfaceDescription.SyntaxNode = syntaxNode;
         }
 
         protected void Name(string name)
@@ -51,11 +51,11 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            ObjectDescription.Name = name;
+            InterfaceDescription.Name = name;
         }
         protected void Description(string description)
         {
-            ObjectDescription.Description = description;
+            InterfaceDescription.Description = description;
         }
 
         protected InterfaceFieldDescriptor Field(string name)
@@ -82,7 +82,7 @@ namespace HotChocolate.Types
         protected void ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            ObjectDescription.ResolveAbstractType = resolveAbstractType
+            InterfaceDescription.ResolveAbstractType = resolveAbstractType
                 ?? throw new ArgumentNullException(nameof(resolveAbstractType));
         }
 
@@ -115,6 +115,27 @@ namespace HotChocolate.Types
             ResolveAbstractType resolveAbstractType)
         {
             ResolveAbstractType(resolveAbstractType);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive<T>(
+            T directive)
+        {
+            InterfaceDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive<T>()
+        {
+            InterfaceDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            InterfaceDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

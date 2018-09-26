@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal sealed class DirectiveDescription
+    public sealed class DirectiveDescription
     {
         public DirectiveDescription(DirectiveNode parsedDirective)
         {

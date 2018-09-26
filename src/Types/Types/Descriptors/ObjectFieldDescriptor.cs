@@ -10,7 +10,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 namespace HotChocolate.Types
 {
     internal class ObjectFieldDescriptor
-        : InterfaceFieldDescriptor
+        : ObjectFieldDescriptorBase
         , IObjectFieldDescriptor
         , IDescriptionFactory<ObjectFieldDescription>
     {
@@ -36,7 +36,6 @@ namespace HotChocolate.Types
 
             _typeName = typeName;
             FieldDescription.Name = fieldName;
-
         }
 
         public ObjectFieldDescriptor(string typeName, Type sourceType,
@@ -186,6 +185,26 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(FieldResolverDelegate fieldResolver, Type resultType)
         {
             Resolver(fieldResolver, resultType);
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Directive<T>(T directive)
+        {
+            FieldDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Directive<T>()
+        {
+            FieldDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            FieldDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

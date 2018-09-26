@@ -159,15 +159,5 @@ namespace HotChocolate.Execution
 
         public void ReportError(IQueryError error)
             => _executionContext.ReportError(error);
-
-        public IDirective Directive(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<IDirective> Directives(DirectiveScope scope)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

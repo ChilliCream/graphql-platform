@@ -21,5 +21,15 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Type(ITypeNode type);
 
         IInterfaceFieldDescriptor Argument(string name, Action<IArgumentDescriptor> argument);
+
+        IInterfaceFieldDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IInterfaceFieldDescriptor Directive<T>()
+            where T : class, new();
+
+        IInterfaceFieldDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

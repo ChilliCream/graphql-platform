@@ -16,6 +16,16 @@ namespace HotChocolate.Types
         IArgumentDescriptor DefaultValue(IValueNode defaultValue);
 
         IArgumentDescriptor DefaultValue(object defaultValue);
+
+        IArgumentDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IArgumentDescriptor Directive<T>()
+            where T : class, new();
+
+        IArgumentDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 
     public interface IDirectiveArgumentDescriptor

@@ -1,0 +1,18 @@
+{
+  "Data": {
+    "sayHello": null
+  },
+  "Errors": [
+    {
+      "ArgumentName": "name",
+      "FieldName": "sayHello",
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Message": "Argument is not valid."
+    }
+  ]
+}

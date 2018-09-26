@@ -1,9 +1,9 @@
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
-    public class IncludeDirective
+    public class IncludeDirectiveType
         : DirectiveType
     {
-        internal IncludeDirective()
+        internal IncludeDirectiveType()
         {
         }
 

@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : TypeBase
+        : NamedTypeBase
         , INamedInputType
     {
         private Func<ObjectValueNode, object> _deserialize;
@@ -24,10 +24,6 @@ namespace HotChocolate.Types
         }
 
         public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
-
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
 
         public FieldCollection<InputField> Fields { get; private set; }
 
@@ -106,10 +102,14 @@ namespace HotChocolate.Types
             InputObjectTypeDescription description = descriptor.CreateDescription();
             ClrType = description.NativeType;
             SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
             Fields = new FieldCollection<InputField>(
                 description.Fields.Select(t => new InputField(t)));
+
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(
+                    this,
+                    DirectiveLocation.InputObject,
+                    description.Directives));
         }
 
         protected override void OnRegisterDependencies(

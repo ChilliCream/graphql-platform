@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     internal class ObjectFieldDescription
-        : InterfaceFieldDescription
+        : ObjectFieldDescriptionBase
     {
         public Type SourceType { get; set; }
 

@@ -10,13 +10,16 @@ namespace HotChocolate.Types
         , IDirectiveCollection
     {
         private readonly List<IDirective> _directives = new List<IDirective>();
+        private readonly TypeSystemBase _source;
         private readonly DirectiveLocation _location;
-        private IReadOnlyCollection<DirectiveDescription> _descriptions;
+        private readonly IReadOnlyCollection<DirectiveDescription> _descriptions;
 
         internal DirectiveCollection(
+            TypeSystemBase source,
             DirectiveLocation location,
             IReadOnlyCollection<DirectiveDescription> directiveDescriptions)
         {
+            _source = source;
             _location = location;
             _descriptions = directiveDescriptions
                 ?? throw new ArgumentNullException(
@@ -49,7 +52,7 @@ namespace HotChocolate.Types
                 if (type.Locations.Contains(_location))
                 {
                     _directives.Add(
-                        Directive.FromDescription(type, description));
+                        Directive.FromDescription(type, description, _source));
                 }
                 else
                 {

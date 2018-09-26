@@ -22,15 +22,25 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Type(ITypeNode type);
 
-        IObjectFieldDescriptor Argument(string name, 
+        IObjectFieldDescriptor Argument(string name,
             Action<IArgumentDescriptor> argument);
 
         IObjectFieldDescriptor Ignore();
 
         IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver);
 
-        IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver, 
+        IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver,
             Type resultType);
+
+        IObjectFieldDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IObjectFieldDescriptor Directive<T>()
+            where T : class, new();
+
+        IObjectFieldDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 
     public static class ObjectFieldDescriptorExtensions

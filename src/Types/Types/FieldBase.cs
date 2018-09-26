@@ -5,9 +5,12 @@ namespace HotChocolate.Types
     public class FieldBase<T>
         : TypeSystemBase
         , IField
+        , IHasDirectives
         where T : IType
     {
-        protected FieldBase(FieldDescriptionBase description)
+        protected FieldBase(
+            FieldDescriptionBase description,
+            DirectiveLocation location)
         {
             if (description == null)
             {
@@ -24,6 +27,14 @@ namespace HotChocolate.Types
             Name = description.Name;
             Description = description.Description;
             TypeReference = description.TypeReference;
+
+            var directives = new DirectiveCollection(
+                this,
+                location,
+                description.Directives);
+            RegisterForInitialization(directives);
+
+            Directives = directives;
         }
 
         public INamedType DeclaringType { get; private set; }
@@ -33,6 +44,8 @@ namespace HotChocolate.Types
         public string Description { get; }
 
         public T Type { get; private set; }
+
+        public IDirectiveCollection Directives { get; }
 
         protected TypeReference TypeReference { get; }
 

@@ -7,17 +7,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class EnumType
-        : TypeBase
+        : NamedTypeBase
         , INamedOutputType
         , INamedInputType
         , ISerializableType
-        , IHasDirectives
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();
         private readonly Dictionary<object, EnumValue> _valueToValues =
             new Dictionary<object, EnumValue>();
-        private DirectiveCollection _directives;
 
         protected EnumType()
             : base(TypeKind.Enum)
@@ -35,13 +33,7 @@ namespace HotChocolate.Types
 
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
-
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
-
-        public IDirectiveCollection Directives => _directives;
 
         public bool TryGetValue(string name, out object value)
         {
@@ -91,7 +83,9 @@ namespace HotChocolate.Types
                 return ev.Value;
             }
 
-            // TODO : This fixes a deserialisation issue when an input object is deserialized from a json string. We should however fix this in the aspnet middleware.
+            // TODO : This fixes a deserialisation issue when an input object
+            // is deserialized from a json string. We should however fix this
+            //in the aspnet middleware.
             if (literal is StringValueNode svn
                 && _nameToValues.TryGetValue(svn.Value, out ev))
             {
@@ -121,8 +115,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a defined enum value of the type " +
-                $"{ClrType.FullName} to be parsed by this enum type.");
+                "The specified value has to be a defined enum value of " +
+                $"the type {ClrType.FullName} to be parsed by this enum type.");
         }
 
         public object Serialize(object value)
@@ -139,7 +133,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be handled by the EnumType `{Name}`.");
+                "The specified value cannot be handled by the " +
+                $"EnumType `{Name}`.");
         }
 
         #endregion
@@ -175,17 +170,17 @@ namespace HotChocolate.Types
             }
 
             SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
             ClrType = description.NativeType;
 
-            _directives = new DirectiveCollection(
-                DirectiveLocation.Enum,
-                description.Directives);
-            RegisterForInitialization(_directives);
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(
+                    this,
+                    DirectiveLocation.Enum,
+                    description.Directives));
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             if (!Values.Any())
             {

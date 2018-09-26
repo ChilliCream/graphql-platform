@@ -18,6 +18,7 @@ namespace HotChocolate.Execution
         private readonly ISchema _schema;
         private readonly DocumentNode _queryDocument;
         private readonly OperationDefinitionNode _operation;
+        private readonly DirectiveLookup _directiveLookup;
         private readonly TimeSpan _executionTimeout;
         private readonly VariableValueBuilder _variableValueBuilder;
         private readonly IExecutionStrategy _strategy;
@@ -44,6 +45,10 @@ namespace HotChocolate.Execution
                 throw new NotSupportedException();
             }
             _strategy = strategy;
+
+            var directiveCollector = new DirectiveCollector(_schema);
+            directiveCollector.VisitDocument(_queryDocument);
+            _directiveLookup = directiveCollector.CreateLookup();
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
@@ -80,7 +85,8 @@ namespace HotChocolate.Execution
                 .CreateValues(request.VariableValues);
 
             var executionContext = new ExecutionContext(
-                _schema, _queryDocument, _operation, request, variables);
+                _schema, _directiveLookup, _queryDocument,
+                _operation, request, variables);
 
             return executionContext;
         }
