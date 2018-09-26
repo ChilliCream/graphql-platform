@@ -27,6 +27,7 @@ namespace HotChocolate.Execution
 
             ExecutableDirectives = executionContext.GetExecutableDirectives(
                 objectType, fieldSelection.Selection);
+            HasExecutableDirectives = ExecutableDirectives.Count > 0;
         }
 
         public ImmutableStack<object> Source { get; }

@@ -37,20 +37,7 @@ namespace HotChocolate.Execution
             FieldNode fieldSelection,
             IType type)
         {
-            if (type.IsAbstractType() && type is INamedType nt)
-            {
-                foreach (ObjectType ot in Schema.GetPossibleTypes(nt))
-                {
-                    if (ot.Fields.TryGetField(
-                        fieldSelection.Name.Value,
-                        out ObjectField field))
-                    {
-                        UpdateDirectiveLookup(ot, fieldSelection,
-                            CollectDirectives(fieldSelection, ot, field));
-                    }
-                }
-            }
-            else if (type is ObjectType ot)
+            if (type is ObjectType ot)
             {
                 if (ot.Fields.TryGetField(
                     fieldSelection.Name.Value,
@@ -58,6 +45,19 @@ namespace HotChocolate.Execution
                 {
                     UpdateDirectiveLookup(ot, fieldSelection,
                         CollectDirectives(fieldSelection, ot, field));
+                }
+            }
+            else if (type.IsAbstractType() && type is INamedType nt)
+            {
+                foreach (ObjectType ot2 in Schema.GetPossibleTypes(nt))
+                {
+                    if (ot2.Fields.TryGetField(
+                        fieldSelection.Name.Value,
+                        out ObjectField field))
+                    {
+                        UpdateDirectiveLookup(ot2, fieldSelection,
+                            CollectDirectives(fieldSelection, ot2, field));
+                    }
                 }
             }
         }
@@ -72,6 +72,7 @@ namespace HotChocolate.Execution
             {
                 selectionToDirectives =
                     new Dictionary<FieldNode, IReadOnlyCollection<IDirective>>();
+                _directiveLookup[type] = selectionToDirectives;
             }
             selectionToDirectives[fieldSelection] = directives;
         }
@@ -85,8 +86,13 @@ namespace HotChocolate.Execution
             List<IDirective> directives = new List<IDirective>();
 
             CollectSelectionDirectives(processed, directives, fieldSelection);
+            // CollectFieldDirectives(processed, directives, field.Arguments);
             CollectFieldDirectives(processed, directives, field);
+            CollectFieldDirectives(processed, directives,
+                field.InterfaceFields);
             CollectTypeDirectives(processed, directives, type);
+            CollectTypeDirectives(processed, directives,
+                type.Interfaces.Values);
 
             return directives.AsReadOnly();
         }
@@ -126,6 +132,17 @@ namespace HotChocolate.Execution
         private void CollectFieldDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
+            IEnumerable<IField> fields)
+        {
+            foreach (IField field in fields)
+            {
+                CollectFieldDirectives(processed, directives, field);
+            }
+        }
+
+        private void CollectFieldDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
             IField field)
         {
             if (field is Types.IHasDirectives d)
@@ -138,6 +155,17 @@ namespace HotChocolate.Execution
                         directives.Add(directive);
                     }
                 }
+            }
+        }
+
+        private void CollectTypeDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
+            IEnumerable<IOutputType> types)
+        {
+            foreach (IOutputType type in types)
+            {
+                CollectTypeDirectives(processed, directives, type);
             }
         }
 
