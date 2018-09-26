@@ -39,7 +39,7 @@ namespace HotChocolate.Configuration
     {
         public static bool TryGetObjectTypeField(
             this ITypeRegistry typeRegistry,
-            FieldReference fieldReference,
+            IFieldReference fieldReference,
             out ObjectField field)
         {
             field = null;

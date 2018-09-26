@@ -16,9 +16,12 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(options));
             }
 
-            QueryTypeName = options.QueryTypeName ?? "Query";
-            MutationTypeName = options.MutationTypeName ?? "Mutation";
-            SubscriptionTypeName = options.SubscriptionTypeName ?? "Subscription";
+            QueryTypeName = options.QueryTypeName
+                ?? "Query";
+            MutationTypeName = options.MutationTypeName
+                ?? "Mutation";
+            SubscriptionTypeName = options.SubscriptionTypeName
+                ?? "Subscription";
             ExecutionTimeout = options.ExecutionTimeout < MinExecutionTimeout
                     ? MinExecutionTimeout
                     : options.ExecutionTimeout;

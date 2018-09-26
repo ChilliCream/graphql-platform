@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
         public Location Location { get; }
 
-        public object Value { get; } = null;
+        public object Value { get; }
 
         /// <summary>
         /// Determines whether the specified <see cref="NullValueNode"/>
