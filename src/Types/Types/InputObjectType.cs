@@ -106,8 +106,7 @@ namespace HotChocolate.Types
                 description.Fields.Select(t => new InputField(t)));
 
             Initialize(description.Name, description.Description,
-                new DirectiveCollection(
-                    this,
+                new DirectiveCollection(this,
                     DirectiveLocation.InputObject,
                     description.Directives));
         }

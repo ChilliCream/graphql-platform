@@ -19,5 +19,15 @@ namespace HotChocolate.Types
 
         IUnionTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType);
+
+        IUnionTypeDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IUnionTypeDescriptor Directive<T>()
+            where T : class, new();
+
+        IUnionTypeDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

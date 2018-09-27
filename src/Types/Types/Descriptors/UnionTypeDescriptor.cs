@@ -112,6 +112,26 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IUnionTypeDescriptor IUnionTypeDescriptor.Directive<T>(T directive)
+        {
+            UnionDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Directive<T>()
+        {
+            UnionDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            UnionDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 }

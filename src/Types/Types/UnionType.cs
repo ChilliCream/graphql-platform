@@ -7,7 +7,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class UnionType
-        : TypeSystemBase
+        : NamedTypeBase
         , INamedOutputType
     {
         private readonly Dictionary<string, ObjectType> _typeMap =
@@ -16,22 +16,18 @@ namespace HotChocolate.Types
         private ResolveAbstractType _resolveAbstractType;
 
         protected UnionType()
+            : base(TypeKind.Union)
         {
             Initialize(Configure);
         }
 
         public UnionType(Action<IUnionTypeDescriptor> configure)
+            : base(TypeKind.Union)
         {
             Initialize(configure);
         }
 
-        public TypeKind Kind { get; } = TypeKind.Union;
-
         public UnionTypeDefinitionNode SyntaxNode { get; private set; }
-
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
 
         public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
 
@@ -57,10 +53,14 @@ namespace HotChocolate.Types
             configure(descriptor);
 
             UnionTypeDescription description = descriptor.CreateDescription();
+
             _types = description.Types;
             _resolveAbstractType = description.ResolveAbstractType;
-            Name = description.Name;
-            Description = description.Description;
+
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(this,
+                    DirectiveLocation.Union,
+                    description.Directives));
         }
 
         protected override void OnRegisterDependencies(ITypeInitializationContext context)
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
         {
             if (_resolveAbstractType == null)
             {
-                // if there is now custom type resolver we will use this default
+                // if there is no custom type resolver we will use this default
                 // abstract type resolver.
                 _resolveAbstractType = (c, r) =>
                 {

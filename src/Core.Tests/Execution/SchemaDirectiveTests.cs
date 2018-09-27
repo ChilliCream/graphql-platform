@@ -120,6 +120,7 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("AppendString");
                 descriptor.Location(DirectiveLocation.Object);
+                descriptor.Location(DirectiveLocation.Interface);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
                 {

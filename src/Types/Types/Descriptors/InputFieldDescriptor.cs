@@ -100,6 +100,26 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IInputFieldDescriptor IInputFieldDescriptor.Directive<T>(T directive)
+        {
+            InputDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Directive<T>()
+        {
+            InputDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            InputDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 }
