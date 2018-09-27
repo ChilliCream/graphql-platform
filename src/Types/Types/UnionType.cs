@@ -106,7 +106,7 @@ namespace HotChocolate.Types
         {
             if (_resolveAbstractType == null)
             {
-                // if there is now custom type resolver we will use this default
+                // if there is no custom type resolver we will use this default
                 // abstract type resolver.
                 _resolveAbstractType = (c, r) =>
                 {

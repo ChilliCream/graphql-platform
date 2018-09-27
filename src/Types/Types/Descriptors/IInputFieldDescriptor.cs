@@ -20,5 +20,15 @@ namespace HotChocolate.Types
         IInputFieldDescriptor DefaultValue(IValueNode defaultValue);
 
         IInputFieldDescriptor DefaultValue(object defaultValue);
+
+        IInputFieldDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IInputFieldDescriptor Directive<T>()
+            where T : class, new();
+
+        IInputFieldDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }
