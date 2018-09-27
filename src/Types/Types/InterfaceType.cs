@@ -7,7 +7,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : TypeBase
+        : NamedTypeBase
         , IComplexOutputType
     {
         private ResolveAbstractType _resolveAbstractType;
@@ -26,15 +26,13 @@ namespace HotChocolate.Types
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; private set; }
-
-        public string Description { get; private set; }
-
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
-        public ObjectType ResolveType(IResolverContext context, object resolverResult)
+        public ObjectType ResolveType(
+            IResolverContext context,
+            object resolverResult)
         {
             if (context == null)
             {
@@ -49,7 +47,10 @@ namespace HotChocolate.Types
         internal virtual InterfaceTypeDescriptor CreateDescriptor() =>
             new InterfaceTypeDescriptor();
 
-        protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
+        protected virtual void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+
+        }
 
         #endregion
 
@@ -65,13 +66,19 @@ namespace HotChocolate.Types
             InterfaceTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
-            InterfaceTypeDescription description = descriptor.CreateDescription();
+            InterfaceTypeDescription description =
+                descriptor.CreateDescription();
+
             _resolveAbstractType = description.ResolveAbstractType;
+
             SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
             Fields = new FieldCollection<InterfaceField>(
                 description.Fields.Select(t => new InterfaceField(t)));
+
+            Initialize(description.Name, description.Description,
+                new DirectiveCollection(this,
+                    DirectiveLocation.Interface,
+                    description.Directives));
         }
 
         protected override void OnRegisterDependencies(
