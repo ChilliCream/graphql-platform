@@ -220,7 +220,7 @@ We currently support the following parts of the current [June 2018 specification
 
 - [x] Query
 - [x] Mutation
-- [ ] _Subscription_ (in development - 0.5.0)
+- [ ] _Subscription_ (in development - 0.5.2)
 
 ### Introspection
 
@@ -267,8 +267,8 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Export
 - [ ] Defer
 - [ ] Stream
-- [ ] _Custom Schema Directives_ (in development - 0.5.0)
-- [ ] _Custom Execution Directives_ (in development - 0.5.0)
+- [x] Custom Schema Directives (in development - 0.5.0)
+- [x] Custom Query Directives (in development - 0.5.0)
 
 ### Execution Engine
 
@@ -284,12 +284,14 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 - [ ] ASP.NET Classic
 
-  - [ ] Get
-  - [ ] Post
+  - [ ] _Get_ (in development - 0.5.2)
+  - [ ] _Post_ (in development - 0.5.2)
+  - [ ] _WebSockets_ (in development - 0.5.4)
 
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
+  - [ ] _WebSockets_ (in development - 0.5.3)
 
 ## Documentation
 
