@@ -267,8 +267,8 @@ Moreover, we are working on the following parts that are not defined in the spec
 - [ ] Export
 - [ ] Defer
 - [ ] Stream
-- [x] Custom Schema Directives (in development - 0.5.0)
-- [x] Custom Query Directives (in development - 0.5.0)
+- [x] Custom Schema Directives
+- [x] Custom Query Directives
 
 ### Execution Engine
 
