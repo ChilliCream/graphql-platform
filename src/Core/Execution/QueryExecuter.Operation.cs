@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
             QueryRequest queryRequest, DocumentNode queryDocument)
         {
             return new OperationExecuter(
-                _schema, queryDocument, GetOperation(
+                Schema, queryDocument, GetOperation(
                     queryDocument, queryRequest.OperationName));
         }
 

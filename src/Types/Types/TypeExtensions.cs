@@ -137,6 +137,21 @@ namespace HotChocolate.Types
             throw new ArgumentException("The type structure is invalid.");
         }
 
+        public static ListType ListType(this IType type)
+        {
+            if (type is ListType lt)
+            {
+                return lt;
+            }
+
+            if (type is NonNullType nnt && nnt.Type is ListType nnlt)
+            {
+                return nnlt;
+            }
+
+            throw new ArgumentException("The type structure is invalid.");
+        }
+
         public static INamedType NamedType(this IType type)
         {
             IType innerType = type.InnerType().InnerType().InnerType();

@@ -482,7 +482,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        [Fact(Skip = "Fix this")]
+        [Fact]
         public void NonNullEnumsSerializeCorrectlyFromVariables()
         {
             // arrange

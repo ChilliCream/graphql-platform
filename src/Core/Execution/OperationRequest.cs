@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
 
         public IServiceProvider Services { get; }
         public ISession Session { get; }
-        public IReadOnlyDictionary<string, IValueNode> VariableValues { get; set; }
+        public IReadOnlyDictionary<string, object> VariableValues { get; set; }
         public object InitialValue { get; set; }
     }
 }

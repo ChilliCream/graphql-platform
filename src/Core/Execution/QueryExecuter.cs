@@ -8,7 +8,6 @@ namespace HotChocolate.Execution
 {
     public partial class QueryExecuter
     {
-        private readonly ISchema _schema;
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
@@ -21,13 +20,15 @@ namespace HotChocolate.Execution
 
         public QueryExecuter(ISchema schema, int cacheSize)
         {
-            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            Schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
             _useCache = cacheSize > 0;
             CacheSize = cacheSize;
         }
+
+        public ISchema Schema { get; }
 
         public int CacheSize { get; }
 
@@ -89,7 +90,7 @@ namespace HotChocolate.Execution
 
         private IQueryError CreateErrorFromException(Exception exception)
         {
-            if (_schema.Options.DeveloperMode)
+            if (Schema.Options.DeveloperMode)
             {
                 return new QueryError(
                     $"{exception.Message}\r\n\r\n{exception.StackTrace}");
@@ -104,10 +105,10 @@ namespace HotChocolate.Execution
             QueryRequest queryRequest)
         {
             IServiceProvider services =
-                queryRequest.Services ?? _schema.Services;
+                queryRequest.Services ?? Schema.Services;
 
             return new OperationRequest(services,
-                _schema.Sessions.CreateSession(services))
+                Schema.Sessions.CreateSession(services))
             {
                 VariableValues = queryRequest.VariableValues,
                 InitialValue = queryRequest.InitialValue,

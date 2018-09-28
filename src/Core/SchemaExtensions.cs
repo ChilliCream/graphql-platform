@@ -30,7 +30,7 @@ namespace HotChocolate
 
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query,
-            IReadOnlyDictionary<string, IValueNode> variableValues,
+            IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(schema,
@@ -76,7 +76,7 @@ namespace HotChocolate
 
         public static IExecutionResult Execute(
             this ISchema schema, string query,
-            IReadOnlyDictionary<string, IValueNode> variableValues,
+            IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken = default)
         {
             return Execute(schema,

@@ -81,7 +81,7 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        private Dictionary<string, IValueNode> DeserializeVariables(
+        private Dictionary<string, object> DeserializeVariables(
             JObject input)
         {
             if (input == null)
@@ -92,7 +92,7 @@ namespace HotChocolate.AspNetCore
             return DeserializeVariables(input.ToObject<Dictionary<string, JToken>>());
         }
 
-        private Dictionary<string, IValueNode> DeserializeVariables(
+        private Dictionary<string, object> DeserializeVariables(
             Dictionary<string, JToken> input)
         {
             if (input == null)
@@ -100,7 +100,7 @@ namespace HotChocolate.AspNetCore
                 return null;
             }
 
-            var values = new Dictionary<string, IValueNode>();
+            var values = new Dictionary<string, object>();
             foreach (string key in input.Keys.ToArray())
             {
                 values[key] = DeserializeVariableValue(input[key]);
