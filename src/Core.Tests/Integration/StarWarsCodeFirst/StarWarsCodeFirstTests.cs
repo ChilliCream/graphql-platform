@@ -524,7 +524,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
-        public void IntrospectionPropertiesAreExecuted()
+        public void TypeNameFieldIsCorrectlyExecutedOnInterfaces()
         {
             // arrange
             Schema schema = CreateSchema();

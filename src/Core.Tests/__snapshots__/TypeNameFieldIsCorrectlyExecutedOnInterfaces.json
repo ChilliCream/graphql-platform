@@ -1,0 +1,25 @@
+{
+  "Data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2",
+      "primaryFunction": "Astromech",
+      "friends": [
+        {
+          "__typename": "Human",
+          "homePlanet": "Tatooine"
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": null
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": "Alderaan"
+        }
+      ]
+    }
+  },
+  "Errors": null
+}
