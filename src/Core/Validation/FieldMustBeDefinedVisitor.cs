@@ -6,6 +6,7 @@ using System.Linq;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation
 {
@@ -41,7 +42,7 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             if (type is IComplexOutputType ct
-                && !ct.Fields.ContainsField(field.Name.Value))
+                && !FieldExists(ct, field.Name.Value))
             {
                 Errors.Add(new ValidationError(
                     $"The field `{field.Name.Value}` does not exist " +
@@ -55,7 +56,21 @@ namespace HotChocolate.Validation
         {
             return selectionSet.Selections
                 .OfType<FieldNode>()
-                .All(t => t.Name.Value.EqualsOrdinal("__typename"));
+                .All(t => IsTypeNameField(t.Name.Value));
+        }
+
+        private bool FieldExists(IComplexOutputType type, string fieldName)
+        {
+            if (IsTypeNameField(fieldName))
+            {
+                return true;
+            }
+            return type.Fields.ContainsField(fieldName);
+        }
+
+        private static bool IsTypeNameField(string fieldName)
+        {
+            return fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
         }
     }
 }

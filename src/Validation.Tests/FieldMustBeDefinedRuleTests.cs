@@ -127,5 +127,60 @@ namespace HotChocolate.Validation
                     "A union type cannot declare a field directly. " +
                     "Use inline fragments or fragments instead", t.Message));
         }
+
+
+        [Fact]
+        public void IntrospectionFieldsOnInterface()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on Pet {
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void IntrospectionFieldsOnUnion()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on CatOrDog {
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void IntrospectionFieldsOnObject()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on Cat {
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
     }
 }
