@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation
 {
@@ -49,14 +50,17 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (TryGetSelectionSet(path, out SelectionSetNode selectionSet)
-                && _fieldSelectionSets.TryGetValue(selectionSet,
-                    out List<FieldInfo> fields))
+            if (!field.Name.Value.EqualsOrdinal(IntrospectionFields.TypeName))
             {
-                fields.Add(new FieldInfo(type, field));
-            }
+                if (TryGetSelectionSet(path, out SelectionSetNode selectionSet)
+                    && _fieldSelectionSets.TryGetValue(selectionSet,
+                        out List<FieldInfo> fields))
+                {
+                    fields.Add(new FieldInfo(type, field));
+                }
 
-            base.VisitField(field, type, path);
+                base.VisitField(field, type, path);
+            }
         }
 
         protected override void VisitSelectionSet(

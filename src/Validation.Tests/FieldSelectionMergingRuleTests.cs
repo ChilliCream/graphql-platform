@@ -348,5 +348,62 @@ namespace HotChocolate.Validation
             // assert
             Assert.False(result.HasErrors);
         }
+
+        [Fact]
+        public void TypeNameFieldOnInterfaceIsMergable()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on Pet {
+                    __typename
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void TypeNameFieldOnUnionIsMergable()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on CatOrDog {
+                    __typename
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void TypeNameFieldOnObjectIsMergable()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                fragment interfaceFieldSelection on Cat {
+                    __typename
+                    __typename
+                }
+            ");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
     }
 }
