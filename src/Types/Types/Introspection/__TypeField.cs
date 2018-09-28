@@ -4,7 +4,7 @@ namespace HotChocolate.Types.Introspection
         : ObjectField
     {
         internal __TypeField()
-            : base("__type", d =>
+            : base(IntrospectionFields.Type, d =>
             {
                 d.Description("Request the type information of a single type.")
                     .Argument("type", a => a.Type<NonNullType<StringType>>())
