@@ -12,5 +12,11 @@ namespace HotChocolate.Language
         {
             return parser.Parse(new Source(sourceText), options);
         }
+
+        public static IValueNode ParseJson(
+            this Parser parser, string sourceText)
+        {
+            return parser.ParseJson(new Source(sourceText));
+        }
     }
 }

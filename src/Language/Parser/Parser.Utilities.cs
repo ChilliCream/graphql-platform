@@ -6,7 +6,7 @@ namespace HotChocolate.Language
 {
     public partial class Parser
     {
-        private NameNode ParseName(ParserContext context)
+        private static NameNode ParseGraphQLName(ParserContext context)
         {
             SyntaxToken token = context.ExpectName();
             Location location = context.CreateLocation(token);
@@ -18,7 +18,22 @@ namespace HotChocolate.Language
             );
         }
 
-        private List<T> ParseMany<T>(
+        private static NameNode ParseJsonName(ParserContext context)
+        {
+            SyntaxToken token = context.Current.Kind == TokenKind.String
+                ? context.ExpectString()
+                : context.ExpectName();
+
+            Location location = context.CreateLocation(token);
+
+            return new NameNode
+            (
+                location,
+                token.Value
+            );
+        }
+
+        private static List<T> ParseMany<T>(
             ParserContext context,
             TokenKind openKind,
             Func<ParserContext, T> parser,

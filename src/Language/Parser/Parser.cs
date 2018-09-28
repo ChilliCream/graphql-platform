@@ -46,13 +46,41 @@ namespace HotChocolate.Language
                 throw new InvalidOperationException(
                     "The first token must be a start of file token.");
             }
-            return ParseDocument(source, start, options ?? ParserOptions.Default);
+            return ParseDocument(source, start,
+                options ?? ParserOptions.Default);
         }
 
-        private DocumentNode ParseDocument(ISource source, SyntaxToken start, ParserOptions options)
+        public IValueNode ParseJson(ISource source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            SyntaxToken start = _lexer.Read(source);
+            if (start.Kind != TokenKind.StartOfFile)
+            {
+                throw new InvalidOperationException(
+                    "The first token must be a start of file token.");
+            }
+
+            ParserContext context = new ParserContext(
+                source, start, ParserOptions.Default,
+                ParseJsonName);
+
+            context.MoveNext();
+
+            return ParseValueLiteral(context, true);
+        }
+
+        private DocumentNode ParseDocument(
+            ISource source,
+            SyntaxToken start,
+            ParserOptions options)
         {
             List<IDefinitionNode> definitions = new List<IDefinitionNode>();
-            ParserContext context = new ParserContext(source, start, options);
+            ParserContext context = new ParserContext(
+                source, start, options, ParseGraphQLName);
 
             context.MoveNext();
 

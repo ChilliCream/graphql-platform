@@ -4,7 +4,11 @@ namespace HotChocolate.Language
 {
     internal sealed class ParserContext
     {
-        public ParserContext(ISource source, SyntaxToken start, ParserOptions options)
+        public ParserContext(
+            ISource source,
+            SyntaxToken start,
+            ParserOptions options,
+            Func<ParserContext, NameNode> parseName)
         {
             if (source == null)
             {
@@ -28,14 +32,21 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(options));
             }
 
+            if (parseName == null)
+            {
+                throw new ArgumentNullException(nameof(parseName));
+            }
+
             Source = source;
             Current = start;
             Options = options;
+            ParseName = () => parseName(this);
         }
 
         public ParserOptions Options { get; }
         public ISource Source { get; }
         public SyntaxToken Current { get; private set; }
+        public Func<NameNode> ParseName { get; }
 
         public bool MoveNext()
         {

@@ -152,7 +152,7 @@ namespace HotChocolate.Language
             {
                 throw context.Unexpected(context.Current);
             }
-            return ParseName(context);
+            return context.ParseName();
         }
     }
 }

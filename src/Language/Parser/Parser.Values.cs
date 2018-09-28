@@ -9,7 +9,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses a value.
         /// <see cref="IValueNode" />:
-        /// - Variable [only if isConstant is <c>false</c>] 
+        /// - Variable [only if isConstant is <c>false</c>]
         /// - IntValue
         /// - FloatValue
         /// - StringValue
@@ -24,7 +24,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
-        /// Defines if only constant values are allowed; 
+        /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
         private IValueNode ParseValueLiteral(ParserContext context, bool isConstant)
@@ -81,7 +81,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
-        /// Defines if only constant values are allowed; 
+        /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
         private ListValueNode ParseList(ParserContext context, bool isConstant)
@@ -109,7 +109,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         /// <param name="isConstant">
-        /// Defines if only constant values are allowed; 
+        /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
         private ObjectValueNode ParseObject(ParserContext context, bool isConstant)
@@ -131,7 +131,7 @@ namespace HotChocolate.Language
         private ObjectFieldNode ParseObjectField(ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             context.ExpectColon();
             IValueNode value = ParseValueLiteral(context, isConstant);
             Location location = context.CreateLocation(start);

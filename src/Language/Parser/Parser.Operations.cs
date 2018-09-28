@@ -22,7 +22,7 @@ namespace HotChocolate.Language
             else
             {
                 OperationType operation = ParseOperationType(context);
-                NameNode name = context.Current.IsName() ? ParseName(context) : null;
+                NameNode name = context.Current.IsName() ? context.ParseName() : null;
                 List<VariableDefinitionNode> variableDefinitions =
                     ParseVariableDefinitions(context);
                 List<DirectiveNode> directives = ParseDirectives(context, false);
@@ -138,7 +138,7 @@ namespace HotChocolate.Language
         private VariableNode ParseVariable(ParserContext context)
         {
             SyntaxToken start = context.ExpectDollar();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             Location location = context.CreateLocation(start);
 
             return new VariableNode
@@ -202,13 +202,13 @@ namespace HotChocolate.Language
 
             if (hasAlias)
             {
-                alias = ParseName(context);
+                alias = context.ParseName();
                 context.ExpectColon();
-                name = ParseName(context);
+                name = context.ParseName();
             }
             else
             {
-                name = ParseName(context);
+                name = context.ParseName();
             }
 
             List<ArgumentNode> arguments = ParseArguments(context, false);
@@ -298,7 +298,7 @@ namespace HotChocolate.Language
             Func<ParserContext, IValueNode> parseValue)
         {
             SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             context.ExpectColon();
             IValueNode value = parseValue(context);
             Location location = context.CreateLocation(start);
