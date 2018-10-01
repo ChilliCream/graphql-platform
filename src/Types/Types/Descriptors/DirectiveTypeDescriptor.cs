@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -120,7 +119,14 @@ namespace HotChocolate.Types
 
         protected void Location(DirectiveLocation location)
         {
-            DirectiveDescription.Locations.Add(location);
+            var values = Enum.GetValues(typeof(DirectiveLocation));
+            foreach (DirectiveLocation value in values)
+            {
+                if (location.HasFlag(value))
+                {
+                    DirectiveDescription.Locations.Add(value);       
+                }   
+            }
         }
 
         protected void OnBeforeInvokeResolver(
