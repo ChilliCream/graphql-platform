@@ -85,11 +85,10 @@ namespace HotChocolate.Execution
             }
             else
             {
-                value = variable.DefaultValue ?? NullValueNode.Default;
+                valueNode = variable.DefaultValue ?? NullValueNode.Default;
             }
 
-            CleanUpValue(variable.Type, valueNode);
-
+            valueNode = CleanUpValue(variable.Type, valueNode);
             variable = variable.WithValue(valueNode);
 
             CheckForNullValueViolation(variable);
@@ -100,9 +99,7 @@ namespace HotChocolate.Execution
         {
             if (ValueNeedsCleanUp(type, value))
             {
-
-
-
+                return RebuildValue(type, value);
             }
 
             return value;
