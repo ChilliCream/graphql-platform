@@ -161,14 +161,14 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") }
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -211,15 +211,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(false) }
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -240,15 +240,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(true) }
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -269,15 +269,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(false) }
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -298,15 +298,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(true) }
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -325,8 +325,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("JEDI") },
                 { "review", new ObjectValueNode(
@@ -336,7 +335,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -360,8 +360,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("JEDI") },
             };
@@ -391,8 +390,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("EMPIRE") },
             };
@@ -448,7 +446,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
-            Dictionary<string, IValueNode> variables = new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 {"ep", new ListValueNode(new[] {new EnumValueNode("EMPIRE")})}
             };
@@ -494,7 +492,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }
                 }";
 
-            var variables = new Dictionary<string, IValueNode>();
+            var variables = new Dictionary<string, object>();
             variables["episode"] = new StringValueNode("NEWHOPE");
 
             // act

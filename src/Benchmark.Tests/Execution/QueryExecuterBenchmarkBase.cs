@@ -138,7 +138,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            var variables = new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") }
             };
@@ -176,8 +176,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(false) }
@@ -200,8 +199,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(true) }
@@ -224,8 +222,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(false) }
@@ -248,8 +245,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "episode", new EnumValueNode("JEDI") },
                 { "withFriends", new BooleanValueNode(true) }
@@ -270,8 +266,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("JEDI") },
                 { "review", new ObjectValueNode(
@@ -300,8 +295,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("JEDI") },
             };
@@ -326,8 +320,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            Dictionary<string, IValueNode> variables =
-                new Dictionary<string, IValueNode>
+            var variables = new Dictionary<string, object>
             {
                 { "ep", new EnumValueNode("EMPIRE") },
             };

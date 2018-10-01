@@ -18,8 +18,8 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>();
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>();
             variableValues.Add("test", new StringValueNode(null, "123456", false));
 
             // act
@@ -39,8 +39,8 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>();
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>();
             variableValues.Add("test", NullValueNode.Default);
 
             // act
@@ -59,8 +59,8 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>();
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>();
 
             // act
             VariableValueBuilder resolver =
@@ -79,8 +79,8 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String) { a }");
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>();
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>();
             variableValues.Add("test", NullValueNode.Default);
 
             // act

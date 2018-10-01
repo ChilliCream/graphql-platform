@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:[Int]) { a(foo:$x) { foo } }",
-                new Dictionary<string, IValueNode> { { "x", list } });
+                new Dictionary<string, object> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:[FooInput]) { a(foo:$x) { foo } }",
-                new Dictionary<string, IValueNode> { { "x", list } });
+                new Dictionary<string, object> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -107,7 +107,7 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:Int) { a(foo:$x) { foo } }",
-                new Dictionary<string, IValueNode> { { "x", value } });
+                new Dictionary<string, object> { { "x", value } });
 
             // assert
             Assert.Null(result.Errors);
@@ -141,7 +141,7 @@ namespace HotChocolate.Execution
             // act
             IExecutionResult result = await schema.ExecuteAsync(
                 "query x($x:FooInput) { a(foo:$x) { foo } }",
-                new Dictionary<string, IValueNode> { { "x", obj } });
+                new Dictionary<string, object> { { "x", obj } });
 
             // assert
             Assert.Null(result.Errors);
