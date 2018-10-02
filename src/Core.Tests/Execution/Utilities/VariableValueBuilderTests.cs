@@ -113,8 +113,8 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            Assert.Equal("A",
-                coercedVariableValues.GetVariable<string>("test"));
+            Assert.Equal(BarEnum.A,
+                coercedVariableValues.GetVariable<BarEnum>("test"));
         }
 
         [Fact]
@@ -135,8 +135,8 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            Assert.Equal("A",
-                coercedVariableValues.GetVariable<string>("test"));
+            Assert.Equal(BarEnum.A,
+                coercedVariableValues.GetVariable<BarEnum>("test"));
         }
 
         [Fact]
@@ -157,8 +157,8 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            Assert.Equal("A",
-                coercedVariableValues.GetVariable<string>("test"));
+            Assert.Equal(BarEnum.A,
+                coercedVariableValues.GetVariable<BarEnum>("test"));
         }
 
         [Fact]
