@@ -14,8 +14,8 @@ namespace HotChocolate.Types
                 "Directs the executor to skip this field or " +
                 "fragment when the `if` argument is true.");
 
-            descriptor.Location(DirectiveLocation.Field)
-                .Location(DirectiveLocation.FragmentSpread)
+            descriptor
+                .Location(DirectiveLocation.Field | DirectiveLocation.FragmentSpread)
                 .Location(DirectiveLocation.InlineFragment);
 
             descriptor.Argument("if")

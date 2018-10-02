@@ -23,18 +23,18 @@ namespace HotChocolate
         public static string Current(
             [CallerMemberNameAttribute]string snapshotName = null)
         {
-            string fielPath = Path.Combine(
+            string filePath = Path.Combine(
                 "__snapshots__", snapshotName + ".json");
-            if (File.Exists(fielPath))
+            if (File.Exists(filePath))
             {
-                return NormalizeLineBreaks(File.ReadAllText(fielPath));
+                return NormalizeLineBreaks(File.ReadAllText(filePath));
             }
 
-            fielPath = Path.Combine(
+            filePath = Path.Combine(
                 "__snapshots__", snapshotName + ".txt");
-            if (File.Exists(fielPath))
+            if (File.Exists(filePath))
             {
-                return NormalizeLineBreaks(File.ReadAllText(fielPath));
+                return NormalizeLineBreaks(File.ReadAllText(filePath));
             }
 
             return null;
