@@ -1,3 +1,6 @@
+using System;
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Types
 {
     public class NamedTypeBase
@@ -21,6 +24,19 @@ namespace HotChocolate.Types
             string description,
             IDirectiveCollection directives)
         {
+            if (string.IsNullOrEmpty(name)
+                || !ValidationHelper.IsTypeNameValid(Name))
+            {
+                throw new ArgumentException(
+                    "Named types have to have a valid type name.",
+                    nameof(name));
+            }
+
+            if (directives == null)
+            {
+                throw new ArgumentNullException(nameof(directives));
+            }
+
             Name = name;
             Description = description;
             Directives = directives;

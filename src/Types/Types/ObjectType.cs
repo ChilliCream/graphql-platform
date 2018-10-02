@@ -45,7 +45,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal virtual ObjectTypeDescriptor CreateDescriptor() =>
-            new ObjectTypeDescriptor(GetType());
+            new ObjectTypeDescriptor();
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
