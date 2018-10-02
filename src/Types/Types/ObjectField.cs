@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
@@ -10,6 +11,8 @@ namespace HotChocolate.Types
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();
+        private readonly List<IDirective> _executableDirectives =
+            new List<IDirective>();
         private readonly Type _sourceType;
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
@@ -34,6 +37,7 @@ namespace HotChocolate.Types
 
             Resolver = fieldDescription.Resolver;
             InterfaceFields = _interfaceFields.AsReadOnly();
+            ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
         private static ObjectFieldDescription ExecuteConfigure(
@@ -59,7 +63,13 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the interface fields that are implemented by this object field.
         /// </summary>
-        public IReadOnlyCollection<InterfaceField> InterfaceFields { get; private set; }
+        public IReadOnlyCollection<InterfaceField> InterfaceFields { get; }
+
+        /// <summary>
+        /// Gets all executable directives that are associated with this field.
+        /// </summary>
+        /// <value></value>
+        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
 
         protected override void OnRegisterDependencies(
             ITypeInitializationContext context)
@@ -78,18 +88,9 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
-            if (Resolver == null)
-            {
-                Resolver = context.GetResolver(Name);
-                if (Resolver == null)
-                {
-                    context.ReportError(new SchemaError(
-                        $"The field `{context.Type.Name}.{Name}` " +
-                        "has no resolver.", context.Type));
-                }
-            }
-
             CompleteInterfaceFields(context);
+            CompleteExecutableDirectives(context);
+            CompleteResolver(context);
         }
 
         private void CompleteInterfaceFields(
@@ -104,6 +105,53 @@ namespace HotChocolate.Types
                     {
                         _interfaceFields.Add(field);
                     }
+                }
+            }
+        }
+
+        private void CompleteExecutableDirectives(
+            ITypeInitializationContext context)
+        {
+            HashSet<string> processed = new HashSet<string>();
+            AddExectableDirectives(processed, Directives);
+            AddExectableDirectives(processed,
+                _interfaceFields.SelectMany(t => t.Directives));
+
+            if (context.Type is ObjectType ot)
+            {
+                AddExectableDirectives(processed, ot.Directives);
+                AddExectableDirectives(processed,
+                    ot.Interfaces.Values.SelectMany(t => t.Directives));
+            }
+        }
+
+        private void AddExectableDirectives(
+            HashSet<string> processed,
+            IEnumerable<IDirective> directives)
+        {
+            foreach (IDirective directive in
+                directives.Where(t => t.IsExecutable))
+            {
+                if (processed.Add(directive.Name))
+                {
+                    _executableDirectives.Add(directive);
+                }
+            }
+        }
+
+        private void CompleteResolver(
+            ITypeInitializationContext context)
+        {
+            if (Resolver == null)
+            {
+                Resolver = context.GetResolver(Name);
+                if (Resolver == null
+                    && _executableDirectives.All(
+                            t => t.OnInvokeResolver == null))
+                {
+                    context.ReportError(new SchemaError(
+                        $"The field `{context.Type.Name}.{Name}` " +
+                        "has no resolver.", context.Type));
                 }
             }
         }

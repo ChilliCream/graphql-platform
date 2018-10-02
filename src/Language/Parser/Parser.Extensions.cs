@@ -87,7 +87,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectScalarKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             if (directives.Count == 0)
@@ -109,7 +109,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectTypeKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<NamedTypeNode> interfaces =
                 ParseImplementsInterfaces(context);
             List<DirectiveNode> directives =
@@ -140,7 +140,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInterfaceKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
@@ -167,7 +167,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectUnionKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<NamedTypeNode> types =
@@ -193,7 +193,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectEnumKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<EnumValueDefinitionNode> values =
@@ -219,7 +219,7 @@ namespace HotChocolate.Language
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInputKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<InputValueDefinitionNode> fields =

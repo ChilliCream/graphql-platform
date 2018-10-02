@@ -72,8 +72,8 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithMissingVariables_Error()
         {
             // arrange
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>();
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>();
 
             Schema schema = CreateSchema();
             QueryExecuter executer = new QueryExecuter(schema);
@@ -95,8 +95,8 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithNonNullVariableNull_Error()
         {
             // arrange
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>()
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>()
                 {
                     { "a", NullValueNode.Default }
                 };
@@ -121,8 +121,8 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithNonNullVariableInvalidType_Error()
         {
             // arrange
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>()
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>()
                 {
                     { "a", new IntValueNode(123) }
                 };
@@ -147,8 +147,8 @@ namespace HotChocolate.Execution
         public async Task ExecuteWithNonNullVariableValidValue_NoErrors()
         {
             // arrange
-            Dictionary<string, IValueNode> variableValues =
-                new Dictionary<string, IValueNode>()
+            Dictionary<string, object> variableValues =
+                new Dictionary<string, object>()
                 {
                     { "a", new StringValueNode("123") }
                 };

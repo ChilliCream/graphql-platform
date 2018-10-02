@@ -59,7 +59,7 @@ namespace HotChocolate.Language
         private NamedTypeNode ParseNamedType(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             Location location = context.CreateLocation(start);
 
             return new NamedTypeNode

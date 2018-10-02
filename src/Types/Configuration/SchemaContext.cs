@@ -42,31 +42,54 @@ namespace HotChocolate.Configuration
             // compile resolvers
             _resolverRegistry.BuildResolvers();
 
-            // complete types
-            List<SchemaError> errors = new List<SchemaError>();
-            foreach (INamedType namedType in _typeRegistry.GetTypes())
+            // start type completion
+            var errors = new List<SchemaError>();
+            var processed = new HashSet<INamedType>();
+
+            // directives
+            CompleteDirectives(errors);
+
+            // interfaces
+            CompleteTypes(
+                _typeRegistry.GetTypes().OfType<InterfaceType>(),
+                processed, errors);
+
+            // all the other types
+            CompleteTypes(
+                _typeRegistry.GetTypes(),
+                processed, errors);
+
+            return errors;
+        }
+
+        private void CompleteTypes(
+            IEnumerable<INamedType> types,
+            HashSet<INamedType> processed,
+            List<SchemaError> errors)
+        {
+            foreach (INamedType namedType in types)
             {
-                if (namedType is INeedsInitialization init)
+                if (processed.Add(namedType)
+                    && namedType is INeedsInitialization init)
                 {
                     var initializationContext = new TypeInitializationContext(
                         this, e => errors.Add(e), namedType, false);
                     init.CompleteType(initializationContext);
                 }
             }
-            return errors;
         }
 
-        public IEnumerable<SchemaError> CompleteDirectives()
+        private void CompleteDirectives(
+            List<SchemaError> errors)
         {
-            List<SchemaError> errors = new List<SchemaError>();
-            foreach (INeedsInitialization directive in _directiveRegistry.GetDirectiveTypes()
-                .Cast<INeedsInitialization>())
+            foreach (INeedsInitialization directive in
+                _directiveRegistry.GetDirectiveTypes()
+                    .Cast<INeedsInitialization>())
             {
                 var initializationContext = new TypeInitializationContext(
                     this, e => errors.Add(e));
                 directive.CompleteType(initializationContext);
             }
-            return errors;
         }
 
         public void RegisterServiceProvider(IServiceProvider services)

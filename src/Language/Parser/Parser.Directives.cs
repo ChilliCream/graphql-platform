@@ -12,7 +12,7 @@ namespace HotChocolate.Language
             StringValueNode description = ParseDescription(context);
             context.ExpectDirectiveKeyword();
             context.ExpectAt();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions(context);
             context.ExpectOnKeyword();
@@ -49,7 +49,7 @@ namespace HotChocolate.Language
         private NameNode ParseDirectiveLocation(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             if (DirectiveLocation.IsValidName(name.Value))
             {
                 return name;
@@ -75,7 +75,7 @@ namespace HotChocolate.Language
         {
             SyntaxToken start = context.Current;
             context.ExpectAt();
-            NameNode name = ParseName(context);
+            NameNode name = context.ParseName();
             List<ArgumentNode> arguments =
                 ParseArguments(context, isConstant);
             Location location = context.CreateLocation(start);

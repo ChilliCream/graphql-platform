@@ -9,7 +9,7 @@ namespace HotChocolate.Integration.DataLoader
 {
     public class DataLoaderTests
     {
-        [Fact(Skip = "BUG: This tests sometimes fails.")]
+        [Fact]
         public async Task RequestDataLoader()
         {
             // arrange
@@ -43,7 +43,7 @@ namespace HotChocolate.Integration.DataLoader
             Assert.Equal(Snapshot.Current(), Snapshot.New(results));
         }
 
-        [Fact(Skip = "BUG: This tests sometimes fails.")]
+        [Fact]
         public async Task GlobalDataLoader()
         {
             // arrange

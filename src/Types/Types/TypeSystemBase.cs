@@ -17,12 +17,12 @@ namespace HotChocolate.Types
             {
                 _status = TypeStatus.Registering;
 
-                OnRegisterDependencies(context);
-
                 foreach (INeedsInitialization dependency in _dependencies)
                 {
                     dependency.RegisterDependencies(context);
                 }
+
+                OnRegisterDependencies(context);
 
                 _status = TypeStatus.Registered;
             }
@@ -46,12 +46,12 @@ namespace HotChocolate.Types
             {
                 _status = TypeStatus.Completing;
 
-                OnCompleteType(context);
-
                 foreach (INeedsInitialization dependency in _dependencies)
                 {
                     dependency.CompleteType(context);
                 }
+
+                OnCompleteType(context);
 
                 _status = TypeStatus.Completed;
             }

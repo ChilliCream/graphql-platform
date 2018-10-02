@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
                     out ObjectField field))
                 {
                     UpdateDirectiveLookup(ot, fieldSelection,
-                        CollectDirectives(fieldSelection, ot, field));
+                        CollectDirectives(fieldSelection, field));
                 }
             }
             else if (type.IsAbstractType() && type is INamedType nt)
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
                         out ObjectField field))
                     {
                         UpdateDirectiveLookup(ot2, fieldSelection,
-                            CollectDirectives(fieldSelection, ot2, field));
+                            CollectDirectives(fieldSelection, field));
                     }
                 }
             }
@@ -79,19 +79,13 @@ namespace HotChocolate.Execution
 
         private IReadOnlyCollection<IDirective> CollectDirectives(
             FieldNode fieldSelection,
-            ObjectType type,
             ObjectField field)
         {
             HashSet<string> processed = new HashSet<string>();
             List<IDirective> directives = new List<IDirective>();
 
             CollectSelectionDirectives(processed, directives, fieldSelection);
-            CollectFieldDirectives(processed, directives, field);
-            CollectFieldDirectives(processed, directives,
-                field.InterfaceFields);
-            CollectTypeDirectives(processed, directives, type);
-            CollectTypeDirectives(processed, directives,
-                type.Interfaces.Values);
+            CollectInheritedDirectives(processed, directives, field);
 
             return directives.AsReadOnly();
         }
@@ -128,60 +122,17 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CollectFieldDirectives(
-            HashSet<string> processed,
-            List<IDirective> directives,
-            IEnumerable<IField> fields)
-        {
-            foreach (IField field in fields)
-            {
-                CollectFieldDirectives(processed, directives, field);
-            }
-        }
 
-        private void CollectFieldDirectives(
+        private void CollectInheritedDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
-            IField field)
+            ObjectField field)
         {
-            if (field is Types.IHasDirectives d)
+            foreach (IDirective directive in field.ExecutableDirectives)
             {
-                foreach (IDirective directive in
-                    d.Directives.Where(t => t.IsExecutable))
+                if (processed.Add(directive.Name))
                 {
-                    if (processed.Add(directive.Name))
-                    {
-                        directives.Add(directive);
-                    }
-                }
-            }
-        }
-
-        private void CollectTypeDirectives(
-            HashSet<string> processed,
-            List<IDirective> directives,
-            IEnumerable<IOutputType> types)
-        {
-            foreach (IOutputType type in types)
-            {
-                CollectTypeDirectives(processed, directives, type);
-            }
-        }
-
-        private void CollectTypeDirectives(
-            HashSet<string> processed,
-            List<IDirective> directives,
-            IOutputType type)
-        {
-            if (type is Types.IHasDirectives d)
-            {
-                foreach (IDirective directive in
-                    d.Directives.Where(t => t.IsExecutable))
-                {
-                    if (processed.Add(directive.Name))
-                    {
-                        directives.Add(directive);
-                    }
+                    directives.Add(directive);
                 }
             }
         }

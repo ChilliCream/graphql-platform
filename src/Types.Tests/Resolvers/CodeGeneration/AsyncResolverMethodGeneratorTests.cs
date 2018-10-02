@@ -20,16 +20,15 @@ namespace HotChocolate.Resolvers
                 GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 0));
 
             var descriptor = new ResolverDescriptor(sourceType, fieldMember);
-
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
-
 
         [Fact]
         public void AsyncResolverMethodGenerator_GenerateWithSourceArgument()
@@ -42,10 +41,10 @@ namespace HotChocolate.Resolvers
                 GetMethod<GeneratorTestDummyResolver>("GetFooAsync", 1));
 
             var descriptor = new ResolverDescriptor(sourceType, fieldMember);
-
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -64,9 +63,10 @@ namespace HotChocolate.Resolvers
 
             var descriptor = new ResolverDescriptor(sourceType, fieldMember);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -85,9 +85,10 @@ namespace HotChocolate.Resolvers
 
             var descriptor = new ResolverDescriptor(sourceType, fieldMember);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -100,9 +101,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.CancellationToken);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -130,9 +132,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.Field);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -145,9 +148,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.FieldSelection);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -160,9 +164,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.ObjectType);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -175,9 +180,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.OperationDefinition);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -190,9 +196,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.QueryDocument);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -205,9 +212,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.Schema);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
@@ -220,9 +228,10 @@ namespace HotChocolate.Resolvers
             // arrange
             var descriptor = CreateDescriptor(ArgumentKind.Service);
 
-            // act
             var source = new StringBuilder();
             var generator = new AsyncResolverMethodGenerator();
+
+            // act
             string result = generator.Generate("abc", descriptor);
 
             // assert
