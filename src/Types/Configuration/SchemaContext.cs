@@ -42,14 +42,19 @@ namespace HotChocolate.Configuration
             // compile resolvers
             _resolverRegistry.BuildResolvers();
 
-            // complete types
+            // start type completion
             var errors = new List<SchemaError>();
             var processed = new HashSet<INamedType>();
 
+            // directives
+            CompleteDirectives(errors);
+
+            // interfaces
             CompleteTypes(
                 _typeRegistry.GetTypes().OfType<InterfaceType>(),
                 processed, errors);
 
+            // all the other types
             CompleteTypes(
                 _typeRegistry.GetTypes(),
                 processed, errors);
@@ -74,10 +79,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public IEnumerable<SchemaError> CompleteDirectives()
+        private void CompleteDirectives(
+            List<SchemaError> errors)
         {
-            List<SchemaError> errors = new List<SchemaError>();
-
             foreach (INeedsInitialization directive in
                 _directiveRegistry.GetDirectiveTypes()
                     .Cast<INeedsInitialization>())
@@ -86,8 +90,6 @@ namespace HotChocolate.Configuration
                     this, e => errors.Add(e));
                 directive.CompleteType(initializationContext);
             }
-
-            return errors;
         }
 
         public void RegisterServiceProvider(IServiceProvider services)

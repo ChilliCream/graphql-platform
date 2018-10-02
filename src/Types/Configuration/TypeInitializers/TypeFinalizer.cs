@@ -34,7 +34,6 @@ namespace HotChocolate.Configuration
             RegisterStateObjects(context);
 
             // compile resolvers and finalize types
-            _errors.AddRange(context.CompleteDirectives());
             _errors.AddRange(context.CompleteTypes());
         }
 

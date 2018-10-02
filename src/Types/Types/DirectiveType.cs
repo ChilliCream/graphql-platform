@@ -13,6 +13,7 @@ namespace HotChocolate.Types
     {
         private readonly List<IDirectiveMiddleware> _middlewares =
             new List<IDirectiveMiddleware>();
+        private string _s = Guid.NewGuid().ToString("N");
 
         protected DirectiveType()
         {
