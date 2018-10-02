@@ -47,12 +47,12 @@ namespace HotChocolate.Types
             Assert.Null(value);
         }
 
-        [Fact(Skip = "Fix test")]
+        [Fact]
         public void ParseLiteral_Invalid_Url_Throws()
         {
             // arrange
             UrlType type = new UrlType();
-            StringValueNode input = new StringValueNode("/domain.test/url");
+            StringValueNode input = new StringValueNode("$*^domain.test");
 
             // act
             // assert
