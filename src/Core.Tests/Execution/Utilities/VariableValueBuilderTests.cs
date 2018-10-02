@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void CoerceEnumFromString()
+        public void CoerceEnumFromEnum()
         {
             // arrange
             Schema schema = CreateSchema();
@@ -104,7 +104,7 @@ namespace HotChocolate.Execution
                 "query test($test: BarEnum!) { a }");
 
             var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", "A");
+            variableValues.Add("test", BarEnum.A);
 
             var resolver = new VariableValueBuilder(schema, operation);
 
