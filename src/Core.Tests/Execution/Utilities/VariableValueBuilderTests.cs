@@ -101,7 +101,7 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
-                "query test($test: Bar!) { a }");
+                "query test($test: BarEnum!) { a }");
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", "A");
@@ -123,7 +123,7 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
-                "query test($test: Bar!) { a }");
+                "query test($test: BarEnum!) { a }");
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", new StringValueNode("A"));
@@ -145,7 +145,7 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
-                "query test($test: Bar!) { a }");
+                "query test($test: BarEnum!) { a }");
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", new EnumValueNode("A"));
