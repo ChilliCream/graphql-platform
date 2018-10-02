@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -86,6 +87,14 @@ namespace HotChocolate.Types
             ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
+
+            if (string.IsNullOrEmpty(Name)
+                || !ValidationHelper.IsTypeNameValid(Name))
+            {
+                context.ReportError(new SchemaError(
+                    $"Every named type (`{GetType().FullName}`) has to have " +
+                    "a valid type name."));
+            }
 
             foreach (INeedsInitialization argument in Arguments
                 .Cast<INeedsInitialization>())

@@ -13,6 +13,10 @@ namespace HotChocolate.Types
         : IObjectTypeDescriptor
         , IDescriptionFactory<ObjectTypeDescription>
     {
+        public ObjectTypeDescriptor()
+        {
+        }
+
         public ObjectTypeDescriptor(Type objectType)
         {
             if (objectType == null)
@@ -21,18 +25,6 @@ namespace HotChocolate.Types
             }
 
             ObjectDescription.Name = objectType.GetGraphQLName();
-        }
-
-        public ObjectTypeDescriptor(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            ObjectDescription.Name = name;
         }
 
         protected List<ObjectFieldDescriptor> Fields { get; } =

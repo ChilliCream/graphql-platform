@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -155,6 +156,33 @@ namespace HotChocolate.Types
             Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
             Assert.NotNull(fooType.Fields["bar"].Resolver);
             Assert.IsType<StringType>(fooType.Fields["bar"].Type);
+        }
+
+        [Fact]
+        public void Create_WithoutName_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => new ObjectType(
+                d => d.Field("foo").Type<StringType>().Resolver(() => null));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void Create_WithoutName_SchemaError()
+        {
+            // arrange
+            // act
+            Action action = () => Schema.Create(t =>
+            {
+                t.RegisterType(new ObjectType(
+                d => d.Field("foo").Type<StringType>().Resolver(() => null)));
+            });
+
+            // assert
+            Assert.Throws<SchemaException>(action);
         }
 
         public class GenericFoo<T>
