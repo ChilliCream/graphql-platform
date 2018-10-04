@@ -561,6 +561,29 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+        [Fact]
+        public void Execute_ListWithNullValues_ResultContainsNullElement()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            query {
+                human(id: ""1001"") {
+                    id
+                    name
+                    otherHuman {
+                        name
+                    }
+                }
+            }";
+
+            // act
+            IExecutionResult result = schema.Execute(query);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         private static Schema CreateSchema()
         {
             CharacterRepository repository = new CharacterRepository();
@@ -589,6 +612,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             return Schema.Create(c =>
             {
                 c.RegisterServiceProvider(serviceProvider.Object);
+                c.RegisterDataLoader<HumanDataLoader>();
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
                 c.RegisterType<HumanType>();

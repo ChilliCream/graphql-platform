@@ -1,0 +1,18 @@
+{
+  "Data": {
+    "human": {
+      "id": "1001",
+      "name": "Darth Vader",
+      "otherHuman": [
+        {
+          "name": "Darth Vader"
+        },
+        {
+          "name": "Han Solo"
+        },
+        null
+      ]
+    }
+  },
+  "Errors": null
+}
