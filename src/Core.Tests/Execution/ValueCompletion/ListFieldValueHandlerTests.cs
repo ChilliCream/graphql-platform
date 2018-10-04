@@ -194,5 +194,44 @@ namespace HotChocolate.Execution
             Assert.True(errorWasRaised);
             Assert.False(nextHandlerIsRaised);
         }
+
+        [Fact]
+        public void CompleteList_WithNullValues_ShouldNotCompleteWithNext()
+        {
+            // arrange
+            string expectedElement = Guid.NewGuid().ToString();
+            var list = new List<string> { null };
+
+            object result = null;
+            bool nextHandlerIsRaised = false;
+
+            ListType listType = new ListType(new StringType());
+
+            var context = new Mock<IFieldValueCompletionContext>(
+                MockBehavior.Strict);
+            context.Setup(t => t.Type).Returns(listType);
+            context.Setup(t => t.Value).Returns(list);
+            context.Setup(t => t.Path).Returns(Path.New("root"));
+            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
+                .Callback(new Action<object>(v =>
+                {
+                    result = v;
+                }));
+            context.Setup(t => t.AsElementValueContext(
+                Moq.It.IsAny<Path>(), Moq.It.IsAny<IType>(),
+                Moq.It.IsAny<object>(), Moq.It.IsAny<Action<object>>()))
+                .Returns(context.Object);
+
+            // act
+            var handler = new ListFieldValueHandler();
+            handler.CompleteValue(
+                context.Object,
+                c => nextHandlerIsRaised = true);
+
+            // assert
+            Assert.IsType<List<object>>(result);
+            Assert.NotEmpty((List<object>)result);
+            Assert.False(nextHandlerIsRaised);
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst
 {
@@ -16,5 +17,11 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         public string HomePlanet { get; set; }
 
         public double Height { get; } = 1.72d;
+
+        public Task<IReadOnlyList<Human>> GetOtherHuman(
+            [DataLoader]HumanDataLoader humanDataLoader)
+        {
+            return humanDataLoader.LoadAsync(new[] { "1001", "1002", "9999" });
+        }
     }
 }

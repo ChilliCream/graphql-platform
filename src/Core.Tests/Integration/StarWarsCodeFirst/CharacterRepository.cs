@@ -42,6 +42,13 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             return null;
         }
 
+        public IEnumerable<Human> GetHumans(IEnumerable<string> ids)
+        {
+            return ids.Where(t => _characters.ContainsKey(t))
+                .Select(t => _characters[t])
+                .OfType<Human>();
+        }
+
         public Droid GetDroid(string id)
         {
             if (_characters.TryGetValue(id, out ICharacter c)
@@ -54,13 +61,13 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
         public IEnumerable<object> Search(string text)
         {
-            foreach(ICharacter character in _characters.Values
+            foreach (ICharacter character in _characters.Values
                 .Where(t => t.Name.Contains(text)))
             {
                 yield return character;
             }
 
-            foreach(Starship starship in _starships.Values
+            foreach (Starship starship in _starships.Values
                 .Where(t => t.Name.Contains(text)))
             {
                 yield return starship;
