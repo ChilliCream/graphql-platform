@@ -5,20 +5,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers
 {
-    public delegate Task OnBeforeInvokeResolverAsync(
+    public delegate Task<object> OnInvokeResolver(
         IResolverContext resolverContext,
         IDirective directive,
-        CancellationToken cancellationToken);
+        object previousResult,
+        InvokeNext next);
 
-    public delegate Task<object> OnInvokeResolverAsync(
-        IResolverContext resolverContext,
-        IDirective directive,
-        Func<Task<object>> resolveField,
-        CancellationToken cancellationToken);
-
-    public delegate Task<object> OnAfterInvokeResolverAsync(
-        IResolverContext resolverContext,
-        IDirective directive,
-        object resolverResult,
-        CancellationToken cancellationToken);
+    public delegate Task<object> InvokeNext(object result);
 }
