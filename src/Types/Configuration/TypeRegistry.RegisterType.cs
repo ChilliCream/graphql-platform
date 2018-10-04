@@ -39,11 +39,17 @@ namespace HotChocolate.Configuration
 
         private void RegisterNativeType(Type type)
         {
-            if (_typeInspector.TryCreate(type, out TypeInfo typeInfo)
-                && typeof(INamedType).IsAssignableFrom(
-                    typeInfo.NativeNamedType))
+            if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
             {
-                TryUpdateNamedType(typeInfo.NativeNamedType);
+                if (typeof(INamedType).IsAssignableFrom(
+                    typeInfo.NativeNamedType))
+                {
+                    TryUpdateNamedType(typeInfo.NativeNamedType);
+                }
+                else if (!_clrTypes.ContainsKey(typeInfo.NativeNamedType))
+                {
+                    _unresolvedTypes.Add(typeInfo.NativeNamedType);
+                }
             }
         }
 
@@ -64,10 +70,10 @@ namespace HotChocolate.Configuration
             }
 
             Type type = namedTypeRef.GetType();
-            if (!_dotnetTypeToSchemaType.ContainsKey(type)
+            if (!_clrTypeToSchemaType.ContainsKey(type)
                 && !BaseTypes.IsNonGenericBaseType(type))
             {
-                _dotnetTypeToSchemaType[type] = namedTypeRef.Name;
+                _clrTypeToSchemaType[type] = namedTypeRef.Name;
             }
 
             if (namedTypeRef is IInputType inputType

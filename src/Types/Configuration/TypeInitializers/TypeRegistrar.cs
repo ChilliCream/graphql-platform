@@ -52,6 +52,10 @@ namespace HotChocolate.Configuration
                 // process current batch of types.
                 ProcessBatch(context, queryTypeName);
 
+                // check if there are natives type that do not
+                // have an associated schema type.
+                ProcessUnresolvedTypes(context.Types);
+
                 // check if there are new types that have to be processed.
                 EnqueueUnprocessedTypes(context.Types);
             }
@@ -78,6 +82,26 @@ namespace HotChocolate.Configuration
                     type = schemaContext.Types.GetType<INamedType>(type.Name);
 
                     RegisterTypeDependencies(schemaContext, type, queryTypeName);
+                }
+            }
+        }
+
+        private void ProcessUnresolvedTypes(ITypeRegistry typeRegistry)
+        {
+            foreach (Type type in typeRegistry.GetUnresolvedTypes())
+            {
+                if (type.IsClass && !type.IsAbstract
+                    && (type.IsPublic || type.IsNestedPublic))
+                {
+                    typeRegistry.RegisterType(
+                        new TypeReference(typeof(ObjectType<>)
+                            .MakeGenericType(type)));
+                }
+                else if (type.IsEnum && (type.IsPublic || type.IsNestedPublic))
+                {
+                    typeRegistry.RegisterType(
+                        new TypeReference(typeof(ObjectType<>)
+                            .MakeGenericType(type)));
                 }
             }
         }
