@@ -87,7 +87,7 @@ namespace HotChocolate.Configuration
             TypeInfo typeInfo,
             out T type)
         {
-            if (_dotnetTypeToSchemaType.TryGetValue(
+            if (_clrTypeToSchemaType.TryGetValue(
                 typeInfo.NativeNamedType, out string typeName)
                 && _namedTypes.TryGetValue(typeName, out INamedType namedType))
             {
@@ -109,7 +109,7 @@ namespace HotChocolate.Configuration
             , out T type)
         {
             string debug = typeInfo.NativeNamedType.Name;
-            if (_nativeTypes.TryGetValue(typeInfo.NativeNamedType,
+            if (_clrTypes.TryGetValue(typeInfo.NativeNamedType,
                 out HashSet<string> namedTypeNames))
             {
                 List<INamedType> namedTypes =
@@ -201,6 +201,16 @@ namespace HotChocolate.Configuration
         public IEnumerable<INamedType> GetTypes()
         {
             return _namedTypes.Values;
+        }
+
+        public IEnumerable<Type> GetUnresolvedTypes()
+        {
+            foreach (Type nativeType in _clrTypes.Keys)
+            {
+                _unresolvedTypes.Remove(nativeType);
+            }
+
+            return _unresolvedTypes;
         }
     }
 }

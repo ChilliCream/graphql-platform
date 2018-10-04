@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
         {
             if (_typeInspector.TryCreate(nativeNamedType,
                     out Utilities.TypeInfo typeInfo)
-                && _dotnetTypeToSchemaType.TryGetValue(
+                && _clrTypeToSchemaType.TryGetValue(
                     typeInfo.NativeNamedType, out string namedTypeName)
                 && _namedTypes.TryGetValue(namedTypeName,
                     out INamedType namedType)
