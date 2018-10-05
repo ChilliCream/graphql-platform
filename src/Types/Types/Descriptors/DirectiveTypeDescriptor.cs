@@ -136,12 +136,11 @@ namespace HotChocolate.Types
         protected void Middleware<T>(
             Expression<Func<T, object>> method)
         {
-            BindMethodAsMiddleware(method, MiddlewareKind.OnInvoke);
+            BindMethodAsMiddleware(method);
         }
 
         private void BindMethodAsMiddleware<T>(
-            Expression<Func<T, object>> method,
-            MiddlewareKind middlewareKind)
+            Expression<Func<T, object>> method)
         {
             if (method == null)
             {
@@ -150,13 +149,10 @@ namespace HotChocolate.Types
 
             BindMethodAsMiddleware(
                 typeof(T),
-                method.ExtractMember() as MethodInfo,
-                middlewareKind);
+                method.ExtractMember() as MethodInfo);
         }
 
-        private void BindMethodAsMiddleware<T>(
-            Expression<Action<T>> method,
-            MiddlewareKind middlewareKind)
+        private void BindMethodAsMiddleware<T>(Expression<Action<T>> method)
         {
             if (method == null)
             {
@@ -165,14 +161,10 @@ namespace HotChocolate.Types
 
             BindMethodAsMiddleware(
                 typeof(T),
-                method.ExtractMember() as MethodInfo,
-                middlewareKind);
+                method.ExtractMember() as MethodInfo);
         }
 
-        private void BindMethodAsMiddleware(
-            Type type,
-            MethodInfo method,
-            MiddlewareKind middlewareKind)
+        private void BindMethodAsMiddleware(Type type, MethodInfo method)
         {
             if (method == null)
             {

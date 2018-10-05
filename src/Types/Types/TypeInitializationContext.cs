@@ -237,16 +237,14 @@ namespace HotChocolate.Types
             _schemaContext.Resolvers.RegisterMiddleware(middleware);
         }
 
-        public IDirectiveMiddleware GetMiddleware(
-            string directiveName,
-            MiddlewareKind kind)
+        public IDirectiveMiddleware GetMiddleware(string directiveName)
         {
             if (string.IsNullOrEmpty(directiveName))
             {
                 throw new ArgumentNullException(nameof(directiveName));
             }
 
-            return _schemaContext.Resolvers.GetMiddleware(directiveName, kind);
+            return _schemaContext.Resolvers.GetMiddleware(directiveName);
         }
     }
 }

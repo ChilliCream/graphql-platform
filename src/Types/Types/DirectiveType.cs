@@ -11,9 +11,7 @@ namespace HotChocolate.Types
     public class DirectiveType
         : TypeSystemBase
     {
-        private readonly List<IDirectiveMiddleware> _middlewares =
-            new List<IDirectiveMiddleware>();
-        private string _s = Guid.NewGuid().ToString("N");
+        private IDirectiveMiddleware _middleware;
 
         protected DirectiveType()
         {
@@ -74,7 +72,7 @@ namespace HotChocolate.Types
             Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));
-            _middlewares.AddRange(description.Middleware);
+            _middleware = description.Middleware;
         }
 
         protected override void OnRegisterDependencies(
@@ -88,9 +86,9 @@ namespace HotChocolate.Types
                 argument.RegisterDependencies(context);
             }
 
-            foreach (IDirectiveMiddleware middleware in _middlewares)
+            if (_middleware != null)
             {
-                context.RegisterMiddleware(middleware);
+                context.RegisterMiddleware(_middleware);
             }
         }
 
@@ -105,10 +103,9 @@ namespace HotChocolate.Types
                 argument.CompleteType(context);
             }
 
-            IDirectiveMiddleware middleware = context.GetMiddleware(Name);
-            if (middleware is DirectiveOnBeforeInvokeMiddleware obm)
+            if (context.GetMiddleware(Name) is DirectiveDelegateMiddleware m)
             {
-                Middleware = obm.OnBeforeInvokeResolver;
+                Middleware = m.Middleware;
                 IsExecutable = true;
             }
         }
