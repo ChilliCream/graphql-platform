@@ -10,66 +10,52 @@ namespace HotChocolate.Execution
     internal sealed class DirectiveContext
         : IDirectiveContext
     {
-        public DirectiveContext(IResolverContext context)
-        {
+        private readonly IResolverContext _resolverContext;
 
+        public DirectiveContext(IResolverContext resolverContext)
+        {
+            _resolverContext = resolverContext
+                ?? throw new ArgumentNullException(nameof(resolverContext));
         }
 
         public IDirective Directive { get; set; }
 
-        public object Result { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public object Result { get; set; }
 
-        public ISchema Schema => throw new NotImplementedException();
+        public ISchema Schema => _resolverContext.Schema;
 
-        public ObjectType ObjectType => throw new NotImplementedException();
+        public ObjectType ObjectType => _resolverContext.ObjectType;
 
-        public ObjectField Field => throw new NotImplementedException();
+        public ObjectField Field => _resolverContext.Field;
 
-        public DocumentNode QueryDocument => throw new NotImplementedException();
+        public DocumentNode QueryDocument => _resolverContext.QueryDocument;
 
-        public OperationDefinitionNode Operation => throw new NotImplementedException();
+        public OperationDefinitionNode Operation => _resolverContext.Operation;
 
-        public FieldNode FieldSelection => throw new NotImplementedException();
+        public FieldNode FieldSelection => _resolverContext.FieldSelection;
 
-        public ImmutableStack<object> Source => throw new NotImplementedException();
+        public ImmutableStack<object> Source => _resolverContext.Source;
 
-        public Path Path => throw new NotImplementedException();
+        public Path Path => _resolverContext.Path;
 
-        public CancellationToken CancellationToken => throw new NotImplementedException();
+        public CancellationToken CancellationToken =>
+            _resolverContext.CancellationToken;
 
-        public T Argument<T>(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public T Argument<T>(string name) =>
+            _resolverContext.Argument<T>(name);
 
-        public T CustomContext<T>()
-        {
-            throw new NotImplementedException();
-        }
+        public T CustomContext<T>() => _resolverContext.CustomContext<T>();
 
-        public T DataLoader<T>(string key)
-        {
-            throw new NotImplementedException();
-        }
+        public T DataLoader<T>(string key) =>
+            _resolverContext.DataLoader<T>(key);
 
-        public T Parent<T>()
-        {
-            throw new NotImplementedException();
-        }
+        public T Parent<T>() => _resolverContext.Parent<T>();
 
-        public void ReportError(string errorMessage)
-        {
-            throw new NotImplementedException();
-        }
+        public void ReportError(string errorMessage) =>
+            _resolverContext.ReportError(errorMessage);
 
-        public T Resolver<T>()
-        {
-            throw new NotImplementedException();
-        }
+        public T Resolver<T>() => _resolverContext.Resolver<T>();
 
-        public T Service<T>()
-        {
-            throw new NotImplementedException();
-        }
+        public T Service<T>() => _resolverContext.Service<T>();
     }
 }
