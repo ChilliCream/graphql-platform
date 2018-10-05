@@ -10,38 +10,63 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveLookup
     {
-        private readonly IDictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>> _directiveLookup;
+        private readonly Dictionary<ObjectType, Dictionary<FieldNode, ExecuteMiddleware>> _middlewareLookup =
+            new Dictionary<ObjectType, Dictionary<FieldNode, ExecuteMiddleware>>();
 
-        public DirectiveLookup(
-            IDictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>> directiveLookup)
+        public DirectiveLookup(IDictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>> directiveLookup)
         {
-            _directiveLookup = directiveLookup
-                ?? throw new ArgumentNullException(nameof(directiveLookup));
+            if (directiveLookup == null)
+            {
+                throw new ArgumentNullException(nameof(directiveLookup));
+            }
+            Build(directiveLookup);
         }
 
-        public IReadOnlyCollection<IDirective> GetDirectives(
-            ObjectType type, FieldNode fieldSelection)
+        public ExecuteMiddleware GetMiddleware(
+            ObjectType type,
+            FieldNode fieldSelection)
         {
-            if (_directiveLookup.TryGetValue(
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (fieldSelection == null)
+            {
+                throw new ArgumentNullException(nameof(fieldSelection));
+            }
+
+            if (_middlewareLookup.TryGetValue(
                     type, out var selectionToDirectives)
                 && selectionToDirectives.TryGetValue(
-                    fieldSelection, out var directives))
+                    fieldSelection, out var middleware))
             {
-                return directives;
+                return middleware;
             }
-            return Array.Empty<IDirective>();
+
+            return null;
         }
 
-
-        public Func<IResolverContext, object, Task<object>> GetMiddleware(
-            ObjectType type, FieldNode fieldSelection)
+        private void Build(IDictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>> directiveLookup)
         {
-            // TODO : cache middleware
-            return BuildMiddleware(type, fieldSelection);
+            foreach (var objectType in directiveLookup)
+            {
+                var middlewareLookup =
+                    new Dictionary<FieldNode, ExecuteMiddleware>();
+
+                foreach (var fieldNode in objectType.Value)
+                {
+                    ExecuteMiddleware middleware =
+                        BuildMiddleware(fieldNode.Value);
+                    middlewareLookup[fieldNode.Key] = middleware;
+                }
+
+                _middlewareLookup[objectType.Key] = middlewareLookup;
+            }
         }
 
-        private Func<IResolverContext, object, Task<object>> BuildMiddleware(
-            ObjectType type, FieldNode fieldSelection)
+        private ExecuteMiddleware BuildMiddleware(
+            IEnumerable<IDirective> directives)
         {
             Action<IDirectiveContext, IDirective> updateContext =
                 (context, directive) =>
@@ -57,15 +82,14 @@ namespace HotChocolate.Execution
                 return Task.CompletedTask;
             };
 
-            foreach (IDirective directive in
-                GetDirectives(type, fieldSelection).Reverse())
+            foreach (IDirective directive in directives.Reverse())
             {
                 component = BuildComponent(directive, updateContext, component);
             }
 
             return async (context, resolverResult) =>
             {
-                DirectiveContext directiveContext = new DirectiveContext(context);
+                var directiveContext = new DirectiveContext(context);
                 directiveContext.Result = resolverResult;
                 await component.Invoke(directiveContext);
                 return directiveContext.Result;
@@ -81,9 +105,26 @@ namespace HotChocolate.Execution
 
             return context =>
             {
+                if (HasErrors(context.Result))
+                {
+                    return Task.CompletedTask;
+                }
+
                 updateContext(context, directive);
                 return component.Invoke(context);
             };
+        }
+
+        private bool HasErrors(object result)
+        {
+            if (result is IQueryError error
+                || result is IEnumerable<IQueryError> errors
+                || result is IResolverResult rr && rr.IsError)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

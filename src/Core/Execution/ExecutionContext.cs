@@ -114,11 +114,21 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, ReportError);
         }
 
-        public IReadOnlyCollection<IDirective> GetExecutableDirectives(
+        public ExecuteMiddleware GetMiddleware(
             ObjectType objectType,
             FieldNode fieldSelection)
         {
-            return _directiveLookup.GetDirectives(
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            if (fieldSelection == null)
+            {
+                throw new ArgumentNullException(nameof(fieldSelection));
+            }
+
+            return _directiveLookup.GetMiddleware(
                 objectType, fieldSelection);
         }
 

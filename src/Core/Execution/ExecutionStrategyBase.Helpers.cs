@@ -19,9 +19,9 @@ namespace HotChocolate.Execution
            bool isDeveloperMode,
            CancellationToken cancellationToken)
         {
-            if (resolverTask.HasExecutableDirectives)
+            if (resolverTask.HasMiddleware)
             {
-                return ExecuteDirectiveResolversAsync(
+                return ExecuteResolverMiddlewareAsync(
                     resolverTask, isDeveloperMode,
                     cancellationToken);
             }
@@ -61,34 +61,25 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static Func<Task<object>> CreateFieldResolverDelegate(
+        private static async Task<object> ExecuteResolverMiddlewareAsync(
             ResolverTask resolverTask,
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
-            return new Func<Task<object>>(async () =>
-            {
-                object resolverResult = ExecuteFieldResolver(
-                    resolverTask, isDeveloperMode, cancellationToken);
+            object result = ExecuteFieldResolver(
+                resolverTask,
+                isDeveloperMode,
+                cancellationToken);
 
-                return await FinalizeResolverResultAsync(
-                    resolverTask.FieldSelection.Selection,
-                    resolverResult,
-                    isDeveloperMode);
-            });
-        }
+            result = await FinalizeResolverResultAsync(
+                resolverTask.FieldSelection.Selection,
+                result,
+                isDeveloperMode);
 
-        private static async Task<object> ExecuteDirectiveResolversAsync(
-            ResolverTask resolverTask,
-            bool isDeveloperMode,
-            CancellationToken cancellationToken)
-        {
             try
             {
-                return await OnInvokeResolverAsync(
-                    resolverTask,
-                    isDeveloperMode,
-                    cancellationToken);
+                return resolverTask.ExecuteMiddleware.Invoke(
+                    resolverTask.ResolverContext, result);
             }
             catch (QueryException ex)
             {
@@ -100,108 +91,6 @@ namespace HotChocolate.Execution
                     resolverTask.FieldSelection.Selection,
                     isDeveloperMode);
             }
-        }
-
-        public DirectiveDelegate Build()
-        {
-            DirectiveDelegate last = context =>
-            {
-                return Task.CompletedTask;
-            };
-
-            foreach (Middleware component in _components.Reverse())
-            {
-                last = component(last);
-            }
-
-            return last;
-        }
-
-        private static Task<object> OnInvokeResolverAsync(
-            ResolverTask resolverTask,
-            bool isDeveloperMode,
-            CancellationToken cancellationToken)
-        {
-
-            List<Middleware> middlewares;
-
-            foreach (Middleware m in middlewares)
-            {
-                m.Invoke()
-            }
-
-
-
-
-            Func<Task<object>> current = CreateFieldResolverDelegate(
-                resolverTask, isDeveloperMode, cancellationToken);
-
-
-
-
-            foreach (IDirective directive in resolverTask.ExecutableDirectives)
-            {
-                if (directive.OnInvokeResolver != null)
-                {
-                    current = CreateDirectiveResolverDelegate(
-                        directive, resolverTask, current,
-                        isDeveloperMode, cancellationToken);
-                }
-            }
-
-            return current();
-        }
-
-        private static async Task OnAfterInvokeResolverAsync(
-            ResolverTask resolverTask,
-            bool isDeveloperMode,
-            CancellationToken cancellationToken)
-        {
-            foreach (IDirective directive in resolverTask.ExecutableDirectives)
-            {
-                if (directive.OnAfterInvokeResolver != null)
-                {
-                    resolverTask.ResolverResult =
-                        await directive.OnAfterInvokeResolver(
-                            resolverTask.ResolverContext,
-                            directive,
-                            resolverTask.ResolverResult,
-                            cancellationToken);
-                }
-            }
-        }
-
-        private static async Task<object> ExecuteDirectiveResolverAsync(
-            IDirective directive,
-            ResolverTask resolverTask,
-            Func<Task<object>> resolvePrevious,
-            CancellationToken cancellationToken)
-        {
-            return await directive.OnInvokeResolver(
-                resolverTask.ResolverContext,
-                directive,
-                resolvePrevious,
-                cancellationToken);
-        }
-
-        private static Func<Task<object>> CreateDirectiveResolverDelegate(
-            IDirective directive,
-            ResolverTask resolverTask,
-            Func<Task<object>> resolvePrevious,
-            bool isDeveloperMode,
-            CancellationToken cancellationToken)
-        {
-            return new Func<Task<object>>(async () =>
-            {
-                object resolverResult = await ExecuteDirectiveResolverAsync(
-                    directive, resolverTask, resolvePrevious,
-                    cancellationToken);
-
-                return await FinalizeResolverResultAsync(
-                    resolverTask.FieldSelection.Selection,
-                    resolverResult,
-                    isDeveloperMode);
-            });
         }
 
         protected static Task<object> FinalizeResolverResultAsync(
@@ -288,6 +177,20 @@ namespace HotChocolate.Execution
                     fieldSelection);
             }
             return resolverResult.Value;
+        }
+
+        private static bool IsMaxExecutionDepthReached(
+            IExecutionContext executionContext,
+            ResolverTask resolverTask)
+        {
+            bool isLeafField =
+                resolverTask.FieldSelection.Field.Type.IsLeafType();
+
+            int maxExecutionDepth = isLeafField
+                ? executionContext.Options.MaxExecutionDepth
+                : executionContext.Options.MaxExecutionDepth - 1;
+
+            return resolverTask.Path.Depth > maxExecutionDepth;
         }
     }
 }

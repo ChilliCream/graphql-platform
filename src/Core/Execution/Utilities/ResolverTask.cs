@@ -25,9 +25,9 @@ namespace HotChocolate.Execution
             Result = result;
             ResolverContext = new ResolverContext(executionContext, this);
 
-            ExecutableDirectives = executionContext.GetExecutableDirectives(
+            ExecuteMiddleware = executionContext.GetMiddleware(
                 objectType, fieldSelection.Selection);
-            HasExecutableDirectives = ExecutableDirectives.Count > 0;
+            HasMiddleware = ExecuteMiddleware != null;
         }
 
         public ImmutableStack<object> Source { get; }
@@ -46,9 +46,9 @@ namespace HotChocolate.Execution
 
         public object ResolverResult { get; set; }
 
-        public Func<IResolverContext, object, Task<object>>
+        public ExecuteMiddleware ExecuteMiddleware { get; }
 
-        public bool HasExecutableDirectives { get; }
+        public bool HasMiddleware { get; }
 
         public void IntegrateResult(object value)
         {

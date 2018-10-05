@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -65,20 +66,22 @@ namespace HotChocolate.Execution
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                if (resolverTask.Path.Depth <= executionContext
-                    .Options.MaxExecutionDepth)
-                {
-                    resolverTask.ResolverResult = ExecuteResolver(
-                        resolverTask, executionContext.Options.DeveloperMode,
-                        cancellationToken);
-                }
-                else
+                bool isLeafField =
+                    resolverTask.FieldSelection.Field.Type.IsLeafType();
+
+                if (IsMaxExecutionDepthReached(executionContext, resolverTask))
                 {
                     executionContext.ReportError(resolverTask.CreateError(
                         "The field has a depth of " +
                         $"{resolverTask.Path.Depth}, " +
                         "which exceeds max allowed depth of " +
                         $"{executionContext.Options.MaxExecutionDepth}"));
+                }
+                else
+                {
+                    resolverTask.ResolverResult = ExecuteResolver(
+                        resolverTask, executionContext.Options.DeveloperMode,
+                        cancellationToken);
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -110,14 +113,6 @@ namespace HotChocolate.Execution
                     resolverTask.FieldSelection.Selection,
                     resolverTask.ResolverResult,
                     executionContext.Options.DeveloperMode);
-
-                if (resolverTask.HasExecutableDirectives)
-                {
-                    await OnAfterInvokeResolverAsync(
-                        resolverTask,
-                        executionContext.Options.DeveloperMode,
-                        cancellationToken);
-                }
 
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(

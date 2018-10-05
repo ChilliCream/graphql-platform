@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             ObjectType objectType,
             SelectionSetNode selectionSet);
 
-        IReadOnlyCollection<IDirective> GetExecutableDirectives(
+        ExecuteMiddleware GetMiddleware(
             ObjectType objectType,
             FieldNode fieldSelection);
 
