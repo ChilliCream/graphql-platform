@@ -63,7 +63,9 @@ namespace HotChocolate.Execution
                     requestTimeoutCts.Token, cancellationToken);
 
             IExecutionContext executionContext =
-                CreateExecutionContext(request);
+                CreateExecutionContext(
+                    request,
+                    cancellationToken);
 
             try
             {
@@ -79,14 +81,16 @@ namespace HotChocolate.Execution
         }
 
         private IExecutionContext CreateExecutionContext(
-            OperationRequest request)
+            OperationRequest request,
+            CancellationToken cancellationToken)
         {
             VariableCollection variables = _variableValueBuilder
                 .CreateValues(request.VariableValues);
 
             var executionContext = new ExecutionContext(
                 _schema, _directiveLookup, _queryDocument,
-                _operation, request, variables);
+                _operation, request, variables,
+                cancellationToken);
 
             return executionContext;
         }

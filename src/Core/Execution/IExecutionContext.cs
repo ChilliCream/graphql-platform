@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -36,6 +37,8 @@ namespace HotChocolate.Execution
         FragmentCollection Fragments { get; }
 
         VariableCollection Variables { get; }
+
+        CancellationToken CancellationToken { get; }
 
         void ReportError(IQueryError error);
 

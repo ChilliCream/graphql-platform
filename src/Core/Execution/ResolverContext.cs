@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct ResolverContext
+    internal sealed class ResolverContext
         : IResolverContext
     {
         // todo: remove

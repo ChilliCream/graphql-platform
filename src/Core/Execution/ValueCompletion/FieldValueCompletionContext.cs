@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct FieldValueCompletionContext
+    internal sealed class FieldValueCompletionContext
         : IFieldValueCompletionContext
     {
         private readonly Action<object> _integrateResult;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -23,7 +24,10 @@ namespace HotChocolate.Execution
             FieldType = fieldSelection.Field.Type;
             Path = path;
             Result = result;
-            ResolverContext = new ResolverContext(executionContext, this);
+
+            ResolverContext = new ResolverContext(
+                executionContext, this,
+                executionContext.CancellationToken);
 
             ExecuteMiddleware = executionContext.GetMiddleware(
                 objectType, fieldSelection.Selection);

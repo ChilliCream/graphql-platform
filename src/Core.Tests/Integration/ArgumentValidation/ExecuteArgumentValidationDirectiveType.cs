@@ -9,7 +9,7 @@ namespace HotChocolate.Integration.ArgumentValidation
         {
             descriptor.Name("executeValidation");
             descriptor.Location(Types.DirectiveLocation.Object);
-            descriptor.OnBeforeInvokeResolver<ExecuteArgumentValidationMiddleware>(
+            descriptor.Middleware<ExecuteArgumentValidationMiddleware>(
                 t => t.Validate(default));
         }
     }
