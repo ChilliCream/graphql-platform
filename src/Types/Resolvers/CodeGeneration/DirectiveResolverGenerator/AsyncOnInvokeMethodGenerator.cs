@@ -7,29 +7,26 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal sealed class AsyncOnInvokeMethodGenerator
         : OnInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
+        protected override bool IsAsync => true;
+
         protected override void GenerateResolverInvocation(
-            DirectiveMiddlewareDescriptor resolverDescriptor,
+            DirectiveMiddlewareDescriptor descriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.Type.GetTypeName()}>();");
-            source.AppendLine("Func<Task<object>> f = async () => {");
-
             HandleExceptions(source, s =>
             {
-                s.Append($"return await resolver.{resolverDescriptor.Method.Name}(");
-                GenerateArguments(resolverDescriptor, s);
-                s.Append(");");
+                s.Append($"ctx.Result = await resolver.{descriptor.Method.Name}(");
+                GenerateArguments(descriptor, s);
+                s.AppendLine(");");
             });
 
-            source.AppendLine("};");
-            source.Append("return f();");
+            source.AppendLine("await next.Invoke(ctx)");
         }
 
         protected override bool CanHandle(
             DirectiveMiddlewareDescriptor descriptor)
         {
-            return descriptor.Kind == MiddlewareKind.OnInvoke
-                && descriptor.IsAsync;
+            return descriptor.IsAsync;
         }
     }
 }

@@ -24,8 +24,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// <value></value>
         MethodInfo Method { get; }
 
-        MiddlewareKind Kind { get; }
-
         /// <summary>
         /// Gets a collection of argument descriptors
         /// defining the structure of the arguments

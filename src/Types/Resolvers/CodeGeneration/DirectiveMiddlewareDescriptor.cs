@@ -18,7 +18,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 
             DirectiveName = directiveMethodMiddleware.DirectiveName;
-            Kind = directiveMethodMiddleware.Kind;
             Type = directiveMethodMiddleware.Type;
             Method = directiveMethodMiddleware.Method;
 
@@ -28,8 +27,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         public string DirectiveName { get; }
-
-        public MiddlewareKind Kind { get; }
 
         public Type Type { get; }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,11 +85,6 @@ namespace HotChocolate.Execution
         {
             try
             {
-                await OnBeforeInvokeResolverAsync(
-                    resolverTask,
-                    isDeveloperMode,
-                    cancellationToken);
-
                 return await OnInvokeResolverAsync(
                     resolverTask,
                     isDeveloperMode,
@@ -106,21 +102,19 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static async Task OnBeforeInvokeResolverAsync(
-            ResolverTask resolverTask,
-            bool isDeveloperMode,
-            CancellationToken cancellationToken)
+        public DirectiveDelegate Build()
         {
-            foreach (IDirective directive in resolverTask.ExecutableDirectives)
+            DirectiveDelegate last = context =>
             {
-                if (directive.OnBeforeInvokeResolver != null)
-                {
-                    await directive.OnBeforeInvokeResolver(
-                        resolverTask.ResolverContext,
-                        directive,
-                        cancellationToken);
-                }
+                return Task.CompletedTask;
+            };
+
+            foreach (Middleware component in _components.Reverse())
+            {
+                last = component(last);
             }
+
+            return last;
         }
 
         private static Task<object> OnInvokeResolverAsync(
@@ -128,8 +122,22 @@ namespace HotChocolate.Execution
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
+
+            List<Middleware> middlewares;
+
+            foreach (Middleware m in middlewares)
+            {
+                m.Invoke()
+            }
+
+
+
+
             Func<Task<object>> current = CreateFieldResolverDelegate(
                 resolverTask, isDeveloperMode, cancellationToken);
+
+
+
 
             foreach (IDirective directive in resolverTask.ExecutableDirectives)
             {

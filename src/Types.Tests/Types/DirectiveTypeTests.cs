@@ -20,7 +20,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.NotNull(directiveType.Resolver);
             Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.NotNull(directiveType.Resolver);
             Assert.Null(directiveType.ClrType);
         }
 

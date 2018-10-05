@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 
         object Source { get; }
 
-        OnInvokeResolver OnInvokeResolver { get; }
+        Middleware Middleware { get; }
 
         bool IsExecutable { get; }
 

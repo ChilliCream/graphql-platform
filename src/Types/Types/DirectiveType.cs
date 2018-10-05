@@ -37,13 +37,7 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Arguments { get; private set; }
 
-        public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver
-        { get; private set; }
-
-        public OnInvokeResolverAsync OnInvokeResolver { get; private set; }
-
-        public OnAfterInvokeResolverAsync OnAfterInvokeResolver
-        { get; private set; }
+        public Middleware Middleware { get; private set; }
 
         public bool IsExecutable { get; private set; }
 
@@ -80,7 +74,7 @@ namespace HotChocolate.Types
             Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));
-            _middlewares.AddRange(description.Middlewares);
+            _middlewares.AddRange(description.Middleware);
         }
 
         protected override void OnRegisterDependencies(
@@ -111,30 +105,12 @@ namespace HotChocolate.Types
                 argument.CompleteType(context);
             }
 
-            IDirectiveMiddleware middleware =
-                context.GetMiddleware(Name, MiddlewareKind.OnBeforeInvoke);
+            IDirectiveMiddleware middleware = context.GetMiddleware(Name);
             if (middleware is DirectiveOnBeforeInvokeMiddleware obm)
             {
-                OnBeforeInvokeResolver = obm.OnBeforeInvokeResolver;
+                Middleware = obm.OnBeforeInvokeResolver;
+                IsExecutable = true;
             }
-
-            middleware =
-                context.GetMiddleware(Name, MiddlewareKind.OnInvoke);
-            if (middleware is DirectiveResolverMiddleware rm)
-            {
-                OnInvokeResolver = rm.Resolver;
-            }
-
-            middleware =
-                context.GetMiddleware(Name, MiddlewareKind.OnAfterInvoke);
-            if (middleware is DirectiveOnAfterInvokeMiddleware oam)
-            {
-                OnAfterInvokeResolver = oam.OnAfterInvokeResolver;
-            }
-
-            IsExecutable = OnBeforeInvokeResolver != null
-                || OnInvokeResolver != null
-                || OnAfterInvokeResolver != null;
         }
 
         #endregion

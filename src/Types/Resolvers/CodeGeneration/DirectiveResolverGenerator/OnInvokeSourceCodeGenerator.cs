@@ -11,18 +11,37 @@ namespace HotChocolate.Resolvers.CodeGeneration
         where T : IDirectiveMiddlewareDescriptor
     {
         protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
-            ArgumentGeneratorCollections.OnInvokeArguments;
+            ArgumentGeneratorCollections.MiddlewareArguments;
+
+        protected abstract bool IsAsync { get; }
+
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* @{descriptor.DirectiveName} */");
-            source.Append($"public static {nameof(OnInvokeResolverAsync)}");
+            source.Append($"public static {nameof(Middleware)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, dir, exec, ct) => {");
+            if (IsAsync)
+            {
+                source.Append("next => async ctx => {");
+            }
+            else
+            {
+                source.Append("next => ctx => {");
+            }
             source.AppendLine();
+
+            source.AppendLine($"var resolver = ctx.{nameof(IDirectiveContext.Resolver)}<{descriptor.Type.GetTypeName()}>();");
+            source.AppendLine($"var dir = ctx.{nameof(IDirectiveContext.Directive)};");
+            source.AppendLine($"var ct = ctx.{nameof(IDirectiveContext.CancellationToken)};");
+            source.AppendLine($"var rr = ctx.{nameof(IDirectiveContext.Result)};");
+            source.AppendLine($"if(rr is {typeof(IResolverResult).GetTypeName()} trr)");
+            source.AppendLine("{");
+            source.AppendLine("rr = trr.value;");
+            source.AppendLine("}");
         }
 
         protected override void GenerateDelegateFooter(

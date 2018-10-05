@@ -49,31 +49,11 @@ namespace HotChocolate.Types
         IDirectiveTypeDescriptor Location(DirectiveLocation location);
 
         // TODO : DOCU
-        IDirectiveTypeDescriptor OnBeforeInvokeResolver(
-            OnBeforeInvokeResolverAsync onBeforeInvoke);
+        IDirectiveTypeDescriptor Middleware(
+            Middleware middleware);
 
         // TODO : DOCU
-        IDirectiveTypeDescriptor OnBeforeInvokeResolver<T>(
-            Expression<Func<T, object>> method);
-
-        // TODO : DOCU
-        IDirectiveTypeDescriptor OnBeforeInvokeResolver<T>(
-            Expression<Action<T>> method);
-
-        // TODO : DOCU
-        IDirectiveTypeDescriptor OnInvokeResolver(
-            OnInvokeResolverAsync onInvoke);
-
-        // TODO : DOCU
-        IDirectiveTypeDescriptor OnInvokeResolver<T>(
-            Expression<Func<T, object>> method);
-
-        // TODO : DOCU
-        IDirectiveTypeDescriptor OnAfterInvokeResolver(
-            OnAfterInvokeResolverAsync onAfterInvoke);
-
-        // TODO : DOCU
-        IDirectiveTypeDescriptor OnAfterInvokeResolver<T>(
+        IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method);
     }
 
@@ -144,31 +124,11 @@ namespace HotChocolate.Types
         new IDirectiveTypeDescriptor<T> Location(DirectiveLocation location);
 
         // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver(
-            OnBeforeInvokeResolverAsync onBeforeInvoke);
+        new IDirectiveTypeDescriptor Middleware(
+            Middleware middleware);
 
         // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver<TMiddleware>(
-            Expression<Func<TMiddleware, object>> method);
-
-        // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnBeforeInvokeResolver<TMiddleware>(
-            Expression<Action<TMiddleware>> method);
-
-        // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnInvokeResolver(
-            OnInvokeResolverAsync onInvoke);
-
-        // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnInvokeResolver<TMiddleware>(
-            Expression<Func<TMiddleware, object>> method);
-
-        // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnAfterInvokeResolver(
-            OnAfterInvokeResolverAsync onAfterInvoke);
-
-        // TODO : DOCU
-        new IDirectiveTypeDescriptor<T> OnAfterInvokeResolver<TMiddleware>(
+        new IDirectiveTypeDescriptor Middleware<TMiddleware>(
             Expression<Func<TMiddleware, object>> method);
     }
 }

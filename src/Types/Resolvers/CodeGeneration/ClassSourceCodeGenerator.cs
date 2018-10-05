@@ -20,14 +20,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             new SyncSourceMethodGenerator(),
             new SourcePropertyGenerator(),
 
-            new AsyncOnBeforeInvokeMethodGenerator(),
-            new SyncOnBeforeInvokeMethodGenerator(),
-
             new AsyncOnInvokeMethodGenerator(),
             new SyncOnInvokeMethodGenerator(),
-
-            new AsyncOnAfterInvokeMethodGenerator(),
-            new SyncOnAfterInvokeMethodGenerator(),
         };
 
         public GeneratedClass Generate(

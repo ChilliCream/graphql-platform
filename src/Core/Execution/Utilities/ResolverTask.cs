@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
         public object ResolverResult { get; set; }
 
-        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+        public Func<IResolverContext, object, Task<object>>
 
         public bool HasExecutableDirectives { get; }
 
