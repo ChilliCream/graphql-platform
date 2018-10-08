@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -27,7 +28,8 @@ namespace HotChocolate.Execution
             DocumentNode queryDocument,
             OperationDefinitionNode operation,
             OperationRequest request,
-            VariableCollection variables)
+            VariableCollection variables,
+            CancellationToken cancellationToken)
         {
             if (request == null)
             {
@@ -61,6 +63,8 @@ namespace HotChocolate.Execution
                 RootValue = CreateRootValue(Services, schema, OperationType);
                 _disposeRootValue = true;
             }
+
+            CancellationToken = cancellationToken;
         }
 
         public ISchema Schema { get; }
@@ -84,6 +88,8 @@ namespace HotChocolate.Execution
         public FragmentCollection Fragments { get; }
 
         public VariableCollection Variables { get; }
+
+        public CancellationToken CancellationToken { get; }
 
         public void ReportError(IQueryError error)
         {
@@ -114,11 +120,21 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, ReportError);
         }
 
-        public IReadOnlyCollection<IDirective> GetExecutableDirectives(
+        public ExecuteMiddleware GetMiddleware(
             ObjectType objectType,
             FieldNode fieldSelection)
         {
-            return _directiveLookup.GetDirectives(
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            if (fieldSelection == null)
+            {
+                throw new ArgumentNullException(nameof(fieldSelection));
+            }
+
+            return _directiveLookup.GetMiddleware(
                 objectType, fieldSelection);
         }
 

@@ -16,8 +16,7 @@ namespace HotChocolate.Types
         private readonly List<DirectiveArgumentDescriptor> _arguments =
             new List<DirectiveArgumentDescriptor>();
 
-        private readonly Dictionary<MiddlewareKind, Func<string, IDirectiveMiddleware>> _middlewares
-            = new Dictionary<MiddlewareKind, Func<string, IDirectiveMiddleware>>();
+        private Func<string, IDirectiveMiddleware> _middlewareFactory;
 
         protected DirectiveTypeDescription DirectiveDescription { get; } =
             new DirectiveTypeDescription();
@@ -49,14 +48,8 @@ namespace HotChocolate.Types
 
         private void CompleteMiddlewares()
         {
-            DirectiveDescription.Middlewares.Clear();
-
-            foreach (Func<string, IDirectiveMiddleware> middlewareFactory in
-                _middlewares.Values)
-            {
-                DirectiveDescription.Middlewares.Add(
-                    middlewareFactory(DirectiveDescription.Name));
-            }
+            DirectiveDescription.Middleware =
+                _middlewareFactory?.Invoke(DirectiveDescription.Name);
         }
 
         protected void SyntaxNode(DirectiveDefinitionNode syntaxNode)
@@ -124,80 +117,36 @@ namespace HotChocolate.Types
             {
                 if (location.HasFlag(value))
                 {
-                    DirectiveDescription.Locations.Add(value);       
-                }   
+                    DirectiveDescription.Locations.Add(value);
+                }
             }
         }
 
-        protected void OnBeforeInvokeResolver(
-            OnBeforeInvokeResolverAsync onBeforeInvoke)
+        protected void Middleware(Middleware middleware)
         {
-            if (onBeforeInvoke == null)
+            if (middleware == null)
             {
-                throw new ArgumentNullException(nameof(onBeforeInvoke));
+                throw new ArgumentNullException(nameof(middleware));
             }
 
-            _middlewares[MiddlewareKind.OnAfterInvoke] = directiveName =>
-                new DirectiveOnBeforeInvokeMiddleware(
-                    directiveName,
-                    onBeforeInvoke);
+            _middlewareFactory =
+                name => new DirectiveDelegateMiddleware(name, middleware);
         }
 
-        protected void OnInvokeResolver(
-            OnInvokeResolverAsync onInvoke)
-        {
-            if (onInvoke == null)
-            {
-                throw new ArgumentNullException(nameof(onInvoke));
-            }
-
-            _middlewares[MiddlewareKind.OnAfterInvoke] = directiveName =>
-                new DirectiveResolverMiddleware(
-                    directiveName,
-                    onInvoke);
-        }
-
-        protected void OnAfterInvokeResolver(
-            OnAfterInvokeResolverAsync onAfterInvoke)
-        {
-            if (onAfterInvoke == null)
-            {
-                throw new ArgumentNullException(nameof(onAfterInvoke));
-            }
-
-            _middlewares[MiddlewareKind.OnAfterInvoke] = directiveName =>
-                new DirectiveOnAfterInvokeMiddleware(
-                    directiveName,
-                    onAfterInvoke);
-        }
-
-        protected void OnBeforeInvokeResolver<T>(
+        protected void Middleware<T>(
             Expression<Func<T, object>> method)
         {
-            BindMethodAsMiddleware(method, MiddlewareKind.OnBeforeInvoke);
+            BindMethodAsMiddleware(method);
         }
 
-        protected void OnBeforeInvokeResolver<T>(
+        protected void Middleware<T>(
             Expression<Action<T>> method)
         {
-            BindMethodAsMiddleware(method, MiddlewareKind.OnBeforeInvoke);
-        }
-
-        protected void OnInvokeResolver<T>(
-            Expression<Func<T, object>> method)
-        {
-            BindMethodAsMiddleware(method, MiddlewareKind.OnInvoke);
-        }
-
-        protected void OnAfterInvokeResolver<T>(
-            Expression<Func<T, object>> method)
-        {
-            BindMethodAsMiddleware(method, MiddlewareKind.OnAfterInvoke);
+            BindMethodAsMiddleware(method);
         }
 
         private void BindMethodAsMiddleware<T>(
-            Expression<Func<T, object>> method,
-            MiddlewareKind middlewareKind)
+            Expression<Func<T, object>> method)
         {
             if (method == null)
             {
@@ -206,13 +155,10 @@ namespace HotChocolate.Types
 
             BindMethodAsMiddleware(
                 typeof(T),
-                method.ExtractMember() as MethodInfo,
-                middlewareKind);
+                method.ExtractMember() as MethodInfo);
         }
 
-        private void BindMethodAsMiddleware<T>(
-            Expression<Action<T>> method,
-            MiddlewareKind middlewareKind)
+        private void BindMethodAsMiddleware<T>(Expression<Action<T>> method)
         {
             if (method == null)
             {
@@ -221,14 +167,10 @@ namespace HotChocolate.Types
 
             BindMethodAsMiddleware(
                 typeof(T),
-                method.ExtractMember() as MethodInfo,
-                middlewareKind);
+                method.ExtractMember() as MethodInfo);
         }
 
-        private void BindMethodAsMiddleware(
-            Type type,
-            MethodInfo method,
-            MiddlewareKind middlewareKind)
+        private void BindMethodAsMiddleware(Type type, MethodInfo method)
         {
             if (method == null)
             {
@@ -237,10 +179,9 @@ namespace HotChocolate.Types
                     "Only methods can be bound as directive middlewares.");
             }
 
-            _middlewares[middlewareKind] = directiveName =>
+            _middlewareFactory = name =>
                 new DirectiveMethodMiddleware(
-                    directiveName,
-                    middlewareKind,
+                    name,
                     type,
                     method);
         }
@@ -279,52 +220,23 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor
-            .OnBeforeInvokeResolver(OnBeforeInvokeResolverAsync onBeforeInvoke)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware(
+            Middleware middleware)
         {
-            OnBeforeInvokeResolver(onBeforeInvoke);
+            Middleware(middleware);
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.OnInvokeResolver(
-            OnInvokeResolverAsync onInvoke)
-        {
-            OnInvokeResolver(onInvoke);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.OnAfterInvokeResolver(
-            OnAfterInvokeResolverAsync onAfterInvoke)
-        {
-            OnAfterInvokeResolver(onAfterInvoke);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor
-            .OnBeforeInvokeResolver<T>(Expression<Func<T, object>> method)
-        {
-            OnBeforeInvokeResolver(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor
-            .OnBeforeInvokeResolver<T>(Expression<Action<T>> method)
-        {
-            OnBeforeInvokeResolver(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.OnInvokeResolver<T>(
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(
             Expression<Func<T, object>> method)
         {
-            OnInvokeResolver(method);
+            Middleware(method);
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor
-            .OnAfterInvokeResolver<T>(Expression<Func<T, object>> method)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(Expression<Action<T>> method)
         {
-            OnAfterInvokeResolver(method);
+            Middleware(method);
             return this;
         }
 
@@ -334,7 +246,6 @@ namespace HotChocolate.Types
     internal class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
-
     {
         public DirectiveTypeDescriptor()
         {
@@ -500,56 +411,24 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnBeforeInvokeResolver(OnBeforeInvokeResolverAsync onBeforeInvoke)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware(
+            Middleware middleware)
         {
-            OnBeforeInvokeResolver(onBeforeInvoke);
+            Middleware(middleware);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnBeforeInvokeResolver<TMiddleware>(
-                Expression<Func<TMiddleware, object>> method)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
+            Expression<Func<TM, object>> method)
         {
-            OnBeforeInvokeResolver(method);
+            Middleware(method);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnBeforeInvokeResolver<TMiddleware>(
-                    Expression<Action<TMiddleware>> method)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
+            Expression<Action<T>> method)
         {
-            OnBeforeInvokeResolver(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnInvokeResolver(OnInvokeResolverAsync onInvoke)
-        {
-            OnInvokeResolver(onInvoke);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnInvokeResolver<TMiddleware>(
-                Expression<Func<TMiddleware, object>> method)
-        {
-            OnInvokeResolver(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnAfterInvokeResolver(OnAfterInvokeResolverAsync onAfterInvoke)
-        {
-            OnAfterInvokeResolver(onAfterInvoke);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>
-            .OnAfterInvokeResolver<TMiddleware>(
-                Expression<Func<TMiddleware, object>> method)
-        {
-            OnAfterInvokeResolver(method);
+            Middleware(method);
             return this;
         }
 

@@ -23,26 +23,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 new CustomArgumentSourceCodeGenerator()
             }.AsReadOnly();
 
-        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnBeforeInvokeArguments { get; } =
+        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> MiddlewareArguments { get; } =
             new List<ArgumentSourceCodeGenerator>(ResolverArguments)
             {
                 new DirectiveArgumentSourceCodeGenerator(),
                 new DirectiveArgumentArgumentSourceCodeGenerator(),
-                new DirectiveObjectArgumentSourceCodeGenerator()
-            }.AsReadOnly();
-
-        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnInvokeArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
-            {
-                new ResolverArgumentSourceCodeGenerator(),
-                new OnInvokeResultArgumentSourceCodeGenerator(),
-            }.AsReadOnly();
-
-        public static ReadOnlyCollection<ArgumentSourceCodeGenerator> OnAfterInvokeArguments { get; } =
-            new List<ArgumentSourceCodeGenerator>(OnBeforeInvokeArguments)
-            {
+                new DirectiveObjectArgumentSourceCodeGenerator(),
                 new ResultArgumentSourceCodeGenerator(),
             }.AsReadOnly();
-
     }
 }

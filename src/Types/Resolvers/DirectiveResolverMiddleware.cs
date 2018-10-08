@@ -2,25 +2,29 @@ using System;
 
 namespace HotChocolate.Resolvers
 {
-    internal sealed class DirectiveResolverMiddleware
+    internal sealed class DirectiveDelegateMiddleware
         : IDirectiveMiddleware
     {
-        public DirectiveResolverMiddleware(
+        public DirectiveDelegateMiddleware(
             string directiveName,
-            OnInvokeResolverAsync resolver)
+            Middleware middleware)
         {
             if (string.IsNullOrEmpty(directiveName))
             {
                 throw new ArgumentNullException(nameof(directiveName));
             }
 
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
             DirectiveName = directiveName;
-            Resolver = resolver
-                ?? throw new ArgumentNullException(nameof(resolver));
+            Middleware = middleware;
         }
 
         public string DirectiveName { get; }
-        public MiddlewareKind Kind => MiddlewareKind.OnInvoke;
-        public OnInvokeResolverAsync Resolver { get; }
+
+        public Middleware Middleware { get; }
     }
 }

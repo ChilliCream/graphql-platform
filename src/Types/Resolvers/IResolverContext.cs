@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -134,5 +135,7 @@ namespace HotChocolate.Resolvers
         /// The error message.
         /// </param>
         void ReportError(string errorMessage);
+
+        CancellationToken CancellationToken { get; }
     }
 }

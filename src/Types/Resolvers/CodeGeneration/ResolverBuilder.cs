@@ -106,36 +106,9 @@ namespace HotChocolate.Resolvers.CodeGeneration
                         delegateName,
                         BindingFlags.Static | BindingFlags.Public);
 
-                yield return CreateMiddleware(
-                    middlewareDescriptors[i],
-                    field);
-            }
-        }
-
-        private IDirectiveMiddleware CreateMiddleware(
-            IDirectiveMiddlewareDescriptor middlewareDescriptor,
-            FieldInfo field)
-        {
-            switch (middlewareDescriptor.Kind)
-            {
-                case MiddlewareKind.OnAfterInvoke:
-                    return new DirectiveOnAfterInvokeMiddleware(
-                        middlewareDescriptor.DirectiveName,
-                        (OnAfterInvokeResolverAsync)field.GetValue(field));
-
-                case MiddlewareKind.OnBeforeInvoke:
-                    return new DirectiveOnBeforeInvokeMiddleware(
-                        middlewareDescriptor.DirectiveName,
-                        (OnBeforeInvokeResolverAsync)field.GetValue(field));
-
-                case MiddlewareKind.OnInvoke:
-                    return new DirectiveResolverMiddleware(
-                        middlewareDescriptor.DirectiveName,
-                        (OnInvokeResolverAsync)field.GetValue(field));
-
-                default:
-                    throw new NotSupportedException(
-                        "Middleware kind not supported.");
+                yield return new DirectiveDelegateMiddleware(
+                    middlewareDescriptors[i].DirectiveName,
+                    (Middleware)field.GetValue(field));
             }
         }
 

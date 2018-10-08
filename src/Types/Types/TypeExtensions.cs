@@ -34,6 +34,12 @@ namespace HotChocolate.Types
                 || IsType<InterfaceType>(type);
         }
 
+        public static bool IsLeafType(this IType type)
+        {
+            return IsScalarType(type)
+                || IsEnumType(type);
+        }
+
         public static bool IsListType(this IType type)
         {
             return IsType<ListType>(type);

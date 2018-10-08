@@ -20,7 +20,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.NotNull(directiveType.Middleware);
             Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
         }
 
@@ -31,15 +31,13 @@ namespace HotChocolate.Types
             DirectiveType directiveType = new DirectiveType(
                 t => t.Name("Foo")
                     .Location(DirectiveLocation.Field)
-                    .OnInvokeResolver((ctx, dir, exec, ct) =>
-                        Task.FromResult<object>("foo")));
-
+                    .Middleware(next => context => Task.CompletedTask));
             // act
             directiveType = CreateDirective(directiveType);
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.OnInvokeResolver);
+            Assert.NotNull(directiveType.Middleware);
             Assert.Null(directiveType.ClrType);
         }
 
@@ -96,8 +94,7 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.OnInvokeResolver((ctx, dir, exec, ct) =>
-                    Task.FromResult<object>("foo"));
+                descriptor.Middleware(next => context => Task.CompletedTask);
             }
         }
 

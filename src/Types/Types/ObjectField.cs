@@ -147,7 +147,7 @@ namespace HotChocolate.Types
                 Resolver = context.GetResolver(Name);
                 if (Resolver == null
                     && _executableDirectives.All(
-                            t => t.OnInvokeResolver == null))
+                            t => t.Middleware == null))
                 {
                     context.ReportError(new SchemaError(
                         $"The field `{context.Type.Name}.{Name}` " +

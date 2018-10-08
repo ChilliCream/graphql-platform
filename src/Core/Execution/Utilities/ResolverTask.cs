@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -23,11 +24,14 @@ namespace HotChocolate.Execution
             FieldType = fieldSelection.Field.Type;
             Path = path;
             Result = result;
-            ResolverContext = new ResolverContext(executionContext, this);
 
-            ExecutableDirectives = executionContext.GetExecutableDirectives(
+            ResolverContext = new ResolverContext(
+                executionContext, this,
+                executionContext.CancellationToken);
+
+            ExecuteMiddleware = executionContext.GetMiddleware(
                 objectType, fieldSelection.Selection);
-            HasExecutableDirectives = ExecutableDirectives.Count > 0;
+            HasMiddleware = ExecuteMiddleware != null;
         }
 
         public ImmutableStack<object> Source { get; }
@@ -46,9 +50,9 @@ namespace HotChocolate.Execution
 
         public object ResolverResult { get; set; }
 
-        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+        public ExecuteMiddleware ExecuteMiddleware { get; }
 
-        public bool HasExecutableDirectives { get; }
+        public bool HasMiddleware { get; }
 
         public void IntegrateResult(object value)
         {

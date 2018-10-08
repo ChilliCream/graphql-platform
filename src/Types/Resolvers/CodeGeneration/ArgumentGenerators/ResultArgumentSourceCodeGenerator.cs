@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         protected override string Generate(ArgumentDescriptor descriptor)
         {
-            return $"({descriptor.Type.GetTypeName()})res";
+            return $"({descriptor.Type.GetTypeName()})rr";
         }
     }
 }

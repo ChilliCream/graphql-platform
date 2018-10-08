@@ -17,8 +17,8 @@ namespace HotChocolate.Configuration
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
             new Dictionary<FieldReference, IFieldResolverDescriptor>();
-        private readonly Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware> _middlewares =
-            new Dictionary<DirectiveMiddlewareReference, IDirectiveMiddleware>();
+        private readonly Dictionary<string, IDirectiveMiddleware> _middlewares =
+            new Dictionary<string, IDirectiveMiddleware>();
 
         public void RegisterResolver(IFieldReference resolverBinding)
         {
@@ -51,7 +51,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            _middlewares[CreateReference(middleware)] = middleware;
+            _middlewares[middleware.DirectiveName] = middleware;
         }
 
         public bool ContainsResolver(FieldReference fieldReference)
@@ -75,17 +75,14 @@ namespace HotChocolate.Configuration
             return null;
         }
 
-        public IDirectiveMiddleware GetMiddleware(
-            string directiveName,
-            MiddlewareKind kind)
+        public IDirectiveMiddleware GetMiddleware(string directiveName)
         {
             if (string.IsNullOrEmpty(directiveName))
             {
                 throw new ArgumentNullException(nameof(directiveName));
             }
 
-            if (_middlewares.TryGetValue(
-                CreateReference(directiveName, kind),
+            if (_middlewares.TryGetValue(directiveName,
                 out IDirectiveMiddleware middleware))
             {
                 return middleware;
@@ -119,7 +116,7 @@ namespace HotChocolate.Configuration
         {
             foreach (IDirectiveMiddleware middleware in middlewares)
             {
-                _middlewares[CreateReference(middleware)] = middleware;
+                _middlewares[middleware.DirectiveName] = middleware;
             }
         }
 
@@ -150,20 +147,6 @@ namespace HotChocolate.Configuration
             {
                 yield return new DirectiveMiddlewareDescriptor(methodMiddleware);
             }
-        }
-
-        private static DirectiveMiddlewareReference CreateReference(
-            IDirectiveMiddleware middleware)
-        {
-            return new DirectiveMiddlewareReference(
-                middleware.DirectiveName,
-                middleware.Kind);
-        }
-
-        private static DirectiveMiddlewareReference CreateReference(
-            string directiveName, MiddlewareKind kind)
-        {
-            return new DirectiveMiddlewareReference(directiveName, kind);
         }
     }
 }

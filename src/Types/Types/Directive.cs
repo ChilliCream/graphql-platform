@@ -49,14 +49,7 @@ namespace HotChocolate.Types
 
         public object Source { get; }
 
-        public OnBeforeInvokeResolverAsync OnBeforeInvokeResolver =>
-            Type.OnBeforeInvokeResolver;
-
-        public OnInvokeResolverAsync OnInvokeResolver =>
-            Type.OnInvokeResolver;
-
-        public OnAfterInvokeResolverAsync OnAfterInvokeResolver =>
-            Type.OnAfterInvokeResolver;
+        public Middleware Middleware  => Type.Middleware;
 
         public bool IsExecutable => Type.IsExecutable;
 

@@ -18,18 +18,17 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 
             DirectiveName = directiveMethodMiddleware.DirectiveName;
-            Kind = directiveMethodMiddleware.Kind;
             Type = directiveMethodMiddleware.Type;
             Method = directiveMethodMiddleware.Method;
 
             Arguments = FieldResolverDiscoverer
                 .DiscoverArguments(Method);
             IsAsync = typeof(Task).IsAssignableFrom(Method.ReturnType);
+            HasResult = Method.ReturnType != typeof(void)
+                && Method.ReturnType != typeof(Task);
         }
 
         public string DirectiveName { get; }
-
-        public MiddlewareKind Kind { get; }
 
         public Type Type { get; }
 
@@ -38,5 +37,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         public IReadOnlyCollection<ArgumentDescriptor> Arguments { get; }
 
         public bool IsAsync { get; }
+
+        public bool HasResult { get; }
     }
 }

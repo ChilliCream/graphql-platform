@@ -24,8 +24,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// <value></value>
         MethodInfo Method { get; }
 
-        MiddlewareKind Kind { get; }
-
         /// <summary>
         /// Gets a collection of argument descriptors
         /// defining the structure of the arguments
@@ -37,5 +35,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// Defines if the resolver is an asynchronous resolver.
         /// </summary>
         bool IsAsync { get; }
+
+        /// <summary>
+        /// Defines if the method is returning a result that has to be
+        /// integrated as resolver result.
+        /// </summary>
+        bool HasResult { get; }
     }
 }

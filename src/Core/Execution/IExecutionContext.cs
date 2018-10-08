@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -37,6 +38,8 @@ namespace HotChocolate.Execution
 
         VariableCollection Variables { get; }
 
+        CancellationToken CancellationToken { get; }
+
         void ReportError(IQueryError error);
 
         IEnumerable<IQueryError> GetErrors();
@@ -45,7 +48,7 @@ namespace HotChocolate.Execution
             ObjectType objectType,
             SelectionSetNode selectionSet);
 
-        IReadOnlyCollection<IDirective> GetExecutableDirectives(
+        ExecuteMiddleware GetMiddleware(
             ObjectType objectType,
             FieldNode fieldSelection);
 

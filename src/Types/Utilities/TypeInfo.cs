@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal readonly struct TypeInfo
+    internal sealed class TypeInfo
     {
         public TypeInfo(Type nativeNamedType,
             Func<IType, IType> typeFactory)

@@ -7,10 +7,11 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using System.Threading;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct ResolverContext
+    internal sealed class ResolverContext
         : IResolverContext
     {
         // todo: remove
@@ -30,7 +31,8 @@ namespace HotChocolate.Execution
 
         public ResolverContext(
             IExecutionContext executionContext,
-            ResolverTask resolverTask)
+            ResolverTask resolverTask,
+            CancellationToken cancellationToken)
         {
             if (executionContext == null)
             {
@@ -44,6 +46,8 @@ namespace HotChocolate.Execution
 
             _executionContext = executionContext;
             _resolverTask = resolverTask;
+            CancellationToken = cancellationToken;
+
             _arguments = _argumentResolver.CoerceArgumentValues(
                 resolverTask.FieldSelection, executionContext.Variables);
         }
@@ -58,11 +62,14 @@ namespace HotChocolate.Execution
 
         public OperationDefinitionNode Operation => _executionContext.Operation;
 
-        public FieldNode FieldSelection => _resolverTask.FieldSelection.Selection;
+        public FieldNode FieldSelection =>
+            _resolverTask.FieldSelection.Selection;
 
         public ImmutableStack<object> Source => _resolverTask.Source;
 
         public Path Path => _resolverTask.Path;
+
+        public CancellationToken CancellationToken { get; }
 
         public T Argument<T>(string name)
         {
@@ -79,7 +86,9 @@ namespace HotChocolate.Execution
             return default(T);
         }
 
-        private T ConvertArgumentValue<T>(string name, ArgumentValue argumentValue)
+        private T ConvertArgumentValue<T>(
+            string name,
+            ArgumentValue argumentValue)
         {
             if (argumentValue.Value is T value)
             {
@@ -104,7 +113,9 @@ namespace HotChocolate.Execution
                     _resolverTask.FieldSelection.Selection));
         }
 
-        private bool TryConvertValue<T>(ArgumentValue argumentValue, out T value)
+        private bool TryConvertValue<T>(
+            ArgumentValue argumentValue,
+            out T value)
         {
             foreach (IInputValueConverter converter in _converters
                 .Where(t => t.CanConvert(argumentValue.Type)))

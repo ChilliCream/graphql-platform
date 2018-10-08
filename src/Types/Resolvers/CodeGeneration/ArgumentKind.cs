@@ -16,7 +16,6 @@
         CustomContext,
         DataLoader,
         ResolverResult,
-        Resolver,
         Directive,
         DirectiveArgument,
         DirectiveObject
