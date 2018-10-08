@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.Execute("{ person(name: \"Foo\") { name } }");
+                schema.Execute("{ person(name: \"Foo\") { name @resolve } }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -66,6 +66,7 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(c =>
             {
+                c.RegisterDirective<ResolveDirective>();
                 c.RegisterDirective<AppendStringDirectiveType>();
                 c.RegisterQueryType<Query>();
                 c.RegisterType<PersonType>();
