@@ -80,6 +80,13 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context);
 
+            if (Locations.Count == 0)
+            {
+                context.ReportError(new SchemaError(
+                    $"The `{Name}` directive does not declare any " +
+                    "location on which it is valid."));
+            }
+
             foreach (INeedsInitialization argument in Arguments
                 .Cast<INeedsInitialization>())
             {

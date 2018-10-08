@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -11,11 +14,18 @@ namespace HotChocolate.Execution
         : IDirectiveContext
     {
         private readonly IResolverContext _resolverContext;
+        private readonly Func<Task<object>> _resolver;
+        private object _resolvedResult;
+        private bool _isResultResolved;
 
-        public DirectiveContext(IResolverContext resolverContext)
+        public DirectiveContext(
+            IResolverContext resolverContext,
+            Func<Task<object>> resolver)
         {
             _resolverContext = resolverContext
                 ?? throw new ArgumentNullException(nameof(resolverContext));
+            _resolver = resolver
+                ?? throw new ArgumentNullException(nameof(resolver));
         }
 
         public IDirective Directive { get; set; }
@@ -57,5 +67,27 @@ namespace HotChocolate.Execution
         public T Resolver<T>() => _resolverContext.Resolver<T>();
 
         public T Service<T>() => _resolverContext.Service<T>();
+
+        public async Task<T> ResolveAsync<T>()
+        {
+            if (!_isResultResolved)
+            {
+                _resolvedResult = await _resolver();
+                _isResultResolved = true;
+            }
+
+            if (_resolvedResult is IQueryError error)
+            {
+                throw new QueryException(error);
+            }
+            else if (_resolvedResult is IEnumerable<IQueryError> errors)
+            {
+                throw new QueryException(errors);
+            }
+            else
+            {
+                return (T)_resolvedResult;
+            }
+        }
     }
 }

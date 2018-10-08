@@ -10,5 +10,5 @@ namespace HotChocolate.Execution
 {
     internal delegate Task<object> ExecuteMiddleware(
         IResolverContext context,
-        object resolverResult);
+        Func<Task<object>> executeResolver);
 }
