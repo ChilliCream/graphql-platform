@@ -66,20 +66,10 @@ namespace HotChocolate.Execution
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
-            object result = ExecuteFieldResolver(
-                resolverTask,
-                isDeveloperMode,
-                cancellationToken);
-
-            result = await FinalizeResolverResultAsync(
-                resolverTask.FieldSelection.Selection,
-                result,
-                isDeveloperMode);
-
             try
             {
                 return await resolverTask.ExecuteMiddleware.Invoke(
-                    resolverTask.ResolverContext, result);
+                    resolverTask.ResolverContext, ExecuteResolver);
             }
             catch (QueryException ex)
             {
@@ -91,6 +81,19 @@ namespace HotChocolate.Execution
                     resolverTask.FieldSelection.Selection,
                     isDeveloperMode);
             }
+
+            async Task<object> ExecuteResolver()
+            {
+                object result = ExecuteFieldResolver(
+                    resolverTask,
+                    isDeveloperMode,
+                    cancellationToken);
+
+                return await FinalizeResolverResultAsync(
+                    resolverTask.FieldSelection.Selection,
+                    result,
+                    isDeveloperMode);
+            };
         }
 
         protected static Task<object> FinalizeResolverResultAsync(

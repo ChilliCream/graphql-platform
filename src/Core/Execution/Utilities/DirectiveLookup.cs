@@ -56,9 +56,12 @@ namespace HotChocolate.Execution
 
                 foreach (var fieldNode in objectType.Value)
                 {
-                    ExecuteMiddleware middleware =
-                        BuildMiddleware(fieldNode.Value);
-                    middlewareLookup[fieldNode.Key] = middleware;
+                    if (fieldNode.Value.Count > 0)
+                    {
+                        ExecuteMiddleware middleware =
+                            BuildMiddleware(fieldNode.Value);
+                        middlewareLookup[fieldNode.Key] = middleware;
+                    }
                 }
 
                 _middlewareLookup[objectType.Key] = middlewareLookup;
@@ -87,10 +90,10 @@ namespace HotChocolate.Execution
                 component = BuildComponent(directive, updateContext, component);
             }
 
-            return async (context, resolverResult) =>
+            return async (context, executeResolver) =>
             {
-                var directiveContext = new DirectiveContext(context);
-                directiveContext.Result = resolverResult;
+                var directiveContext = new DirectiveContext(
+                    context, executeResolver);
                 await component.Invoke(directiveContext);
                 return directiveContext.Result;
             };
