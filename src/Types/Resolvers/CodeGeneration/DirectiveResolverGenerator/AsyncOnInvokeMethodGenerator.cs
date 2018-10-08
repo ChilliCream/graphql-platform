@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class AsyncOnInvokeMethodGenerator
-        : OnInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
+        : MiddlewareSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
         protected override bool IsAsync => true;
 
@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 s.AppendLine(");");
             });
 
-            source.AppendLine("await next.Invoke(ctx)");
+            source.AppendLine("await next.Invoke(ctx);");
         }
 
         protected override bool CanHandle(

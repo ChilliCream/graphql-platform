@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
 
             try
             {
-                return resolverTask.ExecuteMiddleware.Invoke(
+                return await resolverTask.ExecuteMiddleware.Invoke(
                     resolverTask.ResolverContext, result);
             }
             catch (QueryException ex)

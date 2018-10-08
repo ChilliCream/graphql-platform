@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal abstract class OnInvokeSourceCodeGenerator<T>
+    internal abstract class MiddlewareSourceCodeGenerator<T>
         : ResolverSourceCodeGeneratorBase<T>
         where T : IDirectiveMiddlewareDescriptor
     {
@@ -40,7 +40,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"var rr = ctx.{nameof(IDirectiveContext.Result)};");
             source.AppendLine($"if(rr is {typeof(IResolverResult).GetTypeName()} trr)");
             source.AppendLine("{");
-            source.AppendLine("rr = trr.value;");
+            source.AppendLine("rr = trr.Value;");
             source.AppendLine("}");
         }
 
@@ -55,6 +55,19 @@ namespace HotChocolate.Resolvers.CodeGeneration
            T descriptor)
         {
             return descriptor.Arguments;
+        }
+
+        protected override void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
+            source.AppendLine("{");
+            source.AppendLine($"ctx.Result = ex.Errors;");
+            source.AppendLine("}");
         }
     }
 }

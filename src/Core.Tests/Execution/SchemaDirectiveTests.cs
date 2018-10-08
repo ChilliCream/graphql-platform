@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
 
@@ -122,10 +123,12 @@ namespace HotChocolate.Execution
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.Interface);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.OnInvokeResolver(async (ctx, dir, exec, ct) =>
+                descriptor.Middleware(next => context =>
                 {
-                    return ((string)await exec())
-                        + dir.ToObject<AppendStringDirective>().S;
+                    string s = context.Directive
+                        .ToObject<AppendStringDirective>().S;
+                    context.Result = context.Result + s;
+                    return Task.CompletedTask;
                 });
             }
         }

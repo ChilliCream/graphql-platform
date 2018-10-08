@@ -55,6 +55,10 @@ namespace HotChocolate.Types
         // TODO : DOCU
         IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method);
+
+        // TODO : DOCU
+        IDirectiveTypeDescriptor Middleware<T>(
+            Expression<Action<T>> method);
     }
 
     public interface IDirectiveTypeDescriptor<T>
@@ -130,5 +134,9 @@ namespace HotChocolate.Types
         // TODO : DOCU
         new IDirectiveTypeDescriptor Middleware<TMiddleware>(
             Expression<Func<TMiddleware, object>> method);
+
+        // TODO : DOCU
+        new IDirectiveTypeDescriptor Middleware<TMiddleware>(
+            Expression<Action<T>> method);
     }
 }

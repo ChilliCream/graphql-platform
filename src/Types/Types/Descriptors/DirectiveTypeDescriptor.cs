@@ -49,7 +49,7 @@ namespace HotChocolate.Types
         private void CompleteMiddlewares()
         {
             DirectiveDescription.Middleware =
-                _middlewareFactory.Invoke(DirectiveDescription.Name);
+                _middlewareFactory?.Invoke(DirectiveDescription.Name);
         }
 
         protected void SyntaxNode(DirectiveDefinitionNode syntaxNode)
@@ -139,6 +139,12 @@ namespace HotChocolate.Types
             BindMethodAsMiddleware(method);
         }
 
+        protected void Middleware<T>(
+            Expression<Action<T>> method)
+        {
+            BindMethodAsMiddleware(method);
+        }
+
         private void BindMethodAsMiddleware<T>(
             Expression<Func<T, object>> method)
         {
@@ -223,6 +229,12 @@ namespace HotChocolate.Types
 
         IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(
             Expression<Func<T, object>> method)
+        {
+            Middleware(method);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(Expression<Action<T>> method)
         {
             Middleware(method);
             return this;
@@ -408,6 +420,13 @@ namespace HotChocolate.Types
 
         IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
             Expression<Func<TM, object>> method)
+        {
+            Middleware(method);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
+            Expression<Action<T>> method)
         {
             Middleware(method);
             return this;

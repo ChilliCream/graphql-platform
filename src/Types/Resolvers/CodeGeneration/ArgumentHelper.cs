@@ -163,12 +163,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (parameter.IsResolver())
-            {
-                argumentKind = ArgumentKind.Resolver;
-                return true;
-            }
-
             if (parameter.IsResolverResult())
             {
                 argumentKind = ArgumentKind.ResolverResult;
@@ -197,11 +191,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
         private static bool IsParent(this ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ParentAttribute));
-        }
-
-        private static bool IsResolver(this ParameterInfo parameter)
-        {
-            return parameter.IsDefined(typeof(ResolverAttribute));
         }
 
         private static bool IsResolverResult(this ParameterInfo parameter)

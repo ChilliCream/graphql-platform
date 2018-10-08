@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class SyncOnInvokeMethodGenerator
-        : OnInvokeSourceCodeGenerator<DirectiveMiddlewareDescriptor>
+        : MiddlewareSourceCodeGenerator<DirectiveMiddlewareDescriptor>
     {
         protected override bool IsAsync => false;
 
@@ -22,14 +22,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
             });
 
             source.Append("return next.Invoke(ctx);");
-        }
-
-
-        protected override void GenerateArgumentDeclaration(
-            DirectiveMiddlewareDescriptor descriptor,
-            StringBuilder source)
-        {
-            // do nothing
         }
 
         protected override bool CanHandle(
