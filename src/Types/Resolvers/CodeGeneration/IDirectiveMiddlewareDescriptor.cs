@@ -35,5 +35,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// Defines if the resolver is an asynchronous resolver.
         /// </summary>
         bool IsAsync { get; }
+
+        /// <summary>
+        /// Defines if the method is returning a result that has to be
+        /// integrated as resolver result.
+        /// </summary>
+        bool HasResult { get; }
     }
 }

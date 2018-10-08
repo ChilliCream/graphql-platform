@@ -24,6 +24,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             Arguments = FieldResolverDiscoverer
                 .DiscoverArguments(Method);
             IsAsync = typeof(Task).IsAssignableFrom(Method.ReturnType);
+            HasResult = Method.ReturnType != typeof(void)
+                && Method.ReturnType != typeof(Task);
         }
 
         public string DirectiveName { get; }
@@ -35,5 +37,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         public IReadOnlyCollection<ArgumentDescriptor> Arguments { get; }
 
         public bool IsAsync { get; }
+
+        public bool HasResult { get; }
     }
 }

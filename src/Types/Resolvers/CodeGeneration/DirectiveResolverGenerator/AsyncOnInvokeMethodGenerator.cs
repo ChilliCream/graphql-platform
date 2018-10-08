@@ -15,7 +15,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             HandleExceptions(source, s =>
             {
-                s.Append($"ctx.Result = await resolver.{descriptor.Method.Name}(");
+                if (descriptor.HasResult)
+                {
+                    s.Append("ctx.Result = ");
+                }
+                s.Append($"await resolver.{descriptor.Method.Name}(");
                 GenerateArguments(descriptor, s);
                 s.AppendLine(");");
             });
