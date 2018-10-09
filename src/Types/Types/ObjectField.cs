@@ -113,15 +113,10 @@ namespace HotChocolate.Types
             ITypeInitializationContext context)
         {
             HashSet<string> processed = new HashSet<string>();
-            AddExectableDirectives(processed, Directives);
-            AddExectableDirectives(processed,
-                _interfaceFields.SelectMany(t => t.Directives));
-
             if (context.Type is ObjectType ot)
             {
                 AddExectableDirectives(processed, ot.Directives);
-                AddExectableDirectives(processed,
-                    ot.Interfaces.Values.SelectMany(t => t.Directives));
+                AddExectableDirectives(processed, Directives);
             }
         }
 
