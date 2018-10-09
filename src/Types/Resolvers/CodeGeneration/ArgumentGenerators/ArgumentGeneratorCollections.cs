@@ -26,6 +26,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         public static ReadOnlyCollection<ArgumentSourceCodeGenerator> MiddlewareArguments { get; } =
             new List<ArgumentSourceCodeGenerator>(ResolverArguments)
             {
+                new DirectiveContextArgumentSourceCodeGenerator(),
                 new DirectiveArgumentSourceCodeGenerator(),
                 new DirectiveArgumentArgumentSourceCodeGenerator(),
                 new DirectiveObjectArgumentSourceCodeGenerator(),

@@ -1,6 +1,6 @@
 namespace HotChocolate.Resolvers.CodeGeneration
 {
-    internal sealed class ContextArgumentSourceCodeGenerator
+    internal class ContextArgumentSourceCodeGenerator
         : ArgumentSourceCodeGenerator
     {
         protected override ArgumentKind Kind => ArgumentKind.Context;

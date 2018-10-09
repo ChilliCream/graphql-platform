@@ -84,8 +84,8 @@ namespace HotChocolate.Execution
             HashSet<string> processed = new HashSet<string>();
             List<IDirective> directives = new List<IDirective>();
 
-            CollectSelectionDirectives(processed, directives, fieldSelection);
             CollectInheritedDirectives(processed, directives, field);
+            CollectSelectionDirectives(processed, directives, fieldSelection);
 
             return directives.AsReadOnly();
         }

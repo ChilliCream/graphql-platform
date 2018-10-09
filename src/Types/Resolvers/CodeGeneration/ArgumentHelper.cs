@@ -145,6 +145,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
+            if (parameter.ParameterType == typeof(IDirectiveContext))
+            {
+                argumentKind = ArgumentKind.Context;
+                return true;
+            }
+
             if (parameter.ParameterType == typeof(IDirective))
             {
                 argumentKind = ArgumentKind.Directive;
