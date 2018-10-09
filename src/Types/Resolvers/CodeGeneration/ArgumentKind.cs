@@ -18,6 +18,7 @@
         ResolverResult,
         Directive,
         DirectiveArgument,
+        DirectiveContext,
         DirectiveObject
     }
 }
