@@ -1,9 +1,9 @@
 namespace HotChocolate.Types
 {
     public sealed class ResolveDirective
-        : DirectiveType
+        : DirectiveType<Resolve>
     {
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<Resolve> descriptor)
         {
             descriptor.Name("resolve");
             descriptor.Middleware(next => async context =>
@@ -19,4 +19,6 @@ namespace HotChocolate.Types
                 .Location(DirectiveLocation.Field);
         }
     }
+
+    public sealed class Resolve { }
 }
