@@ -34,34 +34,6 @@ namespace HotChocolate.Execution
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
-        [Fact]
-        public void InheritExecutableDirectiveFromInterface()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-
-            // act
-            IExecutionResult result =
-                schema.Execute("{ person(name: \"Foo\") { zipCode } }");
-
-            // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
-        }
-
-        [Fact]
-        public void InheritExecutableDirectiveFromInterfaceField()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-
-            // act
-            IExecutionResult result =
-                schema.Execute("{ person(name: \"Foo\") { country } }");
-
-            // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
-        }
-
         public static ISchema CreateSchema()
         {
             return Schema.Create(c =>
