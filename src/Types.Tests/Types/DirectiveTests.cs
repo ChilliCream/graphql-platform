@@ -137,6 +137,7 @@ namespace HotChocolate.Types
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
                 descriptor.Name("Foo");
+                descriptor.Location(DirectiveLocation.Schema);
             }
         }
 

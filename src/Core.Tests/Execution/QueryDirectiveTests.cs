@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @appendString(s: \"abc\") }");
+                "{ sayHello @resolve @appendString(s: \"abc\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @appendStringMethod(s: \"abc\") }");
+                "{ sayHello @resolve @appendStringMethod(s: \"abc\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @appendStringMethodAsync(s: \"abc\") }");
+                "{ sayHello @resolve @appendStringMethodAsync(s: \"abc\") }");
 
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
@@ -61,7 +61,8 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = schema.Execute(
-                "{ sayHello @appendString(s: \"abc\") " +
+                "{ sayHello @resolve " +
+                "@appendString(s: \"abc\") " +
                 "@appendStringMethod(s: \"def\") " +
                 "@appendStringMethodAsync(s: \"ghi\") }");
 
@@ -77,6 +78,7 @@ namespace HotChocolate.Execution
                     ExecutionScope.Request,
                     s => new Dictionary<string, string>());
 
+                c.RegisterDirective<ResolveDirective>();
                 c.RegisterDirective<AppendStringDirectiveType>();
                 c.RegisterDirective<AppendStringMethodDirectiveType>();
                 c.RegisterDirective<AppendStringMethodAsyncDirectiveType>();

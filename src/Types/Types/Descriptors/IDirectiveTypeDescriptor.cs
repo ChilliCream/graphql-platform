@@ -9,14 +9,13 @@ namespace HotChocolate.Types
     public interface IDirectiveTypeDescriptor
         : IFluent
     {
-        // <summary>
+        /// <summary>
         /// Associates the specified <paramref name="syntaxNode"/>
         /// with the <see cref="DirectiveType"/>.
         /// </summary>
         /// <param name="syntaxNode">
         /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
         /// </param>
-
         IDirectiveTypeDescriptor SyntaxNode(DirectiveDefinitionNode syntaxNode);
 
         /// <summary>
@@ -136,7 +135,7 @@ namespace HotChocolate.Types
             Expression<Func<TMiddleware, object>> method);
 
         // TODO : DOCU
-        new IDirectiveTypeDescriptor Middleware<TMiddleware>(
+        IDirectiveTypeDescriptor Middleware<TMiddleware>(
             Expression<Action<T>> method);
     }
 }
