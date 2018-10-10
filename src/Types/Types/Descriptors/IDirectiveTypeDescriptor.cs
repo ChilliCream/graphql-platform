@@ -36,6 +36,11 @@ namespace HotChocolate.Types
         IDirectiveTypeDescriptor Description(string description);
 
         /// <summary>
+        /// Allows this directive type to be declared multiple times in a single location.
+        /// </summary>
+        IDirectiveTypeDescriptor Repeatable();
+
+        /// <summary>
         /// Specifies a directive argument.
         /// </summary>
         /// <param name="name">The name of the argument.</param>
@@ -131,11 +136,13 @@ namespace HotChocolate.Types
             Middleware middleware);
 
         // TODO : DOCU
-        new IDirectiveTypeDescriptor Middleware<TMiddleware>(
+        new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
             Expression<Func<TMiddleware, object>> method);
 
         // TODO : DOCU
-        IDirectiveTypeDescriptor Middleware<TMiddleware>(
+        IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
             Expression<Action<T>> method);
+
+        new IDirectiveTypeDescriptor<T> Repeatable();
     }
 }

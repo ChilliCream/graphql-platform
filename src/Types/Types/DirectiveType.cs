@@ -31,6 +31,8 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
+        public bool IsRepeatable { get; private set; }
+
         public ICollection<DirectiveLocation> Locations { get; private set; }
 
         public FieldCollection<InputField> Arguments { get; private set; }

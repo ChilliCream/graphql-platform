@@ -240,6 +240,12 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Repeatable()
+        {
+            DirectiveDescription.IsRepeatable = true;
+            return this;
+        }
+
         #endregion
     }
 
@@ -418,17 +424,23 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
             Expression<Func<TM, object>> method)
         {
             Middleware(method);
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware<TM>(
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
             Expression<Action<T>> method)
         {
             Middleware(method);
+            return this;
+        }
+
+        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Repeatable()
+        {
+            DirectiveDescription.IsRepeatable = true;
             return this;
         }
 

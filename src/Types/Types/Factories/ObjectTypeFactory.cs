@@ -17,6 +17,11 @@ namespace HotChocolate.Types.Factories
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
+                foreach (DirectiveNode directive in node.Directives)
+                {
+                    d.Directive(directive);
+                }
+
                 DeclareInterfaces(d, node.Interfaces);
 
                 DeclareFields(d, node.Fields);

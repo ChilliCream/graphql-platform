@@ -15,6 +15,8 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
+        public bool IsRepeatable { get; set; }
+
         public Type ClrType { get; set; }
 
         public BindingBehavior ArgumentBindingBehavior { get; set; }
