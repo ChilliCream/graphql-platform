@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -15,17 +16,17 @@ namespace HotChocolate.Language
         {
             if (name == null)
             {
-                throw new System.ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (arguments == null)
             {
-                throw new System.ArgumentNullException(nameof(arguments));
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             if (locations == null)
             {
-                throw new System.ArgumentNullException(nameof(locations));
+                throw new ArgumentNullException(nameof(locations));
             }
 
             Location = location;
