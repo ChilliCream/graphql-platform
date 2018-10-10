@@ -254,7 +254,7 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 We are currently working on the following features that are proposed for the next GraphQL specification.
 
-- [ ] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472) (in development - 0.5.3)
+- [ ] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472) (#291 in development - 0.5.3)
 - [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445)
 - [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466)
 - [ ] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
