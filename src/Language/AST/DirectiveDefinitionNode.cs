@@ -9,6 +9,7 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
+            bool isRepeatable,
             IReadOnlyCollection<InputValueDefinitionNode> arguments,
             IReadOnlyCollection<NameNode> locations)
         {
@@ -30,6 +31,7 @@ namespace HotChocolate.Language
             Location = location;
             Name = name;
             Description = description;
+            IsRepeatable = isRepeatable;
             Arguments = arguments;
             Locations = locations;
         }
@@ -41,6 +43,8 @@ namespace HotChocolate.Language
         public NameNode Name { get; }
 
         public StringValueNode Description { get; }
+
+        public bool IsRepeatable { get; }
 
         public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
 

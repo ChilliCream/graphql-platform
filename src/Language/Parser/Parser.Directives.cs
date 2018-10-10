@@ -15,6 +15,7 @@ namespace HotChocolate.Language
             NameNode name = context.ParseName();
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions(context);
+            bool isRepeatable = context.SkipRepeatableKeyword();
             context.ExpectOnKeyword();
             List<NameNode> locations =
                 ParseDirectiveLocations(context);
@@ -25,6 +26,7 @@ namespace HotChocolate.Language
                 location,
                 name,
                 description,
+                isRepeatable,
                 arguments,
                 locations
             );

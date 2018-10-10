@@ -170,7 +170,7 @@ namespace HotChocolate.Language
 
         public static void SkipWhile(this ParserContext context, TokenKind kind)
         {
-            while (context.Skip(kind));
+            while (context.Skip(kind)) ;
         }
 
         public static bool Skip(this ParserContext context, TokenKind kind)
@@ -181,6 +181,11 @@ namespace HotChocolate.Language
                 context.MoveNext();
             }
             return match;
+        }
+
+        public static bool SkipRepeatableKeyword(this ParserContext context)
+        {
+            return SkipKeyword(context, Keywords.Repeatable);
         }
 
         public static bool SkipKeyword(this ParserContext context, string keyword)
