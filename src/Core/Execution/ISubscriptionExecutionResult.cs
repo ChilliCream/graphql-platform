@@ -6,6 +6,5 @@ namespace HotChocolate.Execution
         : IExecutionResult
         , IObservable<IQueryExecutionResult>
     {
-
     }
 }

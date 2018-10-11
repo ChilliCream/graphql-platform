@@ -332,7 +332,10 @@ namespace HotChocolate.Language
                     SyntaxToken token = CreateToken(state, previous,
                         TokenKind.BlockString, start, result.value);
                     state.Position++;
-                    state.NewLine(result.lines - 1);
+                    if (result.lines > 1)
+                    {
+                        state.NewLine(result.lines - 1);
+                    }
                     return token;
                 }
 
@@ -421,7 +424,7 @@ namespace HotChocolate.Language
                 start++;
             }
 
-            if (start == trimmedLines.Length - 1)
+            if (start > 0 && start == trimmedLines.Length - 1)
             {
                 return Enumerable.Empty<string>();
             }
