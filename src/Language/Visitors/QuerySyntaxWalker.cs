@@ -157,13 +157,5 @@ namespace HotChocolate.Language
         {
             VisitName(node.Name);
         }
-
-        protected void VisitMany<T>(IEnumerable<T> items, Action<T> action)
-        {
-            foreach (T item in items)
-            {
-                action(item);
-            }
-        }
     }
 }

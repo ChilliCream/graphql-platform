@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -158,6 +159,14 @@ namespace HotChocolate.Language
                     break;
                 default:
                     throw new NotSupportedException();
+            }
+        }
+
+        protected void VisitMany<T>(IEnumerable<T> items, Action<T> action)
+        {
+            foreach (T item in items)
+            {
+                action(item);
             }
         }
     }
