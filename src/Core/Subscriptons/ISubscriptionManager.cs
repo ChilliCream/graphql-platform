@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -13,6 +14,24 @@ namespace HotChocolate.Subscriptions
         object Restore(string subscriptionId);
     }
 
+
+    public interface IEventRegistry
+    {
+        Task<string> Register(Event @event, Action received);
+
+        Task Unregister(string subscriptionId);
+    }
+
+    public interface IEventReceiverFactory
+    {
+
+    }
+
+    public interface IEventReceiver
+        : IDisposable
+    {
+        void OnReceive(Action received);
+    }
 
 
 
