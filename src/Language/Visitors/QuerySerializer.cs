@@ -6,7 +6,7 @@ using System.Text;
 namespace HotChocolate.Language
 {
     public class QuerySerializer
-        : SyntaxNodeVisitor<DocumentNode>
+        : SyntaxVisitor<ISyntaxNode>
     {
         private readonly StringBuilder _result = new StringBuilder();
         private DocumentWriter _writer;
@@ -23,16 +23,33 @@ namespace HotChocolate.Language
 
         public string Value => _result.ToString();
 
-        public override void Visit(DocumentNode node)
+        public override void Visit(ISyntaxNode node)
         {
             if (node != null)
             {
                 _result.Clear();
                 using (_writer = new DocumentWriter(_result))
                 {
-                    VisitDocument(node);
+                    VisitInternal(node);
                     _writer.Flush();
                 }
+            }
+        }
+
+        private void VisitInternal(ISyntaxNode node)
+        {
+            switch (node)
+            {
+                case IValueNode value:
+                    VisitValue(value);
+                    break;
+                case DocumentNode value:
+                    VisitDocument(value);
+                    break;
+                default:
+                    throw new NotSupportedException(
+                        "Only document node and value nodes are supported " +
+                        "as start node.");
             }
         }
 

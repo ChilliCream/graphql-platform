@@ -1,9 +1,9 @@
 namespace HotChocolate.Language
 {
-    public partial class SyntaxNodeVisitor<TStart>
+    public partial class SyntaxVisitor<TStart>
         where TStart : ISyntaxNode
     {
-        protected SyntaxNodeVisitor() { }
+        protected SyntaxVisitor() { }
 
         public virtual void Visit(TStart node)
         {

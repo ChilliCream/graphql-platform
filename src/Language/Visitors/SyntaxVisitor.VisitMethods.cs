@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Language
 {
-    public partial class SyntaxNodeVisitor<TStart>
+    public partial class SyntaxVisitor<TStart>
     {
         protected virtual void VisitName(NameNode node) { }
         protected virtual void VisitDocument(DocumentNode node) { }

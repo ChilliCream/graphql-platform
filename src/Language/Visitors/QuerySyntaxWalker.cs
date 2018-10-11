@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
-    public class QuerySyntaxNodeWalker
-        : SyntaxNodeVisitor<DocumentNode>
+    public class QuerySyntaxWalker
+        : SyntaxVisitor<DocumentNode>
     {
         protected virtual bool VisitFragmentDefinitions => true;
 

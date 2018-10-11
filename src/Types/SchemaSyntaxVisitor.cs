@@ -6,7 +6,7 @@ using HotChocolate.Types.Factories;
 namespace HotChocolate
 {
     internal class SchemaSyntaxVisitor
-        : SyntaxNodeVisitor
+        : SyntaxVisitor
     {
         private readonly ITypeRegistry _typeRegistry;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
