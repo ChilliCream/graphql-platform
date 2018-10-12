@@ -68,7 +68,10 @@ namespace HotChocolate.Execution
             CancellationToken = cancellationToken;
             _clone = c => new ExecutionContext(
                 schema, directiveLookup, queryDocument,
-                operation, request, variables, c);
+                operation, CreateOperationRequest(
+                    schema, request.VariableValues,
+                    request.InitialValue),
+                variables, c);
         }
 
         public ISchema Schema { get; }
@@ -201,6 +204,11 @@ namespace HotChocolate.Execution
         private T CreateResolver<T>() =>
             (T)_serviceFactory.CreateInstance(typeof(T));
 
+        public IExecutionContext Clone(CancellationToken cancellationToken)
+        {
+            return _clone(cancellationToken);
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -219,9 +227,21 @@ namespace HotChocolate.Execution
             }
         }
 
-        public IExecutionContext Clone(CancellationToken cancellationToken)
+        private static OperationRequest CreateOperationRequest(
+            ISchema schema,
+            IReadOnlyDictionary<string, object> variableValues,
+            object initialValue)
         {
-            return _clone(cancellationToken);
+            // TODO : Dispose session when cloned
+
+            IServiceProvider service = schema.Services;
+            ISession session = schema.Sessions.CreateSession(service);
+
+            return new OperationRequest(service, session)
+            {
+                VariableValues = variableValues,
+                InitialValue = initialValue,
+            };
         }
     }
 }
