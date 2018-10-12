@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -17,24 +18,23 @@ namespace HotChocolate.Subscriptions
 
     public interface IEventRegistry
     {
-        Task<string> Register(Event @event, Action received);
-
-        Task Unregister(string subscriptionId);
+        Task<IEventStream> SubscribeAsync(Event @event);
     }
 
-    public interface IEventReceiverFactory
-    {
-
-    }
-
-    public interface IEventReceiver
+    public interface IEventStream
         : IDisposable
     {
-        void OnReceive(Action received);
+        string SubscriptionId { get; }
+
+        Task NextAsync(CancellationToken cancellationToken = default);
+
+        bool IsCompleted { get; }
     }
 
-
-
+    public interface IEventSender
+    {
+        Task SendAsync(Event @event);
+    }
 
     public sealed class Event
         : IEquatable<Event>
@@ -68,6 +68,21 @@ namespace HotChocolate.Subscriptions
         public IReadOnlyCollection<ArgumentNode> Arguments { get; }
 
         public bool Equals(Event other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Equals(object other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ToString()
         {
             throw new NotImplementedException();
         }

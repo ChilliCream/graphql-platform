@@ -19,6 +19,7 @@ namespace HotChocolate.Execution
         private readonly ISession _session;
         private readonly IResolverCache _resolverCache;
         private readonly bool _disposeRootValue;
+        private readonly Func<CancellationToken, IExecutionContext> _clone;
 
         private bool _disposed;
 
@@ -65,6 +66,9 @@ namespace HotChocolate.Execution
             }
 
             CancellationToken = cancellationToken;
+            _clone = c => new ExecutionContext(
+                schema, directiveLookup, queryDocument,
+                operation, request, variables, c);
         }
 
         public ISchema Schema { get; }
@@ -213,6 +217,11 @@ namespace HotChocolate.Execution
                 }
                 _disposed = true;
             }
+        }
+
+        public IExecutionContext Clone(CancellationToken cancellationToken)
+        {
+            return _clone(cancellationToken);
         }
     }
 }
