@@ -8,11 +8,11 @@ namespace HotChocolate.Subscriptions
     public interface IEventRegistry
     {
         /// <summary>
-        /// Subscribes to an event specified by 
+        /// Subscribes to an event specified by
         /// <paramref name="eventDescription"/>.
         /// </summary>
         /// <returns>
-        /// Returns an event stream which yields the event 
+        /// Returns an event stream which yields the event
         /// messages of the subscribed event.
         /// </returns>
         /// <param name="eventDescription">
@@ -21,4 +21,3 @@ namespace HotChocolate.Subscriptions
         Task<IEventStream> SubscribeAsync(IEventDescription eventDescription);
     }
 }
-

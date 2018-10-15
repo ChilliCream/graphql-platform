@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Subscriptions
 {
     /// <summary>
-    /// The event stream represents the subscription to an event 
+    /// The event stream represents the subscription to an event
     /// as a stream of messages.
     /// </summary>
     public interface IEventStream
@@ -28,7 +28,7 @@ namespace HotChocolate.Subscriptions
         Task<IEventMessage> ReadAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Completes the event stream and deletes 
+        /// Completes the event stream and deletes
         /// the pub/sub system subscription.
         /// </summary>
         Task CompleteAsync();
