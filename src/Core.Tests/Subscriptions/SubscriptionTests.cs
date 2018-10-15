@@ -13,9 +13,9 @@ namespace HotChocolate.Subscriptions
         public async Task Foo()
         {
             // arrange
-            InMemoryEventRegistry registry = new InMemoryEventRegistry();
+            var registry = new InMemoryEventRegistry();
 
-            Mock<IServiceProvider> services = new Mock<IServiceProvider>();
+            var services = new Mock<IServiceProvider>();
             services.Setup(t => t.GetService(It.IsAny<Type>()))
                 .Returns(new Func<Type, object>(t =>
                 {
@@ -34,7 +34,7 @@ namespace HotChocolate.Subscriptions
                 c.RegisterSubscriptionType<SubscriptionType>();
             });
 
-            IResponseStream responseStream =
+            var responseStream =
                 await schema.ExecuteAsync("subscription { foo }")
                 as IResponseStream;
 
@@ -65,7 +65,8 @@ namespace HotChocolate.Subscriptions
                 descriptor.Name("mutation");
                 descriptor.Field("foo").Resolver(ctx =>
                 {
-                    ctx.Service<IEventSender>().SendAsync(new EventDescription("foo"));
+                    ctx.Service<IEventSender>()
+                        .SendAsync(new EventMessage("foo"));
                     return "barmut";
                 });
             }
