@@ -38,7 +38,7 @@ namespace HotChocolate.Subscriptions
 
             if (result is ISubscriptionExecutionResult sr)
             {
-                bool moveNext = await sr.MoveNextAsync();
+                bool moveNext = await sr.ReadAsync();
                 Assert.True(moveNext);
                 Assert.Equal("bar", sr.Current.Data["foo"]);
             }

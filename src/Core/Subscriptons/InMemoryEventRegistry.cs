@@ -44,7 +44,7 @@ namespace HotChocolate.Subscriptions
                     _streams[@event] = subscribers;
                 }
 
-                var stream = new InMemoryEventStream();
+                var stream = new InMemoryEventStream(@event);
                 stream.Disposed += (s, e) => Unsubscribe(@event, stream);
                 subscribers.Add(stream);
                 return stream;

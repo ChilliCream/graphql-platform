@@ -8,13 +8,18 @@ namespace HotChocolate.Subscriptions
         : IEventStream
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private TaskCompletionSource<object> _taskCompletionSource =
-            new TaskCompletionSource<object>(
+        private readonly IEventMessage _eventMessage;
+        private TaskCompletionSource<IEventMessage> _taskCompletionSource =
+            new TaskCompletionSource<IEventMessage>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
         public event EventHandler Disposed;
 
-        public string SubscriptionId { get; } = Guid.NewGuid().ToString("N");
+        public InMemoryEventStream(IEventMessage eventMessage)
+        {
+            _eventMessage = eventMessage
+                ?? throw new ArgumentNullException(nameof(eventMessage));
+        }
 
         public bool IsCompleted { get; private set; }
 
@@ -24,7 +29,7 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                _taskCompletionSource.TrySetResult(null);
+                _taskCompletionSource.TrySetResult(_eventMessage);
             }
             finally
             {
@@ -32,21 +37,28 @@ namespace HotChocolate.Subscriptions
             }
         }
 
-        public async Task NextAsync(
-            CancellationToken cancellationToken = default)
+        public Task<IEventMessage> ReadAsync()
         {
-            await _taskCompletionSource.Task;
+            return ReadAsync(CancellationToken.None);
+        }
+
+        public async Task<IEventMessage> ReadAsync(
+            CancellationToken cancellationToken)
+        {
+            IEventMessage message = await _taskCompletionSource.Task;
             await _semaphore.WaitAsync();
 
             try
             {
-                _taskCompletionSource = new TaskCompletionSource<object>(
+                _taskCompletionSource = new TaskCompletionSource<IEventMessage>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
             }
             finally
             {
                 _semaphore.Release();
             }
+
+            return message;
         }
 
         public void Dispose()

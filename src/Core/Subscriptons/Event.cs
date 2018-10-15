@@ -5,8 +5,16 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Subscriptions
 {
+    public interface IEventMessage
+    {
+        string Name { get; }
+
+        IReadOnlyCollection<ArgumentNode> Arguments { get; }
+    }
+
     public sealed class Event
-        : IEquatable<Event>
+        : IEventMessage
+        , IEquatable<Event>
     {
         public Event(string name)
             : this(name, Array.Empty<ArgumentNode>())
