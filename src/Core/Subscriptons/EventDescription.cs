@@ -5,28 +5,21 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Subscriptions
 {
-    public interface IEventMessage
+    public sealed class EventDescription
+        : IEventDescription
+        , IEquatable<EventDescription>
     {
-        string Name { get; }
-
-        IReadOnlyCollection<ArgumentNode> Arguments { get; }
-    }
-
-    public sealed class Event
-        : IEventMessage
-        , IEquatable<Event>
-    {
-        public Event(string name)
+        public EventDescription(string name)
             : this(name, Array.Empty<ArgumentNode>())
         {
         }
 
-        public Event(string name, IEnumerable<ArgumentNode> arguments)
+        public EventDescription(string name, IEnumerable<ArgumentNode> arguments)
             : this(name, arguments.ToArray())
         {
         }
 
-        public Event(string name, params ArgumentNode[] arguments)
+        public EventDescription(string name, params ArgumentNode[] arguments)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -44,7 +37,7 @@ namespace HotChocolate.Subscriptions
 
         public IReadOnlyCollection<ArgumentNode> Arguments { get; }
 
-        public bool Equals(Event other)
+        public bool Equals(EventDescription other)
         {
             if (other is null)
             {
@@ -91,14 +84,14 @@ namespace HotChocolate.Subscriptions
                 return true;
             }
 
-            return Equals(other as Event);
+            return Equals(other as EventDescription);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int hash = Name.GetHashCode() * 379;
+                var hash = Name.GetHashCode() * 379;
                 foreach (ArgumentNode argument in Arguments)
                 {
                     hash ^= (argument.Name.GetHashCode() * 7);

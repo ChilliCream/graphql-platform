@@ -17,13 +17,14 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            Event @event = CreateEvent(executionContext);
+            EventDescription @event = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
                 executionContext.Services, @event);
 
             return new SubscriptionResult(
-                eventStream, executionContext.Clone(default),
+                eventStream,
+                () => executionContext.Clone(default),
                 ExecuteSubscriptionQueryAsync);
         }
 
@@ -33,7 +34,7 @@ namespace HotChocolate.Execution
             throw new NotImplementedException();
         }
 
-        private Event CreateEvent(IExecutionContext executionContext)
+        private EventDescription CreateEvent(IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
                 .CollectFields(
@@ -62,7 +63,7 @@ namespace HotChocolate.Execution
                         argumentType.ParseValue(value)));
                 }
 
-                return new Event(selection.Field.Name, arguments);
+                return new EventDescription(selection.Field.Name, arguments);
             }
             else
             {
@@ -73,7 +74,7 @@ namespace HotChocolate.Execution
 
         private Task<IEventStream> SubscribeAsync(
             IServiceProvider services,
-            Event @event)
+            EventDescription @event)
         {
             IEventRegistry eventRegistry =
                 (IEventRegistry)services.GetService(typeof(IEventRegistry));

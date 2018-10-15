@@ -13,7 +13,7 @@ namespace HotChocolate.Subscriptions
             new TaskCompletionSource<IEventMessage>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public event EventHandler Disposed;
+        public event EventHandler Completed;
 
         public InMemoryEventStream(IEventMessage eventMessage)
         {
@@ -60,11 +60,18 @@ namespace HotChocolate.Subscriptions
 
             return message;
         }
+               
+        public Task CompleteAsync()
+        {
+            IsCompleted = true;
+            Completed?.Invoke(this, EventArgs.Empty);
+            return Task.CompletedTask;
+        }
 
         public void Dispose()
         {
             IsCompleted = true;
-            Disposed?.Invoke(this, EventArgs.Empty);
+            Completed?.Invoke(this, EventArgs.Empty);
         }
     }
 }

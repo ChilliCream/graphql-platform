@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,16 +10,16 @@ namespace HotChocolate.Subscriptions
         , IEventSender
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly Dictionary<Event, List<InMemoryEventStream>> _streams =
-            new Dictionary<Event, List<InMemoryEventStream>>();
+        private readonly Dictionary<IEventDescription, List<InMemoryEventStream>> _streams =
+            new Dictionary<IEventDescription, List<InMemoryEventStream>>();
 
-        public async Task SendAsync(Event @event)
+        public async Task SendAsync(IEventMessage message)
         {
             await _semaphore.WaitAsync();
 
             try
             {
-                if (_streams.TryGetValue(@event, out var subscribers))
+                if (_streams.TryGetValue(message.Event, out var subscribers))
                 {
                     foreach (var stream in subscribers)
                     {
@@ -32,20 +33,27 @@ namespace HotChocolate.Subscriptions
             }
         }
 
-        public async Task<IEventStream> SubscribeAsync(Event @event)
+        public async Task<IEventStream> SubscribeAsync(
+            IEventDescription eventReference)
         {
+            if (eventReference == null)
+            {
+                throw new ArgumentNullException(nameof(eventReference));
+            }
+
             await _semaphore.WaitAsync();
 
             try
             {
-                if (!_streams.TryGetValue(@event, out var subscribers))
+                if (!_streams.TryGetValue(eventReference, out var subscribers))
                 {
                     subscribers = new List<InMemoryEventStream>();
-                    _streams[@event] = subscribers;
+                    _streams[eventReference] = subscribers;
                 }
 
-                var stream = new InMemoryEventStream(@event);
-                stream.Disposed += (s, e) => Unsubscribe(@event, stream);
+                var eventMessage = new EventMessage(eventReference);
+                var stream = new InMemoryEventStream(eventMessage);
+                stream.Completed += (s, e) => Unsubscribe(eventMessage, stream);
                 subscribers.Add(stream);
                 return stream;
             }
@@ -55,13 +63,15 @@ namespace HotChocolate.Subscriptions
             }
         }
 
-        private void Unsubscribe(Event @event, InMemoryEventStream stream)
+        private void Unsubscribe(
+            IEventMessage message,
+            InMemoryEventStream stream)
         {
             _semaphore.Wait();
 
             try
             {
-                if (_streams.TryGetValue(@event, out var subscribers))
+                if (_streams.TryGetValue(message.Event, out var subscribers))
                 {
                     subscribers.Remove(stream);
                 }
