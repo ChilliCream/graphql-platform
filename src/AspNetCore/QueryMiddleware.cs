@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -31,6 +32,11 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             QueryExecuter queryExecuter)
         {
+            if (context.WebSockets.IsWebSocketRequest)
+            {
+
+            }
+
             if (context.Request.IsGet() || context.Request.IsPost())
             {
                 string path = context.Request.Path.ToUriComponent();
