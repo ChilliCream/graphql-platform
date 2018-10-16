@@ -65,7 +65,11 @@ namespace HotChocolate.AspNetCore
     {
         private const string _protocol = "graphql-ws";
 
-        private static IRequestHandler[] _requestHandlers;
+        private static IRequestHandler[] _requestHandlers =
+            new IRequestHandler[]
+            {
+                new ConnectionInitializeHandler()
+            };
         private static IRequestHandler _unknownRequestHandler;
 
         private readonly IWebSocketMessageReceiver _receiver;
