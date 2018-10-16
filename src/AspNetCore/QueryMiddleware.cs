@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
@@ -34,7 +36,7 @@ namespace HotChocolate.AspNetCore
         {
             if (context.WebSockets.IsWebSocketRequest)
             {
-
+                await Test(context, await context.WebSockets.AcceptWebSocketAsync("graphql-ws"), queryExecuter);
             }
 
             if (context.Request.IsGet() || context.Request.IsPost())
@@ -52,6 +54,27 @@ namespace HotChocolate.AspNetCore
                 await _next(context);
             }
         }
+
+        public async Task Test(
+            HttpContext context,
+            WebSocket webSocket,
+            QueryExecuter queryExecuter)
+        {
+            var buffer = new byte[1024 * 4];
+            var x = Encoding.UTF8.GetBytes("GQL_CONNECTION_ACK");
+            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            await webSocket.SendAsync(new ArraySegment<byte>(x, 0, x.Length), WebSocketMessageType.Text, true, CancellationToken.None);
+            while (!result.CloseStatus.HasValue)
+            {
+                string s = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                // ConnectionInitMessage messaget = JsonConvert.DeserializeObject<ConnectionInitMessage>(s);
+                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
+
+                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            }
+            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+        }
+
 
         private async Task HandleRequestAsync(
             HttpContext context,
