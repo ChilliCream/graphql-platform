@@ -75,10 +75,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return TestServerFactory.Create(
                 c =>
                 {
-                    c.RegisterServiceProvider(services.BuildServiceProvider());
                     c.RegisterMutationType<Mutation>();
                     c.RegisterSubscriptionType<Subscription>();
-                }, null);
+                },
+                c =>
+                {
+                    // TODO : Add implementation
+                },
+                null);
         }
 
         private async Task ConnectAsync(WebSocket webSocket)
