@@ -29,8 +29,18 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 },
                 cancellationToken).ConfigureAwait(false);
 
-            context.RegisterSubscription(
-                new Subscription(context, (IResponseStream)result, message.Id));
+            if (result is IResponseStream responseStream)
+            {
+                context.RegisterSubscription(
+                    new Subscription(context, responseStream, message.Id));
+            }
+            else if (result is IQueryExecutionResult queryResult)
+            {
+                await context.SendSubscriptionDataMessageAsync(
+                    message.Id, queryResult, cancellationToken);
+                await context.SendSubscriptionCompleteMessageAsync(
+                    message.Id, cancellationToken);
+            }
         }
     }
 }

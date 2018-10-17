@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,39 +49,37 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 Query = "subscription { foo }"
             };
 
-
             // act
             string id = await webSocket.SendSubscriptionStartAsync(query);
 
             // assert
             await testServer.SendRequestAsync(new QueryRequestDto
             {
-                Query = "{ sendFoo }"
+                Query = "mutation { sendFoo }"
             });
 
             GenericOperationMessage message =
                 await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
-            Assert.Equal(MessageTypes.Connection.Accept, message.Type);
+            Assert.Equal(MessageTypes.Subscription.Data, message.Type);
+
+            var result = message.Payload.ToObject<Dictionary<string, object>>();
+            Assert.True(result.ContainsKey("data"));
         }
 
         private TestServer CreateTestServer()
         {
-            ServiceCollection services = new ServiceCollection();
-
-            var eventRegistry = new InMemoryEventRegistry();
-            services.AddSingleton<IEventRegistry>(eventRegistry);
-            services.AddSingleton<IEventSender>(eventRegistry);
-
             return TestServerFactory.Create(
                 c =>
                 {
                     c.RegisterMutationType<Mutation>();
                     c.RegisterSubscriptionType<Subscription>();
                 },
-                c =>
+                s =>
                 {
-                    // TODO : Add implementation
+                    var eventRegistry = new InMemoryEventRegistry();
+                    s.AddSingleton<IEventRegistry>(eventRegistry);
+                    s.AddSingleton<IEventSender>(eventRegistry);
                 },
                 null);
         }
