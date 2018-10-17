@@ -19,6 +19,8 @@ namespace StarWars
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
+
             // Add the custom services like repositories etc ...
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<Query>();
@@ -50,6 +52,11 @@ namespace StarWars
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder =>
+                builder.WithOrigins("http://localhost:50549")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
 
             app.UseWebSockets();
             app.UseGraphQL();

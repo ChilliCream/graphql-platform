@@ -1,16 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetCore
 {
@@ -36,7 +33,10 @@ namespace HotChocolate.AspNetCore
         {
             if (context.WebSockets.IsWebSocketRequest)
             {
-                await Test(context, await context.WebSockets.AcceptWebSocketAsync("graphql-ws"), queryExecuter);
+                // await Test(context, await context.WebSockets.AcceptWebSocketAsync("graphql-ws"), queryExecuter);
+                var session = await WebSocketSession.TryCreateAsync(
+                    context, queryExecuter);
+                await session.StartAsync(context.RequestAborted);
             }
 
             if (context.Request.IsGet() || context.Request.IsPost())
@@ -44,7 +44,9 @@ namespace HotChocolate.AspNetCore
                 string path = context.Request.Path.ToUriComponent();
                 if (_route == null || _route.Equals(path))
                 {
-                    await HandleRequestAsync(context, queryExecuter,
+                    await HandleRequestAsync(
+                            context,
+                            queryExecuter,
                             context.RequestAborted)
                         .ConfigureAwait(false);
                 }
@@ -54,27 +56,6 @@ namespace HotChocolate.AspNetCore
                 await _next(context);
             }
         }
-
-        public async Task Test(
-            HttpContext context,
-            WebSocket webSocket,
-            QueryExecuter queryExecuter)
-        {
-            var buffer = new byte[1024 * 4];
-            var x = Encoding.UTF8.GetBytes("GQL_CONNECTION_ACK");
-            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            await webSocket.SendAsync(new ArraySegment<byte>(x, 0, x.Length), WebSocketMessageType.Text, true, CancellationToken.None);
-            while (!result.CloseStatus.HasValue)
-            {
-                string s = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                // ConnectionInitMessage messaget = JsonConvert.DeserializeObject<ConnectionInitMessage>(s);
-                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
-
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            }
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-        }
-
 
         private async Task HandleRequestAsync(
             HttpContext context,
@@ -88,8 +69,10 @@ namespace HotChocolate.AspNetCore
             IExecutionResult result = await queryExecuter.ExecuteAsync(
                 new Execution.QueryRequest(request.Query, request.OperationName)
                 {
-                    VariableValues = DeserializeVariables(request.Variables),
-                    Services = CreateRequestServices(context)
+                    VariableValues = QueryMiddlewareUtilities
+                        .DeserializeVariables(request.Variables),
+                    Services = QueryMiddlewareUtilities
+                        .CreateRequestServices(context)
                 },
                 cancellationToken).ConfigureAwait(false);
 
@@ -108,108 +91,6 @@ namespace HotChocolate.AspNetCore
                 byte[] buffer = Encoding.UTF8.GetBytes(json);
                 await response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
-        }
-
-        private Dictionary<string, object> DeserializeVariables(
-            JObject input)
-        {
-            if (input == null)
-            {
-                return null;
-            }
-
-            return DeserializeVariables(input.ToObject<Dictionary<string, JToken>>());
-        }
-
-        private Dictionary<string, object> DeserializeVariables(
-            Dictionary<string, JToken> input)
-        {
-            if (input == null)
-            {
-                return null;
-            }
-
-            var values = new Dictionary<string, object>();
-            foreach (string key in input.Keys.ToArray())
-            {
-                values[key] = DeserializeVariableValue(input[key]);
-            }
-            return values;
-        }
-
-        private ObjectValueNode DeserializeObjectValue(
-           Dictionary<string, JToken> input)
-        {
-            if (input == null)
-            {
-                return null;
-            }
-
-            var fields = new List<ObjectFieldNode>();
-            foreach (string key in input.Keys.ToArray())
-            {
-                fields.Add(new ObjectFieldNode(null,
-                    new NameNode(null, key),
-                    DeserializeVariableValue(input[key])));
-            }
-            return new ObjectValueNode(null, fields);
-        }
-
-        private IValueNode DeserializeVariableValue(object value)
-        {
-            if (value is JObject jo)
-            {
-                return DeserializeObjectValue(
-                    jo.ToObject<Dictionary<string, JToken>>());
-            }
-
-            if (value is JArray ja)
-            {
-                return DeserializeVariableListValue(ja);
-            }
-
-            if (value is JValue jv)
-            {
-                return DeserializeVariableScalarValue(jv);
-            }
-
-            throw new NotSupportedException();
-        }
-
-        private IValueNode DeserializeVariableListValue(JArray array)
-        {
-            var list = new List<IValueNode>();
-            foreach (JToken token in array.Children())
-            {
-                list.Add(DeserializeVariableValue(token));
-            }
-            return new ListValueNode(null, list);
-        }
-
-        private IValueNode DeserializeVariableScalarValue(JValue value)
-        {
-            switch (value.Type)
-            {
-                case JTokenType.Boolean:
-                    return new BooleanValueNode(value.Value<bool>());
-                case JTokenType.Integer:
-                    return new IntValueNode(value.Value<string>());
-                case JTokenType.Float:
-                    return new FloatValueNode(value.Value<string>());
-                default:
-                    return new StringValueNode(value.Value<string>());
-            }
-        }
-
-        private IServiceProvider CreateRequestServices(HttpContext context)
-        {
-            Dictionary<Type, object> services = new Dictionary<Type, object>
-            {
-                { typeof(HttpContext), context }
-            };
-
-            return new RequestServiceProvider(
-                context.RequestServices, services);
         }
     }
 }
