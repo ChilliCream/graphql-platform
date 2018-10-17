@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Execution
 {
     public interface IQueryExecutionResult
@@ -8,5 +10,7 @@ namespace HotChocolate.Execution
         T ToObject<T>();
 
         string ToJson();
+
+        IReadOnlyDictionary<string, object> ToDictionary();
     }
 }

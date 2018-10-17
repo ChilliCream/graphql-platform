@@ -1,5 +1,3 @@
-using Newtonsoft.Json.Linq;
-
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class OperationMessage
@@ -7,7 +5,5 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public string Id { get; set; }
 
         public string Type { get; set; }
-
-        public JObject Payload { get; set; }
     }
 }

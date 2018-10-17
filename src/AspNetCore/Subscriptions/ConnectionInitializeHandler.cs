@@ -11,14 +11,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
     public sealed class ConnectionInitializeHandler
         : IRequestHandler
     {
-        public bool CanHandle(OperationMessage message)
+        public bool CanHandle(GenericOperationMessage message)
         {
             return message.Type == MessageTypes.Connection.Initialize;
         }
 
         public async Task HandleAsync(
             IWebSocketContext context,
-            OperationMessage message,
+            GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
             await context.SendConnectionAcceptMessageAsync(

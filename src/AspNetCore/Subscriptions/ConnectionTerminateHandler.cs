@@ -6,14 +6,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
     public sealed class ConnectionTerminateHandler
         : IRequestHandler
     {
-        public bool CanHandle(OperationMessage message)
+        public bool CanHandle(GenericOperationMessage message)
         {
             return message.Type == MessageTypes.Connection.Terminate;
         }
 
         public Task HandleAsync(
             IWebSocketContext context,
-            OperationMessage message,
+            GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
             context.Dispose();

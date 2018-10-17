@@ -7,10 +7,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         Task HandleAsync(
             IWebSocketContext context,
-            OperationMessage message,
+            GenericOperationMessage message,
             CancellationToken cancellationToken);
 
-        bool CanHandle(OperationMessage message);
+        bool CanHandle(GenericOperationMessage message);
     }
 
 

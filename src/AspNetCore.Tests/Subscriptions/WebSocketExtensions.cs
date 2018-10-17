@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -22,68 +23,37 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 NullValueHandling = NullValueHandling.Ignore
             };
 
-        public static Task SendConnectionAcceptMessageAsync(
-            this IWebSocketContext context,
-            CancellationToken cancellationToken)
+        public static Task SendConnectionInitializeAsync(
+            this WebSocket webSocket)
         {
             return SendMessageAsync(
-                context,
+                webSocket,
                 new GenericOperationMessage
                 {
-                    Type = MessageTypes.Connection.Accept
-                },
-                cancellationToken);
+                    Type = MessageTypes.Connection.Initialize
+                });
         }
 
-        public static Task SendConnectionKeepAliveMessageAsync(
-            this IWebSocketContext context,
-            CancellationToken cancellationToken)
+        public static async Task<string> SendSubscriptionStartAsync(
+            this WebSocket webSocket, SubscriptionQuery query)
         {
-            return SendMessageAsync(
-                context,
-                new GenericOperationMessage
-                {
-                    Type = MessageTypes.Connection.KeepAlive
-                },
-                cancellationToken);
-        }
+            string id = Guid.NewGuid().ToString("N");
 
-        public static Task SendSubscriptionDataMessageAsync(
-            this IWebSocketContext context,
-            string id,
-            IQueryExecutionResult result,
-            CancellationToken cancellationToken)
-        {
-            return SendMessageAsync(
-                context,
-                new DataOperationMessage
-                {
-                    Type = MessageTypes.Subscription.Data,
-                    Id = id,
-                    Payload = result.ToDictionary()
-                },
-                cancellationToken);
-        }
+            await SendMessageAsync(
+               webSocket,
+               new StartOperationMessage
+               {
+                   Type = MessageTypes.Subscription.Start,
+                   Id = id,
+                   Payload = query
+               });
 
-        public static Task SendSubscriptionCompleteMessageAsync(
-            this IWebSocketContext context,
-            string id,
-            CancellationToken cancellationToken)
-        {
-            return SendMessageAsync(
-                context,
-                new GenericOperationMessage
-                {
-                    Type = MessageTypes.Subscription.Complete,
-                    Id = id
-                },
-                cancellationToken);
+            return id;
         }
 
         public static async Task SendMessageAsync(
-            this IWebSocketContext context,
-            OperationMessage message,
-            CancellationToken cancellationToken)
+            this WebSocket webSocket,
+            OperationMessage message)
         {
             var buffer = new byte[_maxMessageSize];
 
@@ -96,9 +66,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     var segment = new ArraySegment<byte>(buffer, 0, read);
                     bool isEndOfMessage = stream.Position == stream.Length;
 
-                    await context.WebSocket.SendAsync(
+                    await webSocket.SendAsync(
                         segment, WebSocketMessageType.Text,
-                        isEndOfMessage, cancellationToken);
+                        isEndOfMessage, CancellationToken.None);
                 } while (read == _maxMessageSize);
             }
         }
@@ -109,16 +79,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return new MemoryStream(Encoding.UTF8.GetBytes(json));
         }
 
-        public static Task<GenericOperationMessage> ReceiveMessageAsync(
-            this IWebSocketContext context,
-            CancellationToken cancellationToken)
-        {
-            return ReceiveMessageAsync(context.WebSocket, cancellationToken);
-        }
-
-        public static async Task<GenericOperationMessage> ReceiveMessageAsync(
-            this WebSocket webSocket,
-            CancellationToken cancellationToken)
+        public static async Task<GenericOperationMessage> ReceiveServerMessageAsync(
+            this WebSocket webSocket)
         {
             using (var stream = new MemoryStream())
             {
@@ -129,7 +91,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     result = await webSocket.ReceiveAsync(
                         new ArraySegment<byte>(buffer),
-                        cancellationToken);
+                        CancellationToken.None);
                     stream.Write(buffer, 0, result.Count);
                 }
                 while (!result.EndOfMessage);
@@ -146,8 +108,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
     }
 
 
+    public class StartOperationMessage
+        : OperationMessage
+    {
+        public SubscriptionQuery Payload { get; set; }
+    }
 
-
-
+    public class SubscriptionQuery
+    {
+        public string OperationName { get; set; }
+        public string Query { get; set; }
+        public Dictionary<string, object> Variables { get; set; }
+    }
 
 }

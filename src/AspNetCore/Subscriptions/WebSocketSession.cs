@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             while (!_context.WebSocket.CloseStatus.HasValue)
             {
-                OperationMessage message = await _context
+                GenericOperationMessage message = await _context
                     .ReceiveMessageAsync(cancellationToken);
 
                 if (message == null)
@@ -54,7 +54,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private Task HandleMessage(
-            OperationMessage message,
+            GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
             foreach (IRequestHandler requestHandler in _requestHandlers)

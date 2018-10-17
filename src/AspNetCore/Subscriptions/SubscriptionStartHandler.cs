@@ -7,14 +7,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
     public sealed class SubscriptionStartHandler
         : IRequestHandler
     {
-        public bool CanHandle(OperationMessage message)
+        public bool CanHandle(GenericOperationMessage message)
         {
             return message.Type == MessageTypes.Subscription.Start;
         }
 
         public async Task HandleAsync(
             IWebSocketContext context,
-            OperationMessage message,
+            GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
             QueryRequest request = message.Payload.ToObject<QueryRequest>();
@@ -33,7 +33,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new Subscription(context, (IResponseStream)result, message.Id));
         }
     }
-
-
-
 }
