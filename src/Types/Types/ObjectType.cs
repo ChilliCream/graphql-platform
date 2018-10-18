@@ -292,6 +292,15 @@ namespace HotChocolate.Types
         {
             if (Fields.TryGetField(first.Name, out ObjectField field))
             {
+                if (field.Type != first.Type)
+                {
+                    context.ReportError(new SchemaError(
+                        "The return type of the interface field " +
+                        $"{first.Name} does not match the field declared " +
+                        $"by object type {Name}.",
+                        this));
+                }
+
                 if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
                 {
                     context.ReportError(new SchemaError(
@@ -315,6 +324,11 @@ namespace HotChocolate.Types
             FieldCollection<InputField> x,
             FieldCollection<InputField> y)
         {
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+
             foreach (InputField xfield in x)
             {
                 if (!y.TryGetField(xfield.Name, out InputField yfield)
@@ -323,6 +337,7 @@ namespace HotChocolate.Types
                     return false;
                 }
             }
+
             return true;
         }
 

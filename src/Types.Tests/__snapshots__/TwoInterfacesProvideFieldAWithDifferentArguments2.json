@@ -1,0 +1,14 @@
+{
+  "ClassName": "HotChocolate.SchemaException",
+  "Message": "The arguments of the interface field a from interface A and B do not match and are implemented by object type C. - Type: C",
+  "Data": null,
+  "InnerException": null,
+  "HelpURL": null,
+  "StackTraceString": "   at HotChocolate.Schema.CreateSchema(SchemaContext context, Action`1 configure) in /Users/michael/Library/Mobile Documents/com~apple~CloudDocs/Work/hotchocolate/src/Types/Schema.Factory.cs:line 97\n   at HotChocolate.Schema.Create(DocumentNode schemaDocument, Action`1 configure) in /Users/michael/Library/Mobile Documents/com~apple~CloudDocs/Work/hotchocolate/src/Types/Schema.Factory.cs:line 53\n   at HotChocolate.Schema.Create(String schema, Action`1 configure) in /Users/michael/Library/Mobile Documents/com~apple~CloudDocs/Work/hotchocolate/src/Types/Schema.Factory.cs:line 30\n   at HotChocolate.Types.ObjectTypeTests.TwoInterfacesProvideFieldAWithDifferentArguments2() in /Users/michael/Library/Mobile Documents/com~apple~CloudDocs/Work/hotchocolate/src/Types.Tests/Types/ObjectTypeTests.cs:line 249",
+  "RemoteStackTraceString": null,
+  "RemoteStackIndex": 0,
+  "ExceptionMethod": null,
+  "HResult": -2146233088,
+  "Source": "HotChocolate.Types",
+  "WatsonBuckets": null
+}
