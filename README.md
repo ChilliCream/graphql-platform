@@ -220,7 +220,7 @@ We currently support the following parts of the current [June 2018 specification
 
 - [x] Query
 - [x] Mutation
-- [ ] _Subscription_ (in development - 0.5.3)
+- [x] Subscription
 
 ### Introspection
 
