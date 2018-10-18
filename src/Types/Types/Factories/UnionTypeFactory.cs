@@ -24,6 +24,11 @@ namespace HotChocolate.Types.Factories
                 {
                     d.Type(namedType);
                 }
+
+                foreach (DirectiveNode directive in node.Directives)
+                {
+                    d.Directive(directive);
+                }
             });
         }
     }

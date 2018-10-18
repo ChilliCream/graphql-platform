@@ -5,8 +5,7 @@ namespace HotChocolate.Configuration
     public interface ICodeFirstConfiguration
         : IFluent
     {
-        void RegisterType<T>()
-            where T : class, INamedType;
+        void RegisterType<T>();
 
         void RegisterQueryType<T>()
             where T : class;

@@ -100,7 +100,7 @@ namespace HotChocolate.Configuration
                 else if (type.IsEnum && (type.IsPublic || type.IsNestedPublic))
                 {
                     typeRegistry.RegisterType(
-                        new TypeReference(typeof(ObjectType<>)
+                        new TypeReference(typeof(EnumType<>)
                             .MakeGenericType(type)));
                 }
             }

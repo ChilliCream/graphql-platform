@@ -138,5 +138,32 @@ namespace HotChocolate.Language
             Assert.Equal(38, blockStringToken.End);
             Assert.Equal(TokenKind.StartOfFile, blockStringToken.Previous.Kind);
         }
+
+        [Fact]
+        private void ReadToken_SingleLine_ParsesCorrectly()
+        {
+            // arrange
+            string sourceBody = "\"\"\"helloWorld_123\"\"\"";
+            Source source = new Source(sourceBody);
+            Lexer lexer = new Lexer();
+
+            // act
+            SyntaxToken token = lexer.Read(source);
+
+            // assert
+            Assert.NotNull(token);
+            Assert.NotNull(token.Next);
+            Assert.NotNull(token.Next.Next);
+            Assert.Null(token.Next.Next.Next);
+
+            SyntaxToken blockStringToken = token.Next;
+            Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
+            Assert.Equal("helloWorld_123", blockStringToken.Value);
+            Assert.Equal(1, blockStringToken.Line);
+            Assert.Equal(1, blockStringToken.Column);
+            Assert.Equal(0, blockStringToken.Start);
+            Assert.Equal(19, blockStringToken.End);
+            Assert.Equal(TokenKind.StartOfFile, blockStringToken.Previous.Kind);
+        }
     }
 }

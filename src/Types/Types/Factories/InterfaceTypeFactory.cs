@@ -37,6 +37,11 @@ namespace HotChocolate.Types.Factories
                     .Type(fieldDefinition.Type)
                     .SyntaxNode(fieldDefinition);
 
+                foreach (DirectiveNode directive in fieldDefinition.Directives)
+                {
+                    fieldDescriptor.Directive(directive);
+                }
+
                 string deprecactionReason = fieldDefinition.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
                 {
@@ -57,6 +62,12 @@ namespace HotChocolate.Types.Factories
                 fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
                     a =>
                     {
+                        foreach (DirectiveNode directive in
+                            inputFieldDefinition.Directives)
+                        {
+                            fieldDescriptor.Directive(directive);
+                        }
+
                         a.Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)

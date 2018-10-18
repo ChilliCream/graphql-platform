@@ -53,5 +53,7 @@ namespace HotChocolate.Execution
             FieldNode fieldSelection);
 
         T GetResolver<T>();
+
+        IExecutionContext Clone(CancellationToken cancellationToken);
     }
 }

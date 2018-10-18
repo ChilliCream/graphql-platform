@@ -6,7 +6,7 @@ using HotChocolate.Types.Factories;
 namespace HotChocolate
 {
     internal class SchemaSyntaxVisitor
-        : SyntaxNodeVisitor
+        : SchemaSyntaxWalker
     {
         private readonly ITypeRegistry _typeRegistry;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
@@ -27,11 +27,6 @@ namespace HotChocolate
             }
 
             _typeRegistry = typeRegistry;
-        }
-
-        protected override void VisitDocument(DocumentNode node)
-        {
-            VisitMany(node.Definitions);
         }
 
         protected override void VisitObjectTypeDefinition(

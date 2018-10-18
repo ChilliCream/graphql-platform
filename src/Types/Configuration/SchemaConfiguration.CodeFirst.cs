@@ -9,7 +9,6 @@ namespace HotChocolate.Configuration
         #region RegisterType - Type
 
         public void RegisterType<T>()
-            where T : class, INamedType
         {
             CreateAndRegisterType(typeof(T));
         }
