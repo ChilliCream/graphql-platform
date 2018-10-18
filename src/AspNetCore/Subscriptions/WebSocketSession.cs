@@ -22,6 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new ConnectionInitializeHandler(),
                 new ConnectionTerminateHandler(),
                 new SubscriptionStartHandler(),
+                new SubscriptionStopHandler(),
     };
         private static readonly IRequestHandler _unknownRequestHandler;
 
