@@ -16,6 +16,11 @@ namespace HotChocolate.Types.Factories
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
+                foreach (DirectiveNode directive in node.Directives)
+                {
+                    d.Directive(directive);
+                }
+
                 DeclareFields(d, node.Fields);
             });
         }
@@ -31,6 +36,11 @@ namespace HotChocolate.Types.Factories
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
                     .SyntaxNode(fieldDefinition);
+
+                foreach (DirectiveNode directive in fieldDefinition.Directives)
+                {
+                    fieldDescriptor.Directive(directive);
+                }
 
                 string deprecactionReason = fieldDefinition.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
@@ -52,6 +62,12 @@ namespace HotChocolate.Types.Factories
                 fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
                     a =>
                     {
+                        foreach (DirectiveNode directive in
+                            inputFieldDefinition.Directives)
+                        {
+                            fieldDescriptor.Directive(directive);
+                        }
+
                         a.Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)

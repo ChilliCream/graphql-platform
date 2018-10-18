@@ -12,7 +12,8 @@ namespace HotChocolate.Execution
             new Dictionary<OperationType, IExecutionStrategy>
             {
                 { OperationType.Query, new QueryExecutionStrategy() },
-                { OperationType.Mutation, new MutationExecutionStrategy() }
+                { OperationType.Mutation, new MutationExecutionStrategy() },
+                { OperationType.Subscription, new SubscriptionExecutionStrategy() }
             };
 
         private readonly ISchema _schema;

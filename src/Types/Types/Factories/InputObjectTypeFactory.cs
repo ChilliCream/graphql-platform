@@ -27,11 +27,17 @@ namespace HotChocolate.Types.Factories
         {
             foreach (InputValueDefinitionNode inputField in node.Fields)
             {
-                typeDescriptor.Field(inputField.Name.Value)
+                IInputFieldDescriptor descriptor = typeDescriptor
+                    .Field(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
+
+                foreach (DirectiveNode directive in inputField.Directives)
+                {
+                    descriptor.Directive(directive);
+                }
             }
         }
     }
