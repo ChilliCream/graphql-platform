@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private Uri SubscriptionUri { get; } =
-            new Uri("ws://localhost:5000/ws");
+            new Uri("ws://localhost:5000/subscriptions");
 
         private TestServerFactory TestServerFactory { get; }
 

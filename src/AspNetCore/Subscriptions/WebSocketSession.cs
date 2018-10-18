@@ -15,6 +15,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : IDisposable
     {
         private const string _protocol = "graphql-ws";
+        private const int _keepAliveTimeout = 5000;
 
         private readonly static IRequestHandler[] _requestHandlers =
             new IRequestHandler[]
@@ -23,8 +24,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new ConnectionTerminateHandler(),
                 new SubscriptionStartHandler(),
                 new SubscriptionStopHandler(),
-    };
-        private static readonly IRequestHandler _unknownRequestHandler;
+            };
 
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
@@ -38,19 +38,41 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            while (!_context.WebSocket.CloseStatus.HasValue)
+            try
             {
-                GenericOperationMessage message = await _context
-                    .ReceiveMessageAsync(cancellationToken);
-
-                if (message == null)
+                StartKeepConnectionAlive();
+                await ReceiveMessagesAsync(cancellationToken);
+            }
+            finally
+            {
+                if (!_cts.IsCancellationRequested)
                 {
-                    await _context.SendConnectionKeepAliveMessageAsync(
-                        cancellationToken);
+                    _cts.Cancel();
                 }
-                else
+            }
+        }
+
+        private async Task ReceiveMessagesAsync(
+            CancellationToken cancellationToken)
+        {
+            using (var combined = CancellationTokenSource
+               .CreateLinkedTokenSource(cancellationToken, _cts.Token))
+            {
+                while (!_context.WebSocket.CloseStatus.HasValue
+                    || !combined.IsCancellationRequested)
                 {
-                    await HandleMessage(message, cancellationToken);
+                    GenericOperationMessage message = await _context
+                        .ReceiveMessageAsync(combined.Token);
+
+                    if (message == null)
+                    {
+                        await _context.SendConnectionKeepAliveMessageAsync(
+                            combined.Token);
+                    }
+                    else
+                    {
+                        await HandleMessage(message, combined.Token);
+                    }
                 }
             }
         }
@@ -70,12 +92,27 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 }
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException(
+                "The specified message type is not supported.");
+        }
+
+        private void StartKeepConnectionAlive()
+        {
+            Task.Run(KeepConnectionAlive);
+        }
+
+        private async Task KeepConnectionAlive()
+        {
+            while (!_cts.IsCancellationRequested)
+            {
+                await Task.Delay(_keepAliveTimeout, _cts.Token);
+                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token);
+            }
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+
         }
 
         public static async Task<WebSocketSession> TryCreateAsync(

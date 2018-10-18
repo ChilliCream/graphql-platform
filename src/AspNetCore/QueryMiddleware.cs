@@ -18,8 +18,8 @@ namespace HotChocolate.AspNetCore
         private readonly string _subscriptionRoute;
 
         public QueryMiddleware(RequestDelegate next)
+            : this(next, null)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
         public QueryMiddleware(RequestDelegate next, string route)
@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _route = route;
             _subscriptionRoute = _route == null
-                ? "subscriptions"
+                ? "/subscriptions"
                 : _route.TrimEnd('/') + "/subscriptions";
         }
 
