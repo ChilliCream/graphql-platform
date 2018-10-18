@@ -115,7 +115,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
             public string Foo() => "bar";
         }
     }
-
-
-
 }
