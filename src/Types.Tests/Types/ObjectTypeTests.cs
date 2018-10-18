@@ -157,6 +157,267 @@ namespace HotChocolate.Types
             Assert.IsType<StringType>(fooType.Fields["bar"].Type);
         }
 
+
+        [Fact]
+        public void TwoInterfacesProvideFieldAWithDifferentOutputType()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a: String
+                }
+
+                interface B {
+                    a: Int
+                }
+
+                type C implements A & B {
+                    a: String
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void TwoInterfacesProvideFieldAWithDifferentArguments1()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(b: String): String
+                }
+
+                type C implements A & B {
+                    a(a: String): String
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void TwoInterfacesProvideFieldAWithDifferentArguments2()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(a: Int): String
+                }
+
+                type C implements A & B {
+                    a(a: String): String
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void TwoInterfacesProvideFieldAWithDifferentArguments3()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(a: String, b: String): String
+                }
+
+                type C implements A & B {
+                    a(a: String): String
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void ObjectFieldDoesNotMatchInterfaceDefinitionArgTypeInvalid()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(a: String): String
+                }
+
+                type C implements A & B {
+                    a(a: String!): String
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void ObjectFieldDoesNotMatchInterfaceDefinitionReturnTypeInvalid()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(a: String): String
+                }
+
+                type C implements A & B {
+                    a(a: String): String!
+                }";
+
+            // act
+            try
+            {
+                Schema.Create(source, c =>
+                {
+                    c.BindResolver(() => "foo").To("C", "a");
+                });
+            }
+            catch (SchemaException ex)
+            {
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                return;
+            }
+
+            Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void ObjectTypeImplementsAllFields()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String): String
+                }
+
+                interface B {
+                    a(a: String): String
+                }
+
+                type C implements A & B {
+                    a(a: String): String
+                }";
+
+            // act
+            Schema schema = Schema.Create(source, c =>
+            {
+                c.BindResolver(() => "foo").To("C", "a");
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("C");
+            Assert.Equal(2, type.Interfaces.Count);
+        }
+
+        [Fact]
+        public void ObjectTypeImplementsAllFieldsWithWrappedTypes()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String!): String!
+                }
+
+                interface B {
+                    a(a: String!): String!
+                }
+
+                type C implements A & B {
+                    a(a: String!): String!
+                }";
+
+            // act
+            Schema schema = Schema.Create(source, c =>
+            {
+                c.BindResolver(() => "foo").To("C", "a");
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("C");
+            Assert.Equal(2, type.Interfaces.Count);
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }

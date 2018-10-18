@@ -164,6 +164,8 @@ namespace HotChocolate.Types
             CompleteIsOfType();
             CompleteInterfaces(context);
             CompleteFields(context);
+
+            ValidateInterfaceImplementation(context);
         }
 
         private void CompleteIsOfType()
@@ -216,44 +218,127 @@ namespace HotChocolate.Types
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
-
-                CheckIfAllInterfaceFieldsAreImplemented(context);
             }
         }
 
-        // TODO : Refactor
-        private void CheckIfAllInterfaceFieldsAreImplemented(
+        private void ValidateInterfaceImplementation(
             ITypeInitializationContext context)
         {
-            foreach (InterfaceType interfaceType in _interfaceMap.Values)
+            if (_interfaceMap.Count > 0)
             {
-                foreach (InterfaceField interfaceField in interfaceType.Fields)
+                foreach (IGrouping<string, InterfaceField> fieldGroup in
+                    _interfaceMap.Values
+                        .SelectMany(t => t.Fields)
+                        .GroupBy(t => t.Name))
                 {
-                    if (Fields.TryGetField(interfaceField.Name, out ObjectField field))
-                    {
-                        foreach (InputField interfaceArgument in interfaceField.Arguments)
-                        {
-                            if (!field.Arguments.ContainsField(
-                                interfaceArgument.Name))
-                            {
-                                context.ReportError(new SchemaError(
-                                    $"Object type {Name} does not implement " +
-                                    $"all arguments of field {interfaceField.Name} " +
-                                    $"from interface {interfaceType.Name}.",
-                                    this));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        context.ReportError(new SchemaError(
-                            $"Object type {Name} does not implement the " +
-                            $"field {interfaceField.Name} " +
-                            $"from interface {interfaceType.Name}.",
-                            this));
-                    }
+                    ValidateField(context, fieldGroup);
                 }
             }
+        }
+
+        private void ValidateField(
+            ITypeInitializationContext context,
+            IGrouping<string, InterfaceField> interfaceField)
+        {
+            InterfaceField first = interfaceField.First();
+            if (ValidateInterfaceFieldGroup(context, first, interfaceField))
+            {
+                ValidateObjectField(context, first);
+            }
+        }
+
+        private bool ValidateInterfaceFieldGroup(
+            ITypeInitializationContext context,
+            InterfaceField first,
+            IGrouping<string, InterfaceField> interfaceField)
+        {
+            if (interfaceField.Count() == 1)
+            {
+                return true;
+            }
+
+            foreach (InterfaceField field in interfaceField)
+            {
+                if (!field.Type.IsEqualTo(first.Type))
+                {
+                    context.ReportError(new SchemaError(
+                        "The return type of the interface field " +
+                        $"{first.Name} from interface " +
+                        $"{first.DeclaringType.Name} and " +
+                        $"{field.DeclaringType.Name} do not match " +
+                        $"and are implemented by object type {Name}.",
+                        this));
+                    return false;
+                }
+
+                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
+                {
+                    context.ReportError(new SchemaError(
+                        $"The arguments of the interface field {first.Name} " +
+                        $"from interface {first.DeclaringType.Name} and " +
+                        $"{field.DeclaringType.Name} do not match " +
+                        $"and are implemented by object type {Name}.",
+                        this));
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void ValidateObjectField(
+            ITypeInitializationContext context,
+            InterfaceField first)
+        {
+            if (Fields.TryGetField(first.Name, out ObjectField field))
+            {
+                if (!field.Type.IsEqualTo(first.Type))
+                {
+                    context.ReportError(new SchemaError(
+                        "The return type of the interface field " +
+                        $"{first.Name} does not match the field declared " +
+                        $"by object type {Name}.",
+                        this));
+                }
+
+                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
+                {
+                    context.ReportError(new SchemaError(
+                        $"Object type {Name} does not implement " +
+                        $"all arguments of field {first.Name} " +
+                        $"from interface {first.DeclaringType.Name}.",
+                        this));
+                }
+            }
+            else
+            {
+                context.ReportError(new SchemaError(
+                    $"Object type {Name} does not implement the " +
+                    $"field {first.Name} " +
+                    $"from interface {first.DeclaringType.Name}.",
+                    this));
+            }
+        }
+
+        private bool ArgumentsAreEqual(
+            FieldCollection<InputField> x,
+            FieldCollection<InputField> y)
+        {
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+
+            foreach (InputField xfield in x)
+            {
+                if (!y.TryGetField(xfield.Name, out InputField yfield)
+                    || !xfield.Type.IsEqualTo(yfield.Type))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void CompleteFields(ITypeInitializationContext context)
