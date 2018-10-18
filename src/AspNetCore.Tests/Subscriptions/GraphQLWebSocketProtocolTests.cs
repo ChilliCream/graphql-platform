@@ -61,6 +61,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             GenericOperationMessage message =
                 await webSocket.ReceiveServerMessageAsync();
+
+            if (message?.Type == MessageTypes.Connection.KeepAlive)
+            {
+                message = await webSocket.ReceiveServerMessageAsync();
+            }
+
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Subscription.Data, message.Type);
 
