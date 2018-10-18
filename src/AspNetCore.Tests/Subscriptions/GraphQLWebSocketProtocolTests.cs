@@ -60,18 +60,35 @@ namespace HotChocolate.AspNetCore.Subscriptions
             });
 
             GenericOperationMessage message =
-                await webSocket.ReceiveServerMessageAsync();
-
-            if (message?.Type == MessageTypes.Connection.KeepAlive)
-            {
-                message = await webSocket.ReceiveServerMessageAsync();
-            }
+                await WaitForMessage(webSocket, MessageTypes.Subscription.Data);
 
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Subscription.Data, message.Type);
 
             var result = message.Payload.ToObject<Dictionary<string, object>>();
             Assert.True(result.ContainsKey("data"));
+        }
+
+        private async Task<GenericOperationMessage> WaitForMessage(
+            WebSocket webSocket, string messageType)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GenericOperationMessage message =
+                    await webSocket.ReceiveServerMessageAsync();
+
+                if (message?.Type == messageType)
+                {
+                    return message;
+                }
+
+                if (message?.Type != MessageTypes.Connection.KeepAlive)
+                {
+                    break;
+                }
+            }
+
+            return null;
         }
 
         private TestServer CreateTestServer()
