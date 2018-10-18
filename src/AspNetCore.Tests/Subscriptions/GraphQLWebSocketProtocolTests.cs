@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
@@ -10,10 +11,10 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class ApolloWebSocketProtocolTests
+    public class GraphQLWebSocketProtocolTests
         : IClassFixture<TestServerFactory>
     {
-        public ApolloWebSocketProtocolTests(TestServerFactory testServerFactory)
+        public GraphQLWebSocketProtocolTests(TestServerFactory testServerFactory)
         {
             TestServerFactory = testServerFactory;
         }
