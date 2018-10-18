@@ -164,6 +164,8 @@ namespace HotChocolate.Types
             CompleteIsOfType();
             CompleteInterfaces(context);
             CompleteFields(context);
+
+            ValidateInterfaceImplementation(context);
         }
 
         private void CompleteIsOfType()
@@ -216,21 +218,21 @@ namespace HotChocolate.Types
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
-
-                CheckIfAllInterfaceFieldsAreImplemented(context);
             }
         }
 
-        private void CheckIfAllInterfaceFieldsAreImplemented(
+        private void ValidateInterfaceImplementation(
             ITypeInitializationContext context)
         {
-
-            foreach (IGrouping<string, InterfaceField> fieldGroup in
-                _interfaceMap.Values
-                    .SelectMany(t => t.Fields)
-                    .GroupBy(t => t.Name))
+            if (_interfaceMap.Count > 0)
             {
-                ValidateField(context, fieldGroup);
+                foreach (IGrouping<string, InterfaceField> fieldGroup in
+                    _interfaceMap.Values
+                        .SelectMany(t => t.Fields)
+                        .GroupBy(t => t.Name))
+                {
+                    ValidateField(context, fieldGroup);
+                }
             }
         }
 
