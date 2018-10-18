@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
 
         public string ToJson(bool indented)
         {
-            Dictionary<string, object> internalResult = new Dictionary<string, object>();
+            var internalResult = new Dictionary<string, object>();
 
             if (Errors != null && Errors.Count > 0)
             {
@@ -97,6 +97,23 @@ namespace HotChocolate.Execution
 
             return JsonConvert.SerializeObject(internalResult,
                 indented ? Formatting.Indented : Formatting.None);
+        }
+
+        public IReadOnlyDictionary<string, object> ToDictionary()
+        {
+            var internalResult = new Dictionary<string, object>();
+
+            if (Errors != null && Errors.Count > 0)
+            {
+                internalResult[_errors] = Errors;
+            }
+
+            if (Data != null && Data.Count > 0)
+            {
+                internalResult[_data] = Data;
+            }
+
+            return internalResult;
         }
 
         public override string ToString()

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0; netstandard1.4</TargetFrameworks>
+    <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
+    <PackageId>HotChocolate.Subscriptions.InMemory</PackageId>
+    <Description>This package provides a in-memory subscription provider.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
+  </ItemGroup>
+
+</Project>

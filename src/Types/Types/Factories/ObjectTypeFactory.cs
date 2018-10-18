@@ -8,14 +8,18 @@ namespace HotChocolate.Types.Factories
     internal sealed class ObjectTypeFactory
         : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
-        public ObjectType Create(
-            ObjectTypeDefinitionNode node)
+        public ObjectType Create(ObjectTypeDefinitionNode node)
         {
             return new ObjectType(d =>
             {
                 d.SyntaxNode(node)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
+
+                foreach (DirectiveNode directive in node.Directives)
+                {
+                    d.Directive(directive);
+                }
 
                 DeclareInterfaces(d, node.Interfaces);
 
@@ -45,6 +49,11 @@ namespace HotChocolate.Types.Factories
                     .Type(fieldDefinition.Type)
                     .SyntaxNode(fieldDefinition);
 
+                foreach (DirectiveNode directive in fieldDefinition.Directives)
+                {
+                    fieldDescriptor.Directive(directive);
+                }
+
                 string deprecactionReason = fieldDefinition.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
                 {
@@ -65,10 +74,16 @@ namespace HotChocolate.Types.Factories
                 fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
                     a =>
                     {
-                        a.Description(inputFieldDefinition.Description?.Value)
+                        IArgumentDescriptor descriptor = a.Description(inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
                             .SyntaxNode(inputFieldDefinition);
+
+                        foreach (DirectiveNode directive in
+                            inputFieldDefinition.Directives)
+                        {
+                            descriptor.Directive(directive);
+                        }
                     });
             }
         }

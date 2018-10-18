@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0; netstandard1.4</TargetFrameworks>
     <AssemblyName>HotChocolate.Runtime</AssemblyName>
     <RootNamespace>HotChocolate.Runtime</RootNamespace>
     <PackageId>HotChocolate.Runtime</PackageId>
@@ -23,6 +23,10 @@
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
+    <PackageReference Include="System.ComponentModel" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
