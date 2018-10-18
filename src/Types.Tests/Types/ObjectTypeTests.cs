@@ -185,7 +185,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -253,7 +253,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -287,7 +287,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -321,7 +321,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -355,7 +355,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex));
+                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
                 return;
             }
 
@@ -377,6 +377,34 @@ namespace HotChocolate.Types
 
                 type C implements A & B {
                     a(a: String): String
+                }";
+
+            // act
+            Schema schema = Schema.Create(source, c =>
+            {
+                c.BindResolver(() => "foo").To("C", "a");
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("C");
+            Assert.Equal(2, type.Interfaces.Count);
+        }
+
+        [Fact]
+        public void ObjectTypeImplementsAllFieldsWithWrappedTypes()
+        {
+            // arrange
+            string source = @"
+                interface A {
+                    a(a: String!): String!
+                }
+
+                interface B {
+                    a(a: String!): String!
+                }
+
+                type C implements A & B {
+                    a(a: String!): String!
                 }";
 
             // act

@@ -202,5 +202,48 @@ namespace HotChocolate.Types
 
             throw new ArgumentException("The specified type is not a list type.", nameof(type));
         }
+
+        public static bool IsEqualTo(this IType x, IType y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x is NonNullType xnn)
+            {
+                if (y is NonNullType ynn)
+                {
+                    return xnn.Type.IsEqualTo(ynn.Type);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (x is ListType xl)
+            {
+                if (y is ListType yl)
+                {
+                    return xl.ElementType.IsEqualTo(yl.ElementType);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            if (x is INamedType xnt)
+            {
+                if (y is INamedType ynt)
+                {
+                    return string.Equals(xnt.Name, ynt.Name,
+                        StringComparison.Ordinal);
+                }
+            }
+
+            return false;
+        }
     }
 }

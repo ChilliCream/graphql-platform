@@ -259,7 +259,7 @@ namespace HotChocolate.Types
 
             foreach (InterfaceField field in interfaceField)
             {
-                if (field.Type != first.Type)
+                if (!field.Type.IsEqualTo(first.Type))
                 {
                     context.ReportError(new SchemaError(
                         "The return type of the interface field " +
@@ -292,7 +292,7 @@ namespace HotChocolate.Types
         {
             if (Fields.TryGetField(first.Name, out ObjectField field))
             {
-                if (field.Type != first.Type)
+                if (!field.Type.IsEqualTo(first.Type))
                 {
                     context.ReportError(new SchemaError(
                         "The return type of the interface field " +
@@ -332,7 +332,7 @@ namespace HotChocolate.Types
             foreach (InputField xfield in x)
             {
                 if (!y.TryGetField(xfield.Name, out InputField yfield)
-                    || xfield.Type != yfield.Type)
+                    || !xfield.Type.IsEqualTo(yfield.Type))
                 {
                     return false;
                 }
