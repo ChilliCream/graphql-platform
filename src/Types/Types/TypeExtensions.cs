@@ -210,37 +210,18 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (x is NonNullType xnn)
+            if (x is NonNullType xnn && y is NonNullType ynn)
             {
-                if (y is NonNullType ynn)
-                {
-                    return xnn.Type.IsEqualTo(ynn.Type);
-                }
-                else
-                {
-                    return false;
-                }
+                return xnn.Type.IsEqualTo(ynn.Type);
             }
-
-            if (x is ListType xl)
+            else if (x is ListType xl && y is ListType yl)
             {
-                if (y is ListType yl)
-                {
-                    return xl.ElementType.IsEqualTo(yl.ElementType);
-                }
-                else
-                {
-                    return false;
-                }
+                return xl.ElementType.IsEqualTo(yl.ElementType);
             }
-
-            if (x is INamedType xnt)
+            else if (x is INamedType xnt && y is INamedType ynt)
             {
-                if (y is INamedType ynt)
-                {
-                    return string.Equals(xnt.Name, ynt.Name,
-                        StringComparison.Ordinal);
-                }
+                return string.Equals(xnt.Name, ynt.Name,
+                    StringComparison.Ordinal);
             }
 
             return false;
