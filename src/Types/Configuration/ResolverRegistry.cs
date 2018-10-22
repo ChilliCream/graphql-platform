@@ -11,8 +11,8 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
-            new Dictionary<FieldReference, FieldResolverDelegate>();
+        private readonly Dictionary<FieldReference, AsyncFieldResolverDelegate> _resolvers =
+            new Dictionary<FieldReference, AsyncFieldResolverDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
@@ -65,10 +65,13 @@ namespace HotChocolate.Configuration
                 || _resolverBindings.ContainsKey(fieldReference);
         }
 
-        public FieldResolverDelegate GetResolver(string typeName, string fieldName)
+        public AsyncFieldResolverDelegate GetResolver(
+            string typeName,
+            string fieldName)
         {
             var fieldReference = new FieldReference(typeName, fieldName);
-            if (_resolvers.TryGetValue(fieldReference, out FieldResolverDelegate resolver))
+            if (_resolvers.TryGetValue(fieldReference,
+                out AsyncFieldResolverDelegate resolver))
             {
                 return resolver;
             }
@@ -145,7 +148,8 @@ namespace HotChocolate.Configuration
             foreach (DirectiveMethodMiddleware methodMiddleware in
                 _middlewares.Values.OfType<DirectiveMethodMiddleware>())
             {
-                yield return new DirectiveMiddlewareDescriptor(methodMiddleware);
+                yield return new DirectiveMiddlewareDescriptor(
+                    methodMiddleware);
             }
         }
     }

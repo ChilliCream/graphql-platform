@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,51 +15,92 @@ namespace HotChocolate.Execution
         private static readonly FieldValueCompleter _fieldValueCompleter =
             new FieldValueCompleter();
 
-        protected static object ExecuteResolver(
+        protected static async Task<object> ExecuteResolverAsync(
            ResolverTask resolverTask,
            bool isDeveloperMode,
            CancellationToken cancellationToken)
         {
-            if (resolverTask.HasMiddleware)
+            Activity activity = DiagnosticEvents.BeginResolveField(
+                resolverTask.ResolverContext);
+
+            object result = await ExecuteResolverInternalAsync(
+                resolverTask,
+                isDeveloperMode,
+                cancellationToken);
+
+
+
+            if (result is IQueryError error)
             {
-                return ExecuteResolverMiddlewareAsync(
-                    resolverTask, isDeveloperMode,
-                    cancellationToken);
+                activity.AddTag("error", "true");
             }
-            else
-            {
-                return ExecuteFieldResolver(
-                    resolverTask, isDeveloperMode,
-                    cancellationToken);
-            }
+
+            DiagnosticEvents.EndResolveField(
+                activity,
+                resolverTask.ResolverContext,
+                result);
+
+            return result;
         }
 
-        private static object ExecuteFieldResolver(
+        private static async Task<object> ExecuteResolverInternalAsync(
             ResolverTask resolverTask,
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
+            object result = null;
+
             try
             {
-                if (resolverTask.FieldSelection.Field.Resolver == null)
+                if (resolverTask.HasMiddleware)
                 {
-                    return null;
+                    result = await ExecuteResolverMiddlewareAsync(
+                        resolverTask, isDeveloperMode,
+                        cancellationToken);
                 }
-
-                return resolverTask.FieldSelection.Field.Resolver(
-                    resolverTask.ResolverContext,
-                    cancellationToken);
+                else
+                {
+                    result = await ExecuteFieldResolverAsync(
+                        resolverTask, isDeveloperMode,
+                        cancellationToken);
+                }
             }
             catch (QueryException ex)
             {
-                return ex.Errors;
+                result = ex.Errors;
             }
             catch (Exception ex)
             {
-                return CreateErrorFromException(ex,
+                DiagnosticEvents.ResolverError(
+                    resolverTask.ResolverContext,
+                    ex);
+
+                result = CreateErrorFromException(ex,
                     resolverTask.FieldSelection.Selection,
                     isDeveloperMode);
             }
+
+            return result;
+        }
+
+        private static async Task<object> ExecuteFieldResolverAsync(
+            ResolverTask resolverTask,
+            bool isDeveloperMode,
+            CancellationToken cancellationToken)
+        {
+            if (resolverTask.FieldSelection.Field.Resolver == null)
+            {
+                return null;
+            }
+
+            object result = await resolverTask.FieldSelection.Field.Resolver(
+                resolverTask.ResolverContext,
+                cancellationToken);
+
+            return FinalizeResolverResult(
+                resolverTask.FieldSelection.Selection,
+                result,
+                isDeveloperMode);
         }
 
         private static async Task<object> ExecuteResolverMiddlewareAsync(
@@ -66,81 +108,30 @@ namespace HotChocolate.Execution
             bool isDeveloperMode,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                return await resolverTask.ExecuteMiddleware.Invoke(
-                    resolverTask.ResolverContext, ExecuteResolver);
-            }
-            catch (QueryException ex)
-            {
-                return ex.Errors;
-            }
-            catch (Exception ex)
-            {
-                return CreateErrorFromException(ex,
-                    resolverTask.FieldSelection.Selection,
-                    isDeveloperMode);
-            }
+            return await resolverTask.ExecuteMiddleware.Invoke(
+                resolverTask.ResolverContext, ExecuteResolver);
 
-            async Task<object> ExecuteResolver()
+            Task<object> ExecuteResolver()
             {
-                object result = ExecuteFieldResolver(
+                return ExecuteFieldResolverAsync(
                     resolverTask,
                     isDeveloperMode,
                     cancellationToken);
-
-                return await FinalizeResolverResultAsync(
-                    resolverTask.FieldSelection.Selection,
-                    result,
-                    isDeveloperMode);
             };
         }
 
-        protected static Task<object> FinalizeResolverResultAsync(
+        protected static object FinalizeResolverResult(
             FieldNode fieldSelection,
             object resolverResult,
             bool isDeveloperMode)
         {
             switch (resolverResult)
             {
-                case Task<object> task:
-                    return FinalizeResolverResultTaskAsync(
-                        fieldSelection, task, isDeveloperMode);
-
                 case IResolverResult result:
-                    return Task.FromResult(
-                        CompleteResolverResult(fieldSelection, result));
+                    return CompleteResolverResult(fieldSelection, result);
 
                 default:
-                    return Task.FromResult(resolverResult);
-            }
-        }
-
-        private static async Task<object> FinalizeResolverResultTaskAsync(
-            FieldNode fieldSelection,
-            Task<object> task,
-            bool isDeveloperMode)
-        {
-            try
-            {
-                object resolverResult = task.IsCompleted
-                    ? task.Result
-                    : await task;
-
-                if (resolverResult is IResolverResult r)
-                {
-                    return CompleteResolverResult(fieldSelection, r);
-                }
-                return resolverResult;
-            }
-            catch (QueryException ex)
-            {
-                return ex.Errors;
-            }
-            catch (Exception ex)
-            {
-                return CreateErrorFromException(ex,
-                    fieldSelection, isDeveloperMode);
+                    return resolverResult;
             }
         }
 

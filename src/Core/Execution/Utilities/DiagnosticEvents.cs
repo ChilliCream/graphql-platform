@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using HotChocolate.Resolvers;
 
@@ -8,6 +9,7 @@ namespace HotChocolate.Execution
         private const string _diagnosticListenerName = "HotChocolate.Execution";
         private const string _resolverActivityName = "HotChocolate.Execution.ResolveField";
         private const string _resolverActivityNameStart = _resolverActivityName + ".Start";
+        private const string _exceptionEventName = "HotChocolate.Execution.ResolveField";
 
         private static readonly DiagnosticListener _diagnosticListener =
             new DiagnosticListener(_diagnosticListenerName);
@@ -52,6 +54,20 @@ namespace HotChocolate.Execution
                     Context = resolverContext,
                     Result = resolvedValue,
                     Timestamp = Stopwatch.GetTimestamp()
+                });
+            }
+        }
+
+        public static void ResolverError(
+            IResolverContext resolverContext,
+            Exception exception)
+        {
+            if (_diagnosticListener.IsEnabled(_exceptionEventName))
+            {
+                _diagnosticListener.Write(_exceptionEventName, new
+                {
+                    Context = resolverContext,
+                    Exception = exception
                 });
             }
         }

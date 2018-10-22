@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace HotChocolate.Resolvers
@@ -12,7 +13,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = Guid.NewGuid().ToString();
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
             var fieldMember = new FieldResolver(
@@ -29,7 +30,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(null, fieldName, resolver);
@@ -43,7 +44,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var typeName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(typeName, null, resolver);
@@ -73,7 +74,7 @@ namespace HotChocolate.Resolvers
             var originalTypeName = Guid.NewGuid().ToString();
             var newTypeName = Guid.NewGuid().ToString();
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -91,7 +92,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var originalTypeName = Guid.NewGuid().ToString();
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -110,7 +111,7 @@ namespace HotChocolate.Resolvers
             var typeName = Guid.NewGuid().ToString();
             var originalFieldName = Guid.NewGuid().ToString();
             var newFieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -128,7 +129,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = Guid.NewGuid().ToString();
             var originalFieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate resolver = GetResolverA();
+            AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -146,8 +147,8 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = Guid.NewGuid().ToString();
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate originalResolver = GetResolverA();
-            FieldResolverDelegate newResolver = GetResolverB();
+            AsyncFieldResolverDelegate originalResolver = GetResolverA();
+            AsyncFieldResolverDelegate newResolver = GetResolverB();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -165,7 +166,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = Guid.NewGuid().ToString();
             var fieldName = Guid.NewGuid().ToString();
-            FieldResolverDelegate originalResolver = GetResolverA();
+            AsyncFieldResolverDelegate originalResolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -309,14 +310,16 @@ namespace HotChocolate.Resolvers
             Assert.False(result);
         }
 
-        private FieldResolverDelegate GetResolverA()
+        private AsyncFieldResolverDelegate GetResolverA()
         {
-            return new FieldResolverDelegate((a, b) => null);
+            return new AsyncFieldResolverDelegate(
+                (a, b) => Task.FromResult<object>(null));
         }
 
-        private FieldResolverDelegate GetResolverB()
+        private AsyncFieldResolverDelegate GetResolverB()
         {
-            return new FieldResolverDelegate((a, b) => null);
+            return new AsyncFieldResolverDelegate(
+                (a, b) => Task.FromResult<object>(null));
         }
 
         private class Foo

@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
-                    resolverTask.ResolverResult = ExecuteResolver(
+                    resolverTask.ResolverTask = ExecuteResolverAsync(
                         resolverTask, executionContext.Options.DeveloperMode,
                         cancellationToken);
                 }
@@ -125,6 +125,8 @@ namespace HotChocolate.Execution
             foreach (ResolverTask resolverTask in currentBatch)
             {
                 // await async results
+
+                // complete resolver result
                 resolverTask.ResolverResult = await FinalizeResolverResultAsync(
                     resolverTask.FieldSelection.Selection,
                     resolverTask.ResolverResult,

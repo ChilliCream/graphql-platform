@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
             List<ResolverTask> nextBatch,
             CancellationToken cancellationToken)
         {
-            resolverTask.ResolverResult = ExecuteResolver(
+            resolverTask.ResolverResult = ExecuteResolverAsync(
                 resolverTask, executionContext.Options.DeveloperMode,
                 cancellationToken);
 

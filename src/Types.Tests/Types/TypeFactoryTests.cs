@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -20,7 +21,7 @@ namespace HotChocolate.Types
                     type Simple { a: String b: [String] }");
 
             var resolverBinding = new FieldResolver(
-                "Simple", "a", (c, r) => "hello");
+                "Simple", "a", (c, r) => Task.FromResult<object>("hello"));
 
             // act
             var factory = new ObjectTypeFactory();
@@ -45,7 +46,7 @@ namespace HotChocolate.Types
             Assert.Equal("String", type.Fields["b"].Type.TypeName());
 
             Assert.Equal("hello", (type.Fields["a"]
-                .Resolver(null, CancellationToken.None)));
+                .Resolver(null, CancellationToken.None).Result));
         }
 
         [Fact]

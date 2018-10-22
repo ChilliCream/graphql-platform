@@ -7,6 +7,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal sealed class SyncResolverMethodGenerator
         : ResolverSourceCodeGenerator<ResolverDescriptor>
     {
+        protected override bool IsAsync => false;
+
         protected override void GenerateResolverInvocation(
             ResolverDescriptor resolverDescriptor,
             StringBuilder source)
@@ -14,7 +16,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.ResolverType.GetTypeName()}>();");
             HandleExceptions(source, s =>
             {
-                s.Append($"return resolver.{resolverDescriptor.Field.Member.Name}(");
+                s.Append($"return Task.FromResult<object>(resolver.{resolverDescriptor.Field.Member.Name}(");
                 if (resolverDescriptor.Arguments.Count > 0)
                 {
                     string arguments = string.Join(", ",
@@ -22,7 +24,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                             .Select(t => t.VariableName));
                     s.Append(arguments);
                 }
-                s.Append(");");
+                s.Append("));");
             });
         }
 

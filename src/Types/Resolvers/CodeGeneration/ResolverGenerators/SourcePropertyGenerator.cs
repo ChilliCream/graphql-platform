@@ -6,6 +6,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal sealed class SourcePropertyGenerator
        : ResolverSourceCodeGenerator<SourceResolverDescriptor>
     {
+        protected override bool IsAsync => false;
+
         protected override void GenerateResolverInvocation(
             SourceResolverDescriptor resolverDescriptor,
             StringBuilder source)
@@ -13,7 +15,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.SourceType.GetTypeName()}>();");
             HandleExceptions(source, s =>
             {
-                s.Append($"return source.{resolverDescriptor.Field.Member.Name};");
+                s.Append($"return Task.FromResult<object>(source.{resolverDescriptor.Field.Member.Name});");
             });
         }
 

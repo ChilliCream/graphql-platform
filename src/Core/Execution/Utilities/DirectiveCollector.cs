@@ -122,7 +122,6 @@ namespace HotChocolate.Execution
             }
         }
 
-
         private void CollectInheritedDirectives(
             HashSet<string> processed,
             List<IDirective> directives,

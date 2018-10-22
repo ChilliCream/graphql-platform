@@ -13,16 +13,25 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
             ArgumentGeneratorCollections.ResolverArguments;
 
+        protected abstract bool IsAsync { get; }
+
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* {descriptor.Field.TypeName}.{descriptor.Field.FieldName} */");
-            source.Append($"public static {nameof(FieldResolverDelegate)}");
+            source.Append($"public static {nameof(AsyncFieldResolverDelegate)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, ct) => {");
+            if (IsAsync)
+            {
+                source.Append("async (ctx, ct) => {");
+            }
+            else
+            {
+                source.Append("(ctx, ct) => {");
+            }
             source.AppendLine();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -47,6 +48,8 @@ namespace HotChocolate.Execution
         private OrderedDictionary Result { get; }
 
         public IResolverContext ResolverContext { get; }
+
+        public Task<object> ResolverTask { get; set; }
 
         public object ResolverResult { get; set; }
 
