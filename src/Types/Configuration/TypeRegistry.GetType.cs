@@ -13,21 +13,13 @@ namespace HotChocolate.Configuration
         public T GetType<T>(string typeName)
             where T : IType
         {
-            if (TryGetType(typeName, out T type))
-            {
-                return type;
-            }
-            return default;
+            return TryGetType(typeName, out T type) ? type : default;
         }
 
         public T GetType<T>(TypeReference typeReference)
             where T : IType
         {
-            if (TryGetType(typeReference, out T type))
-            {
-                return type;
-            }
-            return default;
+            return TryGetType(typeReference, out T type) ? type : default;
         }
 
         public bool TryGetType<T>(string typeName, out T type)
@@ -64,16 +56,14 @@ namespace HotChocolate.Configuration
                 return TryGetTypeFromNativeType(
                     typeReference.ClrType, out type);
             }
-            else
-            {
-                return TryGetTypeFromAst(typeReference.Type, out type);
-            }
+
+            return TryGetTypeFromAst(typeReference.Type, out type);
         }
 
         private bool TryGetTypeFromNativeType<T>(Type nativeType, out T type)
         {
             if (_typeInspector.TryCreate(nativeType,
-                out Utilities.TypeInfo typeInfo))
+                out TypeInfo typeInfo))
             {
                 return TryGetTypeFromNativeNamedType(typeInfo, out type)
                     || TryGetTypeFromNativeTypeBinding(typeInfo, out type);
@@ -108,7 +98,6 @@ namespace HotChocolate.Configuration
             TypeInfo typeInfo
             , out T type)
         {
-            string debug = typeInfo.NativeNamedType.Name;
             if (_clrTypes.TryGetValue(typeInfo.NativeNamedType,
                 out HashSet<string> namedTypeNames))
             {
@@ -119,7 +108,7 @@ namespace HotChocolate.Configuration
                     || typeof(T) == typeof(IOutputType))
                 {
                     type = namedTypes.OfType<T>().FirstOrDefault();
-                    if (type == null)
+                    if (ReferenceEquals(type, default(T)))
                     {
                         return false;
                     }
@@ -175,7 +164,7 @@ namespace HotChocolate.Configuration
             }
 
             if (typeNode.Kind == NodeKind.NamedType
-                && TryGetType<INamedType>(((NamedTypeNode)typeNode).Name.Value,
+                && TryGetType(((NamedTypeNode)typeNode).Name.Value,
                     out INamedType namedType))
             {
                 type = namedType;
@@ -189,7 +178,7 @@ namespace HotChocolate.Configuration
         private IEnumerable<INamedType> GetNamedTypes(
             IEnumerable<string> typeNames)
         {
-            foreach (string typeName in typeNames)
+            foreach (var typeName in typeNames)
             {
                 if (_namedTypes.TryGetValue(typeName, out INamedType namedType))
                 {

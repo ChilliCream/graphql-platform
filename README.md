@@ -220,7 +220,7 @@ We currently support the following parts of the current [June 2018 specification
 
 - [x] Query
 - [x] Mutation
-- [ ] _Subscription_ (in development - 0.5.2)
+- [x] Subscription
 
 ### Introspection
 
@@ -249,6 +249,15 @@ We currently support the following parts of the current [June 2018 specification
   - [x] ofType
 
 Moreover, we are working on the following parts that are not defined in the spec.
+
+### Draft Features
+
+We are currently working on the following features that are proposed for the next GraphQL specification.
+
+- [ ] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472) (#291 in development - 0.5.3)
+- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445)
+- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466)
+- [ ] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
 
 ### Additional Scalar Types
 
@@ -284,14 +293,14 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 - [ ] ASP.NET Classic
 
-  - [ ] _Get_ (in development - 0.5.2)
-  - [ ] _Post_ (in development - 0.5.2)
-  - [ ] _WebSockets_ (in development - 0.5.4)
+  - [ ] _Get_ (in development - 0.5.3)
+  - [ ] _Post_ (in development - 0.5.3)
+  - [ ] _WebSockets_ (in development - 0.5.5)
 
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
-  - [ ] _WebSockets_ (in development - 0.5.3)
+  - [ ] _WebSockets_ (in development - 0.5.4)
 
 ## Documentation
 

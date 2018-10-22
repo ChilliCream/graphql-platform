@@ -11,12 +11,24 @@ namespace HotChocolate.AspNetCore
     {
         public List<TestServer> _instances = new List<TestServer>();
 
-        public TestServer Create(Action<ISchemaConfiguration> configure, string route)
+
+        public TestServer Create(
+            Action<ISchemaConfiguration> configure,
+            string route)
+        {
+            return Create(configure, null, route);
+        }
+
+        public TestServer Create(
+            Action<ISchemaConfiguration> configure,
+            Action<IServiceCollection> configureServices,
+            string route)
         {
             IWebHostBuilder builder = new WebHostBuilder()
                 .Configure(app => app.UseGraphQL(route))
                 .ConfigureServices(services =>
                 {
+                    configureServices?.Invoke(services);
                     services.AddScoped<TestService>();
                     services.AddGraphQL(configure);
                 });

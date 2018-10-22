@@ -38,8 +38,15 @@ namespace HotChocolate.Runtime
             IServiceProvider services,
             Type type)
         {
+#if NETSTANDARD1_4
+            ConstructorInfo[] constructors = type.GetTypeInfo()
+                .DeclaredConstructors
+                .Where(t => t.IsPublic && !t.IsAbstract)
+                .ToArray();
+#else
             ConstructorInfo[] constructors = type
                 .GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+#endif
 
             if (constructors.Length == 0)
             {

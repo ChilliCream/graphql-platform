@@ -28,6 +28,7 @@
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\Utilities\Utilities.csproj" />
+    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
   </ItemGroup>
 
   <ItemGroup>

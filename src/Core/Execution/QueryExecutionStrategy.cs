@@ -24,16 +24,8 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            var data = new OrderedDictionary();
-
-            IEnumerable<ResolverTask> rootResolverTasks =
-                CreateRootResolverTasks(executionContext, data);
-
-            await ExecuteResolversAsync(
-                executionContext, rootResolverTasks,
-                cancellationToken);
-
-            return new QueryResult(data, executionContext.GetErrors());
+            return await ExecuteQueryAsync(executionContext, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
