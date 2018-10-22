@@ -10,7 +10,7 @@ namespace HotChocolate.AspNetCore
     public static class QueryMiddlewareUtilities
     {
         public static Dictionary<string, object> DeserializeVariables(
-        JObject input)
+            JObject input)
         {
             if (input == null)
             {
@@ -100,7 +100,8 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        public static IServiceProvider CreateRequestServices(HttpContext context)
+        public static IServiceProvider CreateRequestServices(
+            HttpContext context)
         {
             Dictionary<Type, object> services = new Dictionary<Type, object>
             {
