@@ -108,7 +108,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
                 yield return new DirectiveDelegateMiddleware(
                     middlewareDescriptors[i].DirectiveName,
-                    (Middleware)field.GetValue(field));
+                    (DirectiveMiddleware)field.GetValue(field));
             }
         }
 

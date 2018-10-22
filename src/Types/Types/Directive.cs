@@ -49,7 +49,7 @@ namespace HotChocolate.Types
 
         public object Source { get; }
 
-        public Middleware Middleware  => Type.Middleware;
+        public DirectiveMiddleware Middleware  => Type.Middleware;
 
         public bool IsExecutable => Type.IsExecutable;
 

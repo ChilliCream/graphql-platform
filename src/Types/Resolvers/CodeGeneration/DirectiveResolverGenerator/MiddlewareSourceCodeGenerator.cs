@@ -19,7 +19,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* @{descriptor.DirectiveName} */");
-            source.Append($"public static {nameof(Middleware)}");
+            source.Append($"public static {nameof(DirectiveMiddleware)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
