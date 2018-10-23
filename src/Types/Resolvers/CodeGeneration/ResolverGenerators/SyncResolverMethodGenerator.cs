@@ -14,7 +14,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.ResolverType.GetTypeName()}>();");
-            HandleExceptions(source, s =>
+            HandleExceptionsSync(source, s =>
             {
                 s.Append($"return Task.FromResult<object>(resolver.{resolverDescriptor.Field.Member.Name}(");
                 if (resolverDescriptor.Arguments.Count > 0)

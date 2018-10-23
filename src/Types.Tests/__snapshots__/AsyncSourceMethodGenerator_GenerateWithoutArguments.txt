@@ -1,7 +1,6 @@
 /* Foo.bar */
-public static FieldResolverDelegate abc  = (ctx, ct) => {
+public static AsyncFieldResolverDelegate abc  = async (ctx, ct) => {
 var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
-Func<Task<object>> f = async () => {
 try
 {
 return await source.GetFooAsync();
@@ -11,6 +10,5 @@ catch(HotChocolate.Execution.QueryException ex)
 {
 return ex.Errors;
 }
-};
-return f();
+
 };

@@ -1,13 +1,13 @@
 /* Foo.bar */
-public static FieldResolverDelegate abc  = (ctx, ct) => {
+public static AsyncFieldResolverDelegate abc  = (ctx, ct) => {
 var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
 try
 {
-return resolver.GetFoo();
+return Task.FromResult<object>(resolver.GetFoo());
 }
 catch(HotChocolate.Execution.QueryException ex)
 {
-return ex.Errors;
+return Task.FromResult<object>(ex.Errors);
 }
 
 };

@@ -47,5 +47,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             return descriptor.Arguments;
         }
+
+        protected virtual void HandleExceptionsSync(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return Task.FromResult<object>(ex.Errors);");
+            source.AppendLine("}");
+        }
     }
 }
