@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
 
             if (result is IQueryError error)
             {
-                activity.AddTag("error", "true");
+                activity?.AddTag("error", "true");
             }
 
             DiagnosticEvents.EndResolveField(
