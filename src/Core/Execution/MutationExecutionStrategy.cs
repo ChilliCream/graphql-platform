@@ -17,10 +17,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            return ExecuteInternalAsync(executionContext, cancellationToken);
+            return ExecuteMutationAsync(executionContext, cancellationToken);
         }
 
-        private async Task<IExecutionResult> ExecuteInternalAsync(
+        private async Task<IExecutionResult> ExecuteMutationAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -45,18 +45,20 @@ namespace HotChocolate.Execution
             {
                 var nextBatch = new List<ResolverTask>();
 
-                if (resolverTask.Path.Depth <= executionContext.Options.MaxExecutionDepth)
+                if (resolverTask.IsMaxExecutionDepthReached())
                 {
                     await ExecuteResolverSeriallyAsync(
-                        executionContext, resolverTask,
-                        nextBatch, cancellationToken);
+                        executionContext,
+                        resolverTask,
+                        nextBatch.Add,
+                        cancellationToken);
                 }
                 else
                 {
-                    executionContext.ReportError(resolverTask.CreateError(
-                        $"The field has a depth of {resolverTask.Path.Depth}, " +
-                        "which exceeds max allowed depth of " +
-                        $"{executionContext.Options.MaxExecutionDepth}"));
+                    resolverTask.ReportError(
+                        $"The field has a depth of {resolverTask.Path.Depth}," +
+                        " which exceeds max allowed depth of " +
+                        $"{executionContext.Options.MaxExecutionDepth}");
                 }
 
                 // execute child fields with the default parallel flow logic
@@ -70,27 +72,30 @@ namespace HotChocolate.Execution
         private async Task ExecuteResolverSeriallyAsync(
             IExecutionContext executionContext,
             ResolverTask resolverTask,
-            List<ResolverTask> nextBatch,
+            Action<ResolverTask> enqueueTask,
             CancellationToken cancellationToken)
         {
-            resolverTask.ResolverResult = ExecuteResolverAsync(
-                resolverTask, executionContext.Options.DeveloperMode,
+            resolverTask.Task = ExecuteResolverAsync(
+                resolverTask,
                 cancellationToken);
 
             await CompleteDataLoadersAsync(
                 executionContext.DataLoaders,
                 cancellationToken);
 
-            // await async results
-            resolverTask.ResolverResult = await FinalizeResolverResultAsync(
-                resolverTask.FieldSelection.Selection,
-                resolverTask.ResolverResult,
-                executionContext.Options.DeveloperMode);
+            if (resolverTask.Task.IsCompleted)
+            {
+                resolverTask.ResolverResult = resolverTask.Task.Result;
+            }
+            else
+            {
+                resolverTask.ResolverResult = await resolverTask.Task;
+            }
 
             // serialize and integrate result into final query result
             var completionContext = new FieldValueCompletionContext(
                 executionContext, resolverTask.ResolverContext,
-                resolverTask, t => nextBatch.Add(t));
+                resolverTask, enqueueTask);
 
             CompleteValue(completionContext);
         }

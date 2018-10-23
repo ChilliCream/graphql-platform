@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -11,6 +12,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResolverTask
     {
+        private IExecutionContext _executionContext;
+
         public ResolverTask(
             IExecutionContext executionContext,
             ObjectType objectType,
@@ -19,6 +22,8 @@ namespace HotChocolate.Execution
             ImmutableStack<object> source,
             OrderedDictionary result)
         {
+            _executionContext = executionContext;
+
             Source = source;
             ObjectType = objectType;
             FieldSelection = fieldSelection;
@@ -30,10 +35,14 @@ namespace HotChocolate.Execution
                 executionContext, this,
                 executionContext.CancellationToken);
 
+            Options = executionContext.Options;
+
             ExecuteMiddleware = executionContext.GetMiddleware(
                 objectType, fieldSelection.Selection);
             HasMiddleware = ExecuteMiddleware != null;
         }
+
+        public IReadOnlySchemaOptions Options { get; }
 
         public ImmutableStack<object> Source { get; }
 
@@ -49,7 +58,7 @@ namespace HotChocolate.Execution
 
         public IResolverContext ResolverContext { get; }
 
-        public Task<object> ResolverTask { get; set; }
+        public Task<object> Task { get; set; }
 
         public object ResolverResult { get; set; }
 
@@ -60,6 +69,18 @@ namespace HotChocolate.Execution
         public void IntegrateResult(object value)
         {
             Result[FieldSelection.ResponseName] = value;
+        }
+
+
+
+        public void ReportError(string message)
+        {
+            ReportError(CreateError(message));
+        }
+
+        public void ReportError(IQueryError error)
+        {
+            _executionContext.ReportError(error);
         }
 
         public FieldError CreateError(string message)

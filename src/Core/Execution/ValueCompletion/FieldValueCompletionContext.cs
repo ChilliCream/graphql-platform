@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             IResolverContext resolverContext,
             ResolverTask resolverTask,
-            Action<ResolverTask> enqueueResolverTask)
+            Action<ResolverTask> enqueueTask)
         {
             if (resolverTask == null)
             {
@@ -25,8 +25,8 @@ namespace HotChocolate.Execution
             }
 
             _integrateResult = resolverTask.IntegrateResult;
-            _enqueueResolverTask = enqueueResolverTask
-                ?? throw new ArgumentNullException(nameof(enqueueResolverTask));
+            _enqueueResolverTask = enqueueTask
+                ?? throw new ArgumentNullException(nameof(enqueueTask));
 
             ExecutionContext = executionContext
                 ?? throw new ArgumentNullException(nameof(executionContext));
