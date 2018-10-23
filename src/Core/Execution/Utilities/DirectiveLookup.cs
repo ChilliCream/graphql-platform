@@ -108,6 +108,8 @@ namespace HotChocolate.Execution
 
             return context =>
             {
+                context.Result = context.CompleteResolverResult(context.Result);
+
                 if (HasErrors(context.Result))
                 {
                     return Task.CompletedTask;
@@ -121,8 +123,7 @@ namespace HotChocolate.Execution
         private bool HasErrors(object result)
         {
             if (result is IQueryError error
-                || result is IEnumerable<IQueryError> errors
-                || result is IResolverResult rr && rr.IsError)
+                || result is IEnumerable<IQueryError> errors)
             {
                 return true;
             }

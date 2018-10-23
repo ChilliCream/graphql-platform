@@ -7,12 +7,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal sealed class AsyncSourceMethodGenerator
         : ResolverSourceCodeGenerator<SourceResolverDescriptor>
     {
+        protected override bool IsAsync => true;
+
         protected override void GenerateResolverInvocation(
             SourceResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.SourceType.GetTypeName()}>();");
-            source.AppendLine("Func<Task<object>> f = async () => {");
 
             HandleExceptions(source, s =>
             {
@@ -26,9 +27,6 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 }
                 s.AppendLine(");");
             });
-
-            source.AppendLine("};");
-            source.Append("return f();");
         }
 
         protected override bool CanHandle(SourceResolverDescriptor descriptor)

@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 
         object Source { get; }
 
-        Middleware Middleware { get; }
+        DirectiveMiddleware Middleware { get; }
 
         bool IsExecutable { get; }
 

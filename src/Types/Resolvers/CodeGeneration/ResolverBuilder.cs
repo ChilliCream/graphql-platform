@@ -89,7 +89,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 yield return new FieldResolver(
                     resolverDescriptors[i].Field.TypeName,
                     resolverDescriptors[i].Field.FieldName,
-                    (FieldResolverDelegate)field.GetValue(field));
+                    (AsyncFieldResolverDelegate)field.GetValue(field));
             }
         }
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
                 yield return new DirectiveDelegateMiddleware(
                     middlewareDescriptors[i].DirectiveName,
-                    (Middleware)field.GetValue(field));
+                    (DirectiveMiddleware)field.GetValue(field));
             }
         }
 
