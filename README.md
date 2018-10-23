@@ -290,7 +290,6 @@ We are currently working on the following features that are proposed for the nex
 ## Supported Frameworks
 
 - [ ] ASP.NET Classic
-
   - [ ] _Get_ (in development - 0.7.0)
   - [ ] _Post_ (in development - 0.7.0)
   - [ ] _WebSockets_ (in development - 0.8.0)
