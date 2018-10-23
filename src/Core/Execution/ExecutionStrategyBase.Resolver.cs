@@ -47,7 +47,8 @@ namespace HotChocolate.Execution
 
             try
             {
-                if (resolverTask.HasMiddleware)
+                if (!resolverTask.FieldSelection.Field.IsIntrospectionField
+                    && resolverTask.HasMiddleware)
                 {
                     result = await ExecuteDirectiveMiddlewareAsync(
                         resolverTask,
