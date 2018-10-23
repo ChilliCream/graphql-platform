@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
-    internal static class DiagnosticEvents
+    internal static class ResolverDiagnosticEvents
     {
         private const string _diagnosticListenerName = "HotChocolate.Execution";
         private const string _resolverActivityName =

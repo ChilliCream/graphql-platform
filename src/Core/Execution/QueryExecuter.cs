@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Validation;
 using HotChocolate.Runtime;
+using System.Diagnostics;
 
 namespace HotChocolate.Execution
 {
@@ -37,23 +38,45 @@ namespace HotChocolate.Execution
         public int CachedOperations => _queryCache.Usage;
 
         public Task<IExecutionResult> ExecuteAsync(
-            QueryRequest queryRequest,
+            QueryRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (queryRequest == null)
+            if (request == null)
             {
-                throw new ArgumentNullException(nameof(queryRequest));
+                throw new ArgumentNullException(nameof(request));
             }
 
-            QueryInfo queryInfo = GetOrCreateQuery(queryRequest.Query);
-            if (queryInfo.ValidationResult.HasErrors)
-            {
-                return Task.FromResult<IExecutionResult>(
-                    new QueryResult(queryInfo.ValidationResult.Errors));
-            }
+            QueryInfo queryInfo = null;
+            Activity activity = QueryDiagnosticEvents.BeginExecute(
+                Schema,
+                request);
 
-            return ExecuteInternalAsync(
-                queryRequest, queryInfo, cancellationToken);
+            try
+            {
+                queryInfo = GetOrCreateQuery(request.Query);
+                if (queryInfo.ValidationResult.HasErrors)
+                {
+                    QueryDiagnosticEvents.ValidationError(
+                        Schema,
+                        request,
+                        queryInfo.QueryDocument,
+                        queryInfo.ValidationResult.Errors);
+
+                    return Task.FromResult<IExecutionResult>(
+                        new QueryResult(queryInfo.ValidationResult.Errors));
+                }
+
+                return ExecuteInternalAsync(
+                    request, queryInfo, cancellationToken);
+            }
+            finally
+            {
+                QueryDiagnosticEvents.EndExecute(
+                    activity,
+                    Schema,
+                    request,
+                    queryInfo?.QueryDocument);
+            }
         }
 
         private async Task<IExecutionResult> ExecuteInternalAsync(
@@ -76,10 +99,22 @@ namespace HotChocolate.Execution
             }
             catch (QueryException ex)
             {
+                QueryDiagnosticEvents.QueryError(
+                    Schema,
+                    queryRequest,
+                    queryInfo.QueryDocument,
+                    ex);
+
                 return new QueryResult(ex.Errors);
             }
             catch (Exception ex)
             {
+                QueryDiagnosticEvents.QueryError(
+                    Schema,
+                    queryRequest,
+                    queryInfo.QueryDocument,
+                    ex);
+
                 return new QueryResult(CreateErrorFromException(ex));
             }
             finally
