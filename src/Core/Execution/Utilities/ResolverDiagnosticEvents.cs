@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
     {
         private const string _diagnosticListenerName = "HotChocolate.Execution";
         private const string _resolverActivityName =
-            "HotChocolate.Execution.ResolveField";
+            _diagnosticListenerName + ".Resolver";
         private const string _resolverActivityStartName =
             _resolverActivityName + ".Start";
         private const string _resolverActivityStopName =

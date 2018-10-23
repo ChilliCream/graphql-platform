@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     {
         private const string _diagnosticListenerName = "HotChocolate.Execution";
         private const string _queryActivityName =
-            "HotChocolate.Execution.ExecuteQuery";
+            _diagnosticListenerName + ".Query";
         private const string _queryActivityStartName =
             _queryActivityName + ".Start";
         private const string _queryActivityStopName =

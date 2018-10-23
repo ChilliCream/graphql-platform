@@ -35,6 +35,25 @@ namespace HotChocolate.Execution
             }
         }
 
+        [Fact]
+        public async Task QueryEvents()
+        {
+            // arrange
+            var listener = new TestDiagnosticListener();
+            using (DiagnosticListener.AllListeners.Subscribe(
+                new DiagnosticObserver(listener)))
+            {
+                ISchema schema = CreateSchema();
+
+                // act
+                await schema.ExecuteAsync("{ foo }");
+
+                // assert
+                Assert.True(listener.QueryStart);
+                Assert.True(listener.QueryStop);
+            }
+        }
+
         private ISchema CreateSchema()
         {
             return Schema.Create(
@@ -56,19 +75,35 @@ namespace HotChocolate.Execution
 
             public FieldNode FieldSelection { get; private set; }
 
+            public bool QueryStart { get; private set; }
 
-            [DiagnosticName("HotChocolate.Execution.ResolveField.Start")]
+            public bool QueryStop { get; private set; }
+
+
+            [DiagnosticName("HotChocolate.Execution.Resolver.Start")]
             public virtual void OnResolveFieldStart()
             {
                 ResolveFieldStart = true;
             }
 
-            [DiagnosticName("HotChocolate.Execution.ResolveField.Stop")]
+            [DiagnosticName("HotChocolate.Execution.Resolver.Stop")]
             public virtual void OnResolveFieldStop(IResolverContext context)
             {
                 ResolveFieldStop = true;
                 FieldSelection = context.FieldSelection;
                 Duration = Activity.Current.Duration;
+            }
+
+            [DiagnosticName("HotChocolate.Execution.Query.Start")]
+            public virtual void OnQueryStart()
+            {
+                QueryStart = true;
+            }
+
+            [DiagnosticName("HotChocolate.Execution.Query.Stop")]
+            public virtual void OnQueryStop(IResolverContext context)
+            {
+                QueryStop = true;
             }
         }
 
