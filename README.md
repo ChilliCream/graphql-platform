@@ -254,16 +254,15 @@ Moreover, we are working on the following parts that are not defined in the spec
 
 We are currently working on the following features that are proposed for the next GraphQL specification.
 
-- [ ] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472) (#291 in development - 0.5.3)
-- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445)
-- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466)
-- [ ] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
+- [ ] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472) (#291 in development - 0.7.0)
+- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 0.10.0)
+- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466) (in development - 0.9.0)
+- [ ] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470) (in development - 0.7.0)
 
 ### Additional Scalar Types
 
 - [x] DateTime
 - [x] Date
-- [x] Time
 - [x] URL
 - [x] UUID
 - [x] Decimal
@@ -273,9 +272,8 @@ We are currently working on the following features that are proposed for the nex
 
 ### Additional Directives
 
-- [ ] Export
-- [ ] Defer
-- [ ] Stream
+- [ ] Schema Stitching (in development - 0.8.0)
+- [ ] HTTP Directives (in development - 0.8.0)
 - [x] Custom Schema Directives
 - [x] Custom Query Directives
 
@@ -293,14 +291,14 @@ We are currently working on the following features that are proposed for the nex
 
 - [ ] ASP.NET Classic
 
-  - [ ] _Get_ (in development - 0.5.3)
-  - [ ] _Post_ (in development - 0.5.3)
-  - [ ] _WebSockets_ (in development - 0.5.5)
+  - [ ] _Get_ (in development - 0.7.0)
+  - [ ] _Post_ (in development - 0.7.0)
+  - [ ] _WebSockets_ (in development - 0.8.0)
 
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
-  - [ ] _WebSockets_ (in development - 0.5.4)
+  - [x] WebSockets
 
 ## Documentation
 
