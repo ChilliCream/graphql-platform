@@ -405,5 +405,20 @@ namespace HotChocolate.Validation
             // assert
             Assert.False(result.HasErrors);
         }
+
+        [Fact]
+        public void InvalidFieldsShouldNotRaiseValidationError()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(
+                FileResource.Open("InvalidIntrospectionQuery.graphql"));
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
     }
 }

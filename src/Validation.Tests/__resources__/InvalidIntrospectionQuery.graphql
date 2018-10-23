@@ -1,0 +1,99 @@
+query GetSchemaByTag {
+  __schema {
+    queryType {
+      name
+    }
+    mutationType {
+      name
+    }
+    subscriptionType {
+      name
+    }
+    types {
+      ...IntrospectionFullType
+    }
+    directives {
+      name
+      description
+      locations
+      args {
+        ...IntrospectionInputValue
+      }
+    }
+  }
+}
+
+fragment IntrospectionFullType on __Type {
+  kind
+  name
+  description
+  fields {
+    name
+    description
+    args {
+      ...IntrospectionInputValue
+    }
+    type {
+      ...IntrospectionTypeRef
+    }
+    isDeprecated
+    deprecationReason
+  }
+  inputFields {
+    ...IntrospectionInputValue
+  }
+  interfaces {
+    ...IntrospectionTypeRef
+  }
+  enumValues(includeDeprecated: true) {
+    name
+    description
+    isDeprecated
+    depreactionReason
+  }
+  possibleTypes {
+    ...IntrospectionTypeRef
+  }
+}
+
+fragment IntrospectionInputValue on __InputValue {
+  name
+  description
+  type {
+    ...IntrospectionTypeRef
+  }
+  defaultValue
+}
+
+fragment IntrospectionTypeRef on __Type {
+  kind
+  name
+  ofType {
+    kind
+    name
+    ofType {
+      kind
+      name
+      ofType {
+        kind
+        name
+        ofType {
+          kind
+          name
+          ofType {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
