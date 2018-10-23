@@ -41,11 +41,18 @@ namespace HotChocolate.Execution
            IEnumerable<ResolverTask> currentBatch,
            CancellationToken cancellationToken)
         {
+            var nextBatch = new List<ResolverTask>();
+
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                var nextBatch = new List<ResolverTask>();
-
                 if (resolverTask.IsMaxExecutionDepthReached())
+                {
+                    resolverTask.ReportError(
+                        $"The field has a depth of {resolverTask.Path.Depth}," +
+                        " which exceeds max allowed depth of " +
+                        $"{executionContext.Options.MaxExecutionDepth}");
+                }
+                else
                 {
                     await ExecuteResolverSeriallyAsync(
                         executionContext,
@@ -53,17 +60,12 @@ namespace HotChocolate.Execution
                         nextBatch.Add,
                         cancellationToken);
                 }
-                else
-                {
-                    resolverTask.ReportError(
-                        $"The field has a depth of {resolverTask.Path.Depth}," +
-                        " which exceeds max allowed depth of " +
-                        $"{executionContext.Options.MaxExecutionDepth}");
-                }
 
                 // execute child fields with the default parallel flow logic
                 await ExecuteResolversAsync(
                     executionContext, nextBatch, cancellationToken);
+
+                nextBatch.Clear();
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
