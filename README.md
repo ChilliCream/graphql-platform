@@ -294,11 +294,13 @@ We are currently working on the following features that are proposed for the nex
   - [ ] _Get_ (in development - 0.7.0)
   - [ ] _Post_ (in development - 0.7.0)
   - [ ] _WebSockets_ (in development - 0.8.0)
+  - [ ] Schema Builder (in development - 1.0.0)
 
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
   - [x] WebSockets
+  - [ ] Schema Builder (in development - 0.11.0)
 
 ## Documentation
 
