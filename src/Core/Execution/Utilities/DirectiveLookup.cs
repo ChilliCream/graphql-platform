@@ -80,9 +80,13 @@ namespace HotChocolate.Execution
                     }
                 };
 
-            DirectiveDelegate component = context =>
+            DirectiveDelegate component = async context =>
             {
-                return Task.CompletedTask;
+                if (context.Result == null
+                    && !((DirectiveContext)context).IsResultModified)
+                {
+                    context.Result = await context.ResolveAsync<object>();
+                }
             };
 
             foreach (IDirective directive in directives.Reverse())
