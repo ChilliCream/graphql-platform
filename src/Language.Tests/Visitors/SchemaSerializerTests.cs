@@ -35,17 +35,16 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
-            Assert.Equal(
-                "type Foo {\n  bar: String\n  baz: [Int]\n}"
-                    .Replace("\n", Environment.NewLine),
-                serializer.Value);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
         }
 
         [Fact]
         public void Serialize_ObjectTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
         {
             // arrange
-            string query = "type Foo { bar: String baz: [Int] }";
+            string query = "type Foo @a { bar: String baz: [Int] } " +
+                "type Foo @a @b { bar: String @foo " +
+                "baz(a: String = \"abc\"): [Int] @foo @bar }";
             DocumentNode queryDocument = Parser.Default.Parse(query);
             SchemaSerializer serializer = new SchemaSerializer();
 
@@ -62,7 +61,9 @@ namespace HotChocolate.Language
         public void Serialize_ObjectTypeDefWithDirectivesWithIndent_OutHasIndentation()
         {
             // arrange
-            string query = "type Foo @a { bar: String baz: [Int] } type Foo @a @b(a: \"abc\") { bar: String baz: [Int] }";
+            string query = "type Foo @a { bar: String baz: [Int] } " +
+                "type Foo @a @b { bar: String @foo " +
+                "baz(a: String = \"abc\"): [Int] @foo @bar }";
             DocumentNode queryDocument = Parser.Default.Parse(query);
             SchemaSerializer serializer = new SchemaSerializer(true);
 
@@ -70,10 +71,45 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+        }
+
+        [Fact]
+        public void Serialize_ObjectTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "\"abc\" type Foo @a { \"abc\" bar: String " +
+                "\"abc\" baz: [Int] } " +
+                "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
+                "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
             Assert.Equal(
-                "type Foo {\n  bar: String\n  baz: [Int]\n}"
-                    .Replace("\n", Environment.NewLine),
+                query,
                 serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_ObjectTypeDefWithDescriptionWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "\"abc\" type Foo @a { \"abc\" bar: String " +
+                "\"abc\" baz: [Int] } " +
+                "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
+                "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer(true);
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
         }
     }
 }

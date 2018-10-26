@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -63,15 +64,13 @@ namespace HotChocolate.Language
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node)
         {
+            WriteDescription(node.Description);
+
             _writer.Write(Keywords.Type);
             _writer.WriteSpace();
             VisitName(node.Name);
 
-            if (node.Directives.Any())
-            {
-                _writer.WriteSpace();
-                _writer.WriteMany(node.Directives, VisitDirective, " ");
-            }
+            WriteDirectives(node.Directives);
 
             WriteLeftBrace();
 
@@ -87,7 +86,9 @@ namespace HotChocolate.Language
 
         protected override void VisitFieldDefinition(FieldDefinitionNode node)
         {
-            _writer.WriteIndentation();
+            WriteIndentation();
+
+            WriteDescription(node.Description);
 
             VisitName(node.Name);
 
@@ -105,11 +106,19 @@ namespace HotChocolate.Language
             _writer.WriteSpace();
 
             VisitType(node.Type);
+
+            WriteDirectives(node.Directives);
         }
 
         protected override void VisitInputValueDefinition(
             InputValueDefinitionNode node)
         {
+            if (node.Description != null)
+            {
+                VisitStringValue(node.Description);
+                _writer.WriteSpace();
+            }
+
             VisitName(node.Name);
             _writer.Write(":");
             _writer.WriteSpace();
@@ -123,6 +132,8 @@ namespace HotChocolate.Language
                 _writer.WriteSpace();
                 VisitValue(node.DefaultValue);
             }
+
+            WriteDirectives(node.Directives);
         }
 
         protected override void VisitIntValue(IntValueNode node)
@@ -259,6 +270,35 @@ namespace HotChocolate.Language
             _writer.Write(node.Value);
         }
 
+        private void WriteDescription(StringValueNode description)
+        {
+            if (description != null)
+            {
+                VisitStringValue(description);
+
+                if (_indent)
+                {
+                    _writer.WriteLine();
+                }
+                else
+                {
+                    _writer.WriteSpace();
+                }
+
+                WriteIndentation();
+            }
+        }
+
+        private void WriteDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            if (directives.Any())
+            {
+                _writer.WriteSpace();
+                _writer.WriteMany(directives, VisitDirective, " ");
+            }
+        }
+
         private void WriteLeftBrace()
         {
             _writer.WriteSpace();
@@ -281,6 +321,14 @@ namespace HotChocolate.Language
             else
             {
                 _writer.WriteSpace();
+            }
+        }
+
+        private void WriteIndentation()
+        {
+            if (_indent)
+            {
+                _writer.WriteIndentation();
             }
         }
     }
