@@ -84,6 +84,24 @@ namespace HotChocolate.Language
             WriteRightBrace();
         }
 
+        protected override void VisitUnionTypeDefinition(
+            UnionTypeDefinitionNode node)
+        {
+            WriteDescription(node.Description);
+
+            _writer.Write(Keywords.Union);
+            _writer.WriteSpace();
+            VisitName(node.Name);
+
+            WriteDirectives(node.Directives);
+
+            _writer.WriteSpace();
+            _writer.Write('=');
+            _writer.WriteSpace();
+
+            _writer.WriteMany(node.Types, VisitNamedType, " | ");
+        }
+
         protected override void VisitFieldDefinition(FieldDefinitionNode node)
         {
             WriteIndentation();

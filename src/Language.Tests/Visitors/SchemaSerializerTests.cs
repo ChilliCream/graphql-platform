@@ -111,5 +111,101 @@ namespace HotChocolate.Language
             // assert
             Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
         }
+
+        [Fact]
+        public void Serialize_UnionTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "union A = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(
+                query,
+                serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_UnionTypeDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "union A = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer(true);
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+        }
+
+        [Fact]
+        public void Serialize_UnionTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "union A @a = B | C union A @a @b = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(
+                query,
+                serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_UnionTypeWithDirectiveDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "union A @a = B | C union A @a @b = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer(true);
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+        }
+
+        [Fact]
+        public void Serialize_UnionTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "\"abc\" union A = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(
+                query,
+                serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_UnionTypeDefWithDescriptionNoIndentt_OutHasIndentation()
+        {
+            // arrange
+            string query = "\"abc\"union A = B | C";
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            SchemaSerializer serializer = new SchemaSerializer(true);
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+        }
     }
 }
