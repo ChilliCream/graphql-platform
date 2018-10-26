@@ -1,10 +1,9 @@
 /* Foo.bar */
-public static FieldResolverDelegate abc  = (ctx, ct) => {
+public static AsyncFieldResolverDelegate abc  = async (ctx, ct) => {
 var v0_a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 var v1_b = ctx.Argument<System.String>("b");
 var v2_c = ctx.Argument<System.Int32>("c");
 var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
-Func<Task<object>> f = async () => {
 try
 {
 return await resolver.GetFooAsync(v0_a, v1_b, v2_c);
@@ -13,6 +12,5 @@ catch(HotChocolate.Execution.QueryException ex)
 {
 return ex.Errors;
 }
-};
-return f();
+
 };

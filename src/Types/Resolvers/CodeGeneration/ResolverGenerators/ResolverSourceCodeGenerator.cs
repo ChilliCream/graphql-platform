@@ -13,16 +13,25 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override IReadOnlyCollection<ArgumentSourceCodeGenerator> ArgumentGenerators =>
             ArgumentGeneratorCollections.ResolverArguments;
 
+        protected abstract bool IsAsync { get; }
+
         protected override void GenerateDelegateHeader(
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* {descriptor.Field.TypeName}.{descriptor.Field.FieldName} */");
-            source.Append($"public static {nameof(FieldResolverDelegate)}");
+            source.Append($"public static {nameof(AsyncFieldResolverDelegate)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
-            source.Append("(ctx, ct) => {");
+            if (IsAsync)
+            {
+                source.Append("async (ctx, ct) => {");
+            }
+            else
+            {
+                source.Append("(ctx, ct) => {");
+            }
             source.AppendLine();
         }
 
@@ -37,6 +46,19 @@ namespace HotChocolate.Resolvers.CodeGeneration
             T descriptor)
         {
             return descriptor.Arguments;
+        }
+
+        protected virtual void HandleExceptionsSync(StringBuilder source, Action<StringBuilder> code)
+        {
+            source.AppendLine("try");
+            source.AppendLine("{");
+            code(source);
+            source.AppendLine();
+            source.AppendLine("}");
+            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
+            source.AppendLine("{");
+            source.AppendLine($"return Task.FromResult<object>(ex.Errors);");
+            source.AppendLine("}");
         }
     }
 }

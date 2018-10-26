@@ -121,7 +121,7 @@ namespace HotChocolate.Types
             Assert.NotNull(description.Resolver);
 
             Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
-            Assert.Equal("ThisIsAString", description.Resolver(context.Object, default));
+            Assert.Equal("ThisIsAString", description.Resolver(context.Object, default).Result);
         }
 
         [Fact]

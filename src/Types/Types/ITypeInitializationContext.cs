@@ -28,7 +28,7 @@ namespace HotChocolate.Types
 
         void RegisterMiddleware(IDirectiveMiddleware middleware);
 
-        FieldResolverDelegate GetResolver(string fieldName);
+        AsyncFieldResolverDelegate GetResolver(string fieldName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
 

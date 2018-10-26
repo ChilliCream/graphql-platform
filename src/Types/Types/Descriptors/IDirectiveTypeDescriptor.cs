@@ -49,7 +49,7 @@ namespace HotChocolate.Types
 
         // TODO : DOCU
         IDirectiveTypeDescriptor Middleware(
-            Middleware middleware);
+            DirectiveMiddleware middleware);
 
         // TODO : DOCU
         IDirectiveTypeDescriptor Middleware<T>(
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
         // TODO : DOCU
         new IDirectiveTypeDescriptor Middleware(
-            Middleware middleware);
+            DirectiveMiddleware middleware);
 
         // TODO : DOCU
         new IDirectiveTypeDescriptor Middleware<TMiddleware>(

@@ -15,6 +15,7 @@ namespace HotChocolate.Execution
     {
         private readonly IResolverContext _resolverContext;
         private readonly Func<Task<object>> _resolver;
+        private object _result;
         private object _resolvedResult;
         private bool _isResultResolved;
 
@@ -30,7 +31,20 @@ namespace HotChocolate.Execution
 
         public IDirective Directive { get; set; }
 
-        public object Result { get; set; }
+        public object Result
+        {
+            get
+            {
+                return _result;
+            }
+            set
+            {
+                IsResultModified = true;
+                _result = value;
+            }
+        }
+
+        public bool IsResultModified { get; private set; }
 
         public ISchema Schema => _resolverContext.Schema;
 

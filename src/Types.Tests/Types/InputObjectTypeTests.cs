@@ -12,7 +12,8 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type = schema.GetType<InputObjectType>("Object1");
+            InputObjectType object1Type =
+                schema.GetType<InputObjectType>("Object1");
             ObjectValueNode literal = CreateObjectLiteral();
 
             // act

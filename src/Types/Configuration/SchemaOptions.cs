@@ -6,7 +6,7 @@ namespace HotChocolate.Configuration
     public class SchemaOptions
         : ISchemaOptions
     {
-        private const int _defaultMaxExecutionDepth = 8;
+        private const int _defaultMaxExecutionDepth = 16;
         private const int _defaultMaxExecutionTimeout = 30;
         private const int _defaultMaxDevExecutionTimeout = 360;
 

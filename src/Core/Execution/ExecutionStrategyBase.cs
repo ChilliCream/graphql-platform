@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,7 +64,9 @@ namespace HotChocolate.Execution
         {
             // start field resolvers
             BeginExecuteResolverBatch(
-                executionContext, currentBatch, cancellationToken);
+                executionContext,
+                currentBatch,
+                cancellationToken);
 
             // execute batch data loaders
             await CompleteDataLoadersAsync(
@@ -72,7 +75,10 @@ namespace HotChocolate.Execution
 
             // await field resolver results
             await EndExecuteResolverBatchAsync(
-                executionContext, currentBatch, nextBatch, cancellationToken);
+                executionContext,
+                currentBatch,
+                nextBatch.Add,
+                cancellationToken);
         }
 
         private void BeginExecuteResolverBatch(
@@ -85,18 +91,18 @@ namespace HotChocolate.Execution
                 bool isLeafField =
                     resolverTask.FieldSelection.Field.Type.IsLeafType();
 
-                if (IsMaxExecutionDepthReached(executionContext, resolverTask))
+                if (resolverTask.IsMaxExecutionDepthReached())
                 {
-                    executionContext.ReportError(resolverTask.CreateError(
+                    resolverTask.ReportError(
                         "The field has a depth of " +
                         $"{resolverTask.Path.Depth}, " +
                         "which exceeds max allowed depth of " +
-                        $"{executionContext.Options.MaxExecutionDepth}"));
+                        $"{resolverTask.Options.MaxExecutionDepth}");
                 }
                 else
                 {
-                    resolverTask.ResolverResult = ExecuteResolver(
-                        resolverTask, executionContext.Options.DeveloperMode,
+                    resolverTask.Task = ExecuteResolverAsync(
+                        resolverTask,
                         cancellationToken);
                 }
 
@@ -119,21 +125,25 @@ namespace HotChocolate.Execution
         private async Task EndExecuteResolverBatchAsync(
             IExecutionContext executionContext,
             IEnumerable<ResolverTask> currentBatch,
-            List<ResolverTask> nextBatch,
+            Action<ResolverTask> enqueueTask,
             CancellationToken cancellationToken)
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                // await async results
-                resolverTask.ResolverResult = await FinalizeResolverResultAsync(
-                    resolverTask.FieldSelection.Selection,
-                    resolverTask.ResolverResult,
-                    executionContext.Options.DeveloperMode);
+                // complete resolver tasks
+                if (resolverTask.Task.IsCompleted)
+                {
+                    resolverTask.ResolverResult = resolverTask.Task.Result;
+                }
+                else
+                {
+                    resolverTask.ResolverResult = await resolverTask.Task;
+                }
 
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(
                     executionContext, resolverTask.ResolverContext,
-                    resolverTask, t => nextBatch.Add(t));
+                    resolverTask, enqueueTask);
 
                 CompleteValue(completionContext);
 
