@@ -47,9 +47,11 @@ namespace HotChocolate.Language
                 case IValueNode value:
                     VisitValue(value);
                     break;
+
                 case DocumentNode value:
                     VisitDocument(value);
                     break;
+
                 default:
                     throw new NotSupportedException(
                         "Only document node and value nodes are supported " +
