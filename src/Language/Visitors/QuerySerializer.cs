@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -25,6 +24,11 @@ namespace HotChocolate.Language
 
         public override void Visit(ISyntaxNode node)
         {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             if (node != null)
             {
                 _result.Clear();
@@ -55,7 +59,6 @@ namespace HotChocolate.Language
 
         protected override void VisitDocument(DocumentNode node)
         {
-
             if (node.Definitions.Any())
             {
                 VisitDefinition(node.Definitions.First());
@@ -105,12 +108,12 @@ namespace HotChocolate.Language
                 {
                     _writer.Write('(');
 
-                    WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+                    _writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
 
                     _writer.Write(')');
                 }
 
-                WriteMany(node.Directives, VisitDirective, " ");
+                _writer.WriteMany(node.Directives, VisitDirective, " ");
 
                 _writer.WriteSpace();
             }
@@ -147,7 +150,7 @@ namespace HotChocolate.Language
             {
                 _writer.Write('(');
 
-                WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+                _writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
 
                 _writer.Write(')');
                 _writer.WriteSpace();
@@ -158,7 +161,7 @@ namespace HotChocolate.Language
 
             VisitNamedType(node.TypeCondition);
 
-            WriteMany(node.Directives, VisitDirective);
+            _writer.WriteMany(node.Directives, VisitDirective);
 
             VisitSelectionSet(node.SelectionSet);
         }
@@ -182,7 +185,7 @@ namespace HotChocolate.Language
                     separator = " ";
                 }
 
-                WriteMany(node.Selections, VisitSelection, separator);
+                _writer.WriteMany(node.Selections, VisitSelection, separator);
 
                 if (_indent)
                 {
@@ -214,14 +217,14 @@ namespace HotChocolate.Language
             if (node.Arguments.Any())
             {
                 _writer.Write('(');
-                WriteMany(node.Arguments, VisitArgument);
+                _writer.WriteMany(node.Arguments, VisitArgument);
                 _writer.Write(')');
             }
 
             if (node.Directives.Any())
             {
                 _writer.WriteSpace();
-                WriteMany(node.Directives, VisitDirective, " ");
+                _writer.WriteMany(node.Directives, VisitDirective, " ");
             }
 
             if (node.SelectionSet != null && node.SelectionSet.Selections.Any())
@@ -240,7 +243,7 @@ namespace HotChocolate.Language
 
             if (node.Directives.Any())
             {
-                WriteMany(node.Directives, VisitDirective, " ");
+                _writer.WriteMany(node.Directives, VisitDirective, " ");
             }
         }
 
@@ -261,7 +264,7 @@ namespace HotChocolate.Language
 
             if (node.Directives.Any())
             {
-                WriteMany(node.Directives, VisitDirective, " ");
+                _writer.WriteMany(node.Directives, VisitDirective, " ");
                 _writer.WriteSpace();
             }
 
@@ -325,7 +328,7 @@ namespace HotChocolate.Language
         {
             _writer.Write("[ ");
 
-            WriteMany(node.Items, VisitValue);
+            _writer.WriteMany(node.Items, VisitValue);
 
             _writer.Write(" ]");
         }
@@ -334,7 +337,7 @@ namespace HotChocolate.Language
         {
             _writer.Write("{ ");
 
-            WriteMany(node.Fields, VisitObjectField);
+            _writer.WriteMany(node.Fields, VisitObjectField);
 
             _writer.Write(" }");
         }
@@ -364,7 +367,7 @@ namespace HotChocolate.Language
             {
                 _writer.Write('(');
 
-                WriteMany(node.Arguments, VisitArgument);
+                _writer.WriteMany(node.Arguments, VisitArgument);
 
                 _writer.Write(')');
             }
@@ -401,26 +404,5 @@ namespace HotChocolate.Language
         {
             _writer.Write(node.Value);
         }
-
-        private void WriteMany<T>(IEnumerable<T> items, Action<T> action)
-        {
-            WriteMany(items, action, ", ");
-        }
-
-        private void WriteMany<T>(IEnumerable<T> items, Action<T> action, string separator)
-        {
-            if (items.Any())
-            {
-                action(items.First());
-
-                foreach (T item in items.Skip(1))
-                {
-                    _writer.Write(separator);
-                    action(item);
-                }
-            }
-        }
-
-
     }
 }
