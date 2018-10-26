@@ -19,6 +19,7 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(directiveLookup));
             }
+
             Build(directiveLookup);
         }
 
@@ -82,8 +83,7 @@ namespace HotChocolate.Execution
 
             DirectiveDelegate component = async context =>
             {
-                if (context.Result == null
-                    && !((DirectiveContext)context).IsResultModified)
+                if (!context.IsResultModified)
                 {
                     context.Result = await context.ResolveAsync<object>();
                 }
