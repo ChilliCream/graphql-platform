@@ -38,16 +38,16 @@ namespace HotChocolate.Execution
             Extensions = map;
         }
 
-        [JsonProperty("path")]
+        [JsonProperty("path", Order = 2)]
         public IReadOnlyCollection<string> Path { get; }
 
         [JsonIgnore]
         public string FieldName { get; }
 
-        [JsonProperty("locations")]
+        [JsonProperty("locations", Order = 1)]
         public IReadOnlyCollection<Location> Locations { get; }
 
-        [JsonProperty("extensions")]
+        [JsonProperty("extensions", Order = 3)]
         public IReadOnlyDictionary<string, string> Extensions { get; }
     }
 }

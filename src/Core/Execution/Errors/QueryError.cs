@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
             Message = message;
         }
 
-        [JsonProperty("message")]
+        [JsonProperty("message", Order = 0)]
         public string Message { get; }
     }
 }

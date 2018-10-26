@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
         [JsonIgnore]
         public string VariableName { get; }
 
-        [JsonProperty("extensions")]
+        [JsonProperty("extensions", Order = 1)]
         public IReadOnlyDictionary<string, string> Extensions { get; }
     }
 }

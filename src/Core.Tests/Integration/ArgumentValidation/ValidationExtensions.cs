@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Integration.ArgumentValidation
@@ -11,7 +12,7 @@ namespace HotChocolate.Integration.ArgumentValidation
             this IArgumentDescriptor argumentDescriptor,
             Func<T, bool> func)
         {
-            Action<IDirective, FieldNode, object> validator = (d, n, o) =>
+            Action<IDirectiveContext, FieldNode, object> validator = (d, n, o) =>
             {
                 bool isValid = false;
                 if (o is T t)
@@ -23,8 +24,9 @@ namespace HotChocolate.Integration.ArgumentValidation
                 {
                     throw new QueryException(new ArgumentError(
                         "Argument is not valid.",
-                        ((InputField)d.Source).Name,
-                        n));
+                        d.Path,
+                        n,
+                        ((InputField)d.Directive.Source).Name));
                 }
             };
 
