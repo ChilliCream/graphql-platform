@@ -4,14 +4,19 @@
   },
   "Errors": [
     {
-      "FieldName": "error8",
-      "Locations": [
+      "message": "Unexpected execution error.",
+      "locations": [
         {
           "Line": 1,
           "Column": 3
         }
       ],
-      "Message": "Unexpected execution error."
+      "path": [
+        "error8"
+      ],
+      "extensions": {
+        "variableName": "error8"
+      }
     }
   ]
 }
