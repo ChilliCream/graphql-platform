@@ -21,6 +21,12 @@ namespace HotChocolate.Resolvers
         object Result { get; set; }
 
         /// <summary>
+        /// Defines if at least one middleware has modified the result.
+        /// </summary>
+        /// <value></value>
+        bool IsResultModified { get; }
+
+        /// <summary>
         /// Executes the field resolver and returns its result.
         /// </summary>
         /// <typeparam name="T">

@@ -29,8 +29,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
 
-        public bool IsResultModified { get; private set; }
-
         public IDirective Directive { get; set; }
 
         public object Result
@@ -45,6 +43,8 @@ namespace HotChocolate.Execution
                 _result = value;
             }
         }
+
+        public bool IsResultModified { get; private set; }
 
         public ISchema Schema => _resolverContext.Schema;
 
