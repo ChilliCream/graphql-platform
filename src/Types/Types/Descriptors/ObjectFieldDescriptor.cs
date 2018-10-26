@@ -69,12 +69,14 @@ namespace HotChocolate.Types
             FieldDescription.Ignored = true;
         }
 
-        protected void Resolver(FieldResolverDelegate fieldResolver)
+        protected void Resolver(AsyncFieldResolverDelegate fieldResolver)
         {
             FieldDescription.Resolver = fieldResolver;
         }
 
-        protected void Resolver(FieldResolverDelegate fieldResolver, Type resultType)
+        protected void Resolver(
+            AsyncFieldResolverDelegate fieldResolver,
+            Type resultType)
         {
             FieldDescription.Resolver = fieldResolver;
             FieldDescription.TypeReference = FieldDescription.TypeReference
@@ -94,12 +96,14 @@ namespace HotChocolate.Types
         {
             var descriptions = new Dictionary<string, ArgumentDescription>();
 
-            foreach (ArgumentDescription descriptor in FieldDescription.Arguments)
+            foreach (ArgumentDescription descriptor in
+                FieldDescription.Arguments)
             {
                 descriptions[descriptor.Name] = descriptor;
             }
 
-            if (FieldDescription.Member != null && FieldDescription.Member is MethodInfo m)
+            if (FieldDescription.Member != null
+                && FieldDescription.Member is MethodInfo m)
             {
                 foreach (ParameterInfo parameter in m.GetParameters())
                 {
@@ -128,7 +132,8 @@ namespace HotChocolate.Types
 
         #region IObjectFieldDescriptor
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.SyntaxNode(FieldDefinitionNode syntaxNode)
+        IObjectFieldDescriptor IObjectFieldDescriptor.SyntaxNode(
+            FieldDefinitionNode syntaxNode)
         {
             SyntaxNode(syntaxNode);
             return this;
@@ -140,13 +145,15 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Description(string description)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.DeprecationReason(string deprecationReason)
+        IObjectFieldDescriptor IObjectFieldDescriptor.DeprecationReason(
+            string deprecationReason)
         {
             DeprecationReason(deprecationReason);
             return this;
@@ -164,7 +171,9 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Argument(string name, Action<IArgumentDescriptor> argument)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Argument(
+            string name,
+            Action<IArgumentDescriptor> argument)
         {
             Argument(name, argument);
             return this;
@@ -176,13 +185,16 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(FieldResolverDelegate fieldResolver)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
+            AsyncFieldResolverDelegate fieldResolver)
         {
             Resolver(fieldResolver);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(FieldResolverDelegate fieldResolver, Type resultType)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
+            AsyncFieldResolverDelegate fieldResolver,
+            Type resultType)
         {
             Resolver(fieldResolver, resultType);
             return this;

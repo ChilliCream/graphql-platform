@@ -7,7 +7,7 @@ namespace HotChocolate.Resolvers
     {
         public DirectiveDelegateMiddleware(
             string directiveName,
-            Middleware middleware)
+            DirectiveMiddleware middleware)
         {
             if (string.IsNullOrEmpty(directiveName))
             {
@@ -25,6 +25,6 @@ namespace HotChocolate.Resolvers
 
         public string DirectiveName { get; }
 
-        public Middleware Middleware { get; }
+        public DirectiveMiddleware Middleware { get; }
     }
 }

@@ -227,7 +227,8 @@ namespace HotChocolate.Validation
                     return typeA == typeB;
                 }
 
-                if (!typeA.IsCompositeType() || !typeB.IsCompositeType())
+                if (typeA != null && typeB != null
+                    && (!typeA.IsCompositeType() || !typeB.IsCompositeType()))
                 {
                     return false;
                 }

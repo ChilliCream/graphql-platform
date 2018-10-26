@@ -37,7 +37,7 @@ namespace HotChocolate.Resolvers
             return new FieldMember(TypeName, FieldName, member);
         }
 
-        public FieldResolver WithResolver(FieldResolverDelegate resolver)
+        public FieldResolver WithResolver(AsyncFieldResolverDelegate resolver)
         {
             return new FieldResolver(TypeName, FieldName, resolver);
         }

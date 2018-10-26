@@ -37,7 +37,7 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Arguments { get; private set; }
 
-        public Middleware Middleware { get; private set; }
+        public DirectiveMiddleware Middleware { get; private set; }
 
         public bool IsExecutable { get; private set; }
 

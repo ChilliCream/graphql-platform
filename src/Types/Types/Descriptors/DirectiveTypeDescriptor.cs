@@ -122,7 +122,7 @@ namespace HotChocolate.Types
             }
         }
 
-        protected void Middleware(Middleware middleware)
+        protected void Middleware(DirectiveMiddleware middleware)
         {
             if (middleware == null)
             {
@@ -221,7 +221,7 @@ namespace HotChocolate.Types
         }
 
         IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware(
-            Middleware middleware)
+            DirectiveMiddleware middleware)
         {
             Middleware(middleware);
             return this;
@@ -418,7 +418,7 @@ namespace HotChocolate.Types
         }
 
         IDirectiveTypeDescriptor IDirectiveTypeDescriptor<T>.Middleware(
-            Middleware middleware)
+            DirectiveMiddleware middleware)
         {
             Middleware(middleware);
             return this;

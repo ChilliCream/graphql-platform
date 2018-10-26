@@ -36,8 +36,9 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object resolvedValue =
-                        r.Resolver(context.Object, CancellationToken.None);
+                    object resolvedValue = r.Resolver(
+                        context.Object,
+                        CancellationToken.None).Result;
                     Assert.Equal("Hello World", resolvedValue);
                 });
         }
@@ -79,8 +80,9 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object resolvedValue =
-                        r.Resolver(context.Object, CancellationToken.None);
+                    object resolvedValue = r.Resolver(
+                        context.Object,
+                        CancellationToken.None).Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
@@ -122,8 +124,10 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object resolvedValue = ((Task<object>)r.Resolver(
-                            context.Object, CancellationToken.None)).Result;
+                    object resolvedValue = r.Resolver(
+                            context.Object,
+                            CancellationToken.None)
+                            .Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
@@ -153,8 +157,9 @@ namespace HotChocolate.Resolvers
                     Assert.Equal("field", r.FieldName);
                     Assert.NotNull(r.Resolver);
 
-                    object resolvedResult =
-                        r.Resolver(context.Object, CancellationToken.None);
+                    object resolvedResult = r.Resolver(
+                            context.Object,
+                            CancellationToken.None).Result;
                     Assert.Equal("Hello World Property", resolvedResult);
                 });
         }

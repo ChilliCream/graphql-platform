@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
@@ -13,10 +14,16 @@ namespace HotChocolate.Configuration
 
         public FieldResolver CreateFieldResolver()
         {
-            return AsyncFieldResolver == null
-                ? new FieldResolver(ObjectTypeName, FieldName, FieldResolver)
-                : new FieldResolver(ObjectTypeName, FieldName,
-                    (ctx, ct) => AsyncFieldResolver(ctx, ct));
+            return FieldResolver == null
+                ? new FieldResolver(
+                    ObjectTypeName,
+                    FieldName,
+                    AsyncFieldResolver)
+                : new FieldResolver(
+                    ObjectTypeName,
+                    FieldName,
+                    (ctx, ct) => Task.FromResult<object>(
+                        FieldResolver(ctx, ct)));
         }
     }
 }
