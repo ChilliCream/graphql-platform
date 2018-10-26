@@ -13,8 +13,14 @@ namespace HotChocolate.Resolvers
     internal static class CSharpCompiler
     {
         private static readonly CSharpCompilationOptions _options =
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                optimizationLevel: OptimizationLevel.Debug);
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+#if RELEASE
+                optimizationLevel: OptimizationLevel.Release
+#else
+                optimizationLevel: OptimizationLevel.Debug
+#endif
+                );
 
         public static Assembly Compile(params string[] sourceText)
         {
