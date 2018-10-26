@@ -132,7 +132,7 @@ namespace HotChocolate.Execution
             }
 
             ExecutionContext.ReportError(
-                new FieldError(message, Selection.Selection));
+                new FieldError(message, Path, Selection.Selection));
             _integrateResult(null);
         }
 
@@ -140,6 +140,7 @@ namespace HotChocolate.Execution
         {
             ReportError(new FieldError(
                 "Cannot return null for non-nullable field.",
+                Path,
                 Selection.Selection));
         }
 

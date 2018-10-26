@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
                     nameof(message));
             }
 
-            return new FieldError(message, FieldSelection.Selection);
+            return new FieldError(message, Path, FieldSelection.Selection);
         }
     }
 }

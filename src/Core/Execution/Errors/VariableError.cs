@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
 namespace HotChocolate.Execution
 {
     public class VariableError
@@ -7,8 +10,16 @@ namespace HotChocolate.Execution
             : base(message)
         {
             VariableName = variableName;
+            Extensions = new Dictionary<string, string>
+            {
+                { "variableName", variableName }
+            };
         }
 
+        [JsonIgnore]
         public string VariableName { get; }
+
+        [JsonProperty("extensions")]
+        public IReadOnlyDictionary<string, string> Extensions { get; }
     }
 }

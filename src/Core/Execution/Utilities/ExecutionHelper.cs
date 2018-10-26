@@ -26,6 +26,7 @@ namespace HotChocolate.Execution
                 {
                     return new FieldError(
                         r.ErrorMessage,
+                        resolverContext.Path,
                         resolverContext.FieldSelection);
                 }
                 return r.Value;

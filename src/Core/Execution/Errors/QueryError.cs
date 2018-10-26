@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
@@ -17,6 +18,7 @@ namespace HotChocolate.Execution
             Message = message;
         }
 
+        [JsonProperty("message")]
         public string Message { get; }
     }
 }

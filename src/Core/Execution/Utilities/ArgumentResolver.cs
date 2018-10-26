@@ -33,7 +33,8 @@ namespace HotChocolate.Execution
                 {
                     throw new QueryException(new ArgumentError(
                         $"The argument type of '{argumentName}' is a non-null type.",
-                        argumentName, fieldSelection.Selection));
+                        fieldSelection.Selection,
+                        argumentName));
                 }
 
                 coercedArgumentValues[argumentName] = new ArgumentValue(

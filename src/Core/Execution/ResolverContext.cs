@@ -110,6 +110,7 @@ namespace HotChocolate.Execution
                     $"Could not convert argument {name} from " +
                     $"{argumentValue.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
+                    _resolverTask.Path,
                     _resolverTask.FieldSelection.Selection));
         }
 
@@ -166,7 +167,8 @@ namespace HotChocolate.Execution
         }
 
         public void ReportError(string errorMessage)
-            => ReportError(new FieldError(errorMessage, FieldSelection));
+            => ReportError(new FieldError(
+                    errorMessage, Path, FieldSelection));
 
         public void ReportError(IQueryError error)
             => _executionContext.ReportError(error);

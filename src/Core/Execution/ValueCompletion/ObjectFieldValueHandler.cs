@@ -24,6 +24,7 @@ namespace HotChocolate.Execution
                     completionContext.ReportError(new FieldError(
                         "Could not resolve the schema type from " +
                         $"`{completionContext.Value.GetType().GetTypeName()}`.",
+                        completionContext.Path,
                         completionContext.Selection.Selection));
                     return;
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Execution
 {
@@ -95,7 +96,8 @@ namespace HotChocolate.Execution
                 internalResult[_data] = Data;
             }
 
-            return JsonConvert.SerializeObject(internalResult,
+            return JsonConvert.SerializeObject(
+                internalResult,
                 indented ? Formatting.Indented : Formatting.None);
         }
 
