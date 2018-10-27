@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
             }
 
             Message = message;
-            Path = path.ToCollection();
+            Path = path?.ToCollection();
             Locations = locations;
 
             if (extensions?.Length > 0)
@@ -73,6 +73,8 @@ namespace HotChocolate.Execution
             Order = int.MaxValue,
             NullValueHandling = NullValueHandling.Ignore)]
         public IReadOnlyDictionary<string, object> Extensions { get; }
+
+        #region Factories
 
         public static QueryError CreateFieldError(
             string message,
@@ -204,5 +206,7 @@ namespace HotChocolate.Execution
                     tokenLocation.StartToken.Column)
             };
         }
+
+        #endregion
     }
 }

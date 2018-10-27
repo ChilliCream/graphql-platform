@@ -176,7 +176,7 @@ namespace HotChocolate.Execution
         }
 
          [Fact]
-        public async Task Property_Return_ApplicationErrorWithPath()
+        public async Task Property_Return_UnexpectedErrorWithPath()
         {
             // arrange
             string query = "{ error13 { bar } }";

@@ -1,0 +1,22 @@
+{
+  "Data": {
+    "error13": {
+      "bar": null
+    }
+  },
+  "Errors": [
+    {
+      "message": "Unexpected execution error.",
+      "path": [
+        "error13",
+        "bar"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 13
+        }
+      ]
+    }
+  ]
+}
