@@ -40,7 +40,7 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors));
-            Assert.Equal(Snapshot.Current(), Snapshot.New(results));
+            results.Snapshot();
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors));
-            Assert.Equal(Snapshot.Current(), Snapshot.New(results));
+            results.Snapshot();
         }
 
         private static ISchema CreateSchema(ExecutionScope scope)

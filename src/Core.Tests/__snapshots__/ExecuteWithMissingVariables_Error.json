@@ -2,8 +2,10 @@
   "Data": null,
   "Errors": [
     {
-      "VariableName": "a",
-      "Message": "The variable value cannot be null."
+      "message": "The variable value cannot be null.",
+      "extensions": {
+        "variableName": "a"
+      }
     }
   ]
 }

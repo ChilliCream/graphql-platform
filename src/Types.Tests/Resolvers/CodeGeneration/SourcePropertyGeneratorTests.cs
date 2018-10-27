@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private PropertyInfo GetProperty()
