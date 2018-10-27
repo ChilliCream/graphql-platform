@@ -71,8 +71,6 @@ namespace HotChocolate.Execution
             Result[FieldSelection.ResponseName] = value;
         }
 
-
-
         public void ReportError(string message)
         {
             ReportError(CreateError(message));
@@ -83,7 +81,7 @@ namespace HotChocolate.Execution
             _executionContext.ReportError(error);
         }
 
-        public FieldError CreateError(string message)
+        public IQueryError CreateError(string message)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -92,7 +90,10 @@ namespace HotChocolate.Execution
                     nameof(message));
             }
 
-            return new FieldError(message, Path, FieldSelection.Selection);
+            return QueryError.CreateFieldError(
+                message,
+                Path,
+                FieldSelection.Selection);
         }
     }
 }

@@ -131,14 +131,14 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(message));
             }
 
-            ExecutionContext.ReportError(
-                new FieldError(message, Path, Selection.Selection));
+            ExecutionContext.ReportError(QueryError.CreateFieldError(
+                message, Path, Selection.Selection));
             _integrateResult(null);
         }
 
         private void ReportNonNullError()
         {
-            ReportError(new FieldError(
+            ReportError(QueryError.CreateFieldError(
                 "Cannot return null for non-nullable field.",
                 Path,
                 Selection.Selection));

@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             {
                 if (r.IsError)
                 {
-                    return new FieldError(
+                    return QueryError.CreateFieldError(
                         r.ErrorMessage,
                         resolverContext.Path,
                         resolverContext.FieldSelection);
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
             return resolverTask.Path.Depth > maxExecutionDepth;
         }
 
-        public static FieldError CreateError(
+        public static IQueryError CreateError(
             this ResolverTask resolverTask,
             Exception exception)
         {

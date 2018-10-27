@@ -4,7 +4,16 @@
   },
   "Errors": [
     {
-      "message": "query error 4"
+      "message": "Unexpected execution error.",
+      "path": [
+        "error4"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
     }
   ]
 }

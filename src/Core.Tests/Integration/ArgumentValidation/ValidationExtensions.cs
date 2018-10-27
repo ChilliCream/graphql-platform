@@ -22,7 +22,7 @@ namespace HotChocolate.Integration.ArgumentValidation
 
                 if (!isValid)
                 {
-                    throw new QueryException(new ArgumentError(
+                    throw new QueryException(QueryError.CreateArgumentError(
                         "Argument is not valid.",
                         d.Path,
                         n,

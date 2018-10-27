@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                     completionContext.ResolverContext, completionContext.Type, completionContext.Value);
                 if (objectType == null)
                 {
-                    completionContext.ReportError(new FieldError(
+                    completionContext.ReportError(QueryError.CreateFieldError(
                         "Could not resolve the schema type from " +
                         $"`{completionContext.Value.GetType().GetTypeName()}`.",
                         completionContext.Path,

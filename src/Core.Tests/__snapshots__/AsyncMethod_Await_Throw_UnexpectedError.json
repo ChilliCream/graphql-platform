@@ -5,18 +5,15 @@
   "Errors": [
     {
       "message": "Unexpected execution error.",
-      "locations": [
-        {
-          "Line": 1,
-          "Column": 3
-        }
-      ],
       "path": [
         "error5"
       ],
-      "extensions": {
-        "variableName": "error5"
-      }
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
     }
   ]
 }

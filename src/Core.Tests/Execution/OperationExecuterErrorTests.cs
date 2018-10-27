@@ -175,6 +175,20 @@ namespace HotChocolate.Execution
             Assert.Equal(Snapshot.Current(), Snapshot.New(result));
         }
 
+         [Fact]
+        public async Task Property_Return_ApplicationErrorWithPath()
+        {
+            // arrange
+            string query = "{ error13 { bar } }";
+
+            // act
+            IExecutionResult result = await ExecuteQuery(query);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+        }
+
         private async Task<IExecutionResult> ExecuteQuery(string query)
         {
             Schema schema = CreateSchema();
@@ -259,6 +273,13 @@ namespace HotChocolate.Execution
             public string Error11 => throw new Exception("query error 11");
 
             public object Error12 => new QueryError("query error 12");
+
+            public Foo Error13 => new Foo();
+        }
+
+        public class Foo
+        {
+            public string Bar => throw new Exception("baz");
         }
     }
 }

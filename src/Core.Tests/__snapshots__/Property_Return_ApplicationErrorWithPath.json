@@ -1,17 +1,20 @@
 {
   "Data": {
-    "error6": null
+    "error13": {
+      "bar": null
+    }
   },
   "Errors": [
     {
       "message": "Unexpected execution error.",
       "path": [
-        "error6"
+        "error13",
+        "bar"
       ],
       "locations": [
         {
           "line": 1,
-          "column": 3
+          "column": 13
         }
       ]
     }
