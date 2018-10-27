@@ -39,7 +39,7 @@ namespace HotChocolate.Integration.InputOutputObjectAreTheSame
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private static Schema CreateSchema()

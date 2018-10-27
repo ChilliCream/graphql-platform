@@ -4,15 +4,19 @@
   },
   "Errors": [
     {
-      "ArgumentName": "name",
-      "FieldName": "sayHello",
-      "Locations": [
+      "message": "Argument is not valid.",
+      "path": [
+        "sayHello"
+      ],
+      "locations": [
         {
-          "Line": 1,
-          "Column": 3
+          "line": 1,
+          "column": 3
         }
       ],
-      "Message": "Argument is not valid."
+      "extensions": {
+        "argumentName": "name"
+      }
     }
   ]
 }

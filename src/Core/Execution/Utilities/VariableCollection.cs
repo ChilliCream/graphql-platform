@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(variableName));
             }
 
-            if (TryGetVariable(variableName, out T variableValue))
+            if (!TryGetVariable(variableName, out T variableValue))
             {
                 throw new QueryException(QueryError.CreateVariableError(
                     "The specified variable was not declared.",

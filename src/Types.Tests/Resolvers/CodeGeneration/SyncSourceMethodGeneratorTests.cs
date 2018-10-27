@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private MethodInfo GetMethod<T>(string name, int parameters)

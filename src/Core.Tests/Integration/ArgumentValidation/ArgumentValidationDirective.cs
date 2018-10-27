@@ -7,7 +7,7 @@ namespace HotChocolate.Integration.ArgumentValidation
 {
     public class ArgumentValidationDirective
     {
-        public Action<IDirectiveContext, FieldNode, object> Validator
+        public Action<IDirectiveContext, FieldNode, string, object> Validator
         {
             get;
             set;

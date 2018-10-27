@@ -193,7 +193,7 @@ namespace HotChocolate.Language
                 new ParserOptions(noLocations: true));
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(document));
+            document.Snapshot();
         }
     }
 }

@@ -20,7 +20,8 @@ namespace HotChocolate.Integration.ArgumentValidation
                         directive.ToObject<ArgumentValidationDirective>();
 
                     argumentValidator.Validator(
-                        context, context.FieldSelection, argumentValue);
+                        context, context.FieldSelection,
+                        argument.Name, argumentValue);
                 }
             }
         }

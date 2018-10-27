@@ -12,7 +12,7 @@ namespace HotChocolate.Integration.ArgumentValidation
             this IArgumentDescriptor argumentDescriptor,
             Func<T, bool> func)
         {
-            Action<IDirectiveContext, FieldNode, object> validator = (d, n, o) =>
+            Action<IDirectiveContext, FieldNode, string, object> validator = (d, n, a, o) =>
             {
                 bool isValid = false;
                 if (o is T t)
@@ -26,7 +26,7 @@ namespace HotChocolate.Integration.ArgumentValidation
                         "Argument is not valid.",
                         d.Path,
                         n,
-                        ((InputField)d.Directive.Source).Name));
+                        a));
                 }
             };
 

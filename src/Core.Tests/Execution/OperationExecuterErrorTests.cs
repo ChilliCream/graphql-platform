@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
          [Fact]
@@ -186,7 +186,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private async Task<IExecutionResult> ExecuteQuery(string query)

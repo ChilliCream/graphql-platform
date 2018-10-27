@@ -34,7 +34,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+            serializer.Value.Snapshot();
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+            serializer.Value.Snapshot();
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+            serializer.Value.Snapshot();
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+            serializer.Value.Snapshot();
         }
 
         [Fact]

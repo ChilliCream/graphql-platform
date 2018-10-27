@@ -20,7 +20,7 @@ namespace HotChocolate.Language
                 schemaSource, new ParserOptions(noLocations: true));
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(document));
+            document.Snapshot();
         }
 
         [Fact]
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
                     noLocations: true, allowFragmentVariables: true));
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(document));
+            document.Snapshot();
         }
     }
 }
