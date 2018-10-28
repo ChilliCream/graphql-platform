@@ -11,51 +11,35 @@ namespace HotChocolate.Validation
         public ValidationError(
             string message,
             Language.ISyntaxNode syntaxNode)
-            : base(message)
+            : this(message, new[] { syntaxNode })
         {
-            if (syntaxNode == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxNode));
-            }
-
-            Locations = new[]
-            {
-                new Location(
-                    syntaxNode.Location.StartToken.Line,
-                    syntaxNode.Location.StartToken.Column)
-            };
         }
 
         public ValidationError(
             string message,
             IEnumerable<Language.ISyntaxNode> syntaxNodes)
-           : base(message)
+            : this(message, syntaxNodes?.ToArray())
         {
-            if (syntaxNodes == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxNodes));
-            }
-
-            Locations = syntaxNodes.Select(t => new Location(
-                t.Location.StartToken.Line,
-                t.Location.StartToken.Column)).ToArray();
         }
 
         public ValidationError(
-           string message,
-           params Language.ISyntaxNode[] syntaxNodes)
-          : base(message)
+            string message,
+            params Language.ISyntaxNode[] syntaxNodes)
+            : base(message, CreateLocations(syntaxNodes))
         {
-            if (syntaxNodes == null)
+        }
+
+        private static IReadOnlyCollection<Location> CreateLocations(
+            params Language.ISyntaxNode[] syntaxNodes)
+        {
+            if (syntaxNodes?.Length == 0)
             {
-                throw new ArgumentNullException(nameof(syntaxNodes));
+                return null;
             }
 
-            Locations = syntaxNodes.Select(t => new Location(
+            return syntaxNodes.Select(t => new Location(
                 t.Location.StartToken.Line,
                 t.Location.StartToken.Column)).ToArray();
         }
-
-        public IReadOnlyCollection<Location> Locations { get; }
     }
 }

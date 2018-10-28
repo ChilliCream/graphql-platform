@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
 

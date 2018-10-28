@@ -27,7 +27,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
 
@@ -49,7 +49,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private ResolverDescriptor CreateDescriptor(ArgumentKind argumentKind)
