@@ -25,15 +25,14 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(variableName));
             }
 
-            if (!_variables.TryGetValue(variableName,
-                out object variableValue))
+            if (!TryGetVariable(variableName, out T variableValue))
             {
-                throw new QueryException(new VariableError(
-                    "The specified variable was not declared.", variableName));
+                throw new QueryException(QueryError.CreateVariableError(
+                    "The specified variable was not declared.",
+                    variableName));
             }
 
-            // TODO : integrate converters
-            return (T)variableValue;
+            return variableValue;
         }
 
         public bool TryGetVariable<T>(string variableName, out T variableValue)

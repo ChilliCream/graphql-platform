@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
                 schema.Execute("{ person { phone } }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
                 schema.Execute("{ person { name } }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 schema.Execute("{ person { name @c(append:\"Baz\") } }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         public static ISchema CreateSchema()

@@ -25,7 +25,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private IServiceProvider CreateServiceProvider()

@@ -106,10 +106,11 @@ namespace HotChocolate.Execution
             }
 
             throw new QueryException(
-               new FieldError(
+               QueryError.CreateFieldError(
                     $"Could not convert argument {name} from " +
                     $"{argumentValue.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
+                    _resolverTask.Path,
                     _resolverTask.FieldSelection.Selection));
         }
 
@@ -166,7 +167,8 @@ namespace HotChocolate.Execution
         }
 
         public void ReportError(string errorMessage)
-            => ReportError(new FieldError(errorMessage, FieldSelection));
+            => ReportError(QueryError.CreateFieldError(
+                    errorMessage, Path, FieldSelection));
 
         public void ReportError(IQueryError error)
             => _executionContext.ReportError(error);

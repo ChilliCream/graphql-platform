@@ -4,7 +4,7 @@
   },
   "Errors": [
     {
-      "Message": "query error 7"
+      "message": "query error 7"
     }
   ]
 }

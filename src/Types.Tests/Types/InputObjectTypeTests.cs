@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationInputObject1>(obj);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(obj));
+            obj.Snapshot();
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<ObjectValueNode>(value);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(value));
+            value.Snapshot();
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<ObjectValueNode>(value);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(value));
+            value.Snapshot();
         }
 
         [Fact]
