@@ -36,7 +36,26 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Casing()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            QueryRequestDto request = new QueryRequestDto { Query = "{ A:basic { B:a } }" };
+
+            // act
+            HttpResponseMessage message = await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
+            Assert.Null(result.Errors);
+            result.Snapshot();
         }
 
         [Fact]
@@ -62,7 +81,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -92,7 +111,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -111,7 +130,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -158,7 +177,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -195,7 +214,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -220,7 +239,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -247,7 +266,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             QueryResultDto result = JsonConvert.DeserializeObject<QueryResultDto>(json);
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private TestServer CreateTestServer()

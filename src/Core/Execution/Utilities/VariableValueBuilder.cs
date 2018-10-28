@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
                     variableDefinition.DefaultValue);
             }
 
-            throw new QueryException(new VariableError(
+            throw new QueryException(QueryError.CreateVariableError(
                 $"The variable type ({variableType.ToString()}) " +
                 "must be an input object type.",
                 variableName));
@@ -322,7 +322,7 @@ namespace HotChocolate.Execution
         {
             if (variable.Type.IsNonNullType() && IsNulValue(variable.Value))
             {
-                throw new QueryException(new VariableError(
+                throw new QueryException(QueryError.CreateVariableError(
                     "The variable value cannot be null.",
                     variable.Name));
             }
@@ -332,7 +332,7 @@ namespace HotChocolate.Execution
         {
             if (!variable.Type.IsInstanceOfType(variable.Value))
             {
-                throw new QueryException(new VariableError(
+                throw new QueryException(QueryError.CreateVariableError(
                     "The variable value is not of the correct type.",
                     variable.Name));
             }
@@ -368,14 +368,19 @@ namespace HotChocolate.Execution
         {
             private object _parsedValue;
 
-            public Variable(string name, IInputType type,
+            public Variable(
+                string name,
+                IInputType type,
                 IValueNode defaultValue)
                 : this(name, type, defaultValue, defaultValue)
             {
             }
 
-            public Variable(string name, IInputType type,
-                IValueNode defaultValue, IValueNode value)
+            public Variable(
+                string name,
+                IInputType type,
+                IValueNode defaultValue,
+                IValueNode value)
             {
                 if (string.IsNullOrEmpty(name))
                 {
@@ -385,8 +390,7 @@ namespace HotChocolate.Execution
                 }
 
                 Name = name;
-                Type = type
-                    ?? throw new ArgumentNullException(nameof(type));
+                Type = type ?? throw new ArgumentNullException(nameof(type));
                 DefaultValue = defaultValue;
                 Value = value;
             }
@@ -416,8 +420,9 @@ namespace HotChocolate.Execution
                 }
                 catch (ArgumentException ex)
                 {
-                    throw new QueryException(new VariableError(
-                        ex.Message, Name));
+                    throw new QueryException(
+                        QueryError.CreateVariableError(
+                            ex.Message, Name));
                 }
             }
         }

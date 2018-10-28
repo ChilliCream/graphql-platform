@@ -5,24 +5,28 @@
   },
   "Errors": [
     {
-      "FieldName": "y",
-      "Locations": [
-        {
-          "Line": 1,
-          "Column": 3
-        }
+      "message": "hello world y",
+      "path": [
+        "y"
       ],
-      "Message": "hello world y"
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
     },
     {
-      "FieldName": "yasync",
-      "Locations": [
-        {
-          "Line": 1,
-          "Column": 5
-        }
+      "message": "hello world yasync",
+      "path": [
+        "yasync"
       ],
-      "Message": "hello world yasync"
+      "locations": [
+        {
+          "line": 1,
+          "column": 5
+        }
+      ]
     }
   ]
 }

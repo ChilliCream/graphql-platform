@@ -7,7 +7,7 @@ namespace HotChocolate.Integration.ArgumentValidation
 {
     public class ExecuteArgumentValidationMiddleware
     {
-        public void Validate(IResolverContext context)
+        public void Validate(IDirectiveContext context)
         {
             foreach (InputField argument in context.Field.Arguments)
             {
@@ -20,7 +20,8 @@ namespace HotChocolate.Integration.ArgumentValidation
                         directive.ToObject<ArgumentValidationDirective>();
 
                     argumentValidator.Validator(
-                        directive, context.FieldSelection, argumentValue);
+                        context, context.FieldSelection,
+                        argument.Name, argumentValue);
                 }
             }
         }

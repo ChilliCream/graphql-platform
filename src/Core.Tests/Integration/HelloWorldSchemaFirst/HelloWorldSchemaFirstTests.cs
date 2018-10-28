@@ -27,7 +27,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Null(result.Errors);
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         public class QueryA

@@ -185,7 +185,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
@@ -253,7 +253,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
@@ -287,7 +287,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
@@ -321,7 +321,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
@@ -355,7 +355,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                Assert.Equal(Snapshot.Current(), Snapshot.New(ex.Message));
+                ex.Message.Snapshot();
                 return;
             }
 
