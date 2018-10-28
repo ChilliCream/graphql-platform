@@ -30,6 +30,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public WebSocketCloseStatus? CloseStatus { get; set; }
 
+        public bool IsDisposed { get; private set; }
+
         public void RegisterSubscription(ISubscription subscription)
         {
             Subscriptions[subscription.Id] = subscription;
@@ -82,6 +84,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public void Dispose()
         {
+            IsDisposed = true;
         }
     }
 }
