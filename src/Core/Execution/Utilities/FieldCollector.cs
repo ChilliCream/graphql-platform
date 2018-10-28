@@ -78,9 +78,8 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
-                    reportError(new FieldError(
-                        "Could not resolve the specified field.",
-                        fs));
+                    reportError(new QueryError(
+                        "Could not resolve the specified field."));
                 }
             }
             else if (selection is FragmentSpreadNode fragmentSpread)

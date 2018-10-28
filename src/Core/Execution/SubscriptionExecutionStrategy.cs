@@ -17,6 +17,11 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
+            if (executionContext == null)
+            {
+                throw new ArgumentNullException(nameof(executionContext));
+            }
+
             EventDescription @event = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
@@ -26,12 +31,6 @@ namespace HotChocolate.Execution
                 eventStream,
                 () => executionContext.Clone(default),
                 ExecuteSubscriptionQueryAsync);
-        }
-
-        private object CreateSourceEventStream(
-            IExecutionContext executionContext)
-        {
-            throw new NotImplementedException();
         }
 
         private EventDescription CreateEvent(IExecutionContext executionContext)

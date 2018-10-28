@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Resolvers
 {
@@ -97,6 +98,20 @@ namespace HotChocolate.Resolvers
             {
                 return $"{path}/{Name}";
             }
+        }
+
+        public IReadOnlyCollection<string> ToCollection()
+        {
+            var stack = new Stack<string>();
+            Path current = this;
+
+            while (current != null)
+            {
+                stack.Push(current.Name);
+                current = current.Parent;
+            }
+
+            return stack;
         }
 
         internal static Path New(string name)

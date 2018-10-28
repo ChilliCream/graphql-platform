@@ -29,7 +29,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -49,7 +49,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -69,7 +69,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -91,7 +91,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -121,7 +121,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -143,7 +143,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -171,7 +171,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -193,7 +193,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -222,7 +222,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -251,7 +251,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -280,7 +280,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -309,7 +309,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -339,7 +339,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -370,7 +370,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
                 query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -400,7 +400,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query, variableValues: variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -431,7 +431,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -456,7 +456,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query, variables);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         // [Fact]
@@ -478,7 +478,7 @@ namespace HotChocolate.Integration.StarWarsSchemaFirst
             IExecutionResult result = schema.Execute(query);
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private static Schema CreateSchema()

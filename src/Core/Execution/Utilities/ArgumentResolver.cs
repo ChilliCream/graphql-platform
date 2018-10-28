@@ -31,9 +31,9 @@ namespace HotChocolate.Execution
 
                 if (argumentType is NonNullType && argumentValue == null)
                 {
-                    throw new QueryException(new ArgumentError(
-                        $"The argument type of '{argumentName}' is a non-null type.",
-                        argumentName, fieldSelection.Selection));
+                    throw new QueryException(new QueryError(
+                        $"The argument type of '{argumentName}' is a " +
+                        "non-null type."));
                 }
 
                 coercedArgumentValues[argumentName] = new ArgumentValue(

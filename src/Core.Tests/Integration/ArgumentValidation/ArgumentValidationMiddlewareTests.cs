@@ -15,7 +15,7 @@ namespace HotChocolate.Integration.ArgumentValidation
             IExecutionResult result = schema.Execute("{ sayHello }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         private static ISchema CreateSchema()

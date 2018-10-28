@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendString(s: \"abc\") }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendStringMethod(s: \"abc\") }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendStringMethodAsync(s: \"abc\") }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
                 "@appendStringMethodAsync(s: \"ghi\") }");
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(result));
+            result.Snapshot();
         }
 
         public static ISchema CreateSchema()
