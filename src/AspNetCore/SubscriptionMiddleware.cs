@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(next));
             _queryExecuter = queryExecuter
                 ?? throw new ArgumentNullException(nameof(queryExecuter));
-            _route = _route == null
+            _route = route == null
                 ? "/subscriptions"
                 : route.TrimEnd('/');
         }

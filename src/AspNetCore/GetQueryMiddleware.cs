@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
@@ -14,15 +15,20 @@ namespace HotChocolate.AspNetCore
         private static readonly string _operationNameIdentifier = "operationName";
         private static readonly string _variablesIdentifier = "variables";
         private static readonly string _namedQueryIdentifier = "namedQuery";
-        private static readonly string _getMethod = "Get";
+        private static readonly string _getMethod = "GET";
 
-        public GetQueryMiddleware(RequestDelegate next)
-            : base(next)
+        public GetQueryMiddleware(
+            RequestDelegate next,
+            QueryExecuter queryExecuter)
+            : base(next, queryExecuter)
         {
         }
 
-        public GetQueryMiddleware(RequestDelegate next, string route)
-            : base(next, route)
+        public GetQueryMiddleware(
+            RequestDelegate next,
+            QueryExecuter queryExecuter,
+            string route)
+            : base(next, queryExecuter, route)
         {
         }
 

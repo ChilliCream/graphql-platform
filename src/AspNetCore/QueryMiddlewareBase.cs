@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(next));
             _queryExecuter = queryExecuter
                 ?? throw new ArgumentNullException(nameof(queryExecuter));
-            _route = route;
+            _route = route == null ? "/" : "/" + route.Trim('/');
         }
 
         public async Task InvokeAsync(HttpContext context)

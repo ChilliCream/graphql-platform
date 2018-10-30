@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore
     public class PostQueryMiddleware
         : QueryMiddlewareBase
     {
-        private const string _postMethod = "Post";
+        private const string _postMethod = "POST";
 
         public PostQueryMiddleware(
             RequestDelegate next,

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
@@ -7,7 +8,7 @@ namespace HotChocolate.AspNetCore
         public static bool IsRouteValid(this HttpContext context, string route)
         {
             string path = context.Request.Path.ToUriComponent();
-            return route == null || route.Equals(path);
+            return string.Equals(route, path, StringComparison.Ordinal);
         }
     }
 }
