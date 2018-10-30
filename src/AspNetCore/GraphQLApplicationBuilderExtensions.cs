@@ -21,9 +21,10 @@ namespace HotChocolate
                 return UseGraphQL(applicationBuilder);
             }
 
-            return applicationBuilder.UseMiddleware<PostQueryMiddleware>(route)
-                .UseMiddleware<GetQueryMiddleware>(route)
-                .UseMiddleware<SubscriptionMiddleware>(route);
+            return applicationBuilder.Map("/" + route.Trim('/'),
+                app => app.UseMiddleware<PostQueryMiddleware>()
+                    .UseMiddleware<GetQueryMiddleware>()
+                    .UseMiddleware<SubscriptionMiddleware>());
         }
     }
 }

@@ -20,19 +20,11 @@ namespace HotChocolate.AspNetCore
         {
         }
 
-        public PostQueryMiddleware(
-            RequestDelegate next,
-            QueryExecuter queryExecuter,
-            string route)
-            : base(next, queryExecuter, route)
-        {
-        }
-
         protected override bool CanHandleRequest(HttpContext context)
         {
             return string.Equals(
                 context.Request.Method, _postMethod,
-                StringComparison.OrdinalIgnoreCase);
+                StringComparison.Ordinal);
         }
 
         protected override async Task<Execution.QueryRequest> CreateQueryRequest(
@@ -44,9 +36,9 @@ namespace HotChocolate.AspNetCore
                 request.Query, request.OperationName)
             {
                 VariableValues = QueryMiddlewareUtilities
-                .DeserializeVariables(request.Variables),
+                    .DeserializeVariables(request.Variables),
                 Services = QueryMiddlewareUtilities
-                .CreateRequestServices(context)
+                    .CreateRequestServices(context)
             };
         }
 

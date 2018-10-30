@@ -12,33 +12,20 @@ namespace HotChocolate.AspNetCore
     {
         private readonly RequestDelegate _next;
         private readonly QueryExecuter _queryExecuter;
-        private readonly string _route;
 
         public SubscriptionMiddleware(
             RequestDelegate next,
             QueryExecuter queryExecuter)
-            : this(next, queryExecuter, null)
-        {
-        }
-
-        public SubscriptionMiddleware(
-            RequestDelegate next,
-            QueryExecuter queryExecuter,
-            string route)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _queryExecuter = queryExecuter
                 ?? throw new ArgumentNullException(nameof(queryExecuter));
-            _route = route == null
-                ? "/subscriptions"
-                : route.TrimEnd('/');
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (context.WebSockets.IsWebSocketRequest
-                && context.IsRouteValid(_route))
+            if (context.WebSockets.IsWebSocketRequest)
             {
                 var session = await WebSocketSession
                     .TryCreateAsync(context, _queryExecuter)

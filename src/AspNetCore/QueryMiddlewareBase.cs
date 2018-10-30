@@ -10,31 +10,20 @@ namespace HotChocolate.AspNetCore
     {
         private readonly RequestDelegate _next;
         private readonly QueryExecuter _queryExecuter;
-        private readonly string _route;
-        private readonly string _subscriptionRoute;
 
         public QueryMiddlewareBase(
             RequestDelegate next,
             QueryExecuter queryExecuter)
-            : this(next, queryExecuter, null)
-        {
-        }
-
-        public QueryMiddlewareBase(
-            RequestDelegate next,
-            QueryExecuter queryExecuter,
-            string route)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _queryExecuter = queryExecuter
                 ?? throw new ArgumentNullException(nameof(queryExecuter));
-            _route = route == null ? "/" : "/" + route.Trim('/');
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (CanHandleRequest(context) && context.IsRouteValid(_route))
+            if (CanHandleRequest(context))
             {
                 await HandleRequestAsync(context, _queryExecuter)
                     .ConfigureAwait(false);
@@ -77,14 +66,3 @@ namespace HotChocolate.AspNetCore
         }
     }
 }
-
-/*
-
- new Execution.QueryRequest(request.Query, request.OperationName)
-                {
-                    VariableValues = QueryMiddlewareUtilities
-                        .DeserializeVariables(request.Variables),
-                    Services = QueryMiddlewareUtilities
-                        .CreateRequestServices(context)
-                },
- */
