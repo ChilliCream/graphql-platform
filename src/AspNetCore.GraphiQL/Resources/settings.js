@@ -1,4 +1,4 @@
 window.Settings = {
-    url: "http://localhost:9862/",
-    subscriptionUrl: "ws://localhost:9862/"
+    url: "http://localhost:5000/",
+    subscriptionUrl: "ws://localhost:5000/subscriptions"
 };

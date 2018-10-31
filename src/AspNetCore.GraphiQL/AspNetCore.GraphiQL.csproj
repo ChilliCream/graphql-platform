@@ -31,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\**\*.*" />
-    <EmbeddedResource Include="Resources\**\*.*" />
+    <None Remove="Resources\*.*" />
+    <EmbeddedResource Include="Resources\*.*" />
   </ItemGroup>
 
 </Project>

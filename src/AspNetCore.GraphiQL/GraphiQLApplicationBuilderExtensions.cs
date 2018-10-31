@@ -1,26 +1,35 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate
 {
     public static class GraphiQLApplicationBuilderExtensions
     {
-        private const string _resources = "Resources";
+        private const string _resourcesNamespace =
+            "HotChocolate.AspNetCore.Resources";
 
-        public static void AddGraphiQL(
+        public static void UseGraphiQL(
             this IApplicationBuilder applicationBuilder,
             GraphiQLOptions options)
         {
-            applicationBuilder.AddGraphiQLFileServer(options.Route);
+            applicationBuilder.UseGraphiQLFileServer(options.Route);
+            //applicationBuilder.UseGraphiQLSettingsMiddleware(options);
         }
 
+        private static void UseGraphiQLSettingsMiddleware(
+           this IApplicationBuilder applicationBuilder,
+           GraphiQLOptions options)
+        {
+            string path = options.Route.TrimEnd('/') + "/settings.js";
+            applicationBuilder.Map(path,
+                app => app.UseMiddleware<SettingsMiddleware>(options));
+        }
 
-        private static void AddGraphiQLFileServer(
+        private static void UseGraphiQLFileServer(
             this IApplicationBuilder applicationBuilder,
             string route)
         {
@@ -37,14 +46,14 @@ namespace HotChocolate.AspNetCore
 
             applicationBuilder.UseFileServer(fileServerOptions);
         }
+
         private static IFileProvider CreateFileProvider()
         {
-            TypeInfo type = typeof(GraphiQLApplicationBuilderExtensions)
-                .GetTypeInfo();
+            Type type = typeof(GraphiQLApplicationBuilderExtensions);
 
             return new EmbeddedFileProvider(
                 type.Assembly,
-                $"{type.Namespace}.{_resources}");
+                _resourcesNamespace);
         }
     }
 }

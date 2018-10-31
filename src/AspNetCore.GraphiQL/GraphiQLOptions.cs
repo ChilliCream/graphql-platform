@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore
+namespace HotChocolate
 {
     public class GraphiQLOptions
     {
