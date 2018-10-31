@@ -141,6 +141,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
             else
             {
+                // TODO : send error message
                 socket.Dispose();
             }
 
