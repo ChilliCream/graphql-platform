@@ -130,6 +130,7 @@ Task("Tests")
     DotNetCoreTest("./src/Types.Tests", testSettings);
     DotNetCoreTest("./src/Validation.Tests", testSettings);
     DotNetCoreTest("./src/Core.Tests", testSettings);
+    DotNetCoreTest("./src/Subscriptions.Tests", testSettings);
     DotNetCoreTest("./src/AspNetCore.Tests", testSettings);
 });
 
