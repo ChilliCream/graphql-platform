@@ -43,6 +43,7 @@ namespace Example
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseWebSockets();
             app.UseGraphQL();
             app.UseGraphiQL(new GraphiQLOptions
             {
