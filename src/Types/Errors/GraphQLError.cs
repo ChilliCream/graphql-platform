@@ -9,6 +9,9 @@ namespace HotChocolate.Errors
 {
     public class GraphQLError
     {
+        [JsonIgnore]
+        private Dictionary<string, object> _extensions;
+
         public GraphQLError(string message, params ErrorProperty[] extensions)
             : this(message, null, null, extensions)
         {
@@ -44,27 +47,123 @@ namespace HotChocolate.Errors
 
             if (extensions?.Length > 0)
             {
-                Extensions = extensions.ToDictionary(p => p.Name, p => p.Value);
+                _extensions = extensions.ToDictionary(p => p.Name, p => p.Value);
             }
         }
 
         [JsonProperty("message", Order = 0)]
-        public string Message { get; }
+        public string Message { get; private set; }
 
         [JsonProperty("path",
             Order = 2,
             NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyCollection<string> Path { get; }
+        public IReadOnlyCollection<string> Path { get; private set; }
 
         [JsonProperty("locations",
            Order = 3,
            NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyCollection<Location> Locations { get; }
+        public IReadOnlyCollection<Location> Locations { get; private set; }
 
         [JsonProperty("extensions",
             Order = int.MaxValue,
             NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyDictionary<string, object> Extensions { get; }
+        public IReadOnlyDictionary<string, object> Extensions => _extensions;
+
+        public GraphQLError WithMessage(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentException(
+                    "The error message cannot be null or empty.",
+                    nameof(message));
+            }
+
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+            error.Message = message;
+            return error;
+        }
+
+        public GraphQLError WithPath(Path path)
+        {
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+            error.Path = path?.ToCollection();
+            return error;
+        }
+
+        public GraphQLError WithLocations(IEnumerable<Location> locations)
+        {
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+
+            if (locations == null)
+            {
+                error.Locations = null;
+            }
+            else
+            {
+                error.Locations = locations.ToList().AsReadOnly();
+                if (!error.Locations.Any())
+                {
+                    error.Locations = null;
+                }
+            }
+
+            return error;
+        }
+
+        public GraphQLError WithPropeties(params ErrorProperty[] properties)
+        {
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+
+            if (locations == null)
+            {
+                error.Locations = null;
+            }
+            else
+            {
+                error.Locations = locations.ToList().AsReadOnly();
+                if (!error.Locations.Any())
+                {
+                    error.Locations = null;
+                }
+            }
+
+            return error;
+        }
+
+        public GraphQLError AddProperty(string name, object value)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "An error property name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+
+            var properties = error._extensions == null
+                ? new Dictionary<string, object>()
+                : new Dictionary<string, object>(error._extensions);
+            properties[name] = value;
+            error._extensions = properties;
+
+            return error;
+        }
+
+        public GraphQLError AddLocation(Location location)
+        {
+            GraphQLError error = (GraphQLError)MemberwiseClone();
+
+            var locations = error.Locations == null
+                ? new List<Location>()
+                : new List<Location>(error.Locations);
+            locations.Add(location);
+            error.Locations = locations.AsReadOnly();
+
+            return error;
+        }
+
+
 
         #region Factories
 

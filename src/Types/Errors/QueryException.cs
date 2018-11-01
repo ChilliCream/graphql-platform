@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Errors
 {
     [Serializable]
     public class QueryException

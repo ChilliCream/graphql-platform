@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Eroors
+namespace HotChocolate.Errors
 {
     public class ErrorProperty
     {
