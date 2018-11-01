@@ -13,7 +13,7 @@ namespace Example
     {
         public async Task<string> DoSomething([Service]IEventSender eventSender)
         {
-            await eventSender.SendAsync(new EventMessage("OnDoSomething"));
+            await eventSender.SendAsync(new EventMessage("onDoSomething"));
             return "done";
         }
     }
