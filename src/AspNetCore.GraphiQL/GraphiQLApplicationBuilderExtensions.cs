@@ -2,6 +2,7 @@
 using System.Reflection;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
@@ -13,19 +14,24 @@ namespace HotChocolate
             "HotChocolate.AspNetCore.Resources";
 
         public static void UseGraphiQL(
+            this IApplicationBuilder applicationBuilder)
+        {
+            UseGraphiQL(applicationBuilder, new GraphiQLOptions());
+        }
+
+        public static void UseGraphiQL(
             this IApplicationBuilder applicationBuilder,
             GraphiQLOptions options)
         {
+            applicationBuilder.UseGraphiQLSettingsMiddleware(options);
             applicationBuilder.UseGraphiQLFileServer(options.Route);
-            //applicationBuilder.UseGraphiQLSettingsMiddleware(options);
         }
 
         private static void UseGraphiQLSettingsMiddleware(
            this IApplicationBuilder applicationBuilder,
            GraphiQLOptions options)
         {
-            string path = options.Route.TrimEnd('/') + "/settings.js";
-            applicationBuilder.Map(path,
+            applicationBuilder.Map(options.Route.Add("/settings.js"),
                 app => app.UseMiddleware<SettingsMiddleware>(options));
         }
 

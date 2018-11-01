@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.Http;
+
 namespace HotChocolate
 {
     public class GraphiQLOptions
     {
-        public string Route { get; set; }
-        public string QueryRoute { get; set; }
-        public string SubscriptionRoute { get; set; }
+        public PathString Route { get; set; } = "/ui";
+
+        public PathString QueryRoute { get; set; }
+
+        public PathString SubscriptionRoute { get; set; } = "/subscriptions";
     }
 }

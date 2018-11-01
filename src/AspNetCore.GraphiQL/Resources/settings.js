@@ -1,4 +1,7 @@
+var protocol = window.location.protocol === "http:" ? "ws:" : "wss:";
+var rootUri = protocol + "//" + window.location.host;
+
 window.Settings = {
-  url: "http://localhost:44653/",
-  subscriptionUrl: "ws://localhost:44653/subscriptions"
+  url: rootUri,
+  subscriptionUrl: rootUri + "/subscriptions"
 };

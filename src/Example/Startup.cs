@@ -45,10 +45,7 @@ namespace Example
 
             app.UseWebSockets();
             app.UseGraphQL();
-            app.UseGraphiQL(new GraphiQLOptions
-            {
-                Route = "/GraphiQL"
-            });
+            app.UseGraphiQL();
         }
     }
 }
