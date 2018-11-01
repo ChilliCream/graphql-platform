@@ -20,6 +20,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return Task.CompletedTask;
         }
     }
-
-
 }

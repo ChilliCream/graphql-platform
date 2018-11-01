@@ -56,9 +56,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
             CancellationToken cancellationToken)
         {
             using (var combined = CancellationTokenSource
-               .CreateLinkedTokenSource(cancellationToken, _cts.Token))
+                .CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                while (!_context.WebSocket.CloseStatus.HasValue
+                while (!_context.CloseStatus.HasValue
                     || !combined.IsCancellationRequested)
                 {
                     GenericOperationMessage message = await _context

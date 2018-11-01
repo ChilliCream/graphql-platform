@@ -8,7 +8,9 @@ namespace HotChocolate
         public static IApplicationBuilder UseGraphQL(
             this IApplicationBuilder applicationBuilder)
         {
-            return applicationBuilder.UseMiddleware<QueryMiddleware>();
+            return applicationBuilder.UseMiddleware<PostQueryMiddleware>()
+                .UseMiddleware<GetQueryMiddleware>()
+                .UseMiddleware<SubscriptionMiddleware>();
         }
 
         public static IApplicationBuilder UseGraphQL(
@@ -18,7 +20,11 @@ namespace HotChocolate
             {
                 return UseGraphQL(applicationBuilder);
             }
-            return applicationBuilder.UseMiddleware<QueryMiddleware>(route);
+
+            return applicationBuilder.Map("/" + route.Trim('/'),
+                app => app.UseMiddleware<PostQueryMiddleware>()
+                    .UseMiddleware<GetQueryMiddleware>()
+                    .UseMiddleware<SubscriptionMiddleware>());
         }
     }
 }
