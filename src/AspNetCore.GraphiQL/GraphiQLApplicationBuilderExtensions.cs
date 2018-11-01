@@ -23,6 +23,11 @@ namespace HotChocolate
             this IApplicationBuilder applicationBuilder,
             GraphiQLOptions options)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             applicationBuilder.UseGraphiQLSettingsMiddleware(options);
             applicationBuilder.UseGraphiQLFileServer(options.Route);
         }
