@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore
         public async Task HttpPost_BasicTest()
         {
             // arrange
-            TestServer server = CreateTestServer("foo");
+            TestServer server = CreateTestServer("/foo");
             var request = new QueryRequestDto { Query = "{ basic { a } }" };
 
             // act

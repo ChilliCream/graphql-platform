@@ -8,6 +8,6 @@ namespace HotChocolate
 
         public PathString QueryRoute { get; set; }
 
-        public PathString SubscriptionRoute { get; set; } = "/subscriptions";
+        public PathString SubscriptionRoute { get; set; } = "/ws";
     }
 }

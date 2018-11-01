@@ -11,7 +11,7 @@ namespace HotChocolate
         {
             return applicationBuilder.UseMiddleware<PostQueryMiddleware>()
                 .UseMiddleware<GetQueryMiddleware>()
-                .UseMiddleware<SubscriptionMiddleware>();
+                .UseGraphQLSubscriptions("/ws");
         }
 
         public static IApplicationBuilder UseGraphQL(
@@ -25,8 +25,16 @@ namespace HotChocolate
 
             return applicationBuilder.Map(route,
                 app => app.UseMiddleware<PostQueryMiddleware>()
-                    .UseMiddleware<GetQueryMiddleware>()
-                    .UseMiddleware<SubscriptionMiddleware>());
+                    .UseMiddleware<GetQueryMiddleware>())
+                .UseGraphQLSubscriptions(route + "/ws");
+        }
+
+        private static IApplicationBuilder UseGraphQLSubscriptions(
+            this IApplicationBuilder applicationBuilder,
+            PathString route)
+        {
+            return applicationBuilder.Map(route,
+                app => app.UseMiddleware<SubscriptionMiddleware>());
         }
     }
 }

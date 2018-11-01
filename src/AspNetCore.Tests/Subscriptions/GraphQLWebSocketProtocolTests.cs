@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private Uri SubscriptionUri { get; } =
-            new Uri("ws://localhost:5000/subscriptions");
+            new Uri("ws://localhost:5000/ws");
 
         private TestServerFactory TestServerFactory { get; }
 
@@ -30,7 +30,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             TestServer testServer = CreateTestServer();
             WebSocketClient client = testServer.CreateWebSocketClient();
-            WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+            client.SubProtocols.Add("graphql-ws");
+
+            WebSocket webSocket = await client
+                .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
             // act and assert
             await ConnectAsync(webSocket);
