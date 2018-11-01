@@ -17,14 +17,5 @@
       "c": "c"
     },
     "Errors": null
-  },
-  {
-    "Data": {
-      "loads": [
-        "a, b",
-        "c"
-      ]
-    },
-    "Errors": null
   }
 ]

@@ -10,32 +10,25 @@ namespace HotChocolate.Execution
     public class QueryError
        : IQueryError
     {
-        public QueryError(
-            string message,
-            params ErrorProperty[] extensions)
+        public QueryError(string message, params ErrorProperty[] extensions)
             : this(message, null, null, extensions)
         {
         }
 
-        public QueryError(
-            string message,
-            Path path,
+        public QueryError(string message, Path path,
             params ErrorProperty[] extensions)
             : this(message, path, null, extensions)
         {
         }
 
         public QueryError(
-            string message,
-            IReadOnlyCollection<Location> locations,
+            string message, IReadOnlyCollection<Location> locations,
             params ErrorProperty[] extensions)
             : this(message, null, locations, extensions)
         {
         }
 
-        public QueryError(
-            string message,
-            Path path,
+        public QueryError(string message, Path path,
             IReadOnlyCollection<Location> locations,
             params ErrorProperty[] extensions)
         {
@@ -191,7 +184,7 @@ namespace HotChocolate.Execution
                 new ErrorProperty(nameof(variableName), variableName));
         }
 
-        private static Location[] ConvertLocation(
+        protected static Location[] ConvertLocation(
             Language.Location tokenLocation)
         {
             if (tokenLocation == null)
