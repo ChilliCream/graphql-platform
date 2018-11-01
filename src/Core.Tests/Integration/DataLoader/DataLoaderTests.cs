@@ -65,16 +65,26 @@ namespace HotChocolate.Integration.DataLoader
                 @"{
                     c: withDataLoader(key: ""c"")
                 }")));
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
-                "{ loads }")));
 
             // assert
             Assert.Collection(results,
                 t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
                 t => Assert.Null(t.Errors));
             results.Snapshot();
+
+            var keyLoads = new HashSet<string>();
+            var loads = (IQueryExecutionResult)await executer
+                .ExecuteAsync(new QueryRequest("{ loads }"));
+
+            foreach (object o in (IEnumerable<object>)loads.Data["loads"])
+            {
+                string[] keys = o.ToString().Split(',');
+                foreach (string key in keys)
+                {
+                    Assert.True(keyLoads.Add(key));
+                }
+            }
         }
 
         private static ISchema CreateSchema(ExecutionScope scope)

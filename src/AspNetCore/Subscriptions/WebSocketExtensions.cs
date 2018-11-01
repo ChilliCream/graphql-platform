@@ -85,21 +85,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             OperationMessage message,
             CancellationToken cancellationToken)
         {
-            var buffer = new byte[_maxMessageSize];
-
-            using (Stream stream = message.CreateMessageStream())
+            using (Stream messageStream = message.CreateMessageStream())
             {
-                int read = 0;
-                do
-                {
-                    read = stream.Read(buffer, 0, buffer.Length);
-                    var segment = new ArraySegment<byte>(buffer, 0, read);
-                    bool isEndOfMessage = stream.Position == stream.Length;
-
-                    await context.WebSocket.SendAsync(
-                        segment, WebSocketMessageType.Text,
-                        isEndOfMessage, cancellationToken);
-                } while (read == _maxMessageSize);
+                await context.SendMessageAsync(
+                    messageStream,
+                    cancellationToken);
             }
         }
 
@@ -109,38 +99,24 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return new MemoryStream(Encoding.UTF8.GetBytes(json));
         }
 
-        public static Task<GenericOperationMessage> ReceiveMessageAsync(
+        public static async Task<GenericOperationMessage> ReceiveMessageAsync(
             this IWebSocketContext context,
             CancellationToken cancellationToken)
         {
-            return ReceiveMessageAsync(context.WebSocket, cancellationToken);
-        }
-
-        public static async Task<GenericOperationMessage> ReceiveMessageAsync(
-            this WebSocket webSocket,
-            CancellationToken cancellationToken)
-        {
-            using (var stream = new MemoryStream())
+            using (var messageStream = new MemoryStream())
             {
-                WebSocketReceiveResult result;
-                var buffer = new byte[_maxMessageSize];
+                await context.ReceiveMessageAsync(
+                    messageStream,
+                    cancellationToken);
 
-                do
-                {
-                    result = await webSocket.ReceiveAsync(
-                        new ArraySegment<byte>(buffer),
-                        cancellationToken);
-                    stream.Write(buffer, 0, result.Count);
-                }
-                while (!result.EndOfMessage);
-
-                string json = Encoding.UTF8.GetString(stream.ToArray());
+                string json = Encoding.UTF8.GetString(messageStream.ToArray());
                 if (string.IsNullOrEmpty(json?.Trim()))
                 {
                     return null;
                 }
 
-                return JsonConvert.DeserializeObject<GenericOperationMessage>(json);
+                return JsonConvert
+                    .DeserializeObject<GenericOperationMessage>(json);
             }
         }
     }

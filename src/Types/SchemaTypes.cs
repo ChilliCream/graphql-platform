@@ -116,7 +116,8 @@ namespace HotChocolate
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())
             {
-                foreach (InterfaceType interfaceType in objectType.Interfaces.Values)
+                foreach (InterfaceType interfaceType in
+                    objectType.Interfaces.Values)
                 {
                     if (!possibleTypes.TryGetValue(
                         interfaceType.Name, out List<ObjectType> pt))
