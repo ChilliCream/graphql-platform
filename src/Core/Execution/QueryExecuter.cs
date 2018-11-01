@@ -37,9 +37,14 @@ namespace HotChocolate.Execution
 
         public int CachedOperations => _queryCache.Usage;
 
+        public Task<IExecutionResult> ExecuteAsync(QueryRequest request)
+        {
+            return ExecuteAsync(request, default);
+        }
+
         public Task<IExecutionResult> ExecuteAsync(
             QueryRequest request,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (request == null)
             {
