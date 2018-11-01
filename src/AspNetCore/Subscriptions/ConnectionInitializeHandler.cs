@@ -28,7 +28,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 cancellationToken);
         }
     }
-
-
-
 }

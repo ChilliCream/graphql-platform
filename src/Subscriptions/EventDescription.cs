@@ -14,7 +14,8 @@ namespace HotChocolate.Subscriptions
         {
         }
 
-        public EventDescription(string name, IEnumerable<ArgumentNode> arguments)
+        public EventDescription(string name,
+            IEnumerable<ArgumentNode> arguments)
             : this(name, arguments.ToArray())
         {
         }
@@ -103,6 +104,16 @@ namespace HotChocolate.Subscriptions
 
         public override string ToString()
         {
+            if (Arguments.Any())
+            {
+                var serializer = new QuerySerializer();
+                string arguments = string.Join(", ", Arguments.Select(t =>
+                {
+                    serializer.Visit(t.Value);
+                    return t.Name.Value + " = " + serializer.Value;
+                }));
+                return Name + "(" + arguments + ")";
+            }
             return Name;
         }
     }
