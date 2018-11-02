@@ -42,7 +42,8 @@ namespace HotChocolate.AspNetCore
             };
         }
 
-        private static async Task<QueryRequest> ReadRequestAsync(HttpContext context)
+        private static async Task<QueryRequest> ReadRequestAsync(
+            HttpContext context)
         {
             using (StreamReader reader = new StreamReader(
                 context.Request.Body, Encoding.UTF8))
