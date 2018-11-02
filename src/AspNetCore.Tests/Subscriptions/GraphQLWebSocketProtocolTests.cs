@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private Uri SubscriptionUri { get; } =
-            new Uri("ws://localhost:5000/subscriptions");
+            new Uri("ws://localhost:5000/ws");
 
         private TestServerFactory TestServerFactory { get; }
 
@@ -29,8 +29,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             TestServer testServer = CreateTestServer();
-            WebSocketClient client = testServer.CreateWebSocketClient();
-            WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await client
+                .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
             // act and assert
             await ConnectAsync(webSocket);
@@ -42,8 +43,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             TestServer testServer = CreateTestServer();
-            WebSocketClient client = testServer.CreateWebSocketClient();
-            WebSocket webSocket = await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await client
+                .ConnectAsync(SubscriptionUri, CancellationToken.None);
+
             await ConnectAsync(webSocket);
 
             SubscriptionQuery query = new SubscriptionQuery
@@ -123,6 +126,18 @@ namespace HotChocolate.AspNetCore.Subscriptions
             message = await webSocket.ReceiveServerMessageAsync();
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Connection.KeepAlive, message.Type);
+        }
+
+        private static WebSocketClient CreateWebSocketClient(TestServer testServer)
+        {
+            WebSocketClient client = testServer.CreateWebSocketClient();
+
+            client.ConfigureRequest = r =>
+            {
+                r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
+            };
+
+            return client;
         }
 
         public class Mutation

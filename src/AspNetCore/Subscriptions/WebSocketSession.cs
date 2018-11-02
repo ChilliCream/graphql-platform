@@ -132,11 +132,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
             WebSocket socket = await httpContext.WebSockets
                 .AcceptWebSocketAsync(_protocol);
 
-            if (socket.SubProtocol.Contains(_protocol))
+            if (httpContext.WebSockets.WebSocketRequestedProtocols
+                .Contains(socket.SubProtocol))
             {
                 var context = new WebSocketContext(
                     httpContext, socket, queryExecuter);
                 return new WebSocketSession(context);
+            }
+            else
+            {
+                // TODO : send error message
+                socket.Dispose();
             }
 
             return null;

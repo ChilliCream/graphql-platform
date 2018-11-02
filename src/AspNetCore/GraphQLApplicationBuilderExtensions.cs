@@ -1,5 +1,6 @@
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate
 {
@@ -10,21 +11,30 @@ namespace HotChocolate
         {
             return applicationBuilder.UseMiddleware<PostQueryMiddleware>()
                 .UseMiddleware<GetQueryMiddleware>()
-                .UseMiddleware<SubscriptionMiddleware>();
+                .UseGraphQLSubscriptions("/ws");
         }
 
         public static IApplicationBuilder UseGraphQL(
-            this IApplicationBuilder applicationBuilder, string route)
+            this IApplicationBuilder applicationBuilder,
+            PathString route)
         {
             if (route == null)
             {
                 return UseGraphQL(applicationBuilder);
             }
 
-            return applicationBuilder.Map("/" + route.Trim('/'),
+            return applicationBuilder.Map(route,
                 app => app.UseMiddleware<PostQueryMiddleware>()
-                    .UseMiddleware<GetQueryMiddleware>()
-                    .UseMiddleware<SubscriptionMiddleware>());
+                    .UseMiddleware<GetQueryMiddleware>())
+                .UseGraphQLSubscriptions(route + "/ws");
+        }
+
+        private static IApplicationBuilder UseGraphQLSubscriptions(
+            this IApplicationBuilder applicationBuilder,
+            PathString route)
+        {
+            return applicationBuilder.Map(route,
+                app => app.UseMiddleware<SubscriptionMiddleware>());
         }
     }
 }
