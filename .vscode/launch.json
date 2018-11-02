@@ -8,7 +8,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/src/StarWars/bin/Debug/netcoreapp2.1/StarWars.dll",
+      "program": "${workspaceFolder}/src/Example/bin/Debug/netcoreapp2.1/Example.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
