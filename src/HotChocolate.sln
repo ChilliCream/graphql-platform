@@ -38,8 +38,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.InMemory", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.GraphiQL", "AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj", "{192E46F2-08EF-421C-AFA0-0B0640391C86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{08752F56-3EF1-41B5-9CCC-172090EB1B1E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -266,18 +264,6 @@ Global
 		{192E46F2-08EF-421C-AFA0-0B0640391C86}.Release|x64.Build.0 = Release|Any CPU
 		{192E46F2-08EF-421C-AFA0-0B0640391C86}.Release|x86.ActiveCfg = Release|Any CPU
 		{192E46F2-08EF-421C-AFA0-0B0640391C86}.Release|x86.Build.0 = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|x64.Build.0 = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Debug|x86.Build.0 = Debug|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|x64.ActiveCfg = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|x64.Build.0 = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|x86.ActiveCfg = Release|Any CPU
-		{08752F56-3EF1-41B5-9CCC-172090EB1B1E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
