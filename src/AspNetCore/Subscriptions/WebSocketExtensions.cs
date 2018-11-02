@@ -120,10 +120,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
     }
-
-
-
-
-
-
 }
