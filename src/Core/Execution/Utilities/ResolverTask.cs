@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResolverTask
     {
-        private IExecutionContext _executionContext;
+        private readonly IExecutionContext _executionContext;
 
         public ResolverTask(
             IExecutionContext executionContext,

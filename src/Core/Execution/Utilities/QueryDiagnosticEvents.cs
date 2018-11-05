@@ -18,9 +18,6 @@ namespace HotChocolate.Execution
         private const string _queryErrorEventName =
             _queryActivityName + ".QueryError";
 
-        private const string _validationErrorEventName =
-            _queryActivityName + ".ValidationError";
-
         private static readonly DiagnosticSource _src =
             new DiagnosticListener(_diagnosticListenerName);
 
