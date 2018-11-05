@@ -16,12 +16,12 @@ namespace HotChocolate.Execution
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly DirectiveLookup _directiveLookup;
         private readonly FieldCollector _fieldCollector;
-        private readonly ISession _session;
         private readonly IResolverCache _resolverCache;
+        private readonly OperationRequest _request;
         private readonly bool _disposeRootValue;
-        private readonly Func<CancellationToken, IExecutionContext> _clone;
 
         private bool _disposed;
+        private bool _disposeSession;
 
         public ExecutionContext(
             ISchema schema,
@@ -30,13 +30,8 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation,
             OperationRequest request,
             VariableCollection variables,
-            CancellationToken cancellationToken)
+            CancellationToken requestAborted)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
             _directiveLookup = directiveLookup
@@ -47,9 +42,10 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
             Variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
+            _request = request
+                ?? throw new ArgumentNullException(nameof(request));
 
             Services = _serviceFactory.Services = request.Services;
-            _session = request.Session;
             _resolverCache = request.Session?.CustomContexts
                 .GetCustomContext<IResolverCache>();
 
@@ -65,13 +61,7 @@ namespace HotChocolate.Execution
                 _disposeRootValue = true;
             }
 
-            RequestAborted = cancellationToken;
-            _clone = c => new ExecutionContext(
-                schema, directiveLookup, queryDocument,
-                operation, CreateOperationRequest(
-                    schema, request.VariableValues,
-                    request.InitialValue),
-                variables, c);
+            RequestAborted = requestAborted;
         }
 
         public ISchema Schema { get; }
@@ -82,9 +72,11 @@ namespace HotChocolate.Execution
 
         public object RootValue { get; }
 
-        public IDataLoaderProvider DataLoaders => _session.DataLoaders;
+        public IDataLoaderProvider DataLoaders =>
+            _request.Session.DataLoaders;
 
-        public ICustomContextProvider CustomContexts => _session.CustomContexts;
+        public ICustomContextProvider CustomContexts =>
+            _request.Session.CustomContexts;
 
         public DocumentNode QueryDocument { get; }
 
@@ -97,6 +89,9 @@ namespace HotChocolate.Execution
         public VariableCollection Variables { get; }
 
         public CancellationToken RequestAborted { get; }
+
+        public IReadOnlyDictionary<string, object> RequestProperties =>
+            _request.Properties;
 
         public void ReportError(IQueryError error)
         {
@@ -204,9 +199,43 @@ namespace HotChocolate.Execution
         private T CreateResolver<T>() =>
             (T)_serviceFactory.CreateInstance(typeof(T));
 
-        public IExecutionContext Clone(CancellationToken cancellationToken)
+        public IExecutionContext Clone(
+            IReadOnlyDictionary<string, object> requestProperties,
+            CancellationToken requestAborted)
         {
-            return _clone(cancellationToken);
+            var properties = new Dictionary<string, object>();
+            CopyProperties(_request.Properties, properties);
+            CopyProperties(requestProperties, properties);
+
+            ISession session = Schema.Sessions.CreateSession(Services);
+
+            OperationRequest request = _request.Clone(session);
+            request.Properties = properties;
+
+            return new ExecutionContext(
+                Schema,
+                _directiveLookup,
+                QueryDocument,
+                Operation,
+                request,
+                Variables,
+                requestAborted)
+            {
+                _disposeSession = true
+            };
+        }
+
+        private static void CopyProperties(
+            IEnumerable<KeyValuePair<string, object>> source,
+            Dictionary<string, object> target)
+        {
+            if (source != null)
+            {
+                foreach (KeyValuePair<string, object> item in source)
+                {
+                    target[item.Key] = item.Value;
+                }
+            }
         }
 
         public void Dispose()
@@ -223,25 +252,14 @@ namespace HotChocolate.Execution
                 {
                     d.Dispose();
                 }
+
+                if (_disposeSession)
+                {
+                    _request.Session.Dispose();
+                }
+
                 _disposed = true;
             }
-        }
-
-        private static OperationRequest CreateOperationRequest(
-            ISchema schema,
-            IReadOnlyDictionary<string, object> variableValues,
-            object initialValue)
-        {
-            // TODO : Dispose session when cloned
-
-            IServiceProvider service = schema.Services;
-            ISession session = schema.Sessions.CreateSession(service);
-
-            return new OperationRequest(service, session)
-            {
-                VariableValues = variableValues,
-                InitialValue = initialValue,
-            };
         }
     }
 }

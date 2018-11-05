@@ -146,6 +146,7 @@ namespace HotChocolate.Execution
                 Schema.Sessions.CreateSession(services))
             {
                 VariableValues = queryRequest.VariableValues,
+                Properties = queryRequest.Properties,
                 InitialValue = queryRequest.InitialValue,
             };
         }

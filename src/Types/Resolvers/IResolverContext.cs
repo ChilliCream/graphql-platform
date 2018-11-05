@@ -111,6 +111,17 @@ namespace HotChocolate.Resolvers
         T CustomContext<T>();
 
         /// <summary>
+        /// Gets a custom request property that was provided with the request.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The property value type.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the custom request property.
+        /// </returns>
+        T CustomProperty<T>(string key);
+
+        /// <summary>
         /// Gets a specific DataLoader.
         /// </summary>
         /// <param name="key">The DataLoader key.</param>

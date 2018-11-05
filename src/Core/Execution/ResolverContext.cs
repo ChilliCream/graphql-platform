@@ -154,6 +154,23 @@ namespace HotChocolate.Execution
             return _executionContext.CustomContexts.GetCustomContext<T>();
         }
 
+        public T CustomProperty<T>(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (_executionContext.RequestProperties
+                .TryGetValue(key, out object value) && value is T v)
+            {
+                return v;
+            }
+
+            throw new ArgumentException(
+                "The specified property does not exist.");
+        }
+
         public T DataLoader<T>(string key)
         {
             if (_executionContext.DataLoaders == null)
