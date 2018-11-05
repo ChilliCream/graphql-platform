@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         : SyntaxVisitor<ISyntaxNode>
     {
         private readonly StringBuilder _result = new StringBuilder();
+        private readonly bool _indent;
         private DocumentWriter _writer;
-        private bool _indent = false;
 
         public QuerySerializer()
         {
@@ -105,7 +105,9 @@ namespace HotChocolate.Language
                 {
                     _writer.Write('(');
 
-                    WriteMany(node.VariableDefinitions, VisitVariableDefinition);
+                    WriteMany(
+                        node.VariableDefinitions,
+                        VisitVariableDefinition);
 
                     _writer.Write(')');
                 }
@@ -407,7 +409,10 @@ namespace HotChocolate.Language
             WriteMany(items, action, ", ");
         }
 
-        private void WriteMany<T>(IEnumerable<T> items, Action<T> action, string separator)
+        private void WriteMany<T>(
+            IEnumerable<T> items,
+            Action<T> action,
+            string separator)
         {
             if (items.Any())
             {
@@ -420,7 +425,5 @@ namespace HotChocolate.Language
                 }
             }
         }
-
-
     }
 }
