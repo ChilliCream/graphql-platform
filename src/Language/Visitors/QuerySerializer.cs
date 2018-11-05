@@ -162,7 +162,11 @@ namespace HotChocolate.Language
 
             WriteMany(node.Directives, VisitDirective);
 
-            VisitSelectionSet(node.SelectionSet);
+            if (node.SelectionSet != null)
+            {
+                _writer.WriteSpace();
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
 
         protected override void VisitSelectionSet(SelectionSetNode node)
@@ -250,24 +254,28 @@ namespace HotChocolate.Language
         {
             _writer.WriteIndentation();
 
-            _writer.Write("... ");
+            _writer.Write("...");
 
             if (node.TypeCondition != null)
             {
+                _writer.WriteSpace();
                 _writer.Write(Keywords.On);
                 _writer.WriteSpace();
 
                 VisitNamedType(node.TypeCondition);
-                _writer.WriteSpace();
             }
 
             if (node.Directives.Any())
             {
-                WriteMany(node.Directives, VisitDirective, " ");
                 _writer.WriteSpace();
+                WriteMany(node.Directives, VisitDirective, " ");
             }
 
-            VisitSelectionSet(node.SelectionSet);
+            if (node.SelectionSet != null)
+            {
+                _writer.WriteSpace();
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
 
         protected override void VisitIntValue(IntValueNode node)
