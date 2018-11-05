@@ -15,9 +15,6 @@
         /// Gets the message payload.
         /// </summary>
         /// <value></value>
-        string Payload { get; }
-
-
+        object Payload { get; }
     }
 }
-
