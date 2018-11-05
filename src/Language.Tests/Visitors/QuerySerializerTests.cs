@@ -1,4 +1,5 @@
 
+using ChilliCream.Testing;
 using Xunit;
 
 namespace HotChocolate.Language
