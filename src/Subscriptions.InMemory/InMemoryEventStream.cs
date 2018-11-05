@@ -8,28 +8,26 @@ namespace HotChocolate.Subscriptions
         : IEventStream
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly IEventMessage _eventMessage;
         private TaskCompletionSource<IEventMessage> _taskCompletionSource =
             new TaskCompletionSource<IEventMessage>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
         public event EventHandler Completed;
 
-        public InMemoryEventStream(IEventMessage eventMessage)
-        {
-            _eventMessage = eventMessage
-                ?? throw new ArgumentNullException(nameof(eventMessage));
-        }
-
         public bool IsCompleted { get; private set; }
 
-        public void Trigger()
+        public void Trigger(IEventMessage message)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             _semaphore.Wait();
 
             try
             {
-                _taskCompletionSource.TrySetResult(_eventMessage);
+                _taskCompletionSource.TrySetResult(message);
             }
             finally
             {
@@ -60,7 +58,7 @@ namespace HotChocolate.Subscriptions
 
             return message;
         }
-               
+
         public Task CompleteAsync()
         {
             IsCompleted = true;

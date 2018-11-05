@@ -23,7 +23,7 @@ namespace HotChocolate.Subscriptions
                 {
                     foreach (var stream in subscribers)
                     {
-                        stream.Trigger();
+                        stream.Trigger(message);
                     }
                 }
             }
@@ -34,31 +34,32 @@ namespace HotChocolate.Subscriptions
         }
 
         public Task<IEventStream> SubscribeAsync(
-            IEventDescription eventReference)
+            IEventDescription eventDescription)
         {
-            if (eventReference == null)
+            if (eventDescription == null)
             {
-                throw new ArgumentNullException(nameof(eventReference));
+                throw new ArgumentNullException(nameof(eventDescription));
             }
 
-            return SubscribeInternalAsync(eventReference);
+            return SubscribeInternalAsync(eventDescription);
         }
 
         private async Task<IEventStream> SubscribeInternalAsync(
-            IEventDescription eventReference)
+            IEventDescription eventDescription)
         {
             await _semaphore.WaitAsync();
 
             try
             {
-                if (!_streams.TryGetValue(eventReference, out var subscribers))
+                if (!_streams.TryGetValue(eventDescription,
+                    out var subscribers))
                 {
                     subscribers = new List<InMemoryEventStream>();
-                    _streams[eventReference] = subscribers;
+                    _streams[eventDescription] = subscribers;
                 }
 
-                var eventMessage = new EventMessage(eventReference);
-                var stream = new InMemoryEventStream(eventMessage);
+                var eventMessage = new EventMessage(eventDescription);
+                var stream = new InMemoryEventStream();
                 stream.Completed += (s, e) => Unsubscribe(eventMessage, stream);
                 subscribers.Add(stream);
                 return stream;
