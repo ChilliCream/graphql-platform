@@ -38,7 +38,11 @@ namespace HotChocolate.Execution
 
         VariableCollection Variables { get; }
 
-        CancellationToken CancellationToken { get; }
+        /// <summary>
+        /// Notifies when the connection underlying this request is aborted
+        /// and thus request operations should be cancelled.
+        /// </summary>
+        CancellationToken RequestAborted { get; }
 
         void ReportError(IQueryError error);
 

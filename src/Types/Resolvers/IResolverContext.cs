@@ -56,6 +56,12 @@ namespace HotChocolate.Resolvers
         Path Path { get; }
 
         /// <summary>
+        /// Notifies when the connection underlying this request is aborted
+        /// and thus request operations should be cancelled.
+        /// </summary>
+        CancellationToken RequestAborted { get; }
+
+        /// <summary>
         /// Gets the previous (parent) resolver result.
         /// </summary>
         /// <typeparam name="T">
@@ -136,6 +142,7 @@ namespace HotChocolate.Resolvers
         /// </param>
         void ReportError(string errorMessage);
 
+        [Obsolete("Use RequestAborted.")]
         CancellationToken CancellationToken { get; }
     }
 }

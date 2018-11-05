@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
         public ResolverContext(
             IExecutionContext executionContext,
             ResolverTask resolverTask,
-            CancellationToken cancellationToken)
+            CancellationToken requestAborted)
         {
             if (executionContext == null)
             {
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
             _executionContext = executionContext;
             _resolverTask = resolverTask;
-            CancellationToken = cancellationToken;
+            RequestAborted = requestAborted;
 
             _arguments = _argumentResolver.CoerceArgumentValues(
                 resolverTask.FieldSelection, executionContext.Variables);
@@ -69,7 +69,9 @@ namespace HotChocolate.Execution
 
         public Path Path => _resolverTask.Path;
 
-        public CancellationToken CancellationToken { get; }
+        public CancellationToken CancellationToken => RequestAborted;
+
+        public CancellationToken RequestAborted { get; }
 
         public T Argument<T>(string name)
         {

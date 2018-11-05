@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
                 _disposeRootValue = true;
             }
 
-            CancellationToken = cancellationToken;
+            RequestAborted = cancellationToken;
             _clone = c => new ExecutionContext(
                 schema, directiveLookup, queryDocument,
                 operation, CreateOperationRequest(
@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
 
         public VariableCollection Variables { get; }
 
-        public CancellationToken CancellationToken { get; }
+        public CancellationToken RequestAborted { get; }
 
         public void ReportError(IQueryError error)
         {

@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
-                executionContext.CancellationToken);
+                executionContext.RequestAborted);
 
             Options = executionContext.Options;
 
