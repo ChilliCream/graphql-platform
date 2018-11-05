@@ -33,7 +33,7 @@ namespace HotChocolate.Subscriptions
             }
         }
 
-        public async Task<IEventStream> SubscribeAsync(
+        public Task<IEventStream> SubscribeAsync(
             IEventDescription eventReference)
         {
             if (eventReference == null)
@@ -41,6 +41,12 @@ namespace HotChocolate.Subscriptions
                 throw new ArgumentNullException(nameof(eventReference));
             }
 
+            return SubscribeInternalAsync(eventReference);
+        }
+
+        private async Task<IEventStream> SubscribeInternalAsync(
+            IEventDescription eventReference)
+        {
             await _semaphore.WaitAsync();
 
             try
