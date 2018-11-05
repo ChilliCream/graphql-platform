@@ -162,7 +162,9 @@ namespace HotChocolate.Language
             }
         }
 
-        protected void VisitMany<T>(IEnumerable<T> items, Action<T> action)
+        protected static void VisitMany<T>(
+            IEnumerable<T> items,
+            Action<T> action)
         {
             foreach (T item in items)
             {
