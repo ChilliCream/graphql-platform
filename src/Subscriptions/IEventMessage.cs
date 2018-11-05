@@ -10,6 +10,14 @@
         /// </summary>
         /// <value>The event.</value>
         IEventDescription Event { get; }
+
+        /// <summary>
+        /// Gets the message payload.
+        /// </summary>
+        /// <value></value>
+        string Payload { get; }
+
+
     }
 }
 
