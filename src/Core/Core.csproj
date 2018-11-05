@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GreenDonut" Version="1.0.3" />
+    <PackageReference Include="GreenDonut" Version="1.1.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
   </ItemGroup>
 
