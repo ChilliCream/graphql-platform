@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
   </ItemGroup>
 
   <ItemGroup>

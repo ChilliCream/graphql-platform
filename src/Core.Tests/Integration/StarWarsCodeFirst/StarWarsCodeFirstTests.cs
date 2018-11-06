@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Subscriptions;
 using Moq;
 using Xunit;
 
@@ -585,16 +588,51 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task SubscribeToReview()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            IResponseStream responseStream =
+                (IResponseStream)await schema.ExecuteAsync(
+                    "subscription { onCreateReview(episode: NEWHOPE) " +
+                    "{ stars } }");
+
+            // assert
+            IExecutionResult result = await schema.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEWHOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
+
+            IQueryExecutionResult eventResult;
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                eventResult = await responseStream.ReadAsync();
+            }
+
+            eventResult.Snapshot();
+        }
+
         private static Schema CreateSchema()
         {
-            CharacterRepository repository = new CharacterRepository();
-            Dictionary<Type, object> services = new Dictionary<Type, object>();
+            var repository = new CharacterRepository();
+            var eventRegistry = new InMemoryEventRegistry();
+
+            var services = new Dictionary<Type, object>();
             services[typeof(CharacterRepository)] = repository;
             services[typeof(Query)] = new Query(repository);
             services[typeof(Mutation)] = new Mutation();
+            services[typeof(Subscription)] = new Subscription();
+            services[typeof(IEventSender)] = eventRegistry;
+            services[typeof(IEventRegistry)] = eventRegistry;
 
-
-            Func<Type, object> serviceResolver = new Func<Type, object>(
+            var serviceResolver = new Func<Type, object>(
                 t =>
                 {
                     if (services.TryGetValue(t, out object s))
@@ -616,6 +654,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 c.RegisterDataLoader<HumanDataLoader>();
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
+                c.RegisterSubscriptionType<SubscriptionType>();
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();
