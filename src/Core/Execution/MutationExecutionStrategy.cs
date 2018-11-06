@@ -48,7 +48,8 @@ namespace HotChocolate.Execution
                 if (resolverTask.IsMaxExecutionDepthReached())
                 {
                     resolverTask.ReportError(
-                        $"The field has a depth of {resolverTask.Path.Depth}," +
+                        "The field has a depth of " +
+                        $"{resolverTask.Path.Depth + 1}," +
                         " which exceeds max allowed depth of " +
                         $"{executionContext.Options.MaxExecutionDepth}");
                 }

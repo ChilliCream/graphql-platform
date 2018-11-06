@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
                     resolverTask.Task = Task.FromResult<object>(null);
                     resolverTask.ReportError(
                         "The field has a depth of " +
-                        $"{resolverTask.Path.Depth}, " +
+                        $"{resolverTask.Path.Depth + 1}, " +
                         "which exceeds max allowed depth of " +
                         $"{resolverTask.Options.MaxExecutionDepth}");
                 }
