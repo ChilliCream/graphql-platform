@@ -226,7 +226,7 @@ namespace HotChocolate.Execution
         }
 
         private static void CopyProperties(
-            IEnumerable<KeyValuePair<string, object>> source,
+            IReadOnlyDictionary<string, object> source,
             Dictionary<string, object> target)
         {
             if (source != null)
