@@ -8,7 +8,7 @@ namespace HotChocolate.Resolvers
         public DirectiveArgumentSourceCodeGeneratorTests()
             : base(new DirectiveArgumentSourceCodeGenerator(),
                 typeof(string),
-                ArgumentKind.CustomContext,
+                ArgumentKind.Directive,
                 ArgumentKind.DirectiveArgument)
         {
         }
