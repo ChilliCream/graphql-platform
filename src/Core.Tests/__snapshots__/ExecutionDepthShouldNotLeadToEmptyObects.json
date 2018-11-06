@@ -9,61 +9,220 @@
         {
           "__typename": "Human",
           "homePlanet": "Tatooine",
-          "friends": null
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
         },
         {
           "__typename": "Human",
           "homePlanet": null,
-          "friends": null
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
         },
         {
           "__typename": "Human",
           "homePlanet": "Alderaan",
-          "friends": null
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
         }
       ]
     }
   },
   "Errors": [
     {
-      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
         "friends",
-        "friends"
+        "friends",
+        "__typename"
       ],
       "locations": [
         {
-          "line": 20,
-          "column": 30
+          "line": 21,
+          "column": 34
         }
       ]
     },
     {
-      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
         "friends",
-        "friends"
+        "friends",
+        "__typename"
       ],
       "locations": [
         {
-          "line": 20,
-          "column": 30
+          "line": 21,
+          "column": 34
         }
       ]
     },
     {
-      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
         "friends",
-        "friends"
+        "friends",
+        "__typename"
       ],
       "locations": [
         {
-          "line": 20,
-          "column": 30
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
         }
       ]
     }
