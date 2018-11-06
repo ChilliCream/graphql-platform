@@ -212,6 +212,7 @@ namespace HotChocolate.Utilities
             {
                 Type typeDefinition = type.GetGenericTypeDefinition();
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
+                    || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
                     || typeDefinition == typeof(IList<>))
                 {
