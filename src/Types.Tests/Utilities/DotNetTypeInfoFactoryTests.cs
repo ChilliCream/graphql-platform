@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -106,6 +107,7 @@ namespace HotChocolate.Utilities
             Assert.False(success);
         }
 
+        [InlineData(typeof(CustomStringList), "[String]")]
         [InlineData(typeof(List<string>), "[String]")]
         [InlineData(typeof(Collection<string>), "[String]")]
         [InlineData(typeof(ReadOnlyCollection<string>), "[String]")]
@@ -130,6 +132,16 @@ namespace HotChocolate.Utilities
             Assert.True(success);
             Assert.Equal(expectedTypeName,
                 typeInfo.TypeFactory(new StringType()).Visualize());
+        }
+
+        private class CustomStringList
+            : CustomStringListBase
+        {
+        }
+
+        private class CustomStringListBase
+            : List<string>
+        {
         }
     }
 }

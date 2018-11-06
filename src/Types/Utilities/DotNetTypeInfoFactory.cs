@@ -59,14 +59,16 @@ namespace HotChocolate.Utilities
                 if (IsListType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(new NonNullType(t)));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new ListType(new NonNullType(t)));
                     return true;
                 }
 
                 if (IsListType(components[0])
                     && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new ListType(t));
                     return true;
                 }
 
@@ -176,7 +178,7 @@ namespace HotChocolate.Utilities
                 return type.GetGenericArguments().First();
             }
 
-            if (ImplementsIList(type))
+            if (ImplementsListInterface(type))
             {
                 return GetInnerListType(type);
             }
@@ -198,6 +200,7 @@ namespace HotChocolate.Utilities
                     return interfaceType.GetGenericArguments().First();
                 }
             }
+
             return null;
         }
 
@@ -231,7 +234,7 @@ namespace HotChocolate.Utilities
         {
             return type.IsArray
                 || typeof(ListType) == type
-                || ImplementsIList(type);
+                || ImplementsListInterface(type);
         }
 
         private static bool IsTaskType(Type type)
@@ -261,7 +264,7 @@ namespace HotChocolate.Utilities
                 && !IsWrapperType(type);
         }
 
-        private static bool ImplementsIList(Type type)
+        private static bool ImplementsListInterface(Type type)
         {
             return GetInnerListType(type) != null;
         }
