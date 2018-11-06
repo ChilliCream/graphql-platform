@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.InMemory", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Acceptance.Tests", "Acceptance.Tests\Acceptance.Tests.csproj", "{32FF90B4-875B-4A54-94B5-07FAFE0C73DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Acceptance.Tests.Generator", "Acceptance.Tests.Generator\Acceptance.Tests.Generator.csproj", "{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -222,6 +224,18 @@ Global
 		{32FF90B4-875B-4A54-94B5-07FAFE0C73DD}.Release|x64.Build.0 = Release|Any CPU
 		{32FF90B4-875B-4A54-94B5-07FAFE0C73DD}.Release|x86.ActiveCfg = Release|Any CPU
 		{32FF90B4-875B-4A54-94B5-07FAFE0C73DD}.Release|x86.Build.0 = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|x64.Build.0 = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Debug|x86.Build.0 = Debug|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|x64.ActiveCfg = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|x64.Build.0 = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|x86.ActiveCfg = Release|Any CPU
+		{9BBE05C2-9EBF-46C7-8D7D-CEDCAAFEC83E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
