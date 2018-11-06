@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -19,6 +20,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             ArgumentKind argumentKind;
             if (TryCheckForResolverArguments(
                     parameter, sourceType, out argumentKind)
+                || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
                 || TryCheckForExtensions(parameter, out argumentKind)
@@ -172,6 +174,20 @@ namespace HotChocolate.Resolvers.CodeGeneration
             if (parameter.IsResolverResult())
             {
                 argumentKind = ArgumentKind.ResolverResult;
+                return true;
+            }
+
+            argumentKind = default(ArgumentKind);
+            return false;
+        }
+
+        private static bool TryCheckForSubscription(
+            this ParameterInfo parameter,
+            out ArgumentKind argumentKind)
+        {
+            if (typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType))
+            {
+                argumentKind = ArgumentKind.EventMessage;
                 return true;
             }
 

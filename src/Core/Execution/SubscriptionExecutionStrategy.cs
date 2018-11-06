@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
                 eventStream,
                 message => executionContext.Clone(
                     new Dictionary<string, object> {
-                        { EventMessageAttribute.PropertyKey, message } },
+                        { typeof(IEventMessage).FullName, message } },
                     cancellationToken),
                 ExecuteSubscriptionQueryAsync);
         }
