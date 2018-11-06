@@ -1,0 +1,124 @@
+scenario: 'Validate: Scalar leafs'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: valid scalar selection
+    given:
+      query: |
+        fragment scalarSelection on Dog {
+          barks
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      passes: true
+  - name: object type missing selection
+    given:
+      query: |
+        query directQueryOnObjectWithoutSubFields {
+          human
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: requiredSubselection
+        args: {fieldName: "human", type: "Human"}
+        loc: {line: 2, column: 3}
+  - name: interface type missing selection
+    given:
+      query: |
+        {
+          human { pets }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: requiredSubselection
+        args: {fieldName: "pets", type: "[Pet]"}
+        loc: {line: 2, column: 11}
+  - name: valid scalar selection with args
+    given:
+      query: |
+        fragment scalarSelectionWithArgs on Dog {
+          doesKnowCommand(dogCommand: SIT)
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      passes: true
+  - name: scalar selection not allowed on Boolean
+    given:
+      query: |
+        fragment scalarSelectionsNotAllowedOnBoolean on Dog {
+          barks { sinceWhen }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: noSubselectionAllowed
+        args: {fieldName: "barks", type: "Boolean"}
+        loc: {line: 2, column: 3}
+  - name: scalar selection not allowed on Enum
+    given:
+      query: |
+        fragment scalarSelectionsNotAllowedOnEnum on Cat {
+          furColor { inHexdec }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: noSubselectionAllowed
+        args: {fieldName: "furColor", type: "FurColor"}
+        loc: {line: 2, column: 3}
+  - name: scalar selection not allowed with args
+    given:
+      query: |
+        fragment scalarSelectionsNotAllowedWithArgs on Dog {
+          doesKnowCommand(dogCommand: SIT) { sinceWhen }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: noSubselectionAllowed
+        args: {fieldName: "doesKnowCommand", type: "Boolean"}
+        loc: {line: 2, column: 3}
+  - name: Scalar selection not allowed with directives
+    given:
+      query: |
+        fragment scalarSelectionsNotAllowedWithDirectives on Dog {
+          name @include(if: true) { isAlsoHumanName }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: noSubselectionAllowed
+        args: {fieldName: "name", type: "String"}
+        loc: {line: 2, column: 3}
+  - name: Scalar selection not allowed with directives and args
+    given:
+      query: |
+        fragment scalarSelectionsNotAllowedWithDirectivesAndArgs on Dog {
+          doesKnowCommand(dogCommand: SIT) @include(if: true) { sinceWhen }
+        }
+    when:
+      validate:
+        - ScalarLeafs
+    then:
+      - error-count: 1
+      - error-code: noSubselectionAllowed
+        args: {fieldName: "doesKnowCommand", type: "Boolean"}
+        loc: {line: 2, column: 3}

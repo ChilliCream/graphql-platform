@@ -1,0 +1,330 @@
+scenario: 'Validate: Known directives'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: with no directives
+    given:
+      query: |-
+        query Foo {
+          name
+          ...Frag
+        }
+
+        fragment Frag on Dog {
+          name
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      passes: true
+  - name: with known directives
+    given:
+      query: |-
+        {
+          dog @include(if: true) {
+            name
+          }
+          human @skip(if: false) {
+            name
+          }
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      passes: true
+  - name: with unknown directive
+    given:
+      query: |-
+        {
+          dog @unknown(directive: "value") {
+            name
+          }
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      - error-count: 1
+      - error-code: unknownDirective
+        args:
+          directiveName: unknown
+        loc:
+          line: 2
+          column: 7
+  - name: with many unknown directives
+    given:
+      query: |-
+        {
+          dog @unknown(directive: "value") {
+            name
+          }
+          human @unknown(directive: "value") {
+            name
+            pets @unknown(directive: "value") {
+              name
+            }
+          }
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      - error-count: 3
+      - error-code: unknownDirective
+        args:
+          directiveName: unknown
+        loc:
+          line: 2
+          column: 7
+      - error-code: unknownDirective
+        args:
+          directiveName: unknown
+        loc:
+          line: 5
+          column: 9
+      - error-code: unknownDirective
+        args:
+          directiveName: unknown
+        loc:
+          line: 7
+          column: 10
+  - name: with well placed directives
+    given:
+      query: |-
+        query Foo @onQuery {
+          name @include(if: true)
+          ...Frag @include(if: true)
+          skippedField @skip(if: true)
+          ...SkippedFrag @skip(if: true)
+        }
+
+        mutation Bar @onMutation {
+          someField
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      passes: true
+  - name: with misplaced directives
+    given:
+      query: |-
+        query Foo @include(if: true) {
+          name @onQuery
+          ...Frag @onQuery
+        }
+
+        mutation Bar @onQuery {
+          someField
+        }
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      - error-count: 4
+      - error-code: misplacedDirective
+        args:
+          directiveName: include
+          location: QUERY
+        loc:
+          line: 1
+          column: 11
+      - error-code: misplacedDirective
+        args:
+          directiveName: onQuery
+          location: FIELD
+        loc:
+          line: 2
+          column: 8
+      - error-code: misplacedDirective
+        args:
+          directiveName: onQuery
+          location: FRAGMENT_SPREAD
+        loc:
+          line: 3
+          column: 11
+      - error-code: misplacedDirective
+        args:
+          directiveName: onQuery
+          location: MUTATION
+        loc:
+          line: 6
+          column: 14
+  - name: within schema language with well placed directives
+    given:
+      query: |-
+        type MyObj implements MyInterface @onObject {
+          myField(myArg: Int @onArgumentDefinition): String @onFieldDefinition
+        }
+
+        extend type MyObj @onObject
+
+        scalar MyScalar @onScalar
+
+        extend scalar MyScalar @onScalar
+
+        interface MyInterface @onInterface {
+          myField(myArg: Int @onArgumentDefinition): String @onFieldDefinition
+        }
+
+        extend interface MyInterface @onInterface
+
+        union MyUnion @onUnion = MyObj | Other
+
+        extend union MyUnion @onUnion
+
+        enum MyEnum @onEnum {
+          MY_VALUE @onEnumValue
+        }
+
+        extend enum MyEnum @onEnum
+
+        input MyInput @onInputObject {
+          myField: Int @onInputFieldDefinition
+        }
+
+        extend input MyInput @onInputObject
+
+        schema @onSchema {
+          query: MyQuery
+        }
+
+        extend schema @onSchema
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      passes: true
+  - name: within schema language with misplaced directives
+    given:
+      query: |-
+        type MyObj implements MyInterface @onInterface {
+          myField(myArg: Int @onInputFieldDefinition): String @onInputFieldDefinition
+        }
+
+        scalar MyScalar @onEnum
+
+        interface MyInterface @onObject {
+          myField(myArg: Int @onInputFieldDefinition): String @onInputFieldDefinition
+        }
+
+        union MyUnion @onEnumValue = MyObj | Other
+
+        enum MyEnum @onScalar {
+          MY_VALUE @onUnion
+        }
+
+        input MyInput @onEnum {
+          myField: Int @onArgumentDefinition
+        }
+
+        schema @onObject {
+          query: MyQuery
+        }
+
+        extend schema @onObject
+    when:
+      validate:
+        - KnownDirectives
+    then:
+      - error-count: 14
+      - error-code: misplacedDirective
+        args:
+          directiveName: onInterface
+          location: OBJECT
+        loc:
+          line: 1
+          column: 35
+      - error-code: misplacedDirective
+        args:
+          directiveName: onInputFieldDefinition
+          location: ARGUMENT_DEFINITION
+        loc:
+          line: 2
+          column: 22
+      - error-code: misplacedDirective
+        args:
+          directiveName: onInputFieldDefinition
+          location: FIELD_DEFINITION
+        loc:
+          line: 2
+          column: 55
+      - error-code: misplacedDirective
+        args:
+          directiveName: onEnum
+          location: SCALAR
+        loc:
+          line: 5
+          column: 17
+      - error-code: misplacedDirective
+        args:
+          directiveName: onObject
+          location: INTERFACE
+        loc:
+          line: 7
+          column: 23
+      - error-code: misplacedDirective
+        args:
+          directiveName: onInputFieldDefinition
+          location: ARGUMENT_DEFINITION
+        loc:
+          line: 8
+          column: 22
+      - error-code: misplacedDirective
+        args:
+          directiveName: onInputFieldDefinition
+          location: FIELD_DEFINITION
+        loc:
+          line: 8
+          column: 55
+      - error-code: misplacedDirective
+        args:
+          directiveName: onEnumValue
+          location: UNION
+        loc:
+          line: 11
+          column: 15
+      - error-code: misplacedDirective
+        args:
+          directiveName: onScalar
+          location: ENUM
+        loc:
+          line: 13
+          column: 13
+      - error-code: misplacedDirective
+        args:
+          directiveName: onUnion
+          location: ENUM_VALUE
+        loc:
+          line: 14
+          column: 12
+      - error-code: misplacedDirective
+        args:
+          directiveName: onEnum
+          location: INPUT_OBJECT
+        loc:
+          line: 17
+          column: 15
+      - error-code: misplacedDirective
+        args:
+          directiveName: onArgumentDefinition
+          location: INPUT_FIELD_DEFINITION
+        loc:
+          line: 18
+          column: 16
+      - error-code: misplacedDirective
+        args:
+          directiveName: onObject
+          location: SCHEMA
+        loc:
+          line: 21
+          column: 8
+      - error-code: misplacedDirective
+        args:
+          directiveName: onObject
+          location: SCHEMA
+        loc:
+          line: 25
+          column: 15

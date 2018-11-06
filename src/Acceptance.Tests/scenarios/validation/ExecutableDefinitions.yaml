@@ -1,0 +1,103 @@
+scenario: 'Validate: Executable definitions'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: with only operation
+    given:
+      query: |-
+        query Foo {
+          dog {
+            name
+          }
+        }
+    when:
+      validate:
+        - ExecutableDefinitions
+    then:
+      passes: true
+  - name: with operation and fragment
+    given:
+      query: |-
+        query Foo {
+          dog {
+            name
+            ...Frag
+          }
+        }
+
+        fragment Frag on Dog {
+          name
+        }
+    when:
+      validate:
+        - ExecutableDefinitions
+    then:
+      passes: true
+  - name: with type definition
+    given:
+      query: |-
+        query Foo {
+          dog {
+            name
+          }
+        }
+
+        type Cow {
+          name: String
+        }
+
+        extend type Dog {
+          color: String
+        }
+    when:
+      validate:
+        - ExecutableDefinitions
+    then:
+      - error-count: 2
+      - error-code: nonExecutableDefinition
+        args:
+          defName: Cow
+        loc:
+          line: 7
+          column: 1
+      - error-code: nonExecutableDefinition
+        args:
+          defName: Dog
+        loc:
+          line: 11
+          column: 1
+  - name: with schema definition
+    given:
+      query: |-
+        schema {
+          query: Query
+        }
+
+        type Query {
+          test: String
+        }
+
+        extend schema @directive
+    when:
+      validate:
+        - ExecutableDefinitions
+    then:
+      - error-count: 3
+      - error-code: nonExecutableDefinition
+        args:
+          defName: schema
+        loc:
+          line: 1
+          column: 1
+      - error-code: nonExecutableDefinition
+        args:
+          defName: Query
+        loc:
+          line: 5
+          column: 1
+      - error-code: nonExecutableDefinition
+        args:
+          defName: schema
+        loc:
+          line: 9
+          column: 1
