@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
@@ -106,6 +107,8 @@ namespace HotChocolate.Utilities
         }
 
         [InlineData(typeof(List<string>), "[String]")]
+        [InlineData(typeof(Collection<string>), "[String]")]
+        [InlineData(typeof(ReadOnlyCollection<string>), "[String]")]
         [InlineData(typeof(ImmutableList<string>), "[String]")]
         [InlineData(typeof(ImmutableArray<string>), "[String]")]
         [InlineData(typeof(IList<string>), "[String]")]

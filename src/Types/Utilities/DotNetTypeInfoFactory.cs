@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -185,7 +186,7 @@ namespace HotChocolate.Utilities
 
         private static Type GetInnerListType(Type type)
         {
-            if (type.IsInterface && IsSupportedCollectionInterface(type))
+            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
             {
                 return type.GetGenericArguments().First();
             }
@@ -200,13 +201,24 @@ namespace HotChocolate.Utilities
             return null;
         }
 
-        private static bool IsSupportedCollectionInterface(Type type)
+        private static bool IsSupportedCollectionInterface(Type type) =>
+            IsSupportedCollectionInterface(type, false);
+
+        private static bool IsSupportedCollectionInterface(
+            Type type,
+            bool allowEnumerable)
         {
             if (type.IsGenericType)
             {
                 Type typeDefinition = type.GetGenericTypeDefinition();
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
+                    || typeDefinition == typeof(ICollection<>)
                     || typeDefinition == typeof(IList<>))
+                {
+                    return true;
+                }
+
+                if (allowEnumerable && typeDefinition == typeof(IEnumerable<>))
                 {
                     return true;
                 }
