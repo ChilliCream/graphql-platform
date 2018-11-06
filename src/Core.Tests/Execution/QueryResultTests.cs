@@ -22,6 +22,21 @@ namespace Core.Tests.Execution
         }
 
         [Fact]
+        public void ToJson_OnlyData_JsonStringNoIndentations()
+        {
+            // arrange
+            var data = new OrderedDictionary();
+            var result = new QueryResult(data);
+
+            // act
+            string json = result.ToJson(false);
+
+
+            // assert
+
+        }
+
+        [Fact]
         public void Create_OnlyData_ErrorIsNull()
         {
             // arrange
