@@ -351,11 +351,7 @@ namespace HotChocolate.Language
 
         protected override void VisitObjectField(ObjectFieldNode node)
         {
-            VisitName(node.Name);
-
-            _writer.Write(": ");
-
-            VisitValue(node.Value);
+            WriteField(node.Name, node.Value);
         }
 
         protected override void VisitVariable(VariableNode node)
@@ -382,11 +378,7 @@ namespace HotChocolate.Language
 
         protected override void VisitArgument(ArgumentNode node)
         {
-            VisitName(node.Name);
-
-            _writer.Write(": ");
-
-            VisitValue(node.Value);
+            WriteField(node.Name, node.Value);
         }
 
         protected override void VisitNonNullType(NonNullTypeNode node)
@@ -410,6 +402,15 @@ namespace HotChocolate.Language
         protected override void VisitName(NameNode node)
         {
             _writer.Write(node.Value);
+        }
+
+        private void WriteField(NameNode name, IValueNode value)
+        {
+            VisitName(name);
+
+            _writer.Write(": ");
+
+            VisitValue(value);
         }
 
         private void WriteMany<T>(IEnumerable<T> items, Action<T> action)

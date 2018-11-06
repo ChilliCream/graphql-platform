@@ -116,7 +116,7 @@ namespace HotChocolate.Execution
                     _resolverTask.FieldSelection.Selection));
         }
 
-        private bool TryConvertValue<T>(
+        private static bool TryConvertValue<T>(
             ArgumentValue argumentValue,
             out T value)
         {
