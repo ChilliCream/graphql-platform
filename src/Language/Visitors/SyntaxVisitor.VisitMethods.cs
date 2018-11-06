@@ -110,6 +110,11 @@ namespace HotChocolate.Language
 
         protected virtual void VisitValue(IValueNode node)
         {
+            if (node is null)
+            {
+                return;
+            }
+
             switch (node)
             {
                 case IntValueNode value:
