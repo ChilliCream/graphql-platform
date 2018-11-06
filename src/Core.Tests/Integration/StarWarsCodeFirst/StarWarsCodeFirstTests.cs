@@ -699,11 +699,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             return Schema.Create(c =>
             {
                 c.Options.MaxExecutionDepth = executionDepth;
+
                 c.RegisterServiceProvider(serviceProvider.Object);
+
                 c.RegisterDataLoader<HumanDataLoader>();
+
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
                 c.RegisterSubscriptionType<SubscriptionType>();
+
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();
