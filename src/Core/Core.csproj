@@ -29,8 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\Types.csproj" />
-    <ProjectReference Include="..\Runtime\Runtime.csproj" />
-    <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
   </ItemGroup>
 
 </Project>

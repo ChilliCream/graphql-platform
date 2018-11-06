@@ -29,7 +29,10 @@ namespace HotChocolate.Execution
 
             return new SubscriptionResult(
                 eventStream,
-                () => executionContext.Clone(default),
+                message => executionContext.Clone(
+                    new Dictionary<string, object> {
+                        { typeof(IEventMessage).FullName, message } },
+                    cancellationToken),
                 ExecuteSubscriptionQueryAsync);
         }
 
@@ -102,17 +105,14 @@ namespace HotChocolate.Execution
                 CancellationTokenSource.CreateLinkedTokenSource(
                     requestTimeoutCts.Token, cancellationToken);
 
-            IExecutionContext internalContext =
-                executionContext.Clone(combinedCts.Token);
-
             try
             {
                 return await ExecuteQueryAsync(
-                    internalContext, combinedCts.Token);
+                    executionContext,
+                    combinedCts.Token);
             }
             finally
             {
-                executionContext.Dispose();
                 combinedCts.Dispose();
                 requestTimeoutCts.Dispose();
             }

@@ -23,12 +23,13 @@
     <PackageReference Include="Moq" Version="4.8.1" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.1.0" />
+    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
   </ItemGroup>
 
   <ItemGroup>

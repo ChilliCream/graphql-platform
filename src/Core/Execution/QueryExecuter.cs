@@ -46,6 +46,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
+            return ExecuteInternalAsync(request, cancellationToken);
+        }
+
+        private async Task<IExecutionResult> ExecuteInternalAsync(
+           QueryRequest request,
+           CancellationToken cancellationToken = default)
+        {
             QueryInfo queryInfo = null;
             Activity activity = QueryDiagnosticEvents.BeginExecute(
                 Schema,
@@ -62,11 +69,10 @@ namespace HotChocolate.Execution
                         queryInfo.QueryDocument,
                         queryInfo.ValidationResult.Errors);
 
-                    return Task.FromResult<IExecutionResult>(
-                        new QueryResult(queryInfo.ValidationResult.Errors));
+                    return new QueryResult(queryInfo.ValidationResult.Errors);
                 }
 
-                return ExecuteInternalAsync(
+                return await ExecuteOperationAsync(
                     request, queryInfo, cancellationToken);
             }
             finally
@@ -79,7 +85,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task<IExecutionResult> ExecuteInternalAsync(
+        private async Task<IExecutionResult> ExecuteOperationAsync(
             QueryRequest queryRequest,
             QueryInfo queryInfo,
             CancellationToken cancellationToken)
@@ -146,6 +152,7 @@ namespace HotChocolate.Execution
                 Schema.Sessions.CreateSession(services))
             {
                 VariableValues = queryRequest.VariableValues,
+                Properties = queryRequest.Properties,
                 InitialValue = queryRequest.InitialValue,
             };
         }

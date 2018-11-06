@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
     <ProjectReference Include="..\Language\Language.csproj" />
     <ProjectReference Include="..\Runtime\Runtime.csproj" />
   </ItemGroup>

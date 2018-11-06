@@ -7,7 +7,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
     {
         protected override void Configure(IObjectTypeDescriptor<Mutation> descriptor)
         {
-            descriptor.Field(t => t.CreateReview(default, default))
+            descriptor.Field(t => t.CreateReview(default, default, default))
                 .Type<NonNullType<ReviewType>>()
                 .Argument("review", a => a.Type<NonNullType<ReviewInputType>>());
         }

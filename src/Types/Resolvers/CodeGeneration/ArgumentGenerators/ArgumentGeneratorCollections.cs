@@ -20,7 +20,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 new ObjectTypeArgumentSourceCodeGenerator(),
                 new FieldSelectionArgumentSourceCodeGenerator(),
                 new FieldArgumentSourceCodeGenerator(),
-                new CustomArgumentSourceCodeGenerator()
+                new CustomArgumentSourceCodeGenerator(),
+                new EventMessageArgumentSourceCodeGenerator(),
             }.AsReadOnly();
 
         public static ReadOnlyCollection<ArgumentSourceCodeGenerator> MiddlewareArguments { get; } =

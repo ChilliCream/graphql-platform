@@ -28,18 +28,5 @@ namespace HotChocolate.Validation
             : base(message, CreateLocations(syntaxNodes))
         {
         }
-
-        private static IReadOnlyCollection<Location> CreateLocations(
-            params Language.ISyntaxNode[] syntaxNodes)
-        {
-            if (syntaxNodes?.Length == 0)
-            {
-                return null;
-            }
-
-            return syntaxNodes.Select(t => new Location(
-                t.Location.StartToken.Line,
-                t.Location.StartToken.Column)).ToArray();
-        }
     }
 }

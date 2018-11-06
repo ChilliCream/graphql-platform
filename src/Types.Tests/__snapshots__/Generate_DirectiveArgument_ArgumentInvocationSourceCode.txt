@@ -1,0 +1,1 @@
+dir.GetArgument<System.String>("foo")

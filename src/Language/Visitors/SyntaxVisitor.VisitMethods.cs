@@ -68,6 +68,9 @@ namespace HotChocolate.Language
         protected virtual void VisitInputObjectTypeDefinition(
             InputObjectTypeDefinitionNode node)
         { }
+        protected virtual void VisitSchemaExtension(
+            SchemaExtensionNode node)
+        { }
         protected virtual void VisitScalarTypeExtension(
             ScalarTypeExtensionNode node)
         { }
@@ -110,6 +113,11 @@ namespace HotChocolate.Language
 
         protected virtual void VisitValue(IValueNode node)
         {
+            if (node is null)
+            {
+                return;
+            }
+
             switch (node)
             {
                 case IntValueNode value:
@@ -162,7 +170,9 @@ namespace HotChocolate.Language
             }
         }
 
-        protected void VisitMany<T>(IEnumerable<T> items, Action<T> action)
+        protected static void VisitMany<T>(
+            IEnumerable<T> items,
+            Action<T> action)
         {
             foreach (T item in items)
             {

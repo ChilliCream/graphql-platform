@@ -19,6 +19,7 @@
         Directive,
         DirectiveArgument,
         DirectiveContext,
-        DirectiveObject
+        DirectiveObject,
+        EventMessage
     }
 }

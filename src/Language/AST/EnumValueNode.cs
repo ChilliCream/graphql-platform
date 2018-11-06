@@ -11,6 +11,11 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<EnumValueNode>
     {
+        public EnumValueNode(object value)
+            : this(null, value.ToString().ToUpperInvariant())
+        {
+        }
+
         public EnumValueNode(string value)
             : this(null, value)
         {

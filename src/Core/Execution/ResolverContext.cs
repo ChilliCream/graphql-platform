@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
         public ResolverContext(
             IExecutionContext executionContext,
             ResolverTask resolverTask,
-            CancellationToken cancellationToken)
+            CancellationToken requestAborted)
         {
             if (executionContext == null)
             {
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
             _executionContext = executionContext;
             _resolverTask = resolverTask;
-            CancellationToken = cancellationToken;
+            RequestAborted = requestAborted;
 
             _arguments = _argumentResolver.CoerceArgumentValues(
                 resolverTask.FieldSelection, executionContext.Variables);
@@ -69,7 +69,9 @@ namespace HotChocolate.Execution
 
         public Path Path => _resolverTask.Path;
 
-        public CancellationToken CancellationToken { get; }
+        public CancellationToken CancellationToken => RequestAborted;
+
+        public CancellationToken RequestAborted { get; }
 
         public T Argument<T>(string name)
         {
@@ -114,7 +116,7 @@ namespace HotChocolate.Execution
                     _resolverTask.FieldSelection.Selection));
         }
 
-        private bool TryConvertValue<T>(
+        private static bool TryConvertValue<T>(
             ArgumentValue argumentValue,
             out T value)
         {
@@ -150,6 +152,23 @@ namespace HotChocolate.Execution
                 return default;
             }
             return _executionContext.CustomContexts.GetCustomContext<T>();
+        }
+
+        public T CustomProperty<T>(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (_executionContext.RequestProperties
+                .TryGetValue(key, out object value) && value is T v)
+            {
+                return v;
+            }
+
+            throw new ArgumentException(
+                "The specified property does not exist.");
         }
 
         public T DataLoader<T>(string key)
