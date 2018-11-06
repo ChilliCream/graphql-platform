@@ -68,6 +68,9 @@ namespace HotChocolate.Language
         protected virtual void VisitInputObjectTypeDefinition(
             InputObjectTypeDefinitionNode node)
         { }
+        protected virtual void VisitSchemaExtension(
+            SchemaExtensionNode node)
+        { }
         protected virtual void VisitScalarTypeExtension(
             ScalarTypeExtensionNode node)
         { }

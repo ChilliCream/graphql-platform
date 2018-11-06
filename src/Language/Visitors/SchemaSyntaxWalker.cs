@@ -73,6 +73,9 @@ namespace HotChocolate.Language
         {
             switch (node)
             {
+                case SchemaExtensionNode value:
+                    VisitSchemaExtension(value);
+                    break;
                 case ScalarTypeExtensionNode value:
                     VisitScalarTypeExtension(value);
                     break;
@@ -97,6 +100,12 @@ namespace HotChocolate.Language
         }
 
         protected override void VisitSchemaDefinition(SchemaDefinitionNode node)
+        {
+            VisitMany(node.Directives, VisitDirective);
+            VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
+        }
+
+        protected override void VisitSchemaExtension(SchemaExtensionNode node)
         {
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
