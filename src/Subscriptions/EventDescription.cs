@@ -73,19 +73,19 @@ namespace HotChocolate.Subscriptions
             return false;
         }
 
-        public override bool Equals(object other)
+        public override bool Equals(object obj)
         {
-            if (other is null)
+            if (obj is null)
             {
                 return false;
             }
 
-            if (ReferenceEquals(this, other))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-            return Equals(other as EventDescription);
+            return Equals(obj as EventDescription);
         }
 
         public override int GetHashCode()

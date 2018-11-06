@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
@@ -31,7 +33,9 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<string[]>), "[String]")]
         [InlineData(typeof(NativeType<Task<string[]>>), "[String]")]
         [Theory]
-        public void CreateTypeInfoFromReferenceType(Type nativeType, string expectedTypeName)
+        public void CreateTypeInfoFromReferenceType(
+            Type nativeType,
+            string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
@@ -41,7 +45,8 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.True(success);
-            Assert.Equal(expectedTypeName, typeInfo.TypeFactory(new StringType()).Visualize());
+            Assert.Equal(expectedTypeName,
+                typeInfo.TypeFactory(new StringType()).Visualize());
         }
 
         [InlineData(typeof(int), "Int!")]
@@ -79,7 +84,8 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.True(success);
-            Assert.Equal(expectedTypeName, typeInfo.TypeFactory(new IntType()).Visualize());
+            Assert.Equal(expectedTypeName,
+                typeInfo.TypeFactory(new IntType()).Visualize());
         }
 
         [InlineData(typeof(NativeType<StringType>))]
@@ -101,10 +107,15 @@ namespace HotChocolate.Utilities
             Assert.False(success);
         }
 
+        [InlineData(typeof(CustomStringList), "[String]")]
         [InlineData(typeof(List<string>), "[String]")]
+        [InlineData(typeof(Collection<string>), "[String]")]
+        [InlineData(typeof(ReadOnlyCollection<string>), "[String]")]
         [InlineData(typeof(ImmutableList<string>), "[String]")]
         [InlineData(typeof(ImmutableArray<string>), "[String]")]
         [InlineData(typeof(IList<string>), "[String]")]
+        [InlineData(typeof(ICollection<string>), "[String]")]
+        [InlineData(typeof(IEnumerable<string>), "[String]")]
         [InlineData(typeof(IReadOnlyCollection<string>), "[String]")]
         [InlineData(typeof(IReadOnlyList<string>), "[String]")]
         [InlineData(typeof(string[]), "[String]")]
@@ -119,7 +130,18 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.True(success);
-            Assert.Equal(expectedTypeName, typeInfo.TypeFactory(new StringType()).Visualize());
+            Assert.Equal(expectedTypeName,
+                typeInfo.TypeFactory(new StringType()).Visualize());
+        }
+
+        private class CustomStringList
+            : CustomStringListBase
+        {
+        }
+
+        private class CustomStringListBase
+            : List<string>
+        {
         }
     }
 }

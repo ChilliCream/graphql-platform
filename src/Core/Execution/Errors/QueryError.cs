@@ -200,6 +200,19 @@ namespace HotChocolate.Execution
             };
         }
 
+        protected static IReadOnlyCollection<Location> CreateLocations(
+            params Language.ISyntaxNode[] syntaxNodes)
+        {
+            if (syntaxNodes?.Length == 0)
+            {
+                return null;
+            }
+
+            return syntaxNodes.Select(t => new Location(
+                t.Location.StartToken.Line,
+                t.Location.StartToken.Column)).ToArray();
+        }
+
         #endregion
     }
 }

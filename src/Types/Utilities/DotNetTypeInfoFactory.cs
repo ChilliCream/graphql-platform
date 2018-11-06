@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -58,14 +59,16 @@ namespace HotChocolate.Utilities
                 if (IsListType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(new NonNullType(t)));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new ListType(new NonNullType(t)));
                     return true;
                 }
 
                 if (IsListType(components[0])
                     && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new ListType(t));
                     return true;
                 }
 
@@ -175,7 +178,7 @@ namespace HotChocolate.Utilities
                 return type.GetGenericArguments().First();
             }
 
-            if (ImplementsIList(type))
+            if (ImplementsListInterface(type))
             {
                 return GetInnerListType(type);
             }
@@ -185,7 +188,7 @@ namespace HotChocolate.Utilities
 
         private static Type GetInnerListType(Type type)
         {
-            if (type.IsInterface && IsSupportedCollectionInterface(type))
+            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
             {
                 return type.GetGenericArguments().First();
             }
@@ -197,16 +200,29 @@ namespace HotChocolate.Utilities
                     return interfaceType.GetGenericArguments().First();
                 }
             }
+
             return null;
         }
 
-        private static bool IsSupportedCollectionInterface(Type type)
+        private static bool IsSupportedCollectionInterface(Type type) =>
+            IsSupportedCollectionInterface(type, false);
+
+        private static bool IsSupportedCollectionInterface(
+            Type type,
+            bool allowEnumerable)
         {
             if (type.IsGenericType)
             {
                 Type typeDefinition = type.GetGenericTypeDefinition();
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
+                    || typeDefinition == typeof(IReadOnlyList<>)
+                    || typeDefinition == typeof(ICollection<>)
                     || typeDefinition == typeof(IList<>))
+                {
+                    return true;
+                }
+
+                if (allowEnumerable && typeDefinition == typeof(IEnumerable<>))
                 {
                     return true;
                 }
@@ -218,7 +234,7 @@ namespace HotChocolate.Utilities
         {
             return type.IsArray
                 || typeof(ListType) == type
-                || ImplementsIList(type);
+                || ImplementsListInterface(type);
         }
 
         private static bool IsTaskType(Type type)
@@ -248,7 +264,7 @@ namespace HotChocolate.Utilities
                 && !IsWrapperType(type);
         }
 
-        private static bool ImplementsIList(Type type)
+        private static bool ImplementsListInterface(Type type)
         {
             return GetInnerListType(type) != null;
         }

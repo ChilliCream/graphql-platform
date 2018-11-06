@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         : ISubscriptionExecutionResult
     {
         private readonly IEventStream _eventStream;
-        private readonly Func<IExecutionContext> _contextFactory;
+        private readonly Func<IEventMessage, IExecutionContext> _contextFactory;
         private readonly ExecuteSubscriptionQuery _executeQuery;
         private readonly CancellationTokenSource _cancellationTokenSource =
             new CancellationTokenSource();
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
 
         public SubscriptionResult(
             IEventStream eventStream,
-            Func<IExecutionContext> contextFactory,
+            Func<IEventMessage, IExecutionContext> contextFactory,
             ExecuteSubscriptionQuery executeQuery)
         {
             _eventStream = eventStream
@@ -54,15 +54,16 @@ namespace HotChocolate.Execution
             using (var ct = CancellationTokenSource.CreateLinkedTokenSource(
                 _cancellationTokenSource.Token, cancellationToken))
             {
-                await _eventStream.ReadAsync(ct.Token);
-                return await ExecuteQueryAsync(ct.Token);
+                IEventMessage message = await _eventStream.ReadAsync(ct.Token);
+                return await ExecuteQueryAsync(message, ct.Token);
             }
         }
 
         private async Task<IQueryExecutionResult> ExecuteQueryAsync(
+            IEventMessage message,
             CancellationToken cancellationToken)
         {
-            using (IExecutionContext context = _contextFactory())
+            using (IExecutionContext context = _contextFactory(message))
             {
                 return await _executeQuery(context, cancellationToken);
             }

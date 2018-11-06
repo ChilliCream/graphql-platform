@@ -67,7 +67,9 @@ namespace HotChocolate.Execution
             return ParseLiteral(argumentType, defaultValue);
         }
 
-        private object ParseLiteral(IInputType argumentType, IValueNode value)
+        private static object ParseLiteral(
+            IInputType argumentType,
+            IValueNode value)
         {
             IInputType type = (argumentType is NonNullType)
                 ? (IInputType)argumentType.InnerType()

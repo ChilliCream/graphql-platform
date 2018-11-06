@@ -36,7 +36,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             source.AppendLine($"var resolver = ctx.{nameof(IDirectiveContext.Resolver)}<{descriptor.Type.GetTypeName()}>();");
             source.AppendLine($"var dir = ctx.{nameof(IDirectiveContext.Directive)};");
-            source.AppendLine($"var ct = ctx.{nameof(IDirectiveContext.CancellationToken)};");
+            source.AppendLine($"var ct = ctx.{nameof(IDirectiveContext.RequestAborted)};");
             source.AppendLine($"var rr = ctx.{nameof(IDirectiveContext.Result)};");
             source.AppendLine($"if(rr is {typeof(IResolverResult).GetTypeName()} trr)");
             source.AppendLine("{");

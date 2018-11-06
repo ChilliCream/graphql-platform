@@ -42,8 +42,8 @@ namespace HotChocolate.Execution
                 resolverTask.FieldSelection.Field.Type.IsLeafType();
 
             int maxExecutionDepth = isLeafField
-                ? resolverTask.Options.MaxExecutionDepth
-                : resolverTask.Options.MaxExecutionDepth - 1;
+                ? resolverTask.Options.MaxExecutionDepth - 1
+                : resolverTask.Options.MaxExecutionDepth;
 
             return resolverTask.Path.Depth > maxExecutionDepth;
         }

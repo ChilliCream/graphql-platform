@@ -91,8 +91,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be " +
-                "serialized by the {Name} type.");
+                "The specified value cannot be serialized by the " +
+                $"{Name} type.");
         }
     }
 }

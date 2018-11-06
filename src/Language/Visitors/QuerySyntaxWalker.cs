@@ -50,7 +50,10 @@ namespace HotChocolate.Language
                 VisitMany(node.Directives, VisitDirective);
             }
 
-            VisitSelectionSet(node.SelectionSet);
+            if (node.SelectionSet != null)
+            {
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
 
         protected override void VisitVariableDefinition(
@@ -58,7 +61,12 @@ namespace HotChocolate.Language
         {
             VisitVariable(node.Variable);
             VisitType(node.Type);
-            VisitValue(node.DefaultValue);
+
+
+            if (node.DefaultValue != null)
+            {
+                VisitValue(node.DefaultValue);
+            }
         }
 
         protected override void VisitFragmentDefinition(
@@ -68,7 +76,11 @@ namespace HotChocolate.Language
             VisitMany(node.VariableDefinitions, VisitVariableDefinition);
             VisitNamedType(node.TypeCondition);
             VisitMany(node.Directives, VisitDirective);
-            VisitSelectionSet(node.SelectionSet);
+
+            if (node.SelectionSet != null)
+            {
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
 
         protected override void VisitSelectionSet(SelectionSetNode node)
@@ -86,6 +98,11 @@ namespace HotChocolate.Language
             VisitName(node.Name);
             VisitMany(node.Arguments, VisitArgument);
             VisitMany(node.Directives, VisitDirective);
+
+            if (node.SelectionSet != null)
+            {
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
 
         protected override void VisitFragmentSpread(FragmentSpreadNode node)
@@ -102,7 +119,11 @@ namespace HotChocolate.Language
             }
 
             VisitMany(node.Directives, VisitDirective);
-            VisitSelectionSet(node.SelectionSet);
+
+            if (node.SelectionSet != null)
+            {
+                VisitSelectionSet(node.SelectionSet);
+            }
         }
     }
 }

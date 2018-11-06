@@ -48,12 +48,18 @@ namespace HotChocolate.Resolvers
         /// Gets the source stack containing all previous resolver results
         /// of the current execution path.
         /// </summary>
-        ImmutableStack<object> Source { get; } // parents
+        ImmutableStack<object> Source { get; }
 
         /// <summary>
         /// Gets the current execution path.
         /// </summary>
         Path Path { get; }
+
+        /// <summary>
+        /// Notifies when the connection underlying this request is aborted
+        /// and thus request operations should be cancelled.
+        /// </summary>
+        CancellationToken RequestAborted { get; }
 
         /// <summary>
         /// Gets the previous (parent) resolver result.
@@ -105,6 +111,17 @@ namespace HotChocolate.Resolvers
         T CustomContext<T>();
 
         /// <summary>
+        /// Gets a custom request property that was provided with the request.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The property value type.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the custom request property.
+        /// </returns>
+        T CustomProperty<T>(string key);
+
+        /// <summary>
         /// Gets a specific DataLoader.
         /// </summary>
         /// <param name="key">The DataLoader key.</param>
@@ -136,6 +153,7 @@ namespace HotChocolate.Resolvers
         /// </param>
         void ReportError(string errorMessage);
 
+        [Obsolete("Use RequestAborted.")]
         CancellationToken CancellationToken { get; }
     }
 }

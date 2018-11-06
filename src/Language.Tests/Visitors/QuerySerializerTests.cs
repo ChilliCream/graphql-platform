@@ -1,4 +1,5 @@
 
+using ChilliCream.Testing;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -117,6 +118,44 @@ namespace HotChocolate.Language
             DocumentNode parsedQuery = Parser.Default.Parse(serializedQuery);
             serializer.Visit(parsedQuery);
             Assert.Equal(serializedQuery, serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_QueryWithVarDeclaration_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query =
+                "query Foo($bar: [String!]!) { foo(s: \"String\") " +
+                "{ bar @foo { baz @foo @bar } } }";
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            QuerySerializer serializer = new QuerySerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(
+                query,
+                serializer.Value);
+        }
+
+        [Fact]
+        public void Serialize_FargmentWithVariableDefs_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+            DocumentNode queryDocument = Parser.Default.Parse(query,
+                new ParserOptions(allowFragmentVariables: true));
+            QuerySerializer serializer = new QuerySerializer();
+
+            // act
+            serializer.Visit(queryDocument);
+
+            // assert
+            Assert.Equal(
+                query,
+                serializer.Value);
         }
     }
 }
