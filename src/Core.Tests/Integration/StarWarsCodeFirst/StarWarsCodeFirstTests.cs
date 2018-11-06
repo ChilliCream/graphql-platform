@@ -531,21 +531,11 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             // arrange
             Schema schema = CreateSchema();
             string query = @"
-            query foo {
-                hero(episode: NEWHOPE) {
-                    __typename
-                    id
-                    name
-                    ... on Human {
+                query foo {
+                    hero(episode: NEWHOPE) {
                         __typename
-                        homePlanet
-                    }
-                    ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
-                        __typename
+                        id
+                        name
                         ... on Human {
                             __typename
                             homePlanet
@@ -554,9 +544,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                             __typename
                             primaryFunction
                         }
+                        friends {
+                            __typename
+                            ... on Human {
+                                __typename
+                                homePlanet
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                            }
+                        }
                     }
-                }
-            }";
+                }";
 
             // act
             IExecutionResult result = schema.Execute(query);
@@ -619,7 +619,55 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             eventResult.Snapshot();
         }
 
-        private static Schema CreateSchema()
+        [Fact]
+        public void ExecutionDepthShouldNotLeadToEmptyObects()
+        {
+            // arrange
+            Schema schema = CreateSchema(3);
+            string query = @"
+            query foo {
+                hero(episode: NEWHOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        __typename
+                        ... on Human {
+                            __typename
+                            homePlanet
+                            friends {
+                                __typename
+                            }
+                        }
+                        ... on Droid {
+                            __typename
+                            primaryFunction
+                            friends {
+                                __typename
+                            }
+                        }
+                    }
+                }
+            }";
+
+            // act
+            IExecutionResult result = schema.Execute(query);
+
+            // assert
+            result.Snapshot();
+        }
+
+        private static Schema CreateSchema() => CreateSchema(20);
+
+        private static Schema CreateSchema(int executionDepth)
         {
             var repository = new CharacterRepository();
             var eventRegistry = new InMemoryEventRegistry();
@@ -650,6 +698,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             return Schema.Create(c =>
             {
+                c.Options.MaxExecutionDepth = executionDepth;
                 c.RegisterServiceProvider(serviceProvider.Object);
                 c.RegisterDataLoader<HumanDataLoader>();
                 c.RegisterQueryType<QueryType>();

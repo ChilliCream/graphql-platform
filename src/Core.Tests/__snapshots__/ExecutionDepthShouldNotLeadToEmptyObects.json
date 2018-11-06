@@ -1,0 +1,71 @@
+{
+  "Data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2",
+      "primaryFunction": "Astromech",
+      "friends": [
+        {
+          "__typename": "Human",
+          "homePlanet": "Tatooine",
+          "friends": null
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": null,
+          "friends": null
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": "Alderaan",
+          "friends": null
+        }
+      ]
+    }
+  },
+  "Errors": [
+    {
+      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "path": [
+        "hero",
+        "friends",
+        "friends"
+      ],
+      "locations": [
+        {
+          "line": 20,
+          "column": 30
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "path": [
+        "hero",
+        "friends",
+        "friends"
+      ],
+      "locations": [
+        {
+          "line": 20,
+          "column": 30
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 2, which exceeds max allowed depth of 2",
+      "path": [
+        "hero",
+        "friends",
+        "friends"
+      ],
+      "locations": [
+        {
+          "line": 20,
+          "column": 30
+        }
+      ]
+    }
+  ]
+}

@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 ? resolverTask.Options.MaxExecutionDepth
                 : resolverTask.Options.MaxExecutionDepth - 1;
 
-            return resolverTask.Path.Depth > maxExecutionDepth;
+            return resolverTask.Path.Depth > (maxExecutionDepth - 1);
         }
 
         public static IQueryError CreateError(
