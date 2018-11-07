@@ -10,7 +10,5 @@ namespace HotChocolate.Execution
         T ToObject<T>();
 
         string ToJson();
-
-        IReadOnlyDictionary<string, object> ToDictionary();
     }
 }
