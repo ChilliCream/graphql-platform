@@ -84,6 +84,18 @@ namespace HotChocolate
             return "The `Boolean` scalar type represents `true` or `false`.";
         }
 
+        public static string DateTimeType_Description()
+        {
+            return "The `DateTime` scalar represents an ISO-8601 " +
+                "compliant date time type.";
+        }
+
+        public static string DateType_Description()
+        {
+            return "The `Date` scalar represents an ISO-8601 " +
+                "compliant date type.";
+        }
+
         public static string FloatType_Description()
         {
             return "The `Float` scalar type represents signed " +

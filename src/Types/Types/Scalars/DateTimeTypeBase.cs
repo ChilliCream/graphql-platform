@@ -6,8 +6,8 @@ namespace HotChocolate.Types
     public abstract class DateTimeTypeBase
         : ScalarType
     {
-        protected DateTimeTypeBase(string name, string description)
-            : base(name, description)
+        protected DateTimeTypeBase(string name)
+            : base(name)
         {
         }
 
@@ -41,7 +41,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The {Name} can only parse string literals.",
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
                 nameof(literal));
         }
 
@@ -53,8 +54,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value has to be a valid {Name} " +
-                $"in order to be parsed by the {Name}.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         protected bool TryParseValue(
@@ -90,7 +92,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be serialized by {Name}.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         public override object Deserialize(object value)
@@ -106,7 +108,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be deserialized by {Name}.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         protected virtual bool TrySerialize(
@@ -135,9 +137,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryParseLiteral(
-            string literal,
-            out object obj) =>
+        private bool TryParseLiteral(string literal, out object obj) =>
             TryParseLiteral(new StringValueNode(literal), out obj);
 
         protected abstract bool TryParseLiteral(
