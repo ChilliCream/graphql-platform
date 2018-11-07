@@ -16,15 +16,15 @@ namespace HotChocolate.Types
     public sealed class FloatType
         : ScalarType
     {
-
         public FloatType()
             : base("Float")
         {
         }
 
-        public override string Description => "";
+        public override string Description =>
+            TypeResources.FloatType_Description();
 
-        public override Type ClrType => throw new NotImplementedException();
+        public override Type ClrType => typeof(double);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -128,30 +128,13 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is int i)
+            if (value is double d)
             {
-                return i;
+                return d;
             }
 
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
-        }
-
-        public override object Deserialize(object value)
-        {
-            if (value is null)
-            {
-                return null;
-            }
-
-            if (value is string s)
-            {
-                return decimal.Parse(s, NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
-            }
-
-            throw new ArgumentException(
-                $"The specified value cannot be handled by the {Name}.");
         }
 
         private static double ParseDouble(string value) =>

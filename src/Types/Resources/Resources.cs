@@ -84,6 +84,13 @@ namespace HotChocolate
             return "The `Boolean` scalar type represents `true` or `false`.";
         }
 
+        public static string FloatType_Description()
+        {
+            return "The `Float` scalar type represents signed " +
+                "double-precision fractional values as specified by " +
+                "[IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).";
+        }
+
         public static string IdType_Description()
         {
             return "The `ID` scalar type represents a unique identifier, " +
