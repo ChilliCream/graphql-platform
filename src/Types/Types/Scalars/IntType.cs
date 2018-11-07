@@ -37,28 +37,88 @@ namespace HotChocolate.Types
 
         public override object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is IntValueNode intLiteral)
+            {
+                return int.Parse(
+                    intLiteral.Value,
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture);
+            }
+
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
+                nameof(literal));
         }
 
         public override IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (value is int i)
+            {
+                return new IntValueNode(i);
+            }
+
+            if (value is short s)
+            {
+                return new IntValueNode(s);
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public override object Serialize(object value)
         {
-            throw new NotImplementedException();
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is int i)
+            {
+                return i;
+            }
+
+            if (value is short s)
+            {
+                return (int)s;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         public override object Deserialize(object value)
         {
-            throw new NotImplementedException();
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is int i)
+            {
+                return i;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
-
-        protected override int OnParseLiteral(IntValueNode node) =>
-            int.Parse(node.Value, NumberStyles.Integer, CultureInfo.InvariantCulture);
-
-        protected override IntValueNode OnParseValue(int value) =>
-            new IntValueNode(value.ToString("D", CultureInfo.InvariantCulture));
     }
 }
