@@ -93,6 +93,22 @@ namespace HotChocolate.Types
                 $"The specified value cannot be serialized by {Name}.");
         }
 
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string s && TryParseLiteral(s, out object d))
+            {
+                return d;
+            }
+
+            throw new ArgumentException(
+                $"The specified value cannot be deserialized by {Name}.");
+        }
+
         protected virtual bool TrySerialize(
             object value,
             out string serializedValue)
@@ -119,7 +135,14 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected abstract bool TryParseLiteral(StringValueNode literal, out object obj);
+        private bool TryParseLiteral(
+            string literal,
+            out object obj) =>
+            TryParseLiteral(new StringValueNode(literal), out obj);
+
+        protected abstract bool TryParseLiteral(
+            StringValueNode literal,
+            out object obj);
 
         protected abstract string Serialize(DateTime value);
 

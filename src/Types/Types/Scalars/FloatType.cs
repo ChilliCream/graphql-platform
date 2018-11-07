@@ -62,5 +62,22 @@ namespace HotChocolate.Types
 
         protected override IEnumerable<Type> AdditionalTypes =>
              new[] { typeof(float) };
+
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string s)
+            {
+                return decimal.Parse(s, NumberStyles.Float,
+                    CultureInfo.InvariantCulture);
+            }
+
+            throw new ArgumentException(
+                $"The specified value cannot be handled by the {Name}.");
+        }
     }
 }

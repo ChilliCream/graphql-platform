@@ -90,7 +90,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be handled by the {Name}Type.");
+                $"The specified value cannot be handled by the {Name}.");
         }
     }
 }

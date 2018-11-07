@@ -14,14 +14,20 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-ID
     /// </summary>
     public sealed class IdType
-        : StringTypeBase
+        : ScalarType
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringType"/> class.
+        /// </summary>
         public IdType()
             : base("ID")
         {
         }
 
-        public override Type ClrType { get; } = typeof(string);
+        public override string Description =>
+            TypeResources.IdType_Description();
+
+        public override Type ClrType => typeof(string);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -58,7 +64,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The {Name} type can only parse string literals.",
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
                 nameof(literal));
         }
 
@@ -85,8 +92,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a string or char in order " +
-                $"to be parsed by the {Name} type.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public override object Serialize(object value)
@@ -112,8 +120,28 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value cannot be serialized by the " +
-                $"{Name} type.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string)
+            {
+                return value;
+            }
+
+            if (value is int i)
+            {
+                return i.ToString(CultureInfo.InvariantCulture);
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
     }
 }
