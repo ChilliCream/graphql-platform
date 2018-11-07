@@ -6,7 +6,7 @@ using System.IO;
 namespace HotChocolate.Execution
 {
     internal sealed class JsonResultSerializer
-        : ResultVisitor<TextWriter>
+        : QueryResultVisitor<TextWriter>
     {
         private const string _true = "true";
         private const string _false = "false";

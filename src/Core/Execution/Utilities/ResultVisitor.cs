@@ -2,9 +2,24 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    internal abstract class ResultVisitor<TContext>
+    internal abstract class QueryResultVisitor<TContext>
     {
-        public virtual void Visit(
+        public virtual void Visit(IQueryExecutionResult result)
+        {
+            if (result.Errors != null)
+            {
+
+            }
+
+            if (result.Data != null)
+            {
+
+            }
+        }
+
+
+
+        protected virtual void Visit(
             ICollection<KeyValuePair<string, object>> dictionary,
             TContext context)
         {
