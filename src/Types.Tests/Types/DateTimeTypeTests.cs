@@ -59,7 +59,7 @@ namespace HotChocolate.Types
             DateTimeType dateTimeType = new DateTimeType();
 
             // act
-            Action a = () => dateTimeType.Serialize(null);
+            Action a = () => dateTimeType.Serialize("foo");
 
             // assert
             Assert.Throws<ArgumentException>(a);
@@ -92,7 +92,6 @@ namespace HotChocolate.Types
             DateTimeOffset dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
-            string expectedValue = "2018-06-11T08:46:14+04:00";
 
             // act
             DateTimeOffset serializedValue = (DateTimeOffset)dateTimeType
