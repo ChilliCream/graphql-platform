@@ -18,8 +18,7 @@ namespace HotChocolate.Execution
                     try
                     {
                         completionContext.IntegrateResult(
-                            new LeafValue(
-                                serializable,
+                            serializable.Serialize(
                                 completionContext.Value));
                     }
                     catch (ArgumentException ex)
