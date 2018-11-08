@@ -60,15 +60,6 @@ namespace HotChocolate.Types
                 return new StringValueNode(SerializeDecimal(d));
             }
 
-            if (value is short
-                || value is int
-                || value is long
-                || value is float
-                || value is double)
-            {
-                return new StringValueNode(SerializeDecimal((decimal)value));
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -85,15 +76,6 @@ namespace HotChocolate.Types
             if (value is decimal d)
             {
                 return SerializeDecimal(d);
-            }
-
-            if (value is short
-                || value is int
-                || value is long
-                || value is float
-                || value is double)
-            {
-                return SerializeDecimal((decimal)value);
             }
 
             throw new ArgumentException(

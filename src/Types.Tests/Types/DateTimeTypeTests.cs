@@ -53,11 +53,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_String_Exception()
+        {
+            // arrange
+            DateTimeType dateTimeType = new DateTimeType();
+
+            // act
+            Action a = () => dateTimeType.Serialize(null);
+
+            // assert
+            Assert.Throws<ArgumentException>(a);
+        }
+
+        [Fact]
         public void ParseLiteral_StringValueNode()
         {
             // arrange
             DateTimeType dateTimeType = new DateTimeType();
-            StringValueNode literal = new StringValueNode("2018-06-11T08:46:14+04:00");
+            StringValueNode literal = new StringValueNode(
+                "2018-06-11T08:46:14+04:00");
             DateTimeOffset expectedDateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
@@ -68,6 +82,24 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
+        }
+
+        [Fact]
+        public void Deserialize_IsoString_DateTimeOffset()
+        {
+            // arrange
+            DateTimeType dateTimeType = new DateTimeType();
+            DateTimeOffset dateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+            string expectedValue = "2018-06-11T08:46:14+04:00";
+
+            // act
+            DateTimeOffset serializedValue = (DateTimeOffset)dateTimeType
+                .Deserialize("2018-06-11T08:46:14+04:00");
+
+            // assert
+            Assert.Equal(dateTime, serializedValue);
         }
 
         [Fact]
