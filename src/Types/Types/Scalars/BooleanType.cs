@@ -5,8 +5,6 @@ namespace HotChocolate.Types
 {
     /// <summary>
     /// The Boolean scalar type represents true or false.
-    /// Response formats should use a built‐in boolean type if supported;
-    /// otherwise, they should use their representation of the integers 1 and 0.
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
@@ -21,7 +19,10 @@ namespace HotChocolate.Types
         {
         }
 
-        public override Type ClrType { get; } = typeof(bool);
+        public override string Description =>
+            TypeResources.BooleanType_Description();
+
+        public override Type ClrType => typeof(bool);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -52,13 +53,14 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The boolean type can only parse bool literals.",
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
                 nameof(literal));
         }
 
         public override IValueNode ParseValue(object value)
         {
-            if (value == null)
+            if (value is null)
             {
                 return NullValueNode.Default;
             }
@@ -69,8 +71,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a boolean" +
-                "to be parsed by the boolean type.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public override object Serialize(object value)
@@ -80,13 +83,29 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (typeof(bool).IsInstanceOfType(value))
+            if (value is bool)
             {
                 return value;
             }
 
             throw new ArgumentException(
-                "The specified value cannot be handled by the BooleanType.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is bool)
+            {
+                return value;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
     }
 }

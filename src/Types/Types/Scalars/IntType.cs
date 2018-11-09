@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using HotChocolate.Language;
 
@@ -11,17 +12,113 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Int
     /// </summary>
     public sealed class IntType
-        : NumberType<int, IntValueNode>
+        : ScalarType
     {
         public IntType()
             : base("Int")
         {
         }
 
-        protected override int OnParseLiteral(IntValueNode node) =>
-            int.Parse(node.Value, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        public override string Description =>
+            TypeResources.IntType_Description();
 
-        protected override IntValueNode OnParseValue(int value) =>
-            new IntValueNode(value.ToString("D", CultureInfo.InvariantCulture));
+        public override Type ClrType => typeof(int);
+
+        public override bool IsInstanceOfType(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            return literal is IntValueNode
+                || literal is NullValueNode;
+        }
+
+        public override object ParseLiteral(IValueNode literal)
+        {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is IntValueNode intLiteral)
+            {
+                return int.Parse(
+                    intLiteral.Value,
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture);
+            }
+
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
+                nameof(literal));
+        }
+
+        public override IValueNode ParseValue(object value)
+        {
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (value is int i)
+            {
+                return new IntValueNode(i);
+            }
+
+            if (value is short s)
+            {
+                return new IntValueNode(s);
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
+        }
+
+        public override object Serialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is int i)
+            {
+                return i;
+            }
+
+            if (value is short s)
+            {
+                return (int)s;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        public override object Deserialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is int i)
+            {
+                return i;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
     }
 }

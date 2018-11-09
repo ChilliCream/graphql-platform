@@ -53,6 +53,33 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_String_Exception()
+        {
+            // arrange
+            DateType dateType = new DateType();
+
+            // act
+            Action a = () => dateType.Serialize("foo");
+
+            // assert
+            Assert.Throws<ArgumentException>(a);
+        }
+
+        [Fact]
+        public void Deserialize_IsoString_DateTime()
+        {
+            // arrange
+            DateType dateType = new DateType();
+            DateTime date = new DateTime(2018, 6, 11);
+
+            // act
+            DateTime result = (DateTime)dateType.Deserialize("2018-06-11");
+
+            // assert
+            Assert.Equal(date, result);
+        }
+
+        [Fact]
         public void ParseLiteral_StringValueNode()
         {
             // arrange
