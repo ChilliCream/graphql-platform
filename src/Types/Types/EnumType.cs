@@ -137,9 +137,10 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is bool)
+            if (value is string name
+                && _nameToValues.TryGetValue(name, out EnumValue enumValue))
             {
-                return value;
+                return enumValue.Value;
             }
 
             throw new ArgumentException(
