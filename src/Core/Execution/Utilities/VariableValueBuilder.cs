@@ -92,7 +92,8 @@ namespace HotChocolate.Execution
                     value = ctx.Object;
                 }
 
-                if (variable.Type is ISerializableType st
+                if (!(value is IValueNode)
+                    && variable.Type is ISerializableType st
                     && !variable.Type.ClrType.IsInstanceOfType(value))
                 {
                     value = st.Deserialize(value);
@@ -207,7 +208,7 @@ namespace HotChocolate.Execution
                     field.Name,
                     new EnumValueNode(s.Value));
             }
-            else if (fieldDefinition.Type.IsObjectType()
+            else if (fieldDefinition.Type.IsInputObjectType()
                 || fieldDefinition.Type.IsListType())
             {
                 return new ObjectFieldNode(
@@ -301,10 +302,10 @@ namespace HotChocolate.Execution
                     {
                         return field.Value is StringValueNode;
                     }
-                    else if (!fieldDefinition.Type.IsScalarType())
+                    else if (!fieldDefinition.Type.IsScalarType()
+                        && ValueNeedsCleanUp(fieldDefinition.Type, field.Value))
                     {
-                        return ValueNeedsCleanUp(
-                            fieldDefinition.Type, field.Value);
+                        return true;
                     }
                 }
             }
