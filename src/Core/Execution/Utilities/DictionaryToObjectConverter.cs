@@ -3,59 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal abstract class QueryResultVisitor<TContext>
-    {
-        public virtual void VisitObject(
-            ICollection<KeyValuePair<string, object>> dictionary,
-            TContext context)
-        {
-            foreach (KeyValuePair<string, object> field in dictionary)
-            {
-                VisitField(field, context);
-            }
-        }
-
-        protected virtual void VisitField(
-            KeyValuePair<string, object> field,
-            TContext context)
-        {
-            Visit(field.Value, context);
-        }
-
-        protected virtual void VisitList(IList<object> list, TContext context)
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                Visit(list[i], context);
-            }
-        }
-
-        protected virtual void VisitValue(object value, TContext context)
-        {
-
-        }
-
-        protected virtual void Visit(object value, TContext context)
-        {
-            if (value is IDictionary<string, object> dictionary)
-            {
-                VisitObject(dictionary, context);
-            }
-            else if (value is IList<object> list)
-            {
-                VisitList(list, context);
-            }
-            else
-            {
-                VisitValue(value, context);
-            }
-        }
-    }
-
     internal class DictionaryToObjectConverter
         : QueryResultVisitor<DeserializationContext>
     {
@@ -116,7 +67,7 @@ namespace HotChocolate.Execution
             }
             else
             {
-                Type elementType = GetInnerListType(context.Type);
+                Type elementType = DotNetTypeInfoFactory.GetInnerListType(context.Type);
                 if (elementType != null)
                 {
                     Type listType = typeof(List<>).MakeGenericType(elementType);
@@ -132,50 +83,6 @@ namespace HotChocolate.Execution
                     }
                 }
             }
-        }
-
-        private static Type GetInnerListType(Type type)
-        {
-            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
-            {
-                return type.GetGenericArguments().First();
-            }
-
-            foreach (Type interfaceType in type.GetInterfaces())
-            {
-                if (IsSupportedCollectionInterface(interfaceType))
-                {
-                    return interfaceType.GetGenericArguments().First();
-                }
-            }
-
-            return null;
-        }
-
-        private static bool IsSupportedCollectionInterface(Type type) =>
-            IsSupportedCollectionInterface(type, false);
-
-        private static bool IsSupportedCollectionInterface(
-            Type type,
-            bool allowEnumerable)
-        {
-            if (type.IsGenericType)
-            {
-                Type typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition == typeof(IReadOnlyCollection<>)
-                    || typeDefinition == typeof(IReadOnlyList<>)
-                    || typeDefinition == typeof(ICollection<>)
-                    || typeDefinition == typeof(IList<>))
-                {
-                    return true;
-                }
-
-                if (allowEnumerable && typeDefinition == typeof(IEnumerable<>))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         protected override void VisitValue(
@@ -195,12 +102,5 @@ namespace HotChocolate.Execution
                 context.Object = value;
             }
         }
-    }
-
-    internal class DeserializationContext
-    {
-        public object Object { get; set; }
-        public Type Type { get; set; }
-        public ILookup<string, PropertyInfo> Fields { get; set; }
     }
 }

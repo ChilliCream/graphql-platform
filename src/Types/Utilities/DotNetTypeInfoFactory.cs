@@ -186,7 +186,7 @@ namespace HotChocolate.Utilities
             return null;
         }
 
-        private static Type GetInnerListType(Type type)
+        internal static Type GetInnerListType(Type type)
         {
             if (type.IsInterface && IsSupportedCollectionInterface(type, true))
             {
