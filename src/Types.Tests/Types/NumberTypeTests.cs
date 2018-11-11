@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public abstract class NumberTypeTests<TNative, TType, TValueNode>
+    public abstract class NumberTypeTests<TNative, TType, TValueNode, TSerialized>
         where TType : ScalarType, new()
         where TValueNode : IValueNode<string>
     {
@@ -14,6 +14,7 @@ namespace HotChocolate.Types
         protected abstract object GetWrongValue { get; }
         protected abstract TNative GetAssertValue { get; }
         protected abstract TNative GetMaxValue { get; }
+        protected abstract TSerialized GetSerializedAssertValue { get; }
         protected abstract string GetAssertMaxValue { get; }
         protected abstract TNative GetMinValue { get; }
         protected abstract string GetAssertMinValue { get; }
@@ -82,8 +83,8 @@ namespace HotChocolate.Types
             object serializedValue = type.Serialize(input);
 
             // assert
-            Assert.IsType<TNative>(serializedValue);
-            Assert.Equal(GetAssertValue, serializedValue);
+            Assert.IsType<TSerialized>(serializedValue);
+            Assert.Equal(GetSerializedAssertValue, serializedValue);
         }
 
         [Fact]

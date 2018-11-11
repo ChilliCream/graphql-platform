@@ -21,7 +21,7 @@ namespace HotChocolate.Types
             }
 
             return literal is StringValueNode
-                   || literal is NullValueNode;
+                || literal is NullValueNode;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -32,9 +32,9 @@ namespace HotChocolate.Types
             }
 
             if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out Guid obj))
+                && Guid.TryParse(stringLiteral.Value, out Guid guid))
             {
-                return obj;
+                return guid;
             }
 
             if (literal is NullValueNode)
@@ -43,7 +43,8 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The Guid type can only parse string literals.",
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
                 nameof(literal));
         }
 
@@ -60,8 +61,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a Guid in order " +
-                "to be parsed by the Guid type.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public override object Serialize(object value)
@@ -77,12 +79,28 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value cannot be serialized by the Guid type.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         private string Serialize(Guid value)
         {
-            return value.ToString();
+            return value.ToString("N");
+        }
+
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string s && Guid.TryParse(s, out Guid guid))
+            {
+                return guid;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
     }
 }

@@ -84,13 +84,13 @@ namespace HotChocolate.Execution
             HashSet<string> processed = new HashSet<string>();
             List<IDirective> directives = new List<IDirective>();
 
-            CollectInheritedDirectives(processed, directives, field);
-            CollectSelectionDirectives(processed, directives, fieldSelection);
+            CollectTypeSystemDirectives(processed, directives, field);
+            CollectQueryDirectives(processed, directives, fieldSelection);
 
             return directives.AsReadOnly();
         }
 
-        private void CollectSelectionDirectives(
+        private void CollectQueryDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
             FieldNode fieldSelection)
@@ -98,10 +98,11 @@ namespace HotChocolate.Execution
             foreach (IDirective directive in
                 GetFieldSelectionDirectives(fieldSelection))
             {
-                if (processed.Add(directive.Name))
+                if (!processed.Add(directive.Name))
                 {
-                    directives.Add(directive);
+                    directives.Remove(directive);
                 }
+                directives.Add(directive);
             }
         }
 
@@ -122,17 +123,18 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CollectInheritedDirectives(
+        private void CollectTypeSystemDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
             ObjectField field)
         {
             foreach (IDirective directive in field.ExecutableDirectives)
             {
-                if (processed.Add(directive.Name))
+                if (!processed.Add(directive.Name))
                 {
-                    directives.Add(directive);
+                    directives.Remove(directive);
                 }
+                directives.Add(directive);
             }
         }
     }

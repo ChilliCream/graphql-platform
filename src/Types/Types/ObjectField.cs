@@ -127,10 +127,11 @@ namespace HotChocolate.Types
             foreach (IDirective directive in
                 directives.Where(t => t.IsExecutable))
             {
-                if (processed.Add(directive.Name))
+                if (processed.Contains(directive.Name))
                 {
-                    _executableDirectives.Add(directive);
+                    _executableDirectives.Remove(directive);
                 }
+                _executableDirectives.Add(directive);
             }
         }
 
