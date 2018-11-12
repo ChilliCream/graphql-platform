@@ -18,6 +18,11 @@ namespace HotChocolate.Types
 
         protected override string Serialize(DateTime value)
         {
+            if (value.Kind == DateTimeKind.Utc)
+            {
+                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+            }
+
             return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
         }
 
