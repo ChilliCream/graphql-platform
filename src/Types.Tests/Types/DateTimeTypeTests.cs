@@ -209,12 +209,13 @@ namespace HotChocolate.Types
             DateTime dateTime =
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Local);
             DateTimeOffset offset = dateTime;
+            DateTime offsetDateTime = offset.DateTime;
 
             // act
             StringValueNode stringLiteral =
                 (StringValueNode)dateTimeType.ParseValue(dateTime);
             StringValueNode stringLiteralOffset =
-                (StringValueNode)dateTimeType.ParseValue(offset);
+                (StringValueNode)dateTimeType.ParseValue(offsetDateTime);
 
             // assert
             Assert.Equal(stringLiteral, stringLiteralOffset);
