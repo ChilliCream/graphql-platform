@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -23,17 +24,31 @@ namespace HotChocolate.Types
                 return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
             }
 
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
+            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
         }
 
         protected override string Serialize(DateTimeOffset value)
         {
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
+            if (value.Offset == TimeSpan.Zero)
+            {
+                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+            }
+
+            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
         }
 
         protected override bool TryParseLiteral(
             StringValueNode literal, out object obj)
         {
+            if (literal.Value != null && literal.Value.EndsWith("Z"))
+            {
+                if (DateTime.TryParse(literal.Value, null as IFormatProvider, DateTimeStyles.AssumeUniversal, out DateTime zDateTime))
+                {
+                    obj = new DateTimeOffset(zDateTime);
+                    return true;
+                }
+            }
+
             if (DateTimeOffset.TryParse(literal.Value, out DateTimeOffset dateTime))
             {
                 obj = dateTime;
