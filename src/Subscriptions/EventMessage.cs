@@ -9,14 +9,26 @@ namespace HotChocolate.Subscriptions
         : IEventMessage
     {
         public EventMessage(IEventDescription eventDescription)
+            : this(eventDescription, null)
         {
-            Event = eventDescription 
+        }
+
+        public EventMessage(IEventDescription eventDescription, object payload)
+        {
+            Event = eventDescription
                 ?? throw new ArgumentNullException(nameof(eventDescription));
+            Payload = payload;
         }
 
         public EventMessage(string name)
             : this(name, Array.Empty<ArgumentNode>())
         {
+        }
+
+        public EventMessage(string name, object payload)
+            : this(name, Array.Empty<ArgumentNode>())
+        {
+            Payload = payload;
         }
 
         public EventMessage(string name, IEnumerable<ArgumentNode> arguments)
@@ -42,6 +54,8 @@ namespace HotChocolate.Subscriptions
         }
 
         public IEventDescription Event { get; }
+
+        public object Payload { get; }
     }
 }
 

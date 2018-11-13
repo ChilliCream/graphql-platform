@@ -67,6 +67,7 @@ namespace HotChocolate.Types
             {
                 return _nameToValues.ContainsKey(ev.Value);
             }
+
             return false;
         }
 
@@ -83,23 +84,15 @@ namespace HotChocolate.Types
                 return ev.Value;
             }
 
-            // TODO : This fixes a deserialisation issue when an input object
-            // is deserialized from a json string. We should however fix this
-            //in the aspnet middleware.
-            if (literal is StringValueNode svn
-                && _nameToValues.TryGetValue(svn.Value, out ev))
-            {
-                return ev.Value;
-            }
-
             if (literal is NullValueNode)
             {
                 return null;
             }
 
             throw new ArgumentException(
-                "The specified value cannot be handled " +
-                $"by the EnumType {Name}.");
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
+                nameof(literal));
         }
 
         public IValueNode ParseValue(object value)
@@ -115,8 +108,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value has to be a defined enum value of " +
-                $"the type {ClrType.FullName} to be parsed by this enum type.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public object Serialize(object value)
@@ -133,8 +127,24 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                "The specified value cannot be handled by the " +
-                $"EnumType `{Name}`.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        public object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string name
+                && _nameToValues.TryGetValue(name, out EnumValue enumValue))
+            {
+                return enumValue.Value;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         #endregion

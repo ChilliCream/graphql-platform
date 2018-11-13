@@ -18,8 +18,17 @@ namespace HotChocolate.Execution
         }
 
         public IServiceProvider Services { get; }
-        public ISession Session { get; }
+        public ISession Session { get; private set; }
         public IReadOnlyDictionary<string, object> VariableValues { get; set; }
+        public IReadOnlyDictionary<string, object> Properties { get; set; }
         public object InitialValue { get; set; }
+
+        public OperationRequest Clone(ISession session)
+        {
+            var clonedRequest = (OperationRequest)MemberwiseClone();
+            clonedRequest.Session = session
+                ?? throw new ArgumentNullException(nameof(session));
+            return clonedRequest;
+        }
     }
 }

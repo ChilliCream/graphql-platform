@@ -8,7 +8,7 @@
 
 _Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook.
 
-We are currently in the process of closing some gaps and hope to finalise Version 1 by September. We have listed the implemented specification parts at the bottom of this readme.
+We are currently in the process of closing some gaps and hope to finalise Version 1 by December. We have listed our progress toward version one at the bottom of this readme.
 
 ## Getting Started
 
@@ -186,7 +186,7 @@ cd myserver
 dotnet new graphql-server
 ```
 
-## Features
+## Features and Roadmap
 
 We currently support the following parts of the current [June 2018 specification](http://facebook.github.io/graphql/June2018/) of GraphQL.
 
@@ -290,6 +290,7 @@ We are currently working on the following features that are proposed for the nex
 ## Supported Frameworks
 
 - [ ] ASP.NET Classic
+
   - [ ] _Get_ (in development - 0.7.0)
   - [ ] _Post_ (in development - 0.7.0)
   - [ ] _WebSockets_ (in development - 0.8.0)

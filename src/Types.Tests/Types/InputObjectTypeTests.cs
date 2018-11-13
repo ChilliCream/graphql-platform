@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;

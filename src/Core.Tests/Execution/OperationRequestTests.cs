@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;

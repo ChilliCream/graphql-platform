@@ -5,9 +5,12 @@ namespace HotChocolate.Language
     public sealed class ArgumentNode
         : ISyntaxNode
     {
-        public ArgumentNode(
-            string name,
-            IValueNode value)
+        public ArgumentNode(string name, string value)
+            : this(null, new NameNode(name), new StringValueNode(value))
+        {
+        }
+
+        public ArgumentNode(string name, IValueNode value)
             : this(null, new NameNode(name), value)
         {
         }

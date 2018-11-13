@@ -39,6 +39,7 @@ namespace HotChocolate.Execution
         {
             IReadOnlyDictionary<string, object> values =
                 variableValues ?? new Dictionary<string, object>();
+
             Dictionary<string, object> coercedValues =
                 new Dictionary<string, object>();
 
@@ -77,8 +78,27 @@ namespace HotChocolate.Execution
             ref Variable variable)
         {
             IValueNode valueNode = null;
-            if (variableValues.TryGetValue(variable.Name, out var value))
+            if (variableValues.TryGetValue(variable.Name, out var rawValue))
             {
+                object value = rawValue;
+
+                if (rawValue is ICollection<KeyValuePair<string, object>> dict)
+                {
+                    var ctx = new DeserializationContext();
+                    ctx.Type = variable.Type.ClrType;
+
+                    var converter = new DictionaryToObjectConverter();
+                    converter.VisitObject(dict, ctx);
+                    value = ctx.Object;
+                }
+
+                if (!(value is IValueNode)
+                    && variable.Type is ISerializableType st
+                    && !variable.Type.ClrType.IsInstanceOfType(value))
+                {
+                    value = st.Deserialize(value);
+                }
+
                 valueNode = (value is IValueNode v)
                     ? v
                     : variable.Type.ParseValue(value);
@@ -94,6 +114,8 @@ namespace HotChocolate.Execution
             CheckForNullValueViolation(variable);
             CheckForInvalidValueType(variable);
         }
+
+
 
         private IValueNode CleanUpValue(IInputType type, IValueNode value)
         {
@@ -186,7 +208,7 @@ namespace HotChocolate.Execution
                     field.Name,
                     new EnumValueNode(s.Value));
             }
-            else if (fieldDefinition.Type.IsObjectType()
+            else if (fieldDefinition.Type.IsInputObjectType()
                 || fieldDefinition.Type.IsListType())
             {
                 return new ObjectFieldNode(
@@ -280,10 +302,10 @@ namespace HotChocolate.Execution
                     {
                         return field.Value is StringValueNode;
                     }
-                    else if (!fieldDefinition.Type.IsScalarType())
+                    else if (!fieldDefinition.Type.IsScalarType()
+                        && ValueNeedsCleanUp(fieldDefinition.Type, field.Value))
                     {
-                        return ValueNeedsCleanUp(
-                            fieldDefinition.Type, field.Value);
+                        return true;
                     }
                 }
             }

@@ -12,7 +12,7 @@ namespace HotChocolate.Types
             // arrange
             UuidType uuidType = new UuidType();
             Guid guid = Guid.NewGuid();
-            string expectedValue = guid.ToString();
+            string expectedValue = guid.ToString("N");
 
             // act
             string serializedValue = (string)uuidType.Serialize(guid);
@@ -70,7 +70,7 @@ namespace HotChocolate.Types
             // arrange
             UuidType uuidType = new UuidType();
             Guid expected = Guid.NewGuid();
-            string expectedLiteralValue = expected.ToString();
+            string expectedLiteralValue = expected.ToString("N");
 
             // act
             StringValueNode stringLiteral =

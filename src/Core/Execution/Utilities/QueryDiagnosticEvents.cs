@@ -2,24 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
     internal static class QueryDiagnosticEvents
     {
         private const string _diagnosticListenerName = "HotChocolate.Execution";
-        private const string _queryActivityName =
-            _diagnosticListenerName + ".Query";
-        private const string _queryActivityStartName =
-            _queryActivityName + ".Start";
-        private const string _queryActivityStopName =
-            _queryActivityName + ".Stop";
-        private const string _queryErrorEventName =
-            _queryActivityName + ".QueryError";
-
-        private const string _validationErrorEventName =
-            _queryActivityName + ".ValidationError";
+        private const string _queryActivityName = "Query";
+        private const string _queryErrorEventName = "QueryError";
+        private const string _validationErrorEventName = "ValidationError";
 
         private static readonly DiagnosticSource _src =
             new DiagnosticListener(_diagnosticListenerName);
@@ -28,17 +19,17 @@ namespace HotChocolate.Execution
             ISchema schema,
             QueryRequest request)
         {
-            if (_src.IsEnabled(_queryActivityStartName, schema, request)
-                || _src.IsEnabled(_queryActivityStopName, schema, request))
+            var payload = new
+            {
+                Schema = schema,
+                Request = request
+            };
+
+            if (_src.IsEnabled(_queryActivityName, payload))
             {
                 var activity = new Activity(_queryActivityName);
 
-                _src.StartActivity(activity, new
-                {
-                    Schema = schema,
-                    Request = request,
-                    Timestamp = Stopwatch.GetTimestamp()
-                });
+                _src.StartActivity(activity, payload);
 
                 return activity;
             }
@@ -54,13 +45,17 @@ namespace HotChocolate.Execution
         {
             if (activity != null)
             {
-                _src.StopActivity(activity, new
+                var payload = new
                 {
                     Schema = schema,
                     Request = request,
-                    Query = query,
-                    Timestamp = Stopwatch.GetTimestamp()
-                });
+                    Query = query
+                };
+
+                if (_src.IsEnabled(_queryActivityName, payload))
+                {
+                    _src.StopActivity(activity, payload);
+                }
             }
         }
 
@@ -70,15 +65,17 @@ namespace HotChocolate.Execution
             DocumentNode query,
             Exception exception)
         {
-            if (_src.IsEnabled(_queryErrorEventName))
+            var payload = new
             {
-                _src.Write(_queryErrorEventName, new
-                {
-                    Schema = schema,
-                    Request = request,
-                    Query = query,
-                    Exception = exception
-                });
+                Schema = schema,
+                Request = request,
+                Query = query,
+                Exception = exception
+            };
+
+            if (_src.IsEnabled(_queryErrorEventName, payload))
+            {
+                _src.Write(_queryErrorEventName, payload);
             }
         }
 
@@ -88,15 +85,17 @@ namespace HotChocolate.Execution
             DocumentNode query,
             IReadOnlyCollection<IQueryError> errors)
         {
-            if (_src.IsEnabled(_queryErrorEventName))
+            var payload = new
             {
-                _src.Write(_queryErrorEventName, new
-                {
-                    Schema = schema,
-                    Request = request,
-                    Query = query,
-                    Errors = errors
-                });
+                Schema = schema,
+                Request = request,
+                Query = query,
+                Errors = errors
+            };
+
+            if (_src.IsEnabled(_validationErrorEventName, payload))
+            {
+                _src.Write(_validationErrorEventName, payload);
             }
         }
     }

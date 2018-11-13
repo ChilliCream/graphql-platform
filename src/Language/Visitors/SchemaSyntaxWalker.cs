@@ -68,10 +68,14 @@ namespace HotChocolate.Language
             }
         }
 
-        protected virtual void VisitTypeExtensionDefinition(IDefinitionNode node)
+        protected virtual void VisitTypeExtensionDefinition(
+            IDefinitionNode node)
         {
             switch (node)
             {
+                case SchemaExtensionNode value:
+                    VisitSchemaExtension(value);
+                    break;
                 case ScalarTypeExtensionNode value:
                     VisitScalarTypeExtension(value);
                     break;
@@ -90,10 +94,18 @@ namespace HotChocolate.Language
                 case InputObjectTypeExtensionNode value:
                     VisitInputObjectTypeExtension(value);
                     break;
+                default:
+                    throw new NotSupportedException();
             }
         }
 
         protected override void VisitSchemaDefinition(SchemaDefinitionNode node)
+        {
+            VisitMany(node.Directives, VisitDirective);
+            VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
+        }
+
+        protected override void VisitSchemaExtension(SchemaExtensionNode node)
         {
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
@@ -109,7 +121,7 @@ namespace HotChocolate.Language
             DirectiveDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Arguments, VisitInputValueDefinition);
             VisitMany(node.Locations, VisitName);
         }
@@ -118,7 +130,7 @@ namespace HotChocolate.Language
             ScalarTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
         }
 
@@ -133,7 +145,7 @@ namespace HotChocolate.Language
             ObjectTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Interfaces, VisitNamedType);
             VisitMany(node.Fields, VisitFieldDefinition);
@@ -152,7 +164,7 @@ namespace HotChocolate.Language
             FieldDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Arguments, VisitInputValueDefinition);
             VisitType(node.Type);
             VisitMany(node.Directives, VisitDirective);
@@ -162,7 +174,7 @@ namespace HotChocolate.Language
             InputObjectTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Fields, VisitInputValueDefinition);
         }
@@ -179,7 +191,7 @@ namespace HotChocolate.Language
            InterfaceTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Fields, VisitFieldDefinition);
         }
@@ -196,7 +208,7 @@ namespace HotChocolate.Language
             UnionTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Types, VisitNamedType);
         }
@@ -213,7 +225,7 @@ namespace HotChocolate.Language
             EnumTypeDefinitionNode node)
         {
             VisitName(node.Name);
-            VisitStringValue(node.Description);
+            VisitIfNotNull(node.Description, VisitStringValue);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Values, VisitEnumValueDefinition);
         }
@@ -224,6 +236,15 @@ namespace HotChocolate.Language
             VisitName(node.Name);
             VisitMany(node.Directives, VisitDirective);
             VisitMany(node.Values, VisitEnumValueDefinition);
+        }
+
+        private void VisitIfNotNull<T>(T node, Action<T> visitor)
+            where T : class
+        {
+            if (node != null)
+            {
+                visitor(node);
+            }
         }
     }
 }

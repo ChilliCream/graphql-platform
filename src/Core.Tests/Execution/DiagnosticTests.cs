@@ -79,14 +79,16 @@ namespace HotChocolate.Execution
 
             public bool QueryStop { get; private set; }
 
+            [DiagnosticName("Resolver")]
+            public virtual void OnResolvField() { }
 
-            [DiagnosticName("HotChocolate.Execution.Resolver.Start")]
+            [DiagnosticName("Resolver.Start")]
             public virtual void OnResolveFieldStart()
             {
                 ResolveFieldStart = true;
             }
 
-            [DiagnosticName("HotChocolate.Execution.Resolver.Stop")]
+            [DiagnosticName("Resolver.Stop")]
             public virtual void OnResolveFieldStop(IResolverContext context)
             {
                 ResolveFieldStop = true;
@@ -94,13 +96,16 @@ namespace HotChocolate.Execution
                 Duration = Activity.Current.Duration;
             }
 
-            [DiagnosticName("HotChocolate.Execution.Query.Start")]
+            [DiagnosticName("Query")]
+            public virtual void OnQuery() { }
+
+            [DiagnosticName("Query.Start")]
             public virtual void OnQueryStart()
             {
                 QueryStart = true;
             }
 
-            [DiagnosticName("HotChocolate.Execution.Query.Stop")]
+            [DiagnosticName("Query.Stop")]
             public virtual void OnQueryStop(IResolverContext context)
             {
                 QueryStop = true;

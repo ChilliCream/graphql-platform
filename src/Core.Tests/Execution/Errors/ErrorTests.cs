@@ -49,5 +49,19 @@ namespace HotChocolate.Execution
             Assert.Equal("foo", error.Extensions["fieldName"]);
             Assert.Null(error.Locations);
         }
+
+        [Fact]
+        public void VariableError_CreateWithoutLocation()
+        {
+            // arrange
+            // act
+            var error = new VariableError("foo", "bar");
+
+            // assert
+            Assert.Equal("foo", error.Message);
+            Assert.Equal("bar", error.Extensions["variableName"]);
+            Assert.Null(error.Locations);
+            Assert.Null(error.Path);
+        }
     }
 }

@@ -1,0 +1,230 @@
+{
+  "Data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "2001",
+      "name": "R2-D2",
+      "primaryFunction": "Astromech",
+      "friends": [
+        {
+          "__typename": "Human",
+          "homePlanet": "Tatooine",
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": null,
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
+        },
+        {
+          "__typename": "Human",
+          "homePlanet": "Alderaan",
+          "friends": [
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            },
+            {
+              "__typename": null
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "Errors": [
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    }
+  ]
+}

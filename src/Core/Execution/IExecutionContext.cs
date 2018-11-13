@@ -38,7 +38,9 @@ namespace HotChocolate.Execution
 
         VariableCollection Variables { get; }
 
-        CancellationToken CancellationToken { get; }
+        IReadOnlyDictionary<string, object> RequestProperties { get; }
+
+        CancellationToken RequestAborted { get; }
 
         void ReportError(IQueryError error);
 
@@ -54,6 +56,8 @@ namespace HotChocolate.Execution
 
         T GetResolver<T>();
 
-        IExecutionContext Clone(CancellationToken cancellationToken);
+        IExecutionContext Clone(
+            IReadOnlyDictionary<string, object> requestProperties,
+            CancellationToken requestAborted);
     }
 }

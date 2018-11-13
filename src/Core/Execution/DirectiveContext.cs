@@ -62,13 +62,19 @@ namespace HotChocolate.Execution
 
         public Path Path => _resolverContext.Path;
 
-        public CancellationToken CancellationToken =>
-            _resolverContext.CancellationToken;
+        public CancellationToken CancellationToken => RequestAborted;
+
+        public CancellationToken RequestAborted =>
+            _resolverContext.RequestAborted;
 
         public T Argument<T>(string name) =>
             _resolverContext.Argument<T>(name);
 
-        public T CustomContext<T>() => _resolverContext.CustomContext<T>();
+        public T CustomContext<T>() =>
+            _resolverContext.CustomContext<T>();
+
+        public T CustomProperty<T>(string key) =>
+            _resolverContext.CustomProperty<T>(key);
 
         public T DataLoader<T>(string key) =>
             _resolverContext.DataLoader<T>(key);

@@ -44,7 +44,9 @@ namespace HotChocolate.Execution
             }
         }
 
-        public QueryResult(OrderedDictionary data, IEnumerable<IQueryError> errors)
+        public QueryResult(
+            OrderedDictionary data,
+            IEnumerable<IQueryError> errors)
         {
             if (data == null)
             {
@@ -59,7 +61,7 @@ namespace HotChocolate.Execution
             Data = data;
             Data.MakeReadOnly();
 
-            Errors = errors.ToImmutableList();
+            Errors = new List<IQueryError>(errors).AsReadOnly();
             if (Errors.Count == 0)
             {
                 Errors = null;
@@ -123,4 +125,6 @@ namespace HotChocolate.Execution
             return ToJson(true);
         }
     }
+
+
 }

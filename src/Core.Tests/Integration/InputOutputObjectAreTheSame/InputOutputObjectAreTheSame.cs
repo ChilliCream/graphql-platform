@@ -1,3 +1,4 @@
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Xunit;

@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Subscriptions;
 using Moq;
 using Xunit;
 
@@ -284,6 +288,35 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public void GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+                hero(episode: $episode) {
+                    name
+                    friends @skip(if: $withFriends) {
+                        name
+                    }
+                }
+            }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "episode", "JEDI" },
+                { "withFriends", false }
+            };
+
+            // act
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
+
+            // assert
+            result.Snapshot();
+        }
+
+        [Fact]
         public void GraphQLOrgDirectiveSkipExample2()
         {
             // arrange
@@ -527,21 +560,11 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             // arrange
             Schema schema = CreateSchema();
             string query = @"
-            query foo {
-                hero(episode: NEWHOPE) {
-                    __typename
-                    id
-                    name
-                    ... on Human {
+                query foo {
+                    hero(episode: NEWHOPE) {
                         __typename
-                        homePlanet
-                    }
-                    ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
-                        __typename
+                        id
+                        name
                         ... on Human {
                             __typename
                             homePlanet
@@ -550,9 +573,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                             __typename
                             primaryFunction
                         }
+                        friends {
+                            __typename
+                            ... on Human {
+                                __typename
+                                homePlanet
+                            }
+                            ... on Droid {
+                                __typename
+                                primaryFunction
+                            }
+                        }
                     }
-                }
-            }";
+                }";
 
             // act
             IExecutionResult result = schema.Execute(query);
@@ -584,16 +617,99 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             result.Snapshot();
         }
 
-        private static Schema CreateSchema()
+        [Fact]
+        public async Task SubscribeToReview()
         {
-            CharacterRepository repository = new CharacterRepository();
-            Dictionary<Type, object> services = new Dictionary<Type, object>();
+            // arrange
+            Schema schema = CreateSchema();
+
+            // act
+            IResponseStream responseStream =
+                (IResponseStream)await schema.ExecuteAsync(
+                    "subscription { onCreateReview(episode: NEWHOPE) " +
+                    "{ stars } }");
+
+            // assert
+            IExecutionResult result = await schema.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEWHOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
+
+            IQueryExecutionResult eventResult;
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                eventResult = await responseStream.ReadAsync();
+            }
+
+            eventResult.Snapshot();
+        }
+
+        [Fact]
+        public void ExecutionDepthShouldNotLeadToEmptyObects()
+        {
+            // arrange
+            Schema schema = CreateSchema(3);
+            string query = @"
+            query foo {
+                hero(episode: NEWHOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        __typename
+                        ... on Human {
+                            __typename
+                            homePlanet
+                            friends {
+                                __typename
+                            }
+                        }
+                        ... on Droid {
+                            __typename
+                            primaryFunction
+                            friends {
+                                __typename
+                            }
+                        }
+                    }
+                }
+            }";
+
+            // act
+            IExecutionResult result = schema.Execute(query);
+
+            // assert
+            result.Snapshot();
+        }
+
+        private static Schema CreateSchema() => CreateSchema(20);
+
+        private static Schema CreateSchema(int executionDepth)
+        {
+            var repository = new CharacterRepository();
+            var eventRegistry = new InMemoryEventRegistry();
+
+            var services = new Dictionary<Type, object>();
             services[typeof(CharacterRepository)] = repository;
             services[typeof(Query)] = new Query(repository);
             services[typeof(Mutation)] = new Mutation();
+            services[typeof(Subscription)] = new Subscription();
+            services[typeof(IEventSender)] = eventRegistry;
+            services[typeof(IEventRegistry)] = eventRegistry;
 
-
-            Func<Type, object> serviceResolver = new Func<Type, object>(
+            var serviceResolver = new Func<Type, object>(
                 t =>
                 {
                     if (services.TryGetValue(t, out object s))
@@ -611,10 +727,16 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             return Schema.Create(c =>
             {
+                c.Options.MaxExecutionDepth = executionDepth;
+
                 c.RegisterServiceProvider(serviceProvider.Object);
+
                 c.RegisterDataLoader<HumanDataLoader>();
+
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
+                c.RegisterSubscriptionType<SubscriptionType>();
+
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();

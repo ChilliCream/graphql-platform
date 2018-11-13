@@ -32,9 +32,9 @@ namespace HotChocolate.Types
             }
 
             if (literal is StringValueNode stringLiteral
-                && TryParseLiteral(stringLiteral, out object obj))
+                && TryParseUri(stringLiteral.Value, out Uri uri))
             {
-                return obj;
+                return uri;
             }
 
             if (literal is NullValueNode)
@@ -43,20 +43,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The {Name} can only parse string literals.",
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
                 nameof(literal));
-        }
-
-        private bool TryParseLiteral(StringValueNode literal, out object obj)
-        {
-            if (Uri.TryCreate(literal.Value, UriKind.Absolute, out Uri uri))
-            {
-                obj = uri;
-                return true;
-            }
-
-            obj = null;
-            return false;
         }
 
         public override IValueNode ParseValue(object value)
@@ -72,8 +61,9 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value has to be a valid {Name} " +
-                $"in order to be parsed by the {Name}.");
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
         }
 
         public override object Serialize(object value)
@@ -89,12 +79,31 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                $"The specified value cannot be serialized by the {Name}.");
+                TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
         private string Serialize(Uri value)
         {
             return value.AbsoluteUri;
         }
+
+        public override object Deserialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is string s && TryParseUri(s, out Uri uri))
+            {
+                return uri;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        private bool TryParseUri(string value, out Uri uri) =>
+            Uri.TryCreate(value, UriKind.Absolute, out uri);
     }
 }

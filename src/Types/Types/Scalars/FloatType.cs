@@ -14,12 +14,17 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Float
     /// </summary>
     public sealed class FloatType
-        : NumberType<double, FloatValueNode>
+        : ScalarType
     {
         public FloatType()
             : base("Float")
         {
         }
+
+        public override string Description =>
+            TypeResources.FloatType_Description();
+
+        public override Type ClrType => typeof(double);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -31,7 +36,9 @@ namespace HotChocolate.Types
             // Input coercion rules specify that float values can be coerced
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
-            return base.IsInstanceOfType(literal) || literal is IntValueNode;
+            return literal is FloatValueNode
+                || literal is IntValueNode
+                || literal is NullValueNode;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -39,6 +46,14 @@ namespace HotChocolate.Types
             if (literal == null)
             {
                 throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal is FloatValueNode floatLiteral)
+            {
+                return double.Parse(
+                    floatLiteral.Value,
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture);
             }
 
             // Input coercion rules specify that float values can be coerced
@@ -51,16 +66,84 @@ namespace HotChocolate.Types
                     CultureInfo.InvariantCulture);
             }
 
-            return base.ParseLiteral(literal);
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()),
+                nameof(literal));
         }
 
-        protected override double OnParseLiteral(FloatValueNode node) =>
-            double.Parse(node.Value, NumberStyles.Float, CultureInfo.InvariantCulture);
+        public override IValueNode ParseValue(object value)
+        {
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
 
-        protected override FloatValueNode OnParseValue(double value) =>
-            new FloatValueNode(value.ToString("E", CultureInfo.InvariantCulture));
+            if (value is double d)
+            {
+                return new FloatValueNode(SerializeDouble(d));
+            }
 
-        protected override IEnumerable<Type> AdditionalTypes =>
-             new[] { typeof(float) };
+            if (value is float f)
+            {
+                return new FloatValueNode(SerializeDouble(f));
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()),
+                nameof(value));
+        }
+
+        public override object Serialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is double d)
+            {
+                return d;
+            }
+
+            if (value is float f)
+            {
+                return (double)f;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        public override object Deserialize(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is double d)
+            {
+                return d;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Serialize(Name));
+        }
+
+        private static double ParseDouble(string value) =>
+            double.Parse(
+                value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture);
+
+        private static string SerializeDouble(double value) =>
+            value.ToString("E", CultureInfo.InvariantCulture);
     }
 }
