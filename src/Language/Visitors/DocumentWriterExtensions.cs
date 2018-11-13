@@ -9,7 +9,7 @@ namespace HotChocolate.Language
         public static void WriteMany<T>(
             this DocumentWriter writer,
             IEnumerable<T> items,
-            Action<T> action)
+            Action<T, DocumentWriter> action)
         {
             WriteMany(writer, items, action, ", ");
         }
@@ -17,17 +17,17 @@ namespace HotChocolate.Language
         public static void WriteMany<T>(
             this DocumentWriter writer,
             IEnumerable<T> items,
-            Action<T> action,
+            Action<T, DocumentWriter> action,
             string separator)
         {
             if (items.Any())
             {
-                action(items.First());
+                action(items.First(), writer);
 
                 foreach (T item in items.Skip(1))
                 {
                     writer.Write(separator);
-                    action(item);
+                    action(item, writer);
                 }
             }
         }
@@ -35,17 +35,17 @@ namespace HotChocolate.Language
         public static void WriteMany<T>(
             this DocumentWriter writer,
             IEnumerable<T> items,
-            Action<T> action,
-            Action separator)
+            Action<T, DocumentWriter> action,
+            Action<DocumentWriter> separator)
         {
             if (items.Any())
             {
-                action(items.First());
+                action(items.First(), writer);
 
                 foreach (T item in items.Skip(1))
                 {
-                    separator();
-                    action(item);
+                    separator(writer);
+                    action(item, writer);
                 }
             }
         }

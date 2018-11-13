@@ -1,5 +1,8 @@
 
 using System;
+using System.IO;
+using System.Text;
+using ChilliCream.Testing;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -11,16 +14,20 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "type Foo { bar: String baz: [Int] }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            SchemaSerializer serializer = new SchemaSerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             Assert.Equal(
                 query,
-                serializer.Value);
+                content.ToString());
         }
 
         [Fact]
@@ -28,14 +35,18 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "type Foo { bar: String baz: [Int] }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            SchemaSerializer serializer = new SchemaSerializer(true);
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            Assert.Equal(Snapshot.Current(), Snapshot.New(serializer.Value));
+            content.ToString().Snapshot();
         }
 
         [Fact]
@@ -45,16 +56,20 @@ namespace HotChocolate.Language
             string query = "type Foo @a { bar: String baz: [Int] } " +
                 "type Foo @a @b { bar: String @foo " +
                 "baz(a: String = \"abc\"): [Int] @foo @bar }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            SchemaSerializer serializer = new SchemaSerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             Assert.Equal(
                 query,
-                serializer.Value);
+                content.ToString());
         }
 
         [Fact]

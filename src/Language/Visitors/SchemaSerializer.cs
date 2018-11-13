@@ -6,10 +6,8 @@ using System.Text;
 namespace HotChocolate.Language
 {
     public class SchemaSerializer
-        : SchemaSyntaxWalker
+        : SchemaSyntaxWalker<DocumentWriter>
     {
-        private readonly StringBuilder _result = new StringBuilder();
-        private DocumentWriter _writer;
         private bool _indent = false;
 
         public SchemaSerializer()
@@ -21,154 +19,189 @@ namespace HotChocolate.Language
             _indent = useIndentation;
         }
 
-        public string Value => _result.ToString();
-
-        public override void Visit(DocumentNode node)
+        public override void Visit(DocumentNode node, DocumentWriter writer)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            _result.Clear();
-            using (_writer = new DocumentWriter(_result))
-            {
-                VisitDocument(node);
-                _writer.Flush();
-            }
+            VisitDocument(node, writer);
         }
 
-        protected override void VisitDocument(DocumentNode node)
+        protected override void VisitDocument(
+            DocumentNode node,
+            DocumentWriter writer)
         {
             if (node.Definitions.Any())
             {
-                VisitDefinition(node.Definitions.First());
+                VisitDefinition(node.Definitions.First(), writer);
 
                 foreach (IDefinitionNode item in node.Definitions.Skip(1))
                 {
                     if (_indent)
                     {
-                        _writer.WriteLine();
-                        _writer.WriteLine();
+                        writer.WriteLine();
+                        writer.WriteLine();
                     }
                     else
                     {
-                        _writer.WriteSpace();
+                        writer.WriteSpace();
                     }
 
-                    VisitDefinition(item);
+                    VisitDefinition(item, writer);
                 }
             }
         }
 
         protected override void VisitObjectTypeDefinition(
-            ObjectTypeDefinitionNode node)
+            ObjectTypeDefinitionNode node,
+            DocumentWriter writer)
         {
-            WriteDescription(node.Description);
+            WriteDescription(node.Description, writer);
 
-            _writer.Write(Keywords.Type);
-            _writer.WriteSpace();
-            VisitName(node.Name);
+            writer.Write(Keywords.Type);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
 
-            WriteDirectives(node.Directives);
+            if (node.Interfaces.Count > 0)
+            {
 
-            WriteLeftBrace();
+            }
 
-            _writer.Indent();
-            _writer.WriteMany(
+            // implements Character
+            WriteDirectives(node.Directives, writer);
+
+            WriteLeftBrace(writer);
+
+            writer.Indent();
+            writer.WriteMany(
                 node.Fields,
                 VisitFieldDefinition,
                 WriteLineOrSpace);
-            _writer.Unindent();
+            writer.Unindent();
 
-            WriteRightBrace();
+            WriteRightBrace(writer);
+        }
+
+        protected override void VisitInterfaceTypeDefinition(
+            InterfaceTypeDefinitionNode node, DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Type);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
+
+            WriteDirectives(node.Directives, writer);
+
+            WriteLeftBrace(writer);
+
+            writer.Indent();
+            writer.WriteMany(
+                node.Fields,
+                VisitFieldDefinition,
+                WriteLineOrSpace);
+            writer.Unindent();
+
+            WriteRightBrace(writer);
         }
 
         protected override void VisitUnionTypeDefinition(
-            UnionTypeDefinitionNode node)
+            UnionTypeDefinitionNode node,
+            DocumentWriter writer)
         {
-            WriteDescription(node.Description);
+            WriteDescription(node.Description, writer);
 
-            _writer.Write(Keywords.Union);
-            _writer.WriteSpace();
-            VisitName(node.Name);
+            writer.Write(Keywords.Union);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
 
-            WriteDirectives(node.Directives);
+            WriteDirectives(node.Directives, writer);
 
-            _writer.WriteSpace();
-            _writer.Write('=');
-            _writer.WriteSpace();
+            writer.WriteSpace();
+            writer.Write('=');
+            writer.WriteSpace();
 
-            _writer.WriteMany(node.Types, VisitNamedType, " | ");
+            writer.WriteMany(node.Types, VisitNamedType, " | ");
         }
 
-        protected override void VisitFieldDefinition(FieldDefinitionNode node)
+        protected override void VisitFieldDefinition(
+            FieldDefinitionNode node,
+            DocumentWriter writer)
         {
-            WriteIndentation();
+            WriteIndentation(writer);
 
-            WriteDescription(node.Description);
+            WriteDescription(node.Description, writer);
 
-            VisitName(node.Name);
+            VisitName(node.Name, writer);
 
             if (node.Arguments.Any())
             {
-                _writer.Write("(");
-                _writer.WriteMany(
+                writer.Write("(");
+                writer.WriteMany(
                     node.Arguments,
                     VisitInputValueDefinition,
                     ", ");
-                _writer.Write(")");
+                writer.Write(")");
             }
 
-            _writer.Write(":");
-            _writer.WriteSpace();
+            writer.Write(":");
+            writer.WriteSpace();
 
-            VisitType(node.Type);
+            VisitType(node.Type, writer);
 
-            WriteDirectives(node.Directives);
+            WriteDirectives(node.Directives, writer);
         }
 
         protected override void VisitInputValueDefinition(
-            InputValueDefinitionNode node)
+            InputValueDefinitionNode node,
+            DocumentWriter writer)
         {
             if (node.Description != null)
             {
-                VisitStringValue(node.Description);
-                _writer.WriteSpace();
+                VisitStringValue(node.Description, writer);
+                writer.WriteSpace();
             }
 
-            VisitName(node.Name);
-            _writer.Write(":");
-            _writer.WriteSpace();
+            VisitName(node.Name, writer);
+            writer.Write(":");
+            writer.WriteSpace();
 
-            VisitType(node.Type);
+            VisitType(node.Type, writer);
 
             if (!node.DefaultValue.IsNull())
             {
-                _writer.WriteSpace();
-                _writer.Write("=");
-                _writer.WriteSpace();
-                VisitValue(node.DefaultValue);
+                writer.WriteSpace();
+                writer.Write("=");
+                writer.WriteSpace();
+                VisitValue(node.DefaultValue, writer);
             }
 
-            WriteDirectives(node.Directives);
+            WriteDirectives(node.Directives, writer);
         }
 
-        protected override void VisitIntValue(IntValueNode node)
+        protected override void VisitIntValue(
+            IntValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write(node.Value);
+            writer.Write(node.Value);
         }
 
-        protected override void VisitFloatValue(FloatValueNode node)
+        protected override void VisitFloatValue(
+            FloatValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write(node.Value);
+            writer.Write(node.Value);
         }
 
-        protected override void VisitStringValue(StringValueNode node)
+        protected override void VisitStringValue(
+            StringValueNode node,
+            DocumentWriter writer)
         {
             if (node.Block)
             {
-                _writer.Write("\"\"\"");
+                writer.Write("\"\"\"");
 
                 string[] lines = node.Value
                     .Replace("\"\"\"", "\\\"\"\"")
@@ -177,176 +210,205 @@ namespace HotChocolate.Language
 
                 foreach (string line in lines)
                 {
-                    _writer.WriteLine();
-                    _writer.WriteIndentation();
-                    _writer.Write(line);
+                    writer.WriteLine();
+                    writer.WriteIndentation();
+                    writer.Write(line);
                 }
 
-                _writer.WriteLine();
-                _writer.WriteIndentation();
-                _writer.Write("\"\"\"");
+                writer.WriteLine();
+                writer.WriteIndentation();
+                writer.Write("\"\"\"");
             }
             else
             {
-                _writer.Write($"\"{node.Value}\"");
+                writer.Write($"\"{node.Value}\"");
             }
         }
 
-        protected override void VisitBooleanValue(BooleanValueNode node)
+        protected override void VisitBooleanValue(
+            BooleanValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write(node.Value.ToString().ToLowerInvariant());
+            writer.Write(node.Value.ToString().ToLowerInvariant());
         }
 
-        protected override void VisitEnumValue(EnumValueNode node)
+        protected override void VisitEnumValue(
+            EnumValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write(node.Value);
+            writer.Write(node.Value);
         }
 
-        protected override void VisitNullValue(NullValueNode node)
+        protected override void VisitNullValue(
+            NullValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write("null");
+            writer.Write("null");
         }
 
-        protected override void VisitListValue(ListValueNode node)
+        protected override void VisitListValue(
+            ListValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write("[ ");
+            writer.Write("[ ");
 
-            _writer.WriteMany(node.Items, VisitValue);
+            writer.WriteMany(node.Items, VisitValue);
 
-            _writer.Write(" ]");
+            writer.Write(" ]");
         }
 
-        protected override void VisitObjectValue(ObjectValueNode node)
+        protected override void VisitObjectValue(
+            ObjectValueNode node,
+            DocumentWriter writer)
         {
-            _writer.Write("{ ");
+            writer.Write("{ ");
 
-            _writer.WriteMany(node.Fields, VisitObjectField);
+            writer.WriteMany(node.Fields, VisitObjectField);
 
-            _writer.Write(" }");
+            writer.Write(" }");
         }
 
-        protected override void VisitObjectField(ObjectFieldNode node)
+        protected override void VisitObjectField(
+            ObjectFieldNode node,
+            DocumentWriter writer)
         {
-            VisitName(node.Name);
+            VisitName(node.Name, writer);
 
-            _writer.Write(": ");
+            writer.Write(": ");
 
-            VisitValue(node.Value);
+            VisitValue(node.Value, writer);
         }
 
-        protected override void VisitVariable(VariableNode node)
+        protected override void VisitVariable(
+            VariableNode node,
+            DocumentWriter writer)
         {
-            _writer.Write('$');
-            VisitName(node.Name);
+            writer.Write('$');
+            VisitName(node.Name, writer);
         }
 
-        protected override void VisitDirective(DirectiveNode node)
+        protected override void VisitDirective(
+            DirectiveNode node,
+            DocumentWriter writer)
         {
-            _writer.Write('@');
+            writer.Write('@');
 
-            VisitName(node.Name);
+            VisitName(node.Name, writer);
 
             if (node.Arguments.Any())
             {
-                _writer.Write('(');
+                writer.Write('(');
 
-                _writer.WriteMany(node.Arguments, VisitArgument);
+                writer.WriteMany(node.Arguments, VisitArgument);
 
-                _writer.Write(')');
+                writer.Write(')');
             }
         }
 
-        protected override void VisitArgument(ArgumentNode node)
+        protected override void VisitArgument(
+            ArgumentNode node,
+            DocumentWriter writer)
         {
-            VisitName(node.Name);
+            VisitName(node.Name, writer);
 
-            _writer.Write(": ");
+            writer.Write(": ");
 
-            VisitValue(node.Value);
+            VisitValue(node.Value, writer);
         }
 
-        protected override void VisitNonNullType(NonNullTypeNode node)
+        protected override void VisitNonNullType(
+            NonNullTypeNode node,
+            DocumentWriter writer)
         {
-            VisitType(node.Type);
-            _writer.Write('!');
+            VisitType(node.Type, writer);
+            writer.Write('!');
         }
 
-        protected override void VisitListType(ListTypeNode node)
+        protected override void VisitListType(
+            ListTypeNode node,
+            DocumentWriter writer)
         {
-            _writer.Write('[');
-            VisitType(node.Type);
-            _writer.Write(']');
+            writer.Write('[');
+            VisitType(node.Type, writer);
+            writer.Write(']');
         }
 
-        protected override void VisitNamedType(NamedTypeNode node)
+        protected override void VisitNamedType(
+            NamedTypeNode node,
+            DocumentWriter writer)
         {
-            VisitName(node.Name);
+            VisitName(node.Name, writer);
         }
 
-        protected override void VisitName(NameNode node)
+        protected override void VisitName(
+            NameNode node,
+            DocumentWriter writer)
         {
-            _writer.Write(node.Value);
+            writer.Write(node.Value);
         }
 
-        private void WriteDescription(StringValueNode description)
+        private void WriteDescription(
+            StringValueNode description,
+            DocumentWriter writer)
         {
             if (description != null)
             {
-                VisitStringValue(description);
+                VisitStringValue(description, writer);
 
                 if (_indent)
                 {
-                    _writer.WriteLine();
+                    writer.WriteLine();
                 }
                 else
                 {
-                    _writer.WriteSpace();
+                    writer.WriteSpace();
                 }
 
-                WriteIndentation();
+                WriteIndentation(writer);
             }
         }
 
         private void WriteDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyCollection<DirectiveNode> directives,
+            DocumentWriter writer)
         {
             if (directives.Any())
             {
-                _writer.WriteSpace();
-                _writer.WriteMany(directives, VisitDirective, " ");
+                writer.WriteSpace();
+                writer.WriteMany(directives, VisitDirective, " ");
             }
         }
 
-        private void WriteLeftBrace()
+        private void WriteLeftBrace(DocumentWriter writer)
         {
-            _writer.WriteSpace();
-            _writer.Write("{");
-            WriteLineOrSpace();
+            writer.WriteSpace();
+            writer.Write("{");
+            WriteLineOrSpace(writer);
         }
 
-        private void WriteRightBrace()
+        private void WriteRightBrace(DocumentWriter writer)
         {
-            WriteLineOrSpace();
-            _writer.Write("}");
+            WriteLineOrSpace(writer);
+            writer.Write("}");
         }
 
-        private void WriteLineOrSpace()
+        private void WriteLineOrSpace(DocumentWriter writer)
         {
             if (_indent)
             {
-                _writer.WriteLine();
+                writer.WriteLine();
             }
             else
             {
-                _writer.WriteSpace();
+                writer.WriteSpace();
             }
         }
 
-        private void WriteIndentation()
+        private void WriteIndentation(DocumentWriter writer)
         {
             if (_indent)
             {
-                _writer.WriteIndentation();
+                writer.WriteIndentation();
             }
         }
     }

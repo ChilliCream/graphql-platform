@@ -2,66 +2,74 @@ using System;
 
 namespace HotChocolate.Language
 {
-    public class SchemaSyntaxWalker
-        : SyntaxWalkerBase<DocumentNode>
+    public class SchemaSyntaxWalker<TContext>
+        : SyntaxWalkerBase<DocumentNode, TContext>
     {
         protected SchemaSyntaxWalker()
         {
         }
 
-        public override void Visit(DocumentNode node)
+        public override void Visit(
+            DocumentNode node,
+            TContext context)
         {
             if (node != null)
             {
-                VisitDocument(node);
+                VisitDocument(node, context);
             }
         }
 
-        protected override void VisitDocument(DocumentNode node)
+        protected override void VisitDocument(
+            DocumentNode node,
+            TContext context)
         {
-            VisitMany(node.Definitions, VisitDefinition);
+            VisitMany(node.Definitions, context, VisitDefinition);
         }
 
-        protected virtual void VisitDefinition(IDefinitionNode node)
+        protected virtual void VisitDefinition(
+            IDefinitionNode node,
+            TContext context)
         {
             if (node is ITypeExtensionNode)
             {
-                VisitTypeExtensionDefinition(node);
+                VisitTypeExtensionDefinition(node, context);
             }
             else
             {
-                VisitTypeDefinition(node);
+                VisitTypeDefinition(node, context);
             }
         }
 
 
-        protected virtual void VisitTypeDefinition(IDefinitionNode node)
+        protected virtual void VisitTypeDefinition(
+            IDefinitionNode node,
+            TContext context)
         {
             switch (node)
             {
                 case SchemaDefinitionNode value:
-                    VisitSchemaDefinition(value);
+                    VisitSchemaDefinition(value, context);
                     break;
                 case DirectiveDefinitionNode value:
-                    VisitDirectiveDefinition(value);
+                    VisitDirectiveDefinition(value, context);
                     break;
                 case ScalarTypeDefinitionNode value:
-                    VisitScalarTypeDefinition(value);
+                    VisitScalarTypeDefinition(value, context);
                     break;
                 case ObjectTypeDefinitionNode value:
-                    VisitObjectTypeDefinition(value);
+                    VisitObjectTypeDefinition(value, context);
                     break;
                 case InputObjectTypeDefinitionNode value:
-                    VisitInputObjectTypeDefinition(value);
+                    VisitInputObjectTypeDefinition(value, context);
                     break;
                 case InterfaceTypeDefinitionNode value:
-                    VisitInterfaceTypeDefinition(value);
+                    VisitInterfaceTypeDefinition(value, context);
                     break;
                 case UnionTypeDefinitionNode value:
-                    VisitUnionTypeDefinition(value);
+                    VisitUnionTypeDefinition(value, context);
                     break;
                 case EnumTypeDefinitionNode value:
-                    VisitEnumTypeDefinition(value);
+                    VisitEnumTypeDefinition(value, context);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -69,181 +77,218 @@ namespace HotChocolate.Language
         }
 
         protected virtual void VisitTypeExtensionDefinition(
-            IDefinitionNode node)
+            IDefinitionNode node,
+            TContext context)
         {
             switch (node)
             {
                 case SchemaExtensionNode value:
-                    VisitSchemaExtension(value);
+                    VisitSchemaExtension(value, context);
                     break;
                 case ScalarTypeExtensionNode value:
-                    VisitScalarTypeExtension(value);
+                    VisitScalarTypeExtension(value, context);
                     break;
                 case ObjectTypeExtensionNode value:
-                    VisitObjectTypeExtension(value);
+                    VisitObjectTypeExtension(value, context);
                     break;
                 case InterfaceTypeExtensionNode value:
-                    VisitInterfaceTypeExtension(value);
+                    VisitInterfaceTypeExtension(value, context);
                     break;
                 case UnionTypeExtensionNode value:
-                    VisitUnionTypeExtension(value);
+                    VisitUnionTypeExtension(value, context);
                     break;
                 case EnumTypeExtensionNode value:
-                    VisitEnumTypeExtension(value);
+                    VisitEnumTypeExtension(value, context);
                     break;
                 case InputObjectTypeExtensionNode value:
-                    VisitInputObjectTypeExtension(value);
+                    VisitInputObjectTypeExtension(value, context);
                     break;
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        protected override void VisitSchemaDefinition(SchemaDefinitionNode node)
+        protected override void VisitSchemaDefinition(
+            SchemaDefinitionNode node,
+            TContext context)
         {
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
+            VisitMany(
+                node.Directives,
+                context,
+                VisitDirective);
+
+            VisitMany(
+                node.OperationTypes,
+                context,
+                VisitOperationTypeDefinition);
         }
 
-        protected override void VisitSchemaExtension(SchemaExtensionNode node)
+        protected override void VisitSchemaExtension(
+            SchemaExtensionNode node,
+            TContext context)
         {
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.OperationTypes, VisitOperationTypeDefinition);
+            VisitMany(
+                node.Directives,
+                context,
+                VisitDirective);
+
+            VisitMany(
+                node.OperationTypes,
+                context,
+                VisitOperationTypeDefinition);
         }
 
         protected override void VisitOperationTypeDefinition(
-            OperationTypeDefinitionNode node)
+            OperationTypeDefinitionNode node,
+            TContext context)
         {
-            VisitNamedType(node.Type);
+            VisitNamedType(node.Type, context);
         }
 
         protected override void VisitDirectiveDefinition(
-            DirectiveDefinitionNode node)
+            DirectiveDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Arguments, VisitInputValueDefinition);
-            VisitMany(node.Locations, VisitName);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Arguments, context, VisitInputValueDefinition);
+            VisitMany(node.Locations, context, VisitName);
         }
 
         protected override void VisitScalarTypeDefinition(
-            ScalarTypeDefinitionNode node)
+            ScalarTypeDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
         }
 
         protected override void VisitScalarTypeExtension(
-            ScalarTypeExtensionNode node)
+            ScalarTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
         }
 
         protected override void VisitObjectTypeDefinition(
-            ObjectTypeDefinitionNode node)
+            ObjectTypeDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Interfaces, VisitNamedType);
-            VisitMany(node.Fields, VisitFieldDefinition);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Interfaces, context, VisitNamedType);
+            VisitMany(node.Fields, context, VisitFieldDefinition);
         }
 
         protected override void VisitObjectTypeExtension(
-            ObjectTypeExtensionNode node)
+            ObjectTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Interfaces, VisitNamedType);
-            VisitMany(node.Fields, VisitFieldDefinition);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Interfaces, context, VisitNamedType);
+            VisitMany(node.Fields, context, VisitFieldDefinition);
         }
 
         protected override void VisitFieldDefinition(
-            FieldDefinitionNode node)
+            FieldDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Arguments, VisitInputValueDefinition);
-            VisitType(node.Type);
-            VisitMany(node.Directives, VisitDirective);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Arguments, context, VisitInputValueDefinition);
+            VisitType(node.Type, context);
+            VisitMany(node.Directives, context, VisitDirective);
         }
 
         protected override void VisitInputObjectTypeDefinition(
-            InputObjectTypeDefinitionNode node)
+            InputObjectTypeDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Fields, VisitInputValueDefinition);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Fields, context, VisitInputValueDefinition);
         }
 
         protected override void VisitInputObjectTypeExtension(
-            InputObjectTypeExtensionNode node)
+            InputObjectTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Fields, VisitInputValueDefinition);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Fields, context, VisitInputValueDefinition);
         }
 
         protected override void VisitInterfaceTypeDefinition(
-           InterfaceTypeDefinitionNode node)
+           InterfaceTypeDefinitionNode node,
+           TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Fields, VisitFieldDefinition);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Fields, context, VisitFieldDefinition);
         }
 
         protected override void VisitInterfaceTypeExtension(
-            InterfaceTypeExtensionNode node)
+            InterfaceTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Fields, VisitFieldDefinition);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Fields, context, VisitFieldDefinition);
         }
 
         protected override void VisitUnionTypeDefinition(
-            UnionTypeDefinitionNode node)
+            UnionTypeDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Types, VisitNamedType);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Types, context, VisitNamedType);
         }
 
         protected override void VisitUnionTypeExtension(
-            UnionTypeExtensionNode node)
+            UnionTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Types, VisitNamedType);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Types, context, VisitNamedType);
         }
 
         protected override void VisitEnumTypeDefinition(
-            EnumTypeDefinitionNode node)
+            EnumTypeDefinitionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitIfNotNull(node.Description, VisitStringValue);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Values, VisitEnumValueDefinition);
+            VisitName(node.Name, context);
+            VisitIfNotNull(node.Description, context, VisitStringValue);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Values, context, VisitEnumValueDefinition);
         }
 
         protected override void VisitEnumTypeExtension(
-            EnumTypeExtensionNode node)
+            EnumTypeExtensionNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Directives, VisitDirective);
-            VisitMany(node.Values, VisitEnumValueDefinition);
+            VisitName(node.Name, context);
+            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(node.Values, context, VisitEnumValueDefinition);
         }
 
-        private void VisitIfNotNull<T>(T node, Action<T> visitor)
+        private void VisitIfNotNull<T>(
+            T node,
+            TContext context,
+            Action<T, TContext> visitor)
             where T : class
         {
             if (node != null)
             {
-                visitor(node);
+                visitor(node, context);
             }
         }
     }

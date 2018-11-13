@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public class DummyQuerySyntaxWalker
-        : QuerySyntaxWalker
+        : QuerySyntaxWalker<object>
     {
         public bool VisitedAllNodes =>
             VisitedOperationDefinition
@@ -24,48 +24,59 @@ namespace HotChocolate.Language
         public bool VisitedInlineFragment { get; private set; }
 
         protected override void VisitOperationDefinition(
-            OperationDefinitionNode node)
+            OperationDefinitionNode node,
+            object context)
         {
             VisitedOperationDefinition = true;
-            base.VisitOperationDefinition(node);
+            base.VisitOperationDefinition(node, context);
         }
 
         protected override void VisitVariableDefinition(
-           VariableDefinitionNode node)
+            VariableDefinitionNode node,
+            object context)
         {
             VisitedVariableDefinition = true;
-            base.VisitVariableDefinition(node);
+            base.VisitVariableDefinition(node, context);
         }
 
         protected override void VisitFragmentDefinition(
-            FragmentDefinitionNode node)
+            FragmentDefinitionNode node,
+            object context)
         {
             VisitedFragmentDefinition = true;
-            base.VisitFragmentDefinition(node);
+            base.VisitFragmentDefinition(node, context);
         }
 
-        protected override void VisitSelectionSet(SelectionSetNode node)
+        protected override void VisitSelectionSet(
+            SelectionSetNode node,
+            object context)
         {
             VisitedSelectionSet = true;
-            base.VisitSelectionSet(node);
+            base.VisitSelectionSet(node, context);
         }
 
-        protected override void VisitField(FieldNode node)
+        protected override void VisitField(
+            FieldNode node,
+            object context)
         {
             VisitedField = true;
-            base.VisitField(node);
+            base.VisitField(node, context);
         }
 
-        protected override void VisitFragmentSpread(FragmentSpreadNode node)
+        protected override void VisitFragmentSpread(
+            FragmentSpreadNode node,
+            object context)
         {
             VisitedFragmentSpread = true;
-            base.VisitFragmentSpread(node);
+            base.VisitFragmentSpread(node, context);
         }
 
-        protected override void VisitInlineFragment(InlineFragmentNode node)
+        protected override void VisitInlineFragment(
+            InlineFragmentNode node,
+            object context)
         {
             VisitedInlineFragment = true;
-            base.VisitInlineFragment(node);
+            base.VisitInlineFragment(node, context);
         }
     }
 }

@@ -1,4 +1,6 @@
 
+using System.IO;
+using System.Text;
 using ChilliCream.Testing;
 using Xunit;
 
@@ -10,32 +12,42 @@ namespace HotChocolate.Language
         public void Serialize_ShortHandQueryNoIndentation_InOutShouldBeTheSame()
         {
             // arrange
-            string query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+            var query = "{ foo(s: \"String\") { bar @foo " +
+                "{ baz @foo @bar } } }";
+
+            var serializer = new QuerySerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             Assert.Equal(
                 query,
-                serializer.Value);
+                content.ToString());
         }
 
         [Fact]
         public void Serialize_ShortHandQueryWithIndentation_OutputIsFormatted()
         {
             // arrange
-            string query = "{ foo(s: \"String\") { bar @foo { baz @foo @bar } } }";
+            string query = "{ foo(s: \"String\") { bar @foo " +
+                "{ baz @foo @bar } } }";
+
+            var serializer = new QuerySerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer(true);
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            serializer.Value.Snapshot();
+            content.ToString().Snapshot();
         }
 
         [Fact]
@@ -43,14 +55,18 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
+
+            var serializer = new QuerySerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer(true);
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            serializer.Value.Snapshot();
+            content.ToString().Snapshot();
         }
 
         [Fact]
@@ -58,14 +74,19 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
+
+            var serializer = new QuerySerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer(true);
+
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            serializer.Value.Snapshot();
+            content.ToString().Snapshot();
         }
 
         [Fact]
@@ -73,14 +94,18 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
+
+            var serializer = new QuerySerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            serializer.Value.Snapshot();
+            content.ToString().Snapshot();
         }
 
         [Fact]
@@ -88,17 +113,23 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
+
+            var serializer = new QuerySerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer(true);
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            string serializedQuery = serializer.Value;
+            string serializedQuery = content.ToString();
             DocumentNode parsedQuery = Parser.Default.Parse(serializedQuery);
-            serializer.Visit(parsedQuery);
-            Assert.Equal(serializedQuery, serializer.Value);
+
+            content.Clear();
+            serializer.Visit(parsedQuery, new DocumentWriter(writer));
+            Assert.Equal(serializedQuery, content.ToString());
 
         }
 
@@ -107,17 +138,23 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
+
+            var serializer = new QuerySerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            string serializedQuery = serializer.Value;
+            string serializedQuery = content.ToString();
             DocumentNode parsedQuery = Parser.Default.Parse(serializedQuery);
-            serializer.Visit(parsedQuery);
-            Assert.Equal(serializedQuery, serializer.Value);
+
+            content.Clear();
+            serializer.Visit(parsedQuery, new DocumentWriter(writer));
+            Assert.Equal(serializedQuery, content.ToString());
         }
 
         [Fact]
@@ -128,16 +165,19 @@ namespace HotChocolate.Language
                 "query Foo($bar: [String!]!) { foo(s: \"String\") " +
                 "{ bar @foo { baz @foo @bar } } }";
 
+            var serializer = new QuerySerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query);
-            QuerySerializer serializer = new QuerySerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             Assert.Equal(
                 query,
-                serializer.Value);
+                content.ToString());
         }
 
         [Fact]
@@ -145,17 +185,21 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
+
+            var serializer = new QuerySerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
             DocumentNode queryDocument = Parser.Default.Parse(query,
                 new ParserOptions(allowFragmentVariables: true));
-            QuerySerializer serializer = new QuerySerializer();
 
             // act
-            serializer.Visit(queryDocument);
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             Assert.Equal(
                 query,
-                serializer.Value);
+                content.ToString());
         }
     }
 }

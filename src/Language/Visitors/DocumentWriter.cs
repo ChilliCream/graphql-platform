@@ -7,14 +7,28 @@ using System.Threading.Tasks;
 namespace HotChocolate.Language
 {
     public class DocumentWriter
-        : StringWriter
+        : TextWriter
     {
-        public DocumentWriter(StringBuilder stringBuilder)
-            : base(stringBuilder)
+        private TextWriter _writer;
+
+        public DocumentWriter(TextWriter writer)
         {
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
         }
 
         public int Indentation { get; private set; }
+
+        public override Encoding Encoding => _writer.Encoding;
+
+        public override void Write(char value)
+        {
+            _writer.Write(value);
+        }
+
+        public override void Flush()
+        {
+            _writer.Flush();
+        }
 
         public void Indent()
         {
@@ -30,7 +44,6 @@ namespace HotChocolate.Language
         {
             Write(' ');
         }
-
 
         public void WriteIndentation()
         {
