@@ -140,6 +140,48 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void Serialize_ObjectTypeImplementsXYZ_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "type Foo implements X & Y & Z " +
+                "{ bar: String baz: [Int] }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_ObjectTypeImplementsXYZWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "type Foo implements X & Y & Z " +
+                "{ bar: String baz: [Int] }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
         public void Serialize_UnionTypeDefNoIndent_InOutShouldBeTheSame()
         {
             // arrange

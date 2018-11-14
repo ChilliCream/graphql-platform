@@ -54,6 +54,31 @@ namespace HotChocolate.Language
             }
         }
 
+        protected override void VisitSchemaDefinition(
+            SchemaDefinitionNode node,
+            DocumentWriter writer)
+        {
+            // TODO : Add schema description support to parser
+            // WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Schema);
+            WriteDirectives(node.Directives, writer);
+
+            if (node.OperationTypes.Any())
+            {
+                WriteLeftBrace(writer);
+
+                writer.Indent();
+                writer.WriteMany(
+                    node.OperationTypes,
+                    VisitOperationTypeDefinition,
+                    WriteLineOrSpace);
+                writer.Unindent();
+
+                WriteRightBrace(writer);
+            }
+        }
+
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node,
             DocumentWriter writer)
@@ -66,10 +91,12 @@ namespace HotChocolate.Language
 
             if (node.Interfaces.Count > 0)
             {
-
+                writer.WriteSpace();
+                writer.Write(Keywords.Implements);
+                writer.WriteSpace();
+                writer.WriteMany(node.Interfaces, VisitNamedType, " & ");
             }
 
-            // implements Character
             WriteDirectives(node.Directives, writer);
 
             WriteLeftBrace(writer);
@@ -126,6 +153,76 @@ namespace HotChocolate.Language
             writer.WriteMany(node.Types, VisitNamedType, " | ");
         }
 
+        protected override void VisitEnumTypeDefinition(
+            EnumTypeDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Enum);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
+
+            WriteDirectives(node.Directives, writer);
+
+            WriteLeftBrace(writer);
+
+            writer.Indent();
+            writer.WriteMany(
+                node.Values,
+                VisitEnumValueDefinition,
+                WriteLineOrSpace);
+            writer.Unindent();
+
+            WriteRightBrace(writer);
+        }
+
+        protected override void VisitInputObjectTypeDefinition(
+            InputObjectTypeDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Input);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
+
+            WriteDirectives(node.Directives, writer);
+
+            WriteLeftBrace(writer);
+
+            writer.Indent();
+            writer.WriteMany(
+                node.Fields,
+                VisitInputValueDefinition,
+                WriteLineOrSpace);
+            writer.Unindent();
+
+            WriteRightBrace(writer);
+        }
+
+        protected override void VisitScalarTypeDefinition(
+           ScalarTypeDefinitionNode node,
+           DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Scalar);
+            writer.WriteSpace();
+            VisitName(node.Name, writer);
+
+            WriteDirectives(node.Directives, writer);
+        }
+
+        protected override void VisitOperationTypeDefinition(
+            OperationTypeDefinitionNode node,
+            DocumentWriter writer)
+        {
+            writer.Write(node.Operation);
+            writer.Write(": ");
+            VisitNamedType(node.Type, writer);
+        }
+
         protected override void VisitFieldDefinition(
             FieldDefinitionNode node,
             DocumentWriter writer)
@@ -177,6 +274,17 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 VisitValue(node.DefaultValue, writer);
             }
+
+            WriteDirectives(node.Directives, writer);
+        }
+
+        protected override void VisitEnumValueDefinition(
+            EnumValueDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            VisitName(node.Name, writer);
 
             WriteDirectives(node.Directives, writer);
         }
