@@ -245,8 +245,8 @@ namespace HotChocolate.Language
                 writer.Write("(");
                 writer.WriteMany(
                     node.Arguments,
-                    VisitInputValueDefinition,
-                    ", ");
+                    VisitArgumentValueDefinition,
+                    w => w.WriteSpace());
                 writer.Write(")");
             }
 
@@ -262,12 +262,30 @@ namespace HotChocolate.Language
             InputValueDefinitionNode node,
             DocumentWriter writer)
         {
+            WriteIndentation(writer);
+
+            WriteDescription(node.Description, writer);
+
+            WriteInputValueDefinition(node, writer);
+        }
+
+        protected virtual void VisitArgumentValueDefinition(
+           InputValueDefinitionNode node,
+           DocumentWriter writer)
+        {
             if (node.Description != null)
             {
                 writer.WriteStringValue(node.Description);
                 writer.WriteSpace();
             }
 
+            WriteInputValueDefinition(node, writer);
+        }
+
+        private void WriteInputValueDefinition(
+           InputValueDefinitionNode node,
+           DocumentWriter writer)
+        {
             writer.WriteName(node.Name);
             writer.Write(":");
             writer.WriteSpace();

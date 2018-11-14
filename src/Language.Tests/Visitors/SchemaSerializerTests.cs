@@ -50,6 +50,46 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void Serialize_ObjectTypeDefWithArgsNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "type Foo { bar(a: Int = 1 b: Int): String }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_ObjectTypeDefWithArgsWithIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "type Foo { bar(a: Int = 1 b: Int): String }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
         public void Serialize_ObjectTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
         {
             // arrange
@@ -407,6 +447,128 @@ namespace HotChocolate.Language
         {
             // arrange
             string query = "\"abc\" enum A { \"def\" B \"ghi\" C }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "input A { b: String c: [String!]! d: Int = 1 }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "input A { b: String c: [String!]! d: Int = 1 }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
+                "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeWithDirectiveDefNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
+                "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeDefWithDescriptionNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "\"abc\" input A { \"abc\" b: String }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_InputObjectTypeDefWithDescriptionNoIndentt_OutHasIndentation()
+        {
+            // arrange
+            string query = "\"abc\" input A { \"abc\" b: String }";
 
             var serializer = new SchemaSerializer(true);
             var content = new StringBuilder();
