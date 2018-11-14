@@ -582,5 +582,87 @@ namespace HotChocolate.Language
             // assert
             content.ToString().Snapshot();
         }
+
+        [Fact]
+        public void Serialize_ScalarTypeDefNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "scalar A";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_ScalarTypeDefWithDirectiveNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "scalar A @a @b(c: 1)";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_ScalarTypeDefWithDescNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "\"abc\" scalar A @a @b(c: 1)";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_ScalarTypeDefWithDescIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "\"abc\" scalar A @a @b(c: 1)";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
     }
 }
