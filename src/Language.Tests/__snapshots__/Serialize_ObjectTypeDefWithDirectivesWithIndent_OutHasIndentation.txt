@@ -1,4 +1,4 @@
-type Foo @a {
+type Foo @a(x: "y") {
   bar: String
   baz: [Int]
 }

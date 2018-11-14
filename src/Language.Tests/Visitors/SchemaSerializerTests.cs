@@ -53,7 +53,7 @@ namespace HotChocolate.Language
         public void Serialize_ObjectTypeDefWithDirectivesNoIndent_InOutShouldBeTheSame()
         {
             // arrange
-            string query = "type Foo @a { bar: String baz: [Int] } " +
+            string query = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
                 "type Foo @a @b { bar: String @foo " +
                 "baz(a: String = \"abc\"): [Int] @foo @bar }";
 
@@ -76,7 +76,7 @@ namespace HotChocolate.Language
         public void Serialize_ObjectTypeDefWithDirectivesWithIndent_OutHasIndentation()
         {
             // arrange
-            string query = "type Foo @a { bar: String baz: [Int] } " +
+            string query = "type Foo @a(x: \"y\") { bar: String baz: [Int] } " +
                 "type Foo @a @b { bar: String @foo " +
                 "baz(a: String = \"abc\"): [Int] @foo @bar }";
 

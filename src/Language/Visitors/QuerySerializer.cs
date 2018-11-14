@@ -41,7 +41,7 @@ namespace HotChocolate.Language
             switch (node)
             {
                 case IValueNode value:
-                    VisitValue(value, writer);
+                    writer.WriteValue(value);
                     break;
 
                 case DocumentNode value:
@@ -106,7 +106,7 @@ namespace HotChocolate.Language
                 writer.Write(node.Operation.ToString().ToLowerInvariant());
                 writer.WriteSpace();
 
-                VisitName(node.Name, writer);
+                writer.WriteName(node.Name);
                 if (node.VariableDefinitions.Any())
                 {
                     writer.Write('(');
@@ -118,7 +118,9 @@ namespace HotChocolate.Language
                     writer.Write(')');
                 }
 
-                writer.WriteMany(node.Directives, VisitDirective, " ");
+                writer.WriteMany(node.Directives,
+                    (n, w) => w.WriteDirective(n),
+                    w => w.WriteSpace());
 
                 writer.WriteSpace();
             }
@@ -130,16 +132,16 @@ namespace HotChocolate.Language
             VariableDefinitionNode node,
             DocumentWriter writer)
         {
-            VisitVariable(node.Variable, writer);
+            writer.WriteVariable(node.Variable);
 
             writer.Write(": ");
 
-            VisitType(node.Type, writer);
+            writer.WriteType(node.Type);
 
             if (node.DefaultValue != null)
             {
                 writer.Write(" = ");
-                VisitValue(node.DefaultValue, writer);
+                writer.WriteValue(node.DefaultValue);
             }
         }
 
@@ -150,7 +152,7 @@ namespace HotChocolate.Language
             writer.Write(Keywords.Fragment);
             writer.WriteSpace();
 
-            VisitName(node.Name, writer);
+            writer.WriteName(node.Name);
             writer.WriteSpace();
 
             if (node.VariableDefinitions.Any())
@@ -168,9 +170,10 @@ namespace HotChocolate.Language
             writer.Write(Keywords.On);
             writer.WriteSpace();
 
-            VisitNamedType(node.TypeCondition, writer);
+            writer.WriteNamedType(node.TypeCondition);
 
-            writer.WriteMany(node.Directives, VisitDirective);
+            writer.WriteMany(node.Directives,
+                (n, w) => w.WriteDirective(n));
 
             if (node.SelectionSet != null)
             {
@@ -225,23 +228,25 @@ namespace HotChocolate.Language
 
             if (node.Alias != null)
             {
-                VisitName(node.Alias, writer);
+                writer.WriteName(node.Alias);
                 writer.Write(": ");
             }
 
-            VisitName(node.Name, writer);
+            writer.WriteName(node.Name);
 
             if (node.Arguments.Any())
             {
                 writer.Write('(');
-                writer.WriteMany(node.Arguments, VisitArgument);
+                writer.WriteMany(node.Arguments, (n, w) => w.WriteArgument(n));
                 writer.Write(')');
             }
 
             if (node.Directives.Any())
             {
                 writer.WriteSpace();
-                writer.WriteMany(node.Directives, VisitDirective, " ");
+                writer.WriteMany(node.Directives,
+                    (n, w) => w.WriteDirective(n),
+                    w => w.WriteSpace());
             }
 
             if (node.SelectionSet != null && node.SelectionSet.Selections.Any())
@@ -258,11 +263,13 @@ namespace HotChocolate.Language
             writer.WriteIndentation();
 
             writer.Write("... ");
-            VisitName(node.Name, writer);
+            writer.WriteName(node.Name);
 
             if (node.Directives.Any())
             {
-                writer.WriteMany(node.Directives, VisitDirective, " ");
+                writer.WriteMany(node.Directives,
+                    (n, w) => w.WriteDirective(n),
+                    w => w.WriteSpace());
             }
         }
 
@@ -280,13 +287,15 @@ namespace HotChocolate.Language
                 writer.Write(Keywords.On);
                 writer.WriteSpace();
 
-                VisitNamedType(node.TypeCondition, writer);
+                writer.WriteNamedType(node.TypeCondition);
             }
 
             if (node.Directives.Any())
             {
                 writer.WriteSpace();
-                writer.WriteMany(node.Directives, VisitDirective, " ");
+                writer.WriteMany(node.Directives,
+                    (n, w) => w.WriteDirective(n),
+                    w => w.WriteSpace());
             }
 
             if (node.SelectionSet != null)
@@ -294,163 +303,6 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 VisitSelectionSet(node.SelectionSet, writer);
             }
-        }
-
-        protected override void VisitIntValue(
-            IntValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write(node.Value);
-        }
-
-        protected override void VisitFloatValue(
-            FloatValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write(node.Value);
-        }
-
-        protected override void VisitStringValue(
-            StringValueNode node,
-            DocumentWriter writer)
-        {
-            if (node.Block)
-            {
-                writer.Write("\"\"\"");
-
-                string[] lines = node.Value
-                    .Replace("\"\"\"", "\\\"\"\"")
-                    .Replace("\r", string.Empty)
-                    .Split('\n');
-
-                foreach (string line in lines)
-                {
-                    writer.WriteLine();
-                    writer.WriteIndentation();
-                    writer.Write(line);
-                }
-
-                writer.WriteLine();
-                writer.WriteIndentation();
-                writer.Write("\"\"\"");
-            }
-            else
-            {
-                writer.Write($"\"{node.Value}\"");
-            }
-        }
-
-        protected override void VisitBooleanValue(
-            BooleanValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write(node.Value.ToString().ToLowerInvariant());
-        }
-
-        protected override void VisitEnumValue(
-            EnumValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write(node.Value);
-        }
-
-        protected override void VisitNullValue(
-            NullValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write("null");
-        }
-
-        protected override void VisitListValue(
-            ListValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write("[ ");
-
-            writer.WriteMany(node.Items, VisitValue);
-
-            writer.Write(" ]");
-        }
-
-        protected override void VisitObjectValue(
-            ObjectValueNode node,
-            DocumentWriter writer)
-        {
-            writer.Write("{ ");
-
-            writer.WriteMany(node.Fields, VisitObjectField);
-
-            writer.Write(" }");
-        }
-
-        protected override void VisitObjectField(
-            ObjectFieldNode node,
-            DocumentWriter writer)
-        {
-            WriteField(node.Name, node.Value, writer);
-        }
-
-        protected override void VisitVariable(
-            VariableNode node,
-            DocumentWriter writer)
-        {
-            writer.Write('$');
-            VisitName(node.Name, writer);
-        }
-
-        protected override void VisitDirective(
-            DirectiveNode node,
-            DocumentWriter writer)
-        {
-            writer.Write('@');
-
-            VisitName(node.Name, writer);
-
-            if (node.Arguments.Any())
-            {
-                writer.Write('(');
-
-                writer.WriteMany(node.Arguments, VisitArgument);
-
-                writer.Write(')');
-            }
-        }
-
-        protected override void VisitArgument(ArgumentNode node, DocumentWriter writer)
-        {
-            WriteField(node.Name, node.Value, writer);
-        }
-
-        protected override void VisitNonNullType(NonNullTypeNode node, DocumentWriter writer)
-        {
-            VisitType(node.Type, writer);
-            writer.Write('!');
-        }
-
-        protected override void VisitListType(ListTypeNode node, DocumentWriter writer)
-        {
-            writer.Write('[');
-            VisitType(node.Type, writer);
-            writer.Write(']');
-        }
-
-        protected override void VisitNamedType(NamedTypeNode node, DocumentWriter writer)
-        {
-            VisitName(node.Name, writer);
-        }
-
-        protected override void VisitName(NameNode node, DocumentWriter writer)
-        {
-            writer.Write(node.Value);
-        }
-
-        private void WriteField(NameNode name, IValueNode value, DocumentWriter writer)
-        {
-            VisitName(name, writer);
-
-            writer.Write(": ");
-
-            VisitValue(value, writer);
         }
     }
 }
