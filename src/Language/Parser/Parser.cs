@@ -50,7 +50,7 @@ namespace HotChocolate.Language
                 options ?? ParserOptions.Default);
         }
 
-        public IValueNode ParseJson(ISource source)
+        internal IValueNode ParseJson(ISource source)
         {
             if (source == null)
             {

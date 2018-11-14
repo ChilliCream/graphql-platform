@@ -664,5 +664,85 @@ namespace HotChocolate.Language
             // assert
             content.ToString().Snapshot();
         }
+
+        [Fact]
+        public void Serialize_SchemaDefWithOpNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "schema { query: A }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_SchemaDefWithOpNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "schema { query: A }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
+
+        [Fact]
+        public void Serialize_SchemaDefWithOpAndDirecNoIndent_InOutShouldBeTheSame()
+        {
+            // arrange
+            string query = "schema @a @b(c: 1) { query: A }";
+
+            var serializer = new SchemaSerializer();
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            Assert.Equal(
+                query,
+                content.ToString());
+        }
+
+        [Fact]
+        public void Serialize_SchemaDefWithOpAndDirecNoIndent_OutHasIndentation()
+        {
+            // arrange
+            string query = "schema @a @b(c: 1) { query: A }";
+
+            var serializer = new SchemaSerializer(true);
+            var content = new StringBuilder();
+            var writer = new StringWriter(content);
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+
+            // act
+            serializer.Visit(queryDocument, new DocumentWriter(writer));
+
+            // assert
+            content.ToString().Snapshot();
+        }
     }
 }

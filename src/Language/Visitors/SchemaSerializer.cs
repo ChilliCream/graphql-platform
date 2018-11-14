@@ -66,19 +66,16 @@ namespace HotChocolate.Language
             writer.Write(Keywords.Schema);
             WriteDirectives(node.Directives, writer);
 
-            if (node.OperationTypes.Any())
-            {
-                WriteLeftBrace(writer);
+            WriteLeftBrace(writer);
 
-                writer.Indent();
-                writer.WriteMany(
-                    node.OperationTypes,
-                    VisitOperationTypeDefinition,
-                    WriteLineOrSpace);
-                writer.Unindent();
+            writer.Indent();
+            writer.WriteMany(
+                node.OperationTypes,
+                VisitOperationTypeDefinition,
+                WriteLineOrSpace);
+            writer.Unindent();
 
-                WriteRightBrace(writer);
-            }
+            WriteRightBrace(writer);
         }
 
         protected override void VisitObjectTypeDefinition(
@@ -225,7 +222,9 @@ namespace HotChocolate.Language
             OperationTypeDefinitionNode node,
             DocumentWriter writer)
         {
-            writer.Write(node.Operation);
+            WriteIndentation(writer);
+
+            writer.Write(node.Operation.ToString().ToLowerInvariant());
             writer.Write(": ");
             writer.WriteNamedType(node.Type);
         }
