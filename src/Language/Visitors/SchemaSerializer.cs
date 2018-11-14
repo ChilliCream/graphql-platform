@@ -289,6 +289,8 @@ namespace HotChocolate.Language
             EnumValueDefinitionNode node,
             DocumentWriter writer)
         {
+            WriteIndentation(writer);
+
             WriteDescription(node.Description, writer);
 
             writer.WriteName(node.Name);
