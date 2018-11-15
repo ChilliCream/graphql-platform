@@ -279,6 +279,30 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void CreateValues_ListOfObject_ListOfString()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: [String]) { a }");
+
+            var variableValues = new Dictionary<string, object>();
+            variableValues.Add("test", new List<object> { "a", "b" });
+
+            var resolver = new VariableValueBuilder(schema, operation);
+
+            // act
+            VariableCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            string[] list = coercedVariableValues.GetVariable<string[]>("test");
+            Assert.Collection(list,
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t));
+        }
+
+        [Fact]
         public void CreateValues_SerializedDecimal_Decimal()
         {
             // arrange

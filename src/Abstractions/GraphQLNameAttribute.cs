@@ -4,7 +4,8 @@ namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Class
         | AttributeTargets.Property
-        | AttributeTargets.Method)]
+        | AttributeTargets.Method
+        | AttributeTargets.Parameter)]
     public sealed class GraphQLNameAttribute
         : Attribute
     {

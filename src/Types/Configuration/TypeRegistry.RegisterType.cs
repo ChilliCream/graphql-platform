@@ -33,22 +33,24 @@ namespace HotChocolate.Configuration
                 && typeReference.IsClrTypeReference()
                 && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
             {
-                RegisterNativeType(typeReference.ClrType);
+                RegisterNativeType(
+                    typeReference.ClrType,
+                    typeReference.Context);
             }
         }
 
-        private void RegisterNativeType(Type type)
+        private void RegisterNativeType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
             {
-                if (typeof(INamedType).IsAssignableFrom(
-                    typeInfo.NativeNamedType))
+                if (typeof(INamedType).IsAssignableFrom(typeInfo.NamedType))
                 {
-                    TryUpdateNamedType(typeInfo.NativeNamedType);
+                    TryUpdateNamedType(typeInfo.NamedType);
                 }
-                else if (!_clrTypes.ContainsKey(typeInfo.NativeNamedType))
+                else if (!_clrTypes.ContainsKey(typeInfo.NamedType))
                 {
-                    _unresolvedTypes.Add(typeInfo.NativeNamedType);
+                    _unresolvedTypes.Add(
+                        new TypeReference(typeInfo.NamedType, context));
                 }
             }
         }

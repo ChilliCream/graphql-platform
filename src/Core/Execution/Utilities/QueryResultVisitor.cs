@@ -9,7 +9,23 @@ namespace HotChocolate.Execution
 {
     internal abstract class QueryResultVisitor<TContext>
     {
-        public virtual void VisitObject(
+        public virtual void Visit(object value, TContext context)
+        {
+            if (value is IDictionary<string, object> dictionary)
+            {
+                VisitObject(dictionary, context);
+            }
+            else if (value is IList<object> list)
+            {
+                VisitList(list, context);
+            }
+            else
+            {
+                VisitValue(value, context);
+            }
+        }
+
+        protected virtual void VisitObject(
             ICollection<KeyValuePair<string, object>> dictionary,
             TContext context)
         {
@@ -37,22 +53,6 @@ namespace HotChocolate.Execution
         protected virtual void VisitValue(object value, TContext context)
         {
 
-        }
-
-        protected virtual void Visit(object value, TContext context)
-        {
-            if (value is IDictionary<string, object> dictionary)
-            {
-                VisitObject(dictionary, context);
-            }
-            else if (value is IList<object> list)
-            {
-                VisitList(list, context);
-            }
-            else
-            {
-                VisitValue(value, context);
-            }
         }
     }
 }

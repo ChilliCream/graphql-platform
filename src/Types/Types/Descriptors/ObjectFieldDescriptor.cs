@@ -14,10 +14,9 @@ namespace HotChocolate.Types
         , IObjectFieldDescriptor
         , IDescriptionFactory<ObjectFieldDescription>
     {
-        private readonly string _typeName;
         private bool _argumentsInitialized;
 
-        public ObjectFieldDescriptor(string typeName, string fieldName)
+        public ObjectFieldDescriptor(string fieldName)
             : base(new ObjectFieldDescription())
         {
             if (string.IsNullOrEmpty(fieldName))
@@ -34,20 +33,19 @@ namespace HotChocolate.Types
                     nameof(fieldName));
             }
 
-            _typeName = typeName;
             FieldDescription.Name = fieldName;
         }
 
-        public ObjectFieldDescriptor(string typeName, Type sourceType,
-            MemberInfo member, Type nativeFieldType)
+        public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
             : base(new ObjectFieldDescription())
         {
-            _typeName = typeName;
-            FieldDescription.SourceType = sourceType;
             FieldDescription.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
+
+            FieldDescription.SourceType = sourceType;
             FieldDescription.Name = member.GetGraphQLName();
-            FieldDescription.TypeReference = new TypeReference(nativeFieldType);
+            FieldDescription.Description = member.GetGraphQLDescription();
+            FieldDescription.TypeReference = member.GetOutputType();
         }
 
         protected new ObjectFieldDescription FieldDescription
@@ -114,6 +112,8 @@ namespace HotChocolate.Types
                         var argumentDescriptor =
                             new ArgumentDescriptor(argumentName,
                                 parameter.ParameterType);
+                        ((IArgumentDescriptor)argumentDescriptor)
+                            .Description(parameter.GetGraphQLDescription());
                         descriptions[argumentName] = argumentDescriptor
                             .CreateDescription();
                     }

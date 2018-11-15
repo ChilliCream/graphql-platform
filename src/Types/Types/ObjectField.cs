@@ -49,7 +49,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            var descriptor = new ObjectFieldDescriptor(null, fieldName);
+            var descriptor = new ObjectFieldDescriptor(fieldName);
             configure(descriptor);
             return descriptor.CreateDescription();
         }

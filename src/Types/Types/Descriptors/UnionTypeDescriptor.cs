@@ -8,14 +8,15 @@ namespace HotChocolate.Types
         : IUnionTypeDescriptor
         , IDescriptionFactory<UnionTypeDescription>
     {
-        public UnionTypeDescriptor(Type unionType)
+        public UnionTypeDescriptor(Type clrType)
         {
-            if (unionType == null)
+            if (clrType == null)
             {
-                throw new ArgumentNullException(nameof(unionType));
+                throw new ArgumentNullException(nameof(clrType));
             }
 
-            UnionDescription.Name = unionType.GetGraphQLName();
+            UnionDescription.Name = clrType.GetGraphQLName();
+            UnionDescription.Description = clrType.GetGraphQLDescription();
         }
 
         protected UnionTypeDescription UnionDescription { get; } =
@@ -57,7 +58,7 @@ namespace HotChocolate.Types
 
         public void Type<TObjectType>()
         {
-            UnionDescription.Types.Add(new TypeReference(typeof(TObjectType)));
+            UnionDescription.Types.Add(typeof(TObjectType).GetOutputType());
         }
 
         public void Type(NamedTypeNode objectType)

@@ -13,14 +13,15 @@ namespace HotChocolate.Types
         : IObjectTypeDescriptor
         , IDescriptionFactory<ObjectTypeDescription>
     {
-        public ObjectTypeDescriptor(Type objectType)
+        public ObjectTypeDescriptor(Type clrType)
         {
-            if (objectType == null)
+            if (clrType == null)
             {
-                throw new ArgumentNullException(nameof(objectType));
+                throw new ArgumentNullException(nameof(clrType));
             }
 
-            ObjectDescription.Name = objectType.GetGraphQLName();
+            ObjectDescription.Name = clrType.GetGraphQLName();
+            ObjectDescription.Description = clrType.GetGraphQLDescription();
         }
 
         public ObjectTypeDescriptor(string name)
@@ -99,7 +100,7 @@ namespace HotChocolate.Types
             }
 
             ObjectDescription.Interfaces.Add(
-                new TypeReference(typeof(TInterface)));
+                typeof(TInterface).GetOutputType());
         }
 
         protected void Interface(NamedTypeNode type)
@@ -134,8 +135,7 @@ namespace HotChocolate.Types
                     nameof(name));
             }
 
-            var fieldDescriptor = new ObjectFieldDescriptor(
-                ObjectDescription.Name, name);
+            var fieldDescriptor = new ObjectFieldDescriptor(name);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -237,8 +237,7 @@ namespace HotChocolate.Types
             if (member is PropertyInfo || member is MethodInfo)
             {
                 var fieldDescriptor = new ObjectFieldDescriptor(
-                    ObjectDescription.Name, ObjectDescription.ClrType,
-                    member, member.GetReturnType());
+                    member, ObjectDescription.ClrType);
 
                 if (typeof(TResolver) != ObjectDescription.ClrType)
                 {
@@ -316,17 +315,12 @@ namespace HotChocolate.Types
             {
                 if (!descriptors.ContainsKey(member.Value))
                 {
-                    Type returnType = member.Key.GetReturnType();
-                    if (returnType != null)
-                    {
-                        var fieldDescriptor = new ObjectFieldDescriptor(
-                            ObjectDescription.Name,
-                            ObjectDescription.ClrType,
-                            member.Key, returnType);
+                    var fieldDescriptor = new ObjectFieldDescriptor(
+                        member.Key,
+                        ObjectDescription.ClrType);
 
-                        descriptors[member.Value] = fieldDescriptor
-                            .CreateDescription();
-                    }
+                    descriptors[member.Value] = fieldDescriptor
+                        .CreateDescription();
                 }
             }
         }
@@ -335,19 +329,10 @@ namespace HotChocolate.Types
         {
             var members = new Dictionary<MemberInfo, string>();
 
-            foreach (PropertyInfo property in type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.DeclaringType != typeof(object)))
+            foreach (KeyValuePair<string, MemberInfo> member in
+                ReflectionUtils.GetMembers(type))
             {
-                members[property] = property.GetGraphQLName();
-            }
-
-            foreach (MethodInfo method in type.GetMethods(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => !m.IsSpecialName
-                    && m.DeclaringType != typeof(object)))
-            {
-                members[method] = method.GetGraphQLName();
+                members[member.Value] = member.Key;
             }
 
             return members;

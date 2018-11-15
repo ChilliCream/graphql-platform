@@ -15,7 +15,7 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            var descriptor = new ObjectFieldDescriptor("Type", "field");
+            var descriptor = new ObjectFieldDescriptor("field");
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            var descriptor = new ObjectFieldDescriptor("Type", "field");
+            var descriptor = new ObjectFieldDescriptor("field");
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -50,9 +50,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -71,9 +70,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -89,9 +87,8 @@ namespace HotChocolate.Types
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -107,9 +104,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -129,9 +125,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -150,9 +145,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             ((IObjectFieldDescriptor)descriptor)
@@ -168,9 +162,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var descriptor = new ObjectFieldDescriptor(
-                "Field", typeof(ObjectField),
                 typeof(ObjectField).GetProperty("Arguments"),
-                typeof(IReadOnlyDictionary<string, InputField>));
+                typeof(ObjectField));
 
             // act
             descriptor.ResolverType(typeof(string));

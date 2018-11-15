@@ -8,11 +8,11 @@ namespace HotChocolate.Utilities
         public TypeInfo(Type nativeNamedType,
             Func<IType, IType> typeFactory)
         {
-            NativeNamedType = nativeNamedType;
+            NamedType = nativeNamedType;
             TypeFactory = typeFactory;
         }
 
-        public Type NativeNamedType { get; }
+        public Type NamedType { get; }
 
         public Func<IType, IType> TypeFactory { get; }
     }
