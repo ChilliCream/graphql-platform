@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 _operation.VariableDefinitions)
             {
                 Variable variable = CreateVariable(variableDefinition);
-                CoerceVariableValue(values, variable);
+                variable = CoerceVariableValue(values, variable);
                 coercedValues[variable.Name] = variable.ParseLiteral();
             }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
                 variableName));
         }
 
-        private void CoerceVariableValue(
+        private Variable CoerceVariableValue(
             IReadOnlyDictionary<string, object> variableValues,
             Variable variable)
         {
@@ -92,6 +92,8 @@ namespace HotChocolate.Execution
 
             CheckForNullValueViolation(variable);
             CheckForInvalidValueType(variable);
+
+            return variable;
         }
 
         private IValueNode Normalize(Variable variable, object rawValue)
