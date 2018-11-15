@@ -51,6 +51,24 @@ namespace HotChocolate.Utilities
             return NormalizeName(parameter.Name);
         }
 
+        public static string GetGraphQLDescription(
+            this ICustomAttributeProvider attributeProvider)
+        {
+            if (attributeProvider.IsDefined(
+                typeof(GraphQLDescriptionAttribute),
+                false))
+            {
+                var attribute = attributeProvider.GetCustomAttributes(
+                    typeof(GraphQLDescriptionAttribute),
+                    false)
+                    .OfType<GraphQLDescriptionAttribute>()
+                    .FirstOrDefault();
+                return attribute.Description;
+            }
+
+            return null;
+        }
+
         private static string GetFromType(Type type)
         {
             if (type.IsGenericType)

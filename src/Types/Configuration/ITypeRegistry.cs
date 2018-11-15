@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration
 
         IEnumerable<INamedType> GetTypes();
 
-        IEnumerable<Type> GetUnresolvedTypes();
+        IEnumerable<TypeReference> GetUnresolvedTypes();
 
         bool TryGetTypeBinding<T>(string typeName, out T typeBinding)
             where T : ITypeBinding;

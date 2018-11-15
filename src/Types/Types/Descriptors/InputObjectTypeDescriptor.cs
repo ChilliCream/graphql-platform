@@ -117,11 +117,12 @@ namespace HotChocolate.Types
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
     {
-        public InputObjectTypeDescriptor(Type pocoType)
+        public InputObjectTypeDescriptor(Type clrType)
         {
-            ObjectDescription.NativeType = pocoType
-                ?? throw new ArgumentNullException(nameof(pocoType));
-            ObjectDescription.Name = pocoType.GetGraphQLName();
+            ObjectDescription.ClrType = clrType
+                ?? throw new ArgumentNullException(nameof(clrType));
+            ObjectDescription.Name = clrType.GetGraphQLName();
+            ObjectDescription.Description = clrType.GetGraphQLDescription();
 
             // this convention will fix most type colisions where the
             // .net type is and input and an output type.
@@ -174,7 +175,7 @@ namespace HotChocolate.Types
                 Dictionary<string, InputFieldDescription> descriptions)
         {
             Dictionary<PropertyInfo, string> properties =
-                GetProperties(ObjectDescription.NativeType);
+                GetProperties(ObjectDescription.ClrType);
 
             foreach (InputFieldDescription description in descriptions.Values
                 .Where(t => t.Property != null))

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
@@ -192,8 +193,33 @@ namespace HotChocolate.Utilities
             return type.Namespace;
         }
 
+        public static TypeReference GetOutputType(this MemberInfo member) =>
+            member.GetTypeReference(TypeContext.Output);
+
+        public static TypeReference GetInputType(this MemberInfo member) =>
+            member.GetTypeReference(TypeContext.Input);
+
+        private static TypeReference GetTypeReference(
+            this MemberInfo member,
+            TypeContext context)
+        {
+            Type type = GetReturnType(member);
+
+            if (type != null)
+            {
+                return new TypeReference(type, context);
+            }
+
+            return null;
+        }
+
         public static Type GetReturnType(this MemberInfo member)
         {
+            if (member.IsDefined(typeof(GraphQLTypeAttribute)))
+            {
+                return member.GetCustomAttribute<GraphQLTypeAttribute>().Type;
+            }
+
             if (member is PropertyInfo p)
             {
                 return p.PropertyType;
@@ -214,10 +240,10 @@ namespace HotChocolate.Utilities
             var members = new Dictionary<string, PropertyInfo>(
                 StringComparer.OrdinalIgnoreCase);
 
-            foreach (PropertyInfo property in type.GetProperties())
-            {
-                members[property.GetGraphQLName()] = property;
-            }
+            AddProperties(
+                members.ContainsKey,
+                (n, p) => members[n] = p,
+                type);
 
             return members;
         }
@@ -227,22 +253,47 @@ namespace HotChocolate.Utilities
             var members = new Dictionary<string, MemberInfo>(
                 StringComparer.OrdinalIgnoreCase);
 
-            foreach (PropertyInfo property in type.GetProperties())
-            {
-                members[property.GetGraphQLName()] = property;
-            }
+            AddProperties(
+                members.ContainsKey,
+                (n, p) => members[n] = p,
+                type);
 
-            foreach (MethodInfo method in type.GetMethods())
-            {
-                members[method.GetGraphQLName()] = method;
-                if (method.Name.Length > 3 && method.Name
-                    .StartsWith("Get", StringComparison.OrdinalIgnoreCase))
-                {
-                    members[method.Name.Substring(3)] = method;
-                }
-            }
+            AddMethods(members, type);
 
             return members;
+        }
+
+        private static void AddProperties(
+            Func<string, bool> exists,
+            Action<string, PropertyInfo> add,
+            Type type)
+        {
+            foreach (PropertyInfo property in type.GetProperties(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(t => t.CanRead && t.DeclaringType != typeof(object)))
+            {
+                string name = property.GetGraphQLName();
+                if (!exists(name))
+                {
+                    add(name, property);
+                }
+            }
+        }
+
+        private static void AddMethods(
+            IDictionary<string, MemberInfo> members,
+            Type type)
+        {
+            foreach (MethodInfo method in type.GetMethods()
+                .Where(t => t.ReturnType != typeof(void)
+                    && t.ReturnType != typeof(Task)))
+            {
+                string name = method.GetGraphQLName();
+                if (!members.ContainsKey(name))
+                {
+                    members[name] = method;
+                }
+            }
         }
 
         private static MethodInfo GetBestMatchingMethod(
