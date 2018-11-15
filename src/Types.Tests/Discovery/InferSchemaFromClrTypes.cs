@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Discovery
 {
     public class InferSchemaFromClrTypes
     {
