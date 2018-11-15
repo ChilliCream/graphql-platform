@@ -220,6 +220,11 @@ namespace HotChocolate.Utilities
                 return member.GetCustomAttribute<GraphQLTypeAttribute>().Type;
             }
 
+            if (member is Type t)
+            {
+                return t;
+            }
+
             if (member is PropertyInfo p)
             {
                 return p.PropertyType;
@@ -284,9 +289,12 @@ namespace HotChocolate.Utilities
             IDictionary<string, MemberInfo> members,
             Type type)
         {
-            foreach (MethodInfo method in type.GetMethods()
-                .Where(t => t.ReturnType != typeof(void)
-                    && t.ReturnType != typeof(Task)))
+            foreach (MethodInfo method in type.GetMethods(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(m => !m.IsSpecialName
+                    && m.DeclaringType != typeof(object)
+                    && m.ReturnType != typeof(void)
+                    && m.ReturnType != typeof(Task)))
             {
                 string name = method.GetGraphQLName();
                 if (!members.ContainsKey(name))

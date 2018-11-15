@@ -1,3 +1,4 @@
+using System.Linq;
 using HotChocolate.Types;
 using Xunit;
 
@@ -34,9 +35,9 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("query");
+            var query = schema.GetType<ObjectType>("QueryField");
             Assert.NotNull(query);
-            Assert.Collection(query.Fields,
+            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
             var foo = schema.GetType<ObjectType>("Foo");
@@ -57,9 +58,9 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("query");
+            var query = schema.GetType<ObjectType>("QueryProperty");
             Assert.NotNull(query);
-            Assert.Collection(query.Fields,
+            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
             var foo = schema.GetType<ObjectType>("Foo");
@@ -80,9 +81,9 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("query");
+            var query = schema.GetType<ObjectType>("QueryMethodVoid");
             Assert.NotNull(query);
-            Assert.Collection(query.Fields,
+            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
             var foo = schema.GetType<ObjectType>("Foo");
@@ -129,7 +130,7 @@ namespace HotChocolate.Discovery
 
         public class QueryProperty
         {
-            public Foo GetFoo { get; }
+            public Foo Foo { get; }
         }
 
         public class QueryMethodVoid
