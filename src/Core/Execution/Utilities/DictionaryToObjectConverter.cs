@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     internal class DictionaryToObjectConverter
         : QueryResultVisitor<DeserializationContext>
     {
-        public override void VisitObject(
+        protected override void VisitObject(
             ICollection<KeyValuePair<string, object>> dictionary,
             DeserializationContext context)
         {

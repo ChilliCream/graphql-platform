@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 _operation.VariableDefinitions)
             {
                 Variable variable = CreateVariable(variableDefinition);
-                CoerceVariableValue(values, ref variable);
+                CoerceVariableValue(values, variable);
                 coercedValues[variable.Name] = variable.ParseLiteral();
             }
 
@@ -75,33 +75,12 @@ namespace HotChocolate.Execution
 
         private void CoerceVariableValue(
             IReadOnlyDictionary<string, object> variableValues,
-            ref Variable variable)
+            Variable variable)
         {
             IValueNode valueNode = null;
             if (variableValues.TryGetValue(variable.Name, out var rawValue))
             {
-                object value = rawValue;
-
-                if (rawValue is ICollection<KeyValuePair<string, object>> dict)
-                {
-                    var ctx = new DeserializationContext();
-                    ctx.Type = variable.Type.ClrType;
-
-                    var converter = new DictionaryToObjectConverter();
-                    converter.VisitObject(dict, ctx);
-                    value = ctx.Object;
-                }
-
-                if (!(value is IValueNode)
-                    && variable.Type is ISerializableType st
-                    && !variable.Type.ClrType.IsInstanceOfType(value))
-                {
-                    value = st.Deserialize(value);
-                }
-
-                valueNode = (value is IValueNode v)
-                    ? v
-                    : variable.Type.ParseValue(value);
+                valueNode = Normalize(variable, rawValue);
             }
             else
             {
@@ -115,7 +94,32 @@ namespace HotChocolate.Execution
             CheckForInvalidValueType(variable);
         }
 
+        private IValueNode Normalize(Variable variable, object rawValue)
+        {
+            object value = rawValue;
 
+            if (rawValue is ICollection<KeyValuePair<string, object>>
+                || rawValue is IList<object>)
+            {
+                var ctx = new DeserializationContext();
+                ctx.Type = variable.Type.ClrType;
+
+                var converter = new DictionaryToObjectConverter();
+                converter.Visit(rawValue, ctx);
+                value = ctx.Object;
+            }
+
+            if (!(value is IValueNode)
+                && variable.Type is ISerializableType st
+                && !variable.Type.ClrType.IsInstanceOfType(value))
+            {
+                value = st.Deserialize(value);
+            }
+
+            return (value is IValueNode v)
+                ? v
+                : variable.Type.ParseValue(value);
+        }
 
         private IValueNode CleanUpValue(IInputType type, IValueNode value)
         {
