@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
             out T type)
         {
             if (_clrTypeToSchemaType.TryGetValue(
-                typeInfo.NativeNamedType, out string typeName)
+                typeInfo.NamedType, out string typeName)
                 && _namedTypes.TryGetValue(typeName, out INamedType namedType))
             {
                 IType internalType = typeInfo.TypeFactory(namedType);
@@ -98,7 +98,7 @@ namespace HotChocolate.Configuration
             TypeInfo typeInfo
             , out T type)
         {
-            if (_clrTypes.TryGetValue(typeInfo.NativeNamedType,
+            if (_clrTypes.TryGetValue(typeInfo.NamedType,
                 out HashSet<string> namedTypeNames))
             {
                 List<INamedType> namedTypes =
@@ -192,14 +192,68 @@ namespace HotChocolate.Configuration
             return _namedTypes.Values;
         }
 
-        public IEnumerable<Type> GetUnresolvedTypes()
+        public IEnumerable<TypeReference> GetUnresolvedTypes()
         {
-            foreach (Type nativeType in _clrTypes.Keys)
+            foreach (TypeReference unresolvedType in _unresolvedTypes.ToArray())
             {
-                _unresolvedTypes.Remove(nativeType);
+                if (IsTypeResolved(unresolvedType))
+                {
+                    _unresolvedTypes.Remove(unresolvedType);
+                }
             }
-
             return _unresolvedTypes;
+        }
+
+        private bool IsTypeResolved(TypeReference unresolvedType)
+        {
+            if (_clrTypes.TryGetValue(
+                unresolvedType.ClrType,
+                out HashSet<string> associated))
+            {
+                foreach (string name in associated)
+                {
+                    switch (unresolvedType.Context)
+                    {
+                        case TypeContext.Input:
+                            if (IsInputType(name))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        case TypeContext.Output:
+                            if (IsOutputType(name))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool IsInputType(string name)
+        {
+            if (_namedTypes.TryGetValue(name, out INamedType namedType)
+                && namedType is IInputType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool IsOutputType(string name)
+        {
+            if (_namedTypes.TryGetValue(name, out INamedType namedType)
+                && namedType is IOutputType)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -28,6 +28,7 @@ namespace HotChocolate.Types
             EnumDescription.NativeType = enumType
                 ?? throw new ArgumentNullException(nameof(enumType));
             EnumDescription.Name = enumType.GetGraphQLName();
+            EnumDescription.Description = enumType.GetGraphQLDescription();
         }
 
         protected List<EnumValueDescriptor> Values { get; } =

@@ -22,7 +22,8 @@ namespace HotChocolate.Types
             InputDescription.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             InputDescription.Name = property.GetGraphQLName();
-            InputDescription.TypeReference = new TypeReference(property.PropertyType);
+            InputDescription.Description = property.GetGraphQLDescription();
+            InputDescription.TypeReference = property.GetInputType();
         }
 
         protected new InputFieldDescription InputDescription

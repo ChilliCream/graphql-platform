@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -20,9 +21,9 @@ namespace HotChocolate.Types
             string argumentName, PropertyInfo property)
             : this(argumentName)
         {
+            InputDescription.Description = property.GetGraphQLDescription();
             InputDescription.Property = property;
-            InputDescription.TypeReference =
-                new TypeReference(property.PropertyType);
+            InputDescription.TypeReference = property.GetInputType();
         }
 
         protected new DirectiveArgumentDescription InputDescription

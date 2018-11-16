@@ -18,7 +18,8 @@ namespace HotChocolate.Configuration
             new Dictionary<Type, string>();
         private readonly Dictionary<Type, HashSet<string>> _clrTypes =
             new Dictionary<Type, HashSet<string>>();
-        private readonly HashSet<Type> _unresolvedTypes = new HashSet<Type>();
+        private readonly HashSet<TypeReference> _unresolvedTypes =
+            new HashSet<TypeReference>();
         private readonly ServiceFactory _serviceFactory;
         private bool _sealed;
 

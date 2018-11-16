@@ -155,7 +155,7 @@ namespace HotChocolate.Types
                     var items = new List<IValueNode>();
                     foreach (object v in e)
                     {
-                        items.Add(_inputType.ParseValue(value));
+                        items.Add(_inputType.ParseValue(v));
                     }
                     return new ListValueNode(null, items);
                 }

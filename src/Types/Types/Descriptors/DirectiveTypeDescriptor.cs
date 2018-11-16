@@ -251,6 +251,7 @@ namespace HotChocolate.Types
         {
             DirectiveDescription.ClrType = typeof(T);
             DirectiveDescription.Name = typeof(T).GetGraphQLName();
+            DirectiveDescription.Description = typeof(T).GetGraphQLDescription();
         }
 
         protected override void CompleteArguments()
@@ -331,16 +332,9 @@ namespace HotChocolate.Types
 
         private static Dictionary<PropertyInfo, string> GetProperties(Type type)
         {
-            var members = new Dictionary<PropertyInfo, string>();
-
-            foreach (PropertyInfo property in type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.DeclaringType != typeof(object)))
-            {
-                members[property] = property.GetGraphQLName();
-            }
-
-            return members;
+            return ReflectionUtils
+                .GetProperties(type)
+                .ToDictionary(t => t.Value, t => t.Key);
         }
 
         protected void BindArguments(BindingBehavior bindingBehavior)
