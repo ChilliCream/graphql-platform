@@ -22,7 +22,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Type(ITypeNode type);
 
-        IObjectFieldDescriptor Argument(string name,
+        IObjectFieldDescriptor Argument(NameString name,
             Action<IArgumentDescriptor> argument);
 
         IObjectFieldDescriptor Ignore();

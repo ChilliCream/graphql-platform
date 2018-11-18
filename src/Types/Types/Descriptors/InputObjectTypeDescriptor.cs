@@ -79,7 +79,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;

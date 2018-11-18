@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         , IInputFieldDescriptor
         , IDescriptionFactory<InputFieldDescription>
     {
-        public InputFieldDescriptor(string name)
+        public InputFieldDescriptor(NameString name)
             : base(new InputFieldDescription())
         {
             InputDescription.Name = name;
@@ -55,7 +55,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Name(string name)
+        IInputFieldDescriptor IInputFieldDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
         }
 
         IInputFieldDescriptor IInputFieldDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             InputDescription.Directives.AddDirective(name, arguments);

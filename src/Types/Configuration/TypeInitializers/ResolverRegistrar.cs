@@ -52,7 +52,7 @@ namespace HotChocolate.Configuration
                     FieldBinding fieldBinding = typeBinding?.Fields.Values
                         .FirstOrDefault(t => t.Member == binding.FieldMember);
                     binding.ObjectTypeName = typeBinding.Name;
-                    binding.FieldName = fieldBinding?.Name;
+                    binding.FieldName = fieldBinding.Name;
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace HotChocolate.Configuration
                 {
                     fieldBinding = typeBinding.Fields.Values
                         .FirstOrDefault(t => t.Member == binding.FieldMember);
-                    binding.FieldName = fieldBinding?.Name;
+                    binding.FieldName = fieldBinding.Name;
                 }
 
                 // todo : error handling

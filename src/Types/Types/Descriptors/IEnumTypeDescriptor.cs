@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     {
         IEnumTypeDescriptor SyntaxNode(EnumTypeDefinitionNode syntaxNode);
 
-        IEnumTypeDescriptor Name(string name);
+        IEnumTypeDescriptor Name(NameString name);
 
         IEnumTypeDescriptor Description(string description);
 
@@ -24,7 +24,7 @@ namespace HotChocolate.Types
             where T : class, new();
 
         IEnumTypeDescriptor Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments);
     }
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
     {
         new IEnumTypeDescriptor<T> SyntaxNode(EnumTypeDefinitionNode syntaxNode);
 
-        new IEnumTypeDescriptor<T> Name(string name);
+        new IEnumTypeDescriptor<T> Name(NameString name);
 
         new IEnumTypeDescriptor<T> Description(string description);
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Types
             where TDirective : class, new();
 
         new IEnumTypeDescriptor<T> Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments);
     }
 }

@@ -62,7 +62,7 @@ namespace HotChocolate.Types
         /// <param name="name">
         /// The name that the field shall have.
         /// </param>
-        IObjectFieldDescriptor Field(string name);
+        IObjectFieldDescriptor Field(NameString name);
 
         IObjectTypeDescriptor Directive<T>(T directive)
             where T : class;

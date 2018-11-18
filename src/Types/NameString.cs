@@ -218,7 +218,9 @@ namespace HotChocolate
             => name.ToString();
 
         internal static NameString ConvertFromString(string s)
-            => new NameString(s);
+            => string.IsNullOrEmpty(s)
+                ? new NameString()
+                : new NameString(s);
     }
 
     internal class NameStringConverter

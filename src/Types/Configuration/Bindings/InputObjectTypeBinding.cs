@@ -43,6 +43,6 @@ namespace HotChocolate.Configuration
         public NameString Name { get; }
         public Type Type { get; }
         public InputObjectType InputObjectType { get; }
-        public ImmutableDictionary<string, InputFieldBinding> Fields { get; }
+        public ImmutableDictionary<NameString, InputFieldBinding> Fields { get; }
     }
 }

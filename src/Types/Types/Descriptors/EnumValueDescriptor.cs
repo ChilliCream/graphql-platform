@@ -64,7 +64,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Name(string name)
+        IEnumValueDescriptor IEnumValueDescriptor.Name(NameString name)
         {
             Name(name);
             return this;

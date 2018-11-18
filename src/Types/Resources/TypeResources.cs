@@ -5,7 +5,7 @@ namespace HotChocolate
 {
     internal static class TypeResources
     {
-        public static string Scalar_Cannot_Serialize(NameString typeName)
+        public static string Scalar_Cannot_Serialize(string typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -15,7 +15,7 @@ namespace HotChocolate
             return $"{typeName} cannot serialize the given value.";
         }
 
-        public static string Scalar_Cannot_Deserialize(NameString typeName)
+        public static string Scalar_Cannot_Deserialize(string typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -26,7 +26,7 @@ namespace HotChocolate
         }
 
         public static string Scalar_Cannot_ParseLiteral(
-            NameString typeName, Type literalType)
+            string typeName, Type literalType)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -43,7 +43,7 @@ namespace HotChocolate
         }
 
         public static string Scalar_Cannot_ParseValue(
-            NameString typeName, Type valueType)
+            string typeName, Type valueType)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -59,9 +59,9 @@ namespace HotChocolate
                 $"value of type `{valueType.FullName}`.";
         }
 
-        public static string Type_Name_IsNotValid(NameString typeName)
+        public static string Type_Name_IsNotValid(string typeName)
         {
-            string name = typeName.HasValue ? typeName.Value : "null";
+            string name = typeName ?? "null";
             return $"`{name}` is not a valid " +
                 "GraphQL type name.";
         }

@@ -1,3 +1,4 @@
+using System;
 using HotChocolate;
 using Xunit;
 
@@ -29,17 +30,6 @@ namespace Types.Tests
 
             // assert
             Assert.Equal(nameString.Value, name);
-        }
-
-         [Fact]
-        public void ImplicitCast_Void()
-        {
-            // arrange
-            NameStringTests nameString = null;
-
-            // act
-
-            // assert
         }
     }
 }
