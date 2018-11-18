@@ -7,8 +7,10 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        public void RegisterType(INamedType namedType,
-            ITypeBinding typeBinding = null)
+        public void RegisterType(INamedType namedType) =>
+            RegisterType(namedType, null);
+
+        public void RegisterType(INamedType namedType, ITypeBinding typeBinding)
         {
             if (namedType == null)
             {
@@ -85,7 +87,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void UpdateTypeBinding(string typeName, ITypeBinding typeBinding)
+        private void UpdateTypeBinding(NameString typeName, ITypeBinding typeBinding)
         {
             if (typeBinding != null)
             {

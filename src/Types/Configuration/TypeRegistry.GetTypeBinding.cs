@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        public bool TryGetTypeBinding<T>(string typeName, out T typeBinding)
+        public bool TryGetTypeBinding<T>(NameString typeName, out T typeBinding)
             where T : ITypeBinding
         {
             if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding)
@@ -36,7 +36,7 @@ namespace HotChocolate.Configuration
             if (_typeInspector.TryCreate(nativeNamedType,
                     out Utilities.TypeInfo typeInfo)
                 && _clrTypeToSchemaType.TryGetValue(
-                    typeInfo.NamedType, out string namedTypeName)
+                    typeInfo.NamedType, out NameString namedTypeName)
                 && _namedTypes.TryGetValue(namedTypeName,
                     out INamedType namedType)
                 && TryGetTypeBinding(namedType, out typeBinding))

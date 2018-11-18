@@ -59,7 +59,7 @@ namespace HotChocolate.Validation
                 .All(t => IsTypeNameField(t.Name.Value));
         }
 
-        private bool FieldExists(IComplexOutputType type, string fieldName)
+        private bool FieldExists(IComplexOutputType type, NameString fieldName)
         {
             if (IsTypeNameField(fieldName))
             {
@@ -68,9 +68,9 @@ namespace HotChocolate.Validation
             return type.Fields.ContainsField(fieldName);
         }
 
-        private static bool IsTypeNameField(string fieldName)
+        private static bool IsTypeNameField(NameString fieldName)
         {
-            return fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
+            return fieldName.Equals(IntrospectionFields.TypeName);
         }
     }
 }

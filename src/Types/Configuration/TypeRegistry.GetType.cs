@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        public T GetType<T>(string typeName)
+        public T GetType<T>(NameString typeName)
             where T : IType
         {
             return TryGetType(typeName, out T type) ? type : default;
@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
             return TryGetType(typeReference, out T type) ? type : default;
         }
 
-        public bool TryGetType<T>(string typeName, out T type)
+        public bool TryGetType<T>(NameString typeName, out T type)
             where T : IType
         {
             if (string.IsNullOrEmpty(typeName))
@@ -53,20 +53,25 @@ namespace HotChocolate.Configuration
 
             if (typeReference.IsClrTypeReference())
             {
-                return TryGetTypeFromNativeType(
+                return TryGetNamedTypeFromClrTypeReference(
                     typeReference.ClrType, out type);
             }
 
             return TryGetTypeFromAst(typeReference.Type, out type);
         }
 
-        private bool TryGetTypeFromNativeType<T>(Type nativeType, out T type)
+        private bool TryGetNamedTypeFromClrTypeReference<T>(
+            Type nativeType,
+            out T type)
         {
             if (_typeInspector.TryCreate(nativeType,
                 out TypeInfo typeInfo))
             {
-                return TryGetTypeFromNativeNamedType(typeInfo, out type)
-                    || TryGetTypeFromNativeTypeBinding(typeInfo, out type);
+                return TryGetNamedTypeFromClrType(
+                        new TypeInfo(nativeType, t => t),
+                        out type)
+                    || TryGetTypeFromNativeNamedType(typeInfo, out type)
+                    || TryGetNamedTypeFromClrType(typeInfo, out type);
             }
 
             type = default;
@@ -78,7 +83,7 @@ namespace HotChocolate.Configuration
             out T type)
         {
             if (_clrTypeToSchemaType.TryGetValue(
-                typeInfo.NamedType, out string typeName)
+                typeInfo.NamedType, out NameString typeName)
                 && _namedTypes.TryGetValue(typeName, out INamedType namedType))
             {
                 IType internalType = typeInfo.TypeFactory(namedType);
@@ -94,12 +99,12 @@ namespace HotChocolate.Configuration
         }
 
         // TODO : Refactor
-        private bool TryGetTypeFromNativeTypeBinding<T>(
+        private bool TryGetNamedTypeFromClrType<T>(
             TypeInfo typeInfo
             , out T type)
         {
             if (_clrTypes.TryGetValue(typeInfo.NamedType,
-                out HashSet<string> namedTypeNames))
+                out HashSet<NameString> namedTypeNames))
             {
                 List<INamedType> namedTypes =
                     GetNamedTypes(namedTypeNames).ToList();
@@ -176,7 +181,7 @@ namespace HotChocolate.Configuration
         }
 
         private IEnumerable<INamedType> GetNamedTypes(
-            IEnumerable<string> typeNames)
+            IEnumerable<NameString> typeNames)
         {
             foreach (var typeName in typeNames)
             {
@@ -208,9 +213,9 @@ namespace HotChocolate.Configuration
         {
             if (_clrTypes.TryGetValue(
                 unresolvedType.ClrType,
-                out HashSet<string> associated))
+                out HashSet<NameString> associated))
             {
-                foreach (string name in associated)
+                foreach (NameString name in associated)
                 {
                     switch (unresolvedType.Context)
                     {
@@ -236,7 +241,7 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private bool IsInputType(string name)
+        private bool IsInputType(NameString name)
         {
             if (_namedTypes.TryGetValue(name, out INamedType namedType)
                 && namedType is IInputType)
@@ -246,7 +251,7 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private bool IsOutputType(string name)
+        private bool IsOutputType(NameString name)
         {
             if (_namedTypes.TryGetValue(name, out INamedType namedType)
                 && namedType is IOutputType)

@@ -4,6 +4,6 @@ namespace HotChocolate.Configuration
         : IBoundType<T>
         where T : class
     {
-        IBoundType<T> To(string typeName);
+        IBoundType<T> To(NameString typeName);
     }
 }

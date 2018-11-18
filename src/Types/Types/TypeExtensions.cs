@@ -131,7 +131,7 @@ namespace HotChocolate.Types
             return type;
         }
 
-        public static string TypeName(this IType type)
+        public static NameString TypeName(this IType type)
         {
             IType innerType = type.InnerType().InnerType().InnerType();
 

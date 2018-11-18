@@ -6,7 +6,7 @@ namespace HotChocolate.Configuration
     public interface IBindResolverDelegate
         : IFluent
     {
-        void To(string typeName, string fieldName);
+        void To(NameString typeName, NameString fieldName);
         void To<TObjectType>(Expression<Func<TObjectType, object>> resolver)
             where TObjectType : class;
     }

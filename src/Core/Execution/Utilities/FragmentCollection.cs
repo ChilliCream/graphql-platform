@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
                     .OfType<FragmentDefinitionNode>()
                     .Where(t => t.Name.Value == fragmentName))
             {
-                string typeName = fragmentDefinition.TypeCondition.Name.Value;
+                NameString typeName = fragmentDefinition.TypeCondition.Name.Value;
                 if (_schema.TryGetType(typeName, out INamedType type))
                 {
                     yield return new Fragment(type, fragmentDefinition.SelectionSet);

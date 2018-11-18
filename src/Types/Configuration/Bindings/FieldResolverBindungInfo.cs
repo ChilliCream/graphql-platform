@@ -4,7 +4,7 @@ namespace HotChocolate.Configuration
 {
     internal class FieldResolverBindungInfo
     {
-        public string FieldName { get; set; }
+        public NameString FieldName { get; set; }
         public MemberInfo FieldMember { get; set; }
         public MemberInfo ResolverMember { get; set; }
     }

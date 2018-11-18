@@ -32,19 +32,12 @@ namespace HotChocolate.Types
             UnionDescription.SyntaxNode = syntaxNode;
         }
 
-        public void Name(string name)
+        public void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -82,7 +75,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Name(string name)
+        IUnionTypeDescriptor IUnionTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -126,7 +119,7 @@ namespace HotChocolate.Types
         }
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             UnionDescription.Directives.AddDirective(name, arguments);

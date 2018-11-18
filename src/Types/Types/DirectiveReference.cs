@@ -11,9 +11,15 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(clrType));
         }
 
-        public DirectiveReference(string name)
+        public DirectiveReference(NameString name)
         {
-            name.EnsureDirectiveNameIsValid();
+            if (name.IsEmpty)
+            {
+                throw new ArgumentException(
+                    TypeResources.Name_CannotBe_Empty(),
+                    nameof(name));
+            }
+
             Name = name;
         }
 

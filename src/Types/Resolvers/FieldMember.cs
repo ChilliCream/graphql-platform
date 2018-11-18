@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
     {
         private FieldReference _fieldReference;
 
-        public FieldMember(string typeName, string fieldName, MemberInfo member)
+        public FieldMember(NameString typeName, NameString fieldName, MemberInfo member)
             : base(typeName, fieldName)
         {
             Member = member ?? throw new ArgumentNullException(nameof(member));
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
 
         public MemberInfo Member { get; }
 
-        public FieldMember WithTypeName(string typeName)
+        public FieldMember WithTypeName(NameString typeName)
         {
             if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
@@ -34,7 +34,7 @@ namespace HotChocolate.Resolvers
             return new FieldMember(typeName, FieldName, Member);
         }
 
-        public FieldMember WithFieldName(string fieldName)
+        public FieldMember WithFieldName(NameString fieldName)
         {
             if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {

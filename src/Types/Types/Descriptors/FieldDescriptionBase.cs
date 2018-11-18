@@ -8,5 +8,7 @@ namespace HotChocolate.Types
         protected FieldDescriptionBase() { }
 
         public TypeReference TypeReference { get; set; }
+
+        public bool Ignored { get; set; }
     }
 }

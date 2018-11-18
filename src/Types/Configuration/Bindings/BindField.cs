@@ -19,7 +19,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(fieldBindingInfo));
         }
 
-        public IBoundType<T> Name(string fieldName)
+        public IBoundType<T> Name(NameString fieldName)
         {
             _fieldBindingInfo.Name = fieldName;
             return new BindType<T>(_bindingInfo);

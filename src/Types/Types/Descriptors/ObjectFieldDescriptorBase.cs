@@ -26,19 +26,12 @@ namespace HotChocolate.Types
             FieldDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -62,19 +55,14 @@ namespace HotChocolate.Types
                 .TypeReference.GetMoreSpecific(type);
         }
 
-        protected void Argument(string name, Action<IArgumentDescriptor> argument)
+        protected void Argument(
+            NameString name, 
+            Action<IArgumentDescriptor> argument)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The argument name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL argument name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 

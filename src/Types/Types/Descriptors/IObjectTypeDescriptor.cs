@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        IObjectTypeDescriptor Name(string name);
+        IObjectTypeDescriptor Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="ObjectType"/>
@@ -71,7 +71,7 @@ namespace HotChocolate.Types
             where T : class, new();
 
         IObjectTypeDescriptor Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments);
     }
 
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        new IObjectTypeDescriptor<T> Name(string name);
+        new IObjectTypeDescriptor<T> Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="ObjectType"/>
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
             where TDirective : class, new();
 
         new IObjectTypeDescriptor<T> Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments);
     }
 }

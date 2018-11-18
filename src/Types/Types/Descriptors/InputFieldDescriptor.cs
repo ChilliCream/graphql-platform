@@ -34,19 +34,12 @@ namespace HotChocolate.Types
             return InputDescription;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The input field name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL input field name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -84,6 +77,12 @@ namespace HotChocolate.Types
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
             Type(type);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Ignore()
+        {
+            InputDescription.Ignored = true;
             return this;
         }
 

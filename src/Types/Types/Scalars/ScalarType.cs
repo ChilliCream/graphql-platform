@@ -17,12 +17,12 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="T:HotChocolate.Types.ScalarType"/> class.
         /// </summary>
         /// <param name="name">Name.</param>
-        protected ScalarType(string name)
+        protected ScalarType(NameString name)
         {
-            if (!ValidationUtils.IsValidName(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Scalar_Name_IsNotValid(name),
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the GraphQL type name of this scalar.
         /// </summary>
-        public string Name { get; }
+        public NameString Name { get; }
 
         /// <summary>
         /// Gets the optional description of this scalar type.

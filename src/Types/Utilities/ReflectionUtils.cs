@@ -174,7 +174,7 @@ namespace HotChocolate.Utilities
                 $"{name}<{string.Join(", ", arguments)}>");
         }
 
-        private static string CreateTypeName(Type type, string typeName)
+        private static string CreateTypeName(Type type, NameString typeName)
         {
             string ns = GetNamespace(type);
             if (ns == null)

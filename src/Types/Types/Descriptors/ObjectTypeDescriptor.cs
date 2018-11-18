@@ -24,12 +24,12 @@ namespace HotChocolate.Types
             ObjectDescription.Description = clrType.GetGraphQLDescription();
         }
 
-        public ObjectTypeDescriptor(string name)
+        public ObjectTypeDescriptor(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -67,19 +67,12 @@ namespace HotChocolate.Types
             ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -119,19 +112,12 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(isOfType));
         }
 
-        protected ObjectFieldDescriptor Field(string name)
+        protected ObjectFieldDescriptor Field(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The field name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -150,7 +136,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Name(string name)
+        IObjectTypeDescriptor IObjectTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -182,7 +168,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor.Field(string name)
+        IObjectFieldDescriptor IObjectTypeDescriptor.Field(NameString name)
         {
             return Field(name);
         }
@@ -200,7 +186,7 @@ namespace HotChocolate.Types
         }
 
         IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);
@@ -340,7 +326,7 @@ namespace HotChocolate.Types
 
         #region IObjectTypeDescriptor<T>
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(string name)
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(NameString name)
         {
             Name(name);
             return this;
@@ -399,7 +385,7 @@ namespace HotChocolate.Types
         }
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);

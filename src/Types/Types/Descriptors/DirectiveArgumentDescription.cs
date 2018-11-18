@@ -6,6 +6,5 @@ namespace HotChocolate.Types
         : ArgumentDescription
     {
         public PropertyInfo Property { get; set; }
-        public bool Ignored { get; set; }
     }
 }

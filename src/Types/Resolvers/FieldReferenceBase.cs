@@ -6,7 +6,7 @@ namespace HotChocolate.Resolvers
     public class FieldReferenceBase
         : IFieldReference
     {
-        protected FieldReferenceBase(string typeName, string fieldName)
+        protected FieldReferenceBase(NameString typeName, NameString fieldName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -18,18 +18,18 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
-            if (!ValidationHelper.IsTypeNameValid(typeName))
+            if (typeName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(typeName));
             }
 
-            if (!ValidationHelper.IsTypeNameValid(fieldName))
+            if (fieldName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(typeName));
+                    TypeResources.Name_CannotBe_Empty(),
+                    nameof(fieldName));
             }
 
             TypeName = typeName;
@@ -47,9 +47,9 @@ namespace HotChocolate.Resolvers
             FieldName = fieldReference.FieldName;
         }
 
-        public string TypeName { get; }
+        public NameString TypeName { get; }
 
-        public string FieldName { get; }
+        public NameString FieldName { get; }
 
         public override bool Equals(object obj)
         {

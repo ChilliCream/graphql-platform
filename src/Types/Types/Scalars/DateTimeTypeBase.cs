@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     public abstract class DateTimeTypeBase
         : ScalarType
     {
-        protected DateTimeTypeBase(string name)
+        protected DateTimeTypeBase(NameString name)
             : base(name)
         {
         }

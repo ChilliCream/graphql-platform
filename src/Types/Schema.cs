@@ -96,7 +96,7 @@ namespace HotChocolate
         /// The specified type does not exist or
         /// is not of the specified type kind.
         /// </exception>
-        public T GetType<T>(string typeName)
+        public T GetType<T>(NameString typeName)
             where T : INamedType
         {
             return _types.GetType<T>(typeName);
@@ -112,7 +112,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(string typeName, out T type)
+        public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
             return _types.TryGetType<T>(typeName, out type);
@@ -127,7 +127,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetNativeType(NameString typeName, out Type nativeType)
         {
             if (string.IsNullOrEmpty(typeName))
             {

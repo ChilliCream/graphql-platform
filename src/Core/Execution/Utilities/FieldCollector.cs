@@ -70,10 +70,12 @@ namespace HotChocolate.Execution
         {
             if (selection is FieldNode fs)
             {
-                string fieldName = fs.Name.Value;
+                NameString fieldName = fs.Name.Value;
                 if (type.Fields.TryGetField(fieldName, out ObjectField field))
                 {
-                    string name = fs.Alias == null ? fs.Name.Value : fs.Alias.Value;
+                    string name = fs.Alias == null
+                        ? fs.Name.Value
+                        : fs.Alias.Value;
                     fields[name] = new FieldSelection(fs, field, name);
                 }
                 else

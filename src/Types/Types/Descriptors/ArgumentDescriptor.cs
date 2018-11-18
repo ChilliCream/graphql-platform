@@ -28,7 +28,7 @@ namespace HotChocolate.Types
             InputDescription.DefaultValue = NullValueNode.Default;
         }
 
-        public ArgumentDescriptor(string argumentName)
+        public ArgumentDescriptor(NameString argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))
             {
@@ -37,16 +37,18 @@ namespace HotChocolate.Types
                     nameof(argumentName));
             }
 
-            if (!ValidationHelper.IsFieldNameValid(argumentName))
+            if (argumentName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The specified name is not a valid GraphQL argument name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(argumentName));
             }
 
-            InputDescription = new ArgumentDescription();
-            InputDescription.Name = argumentName;
-            InputDescription.DefaultValue = NullValueNode.Default;
+            InputDescription = new ArgumentDescription
+            {
+                Name = argumentName,
+                DefaultValue = NullValueNode.Default
+            };
         }
 
         protected ArgumentDescription InputDescription { get; }
@@ -158,7 +160,7 @@ namespace HotChocolate.Types
         }
 
         IArgumentDescriptor IArgumentDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             InputDescription.Directives.AddDirective(name, arguments);

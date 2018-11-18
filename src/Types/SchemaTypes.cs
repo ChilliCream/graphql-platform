@@ -9,9 +9,9 @@ namespace HotChocolate
 {
     internal sealed class SchemaTypes
     {
-        private readonly Dictionary<string, INamedType> _types;
-        private readonly Dictionary<string, ITypeBinding> _typeBindings;
-        private readonly Dictionary<string, ImmutableList<ObjectType>> _possibleTypes;
+        private readonly Dictionary<NameString, INamedType> _types;
+        private readonly Dictionary<NameString, ITypeBinding> _typeBindings;
+        private readonly Dictionary<NameString, ImmutableList<ObjectType>> _possibleTypes;
 
         private SchemaTypes(
             IEnumerable<INamedType> types,
@@ -48,7 +48,7 @@ namespace HotChocolate
         public ObjectType MutationType { get; }
         public ObjectType SubscriptionType { get; }
 
-        public T GetType<T>(string typeName) where T : IType
+        public T GetType<T>(NameString typeName) where T : IType
         {
             if (_types.TryGetValue(typeName, out INamedType namedType)
                 && namedType is T type)
@@ -62,7 +62,7 @@ namespace HotChocolate
                 nameof(typeName));
         }
 
-        public bool TryGetType<T>(string typeName, out T type) where T : IType
+        public bool TryGetType<T>(NameString typeName, out T type) where T : IType
         {
             if (_types.TryGetValue(typeName, out INamedType namedType)
                 && namedType is T t)
@@ -80,7 +80,7 @@ namespace HotChocolate
             return _types.Values;
         }
 
-        public bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetNativeType(NameString typeName, out Type nativeType)
         {
             if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding))
             {
@@ -108,11 +108,11 @@ namespace HotChocolate
             return _possibleTypes.TryGetValue(abstractTypeName, out types);
         }
 
-        private static Dictionary<string, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
+        private static Dictionary<NameString, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
             IReadOnlyCollection<INamedType> types)
         {
-            Dictionary<string, List<ObjectType>> possibleTypes =
-                new Dictionary<string, List<ObjectType>>();
+            Dictionary<NameString, List<ObjectType>> possibleTypes =
+                new Dictionary<NameString, List<ObjectType>>();
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())
             {

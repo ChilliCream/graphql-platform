@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         , IInterfaceFieldDescriptor
         , IDescriptionFactory<InterfaceFieldDescription>
     {
-        public InterfaceFieldDescriptor(string name)
+        public InterfaceFieldDescriptor(NameString name)
             : base(new InterfaceFieldDescription { Name = name })
         {
         }
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Name(
-            string name)
+            NameString name)
         {
             Name(name);
             return this;
@@ -70,7 +70,7 @@ namespace HotChocolate.Types
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(
-            string name, Action<IArgumentDescriptor> argument)
+            NameString name, Action<IArgumentDescriptor> argument)
         {
             Argument(name, argument);
             return this;
@@ -90,7 +90,7 @@ namespace HotChocolate.Types
         }
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             FieldDescription.Directives.AddDirective(name, arguments);

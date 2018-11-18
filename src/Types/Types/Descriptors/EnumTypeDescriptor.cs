@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         : IEnumTypeDescriptor
         , IDescriptionFactory<EnumTypeDescription>
     {
-        public EnumTypeDescriptor(string name)
+        public EnumTypeDescriptor(NameString name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -93,19 +93,12 @@ namespace HotChocolate.Types
             EnumDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -143,7 +136,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Name(string name)
+        IEnumTypeDescriptor IEnumTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -180,7 +173,7 @@ namespace HotChocolate.Types
         }
 
         IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);
@@ -208,7 +201,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(string name)
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(NameString name)
         {
             Name(name);
             return this;
@@ -247,7 +240,7 @@ namespace HotChocolate.Types
         }
 
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
-            string name, params ArgumentNode[] arguments)
+            NameString name, params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);
             return this;

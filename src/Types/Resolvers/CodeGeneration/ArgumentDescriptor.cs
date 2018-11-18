@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         : IDelegateDescriptor
     {
         internal ArgumentDescriptor(
-            string name,
+            NameString name,
             string variableName,
             ArgumentKind kind,
             Type type)

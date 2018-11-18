@@ -35,19 +35,12 @@ namespace HotChocolate.Types
             InterfaceDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -58,19 +51,12 @@ namespace HotChocolate.Types
             InterfaceDescription.Description = description;
         }
 
-        protected InterfaceFieldDescriptor Field(string name)
+        protected InterfaceFieldDescriptor Field(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The field name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(name));
             }
 
@@ -95,7 +81,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(string name)
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -106,7 +92,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(string name)
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(NameString name)
         {
             return Field(name);
         }
@@ -132,7 +118,7 @@ namespace HotChocolate.Types
         }
 
         IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             InterfaceDescription.Directives.AddDirective(name, arguments);

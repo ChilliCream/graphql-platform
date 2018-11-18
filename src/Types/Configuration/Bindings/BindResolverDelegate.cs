@@ -15,21 +15,19 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(bindingInfo));
         }
 
-        public void To(string typeName, string fieldName)
+        public void To(NameString typeName, NameString fieldName)
         {
-            if (typeName?.Length == 0)
+            if (typeName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The type name has to be specified in order " +
-                    "to bind a resolver.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(typeName));
             }
 
-            if (fieldName?.Length == 0)
+            if (fieldName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The field name has to be specified in order " +
-                    "to bind a resolver.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(fieldName));
             }
 

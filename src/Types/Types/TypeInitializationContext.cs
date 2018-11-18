@@ -78,7 +78,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public AsyncFieldResolverDelegate GetResolver(string fieldName)
+        public AsyncFieldResolverDelegate GetResolver(NameString fieldName)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -107,7 +107,7 @@ namespace HotChocolate.Types
 
         public void RegisterResolver(
             Type sourceType, Type resolverType,
-            string fieldName, MemberInfo fieldMember)
+            NameString fieldName, MemberInfo fieldMember)
         {
             if (sourceType == null)
             {
@@ -132,7 +132,7 @@ namespace HotChocolate.Types
 
         private void RegisterResolverInternal(
             Type sourceType, Type resolverType,
-            string fieldName, MemberInfo fieldMember)
+            NameString fieldName, MemberInfo fieldMember)
         {
             if (resolverType == null)
             {
@@ -184,7 +184,7 @@ namespace HotChocolate.Types
         }
 
         public bool TryGetProperty<T>(
-            INamedType namedType, string fieldName, out T member)
+            INamedType namedType, NameString fieldName, out T member)
             where T : MemberInfo
         {
             if (namedType is ObjectType

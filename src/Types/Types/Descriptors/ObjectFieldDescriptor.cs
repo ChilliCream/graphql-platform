@@ -16,20 +16,13 @@ namespace HotChocolate.Types
     {
         private bool _argumentsInitialized;
 
-        public ObjectFieldDescriptor(string fieldName)
+        public ObjectFieldDescriptor(NameString fieldName)
             : base(new ObjectFieldDescription())
         {
-            if (string.IsNullOrEmpty(fieldName))
+            if (fieldName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The field name cannot be null or empty.",
-                    nameof(fieldName));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(fieldName))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
+                    TypeResources.Name_CannotBe_Empty(),
                     nameof(fieldName));
             }
 
@@ -139,7 +132,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Name(string name)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -172,7 +165,7 @@ namespace HotChocolate.Types
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Argument(
-            string name,
+            NameString name,
             Action<IArgumentDescriptor> argument)
         {
             Argument(name, argument);
@@ -213,7 +206,7 @@ namespace HotChocolate.Types
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
-            string name,
+            NameString name,
             params ArgumentNode[] arguments)
         {
             FieldDescription.Directives.AddDirective(name, arguments);

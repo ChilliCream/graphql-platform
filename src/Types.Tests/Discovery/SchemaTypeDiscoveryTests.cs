@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
 
@@ -112,6 +114,25 @@ namespace HotChocolate.Discovery
                 t => Assert.Equal("BAR", t.Name));
         }
 
+        [Fact]
+        public void InferCustomScalarTypes()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType<ByteArrayType>();
+                c.RegisterQueryType<QueryWithCustomScalar>();
+            });
+
+            // assert
+            var fooByte = schema.GetType<ObjectType>("FooByte");
+            Assert.NotNull(fooByte);
+
+            ObjectField field =  fooByte.Fields["bar"];
+            Assert.Equal("ByteArray", field.Type.NamedType().Name);
+        }
+
         public class QueryFieldArgument
         {
             public Foo GetFoo(Foo foo)
@@ -145,9 +166,22 @@ namespace HotChocolate.Discovery
             }
         }
 
+        public class QueryWithCustomScalar
+        {
+            public FooByte GetFoo(FooByte foo)
+            {
+                return null;
+            }
+        }
+
         public class Foo
         {
             public Bar Bar { get; set; }
+        }
+
+        public class FooByte
+        {
+            public byte[] Bar { get; set; }
         }
 
         public class Bar
@@ -159,6 +193,42 @@ namespace HotChocolate.Discovery
         {
             Foo,
             Bar
+        }
+
+        public class ByteArrayType
+            : ScalarType
+        {
+            public ByteArrayType()
+                : base("ByteArray")
+            {
+            }
+
+            public override Type ClrType => typeof(byte[]);
+
+            public override bool IsInstanceOfType(IValueNode literal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override object ParseLiteral(IValueNode literal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IValueNode ParseValue(object value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override object Serialize(object value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override object Deserialize(object value)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

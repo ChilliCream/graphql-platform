@@ -14,8 +14,8 @@ namespace HotChocolate.Configuration
         bool ContainsResolver(FieldReference fieldReference);
 
         AsyncFieldResolverDelegate GetResolver(
-            string typeName,
-            string fieldName);
+            NameString typeName,
+            NameString fieldName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
     }

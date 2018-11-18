@@ -5,7 +5,7 @@ namespace HotChocolate
 {
     internal static class TypeResources
     {
-        public static string Scalar_Cannot_Serialize(string typeName)
+        public static string Scalar_Cannot_Serialize(NameString typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -15,7 +15,7 @@ namespace HotChocolate
             return $"{typeName} cannot serialize the given value.";
         }
 
-        public static string Scalar_Cannot_Deserialize(string typeName)
+        public static string Scalar_Cannot_Deserialize(NameString typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -26,7 +26,7 @@ namespace HotChocolate
         }
 
         public static string Scalar_Cannot_ParseLiteral(
-            string typeName, Type literalType)
+            NameString typeName, Type literalType)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -43,7 +43,7 @@ namespace HotChocolate
         }
 
         public static string Scalar_Cannot_ParseValue(
-            string typeName, Type valueType)
+            NameString typeName, Type valueType)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -59,9 +59,10 @@ namespace HotChocolate
                 $"value of type `{valueType.FullName}`.";
         }
 
-        public static string Scalar_Name_IsNotValid(string scalarName)
+        public static string Type_Name_IsNotValid(NameString typeName)
         {
-            return $"`{scalarName ?? "null"}` is not a valid " +
+            string name = typeName.HasValue ? typeName.Value : "null";
+            return $"`{name}` is not a valid " +
                 "GraphQL type name.";
         }
 
@@ -129,6 +130,10 @@ namespace HotChocolate
                 "represent free-form human-readable text.";
         }
 
+        public static string Name_CannotBe_Empty()
+        {
+            return "The specified name cannot be empty.";
+        }
 
     }
 }
