@@ -66,8 +66,8 @@ namespace HotChocolate.Configuration
         }
 
         public AsyncFieldResolverDelegate GetResolver(
-            string typeName,
-            string fieldName)
+            NameString typeName,
+            NameString fieldName)
         {
             var fieldReference = new FieldReference(typeName, fieldName);
             if (_resolvers.TryGetValue(fieldReference,

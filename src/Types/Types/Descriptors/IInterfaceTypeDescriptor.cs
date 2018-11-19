@@ -8,20 +8,24 @@ namespace HotChocolate.Types
     {
         IInterfaceTypeDescriptor SyntaxNode(InterfaceTypeDefinitionNode syntaxNode);
 
-        IInterfaceTypeDescriptor Name(string name);
+        IInterfaceTypeDescriptor Name(NameString name);
 
         IInterfaceTypeDescriptor Description(string description);
 
         IInterfaceTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType);
 
-        IInterfaceFieldDescriptor Field(string name);
+        IInterfaceFieldDescriptor Field(NameString name);
 
         IInterfaceTypeDescriptor Directive<T>(T directive)
             where T : class;
 
         IInterfaceTypeDescriptor Directive<T>()
             where T : class, new();
+
+        IInterfaceTypeDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         IInterfaceTypeDescriptor Directive(
             string name,

@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted { get; }
 
-        public T Argument<T>(string name)
+        public T Argument<T>(NameString name)
         {
             if (string.IsNullOrEmpty(name))
             {

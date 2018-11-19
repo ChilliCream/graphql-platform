@@ -84,7 +84,7 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns a specific field argument.
         /// </returns>
-        T Argument<T>(string name);
+        T Argument<T>(NameString name);
 
         /// <summary>
         /// Gets as specific service from the dependency injection container.

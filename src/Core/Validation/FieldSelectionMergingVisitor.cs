@@ -50,7 +50,7 @@ namespace HotChocolate.Validation
             IType type,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (!field.Name.Value.EqualsOrdinal(IntrospectionFields.TypeName))
+            if (!IntrospectionFields.TypeName.Equals(field.Name.Value))
             {
                 if (TryGetSelectionSet(path, out SelectionSetNode selectionSet)
                     && _fieldSelectionSets.TryGetValue(selectionSet,
@@ -151,7 +151,8 @@ namespace HotChocolate.Validation
             if (fieldA.DeclaringType == fieldB.DeclaringType)
             {
                 if (fieldA.Field.Name.Value
-                    .EqualsOrdinal(fieldB.Field.Name.Value)
+                    .Equals(fieldB.Field.Name.Value,
+                        StringComparison.Ordinal)
                     && AreFieldArgumentsEqual(fieldA, fieldB))
                 {
                     return true;

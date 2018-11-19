@@ -6,16 +6,16 @@ namespace HotChocolate.Types
         : IEnumerable<T>
         where T : IField
     {
-        T this[string fieldName] { get; }
+        T this[NameString fieldName] { get; }
 
-        bool ContainsField(string fieldName);
+        bool ContainsField(NameString fieldName);
     }
 
     public static class FieldCollectionExtensions
     {
         public static bool TryGetField<T>(
             this IFieldCollection<T> collection,
-            string fieldName,
+            NameString fieldName,
             out T field)
             where T : IField
         {

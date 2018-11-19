@@ -202,7 +202,7 @@ namespace HotChocolate.Utilities
         }
 
         private static PropertyInfo GetPropertyByName(
-            PropertyInfo[] property, string fieldName)
+            PropertyInfo[] property, NameString fieldName)
         {
             return property.FirstOrDefault(t =>
                 t.GetGraphQLName().Equals(fieldName, StringComparison.Ordinal));

@@ -1,8 +1,8 @@
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {
-    public class AlientType
+    public class AlienType
         : ObjectType<Alien>
     {
         protected override void Configure(IObjectTypeDescriptor<Alien> descriptor)

@@ -24,6 +24,10 @@ namespace HotChocolate.Types
             where T : class, new();
 
         IArgumentDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
+
+        IArgumentDescriptor Directive(
             string name,
             params ArgumentNode[] arguments);
     }

@@ -7,12 +7,12 @@ namespace HotChocolate.Resolvers
         : FieldReferenceBase
         , IEquatable<FieldReference>
     {
-        public FieldReference(string typeName, string fieldName)
+        public FieldReference(NameString typeName, NameString fieldName)
             : base(typeName, fieldName)
         {
         }
 
-        public FieldReference WithTypeName(string typeName)
+        public FieldReference WithTypeName(NameString typeName)
         {
             if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers
             return new FieldReference(typeName, FieldName);
         }
 
-        public FieldReference WithFieldName(string fieldName)
+        public FieldReference WithFieldName(NameString fieldName)
         {
             if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {

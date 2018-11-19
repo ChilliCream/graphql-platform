@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
         private FieldReference _fieldReference;
 
         public FieldResolver(
-            string typeName, string fieldName,
+            NameString typeName, NameString fieldName,
             AsyncFieldResolverDelegate resolver)
             : base(typeName, fieldName)
         {
@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers
 
         public AsyncFieldResolverDelegate Resolver { get; }
 
-        public FieldResolver WithTypeName(string typeName)
+        public FieldResolver WithTypeName(NameString typeName)
         {
             if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
             {
@@ -39,7 +39,7 @@ namespace HotChocolate.Resolvers
             return new FieldResolver(typeName, FieldName, Resolver);
         }
 
-        public FieldResolver WithFieldName(string fieldName)
+        public FieldResolver WithFieldName(NameString fieldName)
         {
             if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
             {

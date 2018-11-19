@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
         {
             descriptor.Name("HumanOrAlien");
             descriptor.Type<HumanType>();
-            descriptor.Type<AlientType>();
+            descriptor.Type<AlienType>();
         }
     }
 }

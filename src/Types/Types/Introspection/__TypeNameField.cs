@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Introspection
            {
                d.Description("The name of the current Object type at runtime.")
                    .Type<NonNullType<StringType>>()
-                   .Resolver(ctx => ctx.ObjectType.Name);
+                   .Resolver(ctx => ctx.ObjectType.Name.Value);
            })
         {
         }

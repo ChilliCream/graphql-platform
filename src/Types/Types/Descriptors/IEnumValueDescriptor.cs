@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     {
         IEnumValueDescriptor SyntaxNode(EnumValueDefinitionNode syntaxNode);
 
-        IEnumValueDescriptor Name(string name);
+        IEnumValueDescriptor Name(NameString name);
 
         IEnumValueDescriptor Description(string description);
 

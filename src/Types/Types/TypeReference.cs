@@ -123,17 +123,20 @@ namespace HotChocolate.Types
         }
 
         public static TypeReference GetMoreSpecific(
-            this TypeReference typeReference, Type type)
+            this TypeReference typeReference,
+            Type type,
+            TypeContext context)
         {
             if (type != null && typeReference.IsTypeMoreSpecific(type))
             {
-                return new TypeReference(type);
+                return new TypeReference(type, context);
             }
             return typeReference;
         }
 
         public static TypeReference GetMoreSpecific(
-            this TypeReference typeReference, ITypeNode typeNode)
+            this TypeReference typeReference,
+            ITypeNode typeNode)
         {
             if (typeNode != null && typeReference.IsTypeMoreSpecific(typeNode))
             {

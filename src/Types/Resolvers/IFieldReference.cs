@@ -8,11 +8,11 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// The name of a GraphQL object type.
         /// </summary>
-        string TypeName { get; }
+        NameString TypeName { get; }
 
         /// <summary>
         /// The name of a field of the object type.
         /// </summary>
-        string FieldName { get; }
+        NameString FieldName { get; }
     }
 }
