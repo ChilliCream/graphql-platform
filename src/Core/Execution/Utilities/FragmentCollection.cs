@@ -8,8 +8,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class FragmentCollection
     {
-        private readonly Dictionary<string, List<Fragment>> _fragments =
-            new Dictionary<string, List<Fragment>>();
+        private readonly Dictionary<string, Fragment> _fragments =
+            new Dictionary<string, Fragment>();
         private readonly ISchema _schema;
         private readonly DocumentNode _queryDocument;
 
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
             _queryDocument = queryDocument;
         }
 
-        public IReadOnlyCollection<Fragment> GetFragments(string fragmentName)
+        public Fragment GetFragment(string fragmentName)
         {
             if (fragmentName == null)
             {
@@ -37,29 +37,33 @@ namespace HotChocolate.Execution
             }
 
             if (!_fragments.TryGetValue(fragmentName,
-                out List<Fragment> fragments))
+                out Fragment fragment))
             {
-                fragments = new List<Fragment>();
-                fragments.AddRange(CreateFragments(fragmentName));
-                _fragments[fragmentName] = fragments;
+                fragment = CreateFragment(fragmentName);
+                _fragments[fragmentName] = fragment;
             }
 
-            return fragments;
+            return fragment;
         }
 
-        private IEnumerable<Fragment> CreateFragments(string fragmentName)
+        private Fragment CreateFragment(string fragmentName)
         {
-            foreach (FragmentDefinitionNode fragmentDefinition in
-                _queryDocument.Definitions
-                    .OfType<FragmentDefinitionNode>()
-                    .Where(t => t.Name.Value == fragmentName))
+            var fragmentDefinition = _queryDocument.Definitions
+                .OfType<FragmentDefinitionNode>()
+                .FirstOrDefault(t => string.Equals(
+                    t.Name.Value, fragmentName,
+                    StringComparison.Ordinal));
+
+            if (fragmentDefinition != null)
             {
-                NameString typeName = fragmentDefinition.TypeCondition.Name.Value;
+                string typeName = fragmentDefinition.TypeCondition.Name.Value;
                 if (_schema.TryGetType(typeName, out INamedType type))
                 {
-                    yield return new Fragment(type, fragmentDefinition.SelectionSet);
+                    return new Fragment(type, fragmentDefinition.SelectionSet);
                 }
             }
+
+            return null;
         }
 
         public Fragment GetFragment(
@@ -78,15 +82,14 @@ namespace HotChocolate.Execution
 
             string fragmentName = CreateInlineFragmentName(inlineFragment);
 
-            if (!_fragments.TryGetValue(fragmentName,
-                out List<Fragment> fragments))
+            if (!_fragments.TryGetValue(fragmentName, out Fragment fragment))
             {
-                fragments = new List<Fragment>();
-                fragments.Add(CreateFragment(parentType, inlineFragment));
-                _fragments[fragmentName] = fragments;
+                fragment = CreateFragment(parentType, inlineFragment);
+                _fragments[fragmentName] = fragment;
+
             }
 
-            return fragments.First();
+            return fragment;
         }
 
         private Fragment CreateFragment(
@@ -111,7 +114,8 @@ namespace HotChocolate.Execution
         private string CreateInlineFragmentName(
             InlineFragmentNode inlineFragment)
         {
-            return $"^__{inlineFragment.Location.Start}_{inlineFragment.Location.End}";
+            return $"^__{inlineFragment.Location.Start}_" +
+                inlineFragment.Location.End;
         }
     }
 }

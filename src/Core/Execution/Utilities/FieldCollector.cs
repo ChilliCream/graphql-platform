@@ -70,38 +70,68 @@ namespace HotChocolate.Execution
         {
             if (selection is FieldNode fs)
             {
-                NameString fieldName = fs.Name.Value;
-                if (type.Fields.TryGetField(fieldName, out ObjectField field))
-                {
-                    string name = fs.Alias == null
-                        ? fs.Name.Value
-                        : fs.Alias.Value;
-                    fields[name] = new FieldSelection(fs, field, name);
-                }
-                else
-                {
-                    reportError(new QueryError(
-                        "Could not resolve the specified field."));
-                }
+                ResolveFieldSelection(type, fs, reportError, fields);
             }
-            else if (selection is FragmentSpreadNode fragmentSpread)
+            else if (selection is FragmentSpreadNode fragSpread)
             {
-                Fragment fragment = _fragments.GetFragments(fragmentSpread.Name.Value)
-                    .FirstOrDefault(t => DoesFragmentTypeApply(type, t.TypeCondition));
-                if (fragment != null)
-                {
-                    CollectFields(type, fragment.SelectionSet, reportError, fields);
-                }
+                ResolveFragmentSpread(type, fragSpread, reportError, fields);
             }
-            else if (selection is InlineFragmentNode inlineFragment)
+            else if (selection is InlineFragmentNode inlineFrag)
             {
-                Fragment fragment = _fragments.GetFragment(type, inlineFragment);
-                if (DoesFragmentTypeApply(type, fragment.TypeCondition))
-                {
-                    CollectFields(type, fragment.SelectionSet, reportError, fields);
-                }
+                ResolveInlineFragment(type, inlineFrag, reportError, fields);
             }
         }
+
+        private void ResolveFieldSelection(
+            ObjectType type,
+            FieldNode fieldSelection,
+            Action<QueryError> reportError,
+            Dictionary<string, FieldSelection> fields)
+        {
+            NameString fieldName = fieldSelection.Name.Value;
+            if (type.Fields.TryGetField(fieldName, out ObjectField field))
+            {
+                string name = fieldSelection.Alias == null
+                    ? fieldSelection.Name.Value
+                    : fieldSelection.Alias.Value;
+                fields[name] = new FieldSelection(fieldSelection, field, name);
+            }
+            else
+            {
+                reportError(QueryError.CreateFieldError(
+                    "Could not resolve the specified field.",
+                    fieldSelection));
+            }
+        }
+
+        private void ResolveFragmentSpread(
+            ObjectType type,
+            FragmentSpreadNode fragmentSpread,
+            Action<QueryError> reportError,
+            Dictionary<string, FieldSelection> fields)
+        {
+            Fragment fragment = _fragments.GetFragment(
+                fragmentSpread.Name.Value);
+
+            if (fragment != null && DoesTypeApply(fragment.TypeCondition, type))
+            {
+                CollectFields(type, fragment.SelectionSet, reportError, fields);
+            }
+        }
+
+        private void ResolveInlineFragment(
+            ObjectType type,
+            InlineFragmentNode inlineFragment,
+            Action<QueryError> reportError,
+            Dictionary<string, FieldSelection> fields)
+        {
+            Fragment fragment = _fragments.GetFragment(type, inlineFragment);
+            if (DoesTypeApply(fragment.TypeCondition, type))
+            {
+                CollectFields(type, fragment.SelectionSet, reportError, fields);
+            }
+        }
+
 
         private bool ShouldBeIncluded(ISelectionNode selection)
         {
@@ -112,20 +142,21 @@ namespace HotChocolate.Execution
             return selection.Directives.Include(_variables);
         }
 
-        private bool DoesFragmentTypeApply(ObjectType objectType, IType type)
+        private bool DoesTypeApply(IType typeCondition, ObjectType current)
         {
-            if (type is ObjectType ot)
+            if (typeCondition is ObjectType ot)
             {
-                return ot == objectType;
+                return ot == current;
             }
-            else if (type is InterfaceType it)
+            else if (typeCondition is InterfaceType it)
             {
-                return objectType.Interfaces.ContainsKey(it.Name);
+                return current.Interfaces.ContainsKey(it.Name);
             }
-            else if (type is UnionType ut)
+            else if (typeCondition is UnionType ut)
             {
-                return ut.Types.ContainsKey(objectType.Name);
+                return ut.Types.ContainsKey(current.Name);
             }
+
             return false;
         }
     }
