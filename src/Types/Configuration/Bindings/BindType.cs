@@ -36,7 +36,7 @@ namespace HotChocolate.Configuration
             return new BindField<T>(_bindingInfo, fieldBindingInfo);
         }
 
-        public IBoundType<T> To(string typeName)
+        public IBoundType<T> To(NameString typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {

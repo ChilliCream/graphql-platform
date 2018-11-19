@@ -66,7 +66,7 @@ namespace HotChocolate
         /// <exception cref="ArgumentException">
         /// The specified type does not exist or is not of the specified type kind.
         /// </exception>
-        T GetType<T>(string typeName)
+        T GetType<T>(NameString typeName)
             where T : INamedType;
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetType<T>(string typeName, out T type)
+        bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType;
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetNativeType(string typeName, out Type nativeType);
+        bool TryGetNativeType(NameString typeName, out Type nativeType);
 
         /// <summary>
         /// Gets the possible object types to
@@ -115,7 +115,7 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
-        DirectiveType GetDirectiveType(string directiveName);
+        DirectiveType GetDirectiveType(NameString directiveName);
 
         /// <summary>
         /// Tries to get a directive type by its name.
@@ -132,7 +132,7 @@ namespace HotChocolate
         /// name exists; otherwise, <c>false</c>.
         /// </returns>
         bool TryGetDirectiveType(
-            string directiveName,
+            NameString directiveName,
             out DirectiveType directiveType);
     }
 }

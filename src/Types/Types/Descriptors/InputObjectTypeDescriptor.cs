@@ -39,19 +39,12 @@ namespace HotChocolate.Types
             ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -63,19 +56,12 @@ namespace HotChocolate.Types
             ObjectDescription.Description = description;
         }
 
-        protected InputFieldDescriptor Field(string name)
+        protected InputFieldDescriptor Field(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -93,7 +79,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -105,7 +91,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(string name)
+        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(NameString name)
         {
             return Field(name);
         }
@@ -117,11 +103,12 @@ namespace HotChocolate.Types
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
     {
-        public InputObjectTypeDescriptor(Type pocoType)
+        public InputObjectTypeDescriptor(Type clrType)
         {
-            ObjectDescription.NativeType = pocoType
-                ?? throw new ArgumentNullException(nameof(pocoType));
-            ObjectDescription.Name = pocoType.GetGraphQLName();
+            ObjectDescription.ClrType = clrType
+                ?? throw new ArgumentNullException(nameof(clrType));
+            ObjectDescription.Name = clrType.GetGraphQLName();
+            ObjectDescription.Description = clrType.GetGraphQLDescription();
 
             // this convention will fix most type colisions where the
             // .net type is and input and an output type.
@@ -174,7 +161,7 @@ namespace HotChocolate.Types
                 Dictionary<string, InputFieldDescription> descriptions)
         {
             Dictionary<PropertyInfo, string> properties =
-                GetProperties(ObjectDescription.NativeType);
+                GetProperties(ObjectDescription.ClrType);
 
             foreach (InputFieldDescription description in descriptions.Values
                 .Where(t => t.Property != null))
@@ -217,7 +204,7 @@ namespace HotChocolate.Types
         }
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
-            string name)
+            NameString name)
         {
             Name(name);
             return this;

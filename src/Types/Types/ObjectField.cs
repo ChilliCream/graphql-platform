@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
 
-        internal ObjectField(string fieldName,
+        internal ObjectField(NameString fieldName,
             Action<IObjectFieldDescriptor> configure)
             : this(() => ExecuteConfigure(fieldName, configure))
         {
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         }
 
         private static ObjectFieldDescription ExecuteConfigure(
-            string fieldName,
+            NameString fieldName,
             Action<IObjectFieldDescriptor> configure)
         {
             if (configure == null)
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            var descriptor = new ObjectFieldDescriptor(null, fieldName);
+            var descriptor = new ObjectFieldDescriptor(fieldName);
             configure(descriptor);
             return descriptor.CreateDescription();
         }

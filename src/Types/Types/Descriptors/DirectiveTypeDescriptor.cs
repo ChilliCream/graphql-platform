@@ -57,19 +57,12 @@ namespace HotChocolate.Types
             DirectiveDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The directive name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL directive name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -81,20 +74,12 @@ namespace HotChocolate.Types
             DirectiveDescription.Description = description;
         }
 
-        protected DirectiveArgumentDescriptor Argument(string name)
+        protected DirectiveArgumentDescriptor Argument(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The directive argument name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsArgumentNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid " +
-                    "GraphQL directive argument name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -195,7 +180,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Name(string name)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -208,7 +193,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IArgumentDescriptor IDirectiveTypeDescriptor.Argument(string name)
+        IArgumentDescriptor IDirectiveTypeDescriptor.Argument(NameString name)
         {
             return Argument(name);
         }
@@ -251,6 +236,7 @@ namespace HotChocolate.Types
         {
             DirectiveDescription.ClrType = typeof(T);
             DirectiveDescription.Name = typeof(T).GetGraphQLName();
+            DirectiveDescription.Description = typeof(T).GetGraphQLDescription();
         }
 
         protected override void CompleteArguments()
@@ -331,16 +317,9 @@ namespace HotChocolate.Types
 
         private static Dictionary<PropertyInfo, string> GetProperties(Type type)
         {
-            var members = new Dictionary<PropertyInfo, string>();
-
-            foreach (PropertyInfo property in type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.DeclaringType != typeof(object)))
-            {
-                members[property] = property.GetGraphQLName();
-            }
-
-            return members;
+            return ReflectionUtils
+                .GetProperties(type)
+                .ToDictionary(t => t.Value, t => t.Key);
         }
 
         protected void BindArguments(BindingBehavior bindingBehavior)
@@ -378,7 +357,7 @@ namespace HotChocolate.Types
         }
 
         IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Name(
-            string name)
+            NameString name)
         {
             Name(name);
             return this;

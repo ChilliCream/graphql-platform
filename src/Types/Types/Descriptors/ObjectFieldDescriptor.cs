@@ -14,40 +14,31 @@ namespace HotChocolate.Types
         , IObjectFieldDescriptor
         , IDescriptionFactory<ObjectFieldDescription>
     {
-        private readonly string _typeName;
         private bool _argumentsInitialized;
 
-        public ObjectFieldDescriptor(string typeName, string fieldName)
+        public ObjectFieldDescriptor(NameString fieldName)
             : base(new ObjectFieldDescription())
         {
-            if (string.IsNullOrEmpty(fieldName))
+            if (fieldName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The field name cannot be null or empty.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(fieldName));
             }
 
-            if (!ValidationHelper.IsFieldNameValid(fieldName))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(fieldName));
-            }
-
-            _typeName = typeName;
             FieldDescription.Name = fieldName;
         }
 
-        public ObjectFieldDescriptor(string typeName, Type sourceType,
-            MemberInfo member, Type nativeFieldType)
+        public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
             : base(new ObjectFieldDescription())
         {
-            _typeName = typeName;
-            FieldDescription.SourceType = sourceType;
             FieldDescription.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
+
+            FieldDescription.SourceType = sourceType;
             FieldDescription.Name = member.GetGraphQLName();
-            FieldDescription.TypeReference = new TypeReference(nativeFieldType);
+            FieldDescription.Description = member.GetGraphQLDescription();
+            FieldDescription.TypeReference = member.GetOutputType();
         }
 
         protected new ObjectFieldDescription FieldDescription
@@ -80,7 +71,7 @@ namespace HotChocolate.Types
         {
             FieldDescription.Resolver = fieldResolver;
             FieldDescription.TypeReference = FieldDescription.TypeReference
-                .GetMoreSpecific(resultType);
+                .GetMoreSpecific(resultType, TypeContext.Output);
         }
 
         private void CompleteArguments()
@@ -114,6 +105,8 @@ namespace HotChocolate.Types
                         var argumentDescriptor =
                             new ArgumentDescriptor(argumentName,
                                 parameter.ParameterType);
+                        ((IArgumentDescriptor)argumentDescriptor)
+                            .Description(parameter.GetGraphQLDescription());
                         descriptions[argumentName] = argumentDescriptor
                             .CreateDescription();
                     }
@@ -139,7 +132,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Name(string name)
+        IObjectFieldDescriptor IObjectFieldDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -172,7 +165,7 @@ namespace HotChocolate.Types
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Argument(
-            string name,
+            NameString name,
             Action<IArgumentDescriptor> argument)
         {
             Argument(name, argument);
@@ -209,6 +202,14 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor IObjectFieldDescriptor.Directive<T>()
         {
             FieldDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            FieldDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

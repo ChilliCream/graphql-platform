@@ -10,8 +10,8 @@ namespace HotChocolate.Resolvers
         public void Create()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             // act
@@ -28,7 +28,7 @@ namespace HotChocolate.Resolvers
         public void CreateTypeNull()
         {
             // arrange
-            var fieldName = Guid.NewGuid().ToString();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             // act
@@ -42,7 +42,7 @@ namespace HotChocolate.Resolvers
         public void CreateFieldNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
             MemberInfo member = GetMemberA();
 
             // act
@@ -56,8 +56,8 @@ namespace HotChocolate.Resolvers
         public void CreateMemberNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
 
             // act
             Action action = () => new FieldMember(typeName, fieldName, null);
@@ -70,9 +70,9 @@ namespace HotChocolate.Resolvers
         public void WithTypeName()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var newTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var newTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             var fieldMember = new FieldMember(
@@ -89,8 +89,8 @@ namespace HotChocolate.Resolvers
         public void WithTypeNameNull()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             var fieldMember = new FieldMember(
@@ -107,9 +107,9 @@ namespace HotChocolate.Resolvers
         public void WithFieldName()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
-            var newFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
+            var newFieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             var fieldMember = new FieldMember(
@@ -126,8 +126,8 @@ namespace HotChocolate.Resolvers
         public void WithFieldNameNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
             MemberInfo member = GetMemberA();
 
             var fieldMember = new FieldMember(
@@ -144,8 +144,8 @@ namespace HotChocolate.Resolvers
         public void WithMember()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo originalMember = GetMemberA();
             MemberInfo newMember = GetMemberB();
 
@@ -163,8 +163,8 @@ namespace HotChocolate.Resolvers
         public void WithMemberNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             MemberInfo originalMember = GetMemberA();
 
             var fieldMember = new FieldMember(
@@ -182,8 +182,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             // act
@@ -198,8 +198,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             // act
@@ -214,8 +214,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             var fieldMember_b = new FieldMember(
@@ -235,8 +235,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             // act
@@ -251,12 +251,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             var fieldMember_b = new FieldMember(
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
                 fieldMember_a.FieldName,
                 fieldMember_a.Member);
 
@@ -272,13 +272,13 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             var fieldMember_b = new FieldMember(
                 fieldMember_a.TypeName,
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateFieldName(),
                 fieldMember_a.Member);
 
             // act
@@ -293,8 +293,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldMember(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetMemberA());
 
             var fieldMember_b = new FieldMember(

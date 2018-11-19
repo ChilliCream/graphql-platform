@@ -6,7 +6,7 @@ namespace HotChocolate.Configuration
 {
     internal class FieldBinding
     {
-        public FieldBinding(string name, MemberInfo member, ObjectField field)
+        public FieldBinding(NameString name, MemberInfo member, ObjectField field)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
             Field = field ?? throw new ArgumentNullException(nameof(field));
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
         public MemberInfo Member { get; }
         public ObjectField Field { get; }
     }

@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     {
         IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
 
-        IObjectFieldDescriptor Name(string name);
+        IObjectFieldDescriptor Name(NameString name);
 
         IObjectFieldDescriptor Description(string description);
 
@@ -22,7 +22,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Type(ITypeNode type);
 
-        IObjectFieldDescriptor Argument(string name,
+        IObjectFieldDescriptor Argument(NameString name,
             Action<IArgumentDescriptor> argument);
 
         IObjectFieldDescriptor Ignore();
@@ -39,6 +39,10 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Directive<T>()
             where T : class, new();
+
+        IObjectFieldDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         IObjectFieldDescriptor Directive(
             string name,

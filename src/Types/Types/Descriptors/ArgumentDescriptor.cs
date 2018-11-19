@@ -24,11 +24,11 @@ namespace HotChocolate.Types
 
             InputDescription = new ArgumentDescription();
             InputDescription.Name = argumentName;
-            InputDescription.TypeReference = new TypeReference(argumentType);
+            InputDescription.TypeReference = argumentType.GetInputType();
             InputDescription.DefaultValue = NullValueNode.Default;
         }
 
-        public ArgumentDescriptor(string argumentName)
+        public ArgumentDescriptor(NameString argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))
             {
@@ -37,16 +37,18 @@ namespace HotChocolate.Types
                     nameof(argumentName));
             }
 
-            if (!ValidationHelper.IsFieldNameValid(argumentName))
+            if (argumentName.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The specified name is not a valid GraphQL argument name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(argumentName));
             }
 
-            InputDescription = new ArgumentDescription();
-            InputDescription.Name = argumentName;
-            InputDescription.DefaultValue = NullValueNode.Default;
+            InputDescription = new ArgumentDescription
+            {
+                Name = argumentName,
+                DefaultValue = NullValueNode.Default
+            };
         }
 
         protected ArgumentDescription InputDescription { get; }
@@ -69,7 +71,7 @@ namespace HotChocolate.Types
         protected void Type<TInputType>()
         {
             InputDescription.TypeReference = InputDescription.TypeReference
-                .GetMoreSpecific(typeof(TInputType));
+                .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
         }
 
         protected void Type(ITypeNode type)
@@ -95,7 +97,7 @@ namespace HotChocolate.Types
             else
             {
                 InputDescription.TypeReference = InputDescription.TypeReference
-                    .GetMoreSpecific(defaultValue.GetType());
+                    .GetMoreSpecific(defaultValue.GetType(), TypeContext.Input);
                 InputDescription.NativeDefaultValue = defaultValue;
                 InputDescription.DefaultValue = null;
             }
@@ -154,6 +156,14 @@ namespace HotChocolate.Types
         IArgumentDescriptor IArgumentDescriptor.Directive<T>()
         {
             InputDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IArgumentDescriptor IArgumentDescriptor.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            InputDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

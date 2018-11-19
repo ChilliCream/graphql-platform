@@ -24,15 +24,15 @@ namespace HotChocolate.Types
             if (typeReference != null)
             {
                 type = context.GetType<T>(typeReference);
-
             }
 
             if (ReferenceEquals(type, default(T)))
             {
                 context.ReportError(new SchemaError(
-                    $"The type `{typeReference}` of field " +
-                    $"`{field.DeclaringType.Name}.{field.Name}` " +
-                    "could not be resolved to a valid schema type.", 
+                    TypeResources.Field_Cannot_ResolveType(
+                        field.DeclaringType.Name,
+                        field.Name,
+                        typeReference),
                     field.DeclaringType));
             }
 

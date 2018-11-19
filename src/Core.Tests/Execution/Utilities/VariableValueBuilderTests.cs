@@ -236,7 +236,7 @@ namespace HotChocolate.Execution
                 "query test($test: Int) { a }");
 
             var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", 1);
+            variableValues.Add("test", value);
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -246,7 +246,7 @@ namespace HotChocolate.Execution
 
             // assert
             int result = coercedVariableValues.GetVariable<int>("test");
-            Assert.Equal(1, result);
+            Assert.Equal(value, result);
         }
 
         [Fact]
@@ -276,6 +276,30 @@ namespace HotChocolate.Execution
             Bar bar = coercedVariableValues.GetVariable<Bar>("test");
             Assert.NotNull(bar.F);
             Assert.Equal(BarEnum.B, bar.F.B);
+        }
+
+        [Fact]
+        public void CreateValues_ListOfObject_ListOfString()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: [String]) { a }");
+
+            var variableValues = new Dictionary<string, object>();
+            variableValues.Add("test", new List<object> { "a", "b" });
+
+            var resolver = new VariableValueBuilder(schema, operation);
+
+            // act
+            VariableCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            string[] list = coercedVariableValues.GetVariable<string[]>("test");
+            Assert.Collection(list,
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t));
         }
 
         [Fact]

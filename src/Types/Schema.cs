@@ -96,7 +96,7 @@ namespace HotChocolate
         /// The specified type does not exist or
         /// is not of the specified type kind.
         /// </exception>
-        public T GetType<T>(string typeName)
+        public T GetType<T>(NameString typeName)
             where T : INamedType
         {
             return _types.GetType<T>(typeName);
@@ -112,7 +112,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(string typeName, out T type)
+        public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
             return _types.TryGetType<T>(typeName, out type);
@@ -127,7 +127,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetNativeType(NameString typeName, out Type nativeType)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -174,7 +174,7 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
-        public DirectiveType GetDirectiveType(string directiveName)
+        public DirectiveType GetDirectiveType(NameString directiveName)
         {
             _directiveTypes.TryGetValue(directiveName, out DirectiveType type);
             return type;
@@ -195,7 +195,7 @@ namespace HotChocolate
         /// name exists; otherwise, <c>false</c>.
         /// </returns>
         public bool TryGetDirectiveType(
-            string directiveName,
+            NameString directiveName,
             out DirectiveType directiveType)
         {
             return _directiveTypes

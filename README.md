@@ -302,6 +302,12 @@ We are currently working on the following features that are proposed for the nex
   - [x] WebSockets
   - [ ] Schema Builder (in development - 0.11.0)
 
+## GraphQL Compatibility Acceptance Tests
+
+We are now investing to implement the GraphQL Compatibility Acceptance Tests for Hot Chocolate. We should have the first test running with Version 0.8.0 and should have this finished until Version 0.11.0.
+
+More about GraphQL compatibility acceptance tests can be read [here](https://github.com/graphql-cats/graphql-cats).
+
 ## Documentation
 
 For more examples and detailed documentation, click [here](http://hotchocolate.io).

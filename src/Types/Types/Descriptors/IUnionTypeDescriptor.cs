@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     {
         IUnionTypeDescriptor SyntaxNode(UnionTypeDefinitionNode syntaxNode);
 
-        IUnionTypeDescriptor Name(string name);
+        IUnionTypeDescriptor Name(NameString name);
 
         IUnionTypeDescriptor Description(string description);
 
@@ -25,6 +25,10 @@ namespace HotChocolate.Types
 
         IUnionTypeDescriptor Directive<T>()
             where T : class, new();
+
+        IUnionTypeDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         IUnionTypeDescriptor Directive(
             string name,

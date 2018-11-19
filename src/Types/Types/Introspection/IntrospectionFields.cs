@@ -2,8 +2,8 @@ namespace HotChocolate.Types.Introspection
 {
     internal static class IntrospectionFields
     {
-        public static string TypeName { get; } = "__typename";
-        public static string Schema { get; } = "__schema";
-        public static string Type { get; } = "__type";
+        public static NameString TypeName { get; } = "__typename";
+        public static NameString Schema { get; } = "__schema";
+        public static NameString Type { get; } = "__type";
     }
 }

@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     {
         public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
 
-        public Type NativeType { get; set; }
+        public Type ClrType { get; set; }
 
         public List<InputFieldDescription> Fields { get; set; }
             = new List<InputFieldDescription>();

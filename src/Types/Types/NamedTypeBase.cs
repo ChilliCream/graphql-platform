@@ -10,14 +10,14 @@ namespace HotChocolate.Types
         {
         }
 
-        public string Name { get; private set; }
+        public NameString Name { get; private set; }
 
         public string Description { get; private set; }
 
         public IDirectiveCollection Directives { get; private set; }
 
         protected void Initialize(
-            string name,
+            NameString name,
             string description,
             IDirectiveCollection directives)
         {

@@ -9,7 +9,8 @@ namespace HotChocolate.Configuration
         : ITypeBinding
     {
         public InputObjectTypeBinding(
-            string name, Type type,
+            NameString name,
+            Type type,
             InputObjectType inputObjectType,
             IEnumerable<InputFieldBinding> fields)
         {
@@ -39,9 +40,9 @@ namespace HotChocolate.Configuration
             Fields = fields.ToImmutableDictionary(t => t.Name);
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
         public Type Type { get; }
         public InputObjectType InputObjectType { get; }
-        public ImmutableDictionary<string, InputFieldBinding> Fields { get; }
+        public ImmutableDictionary<NameString, InputFieldBinding> Fields { get; }
     }
 }

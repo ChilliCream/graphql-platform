@@ -32,20 +32,12 @@ namespace HotChocolate.Types
             ValueDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid " +
-                    "GraphQL enum value name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -72,7 +64,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Name(string name)
+        IEnumValueDescriptor IEnumValueDescriptor.Name(NameString name)
         {
             Name(name);
             return this;

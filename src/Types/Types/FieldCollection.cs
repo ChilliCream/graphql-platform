@@ -23,13 +23,13 @@ namespace HotChocolate.Types
             IsEmpty = _fields.Count == 0;
         }
 
-        public T this[string fieldName] => _fields[fieldName];
+        public T this[NameString fieldName] => _fields[fieldName];
 
         public int Count { get; }
 
         public bool IsEmpty { get; }
 
-        public bool ContainsField(string fieldName)
+        public bool ContainsField(NameString fieldName)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
             return _fields.ContainsKey(fieldName);
         }
 
-        public bool TryGetField(string fieldName, out T field)
+        public bool TryGetField(NameString fieldName, out T field)
         {
             if (string.IsNullOrEmpty(fieldName))
             {

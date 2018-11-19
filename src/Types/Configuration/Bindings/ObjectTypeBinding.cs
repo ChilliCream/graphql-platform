@@ -8,8 +8,11 @@ namespace HotChocolate.Configuration
     internal class ObjectTypeBinding
         : ITypeBinding
     {
-        public ObjectTypeBinding(string name, Type type,
-            ObjectType objectType, IEnumerable<FieldBinding> fields)
+        public ObjectTypeBinding(
+            NameString name,
+            Type type,
+            ObjectType objectType,
+            IEnumerable<FieldBinding> fields)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -29,9 +32,9 @@ namespace HotChocolate.Configuration
             Fields = fields.ToImmutableDictionary(t => t.Name);
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
         public Type Type { get; }
         public ObjectType ObjectType { get; }
-        public IReadOnlyDictionary<string, FieldBinding> Fields { get; }
+        public IReadOnlyDictionary<NameString, FieldBinding> Fields { get; }
     }
 }

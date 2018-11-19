@@ -100,7 +100,7 @@ namespace HotChocolate.Types
             configure(descriptor);
 
             InputObjectTypeDescription description = descriptor.CreateDescription();
-            ClrType = description.NativeType;
+            ClrType = description.ClrType;
             SyntaxNode = description.SyntaxNode;
             Fields = new FieldCollection<InputField>(
                 description.Fields.Select(t => new InputField(t)));
