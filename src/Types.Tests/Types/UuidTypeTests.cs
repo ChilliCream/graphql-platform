@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         public void Serialize_Guid()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
             Guid guid = Guid.NewGuid();
             string expectedValue = guid.ToString("N");
 
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
 
             // act
             object serializedValue = uuidType.Serialize(null);
@@ -38,9 +38,9 @@ namespace HotChocolate.Types
         public void ParseLiteral_StringValueNode()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
             Guid expected = Guid.NewGuid();
-            StringValueNode literal = new StringValueNode(expected.ToString());
+            var literal = new StringValueNode(expected.ToString());
 
             // act
             Guid actual = (Guid)uuidType
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
             NullValueNode literal = NullValueNode.Default;
 
             // act
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
         public void ParseValue_Guid()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
             Guid expected = Guid.NewGuid();
             string expectedLiteralValue = expected.ToString("N");
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            UuidType uuidType = new UuidType();
+            var uuidType = new UuidType();
             Guid? guid = null;
 
             // act
@@ -100,7 +100,7 @@ namespace HotChocolate.Types
         public void EnsureDateTypeKindIsCorret()
         {
             // arrange
-            UuidType type = new UuidType();
+            var type = new UuidType();
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);

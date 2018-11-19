@@ -20,7 +20,7 @@ namespace HotChocolate.Configuration
             _bindingInfo = bindingInfo;
         }
 
-        public IBindFieldResolver<TResolver> Resolve(string fieldName)
+        public IBindFieldResolver<TResolver> Resolve(NameString fieldName)
         {
             FieldResolverBindungInfo fieldBindingInfo =
                 new FieldResolverBindungInfo

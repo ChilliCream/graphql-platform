@@ -5,16 +5,14 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
-using CodeGenArgument =
-    HotChocolate.Resolvers.CodeGeneration.ArgumentDescriptor;
+using CodeGenArgument = HotChocolate.Resolvers.CodeGeneration.ArgumentDescriptor;
 
 namespace HotChocolate.Configuration
 {
     internal class ResolverCollectionBindingHandler
         : IResolverBindingHandler
     {
-        private readonly
-            ILookup<string, ResolverCollectionBindingInfo> _resolverBindings;
+        private readonly ILookup<NameString, ResolverCollectionBindingInfo> _bindings;
 
         public ResolverCollectionBindingHandler(
             IEnumerable<ResolverCollectionBindingInfo> resolverBindings)
@@ -23,7 +21,7 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(resolverBindings));
             }
-            _resolverBindings = resolverBindings
+            _bindings = resolverBindings
                 .ToLookup(t => t.ObjectTypeName);
         }
 
@@ -78,7 +76,7 @@ namespace HotChocolate.Configuration
 
             if (resolverBinding.Fields.Count > 0)
             {
-                ILookup<string, IFieldResolverDescriptor> descriptorLookup =
+                ILookup<NameString, IFieldResolverDescriptor> descriptorLookup =
                     descriptors.ToLookup(t => t.Field.FieldName);
 
                 IEnumerable<FieldMember> selectedResolvers =
@@ -167,7 +165,7 @@ namespace HotChocolate.Configuration
             MemberInfo member = fieldResolverMember.Member;
 
             foreach (ResolverCollectionBindingInfo resolverBinding in
-                _resolverBindings[fieldResolverMember.TypeName])
+                _bindings[fieldResolverMember.TypeName])
             {
                 FieldResolverBindungInfo fieldBinding = resolverBinding.Fields
                     .FirstOrDefault(t => t.FieldMember == member);

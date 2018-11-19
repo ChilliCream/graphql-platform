@@ -10,8 +10,6 @@ namespace HotChocolate.Types
 
         public string DeprecationReason { get; set; }
 
-        public bool Ignored { get; set; }
-
         public List<ArgumentDescription> Arguments { get; set; } =
             new List<ArgumentDescription>();
     }

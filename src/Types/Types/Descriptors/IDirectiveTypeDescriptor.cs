@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         /// <paramref name="name"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IDirectiveTypeDescriptor Name(string name);
+        IDirectiveTypeDescriptor Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="DirectiveType"/>
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
         /// Specifies a directive argument.
         /// </summary>
         /// <param name="name">The name of the argument.</param>
-        IArgumentDescriptor Argument(string name);
+        IArgumentDescriptor Argument(NameString name);
 
         /// <summary>
         /// Specifies in which location the directive belongs in.
@@ -81,7 +81,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        new IDirectiveTypeDescriptor<T> Name(string name);
+        new IDirectiveTypeDescriptor<T> Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="DirectiveType"/>

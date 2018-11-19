@@ -14,7 +14,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(bindingInfo));
         }
 
-        public IBindFieldResolver<TResolver> Resolve(string fieldName)
+        public IBindFieldResolver<TResolver> Resolve(NameString fieldName)
         {
             if (string.IsNullOrEmpty(fieldName))
             {
@@ -31,7 +31,7 @@ namespace HotChocolate.Configuration
                 _bindingInfo, fieldBindingInfo);
         }
 
-        public IBoundResolver<TResolver> To(string typeName)
+        public IBoundResolver<TResolver> To(NameString typeName)
         {
             if (string.IsNullOrEmpty(typeName))
             {

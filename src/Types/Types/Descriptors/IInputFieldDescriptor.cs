@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     {
         IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode syntaxNode);
 
-        IInputFieldDescriptor Name(string name);
+        IInputFieldDescriptor Name(NameString name);
 
         IInputFieldDescriptor Description(string description);
 
@@ -16,6 +16,8 @@ namespace HotChocolate.Types
             where TInputType : IInputType;
 
         IInputFieldDescriptor Type(ITypeNode type);
+
+        IInputFieldDescriptor Ignore();
 
         IInputFieldDescriptor DefaultValue(IValueNode defaultValue);
 
@@ -26,6 +28,10 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor Directive<T>()
             where T : class, new();
+
+        IInputFieldDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         IInputFieldDescriptor Directive(
             string name,

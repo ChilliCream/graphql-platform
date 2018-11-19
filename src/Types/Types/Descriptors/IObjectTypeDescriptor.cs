@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        IObjectTypeDescriptor Name(string name);
+        IObjectTypeDescriptor Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="ObjectType"/>
@@ -62,13 +62,17 @@ namespace HotChocolate.Types
         /// <param name="name">
         /// The name that the field shall have.
         /// </param>
-        IObjectFieldDescriptor Field(string name);
+        IObjectFieldDescriptor Field(NameString name);
 
         IObjectTypeDescriptor Directive<T>(T directive)
             where T : class;
 
         IObjectTypeDescriptor Directive<T>()
             where T : class, new();
+
+        IObjectTypeDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         IObjectTypeDescriptor Directive(
             string name,
@@ -85,7 +89,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        new IObjectTypeDescriptor<T> Name(string name);
+        new IObjectTypeDescriptor<T> Name(NameString name);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="ObjectType"/>
@@ -154,6 +158,10 @@ namespace HotChocolate.Types
 
         new IObjectTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new();
+
+        new IObjectTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
 
         new IObjectTypeDescriptor<T> Directive(
             string name,

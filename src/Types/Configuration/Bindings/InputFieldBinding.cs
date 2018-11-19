@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
     internal class InputFieldBinding
     {
         public InputFieldBinding(
-            string name,
+            NameString name,
             PropertyInfo property,
             InputField field)
         {
@@ -31,7 +31,7 @@ namespace HotChocolate.Configuration
             Field = field;
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public PropertyInfo Property { get; }
 

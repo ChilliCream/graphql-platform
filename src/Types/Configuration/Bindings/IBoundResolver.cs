@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
         : IFluent
         where TResolver : class
     {
-        IBindFieldResolver<TResolver> Resolve(string fieldName);
+        IBindFieldResolver<TResolver> Resolve(NameString fieldName);
 
     }
 

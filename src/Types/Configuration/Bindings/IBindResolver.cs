@@ -4,7 +4,7 @@ namespace HotChocolate.Configuration
         : IBoundResolver<TResolver>
         where TResolver : class
     {
-        IBoundResolver<TResolver> To(string typeName);
+        IBoundResolver<TResolver> To(NameString typeName);
 
         IBoundResolver<TResolver, TObjectType> To<TObjectType>()
             where TObjectType : class;

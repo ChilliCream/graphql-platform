@@ -236,7 +236,7 @@ namespace HotChocolate.Execution
                 "query test($test: Int) { a }");
 
             var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", 1);
+            variableValues.Add("test", value);
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -246,7 +246,7 @@ namespace HotChocolate.Execution
 
             // assert
             int result = coercedVariableValues.GetVariable<int>("test");
-            Assert.Equal(1, result);
+            Assert.Equal(value, result);
         }
 
         [Fact]

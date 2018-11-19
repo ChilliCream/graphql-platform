@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         , IInputFieldDescriptor
         , IDescriptionFactory<InputFieldDescription>
     {
-        public InputFieldDescriptor(string name)
+        public InputFieldDescriptor(NameString name)
             : base(new InputFieldDescription())
         {
             InputDescription.Name = name;
@@ -34,19 +34,12 @@ namespace HotChocolate.Types
             return InputDescription;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    "The input field name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL input field name.",
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -62,7 +55,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Name(string name)
+        IInputFieldDescriptor IInputFieldDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -84,6 +77,12 @@ namespace HotChocolate.Types
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
             Type(type);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Ignore()
+        {
+            InputDescription.Ignored = true;
             return this;
         }
 
@@ -110,6 +109,14 @@ namespace HotChocolate.Types
         IInputFieldDescriptor IInputFieldDescriptor.Directive<T>()
         {
             InputDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            InputDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

@@ -18,20 +18,7 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(memberExpression));
             }
 
-            MemberInfo member = ExtractMember(
-                typeof(T),
-                Unwrap(memberExpression));
-
-            if (member == null)
-            {
-                throw new ArgumentException(
-                    "The member expression must specify a property or method " +
-                    "that is public and that belongs to the " +
-                    $"type {typeof(T).FullName}",
-                    nameof(memberExpression));
-            }
-
-            return member;
+            return ExtractMemberInternal<T>(UnwrapFunc(memberExpression));
         }
 
         public static MemberInfo ExtractMember<T>(
@@ -42,17 +29,20 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(memberExpression));
             }
 
-            MemberInfo member = ExtractMember(
-                typeof(T),
-                Unwrap(memberExpression));
+            return ExtractMemberInternal<T>(UnwrapAction(memberExpression));
+        }
+
+        private static MemberInfo ExtractMemberInternal<T>(
+            Expression expression)
+        {
+            MemberInfo member = ExtractMember(typeof(T), expression);
 
             if (member == null)
             {
                 throw new ArgumentException(
-                    "The member expression must specify a property or method " +
-                    "that is public and that belongs to the " +
-                    $"type {typeof(T).FullName}",
-                    nameof(memberExpression));
+                    TypeResources.Reflection_MemberMust_BeMethodOrProperty(
+                        typeof(T).FullName),
+                    nameof(expression));
             }
 
             return member;
@@ -86,7 +76,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private static Expression Unwrap<T, TPropertyType>(
+        private static Expression UnwrapFunc<T, TPropertyType>(
             Expression<Func<T, TPropertyType>> memberExpression)
         {
             if (memberExpression.Body is UnaryExpression u)
@@ -96,7 +86,7 @@ namespace HotChocolate.Utilities
             return memberExpression.Body;
         }
 
-        private static Expression Unwrap<T>(
+        private static Expression UnwrapAction<T>(
             Expression<Action<T>> memberExpression)
         {
             if (memberExpression.Body is UnaryExpression u)

@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted =>
             _resolverContext.RequestAborted;
 
-        public T Argument<T>(string name) =>
+        public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);
 
         public T CustomContext<T>() =>
