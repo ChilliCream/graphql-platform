@@ -29,7 +29,6 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fields));
             }
 
-
             Name = name.EnsureNotEmpty(nameof(name));
             Type = type;
             InputObjectType = inputObjectType;
@@ -37,8 +36,11 @@ namespace HotChocolate.Configuration
         }
 
         public NameString Name { get; }
+
         public Type Type { get; }
+
         public InputObjectType InputObjectType { get; }
-        public ImmutableDictionary<NameString, InputFieldBinding> Fields { get; }
+
+        public IDictionary<NameString, InputFieldBinding> Fields { get; }
     }
 }

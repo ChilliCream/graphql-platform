@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        protected void CompleteValue(
+        protected static void CompleteValue(
             FieldValueCompletionContext completionContext)
         {
             _fieldValueCompleter.CompleteValue(completionContext);

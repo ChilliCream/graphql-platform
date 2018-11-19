@@ -90,37 +90,52 @@ namespace HotChocolate.Configuration
         {
             foreach (TypeReference unresolvedType in typeRegistry.GetUnresolvedTypes())
             {
-                if (unresolvedType.ClrType.IsClass
-                    && !unresolvedType.ClrType.IsAbstract
-                    && (unresolvedType.ClrType.IsPublic
-                        || unresolvedType.ClrType.IsNestedPublic))
+                if (IsObjectType(unresolvedType))
                 {
-                    switch (unresolvedType.Context)
-                    {
-                        case TypeContext.Output:
-                            typeRegistry.RegisterType(
-                                new TypeReference(typeof(ObjectType<>)
-                                    .MakeGenericType(unresolvedType.ClrType)));
-                            break;
-                        case TypeContext.Input:
-                            typeRegistry.RegisterType(
-                                new TypeReference(typeof(InputObjectType<>)
-                                    .MakeGenericType(unresolvedType.ClrType)));
-                            break;
-                        default:
-                            throw new NotSupportedException();
-                    }
-
+                    typeRegistry.RegisterType(
+                        new TypeReference(typeof(ObjectType<>)
+                            .MakeGenericType(unresolvedType.ClrType)));
                 }
-                else if (unresolvedType.ClrType.IsEnum
-                    && (unresolvedType.ClrType.IsPublic
-                        || unresolvedType.ClrType.IsNestedPublic))
+                else if (IsInputObjectType(unresolvedType))
+                {
+                    typeRegistry.RegisterType(
+                        new TypeReference(typeof(InputObjectType<>)
+                            .MakeGenericType(unresolvedType.ClrType)));
+                }
+                else if (IsEnumType(unresolvedType))
                 {
                     typeRegistry.RegisterType(
                         new TypeReference(typeof(EnumType<>)
                             .MakeGenericType(unresolvedType.ClrType)));
                 }
             }
+        }
+
+        private bool IsObjectType(TypeReference unresolvedType)
+        {
+            return IsComplexType(unresolvedType)
+                && unresolvedType.Context == TypeContext.Output;
+        }
+
+        private bool IsInputObjectType(TypeReference unresolvedType)
+        {
+            return IsComplexType(unresolvedType)
+                && unresolvedType.Context == TypeContext.Input;
+        }
+
+        private bool IsComplexType(TypeReference unresolvedType)
+        {
+            return (unresolvedType.ClrType.IsEnum
+                    && (unresolvedType.ClrType.IsPublic
+                        || unresolvedType.ClrType.IsNestedPublic));
+        }
+
+        private bool IsEnumType(TypeReference unresolvedType)
+        {
+            return (unresolvedType.ClrType.IsClass
+                    && !unresolvedType.ClrType.IsAbstract
+                    && (unresolvedType.ClrType.IsPublic
+                        || unresolvedType.ClrType.IsNestedPublic));
         }
 
         // TODO : rename
