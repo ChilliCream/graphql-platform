@@ -105,7 +105,7 @@ namespace HotChocolate.Execution
                 return ExecuteFieldMiddlewareAsync(
                     resolverTask,
                     cancellationToken);
-            };
+            }
         }
 
         protected static void CompleteValue(
