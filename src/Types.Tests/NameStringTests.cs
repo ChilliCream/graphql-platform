@@ -2,7 +2,7 @@ using System;
 using HotChocolate;
 using Xunit;
 
-namespace Types.Tests
+namespace HotChocolate
 {
     public class NameStringTests
     {
@@ -369,7 +369,5 @@ namespace Types.Tests
             // assert
             Assert.True(result);
         }
-
-
     }
 }

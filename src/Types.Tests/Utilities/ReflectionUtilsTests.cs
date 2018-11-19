@@ -12,7 +12,7 @@ namespace HotChocolate.Utilities
             Type type = typeof(GenericNonNestedFoo<string>);
 
             // act
-            NameString typeName = type.GetTypeName();
+            string typeName = type.GetTypeName();
 
             // assert
             Assert.Equal(
@@ -27,7 +27,7 @@ namespace HotChocolate.Utilities
             Type type = typeof(ReflectionUtilsTests);
 
             // act
-            NameString typeName = type.GetTypeName();
+            string typeName = type.GetTypeName();
 
             // assert
             Assert.Equal(
@@ -42,11 +42,12 @@ namespace HotChocolate.Utilities
             Type type = typeof(GenericNestedFoo<string>);
 
             // act
-            NameString typeName = type.GetTypeName();
+            string typeName = type.GetTypeName();
 
             // assert
             Assert.Equal(
-                "HotChocolate.Utilities.ReflectionUtilsTests.GenericNestedFoo<System.String>",
+                "HotChocolate.Utilities.ReflectionUtilsTests" +
+                ".GenericNestedFoo<System.String>",
                 typeName);
         }
 
@@ -57,7 +58,7 @@ namespace HotChocolate.Utilities
             Type type = typeof(Foo);
 
             // act
-            NameString typeName = type.GetTypeName();
+            string typeName = type.GetTypeName();
 
             // assert
             Assert.Equal(

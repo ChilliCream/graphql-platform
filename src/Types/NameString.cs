@@ -21,7 +21,7 @@ namespace HotChocolate
         /// <exception cref="ArgumentException"
         public NameString(string value)
         {
-            if (!ValidationUtils.IsValidName(value))
+            if (!NameUtils.IsValidName(value))
             {
                 throw new ArgumentException(
                     TypeResources.Type_Name_IsNotValid(value),
