@@ -29,6 +29,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fields));
             }
 
+
             Name = name.EnsureNotEmpty(nameof(name));
             Type = type;
             InputObjectType = inputObjectType;

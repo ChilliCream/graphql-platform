@@ -80,24 +80,24 @@ namespace HotChocolate
             return _types.Values;
         }
 
-        public bool TryGetNativeType(NameString typeName, out Type nativeType)
+        public bool TryGetClrType(NameString typeName, out Type clrType)
         {
             if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding))
             {
                 if (binding is ObjectTypeBinding otb)
                 {
-                    nativeType = otb.Type;
+                    clrType = otb.Type;
                     return true;
                 }
 
                 if (binding is InputObjectTypeBinding iotb)
                 {
-                    nativeType = iotb.Type;
+                    clrType = iotb.Type;
                     return true;
                 }
             }
 
-            nativeType = null;
+            clrType = null;
             return false;
         }
 

@@ -172,7 +172,7 @@ namespace HotChocolate.Execution
             object initialValue)
         {
             object initVal = initialValue;
-            if (initVal == null && schema.TryGetNativeType(
+            if (initVal == null && schema.TryGetClrType(
                operationType.Name, out Type nativeType))
             {
                 initVal = services.GetService(nativeType);
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution
             ISchema schema,
             ObjectType operationType)
         {
-            if (schema.TryGetNativeType(
+            if (schema.TryGetClrType(
                 operationType.Name,
                 out Type nativeType))
             {

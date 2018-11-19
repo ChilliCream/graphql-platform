@@ -8,16 +8,6 @@ namespace HotChocolate.Resolvers
     {
         protected FieldReferenceBase(NameString typeName, NameString fieldName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
-
             TypeName = typeName.EnsureNotEmpty(nameof(typeName));
             FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
         }

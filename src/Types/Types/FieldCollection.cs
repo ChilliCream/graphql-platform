@@ -31,26 +31,15 @@ namespace HotChocolate.Types
 
         public bool ContainsField(NameString fieldName)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "A field name must at least consist of one letter.",
-                    nameof(fieldName));
-            }
-
-            return _fields.ContainsKey(fieldName);
+            return _fields.ContainsKey(
+                fieldName.EnsureNotEmpty(nameof(fieldName)));
         }
 
         public bool TryGetField(NameString fieldName, out T field)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "A field name must at least consist of one letter.",
-                    nameof(fieldName));
-            }
-
-            return _fields.TryGetValue(fieldName, out field);
+            return _fields.TryGetValue(
+                fieldName.EnsureNotEmpty(nameof(fieldName)),
+                out field);
         }
 
         public IEnumerator<T> GetEnumerator()
