@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -130,9 +131,30 @@ namespace HotChocolate
                 "represent free-form human-readable text.";
         }
 
-        public static string Name_CannotBe_Empty()
+        public static string Name_Cannot_BeEmpty()
         {
             return "The specified name cannot be empty.";
+        }
+
+        public static string Field_Cannot_ResolveType(
+            string typeName, string fieldName,
+            TypeReference typeReference)
+        {
+            if (typeName == null)
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            string kind = typeReference.Context == TypeContext.Output
+                ? "output" : "input";
+
+            return $"{typeName}.{fieldName}: Cannot resolve " +
+                $"{kind}-type `{typeReference}`";
         }
 
     }

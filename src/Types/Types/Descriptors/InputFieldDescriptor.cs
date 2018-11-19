@@ -39,7 +39,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -114,6 +114,14 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor IInputFieldDescriptor.Directive(
             NameString name,
+            params ArgumentNode[] arguments)
+        {
+            InputDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IInputFieldDescriptor IInputFieldDescriptor.Directive(
+            string name,
             params ArgumentNode[] arguments)
         {
             InputDescription.Directives.AddDirective(name, arguments);

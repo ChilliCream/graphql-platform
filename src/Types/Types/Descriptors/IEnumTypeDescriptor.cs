@@ -26,6 +26,10 @@ namespace HotChocolate.Types
         IEnumTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IEnumTypeDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 
     public interface IEnumTypeDescriptor<T>
@@ -49,6 +53,10 @@ namespace HotChocolate.Types
 
         new IEnumTypeDescriptor<T> Directive(
             NameString name,
+            params ArgumentNode[] arguments);
+
+        new IEnumTypeDescriptor<T> Directive(
+            string name,
             params ArgumentNode[] arguments);
     }
 }

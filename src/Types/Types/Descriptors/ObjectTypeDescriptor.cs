@@ -29,7 +29,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -117,7 +117,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -187,6 +187,14 @@ namespace HotChocolate.Types
 
         IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
             NameString name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
+            string name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);
@@ -386,6 +394,14 @@ namespace HotChocolate.Types
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
             NameString name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
+            string name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);

@@ -29,5 +29,9 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IUnionTypeDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

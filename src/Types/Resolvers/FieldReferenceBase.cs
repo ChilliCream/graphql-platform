@@ -21,14 +21,14 @@ namespace HotChocolate.Resolvers
             if (typeName.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(typeName));
             }
 
             if (fieldName.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(fieldName));
             }
 

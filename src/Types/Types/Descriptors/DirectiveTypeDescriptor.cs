@@ -62,7 +62,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 

@@ -32,5 +32,9 @@ namespace HotChocolate.Types
         IInputFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IInputFieldDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 }

@@ -37,7 +37,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -120,6 +120,14 @@ namespace HotChocolate.Types
 
         IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
             NameString name,
+            params ArgumentNode[] arguments)
+        {
+            UnionDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
+            string name,
             params ArgumentNode[] arguments)
         {
             UnionDescription.Directives.AddDirective(name, arguments);

@@ -26,6 +26,10 @@ namespace HotChocolate.Types
         IArgumentDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IArgumentDescriptor Directive(
+            string name,
+            params ArgumentNode[] arguments);
     }
 
     public interface IDirectiveArgumentDescriptor

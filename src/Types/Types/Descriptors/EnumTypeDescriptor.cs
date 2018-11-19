@@ -98,7 +98,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_CannotBe_Empty(),
+                    TypeResources.Name_Cannot_BeEmpty(),
                     nameof(name));
             }
 
@@ -180,6 +180,14 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            EnumDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 
@@ -240,7 +248,16 @@ namespace HotChocolate.Types
         }
 
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
-            NameString name, params ArgumentNode[] arguments)
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            EnumDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
+            string name,
+            params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);
             return this;

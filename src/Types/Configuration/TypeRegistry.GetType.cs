@@ -114,7 +114,10 @@ namespace HotChocolate.Configuration
 
                 foreach (INamedType namedType in namedTypes)
                 {
-                    return TryCreateType(namedType, context, factory, out type);
+                    if (TryCreateType(namedType, context, factory, out type))
+                    {
+                        return true;
+                    }
                 }
             }
 
