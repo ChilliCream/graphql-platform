@@ -30,7 +30,7 @@ namespace HotChocolate.Resolvers
             Action action = () => new FieldReference(null, fieldName);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace HotChocolate.Resolvers
             Action action = () => new FieldReference(typeName, null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldReference.WithTypeName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldReference.WithFieldName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
