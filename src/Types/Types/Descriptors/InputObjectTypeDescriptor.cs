@@ -66,13 +66,15 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(NameString name)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(
+            NameString name)
         {
             Name(name);
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(string description)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
@@ -112,12 +114,14 @@ namespace HotChocolate.Types
 
             var descriptions = new Dictionary<string, InputFieldDescription>();
 
-            foreach (InputFieldDescription description in ObjectDescription.Fields)
+            foreach (InputFieldDescription description in
+                ObjectDescription.Fields)
             {
                 descriptions[description.Name] = description;
             }
 
-            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
+            if (ObjectDescription.FieldBindingBehavior ==
+                BindingBehavior.Implicit)
             {
                 DeriveFieldsFromType(descriptions);
                 ObjectDescription.Fields = descriptions.Values.ToList();

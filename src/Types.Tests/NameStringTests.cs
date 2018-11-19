@@ -114,7 +114,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            NameString combined = a.Append(b);
+            NameString combined = a.Add(b);
 
             // assert
             Assert.Equal("FooBar", combined.ToString());

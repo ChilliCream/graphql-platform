@@ -50,7 +50,8 @@ namespace HotChocolate.Types
 
             var values = new Dictionary<string, EnumValueDescription>();
 
-            foreach (EnumValueDescription valueDescription in valueToDesc.Values)
+            foreach (EnumValueDescription valueDescription in
+                valueToDesc.Values)
             {
                 values[valueDescription.Name] = valueDescription;
             }
@@ -59,9 +60,11 @@ namespace HotChocolate.Types
             EnumDescription.Values.AddRange(values.Values);
         }
 
-        protected void AddImplicitValues(Dictionary<object, EnumValueDescription> valueToDesc)
+        protected void AddImplicitValues(
+            Dictionary<object, EnumValueDescription> valueToDesc)
         {
-            if (EnumDescription.ValueBindingBehavior == BindingBehavior.Implicit)
+            if (EnumDescription.ValueBindingBehavior ==
+                BindingBehavior.Implicit)
             {
                 if (EnumDescription.ClrType != null
                     && EnumDescription.ClrType.IsEnum)

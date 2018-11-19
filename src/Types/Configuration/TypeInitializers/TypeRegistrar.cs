@@ -125,15 +125,15 @@ namespace HotChocolate.Configuration
 
         private bool IsComplexType(TypeReference unresolvedType)
         {
-            return (unresolvedType.ClrType.IsEnum
+            return (unresolvedType.ClrType.IsClass
+                    && !unresolvedType.ClrType.IsAbstract
                     && (unresolvedType.ClrType.IsPublic
                         || unresolvedType.ClrType.IsNestedPublic));
         }
 
         private bool IsEnumType(TypeReference unresolvedType)
         {
-            return (unresolvedType.ClrType.IsClass
-                    && !unresolvedType.ClrType.IsAbstract
+            return (unresolvedType.ClrType.IsEnum
                     && (unresolvedType.ClrType.IsPublic
                         || unresolvedType.ClrType.IsNestedPublic));
         }

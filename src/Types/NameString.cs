@@ -66,7 +66,7 @@ namespace HotChocolate
         /// representing the combined <see cref="NameString"/>.
         /// </summary>
         /// <returns>The combined <see cref="NameString"/>.</returns>
-        public NameString Append(NameString other)
+        public NameString Add(NameString other)
         {
             return new NameString(Value + other.Value);
         }
@@ -199,7 +199,7 @@ namespace HotChocolate
         /// </returns>
         public static NameString operator +(NameString left, NameString right)
         {
-            return left.Append(right);
+            return left.Add(right);
         }
 
         /// <summary>

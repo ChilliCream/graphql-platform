@@ -73,13 +73,15 @@ namespace HotChocolate.Types
             Name(name);
             return this;
         }
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(string description)
+        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(NameString name)
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(
+            NameString name)
         {
             return Field(name);
         }

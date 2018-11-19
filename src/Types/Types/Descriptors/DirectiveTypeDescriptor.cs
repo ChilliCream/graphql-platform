@@ -206,7 +206,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(Expression<Action<T>> method)
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(
+            Expression<Action<T>> method)
         {
             Middleware(method);
             return this;
@@ -223,7 +224,8 @@ namespace HotChocolate.Types
         {
             DirectiveDescription.ClrType = typeof(T);
             DirectiveDescription.Name = typeof(T).GetGraphQLName();
-            DirectiveDescription.Description = typeof(T).GetGraphQLDescription();
+            DirectiveDescription.Description =
+                typeof(T).GetGraphQLDescription();
         }
 
         protected override void CompleteArguments()

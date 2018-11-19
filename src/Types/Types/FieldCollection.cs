@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : IField
     {
-        private readonly Dictionary<string, T> _fields;
+        private readonly Dictionary<NameString, T> _fields;
 
         public FieldCollection(IEnumerable<T> fields)
         {
@@ -18,12 +18,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields.ToDictionary(t => t.Name);
+            _fields = fields.ToDictionary(t => (NameString)t.Name);
             Count = _fields.Count;
             IsEmpty = _fields.Count == 0;
         }
 
-        public T this[NameString fieldName] => _fields[fieldName];
+        public T this[string fieldName] => _fields[fieldName];
 
         public int Count { get; }
 

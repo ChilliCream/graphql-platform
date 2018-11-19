@@ -62,7 +62,8 @@ namespace HotChocolate
                 nameof(typeName));
         }
 
-        public bool TryGetType<T>(NameString typeName, out T type) where T : IType
+        public bool TryGetType<T>(NameString typeName, out T type)
+            where T : IType
         {
             if (_types.TryGetValue(typeName, out INamedType namedType)
                 && namedType is T t)

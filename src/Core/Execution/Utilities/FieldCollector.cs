@@ -82,7 +82,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void ResolveFieldSelection(
+        private static void ResolveFieldSelection(
             ObjectType type,
             FieldNode fieldSelection,
             Action<QueryError> reportError,
@@ -142,7 +142,7 @@ namespace HotChocolate.Execution
             return selection.Directives.Include(_variables);
         }
 
-        private bool DoesTypeApply(IType typeCondition, ObjectType current)
+        private static bool DoesTypeApply(IType typeCondition, ObjectType current)
         {
             if (typeCondition is ObjectType ot)
             {

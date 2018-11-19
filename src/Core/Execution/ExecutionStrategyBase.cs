@@ -64,7 +64,6 @@ namespace HotChocolate.Execution
         {
             // start field resolvers
             BeginExecuteResolverBatch(
-                executionContext,
                 currentBatch,
                 cancellationToken);
 
@@ -82,7 +81,6 @@ namespace HotChocolate.Execution
         }
 
         private void BeginExecuteResolverBatch(
-            IExecutionContext executionContext,
             IEnumerable<ResolverTask> currentBatch,
             CancellationToken cancellationToken)
         {
