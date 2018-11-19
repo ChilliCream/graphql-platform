@@ -157,5 +157,12 @@ namespace HotChocolate
                 $"{kind}-type `{typeReference}`";
         }
 
+        public static string Reflection_MemberMust_BeMethodOrProperty(
+            string fullTypeName)
+        {
+            return "The member expression must specify a property or method " +
+                "that is public and that belongs to the " +
+                $"type {fullTypeName}";
+        }
     }
 }
