@@ -71,7 +71,7 @@ namespace HotChocolate.Types
         protected void Type<TInputType>()
         {
             InputDescription.TypeReference = InputDescription.TypeReference
-                .GetMoreSpecific(typeof(TInputType));
+                .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
         }
 
         protected void Type(ITypeNode type)
@@ -97,7 +97,7 @@ namespace HotChocolate.Types
             else
             {
                 InputDescription.TypeReference = InputDescription.TypeReference
-                    .GetMoreSpecific(defaultValue.GetType());
+                    .GetMoreSpecific(defaultValue.GetType(), TypeContext.Input);
                 InputDescription.NativeDefaultValue = defaultValue;
                 InputDescription.DefaultValue = null;
             }

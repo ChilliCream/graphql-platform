@@ -35,32 +35,28 @@ namespace HotChocolate.Configuration
                 && typeReference.IsClrTypeReference()
                 && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
             {
-                RegisterNativeType(
+                RegisterType(
                     typeReference.ClrType,
                     typeReference.Context);
             }
         }
 
-        private void RegisterNativeType(Type type, TypeContext context)
+        private void RegisterType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
             {
-                if (typeof(INamedType).IsAssignableFrom(typeInfo.NamedType))
+                if (typeof(INamedType).IsAssignableFrom(typeInfo.ClrType))
                 {
-                    TryUpdateNamedType(typeInfo.NamedType);
+                    INamedType namedType = (INamedType)_serviceFactory
+                        .CreateInstance(typeInfo.ClrType);
+                    TryUpdateNamedType(namedType);
                 }
-                else if (!_clrTypes.ContainsKey(typeInfo.NamedType))
+                else if (!_clrTypes.ContainsKey(typeInfo.ClrType))
                 {
                     _unresolvedTypes.Add(
-                        new TypeReference(typeInfo.NamedType, context));
+                        new TypeReference(typeInfo.ClrType, context));
                 }
             }
-        }
-
-        private void TryUpdateNamedType(Type type)
-        {
-            TryUpdateNamedType(
-                (INamedType)_serviceFactory.CreateInstance(type));
         }
 
         private void TryUpdateNamedType(INamedType namedType)
@@ -87,7 +83,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void UpdateTypeBinding(NameString typeName, ITypeBinding typeBinding)
+        private void UpdateTypeBinding(
+            NameString typeName,
+            ITypeBinding typeBinding)
         {
             if (typeBinding != null)
             {

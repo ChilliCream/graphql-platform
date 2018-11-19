@@ -71,7 +71,7 @@ namespace HotChocolate.Types
         {
             FieldDescription.Resolver = fieldResolver;
             FieldDescription.TypeReference = FieldDescription.TypeReference
-                .GetMoreSpecific(resultType);
+                .GetMoreSpecific(resultType, TypeContext.Output);
         }
 
         private void CompleteArguments()

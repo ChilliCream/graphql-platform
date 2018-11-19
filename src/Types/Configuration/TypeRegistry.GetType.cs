@@ -53,40 +53,84 @@ namespace HotChocolate.Configuration
 
             if (typeReference.IsClrTypeReference())
             {
-                return TryGetNamedTypeFromClrTypeReference(
-                    typeReference.ClrType, out type);
+                return TryGetTypeFromClrType(
+                    typeReference.ClrType,
+                    typeReference.Context,
+                    out type);
             }
 
             return TryGetTypeFromAst(typeReference.Type, out type);
         }
 
-        private bool TryGetNamedTypeFromClrTypeReference<T>(
-            Type nativeType,
+        private bool TryGetTypeFromClrType<T>(
+            Type clrType,
+            TypeContext context,
             out T type)
         {
-            if (_typeInspector.TryCreate(nativeType,
-                out TypeInfo typeInfo))
+            if (TryGetTypeFromClrType(clrType, context, t => t, out type))
             {
-                return TryGetNamedTypeFromClrType(
-                        new TypeInfo(nativeType, t => t),
-                        out type)
-                    || TryGetTypeFromNativeNamedType(typeInfo, out type)
-                    || TryGetNamedTypeFromClrType(typeInfo, out type);
+                return true;
+            }
+
+            if (_typeInspector.TryCreate(clrType, out TypeInfo typeInfo))
+            {
+                return TryGetTypeFromClrTypeReference(
+                        typeInfo.ClrType, context,
+                        typeInfo.TypeFactory, out type)
+                    || TryGetTypeFromClrType(
+                        typeInfo.ClrType, context,
+                        typeInfo.TypeFactory, out type);
             }
 
             type = default;
             return false;
         }
 
-        private bool TryGetTypeFromNativeNamedType<T>(
-            TypeInfo typeInfo,
+        private bool TryGetTypeFromClrTypeReference<T>(
+            Type clrType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
             out T type)
         {
-            if (_clrTypeToSchemaType.TryGetValue(
-                typeInfo.NamedType, out NameString typeName)
-                && _namedTypes.TryGetValue(typeName, out INamedType namedType))
+            if (_clrTypeToSchemaType.TryGetValue(clrType, out var typeName)
+                && _namedTypes.TryGetValue(typeName, out var namedType))
             {
-                IType internalType = typeInfo.TypeFactory(namedType);
+                return TryCreateType(namedType, context, factory, out type);
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryGetTypeFromClrType<T>(
+            Type clrType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
+            out T type)
+        {
+            if (_clrTypes.TryGetValue(clrType, out var namedTypeNames))
+            {
+                var namedTypes = GetNamedTypes(namedTypeNames).ToList();
+
+                foreach (INamedType namedType in namedTypes)
+                {
+                    return TryCreateType(namedType, context, factory, out type);
+                }
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryCreateType<T>(
+            INamedType namedType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
+            out T type)
+        {
+            if (DoesTypeApplyToContext(namedType, context))
+            {
+                IType internalType = factory(namedType);
                 if (internalType is T t)
                 {
                     type = t;
@@ -94,46 +138,21 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            type = default;
+            type = default(T);
             return false;
         }
 
-        // TODO : Refactor
-        private bool TryGetNamedTypeFromClrType<T>(
-            TypeInfo typeInfo
-            , out T type)
+        public bool DoesTypeApplyToContext(INamedType type, TypeContext context)
         {
-            if (_clrTypes.TryGetValue(typeInfo.NamedType,
-                out HashSet<NameString> namedTypeNames))
+            switch (context)
             {
-                List<INamedType> namedTypes =
-                    GetNamedTypes(namedTypeNames).ToList();
-
-                if (typeof(T) == typeof(IInputType)
-                    || typeof(T) == typeof(IOutputType))
-                {
-                    type = namedTypes.OfType<T>().FirstOrDefault();
-                    if (ReferenceEquals(type, default(T)))
-                    {
-                        return false;
-                    }
-                    type = (T)typeInfo.TypeFactory((INamedType)type);
-                    return true;
-                }
-
-                foreach (INamedType namedType in namedTypes)
-                {
-                    IType internalType = typeInfo.TypeFactory(namedType);
-                    if (internalType is T t)
-                    {
-                        type = t;
-                        return true;
-                    }
-                }
+                case TypeContext.Output:
+                    return type is IOutputType;
+                case TypeContext.Input:
+                    return type is IInputType;
+                default:
+                    throw new NotSupportedException();
             }
-
-            type = default;
-            return false;
         }
 
         private bool TryGetTypeFromAst<T>(ITypeNode typeNode, out T type)

@@ -5,14 +5,14 @@ namespace HotChocolate.Utilities
 {
     internal sealed class TypeInfo
     {
-        public TypeInfo(Type nativeNamedType,
+        public TypeInfo(Type clrType,
             Func<IType, IType> typeFactory)
         {
-            NamedType = nativeNamedType;
+            ClrType = clrType;
             TypeFactory = typeFactory;
         }
 
-        public Type NamedType { get; }
+        public Type ClrType { get; }
 
         public Func<IType, IType> TypeFactory { get; }
     }

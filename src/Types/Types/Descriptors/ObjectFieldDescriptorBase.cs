@@ -46,7 +46,9 @@ namespace HotChocolate.Types
         protected void Type<TOutputType>() where TOutputType : IOutputType
         {
             FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(typeof(TOutputType));
+                .TypeReference.GetMoreSpecific(
+                    typeof(TOutputType),
+                    TypeContext.Output);
         }
 
         protected void Type(ITypeNode type)
@@ -56,7 +58,7 @@ namespace HotChocolate.Types
         }
 
         protected void Argument(
-            NameString name, 
+            NameString name,
             Action<IArgumentDescriptor> argument)
         {
             if (name.IsEmpty)
