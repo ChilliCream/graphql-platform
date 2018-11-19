@@ -174,7 +174,7 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
-        public DirectiveType GetDirectiveType(string directiveName)
+        public DirectiveType GetDirectiveType(NameString directiveName)
         {
             _directiveTypes.TryGetValue(directiveName, out DirectiveType type);
             return type;
@@ -195,7 +195,7 @@ namespace HotChocolate
         /// name exists; otherwise, <c>false</c>.
         /// </returns>
         public bool TryGetDirectiveType(
-            string directiveName,
+            NameString directiveName,
             out DirectiveType directiveType)
         {
             return _directiveTypes

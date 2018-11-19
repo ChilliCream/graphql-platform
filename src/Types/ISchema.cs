@@ -115,7 +115,7 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
-        DirectiveType GetDirectiveType(string directiveName);
+        DirectiveType GetDirectiveType(NameString directiveName);
 
         /// <summary>
         /// Tries to get a directive type by its name.
@@ -132,7 +132,7 @@ namespace HotChocolate
         /// name exists; otherwise, <c>false</c>.
         /// </returns>
         bool TryGetDirectiveType(
-            string directiveName,
+            NameString directiveName,
             out DirectiveType directiveType);
     }
 }
