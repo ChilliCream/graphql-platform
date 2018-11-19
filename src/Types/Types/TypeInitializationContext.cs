@@ -80,12 +80,7 @@ namespace HotChocolate.Types
 
         public AsyncFieldResolverDelegate GetResolver(NameString fieldName)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "The name of the field cannot be null or empty.",
-                    nameof(fieldName));
-            }
+            fieldName.EnsureNotEmpty(nameof(fieldName));
 
             if (Type is ObjectType t
                 && t.Fields.ContainsField(fieldName))
@@ -114,20 +109,16 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "The name of the field cannot be null or empty.",
-                    nameof(fieldName));
-            }
-
             if (fieldMember == null)
             {
                 throw new ArgumentNullException(nameof(fieldMember));
             }
 
             RegisterResolverInternal(
-                sourceType, resolverType, fieldName, fieldMember);
+                sourceType,
+                resolverType,
+                fieldName.EnsureNotEmpty(nameof(fieldName)),
+                fieldMember);
         }
 
         private void RegisterResolverInternal(

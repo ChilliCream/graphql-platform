@@ -32,15 +32,10 @@ namespace HotChocolate.Types
             NameString name,
             IEnumerable<ArgumentNode> arguments)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
             directives.Add(new DirectiveDescription(
-                new DirectiveNode(name, arguments.ToArray())));
+                new DirectiveNode(
+                    name.EnsureNotEmpty(nameof(name)),
+                    arguments.ToArray())));
         }
     }
 }

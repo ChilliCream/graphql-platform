@@ -13,14 +13,7 @@ namespace HotChocolate.Types
 
         public DirectiveReference(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public Type ClrType { get; }

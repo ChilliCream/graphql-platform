@@ -180,7 +180,7 @@ namespace HotChocolate.Types
             }
 
             SyntaxNode = description.SyntaxNode;
-            ClrType = description.NativeType;
+            ClrType = description.ClrType;
 
             Initialize(description.Name, description.Description,
                 new DirectiveCollection(

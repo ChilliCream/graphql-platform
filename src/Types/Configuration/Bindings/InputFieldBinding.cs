@@ -11,11 +11,6 @@ namespace HotChocolate.Configuration
             PropertyInfo property,
             InputField field)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (property == null)
             {
                 throw new ArgumentNullException(nameof(property));
@@ -26,7 +21,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(field));
             }
 
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Property = property;
             Field = field;
         }

@@ -123,7 +123,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CollectTypeSystemDirectives(
+        private static void CollectTypeSystemDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
             ObjectField field)

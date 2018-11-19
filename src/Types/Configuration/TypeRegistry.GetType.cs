@@ -145,7 +145,9 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public bool DoesTypeApplyToContext(INamedType type, TypeContext context)
+        private static bool DoesTypeApplyToContext(
+            INamedType type,
+            TypeContext context)
         {
             switch (context)
             {

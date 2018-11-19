@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
             return coercedArgumentValues;
         }
 
-        private object CoerceArgumentValue(
+        private static object CoerceArgumentValue(
             string argumentName,
             IInputType argumentType,
             IValueNode defaultValue,

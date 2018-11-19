@@ -13,19 +13,12 @@ namespace HotChocolate.Types
     {
         public EnumTypeDescriptor(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            EnumDescription.Name = name;
+            EnumDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public EnumTypeDescriptor(Type enumType)
         {
-            EnumDescription.NativeType = enumType
+            EnumDescription.ClrType = enumType
                 ?? throw new ArgumentNullException(nameof(enumType));
             EnumDescription.Name = enumType.GetGraphQLName();
             EnumDescription.Description = enumType.GetGraphQLDescription();
@@ -57,7 +50,8 @@ namespace HotChocolate.Types
 
             var values = new Dictionary<string, EnumValueDescription>();
 
-            foreach (EnumValueDescription valueDescription in valueToDesc.Values)
+            foreach (EnumValueDescription valueDescription in
+                valueToDesc.Values)
             {
                 values[valueDescription.Name] = valueDescription;
             }
@@ -66,15 +60,17 @@ namespace HotChocolate.Types
             EnumDescription.Values.AddRange(values.Values);
         }
 
-        protected void AddImplicitValues(Dictionary<object, EnumValueDescription> valueToDesc)
+        protected void AddImplicitValues(
+            Dictionary<object, EnumValueDescription> valueToDesc)
         {
-            if (EnumDescription.ValueBindingBehavior == BindingBehavior.Implicit)
+            if (EnumDescription.ValueBindingBehavior ==
+                BindingBehavior.Implicit)
             {
-                if (EnumDescription.NativeType != null
-                    && EnumDescription.NativeType.IsEnum)
+                if (EnumDescription.ClrType != null
+                    && EnumDescription.ClrType.IsEnum)
                 {
                     foreach (object o in Enum.GetValues(
-                        EnumDescription.NativeType))
+                        EnumDescription.ClrType))
                     {
                         EnumValueDescription description =
                             new EnumValueDescriptor(o)
@@ -95,14 +91,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            EnumDescription.Name = name;
+            EnumDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -112,9 +101,9 @@ namespace HotChocolate.Types
 
         protected EnumValueDescriptor Item<T>(T value)
         {
-            if (EnumDescription.NativeType == null)
+            if (EnumDescription.ClrType == null)
             {
-                EnumDescription.NativeType = typeof(T);
+                EnumDescription.ClrType = typeof(T);
             }
 
             var descriptor = new EnumValueDescriptor(value);

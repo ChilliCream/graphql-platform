@@ -26,14 +26,7 @@ namespace HotChocolate.Types
 
         public ObjectTypeDescriptor(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            ObjectDescription.Name = name;
+            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected List<ObjectFieldDescriptor> Fields { get; } =
@@ -69,14 +62,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            ObjectDescription.Name = name;
+            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -114,14 +100,8 @@ namespace HotChocolate.Types
 
         protected ObjectFieldDescriptor Field(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            var fieldDescriptor = new ObjectFieldDescriptor(name);
+            var fieldDescriptor = new ObjectFieldDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }

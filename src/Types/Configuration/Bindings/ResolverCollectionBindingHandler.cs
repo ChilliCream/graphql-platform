@@ -68,10 +68,10 @@ namespace HotChocolate.Configuration
             if (resolverBinding.Behavior == BindingBehavior.Implicit)
             {
                 descriptors.AddRange(FieldResolverDiscoverer.DiscoverResolvers(
-                        resolverBinding.ResolverType,
-                        resolverBinding.ObjectType,
-                        resolverBinding.ObjectTypeName,
-                        m => LookupFieldName(typeRegistry, m)));
+                    resolverBinding.ResolverType,
+                    resolverBinding.ObjectType,
+                    resolverBinding.ObjectTypeName,
+                    m => LookupFieldName(typeRegistry, m)));
             }
 
             if (resolverBinding.Fields.Count > 0)

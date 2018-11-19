@@ -34,14 +34,7 @@ namespace HotChocolate.Types
 
         public void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            UnionDescription.Name = name;
+            UnionDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public void Description(string description)

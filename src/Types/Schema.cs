@@ -99,7 +99,7 @@ namespace HotChocolate
         public T GetType<T>(NameString typeName)
             where T : INamedType
         {
-            return _types.GetType<T>(typeName);
+            return _types.GetType<T>(typeName.EnsureNotEmpty(nameof(typeName)));
         }
 
         /// <summary>
@@ -115,26 +115,25 @@ namespace HotChocolate
         public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
-            return _types.TryGetType<T>(typeName, out type);
+            return _types.TryGetType<T>(
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                out type);
         }
 
         /// <summary>
         /// Tries to get the .net type representation of a schema.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
-        /// <param name="nativeType">The resolved .net type.</param>
+        /// <param name="clrType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetNativeType(NameString typeName, out Type nativeType)
+        public bool TryGetClrType(NameString typeName, out Type clrType)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            return _types.TryGetNativeType(typeName, out nativeType);
+            return _types.TryGetClrType(
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                out clrType);
         }
 
         /// <summary>
@@ -176,7 +175,9 @@ namespace HotChocolate
         /// </returns>
         public DirectiveType GetDirectiveType(NameString directiveName)
         {
-            _directiveTypes.TryGetValue(directiveName, out DirectiveType type);
+            _directiveTypes.TryGetValue(
+                directiveName.EnsureNotEmpty(nameof(directiveName)),
+                out DirectiveType type);
             return type;
         }
 
@@ -198,8 +199,9 @@ namespace HotChocolate
             NameString directiveName,
             out DirectiveType directiveType)
         {
-            return _directiveTypes
-                .TryGetValue(directiveName, out directiveType);
+            return _directiveTypes.TryGetValue(
+                directiveName.EnsureNotEmpty(nameof(directiveName)),
+                out directiveType);
         }
 
         public void Dispose()

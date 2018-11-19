@@ -9,7 +9,10 @@ namespace HotChocolate.Resolvers
     {
         private FieldReference _fieldReference;
 
-        public FieldMember(NameString typeName, NameString fieldName, MemberInfo member)
+        public FieldMember(
+            NameString typeName,
+            NameString fieldName,
+            MemberInfo member)
             : base(typeName, fieldName)
         {
             Member = member ?? throw new ArgumentNullException(nameof(member));

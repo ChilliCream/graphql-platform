@@ -19,14 +19,7 @@ namespace HotChocolate.Types
         /// <param name="name">Name.</param>
         protected ScalarType(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
         }
 
         /// <summary>

@@ -7,8 +7,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
-    internal abstract class QueryResultVisitor<TContext>
+    internal class QueryResultVisitor<TContext>
     {
+        protected QueryResultVisitor()
+        {
+        }
+
         public virtual void Visit(object value, TContext context)
         {
             if (value is IDictionary<string, object> dictionary)
@@ -52,7 +56,6 @@ namespace HotChocolate.Execution
 
         protected virtual void VisitValue(object value, TContext context)
         {
-
         }
     }
 }
