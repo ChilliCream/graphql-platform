@@ -34,14 +34,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            ValueDescription.Name = name;
+            ValueDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)

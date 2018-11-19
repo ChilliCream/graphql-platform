@@ -37,14 +37,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            InterfaceDescription.Name = name;
+            InterfaceDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
         protected void Description(string description)
         {
@@ -53,14 +46,8 @@ namespace HotChocolate.Types
 
         protected InterfaceFieldDescriptor Field(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            var fieldDescriptor = new InterfaceFieldDescriptor(name);
+            var fieldDescriptor = new InterfaceFieldDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }

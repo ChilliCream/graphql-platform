@@ -36,14 +36,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            InputDescription.Name = name;
+            InputDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         #region IInputFieldDescriptor

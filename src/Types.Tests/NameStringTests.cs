@@ -68,6 +68,7 @@ namespace HotChocolate
 
         [InlineData("1Test")]
         [InlineData("Test-Test")]
+        [InlineData("Täst")]
         [Theory]
         public void ImplicitCast_InvalidName_NameString(string name)
         {

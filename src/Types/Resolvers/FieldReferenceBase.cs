@@ -18,22 +18,8 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
-            if (typeName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(typeName));
-            }
-
-            if (fieldName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(fieldName));
-            }
-
-            TypeName = typeName;
-            FieldName = fieldName;
+            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+            FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         protected FieldReferenceBase(FieldReferenceBase fieldReference)

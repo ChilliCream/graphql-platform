@@ -41,14 +41,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            ObjectDescription.Name = name;
+            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -58,14 +51,8 @@ namespace HotChocolate.Types
 
         protected InputFieldDescriptor Field(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            var field = new InputFieldDescriptor(name);
+            var field = new InputFieldDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             Fields.Add(field);
             return field;
         }

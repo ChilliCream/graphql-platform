@@ -59,14 +59,7 @@ namespace HotChocolate.Types
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            DirectiveDescription.Name = name;
+            DirectiveDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -76,14 +69,8 @@ namespace HotChocolate.Types
 
         protected DirectiveArgumentDescriptor Argument(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            var descriptor = new DirectiveArgumentDescriptor(name);
+            var descriptor = new DirectiveArgumentDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             _arguments.Add(descriptor);
             return descriptor;
         }

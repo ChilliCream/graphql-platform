@@ -249,4 +249,21 @@ namespace HotChocolate
                     ? value.ToString()
                     : base.ConvertTo(context, culture, value, destinationType);
     }
+
+    internal static class NameStringExtensions
+    {
+        public static NameString EnsureNotEmpty(
+            this NameString name,
+            string argumentName)
+        {
+            if (name.IsEmpty)
+            {
+                throw new ArgumentException(
+                    TypeResources.Name_Cannot_BeEmpty(),
+                    argumentName);
+            }
+
+            return name;
+        }
+    }
 }

@@ -19,14 +19,8 @@ namespace HotChocolate.Types
         public ObjectFieldDescriptor(NameString fieldName)
             : base(new ObjectFieldDescription())
         {
-            if (fieldName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(fieldName));
-            }
-
-            FieldDescription.Name = fieldName;
+            FieldDescription.Name =
+                fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
