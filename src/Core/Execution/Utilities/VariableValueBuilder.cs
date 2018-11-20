@@ -77,18 +77,13 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues,
             Variable variable)
         {
-            IValueNode valueNode = null;
-            if (variableValues.TryGetValue(variable.Name, out var rawValue))
-            {
-                valueNode = Normalize(variable, rawValue);
-            }
-            else
-            {
-                valueNode = variable.DefaultValue ?? NullValueNode.Default;
-            }
+            IValueNode value =
+                variableValues.TryGetValue(variable.Name, out var rawValue)
+                    ? value = Normalize(variable, rawValue)
+                    : value = variable.DefaultValue ?? NullValueNode.Default;
 
-            valueNode = CleanUpValue(variable.Type, valueNode);
-            variable = variable.WithValue(valueNode);
+            value = CleanUpValue(variable.Type, value);
+            variable = variable.WithValue(value);
 
             CheckForNullValueViolation(variable);
             CheckForInvalidValueType(variable);
@@ -96,7 +91,7 @@ namespace HotChocolate.Execution
             return variable;
         }
 
-        private IValueNode Normalize(Variable variable, object rawValue)
+        private static IValueNode Normalize(Variable variable, object rawValue)
         {
             object value = rawValue;
 

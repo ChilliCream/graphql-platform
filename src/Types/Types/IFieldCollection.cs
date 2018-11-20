@@ -6,7 +6,7 @@ namespace HotChocolate.Types
         : IEnumerable<T>
         where T : IField
     {
-        T this[NameString fieldName] { get; }
+        T this[string fieldName] { get; }
 
         bool ContainsField(NameString fieldName);
     }

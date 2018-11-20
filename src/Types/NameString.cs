@@ -66,7 +66,7 @@ namespace HotChocolate
         /// representing the combined <see cref="NameString"/>.
         /// </summary>
         /// <returns>The combined <see cref="NameString"/>.</returns>
-        public NameString Append(NameString other)
+        public NameString Add(NameString other)
         {
             return new NameString(Value + other.Value);
         }
@@ -199,7 +199,7 @@ namespace HotChocolate
         /// </returns>
         public static NameString operator +(NameString left, NameString right)
         {
-            return left.Append(right);
+            return left.Add(right);
         }
 
         /// <summary>
@@ -248,5 +248,22 @@ namespace HotChocolate
                 destinationType == typeof(string)
                     ? value.ToString()
                     : base.ConvertTo(context, culture, value, destinationType);
+    }
+
+    internal static class NameStringExtensions
+    {
+        public static NameString EnsureNotEmpty(
+            this NameString name,
+            string argumentName)
+        {
+            if (name.IsEmpty)
+            {
+                throw new ArgumentException(
+                    TypeResources.Name_Cannot_BeEmpty(),
+                    argumentName);
+            }
+
+            return name;
+        }
     }
 }

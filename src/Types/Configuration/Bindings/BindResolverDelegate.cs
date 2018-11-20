@@ -17,22 +17,10 @@ namespace HotChocolate.Configuration
 
         public void To(NameString typeName, NameString fieldName)
         {
-            if (typeName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(typeName));
-            }
-
-            if (fieldName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(fieldName));
-            }
-
-            _bindingInfo.ObjectTypeName = typeName;
-            _bindingInfo.FieldName = fieldName;
+            _bindingInfo.ObjectTypeName =
+                typeName.EnsureNotEmpty(nameof(typeName));
+            _bindingInfo.FieldName =
+                fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         public void To<TObjectType>(

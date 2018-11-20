@@ -6,7 +6,6 @@ namespace HotChocolate.Configuration
     public class SchemaOptions
         : ISchemaOptions
     {
-        private const int _defaultMaxExecutionDepth = 24;
         private const int _defaultMaxExecutionTimeout = 30;
         private const int _defaultMaxDevExecutionTimeout = 360;
 
@@ -16,8 +15,7 @@ namespace HotChocolate.Configuration
 
         public string SubscriptionTypeName { get; set; }
 
-        public int MaxExecutionDepth { get; set; } =
-            _defaultMaxExecutionDepth;
+        public int? MaxExecutionDepth { get; set; }
 
         public TimeSpan ExecutionTimeout { get; set; } =
             TimeSpan.FromSeconds(Debugger.IsAttached

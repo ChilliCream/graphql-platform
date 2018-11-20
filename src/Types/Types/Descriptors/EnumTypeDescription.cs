@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     {
         public EnumTypeDefinitionNode SyntaxNode { get; set; }
 
-        public Type NativeType { get; set; }
+        public Type ClrType { get; set; }
 
         public List<EnumValueDescription> Values { get; set; } =
             new List<EnumValueDescription>();

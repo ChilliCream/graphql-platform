@@ -30,23 +30,9 @@ namespace HotChocolate.Types
 
         public ArgumentDescriptor(NameString argumentName)
         {
-            if (string.IsNullOrEmpty(argumentName))
-            {
-                throw new ArgumentException(
-                    "The argument name cannot be null or empty.",
-                    nameof(argumentName));
-            }
-
-            if (argumentName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(argumentName));
-            }
-
             InputDescription = new ArgumentDescription
             {
-                Name = argumentName,
+                Name = argumentName.EnsureNotEmpty(nameof(argumentName)),
                 DefaultValue = NullValueNode.Default
             };
         }

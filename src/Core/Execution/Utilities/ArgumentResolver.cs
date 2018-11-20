@@ -6,10 +6,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class ArgumentResolver
+    internal static class ArgumentResolver
     {
-        public Dictionary<string, ArgumentValue> CoerceArgumentValues(
-            FieldSelection fieldSelection,
+        public static Dictionary<string, ArgumentValue> CoerceArgumentValues(
+            this FieldSelection fieldSelection,
             VariableCollection variables)
         {
             Dictionary<string, ArgumentValue> coercedArgumentValues =
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
             return coercedArgumentValues;
         }
 
-        private object CoerceArgumentValue(
+        private static object CoerceArgumentValue(
             string argumentName,
             IInputType argumentType,
             IValueNode defaultValue,

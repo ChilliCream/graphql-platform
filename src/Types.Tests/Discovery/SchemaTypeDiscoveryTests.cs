@@ -19,10 +19,16 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            IInputType fooInput = schema.GetType<INamedInputType>("FooInput");
+            var foo = schema.GetType<INamedOutputType>("Foo");
+            Assert.NotNull(foo);
+
+            var bar = schema.GetType<INamedOutputType>("Bar");
+            Assert.NotNull(foo);
+
+            var fooInput = schema.GetType<INamedInputType>("FooInput");
             Assert.NotNull(fooInput);
 
-            IInputType barInput = schema.GetType<INamedInputType>("BarInput");
+            var barInput = schema.GetType<INamedInputType>("BarInput");
             Assert.NotNull(barInput);
         }
 
@@ -129,12 +135,14 @@ namespace HotChocolate.Discovery
             var fooByte = schema.GetType<ObjectType>("FooByte");
             Assert.NotNull(fooByte);
 
-            ObjectField field =  fooByte.Fields["bar"];
+            ObjectField field = fooByte.Fields["bar"];
             Assert.Equal("ByteArray", field.Type.NamedType().Name);
         }
 
         public class QueryFieldArgument
         {
+            public Bar Bar { get; }
+
             public Foo GetFoo(Foo foo)
             {
                 return foo;

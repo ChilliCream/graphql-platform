@@ -67,7 +67,9 @@ namespace HotChocolate.Execution
             }
             else
             {
-                Type elementType = DotNetTypeInfoFactory.GetInnerListType(context.Type);
+                Type elementType = DotNetTypeInfoFactory
+                    .GetInnerListType(context.Type);
+
                 if (elementType != null)
                 {
                     Type listType = typeof(List<>).MakeGenericType(elementType);
@@ -79,8 +81,10 @@ namespace HotChocolate.Execution
                         valueContext.Type = context.Type.GetElementType();
                         Visit(list[i], valueContext);
 
-                        list.Add(valueContext.Object);
+                        l.Add(valueContext.Object);
                     }
+
+                    context.Object = l;
                 }
             }
         }

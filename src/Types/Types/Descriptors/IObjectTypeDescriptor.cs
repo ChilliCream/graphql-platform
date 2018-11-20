@@ -40,12 +40,18 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Interface<T>()
             where T : InterfaceType;
 
-
         /// <summary>
         /// Specifies an interface that is implemented by the <see cref="ObjectType"/>.
         /// </summary>
         /// <param name="type">A syntax node representing an interface type.</param>
         IObjectTypeDescriptor Interface(NamedTypeNode type);
+
+        /// <summary>
+        /// Includes a resolver type and imports all the methods and
+        /// fields from it.
+        /// </summary>
+        /// <typeparam name="TResolver">A resolver type.</typeparam>
+        IObjectTypeDescriptor Include<TResolver>();
 
         /// <summary>
         /// Specifies a delegate that can determine if a resolver result
@@ -125,6 +131,13 @@ namespace HotChocolate.Types
             where TInterface : InterfaceType;
 
         /// <summary>
+        /// Includes a resolver type and imports all the methods and
+        /// fields from it.
+        /// </summary>
+        /// <typeparam name="TResolver">A resolver type.</typeparam>
+        new IObjectTypeDescriptor<T> Include<TResolver>();
+
+        /// <summary>
         /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>
@@ -149,6 +162,7 @@ namespace HotChocolate.Types
         /// <param name="propertyOrMethod">
         /// An expression selecting a property or method of
         /// <typeparamref name="TResolver"/>.
+        /// The resolver type containing the property or method.
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod);

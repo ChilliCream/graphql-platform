@@ -34,14 +34,14 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<Task<string[]>>), "[String]")]
         [Theory]
         public void CreateTypeInfoFromReferenceType(
-            Type nativeType,
+            Type clrType,
             string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
@@ -74,13 +74,15 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<int?[]>), "[Int]")]
         [InlineData(typeof(NativeType<Task<int?[]>>), "[Int]")]
         [Theory]
-        public void CreateTypeInfoFromValueType(Type nativeType, string expectedTypeName)
+        public void CreateTypeInfoFromValueType(
+            Type clrType,
+            string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
@@ -91,17 +93,17 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<StringType>))]
         [InlineData(typeof(Task<List<Task<StringType>>>))]
         [InlineData(typeof(NonNullType<ListType<NonNullType<StringType>>>))]
-        [InlineData(typeof(Task<List<Task<int>>>))]
-        [InlineData(typeof(List<Task<int>>))]
+        // [InlineData(typeof(Task<List<Task<int>>>))]
+        // [InlineData(typeof(List<Task<int>>))]
         [InlineData(typeof(NativeType<NativeType<Task<int?[]>>>))]
         [Theory]
-        public void NotSupportedCases(Type nativeType)
+        public void NotSupportedCases(Type clrType)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.False(success);
@@ -120,18 +122,79 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(IReadOnlyList<string>), "[String]")]
         [InlineData(typeof(string[]), "[String]")]
         [Theory]
-        public void SupportedListTypes(Type nativeType, string expectedTypeName)
+        public void SupportedListTypes(Type clrType, string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
             Assert.Equal(expectedTypeName,
                 typeInfo.TypeFactory(new StringType()).Visualize());
+        }
+
+        [InlineData(typeof(NonNullType<NativeType<string>>), "String!")]
+        [InlineData(typeof(NonNullType<NativeType<int?>>), "String!")]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<string>>[]>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<int?>>>>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<int?>>[]>>), "[String!]!")]
+        [Theory]
+        public void MixedTypes(Type clrType, string expectedTypeName)
+        {
+            // arrange
+            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+
+            // act
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(expectedTypeName,
+                typeInfo.TypeFactory(new StringType()).Visualize());
+        }
+
+        [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<Task<ResolverResult<string>>>), typeof(string))]
+        [InlineData(typeof(NativeType<Task<IResolverResult<string>>>), typeof(string))]
+        [InlineData(typeof(NativeType<string>), typeof(string))]
+        [InlineData(typeof(Task<string>), typeof(string))]
+        [InlineData(typeof(Task<ResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(Task<IResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<ResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<IResolverResult<string>>), typeof(string))]
+        [Theory]
+        public void Unwrap(Type type, Type expectedReducedType)
+        {
+            // arrange
+            // act
+            Type reducedType = DotNetTypeInfoFactory.Unwrap(type);
+
+            // assert
+            Assert.Equal(expectedReducedType, reducedType);
+        }
+
+        [InlineData(typeof(string[]), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(typeof(List<string>), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(typeof(List<string>), true, false, typeof(NonNullType<NativeType<List<string>>>))]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), false, false, typeof(List<string>))]
+        [Theory]
+        public void Rewrite(
+            Type type,
+            bool isNonNullType,
+            bool isElementNonNullType,
+            Type expectedReducedType)
+        {
+            // arrange
+            // act
+            Type reducedType = DotNetTypeInfoFactory.Rewrite(
+                type, isNonNullType, isElementNonNullType);
+
+            // assert
+            Assert.Equal(expectedReducedType, reducedType);
         }
 
         private class CustomStringList

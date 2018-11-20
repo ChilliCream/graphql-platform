@@ -41,17 +41,27 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void RegisterResolverType(Type resolverType)
+        {
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            _resolverTypes.Add(resolverType);
+        }
+
         private void RegisterType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
             {
                 if (typeof(INamedType).IsAssignableFrom(typeInfo.ClrType))
                 {
-                    INamedType namedType = (INamedType)_serviceFactory
+                    var namedType = (INamedType)_serviceFactory
                         .CreateInstance(typeInfo.ClrType);
                     TryUpdateNamedType(namedType);
                 }
-                else if (!_clrTypes.ContainsKey(typeInfo.ClrType))
+                else if (!IsTypeResolved(typeInfo.ClrType, context))
                 {
                     _unresolvedTypes.Add(
                         new TypeReference(typeInfo.ClrType, context));
@@ -76,7 +86,7 @@ namespace HotChocolate.Configuration
                 _clrTypeToSchemaType[type] = namedTypeRef.Name;
             }
 
-            if (namedTypeRef is IInputType inputType
+            if (namedTypeRef is IHasClrType inputType
                 && inputType.ClrType != null)
             {
                 AddNativeTypeBinding(inputType.ClrType, namedType.Name);

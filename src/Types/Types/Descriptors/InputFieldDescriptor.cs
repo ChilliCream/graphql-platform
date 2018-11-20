@@ -24,6 +24,7 @@ namespace HotChocolate.Types
             InputDescription.Name = property.GetGraphQLName();
             InputDescription.Description = property.GetGraphQLDescription();
             InputDescription.TypeReference = property.GetInputType();
+            InputDescription.AcquireNonNullStatus(property);
         }
 
         protected new InputFieldDescription InputDescription
@@ -31,19 +32,13 @@ namespace HotChocolate.Types
 
         public new InputFieldDescription CreateDescription()
         {
+            InputDescription.RewriteClrType(c => c.GetInputType());
             return InputDescription;
         }
 
         protected void Name(NameString name)
         {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(name));
-            }
-
-            InputDescription.Name = name;
+            InputDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         #region IInputFieldDescriptor

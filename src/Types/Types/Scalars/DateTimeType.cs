@@ -38,18 +38,24 @@ namespace HotChocolate.Types
         }
 
         protected override bool TryParseLiteral(
-            StringValueNode literal, out object obj)
+            StringValueNode literal,
+            out object obj)
         {
-            if (literal.Value != null && literal.Value.EndsWith("Z"))
+            if (literal.Value != null
+                && literal.Value.EndsWith("Z")
+                && DateTime.TryParse(
+                    literal.Value,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal,
+                    out DateTime zuluTime))
             {
-                if (DateTime.TryParse(literal.Value, null as IFormatProvider, DateTimeStyles.AssumeUniversal, out DateTime zDateTime))
-                {
-                    obj = new DateTimeOffset(zDateTime);
-                    return true;
-                }
+                obj = new DateTimeOffset(zuluTime);
+                return true;
             }
 
-            if (DateTimeOffset.TryParse(literal.Value, out DateTimeOffset dateTime))
+            if (DateTimeOffset.TryParse(
+                literal.Value,
+                out DateTimeOffset dateTime))
             {
                 obj = dateTime;
                 return true;

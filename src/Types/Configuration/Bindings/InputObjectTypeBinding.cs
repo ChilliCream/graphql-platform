@@ -14,11 +14,6 @@ namespace HotChocolate.Configuration
             InputObjectType inputObjectType,
             IEnumerable<InputFieldBinding> fields)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
@@ -34,15 +29,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            Name = name;
+            Name = name.EnsureNotEmpty(nameof(name));
             Type = type;
             InputObjectType = inputObjectType;
             Fields = fields.ToImmutableDictionary(t => t.Name);
         }
 
         public NameString Name { get; }
+
         public Type Type { get; }
+
         public InputObjectType InputObjectType { get; }
-        public ImmutableDictionary<NameString, InputFieldBinding> Fields { get; }
+
+        public IDictionary<NameString, InputFieldBinding> Fields { get; }
     }
 }

@@ -86,12 +86,12 @@ namespace HotChocolate
         /// Tries to get the .net type representation of a schema.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
-        /// <param name="nativeType">The resolved .net type.</param>
+        /// <param name="clrType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetNativeType(NameString typeName, out Type nativeType);
+        bool TryGetClrType(NameString typeName, out Type clrType);
 
         /// <summary>
         /// Gets the possible object types to
