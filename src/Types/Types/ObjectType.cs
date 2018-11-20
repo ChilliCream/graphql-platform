@@ -14,6 +14,7 @@ namespace HotChocolate.Types
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
+        private ObjectTypeDescription _description;
         private IsOfType _isOfType;
         private List<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
@@ -63,19 +64,18 @@ namespace HotChocolate.Types
             ObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
-            ObjectTypeDescription description = descriptor.CreateDescription();
-            InitializeFields(description);
+            _description = descriptor.CreateDescription();
 
-            _isOfType = description.IsOfType;
-            _interfaces = description.Interfaces;
+            _isOfType = _description.IsOfType;
+            _interfaces = _description.Interfaces;
 
-            SyntaxNode = description.SyntaxNode;
+            SyntaxNode = _description.SyntaxNode;
 
-            Initialize(description.Name, description.Description,
+            Initialize(_description.Name, _description.Description,
                 new DirectiveCollection(
                     this,
                     DirectiveLocation.Object,
-                    description.Directives));
+                    _description.Directives));
         }
 
         private void InitializeFields(ObjectTypeDescription description)
@@ -115,9 +115,34 @@ namespace HotChocolate.Types
             }
         }
 
+        private void AddLateBoundResolverFields(IEnumerable<Type> resolverTypes)
+        {
+            if (resolverTypes.Any())
+            {
+                Dictionary<string, ObjectFieldDescription> descriptions =
+                    _description.Fields.ToDictionary(t => t.Name);
+                var processed = new HashSet<string>();
+
+                foreach (Type resolverType in resolverTypes)
+                {
+                    ObjectTypeDescriptor.AddResolverType(
+                        descriptions,
+                        processed,
+                        _description.ClrType ?? typeof(object),
+                        resolverType);
+                }
+
+                _description.Fields.Clear();
+                _description.Fields.AddRange(descriptions.Values);
+            }
+        }
+
         protected override void OnRegisterDependencies(
             ITypeInitializationContext context)
         {
+            AddLateBoundResolverFields(context.GetResolverTypes(Name));
+            InitializeFields(_description);
+
             base.OnRegisterDependencies(context);
 
             if (_interfaces != null)

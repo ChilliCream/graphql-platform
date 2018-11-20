@@ -52,6 +52,83 @@ namespace HotChocolate.Discovery
                 f => Assert.Equal(f.Name, "f"));
         }
 
+        [Fact]
+        public void DiscoverQueryResolversByClrType()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType<QueryResolvers3>();
+                c.RegisterQueryType<Query>();
+                c.RegisterMutationType<Mutation>();
+            });
+
+            // assert
+            var query = schema.GetType<ObjectType>("Query");
+            Assert.Collection(query.Fields
+                .Where(t => !t.IsIntrospectionField)
+                .OrderBy(t => t.Name),
+                f => Assert.Equal(f.Name, "a"),
+                f => Assert.Equal(f.Name, "c"),
+                f => Assert.Equal(f.Name, "d"),
+                f => Assert.Equal(f.Name, "f"),
+                f => Assert.Equal(f.Name, "g"));
+        }
+
+        [Fact]
+        public void DiscoverQueryResolversByName()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType<QueryResolvers4>();
+                c.RegisterQueryType<Query>();
+                c.RegisterMutationType<Mutation>();
+            });
+
+            // assert
+            var query = schema.GetType<ObjectType>("Query");
+            Assert.Collection(query.Fields
+                .Where(t => !t.IsIntrospectionField)
+                .OrderBy(t => t.Name),
+                f => Assert.Equal(f.Name, "a"),
+                f => Assert.Equal(f.Name, "c"),
+                f => Assert.Equal(f.Name, "d"),
+                f => Assert.Equal(f.Name, "f"),
+                f => Assert.Equal(f.Name, "h"));
+        }
+
+        [Fact]
+        public void DiscoverQueryResolversByObjectType()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType<QueryResolvers5>();
+                c.RegisterQueryType<Query>();
+                c.RegisterMutationType<Mutation>();
+            });
+
+            // assert
+            var query = schema.GetType<ObjectType>("Query");
+            Assert.Collection(query.Fields
+                .Where(t => !t.IsIntrospectionField)
+                .OrderBy(t => t.Name),
+                f => Assert.Equal(f.Name, "a"),
+                f => Assert.Equal(f.Name, "c"),
+                f => Assert.Equal(f.Name, "d"),
+                f => Assert.Equal(f.Name, "f"),
+                f => Assert.Equal(f.Name, "i"));
+        }
+
+        public class QueryType
+            : ObjectType<Query>
+        {
+        }
+
         [GraphQLResolver(typeof(QueryResolvers1), typeof(QueryResolvers2))]
         public class Query
         {
@@ -90,5 +167,22 @@ namespace HotChocolate.Discovery
             public string F { get; set; }
         }
 
+        [GraphQLResolverOf(typeof(Query))]
+        public class QueryResolvers3
+        {
+            public string G { get; set; }
+        }
+
+        [GraphQLResolverOf("Query")]
+        public class QueryResolvers4
+        {
+            public string H { get; set; }
+        }
+
+        [GraphQLResolverOf(typeof(QueryType))]
+        public class QueryResolvers5
+        {
+            public string I { get; set; }
+        }
     }
 }

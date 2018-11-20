@@ -16,6 +16,8 @@ namespace HotChocolate.Configuration
 
         void RegisterType(TypeReference typeReference);
 
+        void RegisterResolverType(Type resolverType);
+
         T GetType<T>(NameString typeName) where T : IType;
 
         T GetType<T>(TypeReference typeReference) where T : IType;
@@ -51,6 +53,8 @@ namespace HotChocolate.Configuration
             where T : ITypeBinding;
 
         IEnumerable<ITypeBinding> GetTypeBindings();
+
+        IEnumerable<Type> GetResolverTypes(NameString typeName);
     }
 
     internal static class TypeRegistryExtensions

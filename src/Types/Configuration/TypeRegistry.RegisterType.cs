@@ -41,6 +41,16 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void RegisterResolverType(Type resolverType)
+        {
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            _resolverTypes.Add(resolverType);
+        }
+
         private void RegisterType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))

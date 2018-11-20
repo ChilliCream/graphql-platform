@@ -23,6 +23,24 @@ namespace HotChocolate
             Types = new[] { type };
         }
 
+        public GraphQLResolverOfAttribute(params string[] typeNames)
+        {
+            TypeNames = typeNames
+                ?? throw new ArgumentNullException(nameof(typeNames));
+        }
+
+        public GraphQLResolverOfAttribute(string typeName)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
+            TypeNames = new[] { typeName };
+        }
+
         public IReadOnlyCollection<Type> Types { get; }
+
+        public IReadOnlyCollection<string> TypeNames { get; }
     }
 }
