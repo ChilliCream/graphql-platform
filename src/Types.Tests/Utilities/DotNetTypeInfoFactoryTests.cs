@@ -93,8 +93,8 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<StringType>))]
         [InlineData(typeof(Task<List<Task<StringType>>>))]
         [InlineData(typeof(NonNullType<ListType<NonNullType<StringType>>>))]
-        [InlineData(typeof(Task<List<Task<int>>>))]
-        [InlineData(typeof(List<Task<int>>))]
+        // [InlineData(typeof(Task<List<Task<int>>>))]
+        // [InlineData(typeof(List<Task<int>>))]
         [InlineData(typeof(NativeType<NativeType<Task<int?[]>>>))]
         [Theory]
         public void NotSupportedCases(Type clrType)
