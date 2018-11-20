@@ -68,12 +68,19 @@ namespace HotChocolate.Configuration
             {
                 foreach (Type resolverType in _resolverTypes.ToArray())
                 {
-                    if (resolverType
-                        .GetCustomAttributes(
+                    IEnumerable<GraphQLResolverOfAttribute> attributes =
+                        resolverType.GetCustomAttributes(
                             typeof(GraphQLResolverOfAttribute), false)
-                        .OfType<GraphQLResolverOfAttribute>()
-                        .Select(t => AddResolverTypeToLookup(resolverType, t))
-                        .All(t => t))
+                        .OfType<GraphQLResolverOfAttribute>();
+
+                    var all = true;
+
+                    foreach (GraphQLResolverOfAttribute attribute in attributes)
+                    {
+                        all &= AddResolverTypeToLookup(resolverType, attribute);
+                    }
+
+                    if (all)
                     {
                         _resolverTypes.Remove(resolverType);
                     }
@@ -84,6 +91,7 @@ namespace HotChocolate.Configuration
             {
                 return types;
             }
+
             return Array.Empty<Type>();
         }
 
@@ -96,28 +104,30 @@ namespace HotChocolate.Configuration
                 AddResolverTypeToLookup(resolverType, attribute.TypeNames);
                 return true;
             }
-            else
-            {
-                return AddResolverTypeToLookup(resolverType, attribute.Types);
-            }
+
+            return AddResolverTypeToLookup(resolverType, attribute.Types);
         }
 
         private bool AddResolverTypeToLookup(
             Type resolverType,
             IEnumerable<Type> types)
         {
-            return types.Select(
-                t => AddResolverTypeToLookup(resolverType, t))
-                .All(t => t);
+            var all = true;
+
+            foreach (Type type in types)
+            {
+                all &= AddResolverTypeToLookup(resolverType, type);
+            }
+
+            return all;
         }
 
         private bool AddResolverTypeToLookup(
             Type resolverType,
             Type clrType)
         {
-            if (typeof(INamedType).IsAssignableFrom(clrType)
-                && _clrTypeToSchemaType.TryGetValue(clrType,
-                    out NameString typeName))
+            if (_clrTypeToSchemaType.TryGetValue(clrType,
+                out NameString typeName))
             {
                 AddResolverTypeToLookup(resolverType, typeName);
                 return true;
@@ -142,7 +152,7 @@ namespace HotChocolate.Configuration
             Type resolverType,
             IEnumerable<string> typeNames)
         {
-            foreach (string typeName in typeNames)
+            foreach (var typeName in typeNames)
             {
                 AddResolverTypeToLookup(resolverType, typeName);
             }

@@ -380,6 +380,7 @@ namespace HotChocolate.Types
 
     public class ObjectType<T>
         : ObjectType
+        , IHasClrType
     {
         public ObjectType()
         {
@@ -389,6 +390,9 @@ namespace HotChocolate.Types
             : base(d => configure((IObjectTypeDescriptor<T>)d))
         {
         }
+
+        public Type ClrType { get; } = typeof(T);
+
 
         #region Configuration
 

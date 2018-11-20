@@ -108,7 +108,7 @@ namespace HotChocolate.Discovery
             ISchema schema = Schema.Create(c =>
             {
                 c.RegisterType<QueryResolvers5>();
-                c.RegisterQueryType<Query>();
+                c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<Mutation>();
             });
 

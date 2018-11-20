@@ -86,7 +86,7 @@ namespace HotChocolate.Configuration
                 _clrTypeToSchemaType[type] = namedTypeRef.Name;
             }
 
-            if (namedTypeRef is IInputType inputType
+            if (namedTypeRef is IHasClrType inputType
                 && inputType.ClrType != null)
             {
                 AddNativeTypeBinding(inputType.ClrType, namedType.Name);
