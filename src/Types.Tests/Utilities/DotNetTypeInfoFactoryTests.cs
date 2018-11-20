@@ -34,14 +34,14 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<Task<string[]>>), "[String]")]
         [Theory]
         public void CreateTypeInfoFromReferenceType(
-            Type nativeType,
+            Type clrType,
             string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
@@ -74,13 +74,15 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(NativeType<int?[]>), "[Int]")]
         [InlineData(typeof(NativeType<Task<int?[]>>), "[Int]")]
         [Theory]
-        public void CreateTypeInfoFromValueType(Type nativeType, string expectedTypeName)
+        public void CreateTypeInfoFromValueType(
+            Type clrType,
+            string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
@@ -95,13 +97,13 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(List<Task<int>>))]
         [InlineData(typeof(NativeType<NativeType<Task<int?[]>>>))]
         [Theory]
-        public void NotSupportedCases(Type nativeType)
+        public void NotSupportedCases(Type clrType)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.False(success);
@@ -120,13 +122,34 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(IReadOnlyList<string>), "[String]")]
         [InlineData(typeof(string[]), "[String]")]
         [Theory]
-        public void SupportedListTypes(Type nativeType, string expectedTypeName)
+        public void SupportedListTypes(Type clrType, string expectedTypeName)
         {
             // arrange
             DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
 
             // act
-            bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(expectedTypeName,
+                typeInfo.TypeFactory(new StringType()).Visualize());
+        }
+
+        [InlineData(typeof(NonNullType<NativeType<string>>), "String!")]
+        [InlineData(typeof(NonNullType<NativeType<int?>>), "String!")]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<string>>[]>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<int?>>>>>), "[String!]!")]
+        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<int?>>[]>>), "[String!]!")]
+        [Theory]
+        public void MixedTypes(Type clrType, string expectedTypeName)
+        {
+            // arrange
+            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+
+            // act
+            bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);

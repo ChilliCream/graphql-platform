@@ -21,7 +21,8 @@ namespace HotChocolate.Utilities
                 List<Type> components = DecomposeType(type);
 
                 if (components.Any()
-                    && (TryCreate3ComponentType(components, out typeInfo)
+                    && (TryCreate4ComponentType(components, out typeInfo)
+                    || TryCreate3ComponentType(components, out typeInfo)
                     || TryCreate2ComponentType(components, out typeInfo)
                     || TryCreate1ComponentType(components, out typeInfo)))
                 {
@@ -38,16 +39,66 @@ namespace HotChocolate.Utilities
             return RemoveNonEssentialParts(type);
         }
 
+        private static bool TryCreate4ComponentType(
+            List<Type> components, out TypeInfo typeInfo)
+        {
+            if (components.Count == 4)
+            {
+                if (IsNonNullType(components[0])
+                    && IsListType(components[1])
+                    && IsNonNullType(components[2])
+                    && IsPossibleNamedType(components[3]))
+                {
+                    typeInfo = new TypeInfo(components[3],
+                        t => new NonNullType(new ListType(new NonNullType(t))));
+                    return true;
+                }
+
+                if (IsNonNullType(components[0])
+                    && IsListType(components[1])
+                    && IsNullableType(components[2])
+                    && components[3].IsValueType)
+                {
+                    typeInfo = new TypeInfo(components[2],
+                        t => new NonNullType(new ListType(t)));
+                    return true;
+                }
+            }
+
+            typeInfo = default;
+            return false;
+        }
+
         private static bool TryCreate3ComponentType(
              List<Type> components, out TypeInfo typeInfo)
         {
-            if (components.Count == 3
-                && IsListType(components[0])
-                && IsNullableType(components[1])
-                && components[2].IsValueType)
+            if (components.Count == 3)
             {
-                typeInfo = new TypeInfo(components[2], t => new ListType(t));
-                return true;
+                if (IsListType(components[0])
+                    && IsNullableType(components[1])
+                    && components[2].IsValueType)
+                {
+                    typeInfo = new TypeInfo(components[2], t => new ListType(t));
+                    return true;
+                }
+
+                if (IsListType(components[0])
+                    && IsNonNullType(components[1])
+                    && IsPossibleNamedType(components[2]))
+                {
+                    typeInfo = new TypeInfo(components[2],
+                        t => new ListType(new NonNullType(t)));
+                    return true;
+                }
+
+                if (IsNonNullType(components[0])
+                    && IsListType(components[1])
+                    && IsPossibleNamedType(components[2]))
+                {
+                    typeInfo = new TypeInfo(components[2],
+                        t => new NonNullType(new ListType(t)));
+                    return true;
+                }
             }
 
             typeInfo = default;
@@ -81,6 +132,14 @@ namespace HotChocolate.Utilities
                     typeInfo = new TypeInfo(components[1], t => t);
                     return true;
                 }
+
+                if (IsNonNullType(components[0])
+                    && IsPossibleNamedType(components[1]))
+                {
+                    typeInfo = new TypeInfo(components[1],
+                        t => new NonNullType(t));
+                    return true;
+                }
             }
 
             typeInfo = default;
@@ -112,13 +171,19 @@ namespace HotChocolate.Utilities
         private static List<Type> DecomposeType(Type type)
         {
             var components = new List<Type>();
-            Type current = RemoveNonEssentialParts(type);
+            Type current = type;
 
             do
             {
-                components.Add(current);
+                current = RemoveNonEssentialParts(current);
+                if (components.Count == 0
+                    || !IsNonNullType(components[components.Count - 1])
+                    || !IsNullableType(current))
+                {
+                    components.Add(current);
+                }
                 current = GetInnerType(current);
-            } while (current != null && components.Count < 4);
+            } while (current != null && components.Count < 5);
 
             if (IsTypeStackValid(components))
             {
@@ -158,7 +223,8 @@ namespace HotChocolate.Utilities
                     return false;
                 }
 
-                if (typeof(IType).IsAssignableFrom(type))
+                if (typeof(IType).IsAssignableFrom(type)
+                    && !IsNonNullType(type))
                 {
                     return false;
                 }
@@ -174,6 +240,7 @@ namespace HotChocolate.Utilities
             }
 
             if (IsTaskType(type)
+                || IsNonNullType(type)
                 || IsNullableType(type)
                 || IsWrapperType(type)
                 || IsResolverResultType(type))
@@ -259,6 +326,12 @@ namespace HotChocolate.Utilities
                 && typeof(Nullable<>) == type.GetGenericTypeDefinition();
         }
 
+        public static bool IsNonNullType(Type type)
+        {
+            return type.IsGenericType
+                && typeof(NonNullType<>) == type.GetGenericTypeDefinition();
+        }
+
         public static bool IsPossibleNamedType(Type type)
         {
             return !IsNullableType(type)
@@ -280,8 +353,18 @@ namespace HotChocolate.Utilities
 
         private static bool CanHandle(Type type)
         {
-            return !typeof(IType).IsAssignableFrom(type)
-                || IsWrapperType(type);
+            if (!typeof(IType).IsAssignableFrom(type)
+                || IsWrapperType(type))
+            {
+                return true;
+            }
+
+            if (IsNonNullType(type) && CanHandle(GetInnerType(type)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
