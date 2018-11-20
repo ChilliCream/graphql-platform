@@ -25,11 +25,14 @@ namespace HotChocolate.Configuration
             ExecutionTimeout = options.ExecutionTimeout < MinExecutionTimeout
                     ? MinExecutionTimeout
                     : options.ExecutionTimeout;
-            MaxExecutionDepth = options.MaxExecutionDepth < MinMaxExecutionDepth
-                ? MinMaxExecutionDepth
-                : options.MaxExecutionDepth;
             StrictValidation = options.StrictValidation;
             DeveloperMode = options.DeveloperMode;
+
+            if (options.MaxExecutionDepth.HasValue
+                && options.MaxExecutionDepth >= MinMaxExecutionDepth)
+            {
+                MaxExecutionDepth = options.MaxExecutionDepth;
+            }
         }
 
         public string QueryTypeName { get; }
@@ -38,7 +41,7 @@ namespace HotChocolate.Configuration
 
         public string SubscriptionTypeName { get; }
 
-        public int MaxExecutionDepth { get; }
+        public int? MaxExecutionDepth { get; }
 
         public TimeSpan ExecutionTimeout { get; }
 
