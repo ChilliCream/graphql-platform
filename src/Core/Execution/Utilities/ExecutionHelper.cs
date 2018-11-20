@@ -38,14 +38,19 @@ namespace HotChocolate.Execution
         public static bool IsMaxExecutionDepthReached(
             this ResolverTask resolverTask)
         {
-            bool isLeafField =
-                resolverTask.FieldSelection.Field.Type.IsLeafType();
+            if (resolverTask.Options.MaxExecutionDepth.HasValue)
+            {
+                bool isLeafField =
+                    resolverTask.FieldSelection.Field.Type.IsLeafType();
 
-            int maxExecutionDepth = isLeafField
-                ? resolverTask.Options.MaxExecutionDepth - 1
-                : resolverTask.Options.MaxExecutionDepth;
+                int maxExecutionDepth = isLeafField
+                    ? resolverTask.Options.MaxExecutionDepth.Value - 1
+                    : resolverTask.Options.MaxExecutionDepth.Value;
 
-            return resolverTask.Path.Depth > maxExecutionDepth;
+                return resolverTask.Path.Depth > maxExecutionDepth;
+            }
+
+            return false;
         }
 
         public static IQueryError CreateError(

@@ -265,7 +265,9 @@ namespace HotChocolate.Utilities
         {
             foreach (PropertyInfo property in type.GetProperties(
                 BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.CanRead && t.DeclaringType != typeof(object)))
+                .Where(p => !IsIgnored(p)
+                    && p.CanRead
+                    && p.DeclaringType != typeof(object)))
             {
                 string name = property.GetGraphQLName();
                 if (!exists(name))
@@ -281,7 +283,8 @@ namespace HotChocolate.Utilities
         {
             foreach (MethodInfo method in type.GetMethods(
                 BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => !m.IsSpecialName
+                .Where(m => !IsIgnored(m)
+                    && !m.IsSpecialName
                     && m.DeclaringType != typeof(object)
                     && m.ReturnType != typeof(void)
                     && m.ReturnType != typeof(Task)))
@@ -292,6 +295,11 @@ namespace HotChocolate.Utilities
                     members[name] = method;
                 }
             }
+        }
+
+        private static bool IsIgnored(MemberInfo member)
+        {
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
 
         private static MethodInfo GetBestMatchingMethod(

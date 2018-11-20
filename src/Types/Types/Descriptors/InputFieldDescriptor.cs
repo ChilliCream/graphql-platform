@@ -24,6 +24,7 @@ namespace HotChocolate.Types
             InputDescription.Name = property.GetGraphQLName();
             InputDescription.Description = property.GetGraphQLDescription();
             InputDescription.TypeReference = property.GetInputType();
+            InputDescription.AcquireNonNullStatus(property);
         }
 
         protected new InputFieldDescription InputDescription
@@ -31,6 +32,7 @@ namespace HotChocolate.Types
 
         public new InputFieldDescription CreateDescription()
         {
+            InputDescription.RewriteClrType(c => c.GetInputType());
             return InputDescription;
         }
 

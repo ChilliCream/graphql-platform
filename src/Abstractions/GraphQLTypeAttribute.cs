@@ -9,12 +9,7 @@ namespace HotChocolate
     {
         public GraphQLTypeAttribute(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public Type Type { get; }

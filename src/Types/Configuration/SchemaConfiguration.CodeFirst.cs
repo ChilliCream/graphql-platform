@@ -10,7 +10,14 @@ namespace HotChocolate.Configuration
 
         public void RegisterType<T>()
         {
-            CreateAndRegisterType(typeof(T));
+            if (typeof(T).IsDefined(typeof(GraphQLResolverOfAttribute), false))
+            {
+                _typeRegistry.RegisterResolverType(typeof(T));
+            }
+            else
+            {
+                CreateAndRegisterType(typeof(T));
+            }
         }
 
         public void RegisterQueryType<T>()

@@ -225,6 +225,171 @@
           "column": 34
         }
       ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "path": [
+        "hero",
+        "friends",
+        "friends",
+        "__typename"
+      ],
+      "locations": [
+        {
+          "line": 21,
+          "column": 34
+        }
+      ]
     }
   ]
 }

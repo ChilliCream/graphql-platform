@@ -62,6 +62,118 @@ namespace HotChocolate.Configuration
             return TryGetTypeFromAst(typeReference.Type, out type);
         }
 
+        public IEnumerable<Type> GetResolverTypes(NameString typeName)
+        {
+            if (_resolverTypes.Count > 0)
+            {
+                foreach (Type resolverType in _resolverTypes.ToArray())
+                {
+                    IEnumerable<GraphQLResolverOfAttribute> attributes =
+                        resolverType.GetCustomAttributes(
+                            typeof(GraphQLResolverOfAttribute), false)
+                        .OfType<GraphQLResolverOfAttribute>();
+
+                    var all = true;
+
+                    foreach (GraphQLResolverOfAttribute attribute in attributes)
+                    {
+                        all &= AddResolverTypeToLookup(resolverType, attribute);
+                    }
+
+                    if (all)
+                    {
+                        _resolverTypes.Remove(resolverType);
+                    }
+                }
+            }
+
+            if (_resolverTypeDict.TryGetValue(typeName, out List<Type> types))
+            {
+                return types;
+            }
+
+            return Array.Empty<Type>();
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            GraphQLResolverOfAttribute attribute)
+        {
+            if (attribute.Types == null)
+            {
+                AddResolverTypeToLookup(resolverType, attribute.TypeNames);
+                return true;
+            }
+
+            return AddResolverTypeToLookup(resolverType, attribute.Types);
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            IEnumerable<Type> types)
+        {
+            var all = true;
+
+            foreach (Type type in types)
+            {
+                all &= AddResolverTypeToLookup(resolverType, type);
+            }
+
+            return all;
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            Type clrType)
+        {
+            if (_clrTypeToSchemaType.TryGetValue(clrType,
+                out NameString typeName))
+            {
+                AddResolverTypeToLookup(resolverType, typeName);
+                return true;
+            }
+
+            if (_clrTypes.TryGetValue(clrType,
+                out HashSet<NameString> typeNames))
+            {
+                ObjectType objectType = GetNamedTypes(typeNames)
+                    .OfType<ObjectType>().FirstOrDefault();
+                if (objectType != null)
+                {
+                    AddResolverTypeToLookup(resolverType, objectType.Name);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void AddResolverTypeToLookup(
+            Type resolverType,
+            IEnumerable<string> typeNames)
+        {
+            foreach (var typeName in typeNames)
+            {
+                AddResolverTypeToLookup(resolverType, typeName);
+            }
+        }
+
+        private void AddResolverTypeToLookup(
+            Type resolverType,
+            NameString typeName)
+        {
+            if (!_resolverTypeDict.TryGetValue(typeName, out List<Type> types))
+            {
+                types = new List<Type>();
+                _resolverTypeDict[typeName] = types;
+            }
+
+            if (!types.Contains(resolverType))
+            {
+                types.Add(resolverType);
+            }
+        }
+
         private bool TryGetTypeFromClrType<T>(
             Type clrType,
             TypeContext context,

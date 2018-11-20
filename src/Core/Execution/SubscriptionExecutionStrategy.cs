@@ -55,10 +55,8 @@ namespace HotChocolate.Execution
             {
                 FieldSelection selection = selections.Single();
 
-                var argumentResolver = new ArgumentResolver();
                 Dictionary<string, ArgumentValue> argumentValues =
-                    argumentResolver.CoerceArgumentValues(
-                        selection,
+                    selection.CoerceArgumentValues(
                         executionContext.Variables);
 
                 List<ArgumentNode> arguments = new List<ArgumentNode>();
