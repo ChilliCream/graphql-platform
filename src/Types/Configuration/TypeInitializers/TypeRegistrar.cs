@@ -88,7 +88,8 @@ namespace HotChocolate.Configuration
 
         private void ProcessUnresolvedTypes(ITypeRegistry typeRegistry)
         {
-            foreach (TypeReference unresolvedType in typeRegistry.GetUnresolvedTypes())
+            foreach (TypeReference unresolvedType in 
+                typeRegistry.GetUnresolvedTypes())
             {
                 if (IsObjectType(unresolvedType))
                 {
@@ -107,7 +108,7 @@ namespace HotChocolate.Configuration
                     typeRegistry.RegisterType(
                         new TypeReference(typeof(EnumType<>)
                             .MakeGenericType(unresolvedType.ClrType)));
-                }
+                }     
             }
         }
 

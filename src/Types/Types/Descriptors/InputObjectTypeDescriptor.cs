@@ -102,7 +102,8 @@ namespace HotChocolate.Types
             // this convention will fix most type colisions where the
             // .net type is and input and an output type.
             // It is still possible to opt out via the descriptor.Name("Foo").
-            if (!ObjectDescription.Name.EndsWith("Input"))
+            if (!ObjectDescription.Name.EndsWith("Input",
+                    StringComparison.Ordinal))
             {
                 ObjectDescription.Name = ObjectDescription.Name + "Input";
             }

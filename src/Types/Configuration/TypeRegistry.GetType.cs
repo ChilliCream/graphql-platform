@@ -67,7 +67,11 @@ namespace HotChocolate.Configuration
             TypeContext context,
             out T type)
         {
-            if (TryGetTypeFromClrType(clrType, context, t => t, out type))
+            if (TryGetTypeFromClrType(
+                DotNetTypeInfoFactory.Unwrap(clrType),
+                context,
+                t => t,
+                out type))
             {
                 return true;
             }
@@ -233,15 +237,18 @@ namespace HotChocolate.Configuration
             return _unresolvedTypes;
         }
 
-        private bool IsTypeResolved(TypeReference unresolvedType)
+        private bool IsTypeResolved(TypeReference typeReference) =>
+            IsTypeResolved(typeReference.ClrType, typeReference.Context);
+
+
+        private bool IsTypeResolved(Type clrType, TypeContext context)
         {
-            if (_clrTypes.TryGetValue(
-                unresolvedType.ClrType,
+            if (_clrTypes.TryGetValue(clrType,
                 out HashSet<NameString> associated))
             {
                 foreach (NameString name in associated)
                 {
-                    switch (unresolvedType.Context)
+                    switch (context)
                     {
                         case TypeContext.Input:
                             if (IsInputType(name))
