@@ -53,7 +53,7 @@ namespace HotChocolate.Types
                 ObjectFieldDescription fieldDescription = fieldDescriptor
                     .CreateDescription();
 
-                if (fieldDescription.Ignored)
+                if (!fieldDescription.Ignored)
                 {
                     fields[fieldDescription.Name] = fieldDescription;
                 }
