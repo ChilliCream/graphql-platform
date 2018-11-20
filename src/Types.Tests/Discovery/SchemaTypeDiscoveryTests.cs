@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using SwissLife.F2c.Identity.Admin.Core;
 using Xunit;
 
 namespace HotChocolate.Discovery
