@@ -39,6 +39,108 @@ namespace HotChocolate.Utilities
             return RemoveNonEssentialParts(type);
         }
 
+        public static Type Rewrite(
+            Type type,
+            bool isNonNullType,
+            bool isNonNullElementType)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (CanHandle(type))
+            {
+                List<Type> components = RemoveNonNullComponents(type).ToList();
+
+                if (components.Count == 2
+                    && IsListType(components[0])
+                    && IsPossibleNamedType(components[1]))
+                {
+                    return RewriteListType(
+                        components[1],
+                        isNonNullType,
+                        isNonNullElementType);
+                }
+
+                if (components.Count == 1)
+                {
+                    return RewriteNamedType(components[0], isNonNullType);
+                }
+            }
+
+            return type;
+        }
+
+
+        private static IEnumerable<Type> RemoveNonNullComponents(Type type)
+        {
+            foreach (Type component in DecomposeType(type))
+            {
+                if (!IsNonNullType(component) && !IsNullableType(component))
+                {
+                    yield return component;
+                }
+            }
+        }
+
+        private static Type RewriteListType(
+            Type elementType,
+            bool isNonNullType,
+            bool isNonNullElementType)
+        {
+            Type newType = RewriteNamedType(
+                elementType,
+                isNonNullElementType);
+
+            newType = MakeListType(newType);
+            if (isNonNullType)
+            {
+                newType = MakeNonNullType(newType);
+            }
+
+            return newType;
+        }
+
+        private static Type RewriteNamedType(
+            Type namedType,
+            bool isNonNullType)
+        {
+            Type newType = namedType;
+
+            if (isNonNullType)
+            {
+                newType = MakeNonNullType(newType);
+            }
+            else if (newType.IsValueType)
+            {
+                newType = MakeNullableType(newType);
+            }
+
+            return newType;
+        }
+
+        private static Type MakeNullableType(Type valueType)
+        {
+            return typeof(Nullable<>).MakeGenericType(valueType);
+        }
+
+        private static Type MakeListType(Type elementType)
+        {
+            return typeof(List<>).MakeGenericType(elementType);
+        }
+
+        private static Type MakeNonNullListType(Type elementType)
+        {
+            return MakeNonNullType(MakeListType(elementType));
+        }
+
+        private static Type MakeNonNullType(Type nullableType)
+        {
+            var wrapper = typeof(NativeType<>).MakeGenericType(nullableType);
+            return typeof(NonNullType<>).MakeGenericType(wrapper);
+        }
+
         private static bool TryCreate4ComponentType(
             List<Type> components, out TypeInfo typeInfo)
         {

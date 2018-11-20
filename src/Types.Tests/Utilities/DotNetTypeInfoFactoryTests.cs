@@ -157,6 +157,46 @@ namespace HotChocolate.Utilities
                 typeInfo.TypeFactory(new StringType()).Visualize());
         }
 
+        [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<Task<ResolverResult<string>>>), typeof(string))]
+        [InlineData(typeof(NativeType<Task<IResolverResult<string>>>), typeof(string))]
+        [InlineData(typeof(NativeType<string>), typeof(string))]
+        [InlineData(typeof(Task<string>), typeof(string))]
+        [InlineData(typeof(Task<ResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(Task<IResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<ResolverResult<string>>), typeof(string))]
+        [InlineData(typeof(NativeType<IResolverResult<string>>), typeof(string))]
+        [Theory]
+        public void Unwrap(Type type, Type expectedReducedType)
+        {
+            // arrange
+            // act
+            Type reducedType = DotNetTypeInfoFactory.Unwrap(type);
+
+            // assert
+            Assert.Equal(expectedReducedType, reducedType);
+        }
+
+        [InlineData(typeof(string[]), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(typeof(List<string>), true, true, typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>))]
+        [InlineData(typeof(List<string>), true, false, typeof(NonNullType<NativeType<List<string>>>))]
+        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), false, false, typeof(List<string>))]
+        [Theory]
+        public void Rewrite(
+            Type type,
+            bool isNonNullType,
+            bool isElementNonNullType,
+            Type expectedReducedType)
+        {
+            // arrange
+            // act
+            Type reducedType = DotNetTypeInfoFactory.Rewrite(
+                type, isNonNullType, isElementNonNullType);
+
+            // assert
+            Assert.Equal(expectedReducedType, reducedType);
+        }
+
         private class CustomStringList
             : CustomStringListBase
         {
