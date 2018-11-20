@@ -32,6 +32,8 @@ namespace HotChocolate.Types
         protected List<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();
 
+        protected HashSet<Type> ResolverTypes { get; } =
+            new HashSet<Type>();
         protected ObjectTypeDescription ObjectDescription { get; } =
             new ObjectTypeDescription();
 
@@ -41,7 +43,7 @@ namespace HotChocolate.Types
             return ObjectDescription;
         }
 
-        protected virtual void CompleteFields()
+        private void CompleteFields()
         {
             var fields = new Dictionary<string, ObjectFieldDescription>();
 
@@ -52,7 +54,15 @@ namespace HotChocolate.Types
                 fields[fieldDescription.Name] = fieldDescription;
             }
 
+            OnCompleteFields(fields);
+
             ObjectDescription.Fields.AddRange(fields.Values);
+        }
+
+        protected virtual void OnCompleteFields(
+            IDictionary<string, ObjectFieldDescription> fields)
+        {
+            AddResolverTypes(fields);
         }
 
         protected void SyntaxNode(ObjectTypeDefinitionNode syntaxNode)
@@ -92,6 +102,17 @@ namespace HotChocolate.Types
             ObjectDescription.Interfaces.Add(new TypeReference(type));
         }
 
+        protected void Include(Type type)
+        {
+            if (typeof(IType).IsAssignableFrom(type))
+            {
+                throw new ArgumentException(
+                    "Schema types cannot be used as resolver types.");
+            }
+
+            ResolverTypes.Add(type);
+        }
+
         protected void IsOfType(IsOfType isOfType)
         {
             ObjectDescription.IsOfType = isOfType
@@ -106,21 +127,40 @@ namespace HotChocolate.Types
             return fieldDescriptor;
         }
 
+        protected void AddResolverTypes(
+            IDictionary<string, ObjectFieldDescription> fields)
+        {
+            var processed = new HashSet<string>();
+
+            AddResolverTypes(
+                fields,
+                processed,
+                ObjectDescription.ClrType);
+
+            foreach (Type resolverType in ResolverTypes)
+            {
+                AddResolverType(
+                    fields,
+                    processed,
+                    ObjectDescription.ClrType,
+                    resolverType);
+            }
+        }
+
         protected static void AddResolverTypes(
-            Dictionary<string, ObjectFieldDescription> descriptions,
+            IDictionary<string, ObjectFieldDescription> fields,
+            ISet<string> processed,
             Type sourceType)
         {
             if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
             {
-                var processed = new HashSet<string>();
-
                 foreach (Type resolverType in sourceType
                     .GetCustomAttributes(typeof(GraphQLResolverAttribute))
                     .OfType<GraphQLResolverAttribute>()
                     .SelectMany(attr => attr.ResolverTypes))
                 {
                     AddResolverType(
-                        descriptions,
+                        fields,
                         processed,
                         sourceType,
                         resolverType);
@@ -129,8 +169,8 @@ namespace HotChocolate.Types
         }
 
         protected internal static void AddResolverType(
-            Dictionary<string, ObjectFieldDescription> descriptions,
-            HashSet<string> processed,
+            IDictionary<string, ObjectFieldDescription> fields,
+            ISet<string> processed,
             Type sourceType,
             Type resolverType)
         {
@@ -148,7 +188,7 @@ namespace HotChocolate.Types
 
                     if (processed.Add(description.Name))
                     {
-                        descriptions[description.Name] = description;
+                        fields[description.Name] = description;
                     }
                 }
             }
@@ -221,6 +261,12 @@ namespace HotChocolate.Types
             NamedTypeNode type)
         {
             Interface(type);
+            return this;
+        }
+
+        IObjectTypeDescriptor IObjectTypeDescriptor.Include<TResolver>()
+        {
+            Include(typeof(TResolver));
             return this;
         }
 
@@ -305,34 +351,27 @@ namespace HotChocolate.Types
                 nameof(member));
         }
 
-
-
-        protected override void CompleteFields()
+        protected override void OnCompleteFields(
+            IDictionary<string, ObjectFieldDescription> fields)
         {
-            base.CompleteFields();
-
-            var descriptions = new Dictionary<string, ObjectFieldDescription>();
             var handledMembers = new List<MemberInfo>();
 
-            AddExplicitFields(descriptions, handledMembers);
+            AddExplicitFields(fields, handledMembers);
 
             if (ObjectDescription.FieldBindingBehavior ==
                 BindingBehavior.Implicit)
             {
                 Dictionary<MemberInfo, string> members =
                     GetPossibleImplicitFields(handledMembers);
-                AddImplicitFields(descriptions, members);
+                AddImplicitFields(fields, members);
             }
 
-            AddResolverTypes(descriptions, ObjectDescription.ClrType);
-
-            ObjectDescription.Fields.Clear();
-            ObjectDescription.Fields.AddRange(descriptions.Values);
+            AddResolverTypes(fields);
         }
 
         private void AddExplicitFields(
-            Dictionary<string, ObjectFieldDescription> descriptions,
-            List<MemberInfo> handledMembers)
+            IDictionary<string, ObjectFieldDescription> descriptions,
+            IList<MemberInfo> handledMembers)
         {
             foreach (ObjectFieldDescription fieldDescription in
                 ObjectDescription.Fields)
@@ -350,7 +389,7 @@ namespace HotChocolate.Types
         }
 
         private Dictionary<MemberInfo, string> GetPossibleImplicitFields(
-            List<MemberInfo> handledMembers)
+            IList<MemberInfo> handledMembers)
         {
             Dictionary<MemberInfo, string> members = GetMembers(
                 ObjectDescription.ClrType);
@@ -364,8 +403,8 @@ namespace HotChocolate.Types
         }
 
         private void AddImplicitFields(
-            Dictionary<string, ObjectFieldDescription> descriptions,
-            Dictionary<MemberInfo, string> members)
+            IDictionary<string, ObjectFieldDescription> descriptions,
+            IDictionary<MemberInfo, string> members)
         {
             foreach (KeyValuePair<MemberInfo, string> member in members)
             {
@@ -380,8 +419,6 @@ namespace HotChocolate.Types
                 }
             }
         }
-
-
 
         private static Dictionary<MemberInfo, string> GetMembers(Type type)
         {
@@ -421,6 +458,12 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Interface<TInterface>()
         {
             Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Include<TResolver>()
+        {
+            Include(typeof(TResolver));
             return this;
         }
 
