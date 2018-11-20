@@ -20,12 +20,16 @@ namespace HotChocolate.Configuration
             new Dictionary<Type, HashSet<NameString>>();
         private readonly HashSet<TypeReference> _unresolvedTypes =
             new HashSet<TypeReference>();
+        private readonly HashSet<Type> _resolverTypes =
+            new HashSet<Type>();
+        private readonly Dictionary<NameString, List<Type>> _resolverTypeDict =
+            new Dictionary<NameString, List<Type>>();
         private readonly ServiceFactory _serviceFactory;
         private bool _sealed;
 
         public TypeRegistry(ServiceFactory serviceFactory)
         {
-            _serviceFactory = serviceFactory 
+            _serviceFactory = serviceFactory
                 ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 

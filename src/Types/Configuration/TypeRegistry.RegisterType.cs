@@ -41,6 +41,16 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void RegisterResolverType(Type resolverType)
+        {
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            _resolverTypes.Add(resolverType);
+        }
+
         private void RegisterType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
@@ -76,7 +86,7 @@ namespace HotChocolate.Configuration
                 _clrTypeToSchemaType[type] = namedTypeRef.Name;
             }
 
-            if (namedTypeRef is IInputType inputType
+            if (namedTypeRef is IHasClrType inputType
                 && inputType.ClrType != null)
             {
                 AddNativeTypeBinding(inputType.ClrType, namedType.Name);
