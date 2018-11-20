@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using SwissLife.F2c.Identity.Admin.Core;
 using Xunit;
 
 namespace HotChocolate.Discovery
@@ -19,10 +20,16 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            IInputType fooInput = schema.GetType<INamedInputType>("FooInput");
+            var foo = schema.GetType<INamedOutputType>("Foo");
+            Assert.NotNull(foo);
+
+            var bar = schema.GetType<INamedOutputType>("Bar");
+            Assert.NotNull(foo);
+
+            var fooInput = schema.GetType<INamedInputType>("FooInput");
             Assert.NotNull(fooInput);
 
-            IInputType barInput = schema.GetType<INamedInputType>("BarInput");
+            var barInput = schema.GetType<INamedInputType>("BarInput");
             Assert.NotNull(barInput);
         }
 
@@ -129,12 +136,28 @@ namespace HotChocolate.Discovery
             var fooByte = schema.GetType<ObjectType>("FooByte");
             Assert.NotNull(fooByte);
 
-            ObjectField field =  fooByte.Fields["bar"];
+            ObjectField field = fooByte.Fields["bar"];
             Assert.Equal("ByteArray", field.Type.NamedType().Name);
+        }
+
+        [Fact]
+        public void FooTest()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType<ByteArrayType>();
+                c.RegisterQueryType<ProfileService>();
+            });
+
+
         }
 
         public class QueryFieldArgument
         {
+            public Bar Bar { get; }
+
             public Foo GetFoo(Foo foo)
             {
                 return foo;

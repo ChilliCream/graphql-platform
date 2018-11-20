@@ -63,6 +63,7 @@ namespace HotChocolate.Types
 
             if (TypeReference != null)
             {
+                string s = TypeReference.ToString();
                 context.RegisterType(TypeReference);
             }
         }

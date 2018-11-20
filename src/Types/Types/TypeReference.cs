@@ -71,21 +71,12 @@ namespace HotChocolate.Types
                     return (ClrType.GetHashCode() * 397)
                         ^ (Context.GetHashCode() * 97);
                 }
-                else
-                {
-                    return Type.GetHashCode();
-                }
+                return Type.GetHashCode();
             }
         }
 
-        public override string ToString()
-        {
-            if (ClrType == null)
-            {
-                return Type.ToString();
-            }
-            return ClrType.GetTypeName();
-        }
+        public override string ToString() =>
+            ClrType == null ? Type.ToString() : ClrType.GetTypeName();
     }
 
     internal static class TypeReferenceExtensions

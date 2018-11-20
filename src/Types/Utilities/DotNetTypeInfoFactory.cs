@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
@@ -33,6 +31,11 @@ namespace HotChocolate.Utilities
 
             typeInfo = default;
             return false;
+        }
+
+        public static Type Unwrap(Type type)
+        {
+            return RemoveNonEssentialParts(type);
         }
 
         private static bool TryCreate3ComponentType(
@@ -85,7 +88,7 @@ namespace HotChocolate.Utilities
         }
 
         private static bool TryCreate1ComponentType(
-             List<Type> components, out TypeInfo typeInfo)
+            List<Type> components, out TypeInfo typeInfo)
         {
             if (components.Count == 1)
             {
@@ -108,7 +111,7 @@ namespace HotChocolate.Utilities
 
         private static List<Type> DecomposeType(Type type)
         {
-            List<Type> components = new List<Type>();
+            var components = new List<Type>();
             Type current = RemoveNonEssentialParts(type);
 
             do
@@ -138,7 +141,7 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
-            if (IsResoverResultType(current))
+            if (IsResolverResultType(current))
             {
                 current = GetInnerType(current);
             }
@@ -173,7 +176,7 @@ namespace HotChocolate.Utilities
             if (IsTaskType(type)
                 || IsNullableType(type)
                 || IsWrapperType(type)
-                || IsResoverResultType(type))
+                || IsResolverResultType(type))
             {
                 return type.GetGenericArguments().First();
             }
@@ -243,7 +246,7 @@ namespace HotChocolate.Utilities
                 && typeof(Task<>) == type.GetGenericTypeDefinition();
         }
 
-        private static bool IsResoverResultType(Type type)
+        private static bool IsResolverResultType(Type type)
         {
             return type.IsGenericType
                 && (typeof(IResolverResult<>) == type.GetGenericTypeDefinition()
