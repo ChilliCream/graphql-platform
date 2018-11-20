@@ -46,21 +46,32 @@ namespace HotChocolate.Types
         private void CompleteFields()
         {
             var fields = new Dictionary<string, ObjectFieldDescription>();
+            var handledMembers = new HashSet<MemberInfo>();
 
             foreach (ObjectFieldDescriptor fieldDescriptor in Fields)
             {
                 ObjectFieldDescription fieldDescription = fieldDescriptor
                     .CreateDescription();
-                fields[fieldDescription.Name] = fieldDescription;
+
+                if (fieldDescription.Ignored)
+                {
+                    fields[fieldDescription.Name] = fieldDescription;
+                }
+
+                if (fieldDescription.Member != null)
+                {
+                    handledMembers.Add(fieldDescription.Member);
+                }
             }
 
-            OnCompleteFields(fields);
+            OnCompleteFields(fields, handledMembers);
 
             ObjectDescription.Fields.AddRange(fields.Values);
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<string, ObjectFieldDescription> fields)
+            IDictionary<string, ObjectFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
         {
             AddResolverTypes(fields);
         }
@@ -355,85 +366,52 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteFields(
-            IDictionary<string, ObjectFieldDescription> fields)
+            IDictionary<string, ObjectFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
         {
-            var handledMembers = new List<MemberInfo>();
-
-            AddExplicitFields(fields, handledMembers);
-
             if (ObjectDescription.FieldBindingBehavior ==
                 BindingBehavior.Implicit)
             {
-                Dictionary<MemberInfo, string> members =
-                    GetPossibleImplicitFields(handledMembers);
-                AddImplicitFields(fields, members);
+                AddImplicitFields(fields, handledMembers);
             }
 
             AddResolverTypes(fields);
         }
 
-        private void AddExplicitFields(
-            IDictionary<string, ObjectFieldDescription> descriptions,
-            IList<MemberInfo> handledMembers)
+        private Dictionary<MemberInfo, string> GetAllMembers(
+            ISet<MemberInfo> handledMembers)
         {
-            foreach (ObjectFieldDescription fieldDescription in
-                ObjectDescription.Fields)
+            var members = new Dictionary<MemberInfo, string>();
+
+            foreach (KeyValuePair<string, MemberInfo> member in
+                ReflectionUtils.GetMembers(ObjectDescription.ClrType))
             {
-                if (!fieldDescription.Ignored)
+                if (!handledMembers.Contains(member.Value))
                 {
-                    descriptions[fieldDescription.Name] = fieldDescription;
+                    members[member.Value] = member.Key;
                 }
-
-                if (fieldDescription.Member != null)
-                {
-                    handledMembers.Add(fieldDescription.Member);
-                }
-            }
-        }
-
-        private Dictionary<MemberInfo, string> GetPossibleImplicitFields(
-            IList<MemberInfo> handledMembers)
-        {
-            Dictionary<MemberInfo, string> members = GetMembers(
-                ObjectDescription.ClrType);
-
-            foreach (MemberInfo member in handledMembers)
-            {
-                members.Remove(member);
             }
 
             return members;
         }
 
         private void AddImplicitFields(
-            IDictionary<string, ObjectFieldDescription> descriptions,
-            IDictionary<MemberInfo, string> members)
+            IDictionary<string, ObjectFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
         {
-            foreach (KeyValuePair<MemberInfo, string> member in members)
+            foreach (KeyValuePair<MemberInfo, string> member in
+                GetAllMembers(handledMembers))
             {
-                if (!descriptions.ContainsKey(member.Value))
+                if (!fields.ContainsKey(member.Value))
                 {
                     var fieldDescriptor = new ObjectFieldDescriptor(
                         member.Key,
                         ObjectDescription.ClrType);
 
-                    descriptions[member.Value] = fieldDescriptor
+                    fields[member.Value] = fieldDescriptor
                         .CreateDescription();
                 }
             }
-        }
-
-        private static Dictionary<MemberInfo, string> GetMembers(Type type)
-        {
-            var members = new Dictionary<MemberInfo, string>();
-
-            foreach (KeyValuePair<string, MemberInfo> member in
-                ReflectionUtils.GetMembers(type))
-            {
-                members[member.Value] = member.Key;
-            }
-
-            return members;
         }
 
         #region IObjectTypeDescriptor<T>
