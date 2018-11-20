@@ -33,6 +33,7 @@ namespace HotChocolate.Types
             FieldDescription.Name = member.GetGraphQLName();
             FieldDescription.Description = member.GetGraphQLDescription();
             FieldDescription.TypeReference = member.GetOutputType();
+            FieldDescription.AcquireNonNullStatus(member);
         }
 
         protected new ObjectFieldDescription FieldDescription
@@ -41,6 +42,7 @@ namespace HotChocolate.Types
         public new ObjectFieldDescription CreateDescription()
         {
             CompleteArguments();
+            FieldDescription.RewriteClrType(c => c.GetOutputType());
             return FieldDescription;
         }
 

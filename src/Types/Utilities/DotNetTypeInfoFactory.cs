@@ -422,19 +422,19 @@ namespace HotChocolate.Utilities
                 || typeof(ResolverResult<>) == type.GetGenericTypeDefinition());
         }
 
-        public static bool IsNullableType(Type type)
+        private static bool IsNullableType(Type type)
         {
             return type.IsGenericType
                 && typeof(Nullable<>) == type.GetGenericTypeDefinition();
         }
 
-        public static bool IsNonNullType(Type type)
+        private static bool IsNonNullType(Type type)
         {
             return type.IsGenericType
                 && typeof(NonNullType<>) == type.GetGenericTypeDefinition();
         }
 
-        public static bool IsPossibleNamedType(Type type)
+        private static bool IsPossibleNamedType(Type type)
         {
             return !IsNullableType(type)
                 && !IsTaskType(type)

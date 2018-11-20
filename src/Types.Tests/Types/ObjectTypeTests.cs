@@ -441,6 +441,28 @@ namespace HotChocolate.Types
             Assert.True(fooType.Fields.ContainsField("description"));
         }
 
+        [Fact]
+        public void NonNullAttribute_StringIsRewritten_NonNullStringType()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new ObjectType<Bar>();
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
+            Assert.Equal("String", fooType.Fields["baz"].Type.NamedType().Name);
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -454,6 +476,12 @@ namespace HotChocolate.Types
         public class FooResolver
         {
             public string GetBar(string foo) => "hello foo";
+        }
+
+        public class Bar
+        {
+            [GraphQLNonNullType]
+            public string Baz { get; set; }
         }
 
         public class FooType

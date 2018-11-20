@@ -7,7 +7,7 @@ namespace HotChocolate
     public sealed class GraphQLNonNullTypeAttribute
         : Attribute
     {
-        public bool ElementIsNullable { get; set; }
+        public bool IsElementNullable { get; set; }
 
         public bool IsNullable { get; set; }
     }
