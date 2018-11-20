@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
@@ -8,32 +7,8 @@ namespace HotChocolate.Resolvers
     {
         protected FieldReferenceBase(NameString typeName, NameString fieldName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
-
-            if (typeName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(typeName));
-            }
-
-            if (fieldName.IsEmpty)
-            {
-                throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
-                    nameof(fieldName));
-            }
-
-            TypeName = typeName;
-            FieldName = fieldName;
+            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+            FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         protected FieldReferenceBase(FieldReferenceBase fieldReference)

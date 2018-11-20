@@ -25,12 +25,8 @@ namespace HotChocolate.Configuration
 
         public TypeRegistry(ServiceFactory serviceFactory)
         {
-            if (serviceFactory == null)
-            {
-                throw new ArgumentNullException(nameof(serviceFactory));
-            }
-
-            _serviceFactory = serviceFactory;
+            _serviceFactory = serviceFactory 
+                ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 
         public void CompleteRegistartion()

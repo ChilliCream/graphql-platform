@@ -47,7 +47,7 @@ namespace HotChocolate.Configuration
             where T : ITypeBinding;
         bool TryGetTypeBinding<T>(INamedType namedType, out T typeBinding)
             where T : ITypeBinding;
-        bool TryGetTypeBinding<T>(Type namedType, out T typeBinding)
+        bool TryGetTypeBinding<T>(Type clrType, out T typeBinding)
             where T : ITypeBinding;
 
         IEnumerable<ITypeBinding> GetTypeBindings();

@@ -17,18 +17,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
-            if (typeName == null)
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
             if (lookupFieldName == null)
             {
                 throw new ArgumentNullException(nameof(lookupFieldName));
             }
 
             return DiscoverResolversInternal(
-                resolverType, sourceType, typeName, lookupFieldName);
+                resolverType,
+                sourceType,
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                lookupFieldName);
         }
 
         private static IEnumerable<IFieldResolverDescriptor> DiscoverResolversInternal(
@@ -147,10 +145,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 throw new ArgumentNullException(nameof(resolverType));
             }
 
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
+            typeName.EnsureNotEmpty(nameof(typeName));
 
             return GetProperties(resolverType, typeName)
                 .Concat(GetMethods(resolverType, typeName));

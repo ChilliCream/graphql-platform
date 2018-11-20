@@ -105,10 +105,10 @@ namespace HotChocolate.Execution
                 return ExecuteFieldMiddlewareAsync(
                     resolverTask,
                     cancellationToken);
-            };
+            }
         }
 
-        protected void CompleteValue(
+        protected static void CompleteValue(
             FieldValueCompletionContext completionContext)
         {
             _fieldValueCompleter.CompleteValue(completionContext);

@@ -68,6 +68,7 @@ namespace HotChocolate
 
         [InlineData("1Test")]
         [InlineData("Test-Test")]
+        [InlineData("Täst")]
         [Theory]
         public void ImplicitCast_InvalidName_NameString(string name)
         {
@@ -113,7 +114,7 @@ namespace HotChocolate
             var b = new NameString("Bar");
 
             // act
-            NameString combined = a.Append(b);
+            NameString combined = a.Add(b);
 
             // assert
             Assert.Equal("FooBar", combined.ToString());

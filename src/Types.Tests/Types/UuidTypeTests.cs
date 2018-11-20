@@ -11,11 +11,11 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            Guid guid = Guid.NewGuid();
-            string expectedValue = guid.ToString("N");
+            var guid = Guid.NewGuid();
+            var expectedValue = guid.ToString("N");
 
             // act
-            string serializedValue = (string)uuidType.Serialize(guid);
+            var serializedValue = (string)uuidType.Serialize(guid);
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -28,7 +28,7 @@ namespace HotChocolate.Types
             var uuidType = new UuidType();
 
             // act
-            object serializedValue = uuidType.Serialize(null);
+            var serializedValue = uuidType.Serialize(null);
 
             // assert
             Assert.Null(serializedValue);
@@ -39,11 +39,11 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            Guid expected = Guid.NewGuid();
+            var expected = Guid.NewGuid();
             var literal = new StringValueNode(expected.ToString());
 
             // act
-            Guid actual = (Guid)uuidType
+            var actual = (Guid)uuidType
                 .ParseLiteral(literal);
 
             // assert
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object value = uuidType.ParseLiteral(literal);
+            var value = uuidType.ParseLiteral(literal);
 
             // assert
             Assert.Null(value);
@@ -69,11 +69,11 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            Guid expected = Guid.NewGuid();
-            string expectedLiteralValue = expected.ToString("N");
+            var expected = Guid.NewGuid();
+            var expectedLiteralValue = expected.ToString("N");
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)uuidType.ParseValue(expected);
 
             // assert

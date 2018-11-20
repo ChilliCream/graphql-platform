@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
     internal class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
-        public override async Task<IExecutionResult> ExecuteAsync(
+        public override Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -22,10 +22,17 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            EventDescription @event = CreateEvent(executionContext);
+            return ExecuteInternalAsync(executionContext, cancellationToken);
+        }
+
+        private async Task<IExecutionResult> ExecuteInternalAsync(
+            IExecutionContext executionContext,
+            CancellationToken cancellationToken)
+        {
+            EventDescription eventDescription = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services, @event);
+                executionContext.Services, eventDescription);
 
             return new SubscriptionResult(
                 eventStream,
@@ -36,7 +43,8 @@ namespace HotChocolate.Execution
                 ExecuteSubscriptionQueryAsync);
         }
 
-        private EventDescription CreateEvent(IExecutionContext executionContext)
+        private EventDescription CreateEvent(
+            IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
                 .CollectFields(

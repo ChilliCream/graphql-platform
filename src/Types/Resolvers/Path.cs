@@ -72,14 +72,8 @@ namespace HotChocolate.Resolvers
             unchecked
             {
                 int hash = (Parent?.GetHashCode() ?? 0) * 3;
-
-                if (Name != null)
-                {
-                    hash = hash ^ (Name.GetHashCode() * 7);
-                }
-
+                hash = hash ^ (Name.GetHashCode() * 7);
                 hash = hash ^ (Index.GetHashCode() * 11);
-
                 return hash;
             }
         }

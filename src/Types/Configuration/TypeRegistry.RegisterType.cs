@@ -47,11 +47,11 @@ namespace HotChocolate.Configuration
             {
                 if (typeof(INamedType).IsAssignableFrom(typeInfo.ClrType))
                 {
-                    INamedType namedType = (INamedType)_serviceFactory
+                    var namedType = (INamedType)_serviceFactory
                         .CreateInstance(typeInfo.ClrType);
                     TryUpdateNamedType(namedType);
                 }
-                else if (!_clrTypes.ContainsKey(typeInfo.ClrType))
+                else if (!IsTypeResolved(typeInfo.ClrType, context))
                 {
                     _unresolvedTypes.Add(
                         new TypeReference(typeInfo.ClrType, context));
