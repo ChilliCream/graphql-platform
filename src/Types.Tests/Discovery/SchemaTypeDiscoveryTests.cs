@@ -140,20 +140,6 @@ namespace HotChocolate.Discovery
             Assert.Equal("ByteArray", field.Type.NamedType().Name);
         }
 
-        [Fact]
-        public void FooTest()
-        {
-            // arrange
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterType<ByteArrayType>();
-                c.RegisterQueryType<ProfileService>();
-            });
-
-
-        }
-
         public class QueryFieldArgument
         {
             public Bar Bar { get; }
