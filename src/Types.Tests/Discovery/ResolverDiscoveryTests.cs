@@ -24,10 +24,10 @@ namespace HotChocolate.Discovery
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name),
-                f => Assert.Equal(f.Name, "a"),
-                f => Assert.Equal(f.Name, "c"),
-                f => Assert.Equal(f.Name, "d"),
-                f => Assert.Equal(f.Name, "f"));
+                f => Assert.Equal("a", f.Name),
+                f => Assert.Equal("c", f.Name),
+                f => Assert.Equal("d", f.Name),
+                f => Assert.Equal("f", f.Name));
         }
 
         [Fact]
@@ -46,10 +46,10 @@ namespace HotChocolate.Discovery
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name),
-                f => Assert.Equal(f.Name, "b"),
-                f => Assert.Equal(f.Name, "c"),
-                f => Assert.Equal(f.Name, "e"),
-                f => Assert.Equal(f.Name, "f"));
+                f => Assert.Equal("b", f.Name),
+                f => Assert.Equal("c", f.Name),
+                f => Assert.Equal("e", f.Name),
+                f => Assert.Equal("f", f.Name));
         }
 
         [Fact]
@@ -69,11 +69,11 @@ namespace HotChocolate.Discovery
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name),
-                f => Assert.Equal(f.Name, "a"),
-                f => Assert.Equal(f.Name, "c"),
-                f => Assert.Equal(f.Name, "d"),
-                f => Assert.Equal(f.Name, "f"),
-                f => Assert.Equal(f.Name, "g"));
+                f => Assert.Equal("a", f.Name),
+                f => Assert.Equal("c", f.Name),
+                f => Assert.Equal("d", f.Name),
+                f => Assert.Equal("f", f.Name),
+                f => Assert.Equal("g", f.Name));
         }
 
         [Fact]
@@ -93,11 +93,11 @@ namespace HotChocolate.Discovery
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name),
-                f => Assert.Equal(f.Name, "a"),
-                f => Assert.Equal(f.Name, "c"),
-                f => Assert.Equal(f.Name, "d"),
-                f => Assert.Equal(f.Name, "f"),
-                f => Assert.Equal(f.Name, "h"));
+                f => Assert.Equal("a", f.Name),
+                f => Assert.Equal("c", f.Name),
+                f => Assert.Equal("d", f.Name),
+                f => Assert.Equal("f", f.Name),
+                f => Assert.Equal("h", f.Name));
         }
 
         [Fact]
@@ -117,11 +117,11 @@ namespace HotChocolate.Discovery
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name),
-                f => Assert.Equal(f.Name, "a"),
-                f => Assert.Equal(f.Name, "c"),
-                f => Assert.Equal(f.Name, "d"),
-                f => Assert.Equal(f.Name, "f"),
-                f => Assert.Equal(f.Name, "i"));
+                f => Assert.Equal("a", f.Name),
+                f => Assert.Equal("c", f.Name),
+                f => Assert.Equal("d", f.Name),
+                f => Assert.Equal("f", f.Name),
+                f => Assert.Equal("i", f.Name));
         }
 
         public class QueryType
