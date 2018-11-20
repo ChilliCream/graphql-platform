@@ -4,11 +4,8 @@ namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Property
         | AttributeTargets.Method)]
-    public sealed class GraphQLNonNullAttribute
+    public sealed class GraphQLIgnoreAttribute
         : Attribute
     {
-        public bool ElementIsNullable { get; set; }
-
-        public bool IsNullable { get; set; }
     }
 }

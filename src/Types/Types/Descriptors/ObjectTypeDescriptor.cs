@@ -210,14 +210,8 @@ namespace HotChocolate.Types
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = new ObjectFieldDescriptor(
-                    member, ObjectDescription.ClrType);
-
-                if (typeof(TResolver) != ObjectDescription.ClrType)
-                {
-                    fieldDescriptor.ResolverType(typeof(TResolver));
-                }
-
+                ObjectFieldDescriptor fieldDescriptor =
+                    CreateResolverDescriptor(typeof(TResolver), member);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
@@ -225,6 +219,20 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "A field of an entity can only be a property or a method.",
                 nameof(member));
+        }
+
+        private ObjectFieldDescriptor CreateResolverDescriptor(
+            Type resolverType, MemberInfo member)
+        {
+            var fieldDescriptor = new ObjectFieldDescriptor(
+                member, ObjectDescription.ClrType);
+
+            if (resolverType != ObjectDescription.ClrType)
+            {
+                fieldDescriptor.ResolverType(resolverType);
+            }
+
+            return fieldDescriptor;
         }
 
         protected override void CompleteFields()
@@ -244,12 +252,14 @@ namespace HotChocolate.Types
                 AddImplicitFields(descriptions, members);
             }
 
+            AddResolverTypes(descriptions);
+
             ObjectDescription.Fields.Clear();
             ObjectDescription.Fields.AddRange(descriptions.Values);
         }
 
         private void AddExplicitFields(
-            Dictionary<string, ObjectFieldDescription> descriptors,
+            Dictionary<string, ObjectFieldDescription> descriptions,
             List<MemberInfo> handledMembers)
         {
             foreach (ObjectFieldDescription fieldDescription in
@@ -257,7 +267,7 @@ namespace HotChocolate.Types
             {
                 if (!fieldDescription.Ignored)
                 {
-                    descriptors[fieldDescription.Name] = fieldDescription;
+                    descriptions[fieldDescription.Name] = fieldDescription;
                 }
 
                 if (fieldDescription.Member != null)
@@ -282,21 +292,82 @@ namespace HotChocolate.Types
         }
 
         private void AddImplicitFields(
-            Dictionary<string, ObjectFieldDescription> descriptors,
+            Dictionary<string, ObjectFieldDescription> descriptions,
             Dictionary<MemberInfo, string> members)
         {
             foreach (KeyValuePair<MemberInfo, string> member in members)
             {
-                if (!descriptors.ContainsKey(member.Value))
+                if (!descriptions.ContainsKey(member.Value))
                 {
                     var fieldDescriptor = new ObjectFieldDescriptor(
                         member.Key,
                         ObjectDescription.ClrType);
 
-                    descriptors[member.Value] = fieldDescriptor
+                    descriptions[member.Value] = fieldDescriptor
                         .CreateDescription();
                 }
             }
+        }
+
+        private void AddResolverTypes(
+            Dictionary<string, ObjectFieldDescription> descriptions)
+        {
+
+            if (ObjectDescription.ClrType.IsDefined(
+                typeof(GraphQLResolverAttribute)))
+            {
+                var processed = new HashSet<string>();
+
+                foreach (Type resolverType in ObjectDescription.ClrType
+                    .GetCustomAttributes(typeof(GraphQLResolverAttribute))
+                    .OfType<GraphQLResolverAttribute>()
+                    .SelectMany(attr => attr.ResolverTypes))
+                {
+                    AddResolverType(descriptions, processed, resolverType);
+                }
+            }
+        }
+
+        private void AddResolverType(
+            Dictionary<string, ObjectFieldDescription> descriptions,
+            HashSet<string> processed,
+            Type resolverType)
+        {
+            Dictionary<string, MemberInfo> members =
+                ReflectionUtils.GetMembers(resolverType);
+
+            foreach (KeyValuePair<string, MemberInfo> member in members)
+            {
+                if (IsResolverRelevant(ObjectDescription.ClrType, member.Value))
+                {
+                    ObjectFieldDescription description =
+                        CreateResolverDescriptor(resolverType, member.Value)
+                        .CreateDescription();
+
+                    if (processed.Add(description.Name))
+                    {
+                        descriptions[description.Name] = description;
+                    }
+                }
+            }
+        }
+
+        private bool IsResolverRelevant(Type objectType, MemberInfo resolver)
+        {
+            if (resolver is PropertyInfo)
+            {
+                return true;
+            }
+
+            if (resolver is MethodInfo m)
+            {
+                ParameterInfo parent = m.GetParameters()
+                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                return parent == null
+                    || parent.ParameterType.IsAssignableFrom(objectType);
+            }
+
+            return false;
         }
 
         private static Dictionary<MemberInfo, string> GetMembers(Type type)
