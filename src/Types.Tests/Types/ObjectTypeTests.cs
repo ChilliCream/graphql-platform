@@ -419,6 +419,28 @@ namespace HotChocolate.Types
             Assert.Equal(2, type.Interfaces.Count);
         }
 
+        [Fact]
+        public void Include_TypeWithOneField_ContainsThisField()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new ObjectType<object>(
+                d => d.Include<Foo>());
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.True(fooType.Fields.ContainsField("description"));
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }

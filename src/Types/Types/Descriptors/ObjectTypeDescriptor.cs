@@ -132,17 +132,20 @@ namespace HotChocolate.Types
         {
             var processed = new HashSet<string>();
 
-            AddResolverTypes(
-                fields,
-                processed,
-                ObjectDescription.ClrType);
+            if (ObjectDescription.ClrType != null)
+            {
+                AddResolverTypes(
+                    fields,
+                    processed,
+                    ObjectDescription.ClrType);
+            }
 
             foreach (Type resolverType in ResolverTypes)
             {
                 AddResolverType(
                     fields,
                     processed,
-                    ObjectDescription.ClrType,
+                    ObjectDescription.ClrType ?? typeof(object),
                     resolverType);
             }
         }
