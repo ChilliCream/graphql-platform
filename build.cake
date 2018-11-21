@@ -67,21 +67,36 @@ Task("Build")
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
-        NoRestore = true
+        NoRestore = true,
+        Runtime = "net461"
     };
     DotNetCoreBuild("./src", settings);
 });
 
-Task("BuildRelease")
-    .IsDependentOn("Restore")
+Task("PublishWith461")
     .Does(() =>
 {
-    MSBuild("./src", configurator =>
-        configurator.SetConfiguration(configuration));
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:restore /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:build /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release /p:OutDir=" + publishOutputDir}))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Publish")
-    .IsDependentOn("BuildRelease")
+    .IsDependentOn("Build")
     .Does(() =>
 {
     var settings = new DotNetCorePackSettings
