@@ -72,8 +72,16 @@ Task("Build")
     DotNetCoreBuild("./src", settings);
 });
 
+Task("BuildRelease")
+    .IsDependentOn("Restore")
+    .Does(() =>
+{
+    MSBuild("./src", configurator =>
+        configurator.SetConfiguration(configuration));
+});
+
 Task("Publish")
-    .IsDependentOn("Build")
+    .IsDependentOn("BuildRelease")
     .Does(() =>
 {
     var settings = new DotNetCorePackSettings
