@@ -40,7 +40,25 @@ namespace HotChocolate.Execution
             set
             {
                 IsResultModified = true;
-                _result = value;
+
+                if (_result is IResolverResult r)
+                {
+                    if (r.IsError)
+                    {
+                        _result = QueryError.CreateFieldError(
+                            r.ErrorMessage,
+                            Path,
+                            FieldSelection);
+                    }
+                    else
+                    {
+                        _result = r.Value;
+                    }
+                }
+                else
+                {
+                    _result = value;
+                }
             }
         }
 

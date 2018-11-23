@@ -112,15 +112,15 @@ namespace HotChocolate.Execution
 
             return context =>
             {
-                context.Result = context.CompleteResolverResult(context.Result);
-
                 if (HasErrors(context.Result))
                 {
                     return Task.CompletedTask;
                 }
 
                 updateContext(context, directive);
-                return component.Invoke(context);
+                return component.Invoke(context)
+                    .ContinueWith((task, state) =>
+                        updateContext(context, directive), null);
             };
         }
 
