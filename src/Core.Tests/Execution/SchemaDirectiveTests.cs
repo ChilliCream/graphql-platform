@@ -49,6 +49,27 @@ namespace HotChocolate.Execution
             result.Snapshot();
         }
 
+        [Fact]
+        public void ResultIsCorrectlyPassedIntoTheContext()
+        {
+            // arrange
+            ISchema schema = Schema.Create(
+                "type Query { a: String }",
+                c =>
+                {
+                    c.RegisterDirective<UpperCaseDirectiveType>();
+                    c.RegisterDirective<LowerCaseDirectiveType>();
+                    c.BindResolver(() => "hello").To("Query", "a");
+                });
+
+            // act
+            IExecutionResult result =
+                schema.Execute("{ a @lower @upper }");
+
+            // assert
+            result.Snapshot();
+        }
+
         public static ISchema CreateSchema()
         {
             return Schema.Create(c =>
@@ -57,6 +78,7 @@ namespace HotChocolate.Execution
                 c.RegisterDirective<ADirectiveType>();
                 c.RegisterDirective<BDirectiveType>();
                 c.RegisterDirective<CDirectiveType>();
+                c.RegisterDirective<UpperCaseDirectiveType>();
                 c.RegisterQueryType<Query>();
                 c.RegisterType<PersonType>();
             });
@@ -146,6 +168,58 @@ namespace HotChocolate.Execution
                         .Append;
                     context.Result = context.Result + s;
                     return Task.CompletedTask;
+                });
+            }
+        }
+
+        public class UpperCaseDirectiveType
+           : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("upper");
+                descriptor.Location(DirectiveLocation.Field
+                    | DirectiveLocation.FieldDefinition);
+                descriptor.Middleware(next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Directive.Name != "upper")
+                    {
+                        throw new QueryException("Not the upper directive.");
+                    }
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                });
+            }
+        }
+
+        public class LowerCaseDirectiveType
+           : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("lower");
+                descriptor.Location(DirectiveLocation.Field
+                    | DirectiveLocation.FieldDefinition);
+                descriptor.Middleware(next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Directive.Name != "lower")
+                    {
+                        throw new QueryException("Not the lower directive.");
+                    }
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToLowerInvariant();
+                    }
                 });
             }
         }
