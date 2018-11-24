@@ -125,7 +125,7 @@ namespace HotChocolate.Subscriptions
         private static string SerializeArguments(
             IEnumerable<ArgumentNode> arguments)
         {
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var sb = new StringBuilder();
 
             using (var stringWriter = new StringWriter(sb))

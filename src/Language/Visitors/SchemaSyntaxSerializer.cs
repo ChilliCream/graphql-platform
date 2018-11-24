@@ -5,16 +5,16 @@ using System.Text;
 
 namespace HotChocolate.Language
 {
-    public class SchemaSerializer
+    public class SchemaSyntaxSerializer
         : SchemaSyntaxWalker<DocumentWriter>
     {
         private bool _indent = false;
 
-        public SchemaSerializer()
+        public SchemaSyntaxSerializer()
         {
         }
 
-        public SchemaSerializer(bool useIndentation)
+        public SchemaSyntaxSerializer(bool useIndentation)
         {
             _indent = useIndentation;
         }

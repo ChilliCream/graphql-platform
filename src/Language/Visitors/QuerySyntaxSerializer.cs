@@ -5,16 +5,16 @@ using System.Text;
 
 namespace HotChocolate.Language
 {
-    public class QuerySerializer
+    public class QuerySyntaxSerializer
         : SyntaxVisitor<ISyntaxNode, DocumentWriter>
     {
         private readonly bool _indent;
 
-        public QuerySerializer()
+        public QuerySyntaxSerializer()
         {
         }
 
-        public QuerySerializer(bool useIndentation)
+        public QuerySyntaxSerializer(bool useIndentation)
         {
             _indent = useIndentation;
         }

@@ -15,7 +15,7 @@ namespace HotChocolate.Language
             var query = "{ foo(s: \"String\") { bar @foo " +
                 "{ baz @foo @bar } } }";
 
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -37,7 +37,7 @@ namespace HotChocolate.Language
             string query = "{ foo(s: \"String\") { bar @foo " +
                 "{ baz @foo @bar } } }";
 
-            var serializer = new QuerySerializer(true);
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "{ foo { foo bar { foo @foo @bar bar @bar baz } } }";
 
-            var serializer = new QuerySerializer(true);
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySerializer(true);
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -95,7 +95,7 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -114,7 +114,7 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySerializer(true);
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -139,7 +139,7 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -165,7 +165,7 @@ namespace HotChocolate.Language
                 "query Foo($bar: [String!]!) { foo(s: \"String\") " +
                 "{ bar @foo { baz @foo @bar } } }";
 
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -186,7 +186,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "fragment Foo ($bar: [String!]!) on Bar { baz }";
 
-            var serializer = new QuerySerializer();
+            var serializer = new QuerySyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 

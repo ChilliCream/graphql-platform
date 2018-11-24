@@ -15,7 +15,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "type Foo { bar: String baz: [Int] }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "type Foo { bar: String baz: [Int] }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "type Foo { bar(a: Int = 1 b: Int): String }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -76,7 +76,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "type Foo { bar(a: Int = 1 b: Int): String }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -97,7 +97,7 @@ namespace HotChocolate.Language
                 "type Foo @a @b { bar: String @foo " +
                 "baz(a: String = \"abc\"): [Int] @foo @bar }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -120,7 +120,7 @@ namespace HotChocolate.Language
                 "type Foo @a @b { bar: String @foo " +
                 "baz(a: String = \"abc\"): [Int] @foo @bar }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
                 "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
                 "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -166,7 +166,7 @@ namespace HotChocolate.Language
                 "\"abc\" type Foo @a @b { \"abc\" bar: String @foo " +
                 "\"abc\" baz(\"abc\" a: String = \"abc\"): [Int] @foo @bar }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -186,7 +186,7 @@ namespace HotChocolate.Language
             string query = "type Foo implements X & Y & Z " +
                 "{ bar: String baz: [Int] }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -208,7 +208,7 @@ namespace HotChocolate.Language
             string query = "type Foo implements X & Y & Z " +
                 "{ bar: String baz: [Int] }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -227,7 +227,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "union A = B | C";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -248,7 +248,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "union A = B | C";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -267,7 +267,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "union A @a = B | C union A @a @b = B | C";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -288,7 +288,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "union A @a = B | C union A @a @b = B | C";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -307,7 +307,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" union A = B | C";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -328,7 +328,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\"union A = B | C";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -347,7 +347,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "enum A { B C }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -368,7 +368,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "enum A { B C }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -387,7 +387,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "enum A @a @b(c: 1) { B @a @b(c: 1) C @a @b(c: 1) }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -408,7 +408,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "enum A @a @b(c: 1) { B @a @b(c: 1) C @a @b(c: 1) }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -427,7 +427,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" enum A { \"def\" B \"ghi\" C }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -448,7 +448,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" enum A { \"def\" B \"ghi\" C }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -467,7 +467,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "input A { b: String c: [String!]! d: Int = 1 }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -488,7 +488,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "input A { b: String c: [String!]! d: Int = 1 }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -508,7 +508,7 @@ namespace HotChocolate.Language
             string query = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
                 "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -530,7 +530,7 @@ namespace HotChocolate.Language
             string query = "input A @a @b(c: 1) { b: String @a @b(c: 1) " +
                 "c: [String!]! @a @b(c: 1) d: Int = 1 @a @b(c: 1) }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -549,7 +549,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" input A { \"abc\" b: String }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -570,7 +570,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" input A { \"abc\" b: String }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -589,7 +589,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "scalar A";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -610,7 +610,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "scalar A @a @b(c: 1)";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -631,7 +631,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" scalar A @a @b(c: 1)";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -652,7 +652,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "\"abc\" scalar A @a @b(c: 1)";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -671,7 +671,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "schema { query: A }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -692,7 +692,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "schema { query: A }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -711,7 +711,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "schema @a @b(c: 1) { query: A }";
 
-            var serializer = new SchemaSerializer();
+            var serializer = new SchemaSyntaxSerializer();
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
@@ -732,7 +732,7 @@ namespace HotChocolate.Language
             // arrange
             string query = "schema @a @b(c: 1) { query: A }";
 
-            var serializer = new SchemaSerializer(true);
+            var serializer = new SchemaSyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
