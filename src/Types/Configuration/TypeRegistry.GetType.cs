@@ -179,11 +179,12 @@ namespace HotChocolate.Configuration
             TypeContext context,
             out T type)
         {
-            if (TryGetTypeFromClrType(
-                DotNetTypeInfoFactory.Unwrap(clrType),
-                context,
-                t => t,
-                out type))
+            Type unwrappedClrType = DotNetTypeInfoFactory.Unwrap(clrType);
+
+            if (!unwrappedClrType.IsValueType
+                && TryGetTypeFromClrType(
+                    unwrappedClrType, context,
+                    t => t, out type))
             {
                 return true;
             }
