@@ -289,12 +289,15 @@ We are currently working on the following features that are proposed for the nex
 
 ## Supported Frameworks
 
-- [ ] ASP.NET Classic
+- [x] ASP.NET Classic
 
-  - [ ] _Get_ (in development - 0.7.0)
-  - [ ] _Post_ (in development - 0.7.0)
+  - [x] Get
+  - [x] Post
   - [ ] _WebSockets_ (in development - 0.8.0)
   - [ ] Schema Builder (in development - 1.0.0)
+  - [x] .net Framework 4.7
+  - [ ] .net Framework 4.6
+  - [ ] .net Framework 4.5
 
 - [x] ASP.NET Core
   - [x] Get
