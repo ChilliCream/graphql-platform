@@ -32,6 +32,35 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void IntArgumentIsInferedAsNonNullType()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            var intType = new IntType();
+            schemaContext.Types.RegisterType(intType);
+
+            // act
+            var fooType = new ObjectType<QueryWithIntArg>();
+
+            // assert
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            ((INeedsInitialization)fooType)
+                .RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            Assert.Empty(errors);
+
+            IType argumentType = fooType.Fields["bar"]
+                .Arguments.First().Type;
+
+            Assert.NotNull(argumentType);
+            Assert.True(argumentType.IsNonNullType());
+            Assert.Equal(intType, argumentType.NamedType());
+        }
+
+        [Fact]
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
@@ -476,6 +505,11 @@ namespace HotChocolate.Types
         public class FooResolver
         {
             public string GetBar(string foo) => "hello foo";
+        }
+
+        public class QueryWithIntArg
+        {
+            public string GetBar(int foo) => "hello foo";
         }
 
         public class Bar
