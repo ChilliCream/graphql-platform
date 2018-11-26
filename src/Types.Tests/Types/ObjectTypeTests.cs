@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -58,6 +60,48 @@ namespace HotChocolate.Types
             Assert.NotNull(argumentType);
             Assert.True(argumentType.IsNonNullType());
             Assert.Equal(intType, argumentType.NamedType());
+        }
+
+        [Fact]
+        public void FieldMiddlewareIsIntegrated()
+        {
+            // arrange
+            var resolverContext = new Mock<IResolverContext>();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            var stringType = new StringType();
+
+            schemaContext.Types.RegisterType(stringType);
+            schemaContext.Resolvers.RegisterMiddleware(next => async context =>
+            {
+                var result = await next(context);
+
+                if (result is string s)
+                {
+                    return s.ToUpperInvariant();
+                }
+
+                return result;
+            });
+
+            // act
+            var fooType = new ObjectType(c =>
+                c.Name("Foo").Field("bar").Resolver(() => "baz"));
+
+            // assert
+            schemaContext.Types.RegisterType(fooType);
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            ((INeedsInitialization)fooType)
+                .RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            Assert.Empty(errors);
+
+            object resolverResult = fooType.Fields["bar"]
+                .Resolver(resolverContext.Object).Result;
+
+            Assert.Equal("BAZ", resolverResult);
         }
 
         [Fact]
