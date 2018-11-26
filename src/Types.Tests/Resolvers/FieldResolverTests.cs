@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             // act
             var fieldMember = new FieldResolver(
@@ -30,7 +30,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(null, fieldName, resolver);
@@ -44,7 +44,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var typeName = TestUtils.CreateTypeName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(typeName, null, resolver);
@@ -74,7 +74,7 @@ namespace HotChocolate.Resolvers
             var originalTypeName = TestUtils.CreateTypeName();
             var newTypeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -92,7 +92,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var originalTypeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -111,7 +111,7 @@ namespace HotChocolate.Resolvers
             var typeName = TestUtils.CreateTypeName();
             var originalFieldName = TestUtils.CreateFieldName();
             var newFieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -129,7 +129,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var originalFieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate resolver = GetResolverA();
+            FieldDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -147,8 +147,8 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate originalResolver = GetResolverA();
-            AsyncFieldResolverDelegate newResolver = GetResolverB();
+            FieldDelegate originalResolver = GetResolverA();
+            FieldDelegate newResolver = GetResolverB();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -166,7 +166,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            AsyncFieldResolverDelegate originalResolver = GetResolverA();
+            FieldDelegate originalResolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -310,16 +310,16 @@ namespace HotChocolate.Resolvers
             Assert.False(result);
         }
 
-        private AsyncFieldResolverDelegate GetResolverA()
+        private FieldDelegate GetResolverA()
         {
-            return new AsyncFieldResolverDelegate(
-                (a, b) => Task.FromResult<object>(null));
+            return new FieldDelegate(
+                a => Task.FromResult<object>(null));
         }
 
-        private AsyncFieldResolverDelegate GetResolverB()
+        private FieldDelegate GetResolverB()
         {
-            return new AsyncFieldResolverDelegate(
-                (a, b) => Task.FromResult<object>(null));
+            return new FieldDelegate(
+                a => Task.FromResult<object>(null));
         }
 
         private class Foo

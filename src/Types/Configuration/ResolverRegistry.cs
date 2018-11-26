@@ -11,8 +11,8 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly Dictionary<FieldReference, AsyncFieldResolverDelegate> _resolvers =
-            new Dictionary<FieldReference, AsyncFieldResolverDelegate>();
+        private readonly Dictionary<FieldReference, FieldDelegate> _resolvers =
+            new Dictionary<FieldReference, FieldDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
@@ -68,13 +68,12 @@ namespace HotChocolate.Configuration
                 || _resolverBindings.ContainsKey(fieldReference);
         }
 
-        public AsyncFieldResolverDelegate GetResolver(
+        public FieldDelegate GetResolver(
             NameString typeName,
             NameString fieldName)
         {
             var fieldReference = new FieldReference(typeName, fieldName);
-            if (_resolvers.TryGetValue(fieldReference,
-                out AsyncFieldResolverDelegate resolver))
+            if (_resolvers.TryGetValue(fieldReference, out var resolver))
             {
                 return resolver;
             }
@@ -166,35 +165,29 @@ namespace HotChocolate.Configuration
             _fieldMiddlewareComponents.Add(middleware);
         }
 
-        public AsyncFieldResolverDelegate CreateMiddleware(
-            AsyncFieldResolverDelegate fieldResolver)
+        public FieldDelegate CreateMiddleware(
+            FieldDelegate fieldResolver)
         {
             if (_fieldMiddlewareComponents.Count == 0)
             {
                 return fieldResolver;
             }
 
-
+            return BuildMiddleware(_fieldMiddlewareComponents, fieldResolver);
         }
 
-        private AsyncFieldResolverDelegate BuildMiddleware(
-            AsyncFieldResolverDelegate fieldResolver,
-            IEnumerable<FieldMiddleware> components)
+        private FieldDelegate BuildMiddleware(
+            IEnumerable<FieldMiddleware> components,
+            FieldDelegate first)
         {
-            FieldDelegate next = context =>
-            {
-                return fieldResolver(context, context.RequestAborted);
-            };
+            FieldDelegate next = first;
 
             foreach (FieldMiddleware component in components.Reverse())
             {
                 next = component(next);
             }
 
-            return async (context, cancellationToken) =>
-            {
-                return next(context);
-            };
+            return next;
         }
     }
 }
