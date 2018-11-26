@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
     {
         public IBindResolverDelegate BindResolver(
-            FieldDelegate fieldResolver)
+            FieldResolverDelegate fieldResolver)
         {
             if (fieldResolver == null)
             {

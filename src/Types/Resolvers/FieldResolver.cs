@@ -11,7 +11,7 @@ namespace HotChocolate.Resolvers
         public FieldResolver(
             NameString typeName,
             NameString fieldName,
-            FieldDelegate resolver)
+            FieldResolverDelegate resolver)
             : base(typeName, fieldName)
         {
             Resolver = resolver
@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
 
         public FieldResolver(
             FieldReference fieldReference,
-            FieldDelegate resolver)
+            FieldResolverDelegate resolver)
             : base(fieldReference)
         {
             _fieldReference = fieldReference;
@@ -28,7 +28,7 @@ namespace HotChocolate.Resolvers
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
 
-        public FieldDelegate Resolver { get; }
+        public FieldResolverDelegate Resolver { get; }
 
         public FieldResolver WithTypeName(NameString typeName)
         {
@@ -50,7 +50,7 @@ namespace HotChocolate.Resolvers
             return new FieldResolver(TypeName, fieldName, Resolver);
         }
 
-        public FieldResolver WithResolver(FieldDelegate resolver)
+        public FieldResolver WithResolver(FieldResolverDelegate resolver)
         {
             if (Equals(Resolver, resolver))
             {

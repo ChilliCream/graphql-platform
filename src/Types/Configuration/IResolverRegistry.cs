@@ -15,13 +15,13 @@ namespace HotChocolate.Configuration
 
         bool ContainsResolver(FieldReference fieldReference);
 
-        FieldDelegate GetResolver(
+        FieldResolverDelegate GetResolver(
             NameString typeName,
             NameString fieldName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
-        FieldDelegate CreateMiddleware(
-            FieldDelegate fieldResolver);
+        FieldResolverDelegate CreateMiddleware(
+            FieldResolverDelegate fieldResolver);
     }
 }

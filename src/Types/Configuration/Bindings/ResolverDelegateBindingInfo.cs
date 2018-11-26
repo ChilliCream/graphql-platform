@@ -9,7 +9,7 @@ namespace HotChocolate.Configuration
     {
         public NameString FieldName { get; set; }
         public MemberInfo FieldMember { get; set; }
-        public FieldDelegate FieldResolver { get; set; }
+        public FieldResolverDelegate FieldResolver { get; set; }
 
         public FieldResolver CreateFieldResolver()
         {

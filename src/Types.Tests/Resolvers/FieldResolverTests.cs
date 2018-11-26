@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             // act
             var fieldMember = new FieldResolver(
@@ -30,7 +30,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(null, fieldName, resolver);
@@ -44,7 +44,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var typeName = TestUtils.CreateTypeName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(typeName, null, resolver);
@@ -74,7 +74,7 @@ namespace HotChocolate.Resolvers
             var originalTypeName = TestUtils.CreateTypeName();
             var newTypeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -92,7 +92,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var originalTypeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 originalTypeName, fieldName, resolver);
@@ -111,7 +111,7 @@ namespace HotChocolate.Resolvers
             var typeName = TestUtils.CreateTypeName();
             var originalFieldName = TestUtils.CreateFieldName();
             var newFieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -129,7 +129,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var originalFieldName = TestUtils.CreateFieldName();
-            FieldDelegate resolver = GetResolverA();
+            FieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, originalFieldName, resolver);
@@ -147,8 +147,8 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate originalResolver = GetResolverA();
-            FieldDelegate newResolver = GetResolverB();
+            FieldResolverDelegate originalResolver = GetResolverA();
+            FieldResolverDelegate newResolver = GetResolverB();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -166,7 +166,7 @@ namespace HotChocolate.Resolvers
             // arrange
             var typeName = TestUtils.CreateTypeName();
             var fieldName = TestUtils.CreateFieldName();
-            FieldDelegate originalResolver = GetResolverA();
+            FieldResolverDelegate originalResolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
                 typeName, fieldName, originalResolver);
@@ -310,15 +310,15 @@ namespace HotChocolate.Resolvers
             Assert.False(result);
         }
 
-        private FieldDelegate GetResolverA()
+        private FieldResolverDelegate GetResolverA()
         {
-            return new FieldDelegate(
+            return new FieldResolverDelegate(
                 a => Task.FromResult<object>(null));
         }
 
-        private FieldDelegate GetResolverB()
+        private FieldResolverDelegate GetResolverB()
         {
-            return new FieldDelegate(
+            return new FieldResolverDelegate(
                 a => Task.FromResult<object>(null));
         }
 

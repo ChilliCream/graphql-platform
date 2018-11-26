@@ -1,5 +1,5 @@
 /* Foo.bar */
-public static FieldDelegate abc  = ctx => {
+public static FieldResolverDelegate abc  = ctx => {
 var ct = ctx.RequestAborted;
 var v0_a = ctx.Argument<System.String>("a");
 var v1_b = ctx.Argument<System.Int32>("b");

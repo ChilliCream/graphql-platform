@@ -28,14 +28,14 @@ namespace HotChocolate.Types
 
         void RegisterMiddleware(IDirectiveMiddleware middleware);
 
-        FieldDelegate GetResolver(NameString fieldName);
+        FieldResolverDelegate GetResolver(NameString fieldName);
 
         IEnumerable<Type> GetResolverTypes(NameString typeName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
-        FieldDelegate CreateFieldMiddleware(
-            FieldDelegate fieldResolver);
+        FieldResolverDelegate CreateFieldMiddleware(
+            FieldResolverDelegate fieldResolver);
 
         T GetType<T>(TypeReference typeReference) where T : IType;
 

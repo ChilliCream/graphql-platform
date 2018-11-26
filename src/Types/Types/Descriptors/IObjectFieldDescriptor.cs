@@ -29,10 +29,10 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Ignore();
 
         IObjectFieldDescriptor Resolver(
-            FieldDelegate fieldResolver);
+            FieldResolverDelegate fieldResolver);
 
         IObjectFieldDescriptor Resolver(
-            FieldDelegate fieldResolver,
+            FieldResolverDelegate fieldResolver,
             Type resultType);
 
         IObjectFieldDescriptor Directive<T>(T directive)

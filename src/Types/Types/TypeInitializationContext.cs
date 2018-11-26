@@ -78,7 +78,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public FieldDelegate GetResolver(NameString fieldName)
+        public FieldResolverDelegate GetResolver(NameString fieldName)
         {
             fieldName.EnsureNotEmpty(nameof(fieldName));
 
@@ -243,7 +243,7 @@ namespace HotChocolate.Types
             return _schemaContext.Types.GetResolverTypes(typeName);
         }
 
-        public FieldDelegate CreateFieldMiddleware(FieldDelegate fieldResolver)
+        public FieldResolverDelegate CreateFieldMiddleware(FieldResolverDelegate fieldResolver)
         {
             return _schemaContext.Resolvers.CreateMiddleware(fieldResolver);
         }

@@ -1,5 +1,5 @@
 /* Foo.bar */
-public static FieldDelegate abc  = async ctx => {
+public static FieldResolverDelegate abc  = async ctx => {
 var ct = ctx.RequestAborted;
 var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 try

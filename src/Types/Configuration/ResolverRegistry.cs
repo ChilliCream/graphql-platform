@@ -11,8 +11,8 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly Dictionary<FieldReference, FieldDelegate> _resolvers =
-            new Dictionary<FieldReference, FieldDelegate>();
+        private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
+            new Dictionary<FieldReference, FieldResolverDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
@@ -68,7 +68,7 @@ namespace HotChocolate.Configuration
                 || _resolverBindings.ContainsKey(fieldReference);
         }
 
-        public FieldDelegate GetResolver(
+        public FieldResolverDelegate GetResolver(
             NameString typeName,
             NameString fieldName)
         {
@@ -165,8 +165,8 @@ namespace HotChocolate.Configuration
             _fieldMiddlewareComponents.Add(middleware);
         }
 
-        public FieldDelegate CreateMiddleware(
-            FieldDelegate fieldResolver)
+        public FieldResolverDelegate CreateMiddleware(
+            FieldResolverDelegate fieldResolver)
         {
             if (_fieldMiddlewareComponents.Count == 0)
             {
@@ -176,11 +176,11 @@ namespace HotChocolate.Configuration
             return BuildMiddleware(_fieldMiddlewareComponents, fieldResolver);
         }
 
-        private FieldDelegate BuildMiddleware(
+        private FieldResolverDelegate BuildMiddleware(
             IEnumerable<FieldMiddleware> components,
-            FieldDelegate first)
+            FieldResolverDelegate first)
         {
-            FieldDelegate next = first;
+            FieldResolverDelegate next = first;
 
             foreach (FieldMiddleware component in components.Reverse())
             {

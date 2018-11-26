@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         /// Gets the field resolver.
         /// </summary>
         /// <value></value>
-        public FieldDelegate Resolver { get; private set; }
+        public FieldResolverDelegate Resolver { get; private set; }
 
         /// <summary>
         /// Gets the interface fields that are implemented by this object field.

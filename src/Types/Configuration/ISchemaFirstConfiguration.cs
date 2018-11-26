@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
         : IFluent
     {
         IBindResolverDelegate BindResolver(
-            FieldDelegate fieldResolver);
+            FieldResolverDelegate fieldResolver);
 
         IBindResolver<TResolver> BindResolver<TResolver>(
             BindingBehavior bindingBehavior)
