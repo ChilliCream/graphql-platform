@@ -4,8 +4,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal class DirectiveRegistry
-        : IDirectiveRegistry
+    internal class DirectiveRegistry 
+    	: IDirectiveRegistry
     {
         private readonly Dictionary<string, DirectiveType> _nameLookup =
             new Dictionary<string, DirectiveType>();
@@ -16,6 +16,11 @@ namespace HotChocolate.Configuration
             where T : DirectiveType, new()
         {
             RegisterDirectiveType(new T());
+        }
+
+        public void RegisterDirectiveType(Type t)
+        {
+            RegisterDirectiveType((DirectiveType)Activator.CreateInstance(t));
         }
 
         public void RegisterDirectiveType<T>(T directive)
