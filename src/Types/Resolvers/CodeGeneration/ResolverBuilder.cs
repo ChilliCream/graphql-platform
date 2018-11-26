@@ -61,6 +61,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             GeneratedClass resolverClass = _codeGenerator
                 .Generate(resolverDescriptors);
+
             GeneratedClass middlewareClass = _codeGenerator
                 .Generate(middlewareDescriptors);
 

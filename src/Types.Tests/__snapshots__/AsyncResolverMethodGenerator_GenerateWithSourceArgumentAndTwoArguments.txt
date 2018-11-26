@@ -1,5 +1,6 @@
 /* Foo.bar */
-public static AsyncFieldResolverDelegate abc  = async (ctx, ct) => {
+public static FieldDelegate abc  = async ctx => {
+var ct = ctx.RequestAborted;
 var v0_a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 var v1_b = ctx.Argument<System.String>("b");
 var v2_c = ctx.Argument<System.Int32>("c");
