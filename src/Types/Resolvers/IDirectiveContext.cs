@@ -8,13 +8,17 @@ namespace HotChocolate.Resolvers
     /// directive middleware that is being executed.
     /// </summary>
     public interface IDirectiveContext
-        : IResolverContext
+        : IFieldContext
     {
         /// <summary>
         /// Gets the directive that is being executed.
         /// </summary>
         IDirective Directive { get; }
+    }
 
+    public interface IFieldContext
+        : IResolverContext
+    {
         /// <summary>
         /// Gets or sets the result of the middleware.
         /// </summary>

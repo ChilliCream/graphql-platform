@@ -180,14 +180,24 @@ namespace HotChocolate.Configuration
             IEnumerable<FieldMiddleware> components,
             FieldResolverDelegate first)
         {
-            FieldResolverDelegate next = first;
+            FieldDelegate next = async ctx =>
+            {
+                if (!ctx.IsResultModified)
+                {
+                    ctx.Result = await first(ctx);
+                }
+            };
 
             foreach (FieldMiddleware component in components.Reverse())
             {
                 next = component(next);
             }
 
-            return next;
+            return async ctx =>
+            {
+                await next(ctx);
+
+            };
         }
     }
 }
