@@ -26,13 +26,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.Append(" = ");
             if (IsAsync)
             {
-                source.Append("async (ctx, ct) => {");
+                source.Append("async ctx => {");
             }
             else
             {
-                source.Append("(ctx, ct) => {");
+                source.Append("ctx => {");
             }
             source.AppendLine();
+            source.AppendLine($"var ct = ctx.{nameof(IResolverContext.RequestAborted)};");
         }
 
         protected override void GenerateDelegateFooter(

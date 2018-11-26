@@ -35,7 +35,7 @@ namespace HotChocolate.Types
             _resolverType = fieldDescription.ResolverType;
             _member = fieldDescription.Member;
 
-            Resolver = c => fieldDescription.Resolver(c, c.RequestAborted);
+            Resolver = fieldDescription.Resolver;
             InterfaceFields = _interfaceFields.AsReadOnly();
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }

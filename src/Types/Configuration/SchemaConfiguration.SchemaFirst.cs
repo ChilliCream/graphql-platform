@@ -7,24 +7,7 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
     {
         public IBindResolverDelegate BindResolver(
-            AsyncFieldResolverDelegate fieldResolver)
-        {
-            if (fieldResolver == null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            var bindingInfo =
-                new ResolverDelegateBindingInfo
-                {
-                    AsyncFieldResolver = fieldResolver
-                };
-            _resolverBindings.Add(bindingInfo);
-            return new BindResolverDelegate(bindingInfo);
-        }
-
-        public IBindResolverDelegate BindResolver(
-            FieldResolverDelegate fieldResolver)
+            FieldDelegate fieldResolver)
         {
             if (fieldResolver == null)
             {

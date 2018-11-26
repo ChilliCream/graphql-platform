@@ -59,12 +59,6 @@ namespace HotChocolate
         ISessionManager Sessions { get; }
 
         /// <summary>
-        /// Gets the default field middleware that is used to
-        /// execute field resolvers.
-        /// </summary>
-        FieldMiddleware FieldMiddleware { get; }
-
-        /// <summary>
         /// Gets a type by its name and kind.
         /// </summary>
         /// <typeparam name="T">The expected type kind.</typeparam>

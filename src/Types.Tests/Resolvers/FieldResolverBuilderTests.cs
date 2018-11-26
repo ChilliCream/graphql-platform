@@ -37,8 +37,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                        context.Object,
-                        CancellationToken.None).Result;
+                        context.Object).Result;
                     Assert.Equal("Hello World", resolvedValue);
                 });
         }
@@ -81,8 +80,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                        context.Object,
-                        CancellationToken.None).Result;
+                        context.Object).Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
@@ -125,8 +123,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                            context.Object,
-                            CancellationToken.None)
+                            context.Object)
                             .Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
@@ -158,8 +155,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedResult = r.Resolver(
-                            context.Object,
-                            CancellationToken.None).Result;
+                            context.Object).Result;
                     Assert.Equal("Hello World Property", resolvedResult);
                 });
         }

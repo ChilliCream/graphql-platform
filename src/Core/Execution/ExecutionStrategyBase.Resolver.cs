@@ -23,8 +23,7 @@ namespace HotChocolate.Execution
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask,
-                cancellationToken);
+                resolverTask);
 
             if (result is IQueryError error)
             {
@@ -40,8 +39,7 @@ namespace HotChocolate.Execution
         }
 
         private static async Task<object> ExecuteMiddlewareAsync(
-            ResolverTask resolverTask,
-            CancellationToken cancellationToken)
+            ResolverTask resolverTask)
         {
             object result = null;
 
@@ -51,14 +49,12 @@ namespace HotChocolate.Execution
                     && resolverTask.HasMiddleware)
                 {
                     result = await ExecuteDirectiveMiddlewareAsync(
-                        resolverTask,
-                        cancellationToken);
+                        resolverTask);
                 }
                 else
                 {
                     result = await ExecuteFieldMiddlewareAsync(
-                        resolverTask,
-                        cancellationToken);
+                        resolverTask);
                 }
             }
             catch (QueryException ex)
@@ -78,8 +74,7 @@ namespace HotChocolate.Execution
         }
 
         private static async Task<object> ExecuteFieldMiddlewareAsync(
-            ResolverTask resolverTask,
-            CancellationToken cancellationToken)
+            ResolverTask resolverTask)
         {
             if (resolverTask.FieldSelection.Field.Resolver == null)
             {
@@ -87,15 +82,13 @@ namespace HotChocolate.Execution
             }
 
             object result = await resolverTask.FieldSelection.Field.Resolver(
-                resolverTask.ResolverContext,
-                cancellationToken);
+                resolverTask.ResolverContext);
 
             return resolverTask.CompleteResolverResult(result);
         }
 
         private static async Task<object> ExecuteDirectiveMiddlewareAsync(
-            ResolverTask resolverTask,
-            CancellationToken cancellationToken)
+            ResolverTask resolverTask)
         {
             return await resolverTask.ExecuteMiddleware.Invoke(
                 resolverTask.ResolverContext, ExecuteResolver);
@@ -103,8 +96,7 @@ namespace HotChocolate.Execution
             Task<object> ExecuteResolver()
             {
                 return ExecuteFieldMiddlewareAsync(
-                    resolverTask,
-                    cancellationToken);
+                    resolverTask);
             }
         }
 

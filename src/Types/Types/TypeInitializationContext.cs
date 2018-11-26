@@ -242,5 +242,10 @@ namespace HotChocolate.Types
         {
             return _schemaContext.Types.GetResolverTypes(typeName);
         }
+
+        public FieldDelegate CreateFieldMiddleware(FieldDelegate fieldResolver)
+        {
+            return _schemaContext.Resolvers.CreateMiddleware(fieldResolver);
+        }
     }
 }
