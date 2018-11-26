@@ -1,6 +1,6 @@
 ![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/acacc5b353f4a21bc03591d9910232c3c748d552/img/hotchocolate-banner-light.svg)
 
-[![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![AppVeyor](https://ci.appveyor.com/api/projects/status/uf8xnbyo32bh7ge1/branch/master?svg=true)](https://ci.appveyor.com/project/rstaib/zeus) [![Travis](https://travis-ci.org/ChilliCream/hotchocolate.svg?branch=master)](https://travis-ci.org/ChilliCream/hotchocolate) [![Tests](https://img.shields.io/appveyor/tests/rstaib/zeus/master.svg)](https://ci.appveyor.com/project/rstaib/zeus) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate) [![BCH compliance](https://bettercodehub.com/edge/badge/ChilliCream/hotchocolate?branch=master)](https://bettercodehub.com/)
+[![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![AppVeyor](https://ci.appveyor.com/api/projects/status/uf8xnbyo32bh7ge1/branch/master?svg=true)](https://ci.appveyor.com/project/rstaib/zeus) [![Travis](https://travis-ci.org/ChilliCream/hotchocolate.svg?branch=master)](https://travis-ci.org/ChilliCream/hotchocolate) [![Tests](https://img.shields.io/appveyor/tests/rstaib/zeus/master.svg)](https://ci.appveyor.com/project/rstaib/zeus) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate) [![BCH compliance](https://bettercodehub.com/edge/badge/ChilliCream/hotchocolate?branch=master)](https://bettercodehub.com/) [![Join the chat at https://gitter.im/ChilliCream/greendonut](https://badges.gitter.im/ChilliCream/greendonut.svg)](https://gitter.im/ChilliCream/hotchocolate?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ---
 
@@ -289,12 +289,15 @@ We are currently working on the following features that are proposed for the nex
 
 ## Supported Frameworks
 
-- [ ] ASP.NET Classic
+- [x] ASP.NET Classic
 
-  - [ ] _Get_ (in development - 0.7.0)
-  - [ ] _Post_ (in development - 0.7.0)
+  - [x] Get
+  - [x] Post
   - [ ] _WebSockets_ (in development - 0.8.0)
   - [ ] Schema Builder (in development - 1.0.0)
+  - [x] .net Framework 4.7
+  - [ ] .net Framework 4.6
+  - [ ] .net Framework 4.5
 
 - [x] ASP.NET Core
   - [x] Get
