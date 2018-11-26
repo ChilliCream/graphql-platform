@@ -28,6 +28,7 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
             configuration.BindResolver<TestResolverCollectionA>().To<TestObjectA>();
 
@@ -72,6 +73,7 @@ namespace HotChocolate.Configuration
             var configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
             configuration
                 .BindResolver<TestResolverCollectionA>(BindingBehavior.Explicit)
@@ -119,6 +121,7 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
             configuration.BindType<TestObjectB>().To("Dummy");
             configuration.BindResolver<TestResolverCollectionB>().To("Dummy")
@@ -160,6 +163,7 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
             configuration.BindType<TestObjectB>().To("Dummy");
 
@@ -199,6 +203,7 @@ namespace HotChocolate.Configuration
             SchemaConfiguration configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
             configuration.BindType<TestObjectB>().To("Dummy");
 

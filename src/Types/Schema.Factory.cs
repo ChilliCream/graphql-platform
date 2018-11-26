@@ -111,6 +111,7 @@ namespace HotChocolate
                 var configuration = new SchemaConfiguration(
                     context.RegisterServiceProvider,
                     context.Types,
+                    context.Resolvers,
                     context.Directives);
 
                 configuration.RegisterCustomContext<IResolverCache>(

@@ -89,7 +89,7 @@ Task("PublishWith461")
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release /p:OutDir=" + publishOutputDir}))
+        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release"}))
     {
         process.WaitForExit();
     }

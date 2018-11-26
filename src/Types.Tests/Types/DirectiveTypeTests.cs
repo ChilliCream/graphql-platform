@@ -77,6 +77,7 @@ namespace HotChocolate.Types
             var schemaConfiguration = new SchemaConfiguration(
                 sp => { },
                 schemaContext.Types,
+                schemaContext.Resolvers,
                 schemaContext.Directives);
 
             var typeFinalizer = new TypeFinalizer(schemaConfiguration);
