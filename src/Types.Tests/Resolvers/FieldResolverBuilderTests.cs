@@ -15,7 +15,10 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var fieldMember = new FieldMember(
                 "type", "field",
@@ -47,9 +50,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
             context.Setup(t => t.Resolver<FooTypeResolver>())
                 .Returns(new FooTypeResolver());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var argumentDescriptor =
                new ArgumentDescriptor(
@@ -90,9 +96,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
             context.Setup(t => t.Resolver<FooTypeResolver>())
                 .Returns(new FooTypeResolver());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var argumentDescriptor =
                 new ArgumentDescriptor(
@@ -134,7 +143,10 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var fieldMember = new FieldMember(
                 "type", "field", typeof(FooType).GetProperty("BarProperty"));

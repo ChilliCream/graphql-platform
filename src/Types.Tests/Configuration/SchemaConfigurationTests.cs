@@ -46,25 +46,30 @@ namespace HotChocolate.Configuration
         public void BindResolverCollectionToObjectTypeExplicitly()
         {
             // arrange
-            Mock<IResolverContext> resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
-            resolverContext.Setup(t => t.Parent<TestObjectA>()).Returns(new TestObjectA());
+            var resolverContext = new Mock<IResolverContext>(
+                MockBehavior.Strict);
+            resolverContext.Setup(t => t.Parent<TestObjectA>())
+                .Returns(new TestObjectA());
             resolverContext.Setup(t => t.Resolver<TestResolverCollectionA>())
                 .Returns(new TestResolverCollectionA());
             resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
+            resolverContext.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
-            SchemaContext schemaContext = new SchemaContext();
+            var schemaContext = new SchemaContext();
 
-            ObjectType dummyType = new ObjectType(d =>
+            var dummyType = new ObjectType(d =>
             {
                 d.Name("TestObjectA");
-                d.Field("a").Type<StringType>().Argument("a", a => a.Type<StringType>());
+                d.Field("a").Type<StringType>()
+                    .Argument("a", a => a.Type<StringType>());
                 d.Field("b").Type<StringType>();
             });
 
             schemaContext.Types.RegisterType(dummyType);
 
             // act
-            SchemaConfiguration configuration = new SchemaConfiguration(
+            var configuration = new SchemaConfiguration(
                 schemaContext.RegisterServiceProvider,
                 schemaContext.Types,
                 schemaContext.Directives);
@@ -74,7 +79,7 @@ namespace HotChocolate.Configuration
                 .Resolve(t => t.A)
                 .With(t => t.GetA(default, default));
 
-            TypeFinalizer typeFinalizer = new TypeFinalizer(configuration);
+            var typeFinalizer = new TypeFinalizer(configuration);
             typeFinalizer.FinalizeTypes(schemaContext, null);
             bool hasErrors = typeFinalizer.Errors.Any();
 
