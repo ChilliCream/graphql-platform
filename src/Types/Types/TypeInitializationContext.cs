@@ -78,7 +78,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public AsyncFieldResolverDelegate GetResolver(NameString fieldName)
+        public FieldDelegate GetResolver(NameString fieldName)
         {
             fieldName.EnsureNotEmpty(nameof(fieldName));
 

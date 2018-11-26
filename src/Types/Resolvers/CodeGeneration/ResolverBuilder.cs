@@ -89,7 +89,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 yield return new FieldResolver(
                     resolverDescriptors[i].Field.TypeName,
                     resolverDescriptors[i].Field.FieldName,
-                    (AsyncFieldResolverDelegate)field.GetValue(field));
+                    (FieldDelegate)field.GetValue(field));
             }
         }
 
