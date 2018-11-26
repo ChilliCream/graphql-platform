@@ -1,18 +1,14 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Resolvers
 {
-    // TODO : rework after error types have been relocated. ---> inherit MiddlewareContext
-    internal sealed class DirectiveContext
-        : IDirectiveContext
+    internal sealed class MiddlewareContext
+        : IMiddlewareContext
     {
         private readonly IResolverContext _resolverContext;
         private readonly Func<Task<object>> _resolver;
@@ -20,7 +16,7 @@ namespace HotChocolate.Execution
         private object _resolvedResult;
         private bool _isResultResolved;
 
-        public DirectiveContext(
+        public MiddlewareContext(
             IResolverContext resolverContext,
             Func<Task<object>> resolver)
         {
@@ -29,8 +25,6 @@ namespace HotChocolate.Execution
             _resolver = resolver
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
-
-        public IDirective Directive { get; set; }
 
         public object Result
         {
@@ -42,6 +36,8 @@ namespace HotChocolate.Execution
             {
                 IsResultModified = true;
 
+                // TODO : rework after error types have been relocated.
+                /*
                 if (_result is IResolverResult r)
                 {
                     if (r.IsError)
@@ -60,6 +56,8 @@ namespace HotChocolate.Execution
                 {
                     _result = value;
                 }
+                */
+                _result = value;
             }
         }
 
@@ -115,6 +113,8 @@ namespace HotChocolate.Execution
                 _isResultResolved = true;
             }
 
+            // TODO : rework after error types have been relocated.
+            /*
             if (_resolvedResult is IQueryError error)
             {
                 throw new QueryException(error);
@@ -127,6 +127,8 @@ namespace HotChocolate.Execution
             {
                 return (T)_resolvedResult;
             }
+             */
+                return (T)_resolvedResult;
+            }
         }
     }
-}

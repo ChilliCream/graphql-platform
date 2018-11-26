@@ -195,8 +195,9 @@ namespace HotChocolate.Configuration
 
             return async ctx =>
             {
-                await next(ctx);
-
+                var context = new MiddlewareContext(ctx, () => first(ctx));
+                await next(context);
+                return context.Result;
             };
         }
     }
