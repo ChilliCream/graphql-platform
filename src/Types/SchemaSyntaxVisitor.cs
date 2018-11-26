@@ -6,7 +6,7 @@ using HotChocolate.Types.Factories;
 namespace HotChocolate
 {
     internal class SchemaSyntaxVisitor
-        : SchemaSyntaxWalker
+        : SchemaSyntaxWalker<object>
     {
         private readonly ITypeRegistry _typeRegistry;
         private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
@@ -30,37 +30,43 @@ namespace HotChocolate
         }
 
         protected override void VisitObjectTypeDefinition(
-            ObjectTypeDefinitionNode node)
+            ObjectTypeDefinitionNode node,
+            object context)
         {
             _typeRegistry.RegisterType(_objectTypeFactory.Create(node));
         }
 
         protected override void VisitInterfaceTypeDefinition(
-            InterfaceTypeDefinitionNode node)
+            InterfaceTypeDefinitionNode node,
+            object context)
         {
             _typeRegistry.RegisterType(_interfaceTypeFactory.Create(node));
         }
 
         protected override void VisitUnionTypeDefinition(
-            UnionTypeDefinitionNode node)
+            UnionTypeDefinitionNode node,
+            object context)
         {
             _typeRegistry.RegisterType(_unionTypeFactory.Create(node));
         }
 
         protected override void VisitInputObjectTypeDefinition(
-            InputObjectTypeDefinitionNode node)
+            InputObjectTypeDefinitionNode node,
+            object context)
         {
             _typeRegistry.RegisterType(_inputObjectTypeFactory.Create(node));
         }
 
         protected override void VisitEnumTypeDefinition(
-            EnumTypeDefinitionNode node)
+            EnumTypeDefinitionNode node,
+            object context)
         {
             _typeRegistry.RegisterType(_enumTypeFactory.Create(node));
         }
 
         protected override void VisitSchemaDefinition(
-            SchemaDefinitionNode node)
+            SchemaDefinitionNode node,
+            object context)
         {
             foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
             {

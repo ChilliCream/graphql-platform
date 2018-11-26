@@ -1,7 +1,7 @@
 namespace HotChocolate.Language
 {
-    public class SyntaxWalkerBase<TStart>
-        : SyntaxVisitor<TStart>
+    public class SyntaxWalkerBase<TStart, TContext>
+        : SyntaxVisitor<TStart, TContext>
         where TStart : ISyntaxNode
     {
         protected SyntaxWalkerBase()
@@ -9,56 +9,75 @@ namespace HotChocolate.Language
         }
 
         protected virtual void VisitUnsupportedDefinitions(
-            IDefinitionNode node)
+            IDefinitionNode node,
+            TContext context)
         {
         }
 
-        protected override void VisitListValue(ListValueNode node)
+        protected override void VisitListValue(
+            ListValueNode node,
+            TContext context)
         {
-            VisitMany(node.Items, VisitValue);
+            VisitMany(node.Items, context, VisitValue);
         }
 
-        protected override void VisitObjectValue(ObjectValueNode node)
+        protected override void VisitObjectValue(
+            ObjectValueNode node,
+            TContext context)
         {
-            VisitMany(node.Fields, VisitObjectField);
+            VisitMany(node.Fields, context, VisitObjectField);
         }
 
-        protected override void VisitObjectField(ObjectFieldNode node)
+        protected override void VisitObjectField(
+            ObjectFieldNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitValue(node.Value);
+            VisitName(node.Name, context);
+            VisitValue(node.Value, context);
         }
 
-        protected override void VisitVariable(VariableNode node)
+        protected override void VisitVariable(
+            VariableNode node,
+            TContext context)
         {
-            VisitName(node.Name);
+            VisitName(node.Name, context);
         }
 
-        protected override void VisitDirective(DirectiveNode node)
+        protected override void VisitDirective(
+            DirectiveNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitMany(node.Arguments, VisitArgument);
+            VisitName(node.Name, context);
+            VisitMany(node.Arguments, context, VisitArgument);
         }
 
-        protected override void VisitArgument(ArgumentNode node)
+        protected override void VisitArgument(
+            ArgumentNode node,
+            TContext context)
         {
-            VisitName(node.Name);
-            VisitValue(node.Value);
+            VisitName(node.Name, context);
+            VisitValue(node.Value, context);
         }
 
-        protected override void VisitListType(ListTypeNode node)
+        protected override void VisitListType(
+            ListTypeNode node,
+            TContext context)
         {
-            VisitType(node.Type);
+            VisitType(node.Type, context);
         }
 
-        protected override void VisitNonNullType(NonNullTypeNode node)
+        protected override void VisitNonNullType(
+            NonNullTypeNode node,
+            TContext context)
         {
-            VisitType(node.Type);
+            VisitType(node.Type, context);
         }
 
-        protected override void VisitNamedType(NamedTypeNode node)
+        protected override void VisitNamedType(
+            NamedTypeNode node,
+            TContext context)
         {
-            VisitName(node.Name);
+            VisitName(node.Name, context);
         }
     }
 }

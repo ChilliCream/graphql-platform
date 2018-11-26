@@ -67,9 +67,32 @@ Task("Build")
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
-        NoRestore = true
+        NoRestore = true,
+        Runtime = "net461"
     };
     DotNetCoreBuild("./src", settings);
+});
+
+Task("PublishWith461")
+    .Does(() =>
+{
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:restore /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:build /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release /p:OutDir=" + publishOutputDir}))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Publish")
@@ -184,6 +207,10 @@ Task("Sonar")
     .IsDependentOn("SonarEnd");
 
 Task("Release")
+    .IsDependentOn("Sonar")
+    .IsDependentOn("Publish");
+
+Task("ReleaseWithNet461")
     .IsDependentOn("Sonar")
     .IsDependentOn("Publish");
 

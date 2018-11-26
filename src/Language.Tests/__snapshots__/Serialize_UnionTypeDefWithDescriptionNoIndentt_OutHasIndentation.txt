@@ -1,0 +1,2 @@
+"abc"
+union A = B | C

@@ -14,6 +14,7 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
+            Description = description;
         }
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeDefinition;

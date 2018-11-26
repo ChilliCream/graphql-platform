@@ -48,7 +48,7 @@ namespace HotChocolate
 
             // deserialize schema objects
             var visitor = new SchemaSyntaxVisitor(context.Types);
-            visitor.Visit(schemaDocument);
+            visitor.Visit(schemaDocument, null);
 
             return CreateSchema(context, c =>
             {
