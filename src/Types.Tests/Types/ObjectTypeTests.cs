@@ -74,14 +74,12 @@ namespace HotChocolate.Types
             schemaContext.Types.RegisterType(stringType);
             schemaContext.Resolvers.RegisterMiddleware(next => async context =>
             {
-                var result = await next(context);
+                await next(context);
 
-                if (result is string s)
+                if (context.Result is string s)
                 {
-                    return s.ToUpperInvariant();
+                    context.Result = s.ToUpperInvariant();
                 }
-
-                return result;
             });
 
             // act
