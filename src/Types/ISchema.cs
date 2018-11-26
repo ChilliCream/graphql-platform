@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 
@@ -56,6 +57,12 @@ namespace HotChocolate
         /// new query execution sessions.
         /// </summary>
         ISessionManager Sessions { get; }
+
+        /// <summary>
+        /// Gets the default field middleware that is used to
+        /// execute field resolvers.
+        /// </summary>
+        FieldMiddleware FieldMiddleware { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.

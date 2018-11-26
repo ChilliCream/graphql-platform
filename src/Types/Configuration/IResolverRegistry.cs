@@ -9,14 +9,19 @@ namespace HotChocolate.Configuration
 
         void RegisterMiddleware(IDirectiveMiddleware middleware);
 
+        void RegisterMiddleware(FieldMiddleware middleware);
+
         void RegisterResolver(IFieldResolverDescriptor resolverDescriptor);
 
         bool ContainsResolver(FieldReference fieldReference);
 
-        AsyncFieldResolverDelegate GetResolver(
+        FieldDelegate GetResolver(
             NameString typeName,
             NameString fieldName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
+
+        FieldDelegate CreateMiddleware(
+            FieldDelegate fieldResolver);
     }
 }

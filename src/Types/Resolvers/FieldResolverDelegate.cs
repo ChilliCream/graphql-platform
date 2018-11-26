@@ -10,4 +10,11 @@ namespace HotChocolate.Resolvers
     public delegate object FieldResolverDelegate(
         IResolverContext context,
         CancellationToken cancellationToken);
+
+    // TODO : naming
+    public delegate Task<object> FieldDelegate(
+        IResolverContext context);
+
+    public delegate FieldDelegate FieldMiddleware(
+        FieldDelegate next);
 }

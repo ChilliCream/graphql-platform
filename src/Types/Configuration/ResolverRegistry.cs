@@ -20,6 +20,9 @@ namespace HotChocolate.Configuration
         private readonly Dictionary<string, IDirectiveMiddleware> _middlewares =
             new Dictionary<string, IDirectiveMiddleware>();
 
+        private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
+            new List<FieldMiddleware>();
+
         public void RegisterResolver(IFieldReference resolverBinding)
         {
             if (resolverBinding == null)
@@ -151,6 +154,47 @@ namespace HotChocolate.Configuration
                 yield return new DirectiveMiddlewareDescriptor(
                     methodMiddleware);
             }
+        }
+
+        public void RegisterMiddleware(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _fieldMiddlewareComponents.Add(middleware);
+        }
+
+        public AsyncFieldResolverDelegate CreateMiddleware(
+            AsyncFieldResolverDelegate fieldResolver)
+        {
+            if (_fieldMiddlewareComponents.Count == 0)
+            {
+                return fieldResolver;
+            }
+
+
+        }
+
+        private AsyncFieldResolverDelegate BuildMiddleware(
+            AsyncFieldResolverDelegate fieldResolver,
+            IEnumerable<FieldMiddleware> components)
+        {
+            FieldDelegate next = context =>
+            {
+                return fieldResolver(context, context.RequestAborted);
+            };
+
+            foreach (FieldMiddleware component in components.Reverse())
+            {
+                next = component(next);
+            }
+
+            return async (context, cancellationToken) =>
+            {
+                return next(context);
+            };
         }
     }
 }

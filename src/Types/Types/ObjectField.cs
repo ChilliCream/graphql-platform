@@ -35,7 +35,7 @@ namespace HotChocolate.Types
             _resolverType = fieldDescription.ResolverType;
             _member = fieldDescription.Member;
 
-            Resolver = fieldDescription.Resolver;
+            Resolver = c => fieldDescription.Resolver(c, c.RequestAborted);
             InterfaceFields = _interfaceFields.AsReadOnly();
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         /// Gets the field resolver.
         /// </summary>
         /// <value></value>
-        public AsyncFieldResolverDelegate Resolver { get; private set; }
+        public FieldDelegate Resolver { get; private set; }
 
         /// <summary>
         /// Gets the interface fields that are implemented by this object field.
@@ -149,6 +149,11 @@ namespace HotChocolate.Types
                         $"The field `{context.Type.Name}.{Name}` " +
                         "has no resolver.", context.Type));
                 }
+            }
+
+            if (Resolver != null)
+            {
+                Resolver = context.CreateFieldMiddleware(Resolver);
             }
         }
     }
