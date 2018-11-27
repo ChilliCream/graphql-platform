@@ -54,7 +54,7 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(query));
             }
 
-            List<IQueryError> errors = new List<IQueryError>();
+            List<IError> errors = new List<IError>();
             foreach (IQueryValidationRule rule in _rules)
             {
                 QueryValidationResult result = rule.Validate(_schema, query);

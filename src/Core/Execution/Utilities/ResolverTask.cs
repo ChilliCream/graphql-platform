@@ -76,12 +76,12 @@ namespace HotChocolate.Execution
             ReportError(CreateError(message));
         }
 
-        public void ReportError(IQueryError error)
+        public void ReportError(IError error)
         {
             _executionContext.ReportError(error);
         }
 
-        public IQueryError CreateError(string message)
+        public IError CreateError(string message)
         {
             if (string.IsNullOrEmpty(message))
             {

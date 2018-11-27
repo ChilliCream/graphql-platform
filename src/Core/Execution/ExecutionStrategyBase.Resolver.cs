@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
             object result = await ExecuteMiddlewareAsync(
                 resolverTask);
 
-            if (result is IQueryError error)
+            if (result is IError error)
             {
                 activity?.AddTag("error", "true");
             }

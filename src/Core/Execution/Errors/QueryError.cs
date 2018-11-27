@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace HotChocolate.Execution
 {
     public class QueryError
-       : IQueryError
+       : IError
     {
         public QueryError(string message, params ErrorProperty[] extensions)
             : this(message, null, null, extensions)

@@ -115,11 +115,11 @@ namespace HotChocolate.Execution
                 _isResultResolved = true;
             }
 
-            if (_resolvedResult is IQueryError error)
+            if (_resolvedResult is IError error)
             {
                 throw new QueryException(error);
             }
-            else if (_resolvedResult is IEnumerable<IQueryError> errors)
+            else if (_resolvedResult is IEnumerable<IError> errors)
             {
                 throw new QueryException(errors);
             }

@@ -126,8 +126,8 @@ namespace HotChocolate.Execution
 
         private bool HasErrors(object result)
         {
-            if (result is IQueryError error
-                || result is IEnumerable<IQueryError> errors)
+            if (result is IError error
+                || result is IEnumerable<IError> errors)
             {
                 return true;
             }
