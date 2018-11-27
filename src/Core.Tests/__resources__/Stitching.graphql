@@ -1,0 +1,18 @@
+type Query {
+  customer(id: ID!): Customer
+    @schema(name: "customer")
+    @delegate(path: "customer")
+}
+
+type Customer {
+  id: ID! @schema(name: "customer")
+  name: String! @schema(name: "customer")
+  consultant: Consultant
+    @schema(name: "consultant")
+    @delegate(path: "consultant(customerId: {parent.id})")
+}
+
+type Consultant {
+  id: ID! @schema(name: "consultant")
+  name: String! @schema(name: "consultant")
+}

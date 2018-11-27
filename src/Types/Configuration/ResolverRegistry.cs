@@ -182,7 +182,7 @@ namespace HotChocolate.Configuration
         {
             FieldDelegate next = async ctx =>
             {
-                if (!ctx.IsResultModified)
+                if (!ctx.IsResultModified && first != null)
                 {
                     ctx.Result = await first(ctx);
                 }

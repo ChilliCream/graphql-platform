@@ -1,0 +1,1 @@
+{ customer(id: "12345") @schema(name: "customer") @delegate(path: "customer") { name @schema(name: "customer") consultant @schema(name: "consultant") @delegate(path: "consultant(customerId: {parent.id})") { name @schema(name: "consultant") } } }

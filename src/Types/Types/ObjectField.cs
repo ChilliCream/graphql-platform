@@ -141,19 +141,18 @@ namespace HotChocolate.Types
             if (Resolver == null)
             {
                 Resolver = context.GetResolver(Name);
-                if (Resolver == null
-                    && _executableDirectives.All(
-                            t => t.Middleware == null))
-                {
-                    context.ReportError(new SchemaError(
-                        $"The field `{context.Type.Name}.{Name}` " +
-                        "has no resolver.", context.Type));
-                }
             }
 
-            if (Resolver != null)
+            // TODO : review if that is what we want. Sometimes a middleware can replace a resolver ... but not all middleware components are resolver replacements.
+            Resolver = context.CreateFieldMiddleware(Resolver);
+
+            // TODO : All executable middlewars should have a middleware so could we rewrite this?
+            if (Resolver == null && _executableDirectives.All(
+                t => t.Middleware == null))
             {
-                Resolver = context.CreateFieldMiddleware(Resolver);
+                context.ReportError(new SchemaError(
+                    $"The field `{context.Type.Name}.{Name}` " +
+                    "has no resolver.", context.Type));
             }
         }
     }
