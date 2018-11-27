@@ -164,48 +164,78 @@ namespace HotChocolate.Language
             return current;
         }
 
-        protected override FieldNode VisitField(
+        protected virtual FieldNode VisitField(
             FieldNode node,
             TContext context)
         {
+            var current = node;
+
             if (node.Alias != null)
             {
-                VisitName(node.Alias, context);
+                current = Rewrite(current, node.Alias, context,
+                    VisitName, current.WithAlias);
             }
 
-            VisitName(node.Name, context);
-            VisitMany(node.Arguments, context, VisitArgument);
-            VisitMany(node.Directives, context, VisitDirective);
+            current = Rewrite(current, node.Name, context,
+                VisitName, current.WithName);
+
+            current = Rewrite(current, node.Arguments, context,
+                (p, c) => VisitMany(p, c, VisitArgument),
+                current.WithArguments);
+
+            current = Rewrite(current, node.Directives, context,
+                (p, c) => VisitMany(p, c, VisitDirective),
+                current.WithDirectives);
+
 
             if (node.SelectionSet != null)
             {
-                VisitSelectionSet(node.SelectionSet, context);
+                current = Rewrite(current, node.SelectionSet, context,
+                    VisitSelectionSet, current.WithSelectionSet);
             }
+
+            return current;
         }
 
-        protected override void VisitFragmentSpread(
+        protected virtual FragmentSpreadNode VisitFragmentSpread(
             FragmentSpreadNode node,
             TContext context)
         {
-            VisitName(node.Name, context);
-            VisitMany(node.Directives, context, VisitDirective);
+            var current = node;
+
+            current = Rewrite(current, node.Name, context,
+                VisitName, current.WithName);
+
+            current = Rewrite(current, node.Directives, context,
+                (p, c) => VisitMany(p, c, VisitDirective),
+                current.WithDirectives);
+
+            return current;
         }
 
-        protected override void VisitInlineFragment(
+        protected virtual InlineFragmentNode VisitInlineFragment(
             InlineFragmentNode node,
             TContext context)
         {
+            var current = node;
+
             if (node.TypeCondition != null)
             {
-                VisitNamedType(node.TypeCondition, context);
+                current = Rewrite(current, node.TypeCondition, context,
+                    VisitNamedType, current.WithTypeCondition);
             }
 
-            VisitMany(node.Directives, context, VisitDirective);
+            current = Rewrite(current, node.Directives, context,
+                (p, c) => VisitMany(p, c, VisitDirective),
+                current.WithDirectives);
 
             if (node.SelectionSet != null)
             {
-                VisitSelectionSet(node.SelectionSet, context);
+                current = Rewrite(current, node.SelectionSet, context,
+                    VisitSelectionSet, current.WithSelectionSet);
             }
+
+            return current;
         }
 
         protected virtual NameNode VisitName(
@@ -219,59 +249,93 @@ namespace HotChocolate.Language
         protected virtual VariableNode VisitVariable(
             VariableNode node,
             TContext context)
-        { }
+        {
+            var current = node;
+
+            current = Rewrite(current, node.Name, context,
+                VisitName, current.WithName);
+
+            return node;
+        }
 
 
-        protected virtual void VisitArgument(
+        protected virtual ArgumentNode VisitArgument(
             ArgumentNode node,
             TContext context)
-        { }
+        {
+            var current = node;
 
+            current = Rewrite(current, node.Name, context,
+                VisitName, current.WithName);
 
+            current = Rewrite(current, node.Value, context,
+                VisitValue, current.WithValue);
 
-        protected virtual void VisitIntValue(
+            return node;
+        }
+
+        protected virtual IntValueNode VisitIntValue(
             IntValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitFloatValue(
+        protected virtual FloatValueNode VisitFloatValue(
             FloatValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitStringValue(
+        protected virtual StringValueNode VisitStringValue(
             StringValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitBooleanValue(
+        protected virtual BooleanValueNode VisitBooleanValue(
             BooleanValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitEnumValue(
+        protected virtual EnumValueNode VisitEnumValue(
             EnumValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitNullValue(
+        protected virtual NullValueNode VisitNullValue(
             NullValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitListValue(
+        protected virtual ListValueNode VisitListValue(
             ListValueNode node,
             TContext context)
-        { }
-        protected virtual void VisitObjectValue(
+        {
+            return node;
+        }
+
+        protected virtual ObjectValueNode VisitObjectValue(
             ObjectValueNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitObjectField(
+        protected virtual ObjectFieldNode VisitObjectField(
             ObjectFieldNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
         protected virtual DirectiveNode VisitDirective(
             DirectiveNode node,
@@ -283,112 +347,28 @@ namespace HotChocolate.Language
         protected virtual NamedTypeNode VisitNamedType(
             NamedTypeNode node,
             TContext context)
-        { }
+        {
+            var current = node;
 
-        protected virtual void VisitListType(
+            current = Rewrite(current, node.Name, context,
+                VisitName, current.WithName);
+
+            return node;
+        }
+
+        protected virtual ListTypeNode VisitListType(
             ListTypeNode node,
             TContext context)
-        { }
+        {
+            return node;
+        }
 
-        protected virtual void VisitNonNullType(
+        protected virtual NonNullTypeNode VisitNonNullType(
             NonNullTypeNode node,
             TContext context)
-        { }
-
-        protected virtual void VisitSchemaDefinition(
-            SchemaDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitOperationTypeDefinition(
-            OperationTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitScalarTypeDefinition(
-            ScalarTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitObjectTypeDefinition(
-            ObjectTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitFieldDefinition(
-            FieldDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitInputValueDefinition(
-            InputValueDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitInterfaceTypeDefinition(
-            InterfaceTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitUnionTypeDefinition(
-            UnionTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitEnumTypeDefinition(
-            EnumTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitEnumValueDefinition(
-            EnumValueDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitInputObjectTypeDefinition(
-            InputObjectTypeDefinitionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitSchemaExtension(
-            SchemaExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitScalarTypeExtension(
-            ScalarTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitObjectTypeExtension(
-            ObjectTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitInterfaceTypeExtension(
-            InterfaceTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitUnionTypeExtension(
-            UnionTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitEnumTypeExtension(
-            EnumTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitInputObjectTypeExtension(
-            InputObjectTypeExtensionNode node,
-            TContext context)
-        { }
-
-        protected virtual void VisitDirectiveDefinition(
-            DirectiveDefinitionNode node,
-            TContext context)
-        { }
+        {
+            return node;
+        }
 
         protected virtual ISelectionNode VisitSelection(
             ISelectionNode node,
@@ -397,55 +377,56 @@ namespace HotChocolate.Language
             switch (node)
             {
                 case FieldNode value:
-                    VisitField(value, context);
-                    break;
+                    return VisitField(value, context);
+
                 case FragmentSpreadNode value:
-                    VisitFragmentSpread(value, context);
-                    break;
+                    return VisitFragmentSpread(value, context);
+
                 case InlineFragmentNode value:
-                    VisitInlineFragment(value, context);
-                    break;
+                    return VisitInlineFragment(value, context);
+
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        protected virtual IValueNode VisitValue(IValueNode node, TContext context)
+        protected virtual IValueNode VisitValue(
+            IValueNode node, TContext context)
         {
             if (node is null)
             {
-                return;
+                return null;
             }
 
             switch (node)
             {
                 case IntValueNode value:
-                    VisitIntValue(value, context);
-                    break;
+                    return VisitIntValue(value, context);
+
                 case FloatValueNode value:
-                    VisitFloatValue(value, context);
-                    break;
+                    return VisitFloatValue(value, context);
+
                 case StringValueNode value:
-                    VisitStringValue(value, context);
-                    break;
+                    return VisitStringValue(value, context);
+
                 case BooleanValueNode value:
-                    VisitBooleanValue(value, context);
-                    break;
+                    return VisitBooleanValue(value, context);
+
                 case EnumValueNode value:
-                    VisitEnumValue(value, context);
-                    break;
+                    return VisitEnumValue(value, context);
+
                 case NullValueNode value:
-                    VisitNullValue(value, context);
-                    break;
+                    return VisitNullValue(value, context);
+
                 case ListValueNode value:
-                    VisitListValue(value, context);
-                    break;
+                    return VisitListValue(value, context);
+
                 case ObjectValueNode value:
-                    VisitObjectValue(value, context);
-                    break;
+                    return VisitObjectValue(value, context);
+
                 case VariableNode value:
-                    VisitVariable(value, context);
-                    break;
+                    return VisitVariable(value, context);
+
                 default:
                     throw new NotSupportedException();
             }
@@ -456,14 +437,14 @@ namespace HotChocolate.Language
             switch (node)
             {
                 case NonNullTypeNode value:
-                    VisitNonNullType(value, context);
-                    break;
+                    return VisitNonNullType(value, context);
+
                 case ListTypeNode value:
-                    VisitListType(value, context);
-                    break;
+                    return VisitListType(value, context);
+
                 case NamedTypeNode value:
-                    VisitNamedType(value, context);
-                    break;
+                    return VisitNamedType(value, context);
+
                 default:
                     throw new NotSupportedException();
             }
@@ -506,5 +487,17 @@ namespace HotChocolate.Language
 
             return modified ? rewrittenSet : items;
         }
+    }
+
+    public static class DocumentRewriterExtensions
+    {
+        public static DocumentNode Rewrite<TRewriter, TContext>(
+            this DocumentNode node, TContext context)
+            where TRewriter : QuerySyntaxRewriter<TContext>, new()
+        {
+            var rewriter = new TRewriter();
+            return (DocumentNode)rewriter.Visit(node, context);
+        }
+
     }
 }
