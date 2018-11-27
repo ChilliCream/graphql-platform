@@ -1,3 +1,8 @@
+using System.IO;
+using System.Text;
+using ChilliCream.Testing;
+using Xunit;
+
 namespace HotChocolate.Language
 {
     public class QuerySyntaxRewriterTests
