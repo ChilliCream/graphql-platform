@@ -182,5 +182,15 @@ namespace HotChocolate.Language
                 return _hash.Value;
             }
         }
+
+        public ListValueNode WithLocation(Location location)
+        {
+            return new ListValueNode(location, Items);
+        }
+
+        public ListValueNode WithItems(IReadOnlyList<IValueNode> items)
+        {
+            return new ListValueNode(Location, items);
+        }
     }
 }

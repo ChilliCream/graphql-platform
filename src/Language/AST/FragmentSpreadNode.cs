@@ -14,5 +14,21 @@ namespace HotChocolate.Language
             : base(location, name, directives) { }
 
         public override NodeKind Kind { get; } = NodeKind.FragmentSpread;
+
+        public FragmentSpreadNode WithLocation(Location location)
+        {
+            return new FragmentSpreadNode(location, Name, Directives);
+        }
+
+        public FragmentSpreadNode WithName(NameNode name)
+        {
+            return new FragmentSpreadNode(Location, name, Directives);
+        }
+
+        public FragmentSpreadNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new FragmentSpreadNode(Location, Name, directives);
+        }
     }
 }

@@ -27,7 +27,9 @@ namespace HotChocolate.Language
         }
 
         public NodeKind Kind { get; } = NodeKind.FloatValue;
+
         public Location Location { get; }
+
         public string Value { get; }
 
         /// <summary>
@@ -146,6 +148,16 @@ namespace HotChocolate.Language
         public override string ToString()
         {
             return Value;
+        }
+
+        public FloatValueNode WithLocation(Location location)
+        {
+            return new FloatValueNode(location, Value);
+        }
+
+        public FloatValueNode WithValue(string value)
+        {
+            return new FloatValueNode(Location, value);
         }
     }
 }

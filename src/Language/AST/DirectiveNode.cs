@@ -55,5 +55,20 @@ namespace HotChocolate.Language
 
         public IReadOnlyCollection<ArgumentNode> Arguments { get; }
 
+        public DirectiveNode WithLocation(Location location)
+        {
+            return new DirectiveNode(location, Name, Arguments);
+        }
+
+        public DirectiveNode WithName(NameNode name)
+        {
+            return new DirectiveNode(Location, name, Arguments);
+        }
+
+        public DirectiveNode WithArguments(
+            IReadOnlyCollection<ArgumentNode> arguments)
+        {
+            return new DirectiveNode(Location, Name, arguments);
+        }
     }
 }

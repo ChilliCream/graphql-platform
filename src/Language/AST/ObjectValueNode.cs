@@ -169,5 +169,16 @@ namespace HotChocolate.Language
                 return _hash.Value;
             }
         }
+
+        public ObjectValueNode WithLocation(Location location)
+        {
+            return new ObjectValueNode(location, Fields);
+        }
+
+        public ObjectValueNode WithFields(
+            IReadOnlyList<ObjectFieldNode> fields)
+        {
+            return new ObjectValueNode(Location, fields);
+        }
     }
 }

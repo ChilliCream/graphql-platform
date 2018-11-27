@@ -44,5 +44,61 @@ namespace HotChocolate.Language
         public NamedTypeNode TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public FragmentDefinitionNode WithLocation(Location location)
+        {
+            return new FragmentDefinitionNode(
+                location, Name,
+                VariableDefinitions,
+                TypeCondition,
+                Directives, SelectionSet);
+        }
+
+        public FragmentDefinitionNode WithName(NameNode name)
+        {
+            return new FragmentDefinitionNode(
+                Location, name,
+                VariableDefinitions,
+                TypeCondition,
+                Directives, SelectionSet);
+        }
+
+        public FragmentDefinitionNode WithVariableDefinitions(
+            IReadOnlyCollection<VariableDefinitionNode> variableDefinitions)
+        {
+            return new FragmentDefinitionNode(
+                Location, Name,
+                variableDefinitions,
+                TypeCondition,
+                Directives, SelectionSet);
+        }
+
+        public FragmentDefinitionNode WithTypeCondition(ITypeNode typeCondition)
+        {
+            return new FragmentDefinitionNode(
+                Location, Name,
+                VariableDefinitions,
+                TypeCondition,
+                Directives, SelectionSet);
+        }
+
+        public FragmentDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new FragmentDefinitionNode(
+                Location, Name,
+                VariableDefinitions,
+                TypeCondition,
+                directives, SelectionSet);
+        }
+        public FragmentDefinitionNode WithSelectionSet(
+            SelectionSetNode selectionSet)
+        {
+            return new FragmentDefinitionNode(
+                Location, Name,
+                VariableDefinitions,
+                TypeCondition,
+                Directives, selectionSet);
+        }
     }
 }

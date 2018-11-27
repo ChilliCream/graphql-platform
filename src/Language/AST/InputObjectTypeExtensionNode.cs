@@ -17,5 +17,31 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } =
             NodeKind.InputObjectTypeExtension;
+
+        public InputObjectTypeExtensionNode WithLocation(Location location)
+        {
+            return new InputObjectTypeExtensionNode(
+                location, Name, Directives, Fields);
+        }
+
+        public InputObjectTypeExtensionNode WithName(NameNode name)
+        {
+            return new InputObjectTypeExtensionNode(
+                Location, name, Directives, Fields);
+        }
+
+        public InputObjectTypeExtensionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new InputObjectTypeExtensionNode(
+                Location, Name, directives, Fields);
+        }
+
+        public InputObjectTypeExtensionNode WithFields(
+            IReadOnlyCollection<InputValueDefinitionNode> fields)
+        {
+            return new InputObjectTypeExtensionNode(
+                Location, Name, Directives, fields);
+        }
     }
 }

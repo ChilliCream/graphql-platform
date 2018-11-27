@@ -27,5 +27,25 @@ namespace HotChocolate.Language
         public OperationType Operation { get; }
 
         public NamedTypeNode Type { get; }
+
+
+        public OperationTypeDefinitionNode WithLocation(Location location)
+        {
+            return new OperationTypeDefinitionNode(
+                location, Operation, Type);
+        }
+
+        public OperationTypeDefinitionNode WithOperation(
+            OperationType operation)
+        {
+            return new OperationTypeDefinitionNode(
+                Location, operation, Type);
+        }
+
+        public OperationTypeDefinitionNode WithType(NamedTypeNode type)
+        {
+            return new OperationTypeDefinitionNode(
+                Location, Operation, type);
+        }
     }
 }

@@ -150,5 +150,15 @@ namespace HotChocolate.Language
         {
             return Value;
         }
+
+        public VariableNode WithLocation(Location location)
+        {
+            return new VariableNode(Location, Name);
+        }
+
+        public VariableNode WithName(NameNode name)
+        {
+            return new VariableNode(Location, Name);
+        }
     }
 }
