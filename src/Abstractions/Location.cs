@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace HotChocolate.Execution
+namespace HotChocolate
 {
     public readonly struct Location
     {

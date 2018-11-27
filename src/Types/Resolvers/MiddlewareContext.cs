@@ -113,22 +113,7 @@ namespace HotChocolate.Resolvers
                 _isResultResolved = true;
             }
 
-            // TODO : rework after error types have been relocated.
-            /*
-            if (_resolvedResult is IQueryError error)
-            {
-                throw new QueryException(error);
-            }
-            else if (_resolvedResult is IEnumerable<IQueryError> errors)
-            {
-                throw new QueryException(errors);
-            }
-            else
-            {
-                return (T)_resolvedResult;
-            }
-             */
-                return (T)_resolvedResult;
-            }
+            return (T)_resolvedResult;
         }
     }
+}

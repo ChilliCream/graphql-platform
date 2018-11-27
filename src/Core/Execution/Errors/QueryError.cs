@@ -67,6 +67,8 @@ namespace HotChocolate.Execution
             NullValueHandling = NullValueHandling.Ignore)]
         public IReadOnlyDictionary<string, object> Extensions { get; }
 
+        public string Code => null;
+
         #region Factories
 
         public static QueryError CreateFieldError(

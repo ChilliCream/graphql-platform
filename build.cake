@@ -148,8 +148,10 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    DotNetCoreTest("./src/Language.Tests", testSettings);
+    DotNetCoreTest("./src/Utilities.Tests", testSettings);
+    DotNetCoreTest("./src/Abstractions.Tests", testSettings);
     DotNetCoreTest("./src/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Language.Tests", testSettings);
     DotNetCoreTest("./src/Types.Tests", testSettings);
     DotNetCoreTest("./src/Validation.Tests", testSettings);
     DotNetCoreTest("./src/Core.Tests", testSettings);

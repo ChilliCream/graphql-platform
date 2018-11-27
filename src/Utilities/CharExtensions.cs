@@ -1,4 +1,4 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Utilities
 {
     /// <summary>
     /// This class provides internal char utilities

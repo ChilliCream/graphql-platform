@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
-using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -24,7 +24,7 @@ namespace HotChocolate
             if (!NameUtils.IsValidName(value))
             {
                 throw new ArgumentException(
-                    TypeResources.Type_Name_IsNotValid(value),
+                    AbstractionResources.Type_Name_IsNotValid(value),
                     nameof(value));
             }
             Value = value;
@@ -250,7 +250,7 @@ namespace HotChocolate
                     : base.ConvertTo(context, culture, value, destinationType);
     }
 
-    internal static class NameStringExtensions
+    public static class NameStringExtensions
     {
         public static NameString EnsureNotEmpty(
             this NameString name,
@@ -259,7 +259,7 @@ namespace HotChocolate
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
+                    AbstractionResources.Name_Cannot_BeEmpty(),
                     argumentName);
             }
 

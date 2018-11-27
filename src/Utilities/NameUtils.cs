@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Utilities
 {
-    public static class NameUtils
+    internal static class NameUtils
     {
         public static bool IsValidName(string name)
         {
