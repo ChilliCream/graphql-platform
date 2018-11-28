@@ -1,0 +1,17 @@
+type Foo implements Bar {
+  id: ID!
+}
+
+interface Bar {
+  id: ID! @upper
+}
+
+type Baz {
+  name(baz: BazInput): String
+}
+
+union FooOrBaz = Foo | Baz
+
+input BazInput {
+  name: String
+}

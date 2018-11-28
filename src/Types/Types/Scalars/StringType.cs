@@ -11,6 +11,7 @@ namespace HotChocolate.Types
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-String
     /// </summary>
+    [SpecScalar]
     public sealed class StringType
         : ScalarType
     {

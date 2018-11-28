@@ -2,6 +2,7 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Introspection
 {
+    [Introspection]
     internal sealed class __Schema
         : ObjectType<ISchema>
     {
