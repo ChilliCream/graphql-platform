@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public class DummySchemaSyntaxWalker
-        : SchemaSyntaxWalker
+        : SchemaSyntaxWalker<object>
     {
         private HashSet<string> _visited = new HashSet<string>();
 
@@ -11,121 +11,140 @@ namespace HotChocolate.Language
 
         public bool VisitedAllNodes => _visited.Count == 17;
 
-        protected override void VisitSchemaDefinition(SchemaDefinitionNode node)
+        protected override void VisitSchemaDefinition(
+            SchemaDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitSchemaDefinition));
-            base.VisitSchemaDefinition(node);
+            base.VisitSchemaDefinition(node, context);
         }
 
-        protected override void VisitSchemaExtension(SchemaExtensionNode node)
+        protected override void VisitSchemaExtension(
+            SchemaExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitSchemaExtension));
-            base.VisitSchemaExtension(node);
+            base.VisitSchemaExtension(node, context);
         }
 
         protected override void VisitOperationTypeDefinition(
-            OperationTypeDefinitionNode node)
+            OperationTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitOperationTypeDefinition));
-            base.VisitOperationTypeDefinition(node);
+            base.VisitOperationTypeDefinition(node, context);
         }
 
         protected override void VisitDirectiveDefinition(
-            DirectiveDefinitionNode node)
+            DirectiveDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitDirectiveDefinition));
-            base.VisitDirectiveDefinition(node);
+            base.VisitDirectiveDefinition(node, context);
         }
 
         protected override void VisitScalarTypeDefinition(
-            ScalarTypeDefinitionNode node)
+            ScalarTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitScalarTypeDefinition));
-            base.VisitScalarTypeDefinition(node);
+            base.VisitScalarTypeDefinition(node, context);
         }
 
         protected override void VisitScalarTypeExtension(
-            ScalarTypeExtensionNode node)
+            ScalarTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitScalarTypeExtension));
-            base.VisitScalarTypeExtension(node);
+            base.VisitScalarTypeExtension(node, context);
         }
 
         protected override void VisitObjectTypeDefinition(
-            ObjectTypeDefinitionNode node)
+            ObjectTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitObjectTypeDefinition));
-            base.VisitObjectTypeDefinition(node);
+            base.VisitObjectTypeDefinition(node, context);
         }
 
         protected override void VisitObjectTypeExtension(
-            ObjectTypeExtensionNode node)
+            ObjectTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitObjectTypeExtension));
-            base.VisitObjectTypeExtension(node);
+            base.VisitObjectTypeExtension(node, context);
         }
 
         protected override void VisitFieldDefinition(
-            FieldDefinitionNode node)
+            FieldDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitFieldDefinition));
-            base.VisitFieldDefinition(node);
+            base.VisitFieldDefinition(node, context);
         }
 
         protected override void VisitInputObjectTypeDefinition(
-            InputObjectTypeDefinitionNode node)
+            InputObjectTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitInputObjectTypeDefinition));
-            base.VisitInputObjectTypeDefinition(node);
+            base.VisitInputObjectTypeDefinition(node, context);
         }
 
         protected override void VisitInputObjectTypeExtension(
-            InputObjectTypeExtensionNode node)
+            InputObjectTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitInputObjectTypeExtension));
-            base.VisitInputObjectTypeExtension(node);
+            base.VisitInputObjectTypeExtension(node, context);
         }
 
         protected override void VisitInterfaceTypeDefinition(
-           InterfaceTypeDefinitionNode node)
+           InterfaceTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitInterfaceTypeDefinition));
-            base.VisitInterfaceTypeDefinition(node);
+            base.VisitInterfaceTypeDefinition(node, context);
         }
 
         protected override void VisitInterfaceTypeExtension(
-            InterfaceTypeExtensionNode node)
+            InterfaceTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitInterfaceTypeExtension));
-            base.VisitInterfaceTypeExtension(node);
+            base.VisitInterfaceTypeExtension(node, context);
         }
 
         protected override void VisitUnionTypeDefinition(
-            UnionTypeDefinitionNode node)
+            UnionTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitUnionTypeDefinition));
-            base.VisitUnionTypeDefinition(node);
+            base.VisitUnionTypeDefinition(node, context);
         }
 
         protected override void VisitUnionTypeExtension(
-            UnionTypeExtensionNode node)
+            UnionTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitUnionTypeExtension));
-            base.VisitUnionTypeExtension(node);
+            base.VisitUnionTypeExtension(node, context);
         }
 
         protected override void VisitEnumTypeDefinition(
-            EnumTypeDefinitionNode node)
+            EnumTypeDefinitionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitEnumTypeDefinition));
-            base.VisitEnumTypeDefinition(node);
+            base.VisitEnumTypeDefinition(node, context);
         }
 
         protected override void VisitEnumTypeExtension(
-            EnumTypeExtensionNode node)
+            EnumTypeExtensionNode node,
+            object context)
         {
             _visited.Add(nameof(VisitEnumTypeExtension));
-            base.VisitEnumTypeExtension(node);
+            base.VisitEnumTypeExtension(node, context);
         }
     }
 }

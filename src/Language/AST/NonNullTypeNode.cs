@@ -28,5 +28,15 @@ namespace HotChocolate.Language
         {
             return $"{Type.ToString()}!";
         }
+
+        public NonNullTypeNode WithLocation(Location location)
+        {
+            return new NonNullTypeNode(location, Type);
+        }
+
+        public NonNullTypeNode WithType(INullableType type)
+        {
+            return new NonNullTypeNode(Location, Type);
+        }
     }
 }

@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(executeQuery));
         }
 
-        public IReadOnlyCollection<IQueryError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors { get; }
 
         public bool IsCompleted => _isCompleted && _eventStream.IsCompleted;
 

@@ -36,5 +36,34 @@ namespace HotChocolate.Language
         public ITypeNode Type { get; }
 
         public IValueNode DefaultValue { get; }
+
+        public VariableDefinitionNode WithLocation(Location location)
+        {
+            return new VariableDefinitionNode(
+                location, Variable, Type,
+                DefaultValue);
+        }
+
+        public VariableDefinitionNode WithVariable(VariableNode variable)
+        {
+            return new VariableDefinitionNode(
+                Location, variable, Type,
+                DefaultValue);
+        }
+
+
+        public VariableDefinitionNode WithType(ITypeNode type)
+        {
+            return new VariableDefinitionNode(
+                Location, Variable, type,
+                DefaultValue);
+        }
+
+        public VariableDefinitionNode WithDefaultValue(IValueNode defaultValue)
+        {
+            return new VariableDefinitionNode(
+                Location, Variable, Type,
+                defaultValue);
+        }
     }
 }

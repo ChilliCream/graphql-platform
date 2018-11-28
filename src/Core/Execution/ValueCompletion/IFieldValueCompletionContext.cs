@@ -27,9 +27,9 @@ namespace HotChocolate.Execution
 
         bool IsNullable { get; }
 
-        void ReportError(IEnumerable<IQueryError> errors);
+        void ReportError(IEnumerable<IError> errors);
 
-        void ReportError(IQueryError error);
+        void ReportError(IError error);
 
         void ReportError(string message);
 

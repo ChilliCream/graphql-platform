@@ -15,5 +15,25 @@ namespace HotChocolate.Language
         }
 
         public override NodeKind Kind { get; } = NodeKind.SchemaDefinition;
+
+        public SchemaDefinitionNode WithLocation(Location location)
+        {
+            return new SchemaDefinitionNode(
+                Location, Directives, OperationTypes);
+        }
+
+        public SchemaDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new SchemaDefinitionNode(
+                Location, directives, OperationTypes);
+        }
+
+        public SchemaDefinitionNode WithOperationTypes(
+            IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
+        {
+            return new SchemaDefinitionNode(
+                Location, Directives, operationTypes);
+        }
     }
 }

@@ -20,5 +20,18 @@ namespace HotChocolate.Language
         public Location Location { get; }
 
         public IReadOnlyCollection<ISelectionNode> Selections { get; }
+
+        public SelectionSetNode WithLocation(Location location)
+        {
+            return new SelectionSetNode(
+                location, Selections);
+        }
+
+        public SelectionSetNode WithSelections(
+            IReadOnlyCollection<ISelectionNode> selections)
+        {
+            return new SelectionSetNode(
+                Location, selections);
+        }
     }
 }

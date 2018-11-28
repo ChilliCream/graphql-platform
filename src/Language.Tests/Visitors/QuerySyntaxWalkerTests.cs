@@ -14,7 +14,7 @@ namespace HotChocolate.Language
 
             // act
             DummyQuerySyntaxWalker walker = new DummyQuerySyntaxWalker();
-            walker.Visit(document);
+            walker.Visit(document, null);
 
             // assert
             Assert.True(walker.VisitedAllNodes);

@@ -15,17 +15,12 @@ namespace HotChocolate.Language
         {
         }
 
-        public ArgumentNode(
-            NameNode name,
-            IValueNode value)
+        public ArgumentNode(NameNode name, IValueNode value)
             : this(null, name, value)
         {
         }
 
-        public ArgumentNode(
-            Location location,
-            NameNode name,
-            IValueNode value)
+        public ArgumentNode(Location location, NameNode name, IValueNode value)
         {
             if (name == null)
             {
@@ -49,5 +44,20 @@ namespace HotChocolate.Language
         public NameNode Name { get; }
 
         public IValueNode Value { get; }
+
+        public ArgumentNode WithLocation(Location location)
+        {
+            return new ArgumentNode(location, Name, Value);
+        }
+
+        public ArgumentNode WithName(NameNode name)
+        {
+            return new ArgumentNode(Location, name, Value);
+        }
+
+        public ArgumentNode WithValue(IValueNode value)
+        {
+            return new ArgumentNode(Location, Name, value);
+        }
     }
 }

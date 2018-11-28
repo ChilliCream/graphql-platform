@@ -18,6 +18,7 @@ namespace HotChocolate.Execution
         }
 
         public string Name { get; }
+
         public object Value { get; }
     }
 }

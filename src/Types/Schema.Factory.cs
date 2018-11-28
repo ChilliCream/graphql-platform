@@ -48,7 +48,7 @@ namespace HotChocolate
 
             // deserialize schema objects
             var visitor = new SchemaSyntaxVisitor(context.Types);
-            visitor.Visit(schemaDocument);
+            visitor.Visit(schemaDocument, null);
 
             return CreateSchema(context, c =>
             {
@@ -111,6 +111,7 @@ namespace HotChocolate
                 var configuration = new SchemaConfiguration(
                     context.RegisterServiceProvider,
                     context.Types,
+                    context.Resolvers,
                     context.Directives);
 
                 configuration.RegisterCustomContext<IResolverCache>(

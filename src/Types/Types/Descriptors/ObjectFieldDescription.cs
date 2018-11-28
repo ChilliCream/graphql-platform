@@ -13,6 +13,6 @@ namespace HotChocolate.Types
 
         public MemberInfo Member { get; set; }
 
-        public AsyncFieldResolverDelegate Resolver { get; set; }
+        public FieldResolverDelegate Resolver { get; set; }
     }
 }

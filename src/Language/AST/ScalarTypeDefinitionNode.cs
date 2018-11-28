@@ -14,10 +14,41 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
+            Description = description;
         }
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeDefinition;
 
         public StringValueNode Description { get; }
+
+        public ScalarTypeDefinitionNode WithLocation(Location location)
+        {
+            return new ScalarTypeDefinitionNode(
+                location, Name, Description,
+                Directives);
+        }
+
+        public ScalarTypeDefinitionNode WithName(NameNode name)
+        {
+            return new ScalarTypeDefinitionNode(
+                Location, name, Description,
+                Directives);
+        }
+
+        public ScalarTypeDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new ScalarTypeDefinitionNode(
+                Location, Name, description,
+                Directives);
+        }
+
+        public ScalarTypeDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new ScalarTypeDefinitionNode(
+                Location, Name, Description,
+                directives);
+        }
     }
 }

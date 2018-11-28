@@ -120,5 +120,20 @@ namespace HotChocolate.Language
                 return _hash.Value;
             }
         }
+
+        public ObjectFieldNode WithLocation(Location location)
+        {
+            return new ObjectFieldNode(location, Name, Value);
+        }
+
+        public ObjectFieldNode WithName(NameNode name)
+        {
+            return new ObjectFieldNode(Location, name, Value);
+        }
+
+        public ObjectFieldNode WithValue(IValueNode value)
+        {
+            return new ObjectFieldNode(Location, Name, value);
+        }
     }
 }

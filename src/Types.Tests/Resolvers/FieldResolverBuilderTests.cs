@@ -15,7 +15,10 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var fieldMember = new FieldMember(
                 "type", "field",
@@ -37,8 +40,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                        context.Object,
-                        CancellationToken.None).Result;
+                        context.Object).Result;
                     Assert.Equal("Hello World", resolvedValue);
                 });
         }
@@ -48,9 +50,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
             context.Setup(t => t.Resolver<FooTypeResolver>())
                 .Returns(new FooTypeResolver());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var argumentDescriptor =
                new ArgumentDescriptor(
@@ -81,8 +86,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                        context.Object,
-                        CancellationToken.None).Result;
+                        context.Object).Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
         }
@@ -92,9 +96,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
             context.Setup(t => t.Resolver<FooTypeResolver>())
                 .Returns(new FooTypeResolver());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var argumentDescriptor =
                 new ArgumentDescriptor(
@@ -125,8 +132,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedValue = r.Resolver(
-                            context.Object,
-                            CancellationToken.None)
+                            context.Object)
                             .Result;
                     Assert.Equal("Hello World_123", resolvedValue);
                 });
@@ -137,7 +143,10 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
-            context.Setup(t => t.Parent<FooType>()).Returns(new FooType());
+            context.Setup(t => t.Parent<FooType>())
+                .Returns(new FooType());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             var fieldMember = new FieldMember(
                 "type", "field", typeof(FooType).GetProperty("BarProperty"));
@@ -158,8 +167,7 @@ namespace HotChocolate.Resolvers
                     Assert.NotNull(r.Resolver);
 
                     object resolvedResult = r.Resolver(
-                            context.Object,
-                            CancellationToken.None).Result;
+                            context.Object).Result;
                     Assert.Equal("Hello World Property", resolvedResult);
                 });
         }

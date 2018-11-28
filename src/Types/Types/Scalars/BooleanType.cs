@@ -8,6 +8,7 @@ namespace HotChocolate.Types
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
+    [SpecScalar]
     public sealed class BooleanType
         : ScalarType
     {

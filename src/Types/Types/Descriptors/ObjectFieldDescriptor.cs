@@ -56,13 +56,13 @@ namespace HotChocolate.Types
             FieldDescription.Ignored = true;
         }
 
-        protected void Resolver(AsyncFieldResolverDelegate fieldResolver)
+        protected void Resolver(FieldResolverDelegate fieldResolver)
         {
             FieldDescription.Resolver = fieldResolver;
         }
 
         protected void Resolver(
-            AsyncFieldResolverDelegate fieldResolver,
+            FieldResolverDelegate fieldResolver,
             Type resultType)
         {
             FieldDescription.Resolver = fieldResolver;
@@ -175,14 +175,14 @@ namespace HotChocolate.Types
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
-            AsyncFieldResolverDelegate fieldResolver)
+            FieldResolverDelegate fieldResolver)
         {
             Resolver(fieldResolver);
             return this;
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
-            AsyncFieldResolverDelegate fieldResolver,
+            FieldResolverDelegate fieldResolver,
             Type resultType)
         {
             Resolver(fieldResolver, resultType);

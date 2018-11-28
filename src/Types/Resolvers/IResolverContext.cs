@@ -152,7 +152,7 @@ namespace HotChocolate.Resolvers
         /// The error message.
         /// </param>
         void ReportError(string errorMessage);
-
+        
         [Obsolete("Use RequestAborted.")]
         CancellationToken CancellationToken { get; }
     }

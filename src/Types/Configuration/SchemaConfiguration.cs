@@ -15,11 +15,13 @@ namespace HotChocolate.Configuration
             new List<TypeBindingInfo>();
         private readonly Action<IServiceProvider> _registerServiceProvider;
         private readonly ITypeRegistry _typeRegistry;
+        private readonly IResolverRegistry _resolverRegistry;
         private readonly IDirectiveRegistry _directiveRegistry;
 
         public SchemaConfiguration(
             Action<IServiceProvider> registerServiceProvider,
             ITypeRegistry typeRegistry,
+            IResolverRegistry resolverRegistry,
             IDirectiveRegistry directiveRegistry)
         {
             _registerServiceProvider = registerServiceProvider
@@ -27,6 +29,8 @@ namespace HotChocolate.Configuration
                         nameof(registerServiceProvider));
             _typeRegistry = typeRegistry
                 ?? throw new ArgumentNullException(nameof(typeRegistry));
+            _resolverRegistry = resolverRegistry
+                ?? throw new ArgumentNullException(nameof(resolverRegistry));
             _directiveRegistry = directiveRegistry
                 ?? throw new ArgumentNullException(nameof(directiveRegistry));
         }
@@ -42,6 +46,17 @@ namespace HotChocolate.Configuration
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {
             _registerServiceProvider(serviceProvider);
+        }
+
+        public IMiddlewareConfiguration Use(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _resolverRegistry.RegisterMiddleware(middleware);
+            return this;
         }
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Subscriptions
@@ -9,6 +11,8 @@ namespace HotChocolate.Subscriptions
         : IEventDescription
         , IEquatable<EventDescription>
     {
+        private string _serialized;
+
         public EventDescription(string name)
             : this(name, Array.Empty<ArgumentNode>())
         {
@@ -104,17 +108,37 @@ namespace HotChocolate.Subscriptions
 
         public override string ToString()
         {
-            if (Arguments.Any())
+            if (_serialized == null)
             {
-                var serializer = new QuerySerializer();
-                string arguments = string.Join(", ", Arguments.Select(t =>
+                if (Arguments.Any())
                 {
-                    serializer.Visit(t.Value);
-                    return t.Name.Value + " = " + serializer.Value;
-                }));
-                return Name + "(" + arguments + ")";
+                    _serialized = $"{Name}({SerializeArguments(Arguments)})";
+                }
+                else
+                {
+                    _serialized = Name;
+                }
             }
-            return Name;
+            return _serialized;
+        }
+
+        private static string SerializeArguments(
+            IEnumerable<ArgumentNode> arguments)
+        {
+            var serializer = new QuerySyntaxSerializer();
+            var sb = new StringBuilder();
+
+            using (var stringWriter = new StringWriter(sb))
+            {
+                var documentWriter = new DocumentWriter(stringWriter);
+
+                return string.Join(", ", arguments.Select(t =>
+                {
+                    sb.Clear();
+                    serializer.Visit(t.Value, documentWriter);
+                    return t.Name.Value + " = " + sb.ToString();
+                }));
+            }
         }
     }
 }

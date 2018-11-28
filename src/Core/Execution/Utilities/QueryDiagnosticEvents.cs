@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
             ISchema schema,
             QueryRequest request,
             DocumentNode query,
-            IReadOnlyCollection<IQueryError> errors)
+            IReadOnlyCollection<IError> errors)
         {
             var payload = new
             {

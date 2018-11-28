@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -28,10 +29,10 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Ignore();
 
         IObjectFieldDescriptor Resolver(
-            AsyncFieldResolverDelegate fieldResolver);
+            FieldResolverDelegate fieldResolver);
 
         IObjectFieldDescriptor Resolver(
-            AsyncFieldResolverDelegate fieldResolver,
+            FieldResolverDelegate fieldResolver,
             Type resultType);
 
         IObjectFieldDescriptor Directive<T>(T directive)
@@ -55,7 +56,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, object> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) =>
+            return descriptor.Resolver(ctx =>
                 Task.FromResult<object>(fieldResolver(ctx)));
         }
 
@@ -65,16 +66,15 @@ namespace HotChocolate.Types
         {
             return descriptor
                 .Type<NativeType<TResult>>()
-                .Resolver((ctx, ct) =>
-                    Task.FromResult<object>(fieldResolver(ctx)),
-                typeof(NativeType<TResult>));
+                .Resolver(ctx => Task.FromResult<object>(fieldResolver(ctx)),
+                    typeof(NativeType<TResult>));
         }
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<object> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) =>
+            return descriptor.Resolver(ctx =>
                 Task.FromResult<object>(fieldResolver()));
         }
 
@@ -82,23 +82,18 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<TResult> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) =>
+            return descriptor.Resolver(ctx =>
                 Task.FromResult<object>(fieldResolver()),
                 typeof(NativeType<TResult>));
         }
 
+        // ? Remove
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            AsyncFieldResolverDelegate fieldResolver)
+            Func<IResolverContext, CancellationToken, object> fieldResolver)
         {
-            return descriptor.Resolver(fieldResolver);
-        }
-
-        public static IObjectFieldDescriptor Resolver(
-            this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, Task<object>> fieldResolver)
-        {
-            return descriptor.Resolver((ctx, ct) => fieldResolver(ctx));
+            return descriptor.Resolver(
+                ctx => fieldResolver(ctx, ctx.RequestAborted));
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
@@ -106,7 +101,7 @@ namespace HotChocolate.Types
             Func<IResolverContext, Task<TResult>> fieldResolver)
         {
             return descriptor.Resolver(
-                async (ctx, ct) => await fieldResolver(ctx),
+                async ctx => await fieldResolver(ctx),
                 typeof(NativeType<TResult>));
         }
 
@@ -114,14 +109,14 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<Task<object>> fieldResolver)
         {
-            return descriptor.Resolver((ctx, ct) => fieldResolver());
+            return descriptor.Resolver(ctx => fieldResolver());
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<Task<TResult>> fieldResolver)
         {
-            return descriptor.Resolver(async (ctx, ct) => await fieldResolver(),
+            return descriptor.Resolver(async ctx => await fieldResolver(),
                 typeof(NativeType<TResult>));
         }
     }

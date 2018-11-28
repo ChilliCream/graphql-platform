@@ -98,14 +98,14 @@ namespace HotChocolate.Execution
 
         public bool IsNullable { get; }
 
-        public void ReportError(IEnumerable<IQueryError> errors)
+        public void ReportError(IEnumerable<IError> errors)
         {
             if (errors == null)
             {
                 throw new ArgumentNullException(nameof(errors));
             }
 
-            foreach (IQueryError error in errors)
+            foreach (IError error in errors)
             {
                 ExecutionContext.ReportError(error);
             }
@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
             _integrateResult(null);
         }
 
-        public void ReportError(IQueryError error)
+        public void ReportError(IError error)
         {
             if (error == null)
             {

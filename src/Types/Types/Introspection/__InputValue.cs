@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace HotChocolate.Types.Introspection
 {
+    [Introspection]
     internal sealed class __InputValue
         : ObjectType<InputField>
     {
@@ -34,7 +35,7 @@ namespace HotChocolate.Types.Introspection
                 .Resolver(c =>
                 {
                     InputField field = c.Parent<InputField>();
-                    if (field.Type.IsNonNullType() 
+                    if (field.Type.IsNonNullType()
                         && field.DefaultValue is NullValueNode)
                     {
                         return null;

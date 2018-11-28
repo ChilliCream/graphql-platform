@@ -129,7 +129,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private IQueryError CreateErrorFromException(Exception exception)
+        private IError CreateErrorFromException(Exception exception)
         {
             if (Schema.Options.DeveloperMode)
             {

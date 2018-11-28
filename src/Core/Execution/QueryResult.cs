@@ -24,12 +24,12 @@ namespace HotChocolate.Execution
             Data.MakeReadOnly();
         }
 
-        public QueryResult(params IQueryError[] errors)
-            : this(errors as IEnumerable<IQueryError>)
+        public QueryResult(params IError[] errors)
+            : this(errors as IEnumerable<IError>)
         {
         }
 
-        public QueryResult(IEnumerable<IQueryError> errors)
+        public QueryResult(IEnumerable<IError> errors)
         {
             if (errors == null)
             {
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
         public QueryResult(
             OrderedDictionary data,
-            IEnumerable<IQueryError> errors)
+            IEnumerable<IError> errors)
         {
             if (data == null)
             {
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
             Data = data;
             Data.MakeReadOnly();
 
-            Errors = new List<IQueryError>(errors).AsReadOnly();
+            Errors = new List<IError>(errors).AsReadOnly();
             if (Errors.Count == 0)
             {
                 Errors = null;
@@ -72,7 +72,7 @@ namespace HotChocolate.Execution
 
         IOrderedDictionary IQueryExecutionResult.Data => Data;
 
-        public IReadOnlyCollection<IQueryError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors { get; }
 
         public T ToObject<T>()
         {

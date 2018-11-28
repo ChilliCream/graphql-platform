@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace HotChocolate.Execution
 {
     public class QueryError
-       : IQueryError
+       : IError
     {
         public QueryError(string message, params ErrorProperty[] extensions)
             : this(message, null, null, extensions)
@@ -66,6 +66,8 @@ namespace HotChocolate.Execution
             Order = int.MaxValue,
             NullValueHandling = NullValueHandling.Ignore)]
         public IReadOnlyDictionary<string, object> Extensions { get; }
+
+        public string Code => null;
 
         #region Factories
 

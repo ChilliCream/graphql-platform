@@ -152,5 +152,15 @@ namespace HotChocolate.Language
         {
             return Value;
         }
+
+        public EnumValueNode WithLocation(Location location)
+        {
+            return new EnumValueNode(location, Value);
+        }
+
+        public EnumValueNode WithValue(string value)
+        {
+            return new EnumValueNode(Location, value);
+        }
     }
 }

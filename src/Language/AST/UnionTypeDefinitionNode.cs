@@ -21,5 +21,43 @@ namespace HotChocolate.Language
         public override NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
 
         public StringValueNode Description { get; }
+
+        public UnionTypeDefinitionNode WithLocation(Location location)
+        {
+            return new UnionTypeDefinitionNode(
+                location, Name, Description,
+                Directives, Types);
+        }
+
+        public UnionTypeDefinitionNode WithName(NameNode name)
+        {
+            return new UnionTypeDefinitionNode(
+                Location, name, Description,
+                Directives, Types);
+        }
+
+        public UnionTypeDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new UnionTypeDefinitionNode(
+                Location, Name, description,
+                Directives, Types);
+        }
+
+        public UnionTypeDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new UnionTypeDefinitionNode(
+                Location, Name, Description,
+                directives, Types);
+        }
+
+        public UnionTypeDefinitionNode WithTypes(
+            IReadOnlyCollection<NamedTypeNode> types)
+        {
+            return new UnionTypeDefinitionNode(
+                Location, Name, Description,
+                Directives, types);
+        }
     }
 }

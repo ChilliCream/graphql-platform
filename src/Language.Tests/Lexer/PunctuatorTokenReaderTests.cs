@@ -58,16 +58,19 @@ namespace HotChocolate.Language
         {
             ReadToken('[', TokenKind.LeftBracket);
         }
+
         [Fact]
         public void ReadRightBracketToken()
         {
             ReadToken(']', TokenKind.RightBracket);
         }
+
         [Fact]
         public void ReadLeftBraceToken()
         {
             ReadToken('{', TokenKind.LeftBrace);
         }
+
         [Fact]
         public void ReadRightBraceToken()
         {

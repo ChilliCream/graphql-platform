@@ -13,6 +13,7 @@ namespace HotChocolate.Types
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-ID
     /// </summary>
+    [SpecScalar]
     public sealed class IdType
         : ScalarType
     {

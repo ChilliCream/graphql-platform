@@ -9,22 +9,22 @@ namespace HotChocolate.Validation
     {
         private QueryValidationResult()
         {
-            Errors = Array.Empty<IQueryError>();
+            Errors = Array.Empty<IError>();
             HasErrors = false;
         }
 
-        public QueryValidationResult(IQueryError error)
+        public QueryValidationResult(IError error)
         {
             if (error == null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
 
-            Errors = new IQueryError[] { error };
+            Errors = new IError[] { error };
             HasErrors = true;
         }
 
-        public QueryValidationResult(IEnumerable<IQueryError> errors)
+        public QueryValidationResult(IEnumerable<IError> errors)
         {
             if (errors == null)
             {
@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
 
         public bool HasErrors { get; }
 
-        public IReadOnlyCollection<IQueryError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors { get; }
 
         public static QueryValidationResult OK { get; } = new QueryValidationResult();
     }

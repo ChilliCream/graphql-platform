@@ -37,5 +37,35 @@ namespace HotChocolate.Language
         public IReadOnlyCollection<DirectiveNode> Directives { get; }
 
         public SelectionSetNode SelectionSet { get; }
+
+        public InlineFragmentNode WithLocation(Location location)
+        {
+            return new InlineFragmentNode(
+                location, TypeCondition,
+                Directives, SelectionSet);
+        }
+
+        public InlineFragmentNode WithTypeCondition(NamedTypeNode typeCondition)
+        {
+            return new InlineFragmentNode(
+                Location, typeCondition,
+                Directives, SelectionSet);
+        }
+
+        public InlineFragmentNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new InlineFragmentNode(
+                Location, TypeCondition,
+                directives, SelectionSet);
+        }
+
+        public InlineFragmentNode WithSelectionSet(
+            SelectionSetNode selectionSet)
+        {
+            return new InlineFragmentNode(
+                Location, TypeCondition,
+                Directives, selectionSet);
+        }
     }
 }

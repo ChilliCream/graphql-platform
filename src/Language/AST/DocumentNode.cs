@@ -24,5 +24,19 @@ namespace HotChocolate.Language
         public Location Location { get; }
 
         public IReadOnlyCollection<IDefinitionNode> Definitions { get; }
+
+        public DocumentNode WithLocation(Location location)
+        {
+            return new DocumentNode(location, Definitions);
+        }
+
+        public DocumentNode WithDefinitions(
+            IReadOnlyCollection<IDefinitionNode> definitions)
+        {
+            return new DocumentNode(Location, definitions);
+        }
+
+        public static DocumentNode Empty { get; } =
+            new DocumentNode(null, Array.Empty<IDefinitionNode>());
     }
 }

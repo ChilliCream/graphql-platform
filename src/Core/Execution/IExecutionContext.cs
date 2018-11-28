@@ -42,9 +42,9 @@ namespace HotChocolate.Execution
 
         CancellationToken RequestAborted { get; }
 
-        void ReportError(IQueryError error);
+        void ReportError(IError error);
 
-        IEnumerable<IQueryError> GetErrors();
+        IEnumerable<IError> GetErrors();
 
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType,

@@ -113,11 +113,13 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(NativeType<string>), description.TypeReference.ClrType);
+            Assert.Equal(typeof(NativeType<string>),
+                description.TypeReference.ClrType);
             Assert.NotNull(description.Resolver);
 
-            Mock<IResolverContext> context = new Mock<IResolverContext>(MockBehavior.Strict);
-            Assert.Equal("ThisIsAString", description.Resolver(context.Object, default).Result);
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
+            Assert.Equal("ThisIsAString",
+                description.Resolver(context.Object).Result);
         }
 
         [Fact]
