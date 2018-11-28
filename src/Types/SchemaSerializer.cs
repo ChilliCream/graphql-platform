@@ -47,19 +47,16 @@ namespace HotChocolate
         {
             return schema.Types
                .Where(t => IsPublicAndNoScalar(t))
-               .GroupBy(t => t.Kind)
+               .OrderBy(t => t.Name.ToString())
+               .GroupBy(t => (int)t.Kind)
                .OrderBy(t => t.Key)
                .SelectMany(t => t);
         }
 
         private static bool IsPublicAndNoScalar(INamedType type)
         {
-            if (type.IsInterfaceType())
-            {
-                return false;
-            }
-
-            if (type is ScalarType scalarType)
+            if (type.IsIntrospectionType()
+                || type is ScalarType scalarType)
             {
                 return false;
             }

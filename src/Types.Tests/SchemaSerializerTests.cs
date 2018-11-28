@@ -9,8 +9,9 @@ namespace HotChocolate
     public class SchemaSerializerTests
     {
         [Fact]
-        public void Foo()
+        public void SerializeSchemaWithDirective()
         {
+            // arrange
             string source = FileResource.Open("serialize_schema.graphql");
             ISchema schema = Schema.Create(
                 source,
@@ -26,22 +27,16 @@ namespace HotChocolate
             var sb = new StringBuilder();
             var s = new StringWriter(sb);
 
-
+            // act
             SchemaSerializer.Serialize(schema, s);
 
+            // assert
             sb.ToString().Snapshot();
-
-
-
         }
 
         public class Baz
         {
             public string Name { get; set; }
         }
-
-
-
-
     }
 }

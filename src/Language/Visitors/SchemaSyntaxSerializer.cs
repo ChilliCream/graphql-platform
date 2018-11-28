@@ -118,7 +118,7 @@ namespace HotChocolate.Language
         {
             WriteDescription(node.Description, writer);
 
-            writer.Write(Keywords.Type);
+            writer.Write(Keywords.Interface);
             writer.WriteSpace();
             writer.WriteName(node.Name);
 
