@@ -8,6 +8,12 @@ namespace HotChocolate.Configuration
     public interface IDataLoaderConfiguration
         : IFluent
     {
+        void RegisterDataLoader(Type type,
+            string key,
+            ExecutionScope scope,
+            Func<IServiceProvider, object> loaderFactory = null,
+            Func<object, CancellationToken, Task> triggerLoaderAsync = null);
+
         void RegisterDataLoader<T>(
             string key,
             ExecutionScope scope,
