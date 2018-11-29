@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace HotChocolate.Types
 {
     public class InputObjectTypeDescriptorDescriptors
