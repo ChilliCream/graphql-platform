@@ -1,7 +1,9 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
@@ -59,7 +61,8 @@ namespace HotChocolate.Stitching
 
         }
 
-        public void BrokerTest()
+        [Fact]
+        public async Task BrokerTest()
         {
             // arrange
             string schema_a = @"
@@ -70,11 +73,25 @@ namespace HotChocolate.Stitching
                 type Query { bar: Bar }
                 type Bar { name: String }";
 
-            string schema_stiched = @"
-                type Query { foo: Foo @schema(name: ""a"") }
-                type Foo {
-                    name: String @schema(name: ""a"")
-                    bar: Bar @schema(name: ""b"") @delegate(path: """") }";
+            string query = @"
+                {
+                    foo @schema(name: ""a"")
+                    {
+                        name @schema(name: ""a"")
+                        bar
+                            @schema(name: ""b"")
+                            @delegate(path: ""bar"" operation: QUERY)
+                        {
+                            name @schema(name: ""b"")
+                        }
+                    }
+                }";
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            FieldNode fieldSelection = queryDocument.Definitions
+                .OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().Last();
 
             var schemas = new Dictionary<string, IQueryExecuter>();
 
@@ -97,12 +114,16 @@ namespace HotChocolate.Stitching
             var broker = new QueryBroker(stitchingContext);
 
             var directiveContext = new Mock<IDirectiveContext>();
+            directiveContext.SetupGet(t => t.FieldSelection)
+                .Returns(fieldSelection);
 
-            broker.RedirectQueryAsync()
+            // act
+            IExecutionResult response = await broker.RedirectQueryAsync(
+                directiveContext.Object,
+                CancellationToken.None);
 
-
-
-
+            // assert
+            response.Snapshot();
         }
 
 
