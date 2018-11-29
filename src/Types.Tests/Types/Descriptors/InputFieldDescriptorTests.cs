@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
@@ -160,7 +161,8 @@ namespace HotChocolate.Types
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
             Assert.IsType<StringValueNode>(description.DefaultValue);
-            Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
+            Assert.Equal("123",
+                ((StringValueNode)description.DefaultValue).Value);
             Assert.Null(description.NativeDefaultValue);
         }
 

@@ -115,10 +115,10 @@ namespace HotChocolate.Types
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
     {
-        public InputObjectTypeDescriptor(Type clrType)
+        public InputObjectTypeDescriptor()
         {
-            ObjectDescription.ClrType = clrType
-                ?? throw new ArgumentNullException(nameof(clrType));
+            Type clrType = typeof(T);
+            ObjectDescription.ClrType = clrType;
             ObjectDescription.Name = clrType.GetGraphQLName();
             ObjectDescription.Description = clrType.GetGraphQLDescription();
 
@@ -153,7 +153,7 @@ namespace HotChocolate.Types
                 if (!fields.ContainsKey(property.Value))
                 {
                     var fieldDescriptor =
-                        new InputFieldDescriptor(property.Value);
+                        new InputFieldDescriptor(property.Key);
 
                     fields[property.Value] = fieldDescriptor
                         .CreateDescription();
