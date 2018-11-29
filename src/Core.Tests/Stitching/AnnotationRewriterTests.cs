@@ -4,10 +4,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
-using HotChocolate.Stitching;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Stitching
 {
     public class AnnotationRewriterTests
     {

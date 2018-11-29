@@ -8,6 +8,7 @@ using System.Diagnostics;
 namespace HotChocolate.Execution
 {
     public partial class QueryExecuter
+        : IQueryExecuter
     {
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
