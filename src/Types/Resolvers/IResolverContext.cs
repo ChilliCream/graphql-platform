@@ -152,7 +152,18 @@ namespace HotChocolate.Resolvers
         /// The error message.
         /// </param>
         void ReportError(string errorMessage);
-        
+
+        /// <summary>
+        /// Report a non-terminating resolver error to the execution enhgine.
+        /// The error will be displayed in the errorsection with a reference to
+        /// the field selection that is associated with the current
+        /// resolver context.
+        /// </summary>
+        /// <param name="errorMessage">
+        /// The error message.
+        /// </param>
+        void ReportError(IError error);
+
         [Obsolete("Use RequestAborted.")]
         CancellationToken CancellationToken { get; }
     }

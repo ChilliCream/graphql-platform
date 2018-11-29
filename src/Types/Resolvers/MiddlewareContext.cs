@@ -101,6 +101,10 @@ namespace HotChocolate.Resolvers
         public void ReportError(string errorMessage) =>
             _resolverContext.ReportError(errorMessage);
 
+        public void ReportError(IError error) =>
+            _resolverContext.ReportError(error);
+
+
         public T Resolver<T>() => _resolverContext.Resolver<T>();
 
         public T Service<T>() => _resolverContext.Service<T>();
