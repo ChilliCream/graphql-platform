@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class FieldDescriptorTests
+    public class ObjectFieldDescriptorTests
     {
         [Fact]
         public void DotNetTypesDoNotOverwriteSchemaTypes()

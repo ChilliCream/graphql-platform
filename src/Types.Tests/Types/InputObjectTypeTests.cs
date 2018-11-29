@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ChilliCream.Testing;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
@@ -8,6 +9,29 @@ namespace HotChocolate.Types
 {
     public class InputObjectTypeTests
     {
+        [Fact]
+        public void Initialize_IgnoreProperty_PropertyIsNotInSchemaType()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new InputObjectType<SimpleInput>(
+                d => d.Field(f => f.Id).Ignore());
+            INeedsInitialization init = fooType;
+
+            // assert
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            Assert.Empty(errors);
+            Assert.Collection(fooType.Fields,
+                t => Assert.Equal("name", t.Name));
+        }
+
         [Fact]
         public void ParseLiteral()
         {
@@ -121,6 +145,12 @@ namespace HotChocolate.Types
                     }));
             });
         }
+    }
+
+    public class SimpleInput
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
     }
 
     public class SerializationInputObject1
