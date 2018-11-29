@@ -25,13 +25,36 @@ namespace HotChocolate.Types
             return ObjectDescription;
         }
 
-        protected virtual void CompleteFields()
+        private void CompleteFields()
         {
+            var fields = new Dictionary<string, InputFieldDescription>();
+            var handledProperties = new HashSet<PropertyInfo>();
+
             foreach (InputFieldDescriptor fieldDescriptor in Fields)
             {
-                ObjectDescription.Fields.Add(
-                    fieldDescriptor.CreateDescription());
+                InputFieldDescription fieldDescription = fieldDescriptor
+                    .CreateDescription();
+
+                if (!fieldDescription.Ignored)
+                {
+                    fields[fieldDescription.Name] = fieldDescription;
+                }
+
+                if (fieldDescription.Property != null)
+                {
+                    handledProperties.Add(fieldDescription.Property);
+                }
             }
+
+            OnCompleteFields(fields, handledProperties);
+
+            ObjectDescription.Fields.AddRange(fields.Values);
+        }
+
+        protected virtual void OnCompleteFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
+        {
         }
 
         protected void SyntaxNode(InputObjectTypeDefinitionNode syntaxNode)
@@ -92,10 +115,10 @@ namespace HotChocolate.Types
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
     {
-        public InputObjectTypeDescriptor(Type clrType)
+        public InputObjectTypeDescriptor()
         {
-            ObjectDescription.ClrType = clrType
-                ?? throw new ArgumentNullException(nameof(clrType));
+            Type clrType = typeof(T);
+            ObjectDescription.ClrType = clrType;
             ObjectDescription.Name = clrType.GetGraphQLName();
             ObjectDescription.Description = clrType.GetGraphQLDescription();
 
@@ -109,24 +132,50 @@ namespace HotChocolate.Types
             }
         }
 
-        protected override void CompleteFields()
+        protected override void OnCompleteFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
         {
-            base.CompleteFields();
-
-            var descriptions = new Dictionary<string, InputFieldDescription>();
-
-            foreach (InputFieldDescription description in
-                ObjectDescription.Fields)
-            {
-                descriptions[description.Name] = description;
-            }
-
             if (ObjectDescription.FieldBindingBehavior ==
                 BindingBehavior.Implicit)
             {
-                DeriveFieldsFromType(descriptions);
-                ObjectDescription.Fields = descriptions.Values.ToList();
+                AddImplicitFields(fields, handledProperties);
             }
+        }
+
+        private void AddImplicitFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
+        {
+            foreach (KeyValuePair<PropertyInfo, string> property in
+                GetProperties(handledProperties))
+            {
+                if (!fields.ContainsKey(property.Value))
+                {
+                    var fieldDescriptor =
+                        new InputFieldDescriptor(property.Key);
+
+                    fields[property.Value] = fieldDescriptor
+                        .CreateDescription();
+                }
+            }
+        }
+
+        private Dictionary<PropertyInfo, string> GetProperties(
+            ISet<PropertyInfo> handledProperties)
+        {
+            var properties = new Dictionary<PropertyInfo, string>();
+
+            foreach (KeyValuePair<string, PropertyInfo> property in
+                ReflectionUtils.GetProperties(ObjectDescription.ClrType))
+            {
+                if (!handledProperties.Contains(property.Value))
+                {
+                    properties[property.Value] = property.Key;
+                }
+            }
+
+            return properties;
         }
 
         protected void BindFields(BindingBehavior bindingBehavior)
@@ -147,43 +196,6 @@ namespace HotChocolate.Types
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
                 nameof(property));
-        }
-
-        private void DeriveFieldsFromType(
-                Dictionary<string, InputFieldDescription> descriptions)
-        {
-            Dictionary<PropertyInfo, string> properties =
-                GetProperties(ObjectDescription.ClrType);
-
-            foreach (InputFieldDescription description in descriptions.Values
-                .Where(t => t.Property != null))
-            {
-                properties.Remove(description.Property);
-            }
-
-            foreach (KeyValuePair<PropertyInfo, string> property in properties)
-            {
-                if (!descriptions.ContainsKey(property.Value))
-                {
-                    var descriptor = new InputFieldDescriptor(property.Key);
-                    descriptions[property.Value] = descriptor
-                        .CreateDescription();
-                }
-            }
-        }
-
-        private static Dictionary<PropertyInfo, string> GetProperties(Type type)
-        {
-            var properties = new Dictionary<PropertyInfo, string>();
-
-            foreach (PropertyInfo property in type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.DeclaringType != typeof(object)))
-            {
-                properties[property] = property.GetGraphQLName();
-            }
-
-            return properties;
         }
 
         #region IInputObjectTypeDescriptor<T>

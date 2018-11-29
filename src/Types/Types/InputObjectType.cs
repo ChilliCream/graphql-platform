@@ -187,7 +187,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>(typeof(T));
+            new InputObjectTypeDescriptor<T>();
 
         protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
         {
