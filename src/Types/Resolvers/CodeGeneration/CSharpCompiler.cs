@@ -78,19 +78,11 @@ namespace HotChocolate.Resolvers
             var references = new List<MetadataReference>();
 
             foreach (Assembly assembly in AppDomain.CurrentDomain
-                .GetAssemblies().Where(t => !t.IsDynamic))
+                .GetAssemblies().Where(t => !t.IsDynamic
+                    && !string.IsNullOrEmpty(t.Location)))
             {
-                try
-                {
-                    references.Add(MetadataReference
-                        .CreateFromFile(assembly.Location));
-                }
-                catch
-                {
-                    // ignore references that cannot be added to the memory
-                    // assembly. there are some unit testing assemblies that
-                    // case these exceptions.
-                }
+                references.Add(MetadataReference
+                    .CreateFromFile(assembly.Location));
             }
 
             return references;

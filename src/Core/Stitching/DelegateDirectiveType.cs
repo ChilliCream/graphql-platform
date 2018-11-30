@@ -23,19 +23,18 @@ namespace HotChocolate.Stitching
                 {
                     foreach (IError error in qr.Errors)
                     {
+                        // TODO : merge error branch than enable this
                         // context.ReportError(error);
                     }
 
-                    // qr.Data
+                    string responseName = context.FieldSelection.Alias == null
+                        ? context.FieldSelection.Name.Value
+                        : context.FieldSelection.Alias.Value;
+
+                    context.Result = qr.Data[responseName];
                 }
 
-
-
-
-
-
-
-
+                await next(context);
             });
         }
     }
