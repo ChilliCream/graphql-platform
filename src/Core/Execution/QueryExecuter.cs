@@ -13,11 +13,13 @@ namespace HotChocolate.Execution
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
+        private readonly IQueryParser _queryParser;
         private readonly bool _useCache;
 
         public QueryExecuter(ISchema schema)
             : this(schema, 100)
         {
+            _queryParser = schema.Services.GetService<IQueryParser>();
         }
 
         public QueryExecuter(ISchema schema, int cacheSize)

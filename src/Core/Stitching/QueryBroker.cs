@@ -65,9 +65,5 @@ namespace HotChocolate.Stitching
 
             return new QueryRequest(queryText.ToString());
         }
-
-
     }
-
-
 }
