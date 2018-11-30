@@ -1,13 +1,13 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public class BrokeredQueryRewriter
+    internal class ExtractRemoteQueryRewriter
         : QuerySyntaxRewriter<string>
     {
-        protected override FieldNode VisitField(
+        protected override FieldNode RewriteField(
             FieldNode node,
             string schemaName)
         {
@@ -16,10 +16,10 @@ namespace HotChocolate.Stitching
             current = current.WithDirectives(
                 RemoveStitchingDirectives(current.Directives));
 
-            return base.VisitField(current, schemaName);
+            return base.RewriteField(current, schemaName);
         }
 
-        protected override SelectionSetNode VisitSelectionSet(
+        protected override SelectionSetNode RewriteSelectionSet(
             SelectionSetNode node,
             string schemaName)
         {
@@ -33,7 +33,7 @@ namespace HotChocolate.Stitching
                 }
             }
 
-            return base.VisitSelectionSet(
+            return base.RewriteSelectionSet(
                 node.WithSelections(selections),
                 schemaName);
         }
@@ -43,7 +43,6 @@ namespace HotChocolate.Stitching
             return selection.Directives
                 .Any(t => t.IsSchemaDirective(schemaName));
         }
-
 
         private IReadOnlyCollection<DirectiveNode> RemoveStitchingDirectives(
             IEnumerable<DirectiveNode> directives)

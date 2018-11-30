@@ -2,10 +2,13 @@ namespace HotChocolate.Language
 {
     public sealed class ParserOptions
     {
-        public ParserOptions(bool noLocations = false, bool allowFragmentVariables = false)
+        public ParserOptions(
+            bool noLocations = false,
+            bool allowFragmentVariables = false)
         {
             NoLocations = noLocations;
-            Experimental = new ParserOptionsExperimental(allowFragmentVariables);
+            Experimental = new ParserOptionsExperimental(
+                allowFragmentVariables);
         }
 
         /// <summary>
@@ -17,7 +20,8 @@ namespace HotChocolate.Language
         public bool NoLocations { get; }
 
         /// <summary>
-        /// Gets the experimental parser options which are by default switched of.
+        /// Gets the experimental parser options
+        /// which are by default switched of.
         /// </summary>
         public ParserOptionsExperimental Experimental { get; }
 

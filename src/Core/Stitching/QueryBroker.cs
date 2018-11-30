@@ -11,7 +11,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
-    public class QueryBroker
+    internal class QueryBroker
     {
         private readonly IStitchingContext _stitchingContext;
 
@@ -35,8 +35,8 @@ namespace HotChocolate.Stitching
         private QueryRequest CreateQuery(
             IDirectiveContext directiveContext)
         {
-            var rewriter = new BrokeredQueryRewriter();
-            var fieldSelection = (FieldNode)rewriter.Visit(
+            var rewriter = new ExtractRemoteQueryRewriter();
+            var fieldSelection = (FieldNode)rewriter.Rewrite(
                 directiveContext.FieldSelection,
                 directiveContext.FieldSelection.GetSchemaName());
 

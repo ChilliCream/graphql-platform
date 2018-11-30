@@ -5,9 +5,9 @@ namespace HotChocolate.Execution
     public class DefaultQueryParser
         : IQueryParser
     {
-        public DocumentNode Rewrite(string query)
+        public DocumentNode Parse(string queryText)
         {
-            return Parser.Default.Parse(query);
+            return Parser.Default.Parse(queryText);
         }
     }
 }

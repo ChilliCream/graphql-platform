@@ -17,6 +17,21 @@ namespace HotChocolate.Runtime
                 throw new ArgumentNullException(nameof(type));
             }
 
+            object service = Services?.GetService(type);
+            if (service != null)
+            {
+                return service;
+            }
+
+#if NETSTANDARD1_4
+            if (type.GetTypeInfo().IsInterface || type.GetTypeInfo().IsAbstract)
+#else
+            if (type.IsInterface || type.IsAbstract)
+#endif
+            {
+                return null;
+            }
+
             FactoryInfo factoryInfo = CreateFactoryInfo(Services, type);
             ParameterInfo[] parameters =
                 factoryInfo.Constructor.GetParameters();

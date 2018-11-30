@@ -50,37 +50,14 @@ namespace HotChocolate.Language
                 options ?? ParserOptions.Default);
         }
 
-        internal IValueNode ParseJson(ISource source)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            SyntaxToken start = _lexer.Read(source);
-            if (start.Kind != TokenKind.StartOfFile)
-            {
-                throw new InvalidOperationException(
-                    "The first token must be a start of file token.");
-            }
-
-            ParserContext context = new ParserContext(
-                source, start, ParserOptions.Default,
-                ParseJsonName);
-
-            context.MoveNext();
-
-            return ParseValueLiteral(context, true);
-        }
-
-        private DocumentNode ParseDocument(
+        private static DocumentNode ParseDocument(
             ISource source,
             SyntaxToken start,
             ParserOptions options)
         {
             List<IDefinitionNode> definitions = new List<IDefinitionNode>();
             ParserContext context = new ParserContext(
-                source, start, options, ParseGraphQLName);
+                source, start, options, ParseName);
 
             context.MoveNext();
 
@@ -94,7 +71,7 @@ namespace HotChocolate.Language
             return new DocumentNode(location, definitions.AsReadOnly());
         }
 
-        private IDefinitionNode ParseDefinition(ParserContext context)
+        private static IDefinitionNode ParseDefinition(ParserContext context)
         {
             SyntaxToken token = context.Current;
             if (token.IsDescription())
@@ -136,7 +113,8 @@ namespace HotChocolate.Language
             throw context.Unexpected(token);
         }
 
-        private IExecutableDefinitionNode ParseExecutableDefinition(ParserContext context)
+        private static IExecutableDefinitionNode ParseExecutableDefinition(
+            ParserContext context)
         {
             if (context.Current.IsName())
             {
