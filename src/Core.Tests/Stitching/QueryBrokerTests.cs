@@ -164,7 +164,16 @@ namespace HotChocolate.Stitching
                 c =>
                 {
                     c.RegisterServiceProvider(sp);
-                    c.Use(next => context => next(context));
+                    c.Use(next => context =>
+                    {
+                        switch (context.Parent<object>())
+                        {
+                            case IDictionary<string, object> dict:
+                                context.Result = dict[next.]
+
+                        }
+                        return next(context);
+                    });
                     c.RegisterDirective<DelegateDirectiveType>();
                     c.RegisterDirective<SchemaDirectiveType>();
                 }));
