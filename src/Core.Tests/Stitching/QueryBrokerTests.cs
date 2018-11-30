@@ -9,6 +9,7 @@ using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Moq;
 using Xunit;
 
@@ -68,9 +69,16 @@ namespace HotChocolate.Stitching
 
             var stitchingContext = new StitchingContext(schemas);
             var broker = new QueryBroker(stitchingContext);
+
+            var directive = new Mock<IDirective>();
+            directive.Setup(t => t.ToObject<DelegateDirective>())
+                .Returns(new DelegateDirective());
+
             var directiveContext = new Mock<IDirectiveContext>();
             directiveContext.SetupGet(t => t.FieldSelection)
                 .Returns(fieldSelection);
+            directiveContext.SetupGet(t => t.Directive)
+                .Returns(directive.Object);
 
             // act
             IExecutionResult response = await broker.RedirectQueryAsync(

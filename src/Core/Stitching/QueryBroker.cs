@@ -143,7 +143,7 @@ namespace HotChocolate.Stitching
         }
 
         private OperationType GetOperationType(
-                   IDirectiveContext directiveContext)
+            IDirectiveContext directiveContext)
         {
             var directive = directiveContext.Directive
                 .ToObject<DelegateDirective>();
