@@ -8,7 +8,7 @@ namespace HotChocolate.Stitching
 {
     internal static class SelectionPathParser
     {
-        public static SelectionPath Parse(ISource source)
+        public static Stack<SelectionPathComponent> Parse(ISource source)
         {
             if (source == null)
             {
@@ -46,12 +46,12 @@ namespace HotChocolate.Stitching
             return new Source(stringBuilder.ToString());
         }
 
-        private static SelectionPath ParseSelectionPath(
+        private static Stack<SelectionPathComponent> ParseSelectionPath(
             ISource source,
             SyntaxToken start,
             ParserOptions options)
         {
-            var components = new List<SelectionPathComponent>();
+            var path = new Stack<SelectionPathComponent>();
             ParserContext context = new ParserContext(
                 source, start, options, Parser.ParseName);
 
@@ -60,10 +60,10 @@ namespace HotChocolate.Stitching
             while (!context.IsEndOfFile())
             {
                 context.Skip(TokenKind.Pipe);
-                components.Add(ParseSelectionPathComponent(context));
+                path.Push(ParseSelectionPathComponent(context));
             }
 
-            return new SelectionPath(components);
+            return path;
         }
 
         private static SelectionPathComponent ParseSelectionPathComponent(
@@ -95,18 +95,19 @@ namespace HotChocolate.Stitching
             return Parser.ParseValueLiteral(context, true);
         }
 
-        private static VariableNode ParseVariable(ParserContext context)
+        private static ScopedVariableNode ParseVariable(ParserContext context)
         {
             SyntaxToken start = context.ExpectDollar();
-            NameNode group = Parser.ParseName(context);
+            NameNode scope = Parser.ParseName(context);
             context.Expect(TokenKind.Colon);
             NameNode name = Parser.ParseName(context);
             Language.Location location = context.CreateLocation(start);
 
-            return new VariableNode
+            return new ScopedVariableNode
             (
                 location,
-                new NameNode(group.Value + ":" + name.Value)
+                scope,
+                name
             );
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -12,10 +13,11 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo.bar.baz");
 
             // act
-            SelectionPath path = SelectionPathParser.Parse(serializedPath);
+            Stack<SelectionPathComponent> path =
+                SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path.Components,
+            Assert.Collection(path,
                 t =>
                 {
                     Assert.Equal("foo", t.Name.Value);
@@ -40,10 +42,11 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo(a: 1).bar.baz(b: \"s\")");
 
             // act
-            SelectionPath path = SelectionPathParser.Parse(serializedPath);
+            Stack<SelectionPathComponent> path =
+                SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path.Components,
+            Assert.Collection(path,
                 c =>
                 {
                     Assert.Equal("foo", c.Name.Value);
@@ -78,10 +81,11 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo(a: $foo:bar).bar.baz");
 
             // act
-            SelectionPath path = SelectionPathParser.Parse(serializedPath);
+            Stack<SelectionPathComponent> path =
+                SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path.Components,
+            Assert.Collection(path,
                 c =>
                 {
                     Assert.Equal("foo", c.Name.Value);

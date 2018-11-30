@@ -74,8 +74,7 @@ namespace HotChocolate.Stitching
 
             // act
             IExecutionResult response = await broker.RedirectQueryAsync(
-                directiveContext.Object,
-                CancellationToken.None);
+                directiveContext.Object);
 
             // assert
             response.Snapshot();
