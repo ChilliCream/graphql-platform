@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using Xunit;
 
@@ -17,7 +18,7 @@ namespace HotChocolate.Stitching
                 SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path,
+            Assert.Collection(path.Reverse(),
                 t =>
                 {
                     Assert.Equal("foo", t.Name.Value);
@@ -46,7 +47,7 @@ namespace HotChocolate.Stitching
                 SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path,
+            Assert.Collection(path.Reverse(),
                 c =>
                 {
                     Assert.Equal("foo", c.Name.Value);
@@ -85,7 +86,7 @@ namespace HotChocolate.Stitching
                 SelectionPathParser.Parse(serializedPath);
 
             // assert
-            Assert.Collection(path,
+            Assert.Collection(path.Reverse(),
                 c =>
                 {
                     Assert.Equal("foo", c.Name.Value);
@@ -93,10 +94,10 @@ namespace HotChocolate.Stitching
                         a =>
                         {
                             Assert.Equal("a", a.Name.Value);
-                            Assert.IsType<VariableNode>(a.Value);
+                            Assert.IsType<ScopedVariableNode>(a.Value);
 
-                            var v = (VariableNode)a.Value;
-                            Assert.Equal("foo:bar", v.Name.Value);
+                            var v = (ScopedVariableNode)a.Value;
+                            Assert.Equal("foo_bar", v.ToVariableName());
                         });
                 },
                 c =>
