@@ -75,7 +75,9 @@ namespace HotChocolate.Stitching
 
             string query = @"
                 {
-                    foo @schema(name: ""a"")
+                    foo
+                        @schema(name: ""a"")
+                        @delegate(path: ""foo"" operation: QUERY)
                     {
                         name @schema(name: ""a"")
                         bar
@@ -110,9 +112,7 @@ namespace HotChocolate.Stitching
                 })));
 
             var stitchingContext = new StitchingContext(schemas);
-
             var broker = new QueryBroker(stitchingContext);
-
             var directiveContext = new Mock<IDirectiveContext>();
             directiveContext.SetupGet(t => t.FieldSelection)
                 .Returns(fieldSelection);
