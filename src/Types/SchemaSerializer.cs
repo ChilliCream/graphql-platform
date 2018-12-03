@@ -151,6 +151,7 @@ namespace HotChocolate
                 .ToList();
 
             var fields = objectType.Fields
+                .Where(t => !t.IsIntrospectionField)
                 .Select(t => SerializeObjectField(t, referenced))
                 .ToList();
 

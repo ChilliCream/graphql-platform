@@ -21,7 +21,6 @@ namespace HotChocolate
                     c.RegisterDirective(new DirectiveType(t =>
                         t.Name("upper")
                             .Location(DirectiveLocation.FieldDefinition)));
-                    c.BindType<Baz>().To("BazInput");
                 });
 
             var sb = new StringBuilder();
@@ -34,9 +33,27 @@ namespace HotChocolate
             sb.ToString().Snapshot();
         }
 
-        public class Baz
+        [Fact]
+        public void SerializeSchemaWithMutationWithoutSubscription()
         {
-            public string Name { get; set; }
+            // arrange
+            string source = FileResource.Open(
+                "serialize_schema_with_mutation.graphql");
+            ISchema schema = Schema.Create(
+                source,
+                c =>
+                {
+                    c.Use(next => context => next(context));
+                });
+
+            var sb = new StringBuilder();
+            var s = new StringWriter(sb);
+
+            // act
+            SchemaSerializer.Serialize(schema, s);
+
+            // assert
+            sb.ToString().Snapshot();
         }
     }
 }
