@@ -9,10 +9,11 @@ namespace HotChocolate.Language
     {
         /// <summary>
         /// Parses a fragment spred or inline fragment within a selection set.
-        /// <see cref="ParseFragmentSpread" /> and <see cref="ParseInlineFragment" />.
+        /// <see cref="ParseFragmentSpread" /> and
+        /// <see cref="ParseInlineFragment" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private ISelectionNode ParseFragment(ParserContext context)
+        private static ISelectionNode ParseFragment(ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectSpread();
@@ -39,7 +40,8 @@ namespace HotChocolate.Language
         /// fragment FragmentName on TypeCondition Directives? SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private FragmentDefinitionNode ParseFragmentDefinition(ParserContext context)
+        private static FragmentDefinitionNode ParseFragmentDefinition(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectFragmentKeyword();
@@ -97,8 +99,10 @@ namespace HotChocolate.Language
         /// ... FragmentName Directives?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        /// <param name="start">The start token of the current fragment node.</param>
-        private FragmentSpreadNode ParseFragmentSpread(
+        /// <param name="start">
+        /// The start token of the current fragment node.
+        /// </param>
+        private static FragmentSpreadNode ParseFragmentSpread(
           ParserContext context, SyntaxToken start)
         {
             NameNode name = ParseFragmentName(context);
@@ -120,11 +124,16 @@ namespace HotChocolate.Language
         /// ... TypeCondition? Directives? SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        /// <param name="start">The start token of the current fragment node.</param>
-        /// <param name="typeCondition">The fragment type condition.</param>
-        private InlineFragmentNode ParseInlineFragment(
-          ParserContext context, SyntaxToken start,
-          NamedTypeNode typeCondition)
+        /// <param name="start">
+        /// The start token of the current fragment node.
+        /// </param>
+        /// <param name="typeCondition">
+        /// The fragment type condition.
+        /// </param>
+        private static InlineFragmentNode ParseInlineFragment(
+            ParserContext context,
+            SyntaxToken start,
+            NamedTypeNode typeCondition)
         {
             List<DirectiveNode> directives =
                 ParseDirectives(context, false);
@@ -146,13 +155,13 @@ namespace HotChocolate.Language
         /// Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private NameNode ParseFragmentName(ParserContext context)
+        private static NameNode ParseFragmentName(ParserContext context)
         {
             if (context.Current.IsOnKeyword())
             {
                 throw context.Unexpected(context.Current);
             }
-            return context.ParseName();
+            return ParseName(context);
         }
     }
 }

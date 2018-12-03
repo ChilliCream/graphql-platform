@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Validation;
 using HotChocolate.Runtime;
 using System.Diagnostics;
@@ -8,10 +9,12 @@ using System.Diagnostics;
 namespace HotChocolate.Execution
 {
     public partial class QueryExecuter
+        : IQueryExecuter
     {
         private readonly QueryValidator _queryValidator;
         private readonly Cache<QueryInfo> _queryCache;
         private readonly Cache<OperationExecuter> _operationCache;
+        private readonly IQueryParser _queryParser;
         private readonly bool _useCache;
 
         public QueryExecuter(ISchema schema)
@@ -22,10 +25,15 @@ namespace HotChocolate.Execution
         public QueryExecuter(ISchema schema, int cacheSize)
         {
             Schema = schema ?? throw new ArgumentNullException(nameof(schema));
+
             _queryValidator = new QueryValidator(schema);
             _queryCache = new Cache<QueryInfo>(cacheSize);
             _operationCache = new Cache<OperationExecuter>(cacheSize * 10);
             _useCache = cacheSize > 0;
+
+            _queryParser = schema.Services.GetService<IQueryParser>()
+                ?? new DefaultQueryParser();
+
             CacheSize = cacheSize;
         }
 

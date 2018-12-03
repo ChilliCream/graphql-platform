@@ -5,12 +5,12 @@ namespace HotChocolate.Stitching
 {
     internal class AnnotationContext
     {
-        public AnnotationContext(ISchema schema)
+        private AnnotationContext(ISchema schema)
             : this(schema, null)
         {
         }
 
-        public AnnotationContext(ISchema schema, INamedType selectedType)
+        private AnnotationContext(ISchema schema, INamedType selectedType)
         {
             Schema = schema ?? throw new ArgumentNullException(nameof(schema));
             SelectedType = selectedType;
@@ -28,6 +28,11 @@ namespace HotChocolate.Stitching
             }
 
             return new AnnotationContext(Schema, type);
+        }
+
+        public static AnnotationContext Create(ISchema schema)
+        {
+            return new AnnotationContext(schema);
         }
     }
 }

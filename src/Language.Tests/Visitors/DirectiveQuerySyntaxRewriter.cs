@@ -9,7 +9,7 @@ namespace HotChocolate.Language
     public class DirectiveQuerySyntaxRewriter
         : QuerySyntaxRewriter<DirectiveNode>
     {
-        protected override FieldNode VisitField(
+        protected override FieldNode RewriteField(
             FieldNode node,
             DirectiveNode directive)
         {
@@ -18,7 +18,7 @@ namespace HotChocolate.Language
 
             FieldNode rewritten = node.WithDirectives(directives);
 
-            return base.VisitField(rewritten, directive);
+            return base.RewriteField(rewritten, directive);
         }
     }
 }

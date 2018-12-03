@@ -4,10 +4,9 @@ using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
-using HotChocolate.Stitching;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Stitching
 {
     public class AnnotationRewriterTests
     {
@@ -28,11 +27,11 @@ namespace HotChocolate.Execution
 
             DocumentNode query = Parser.Default.Parse(querySource);
 
-            var context = new AnnotationContext(schema);
+            var context = AnnotationContext.Create(schema);
 
             // act
             DocumentNode annotatedQuery =
-                query.Rewrite<AnnotationsQueryRewriter, AnnotationContext>(
+                query.Rewrite<AnnotateQueryRewriter, AnnotationContext>(
                     context);
 
             // assert
@@ -43,12 +42,10 @@ namespace HotChocolate.Execution
         private static string SerializeQuery(DocumentNode query)
         {
             var content = new StringBuilder();
-            var stringWriter = new StringWriter(content);
-            var documentWriter = new DocumentWriter(stringWriter);
+            var documentWriter = new DocumentWriter(new StringWriter(content));
             var serializer = new QuerySyntaxSerializer();
             serializer.Visit(query, documentWriter);
             return content.ToString();
         }
-
     }
 }

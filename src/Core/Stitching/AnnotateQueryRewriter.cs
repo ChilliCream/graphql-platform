@@ -1,12 +1,11 @@
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
-    internal sealed class AnnotationsQueryRewriter
+    internal sealed class AnnotateQueryRewriter
         : QuerySyntaxRewriter<AnnotationContext>
     {
         private static readonly HashSet<string> _stitchingDirectives =
@@ -16,19 +15,19 @@ namespace HotChocolate.Stitching
                 DirectiveNames.Delegate
             };
 
-        protected override OperationDefinitionNode VisitOperationDefinition(
+        protected override OperationDefinitionNode RewriteOperationDefinition(
             OperationDefinitionNode node,
             AnnotationContext context)
         {
             ObjectType rootType = context.Schema
                 .GetOperationType(node.Operation);
 
-            return base.VisitOperationDefinition(
+            return base.RewriteOperationDefinition(
                 node, context.WithType(rootType));
         }
 
 
-        protected override FieldNode VisitField(
+        protected override FieldNode RewriteField(
             FieldNode node,
             AnnotationContext context)
         {
@@ -51,54 +50,12 @@ namespace HotChocolate.Stitching
                     }
                 }
 
-                return base.VisitField(
+                return base.RewriteField(
                     node.WithDirectives(directives),
                     context.WithType(field.Type.NamedType()));
             }
 
             return node;
-        }
-    }
-
-    internal static class DirectiveNames
-    {
-        public const string Schema = "schema";
-        public const string Delegate = "delegate";
-    }
-
-    public class SchemaDirective
-    {
-        public string Name { get; set; }
-    }
-
-    public class SchemaDirectiveType
-        : DirectiveType<SchemaDirective>
-    {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<SchemaDirective> descriptor)
-        {
-            descriptor.Name(DirectiveNames.Schema);
-            descriptor.Location(Types.DirectiveLocation.FieldDefinition)
-                .Location(Types.DirectiveLocation.Field);
-        }
-    }
-
-    public class DelegateDirective
-    {
-        public string Operation { get; set; } = OperationType.Query.ToString();
-
-        public string Path { get; set; }
-    }
-
-    public class DelegateDirectiveType
-        : DirectiveType<DelegateDirective>
-    {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<DelegateDirective> descriptor)
-        {
-            descriptor.Name(DirectiveNames.Delegate);
-            descriptor.Location(Types.DirectiveLocation.FieldDefinition)
-                .Location(Types.DirectiveLocation.Field);
         }
     }
 }

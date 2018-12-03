@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
 
         private QueryInfo CreateQueryInfo(string queryText)
         {
-            DocumentNode queryDocument = Parser.Default.Parse(queryText);
+            DocumentNode queryDocument = _queryParser.Parse(queryText);
             QueryValidationResult validationResult =
                 _queryValidator.Validate(queryDocument);
             return new QueryInfo(queryText, queryDocument, validationResult);

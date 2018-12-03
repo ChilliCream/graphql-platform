@@ -25,7 +25,8 @@ namespace HotChocolate.Language
         /// - InputObjectTypeDefinition
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private ITypeSystemDefinitionNode ParseTypeSystemDefinition(ParserContext context)
+        private static ITypeSystemDefinitionNode ParseTypeSystemDefinition(
+            ParserContext context)
         {
             // Many definitions begin with a description and require a lookahead.
             SyntaxToken keywordToken = context.Current;
@@ -68,7 +69,7 @@ namespace HotChocolate.Language
         /// StringValue
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private StringValueNode ParseDescription(ParserContext context)
+        private static StringValueNode ParseDescription(ParserContext context)
         {
             if (context.Current.IsDescription())
             {
@@ -83,7 +84,7 @@ namespace HotChocolate.Language
         /// schema Directives[isConstant:true]? { OperationTypeDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private SchemaDefinitionNode ParseSchemaDefinition(
+        private static SchemaDefinitionNode ParseSchemaDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
@@ -115,7 +116,7 @@ namespace HotChocolate.Language
         /// OperationType : NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private OperationTypeDefinitionNode ParseOperationTypeDefinition(
+        private static OperationTypeDefinitionNode ParseOperationTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
@@ -139,13 +140,13 @@ namespace HotChocolate.Language
         /// scalar Name Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private ScalarTypeDefinitionNode ParseScalarTypeDefinition(
+        private static ScalarTypeDefinitionNode ParseScalarTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectScalarKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             Location location = context.CreateLocation(start);
@@ -166,13 +167,13 @@ namespace HotChocolate.Language
         /// type Name ImplementsInterfaces? Directives[isConstant=true]? FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private ObjectTypeDefinitionNode ParseObjectTypeDefinition(
+        private static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectTypeKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<NamedTypeNode> interfaces =
                 ParseImplementsInterfaces(context);
             List<DirectiveNode> directives =
@@ -198,7 +199,7 @@ namespace HotChocolate.Language
         /// implements &amp;? NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<NamedTypeNode> ParseImplementsInterfaces(
+        private static List<NamedTypeNode> ParseImplementsInterfaces(
             ParserContext context)
         {
             List<NamedTypeNode> list = new List<NamedTypeNode>();
@@ -224,7 +225,7 @@ namespace HotChocolate.Language
         /// { FieldDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<FieldDefinitionNode> ParseFieldsDefinition(
+        private static List<FieldDefinitionNode> ParseFieldsDefinition(
             ParserContext context)
         {
             if (context.Current.IsLeftBrace())
@@ -244,12 +245,12 @@ namespace HotChocolate.Language
         /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private FieldDefinitionNode ParseFieldDefinition(
+        private static FieldDefinitionNode ParseFieldDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions(context);
             context.ExpectColon();
@@ -275,7 +276,7 @@ namespace HotChocolate.Language
         /// ( InputValueDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<InputValueDefinitionNode> ParseArgumentDefinitions(
+        private static List<InputValueDefinitionNode> ParseArgumentDefinitions(
             ParserContext context)
         {
             if (context.Current.IsLeftParenthesis())
@@ -294,12 +295,12 @@ namespace HotChocolate.Language
         /// Description? Name : Type DefaultValue? Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private InputValueDefinitionNode ParseInputValueDefinition(
+        private static InputValueDefinitionNode ParseInputValueDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             context.ExpectColon();
             ITypeNode type = ParseTypeReference(context);
             IValueNode defaultValue = null;
@@ -328,13 +329,13 @@ namespace HotChocolate.Language
         /// Description? interface Name Directives[isConstant=true]? FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
+        private static InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectInterfaceKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
@@ -357,13 +358,13 @@ namespace HotChocolate.Language
         /// Description? union Name Directives[isConstant=true]? UnionMemberTypes?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private UnionTypeDefinitionNode ParseUnionTypeDefinition(
+        private static UnionTypeDefinitionNode ParseUnionTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectUnionKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<NamedTypeNode> types =
@@ -386,7 +387,7 @@ namespace HotChocolate.Language
         /// = `|`? NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<NamedTypeNode> ParseUnionMemberTypes(
+        private static List<NamedTypeNode> ParseUnionMemberTypes(
             ParserContext context)
         {
             List<NamedTypeNode> list = new List<NamedTypeNode>();
@@ -412,13 +413,13 @@ namespace HotChocolate.Language
         /// Description? enum Name Directives[Const]? EnumValuesDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private EnumTypeDefinitionNode ParseEnumTypeDefinition(
+        private static EnumTypeDefinitionNode ParseEnumTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectEnumKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<EnumValueDefinitionNode> values =
@@ -441,7 +442,7 @@ namespace HotChocolate.Language
         /// { EnumValueDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private List<EnumValueDefinitionNode> ParseEnumValuesDefinition(
+        private static List<EnumValueDefinitionNode> ParseEnumValuesDefinition(
             ParserContext context)
         {
             if (context.Current.IsLeftBrace())
@@ -461,12 +462,12 @@ namespace HotChocolate.Language
         /// Description? EnumValue Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private EnumValueDefinitionNode ParseEnumValueDefinition(
+        private static EnumValueDefinitionNode ParseEnumValueDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             Location location = context.CreateLocation(start);
@@ -480,13 +481,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition(
+        private static InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectInputKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<InputValueDefinitionNode> fields =
@@ -503,7 +504,7 @@ namespace HotChocolate.Language
             );
         }
 
-        private List<InputValueDefinitionNode> ParseInputFieldsDefinition(
+        private static List<InputValueDefinitionNode> ParseInputFieldsDefinition(
             ParserContext context)
         {
             if (context.Current.IsLeftBrace())
