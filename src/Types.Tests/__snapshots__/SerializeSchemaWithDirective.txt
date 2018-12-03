@@ -7,24 +7,15 @@ interface Bar {
 }
 
 type Baz {
-  "The name of the current Object type at runtime."
-  __typename: String!
   name(baz: BazInput): String
 }
 
 type Foo implements Bar {
-  "The name of the current Object type at runtime."
-  __typename: String!
   id: ID!
 }
 
 type Query {
-  "Request the type information of a single type."
-  __type(type: String!): __Type
-  "Access the current type schema of this server."
-  __schema: __Schema!
-  "The name of the current Object type at runtime."
-  __typename: String!
+
 }
 
 union FooOrBaz = Foo | Baz

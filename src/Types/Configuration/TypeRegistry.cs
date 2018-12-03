@@ -58,6 +58,11 @@ namespace HotChocolate.Configuration
 
         private void AddNativeTypeBinding(Type type, NameString namedTypeName)
         {
+            if (type == typeof(object))
+            {
+                return;
+            }
+
             if (!_clrTypes.TryGetValue(type, out HashSet<NameString> types))
             {
                 types = new HashSet<NameString>();
