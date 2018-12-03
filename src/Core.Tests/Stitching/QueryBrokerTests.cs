@@ -89,7 +89,6 @@ namespace HotChocolate.Stitching
             response.Snapshot();
         }
 
-
         [Fact]
         public async Task ExecuteQueryOnStitchedSchema()
         {

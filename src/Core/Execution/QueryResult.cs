@@ -48,23 +48,24 @@ namespace HotChocolate.Execution
             OrderedDictionary data,
             IEnumerable<IError> errors)
         {
-            if (data == null)
+            if (data == null && errors == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }
 
-            if (errors == null)
+            if (data != null)
             {
-                throw new ArgumentNullException(nameof(errors));
+                Data = data;
+                Data.MakeReadOnly();
             }
 
-            Data = data;
-            Data.MakeReadOnly();
-
-            Errors = new List<IError>(errors).AsReadOnly();
-            if (Errors.Count == 0)
+            if (errors != null)
             {
-                Errors = null;
+                Errors = new List<IError>(errors).AsReadOnly();
+                if (Errors.Count == 0)
+                {
+                    Errors = null;
+                }
             }
         }
 
