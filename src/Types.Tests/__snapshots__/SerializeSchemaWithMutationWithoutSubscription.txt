@@ -1,21 +1,26 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 interface Bar {
-  id: ID! @upper
+  id: ID!
 }
 
 type Baz {
-  name(baz: BazInput): String
+  name("some comment" baz: BazInput): String
 }
 
 type Foo implements Bar {
   id: ID!
 }
 
-type Query {
+type Mutation {
+  mutate: String
+}
 
+type Query {
+  foo: Foo
 }
 
 union FooOrBaz = Foo | Baz

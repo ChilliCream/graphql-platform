@@ -83,7 +83,7 @@ namespace HotChocolate
                     referenced));
             }
 
-            if (schema.MutationType != null)
+            if (schema.SubscriptionType != null)
             {
                 operations.Add(SerializeOperationType(
                     schema.SubscriptionType,
@@ -151,6 +151,7 @@ namespace HotChocolate
                 .ToList();
 
             var fields = objectType.Fields
+                .Where(t => !t.IsIntrospectionField)
                 .Select(t => SerializeObjectField(t, referenced))
                 .ToList();
 
