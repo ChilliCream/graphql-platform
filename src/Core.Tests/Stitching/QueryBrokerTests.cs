@@ -91,7 +91,7 @@ namespace HotChocolate.Stitching
 
 
         [Fact]
-        public async Task Foo()
+        public async Task ExecuteQueryOnStitchedSchema()
         {
             // arrange
             string schema_a = @"
@@ -164,29 +164,16 @@ namespace HotChocolate.Stitching
                 c =>
                 {
                     c.RegisterServiceProvider(sp);
-                    c.Use(next => context =>
-                    {
-                        switch (context.Parent<object>())
-                        {
-                            case IDictionary<string, object> dict:
-                                context.Result = dict[next.]
-
-                        }
-                        return next(context);
-                    });
-                    c.RegisterDirective<DelegateDirectiveType>();
-                    c.RegisterDirective<SchemaDirectiveType>();
+                    c.AddStitching();
                 }));
 
-            ISchema schema = services.BuildServiceProvider().GetService<ISchema>();
+            var schema = services.BuildServiceProvider().GetService<ISchema>();
 
+            // act
             IExecutionResult result = await schema.ExecuteAsync(query);
 
+            // assert
             result.Snapshot();
-
-
-
-
         }
     }
 }
