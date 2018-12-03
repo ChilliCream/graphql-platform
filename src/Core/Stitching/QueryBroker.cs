@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -196,25 +197,55 @@ namespace HotChocolate.Stitching
                 {
                     if (argument.Value is ScopedVariableNode sv)
                     {
-                        switch (sv.Scope.Value)
+                        object v;
+                        if (TryHandleArgumentScope(directiveContext, sv, out v)
+                            || TryHandleFieldScope(directiveContext, sv, out v))
                         {
-                            case "arguments":
-                                root[sv.ToVariableName()] =
-                                    directiveContext.Argument<object>(
-                                        sv.Name.Value);
-                                break;
-                            case "variables":
-                                break;
-                            case "properties":
-                                break;
-                            default:
-                                throw new NotSupportedException();
+                            root[sv.ToVariableName()] = v;
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
                         }
                     }
                 }
             }
 
             return root;
+        }
+
+        private static bool TryHandleArgumentScope(
+            IDirectiveContext directiveContext,
+            ScopedVariableNode scopedVariable,
+            out object value)
+        {
+            if (scopedVariable.Scope.Value.EqualsOrdinal("arguments"))
+            {
+                value = directiveContext.Argument<object>(
+                    scopedVariable.Name.Value);
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        private static bool TryHandleFieldScope(
+            IDirectiveContext directiveContext,
+            ScopedVariableNode scopedVariable,
+            out object value)
+        {
+            if (scopedVariable.Scope.Value.EqualsOrdinal("variables"))
+            {
+                // TODO : we have to have a better way to access field. What for example should we do if the parent is not a dictionary
+                var parent = directiveContext
+                    .Parent<IDictionary<string, object>>();
+                value = parent[scopedVariable.Name.Value];
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 
     }
