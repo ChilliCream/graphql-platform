@@ -83,7 +83,7 @@ namespace HotChocolate
                     referenced));
             }
 
-            if (schema.MutationType != null)
+            if (schema.SubscriptionType != null)
             {
                 operations.Add(SerializeOperationType(
                     schema.SubscriptionType,
