@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate
 {
-    public static class ServiceCollectionExtensions
+    public static class StitchingServiceCollectionExtensions
     {
         public static IServiceCollection AddStitching(
             this IServiceCollection services)
