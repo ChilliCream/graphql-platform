@@ -5,7 +5,7 @@ namespace HotChocolate
 {
     public static class SchemaConfigurationExtensions
     {
-        public static ISchemaConfiguration AddStitching(
+        public static ISchemaConfiguration UseStitching(
             this ISchemaConfiguration configuration)
         {
             configuration.RegisterDirective<DelegateDirectiveType>();

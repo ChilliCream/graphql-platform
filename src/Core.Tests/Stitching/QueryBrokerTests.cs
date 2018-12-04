@@ -69,7 +69,7 @@ namespace HotChocolate.Stitching
                 })));
 
             var stitchingContext = new StitchingContext(schemas);
-            var broker = new QueryBroker(stitchingContext);
+            var broker = new QueryBroker();
 
             var directive = new Mock<IDirective>();
             directive.Setup(t => t.ToObject<DelegateDirective>())
@@ -80,6 +80,8 @@ namespace HotChocolate.Stitching
                 .Returns(fieldSelection);
             directiveContext.SetupGet(t => t.Directive)
                 .Returns(directive.Object);
+            directiveContext.Setup(t => t.Service<IStitchingContext>())
+                .Returns(stitchingContext);
 
             // act
             IExecutionResult response = await broker.RedirectQueryAsync(
@@ -151,11 +153,9 @@ namespace HotChocolate.Stitching
                     return Task.CompletedTask;
                 })));
 
-            var stitchingContext = new StitchingContext(schemas);
-            var broker = new QueryBroker(stitchingContext);
-
             var services = new ServiceCollection();
-            services.AddSingleton<IStitchingContext>(stitchingContext);
+            services.AddSingleton<IStitchingContext>(
+                new StitchingContext(schemas));
             services.AddSingleton<IQueryBroker, QueryBroker>();
             services.AddSingleton<IQueryParser, AnnotationQueryParser>();
             services.AddSingleton<ISchema>(sp => Schema.Create(
@@ -163,7 +163,7 @@ namespace HotChocolate.Stitching
                 c =>
                 {
                     c.RegisterServiceProvider(sp);
-                    c.AddStitching();
+                    c.UseStitching();
                 }));
 
             var schema = services.BuildServiceProvider().GetService<ISchema>();

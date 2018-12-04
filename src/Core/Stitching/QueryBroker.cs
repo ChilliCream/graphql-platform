@@ -15,14 +15,6 @@ namespace HotChocolate.Stitching
     internal class QueryBroker
         : IQueryBroker
     {
-        private readonly IStitchingContext _stitchingContext;
-
-        public QueryBroker(IStitchingContext stitchingContext)
-        {
-            _stitchingContext = stitchingContext
-                ?? throw new ArgumentNullException(nameof(stitchingContext));
-        }
-
         public Task<IExecutionResult> RedirectQueryAsync(
             IDirectiveContext directiveContext)
         {
@@ -32,9 +24,10 @@ namespace HotChocolate.Stitching
             }
 
             string schemaName = directiveContext.FieldSelection.GetSchemaName();
+            var stitchingCtx = directiveContext.Service<IStitchingContext>();
 
             IQueryExecuter queryExecuter =
-                _stitchingContext.GetQueryExecuter(schemaName);
+                stitchingCtx.GetQueryExecuter(schemaName);
 
             QueryRequest queryRequest = CreateQuery(directiveContext);
 
