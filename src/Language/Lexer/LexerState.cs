@@ -60,8 +60,8 @@ namespace HotChocolate.Language
         {
             if (lines < 1)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(lines), "must be greater or equal to 1.");
+                throw new ArgumentOutOfRangeException(nameof(lines), 
+                    "Must be greater or equal to 1.");
             }
 
             Line += lines;

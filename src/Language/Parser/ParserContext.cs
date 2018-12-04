@@ -44,8 +44,11 @@ namespace HotChocolate.Language
         }
 
         public ParserOptions Options { get; }
+
         public ISource Source { get; }
+
         public SyntaxToken Current { get; private set; }
+
         public Func<NameNode> ParseName { get; }
 
         public bool MoveNext()

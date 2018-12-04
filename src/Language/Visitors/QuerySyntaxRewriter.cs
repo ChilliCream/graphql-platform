@@ -76,7 +76,7 @@ namespace HotChocolate.Language
             OperationDefinitionNode node,
             TContext context)
         {
-            var current = node;
+            OperationDefinitionNode current = node;
 
             if (node.Name != null)
             {
@@ -105,7 +105,7 @@ namespace HotChocolate.Language
             VariableDefinitionNode node,
             TContext context)
         {
-            var current = node;
+            VariableDefinitionNode current = node;
 
             current = Rewrite(current, node.Variable, context,
                 RewriteVariable, current.WithVariable);
@@ -126,7 +126,7 @@ namespace HotChocolate.Language
             FragmentDefinitionNode node,
             TContext context)
         {
-            var current = node;
+            FragmentDefinitionNode current = node;
 
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
@@ -155,7 +155,7 @@ namespace HotChocolate.Language
             SelectionSetNode node,
             TContext context)
         {
-            var current = node;
+            SelectionSetNode current = node;
 
             current = Rewrite(current, node.Selections, context,
                 (p, c) => RewriteMany(p, c, RewriteSelection),
@@ -168,7 +168,7 @@ namespace HotChocolate.Language
             FieldNode node,
             TContext context)
         {
-            var current = node;
+            FieldNode current = node;
 
             if (node.Alias != null)
             {
@@ -201,7 +201,7 @@ namespace HotChocolate.Language
             FragmentSpreadNode node,
             TContext context)
         {
-            var current = node;
+            FragmentSpreadNode current = node;
 
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
@@ -217,7 +217,7 @@ namespace HotChocolate.Language
             InlineFragmentNode node,
             TContext context)
         {
-            var current = node;
+            InlineFragmentNode current = node;
 
             if (node.TypeCondition != null)
             {
@@ -250,7 +250,7 @@ namespace HotChocolate.Language
             VariableNode node,
             TContext context)
         {
-            var current = node;
+            VariableNode current = node;
 
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
@@ -263,7 +263,7 @@ namespace HotChocolate.Language
             ArgumentNode node,
             TContext context)
         {
-            var current = node;
+            ArgumentNode current = node;
 
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
@@ -348,7 +348,7 @@ namespace HotChocolate.Language
             NamedTypeNode node,
             TContext context)
         {
-            var current = node;
+            NamedTypeNode current = node;
 
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
@@ -473,7 +473,7 @@ namespace HotChocolate.Language
         {
             var originalSet = new HashSet<T>(items);
             var rewrittenSet = new List<T>();
-            bool modified = false;
+            var modified = false;
 
             foreach (T item in items)
             {

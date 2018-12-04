@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace HotChocolate.Language
 {
     public class SchemaSyntaxSerializer
         : SchemaSyntaxWalker<DocumentWriter>
     {
-        private bool _indent = false;
+        private readonly bool _indent;
 
         public SchemaSyntaxSerializer()
         {

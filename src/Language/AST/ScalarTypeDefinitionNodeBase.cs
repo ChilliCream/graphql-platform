@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -11,7 +10,6 @@ namespace HotChocolate.Language
             NameNode name,
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
-        {
-        }
+        { }
     }
 }

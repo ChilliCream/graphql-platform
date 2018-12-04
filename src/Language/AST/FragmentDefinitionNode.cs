@@ -16,24 +16,12 @@ namespace HotChocolate.Language
             SelectionSetNode selectionSet)
             : base(location, name, directives)
         {
-            if (variableDefinitions == null)
-            {
-                throw new ArgumentNullException(nameof(variableDefinitions));
-            }
-
-            if (typeCondition == null)
-            {
-                throw new ArgumentNullException(nameof(typeCondition));
-            }
-
-            if (selectionSet == null)
-            {
-                throw new ArgumentNullException(nameof(selectionSet));
-            }
-
-            VariableDefinitions = variableDefinitions;
-            TypeCondition = typeCondition;
-            SelectionSet = selectionSet;
+            VariableDefinitions = variableDefinitions 
+                ?? throw new ArgumentNullException(nameof(variableDefinitions));
+            TypeCondition = typeCondition 
+                ?? throw new ArgumentNullException(nameof(typeCondition));
+            SelectionSet = selectionSet 
+                ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
         public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
@@ -91,6 +79,7 @@ namespace HotChocolate.Language
                 TypeCondition,
                 directives, SelectionSet);
         }
+
         public FragmentDefinitionNode WithSelectionSet(
             SelectionSetNode selectionSet)
         {

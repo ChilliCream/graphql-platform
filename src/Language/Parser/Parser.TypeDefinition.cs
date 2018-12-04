@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -202,7 +200,7 @@ namespace HotChocolate.Language
         private static List<NamedTypeNode> ParseImplementsInterfaces(
             ParserContext context)
         {
-            List<NamedTypeNode> list = new List<NamedTypeNode>();
+            var list = new List<NamedTypeNode>();
 
             if (context.SkipKeyword(Keywords.Implements))
             {
@@ -326,7 +324,8 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses an interface type definition.
         /// <see cref="InterfaceTypeDefinition" />:
-        /// Description? interface Name Directives[isConstant=true]? FieldsDefinition?
+        /// Description? interface Name Directives[isConstant=true]? 
+        /// FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
@@ -355,7 +354,8 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses an union type definition.
         /// <see cref="UnionTypeDefinitionNode" />:
-        /// Description? union Name Directives[isConstant=true]? UnionMemberTypes?
+        /// Description? union Name Directives[isConstant=true]? 
+        /// UnionMemberTypes?
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static UnionTypeDefinitionNode ParseUnionTypeDefinition(
@@ -390,7 +390,7 @@ namespace HotChocolate.Language
         private static List<NamedTypeNode> ParseUnionMemberTypes(
             ParserContext context)
         {
-            List<NamedTypeNode> list = new List<NamedTypeNode>();
+            var list = new List<NamedTypeNode>();
 
             if (context.Skip(TokenKind.Equal))
             {

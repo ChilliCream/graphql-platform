@@ -15,13 +15,8 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Description = description;
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
             DefaultValue = defaultValue;
         }
 

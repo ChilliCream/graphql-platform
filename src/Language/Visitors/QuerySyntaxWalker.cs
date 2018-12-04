@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Language
 {
     public class QuerySyntaxWalker<TContext>
@@ -53,8 +50,16 @@ namespace HotChocolate.Language
             if (node.Name != null)
             {
                 VisitName(node.Name, context);
-                VisitMany(node.VariableDefinitions, context, VisitVariableDefinition);
-                VisitMany(node.Directives, context, VisitDirective);
+
+                VisitMany(
+                    node.VariableDefinitions,
+                    context,
+                    VisitVariableDefinition);
+
+                VisitMany(
+                    node.Directives,
+                    context,
+                    VisitDirective);
             }
 
             if (node.SelectionSet != null)
@@ -82,13 +87,18 @@ namespace HotChocolate.Language
             TContext context)
         {
             VisitName(node.Name, context);
+
             VisitMany(
                 node.VariableDefinitions,
                 context,
                 VisitVariableDefinition);
 
             VisitNamedType(node.TypeCondition, context);
-            VisitMany(node.Directives, context, VisitDirective);
+
+            VisitMany(
+                node.Directives,
+                context,
+                VisitDirective);
 
             if (node.SelectionSet != null)
             {
@@ -100,7 +110,10 @@ namespace HotChocolate.Language
             SelectionSetNode node,
             TContext context)
         {
-            VisitMany(node.Selections, context, VisitSelection);
+            VisitMany(
+                node.Selections,
+                context,
+                VisitSelection);
         }
 
         protected override void VisitField(
@@ -113,8 +126,16 @@ namespace HotChocolate.Language
             }
 
             VisitName(node.Name, context);
-            VisitMany(node.Arguments, context, VisitArgument);
-            VisitMany(node.Directives, context, VisitDirective);
+
+            VisitMany(
+                node.Arguments,
+                context,
+                VisitArgument);
+
+            VisitMany(
+                node.Directives,
+                context,
+                VisitDirective);
 
             if (node.SelectionSet != null)
             {
@@ -127,7 +148,11 @@ namespace HotChocolate.Language
             TContext context)
         {
             VisitName(node.Name, context);
-            VisitMany(node.Directives, context, VisitDirective);
+
+            VisitMany(
+                node.Directives, 
+                context, 
+                VisitDirective);
         }
 
         protected override void VisitInlineFragment(
@@ -139,7 +164,10 @@ namespace HotChocolate.Language
                 VisitNamedType(node.TypeCondition, context);
             }
 
-            VisitMany(node.Directives, context, VisitDirective);
+            VisitMany(
+                node.Directives, 
+                context, 
+                VisitDirective);
 
             if (node.SelectionSet != null)
             {

@@ -14,18 +14,10 @@ namespace HotChocolate.Language
             IReadOnlyCollection<FieldDefinitionNode> fields)
             : base(location, name, directives)
         {
-            if (interfaces == null)
-            {
-                throw new ArgumentNullException(nameof(interfaces));
-            }
-
-            if (fields == null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            Interfaces = interfaces;
-            Fields = fields;
+            Interfaces = interfaces 
+                ?? throw new ArgumentNullException(nameof(interfaces));
+            Fields = fields 
+                ?? throw new ArgumentNullException(nameof(fields));
         }
 
         public IReadOnlyCollection<NamedTypeNode> Interfaces { get; }

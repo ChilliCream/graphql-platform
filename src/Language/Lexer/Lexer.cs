@@ -38,12 +38,13 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(source));
             }
 
-            LexerState state = new LexerState(source.Text);
+            var state = new LexerState(source.Text);
 
             try
             {
-                SyntaxToken start = new SyntaxToken(TokenKind.StartOfFile, 0, 0,
-                    state.Line, state.Column, null);
+                var start = new SyntaxToken(TokenKind.StartOfFile,
+                    0, 0, state.Line, state.Column, null);
+
                 SyntaxToken current = start;
 
                 do
@@ -59,17 +60,24 @@ namespace HotChocolate.Language
             catch (Exception ex)
             {
                 throw new SyntaxException(state,
-                    "Unexpected token sequence.", ex);
+                    "Unexpected token sequence.",
+                    ex);
             }
         }
 
         /// <summary>
-        /// Reads the token that comes after the <paramref name="previous"/>-token.
+        /// Reads the token that comes after the 
+        /// <paramref name="previous"/>-token.
         /// </summary>
-        /// <returns>Returns token that comes after the <paramref name="previous"/>-token.</returns>
+        /// <returns>
+        /// Returns token that comes after the 
+        /// <paramref name="previous"/>-token.
+        /// </returns>
         /// <param name="state">The lexer state.</param>
         /// <param name="previous">The previous-token.</param>
-        private SyntaxToken ReadNextToken(LexerState state, SyntaxToken previous)
+        private SyntaxToken ReadNextToken(
+            LexerState state,
+            SyntaxToken previous)
         {
             SkipWhitespaces(state);
             state.UpdateColumn();
@@ -81,7 +89,7 @@ namespace HotChocolate.Language
                     previous);
             }
 
-            char code = state.SourceText[state.Position];
+            var code = state.SourceText[state.Position];
 
             if (code.IsLetterOrUnderscore())
             {
@@ -123,45 +131,83 @@ namespace HotChocolate.Language
         /// one of ! $ ( ) ... : = @ [ ] { | }
         /// additionaly the reader will tokenize ampersands.
         /// </summary>
-        /// <param name="state">The lexer state.</param>
-        /// <param name="previous">The previous-token.</param>
-        /// <param name="firstCode">The first character of the punctuator.</param>
+        /// <param name="state">
+        /// The lexer state.
+        /// </param>
+        /// <param name="previous">
+        /// The previous-token.
+        /// </param>
+        /// <param name="firstCode">
+        /// The first character of the punctuator.
+        /// </param>
         /// <returns>
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadPunctuatorToken(LexerState state, SyntaxToken previous, in char firstCode)
+        private SyntaxToken ReadPunctuatorToken(
+            LexerState state,
+            SyntaxToken previous,
+            in char firstCode)
         {
             state.Position++;
 
             switch (firstCode)
             {
-                case '!': return CreateToken(state, previous, TokenKind.Bang);
-                case '$': return CreateToken(state, previous, TokenKind.Dollar);
-                case '&': return CreateToken(state, previous, TokenKind.Ampersand);
-                case '(': return CreateToken(state, previous, TokenKind.LeftParenthesis);
-                case ')': return CreateToken(state, previous, TokenKind.RightParenthesis);
-                case ':': return CreateToken(state, previous, TokenKind.Colon);
-                case '=': return CreateToken(state, previous, TokenKind.Equal);
-                case '@': return CreateToken(state, previous, TokenKind.At);
-                case '[': return CreateToken(state, previous, TokenKind.LeftBracket);
-                case ']': return CreateToken(state, previous, TokenKind.RightBracket);
-                case '{': return CreateToken(state, previous, TokenKind.LeftBrace);
-                case '|': return CreateToken(state, previous, TokenKind.Pipe);
-                case '}': return CreateToken(state, previous, TokenKind.RightBrace);
+                case '!':
+                    return CreateToken(state, previous,
+                        TokenKind.Bang);
+                case '$':
+                    return CreateToken(state, previous,
+                        TokenKind.Dollar);
+                case '&':
+                    return CreateToken(state, previous,
+                        TokenKind.Ampersand);
+                case '(':
+                    return CreateToken(state, previous,
+                        TokenKind.LeftParenthesis);
+                case ')':
+                    return CreateToken(state, previous,
+                        TokenKind.RightParenthesis);
+                case ':':
+                    return CreateToken(state, previous,
+                        TokenKind.Colon);
+                case '=':
+                    return CreateToken(state, previous,
+                        TokenKind.Equal);
+                case '@':
+                    return CreateToken(state, previous,
+                        TokenKind.At);
+                case '[':
+                    return CreateToken(state, previous,
+                        TokenKind.LeftBracket);
+                case ']':
+                    return CreateToken(state, previous,
+                        TokenKind.RightBracket);
+                case '{':
+                    return CreateToken(state, previous,
+                        TokenKind.LeftBrace);
+                case '|':
+                    return CreateToken(state, previous,
+                        TokenKind.Pipe);
+                case '}':
+                    return CreateToken(state, previous,
+                        TokenKind.RightBrace);
                 case '.':
                     if (state.SourceText[state.Position].IsDot()
                         && state.SourceText[state.Position + 1].IsDot())
                     {
                         state.Position += 2;
-                        return CreateToken(state, previous, TokenKind.Spread, state.Position - 3);
+                        return CreateToken(state, previous,
+                            TokenKind.Spread, state.Position - 3);
                     }
 
                     state.Position--;
-                    throw new SyntaxException(state, "Expected a spread token.");
+                    throw new SyntaxException(state,
+                        "Expected a spread token.");
             }
 
             state.Position--;
-            throw new SyntaxException(state, "Unexpected punctuator character.");
+            throw new SyntaxException(state,
+                "Unexpected punctuator character.");
         }
 
         /// <summary>
@@ -175,14 +221,18 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the comment token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadCommentToken(LexerState state, SyntaxToken previous)
+        private SyntaxToken ReadCommentToken(
+            LexerState state,
+            SyntaxToken previous)
         {
-            int start = state.Position;
+            var start = state.Position;
 
             while (++state.Position < state.SourceText.Length
-                && !state.SourceText[state.Position].IsControlCharacter()) ;
+                && !state.SourceText[state.Position].IsControlCharacter())
+                ;
 
-            string comment = state.SourceText.Substring(start, state.Position - start);
+            var comment = state.SourceText.Substring(
+                start, state.Position - start);
             return CreateToken(state, previous, TokenKind.Comment,
                 start, comment.TrimStart('#', ' ', '\t'));
         }
@@ -198,11 +248,13 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the name token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNameToken(LexerState state, SyntaxToken previous)
+        private SyntaxToken ReadNameToken(
+            LexerState state,
+            SyntaxToken previous)
         {
-            int start = state.Position;
+            var start = state.Position;
+            var position = state.Position;
 
-            int position = state.Position;
             do
             {
                 position++;
@@ -212,8 +264,8 @@ namespace HotChocolate.Language
 
             state.Position = position;
 
-            return CreateToken(state, previous, TokenKind.Name,
-                start, state.SourceText.Substring(start, state.Position - start));
+            return CreateToken(state, previous, TokenKind.Name, start,
+                state.SourceText.Substring(start, state.Position - start));
         }
 
         /// <summary>
@@ -231,11 +283,14 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNumberToken(LexerState state, SyntaxToken previous, in char firstCode)
+        private SyntaxToken ReadNumberToken(
+            LexerState state,
+            SyntaxToken previous,
+            in char firstCode)
         {
-            int start = state.Position;
-            char code = firstCode;
-            bool isFloat = false;
+            var start = state.Position;
+            var code = firstCode;
+            var isFloat = false;
 
             if (code.IsMinus())
             {
@@ -244,7 +299,8 @@ namespace HotChocolate.Language
 
             if (code == '0')
             {
-                code = state.SourceText[++state.Position]; ;
+                code = state.SourceText[++state.Position];
+                ;
                 if (char.IsDigit(code))
                 {
                     throw new SyntaxException(state,
@@ -295,7 +351,8 @@ namespace HotChocolate.Language
             }
 
             while (++state.Position < state.SourceText.Length
-                && state.SourceText[state.Position].IsDigit()) ;
+                && state.SourceText[state.Position].IsDigit())
+            { }
         }
 
         /// <summary>
@@ -310,26 +367,28 @@ namespace HotChocolate.Language
         /// </returns>
         private SyntaxToken ReadBlockStringToken(LexerState state, SyntaxToken previous)
         {
-            StringBuilder rawValue = new StringBuilder();
-            int start = state.Position - 2;
-            int chunkStart = state.Position + 1;
+            var rawValue = new StringBuilder();
+            var start = state.Position - 2;
+            var chunkStart = state.Position + 1;
 
             while (!state.IsEndOfStream())
             {
-                char code = state.SourceText[++state.Position];
+                var code = state.SourceText[++state.Position];
 
                 // Closing Triple-Quote (""")
                 if (code.IsQuote()
                     && state.SourceText[++state.Position].IsQuote()
                     && state.SourceText[++state.Position].IsQuote())
                 {
-                    int length = state.Position - chunkStart - 2;
+                    var length = state.Position - chunkStart - 2;
                     if (length > 0)
                     {
-                        rawValue.Append(state.SourceText.Substring(chunkStart, length));
+                        rawValue.Append(state.SourceText
+                            .Substring(chunkStart, length));
                     }
 
-                    var result = TrimBlockStringValue(rawValue.ToString());
+                    (string value, int lines) result =
+                        TrimBlockStringValue(rawValue.ToString());
                     SyntaxToken token = CreateToken(state, previous,
                         TokenKind.BlockString, start, result.value);
                     state.Position++;
@@ -355,10 +414,11 @@ namespace HotChocolate.Language
                     && state.SourceText[++state.Position].IsQuote()
                     && state.SourceText[++state.Position].IsQuote())
                 {
-                    int length = state.Position - chunkStart - 3;
+                    var length = state.Position - chunkStart - 3;
                     if (length > 0)
                     {
-                        rawValue.Append(state.SourceText.Substring(chunkStart, length));
+                        rawValue.Append(state.SourceText
+                            .Substring(chunkStart, length));
                     }
                     rawValue.Append("\"\"\"");
                     chunkStart = state.Position + 1;
@@ -368,27 +428,31 @@ namespace HotChocolate.Language
             throw new SyntaxException(state, "Unterminated string.");
         }
 
-        private (string value, int lines) TrimBlockStringValue(string rawString)
+        private (string value, int lines) TrimBlockStringValue(
+            string rawString)
         {
-            string[] lines = rawString.Split('\n');
-            string[] trimmedLines = new string[lines.Length];
+            var lines = rawString.Split('\n');
+            var trimmedLines = new string[lines.Length];
 
-            int commonIndent = DetermineCommonIdentation(lines, trimmedLines);
+            var commonIndent = DetermineCommonIdentation(lines, trimmedLines);
             RemoveCommonIndetation(lines, in commonIndent);
 
             // Return a string of the lines joined with U+000A.
-            return (string.Join("\n", TrimBlankLines(lines, trimmedLines)), lines.Length);
+            return (string.Join("\n", TrimBlankLines(lines, trimmedLines)),
+                lines.Length);
         }
 
-        private int DetermineCommonIdentation(string[] lines, string[] trimmedLines)
+        private int DetermineCommonIdentation(
+            string[] lines,
+            string[] trimmedLines)
         {
-            int commonIndent = lines.Length < 2 ? 0 : int.MaxValue;
+            var commonIndent = lines.Length < 2 ? 0 : int.MaxValue;
             trimmedLines[0] = lines[0].TrimStart(' ', '\t');
 
-            for (int i = 1; i < lines.Length; i++)
+            for (var i = 1; i < lines.Length; i++)
             {
                 trimmedLines[i] = lines[i].TrimStart(' ', '\t');
-                int indent = lines[i].Length - trimmedLines[i].Length;
+                var indent = lines[i].Length - trimmedLines[i].Length;
                 if (indent >= 0 && indent < commonIndent)
                 {
                     commonIndent = indent;
@@ -402,7 +466,7 @@ namespace HotChocolate.Language
         {
             if (commonIndent > 0)
             {
-                for (int i = 1; i < lines.Length; i++)
+                for (var i = 1; i < lines.Length; i++)
                 {
                     lines[i] = lines[i].Substring(commonIndent);
                 }
@@ -413,10 +477,12 @@ namespace HotChocolate.Language
         /// Trims leading and trailing the blank lines.
         /// </summary>
         /// <returns>Returns the trimmed down lines.</returns>
-        private IEnumerable<string> TrimBlankLines(string[] lines, string[] trimmedLines)
+        private IEnumerable<string> TrimBlankLines(
+            string[] lines,
+            string[] trimmedLines)
         {
-            int start = 0;
-            for (int i = 0; i <= trimmedLines.Length; i++)
+            var start = 0;
+            for (var i = 0; i <= trimmedLines.Length; i++)
             {
                 if (trimmedLines[i]?.Length > 0)
                 {
@@ -430,8 +496,8 @@ namespace HotChocolate.Language
                 return Enumerable.Empty<string>();
             }
 
-            int end = trimmedLines.Length;
-            for (int i = trimmedLines.Length - 1; i >= 0; i--)
+            var end = trimmedLines.Length;
+            for (var i = trimmedLines.Length - 1; i >= 0; i--)
             {
                 if (trimmedLines[i]?.Length > 0)
                 {
@@ -458,11 +524,13 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the string value token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadStringValueToken(LexerState state, SyntaxToken previous)
+        private SyntaxToken ReadStringValueToken(
+            LexerState state,
+            SyntaxToken previous)
         {
-            int start = state.Position;
-            int chunkStart = state.Position + 1;
-            StringBuilder value = new StringBuilder();
+            var start = state.Position;
+            var chunkStart = state.Position + 1;
+            var value = new StringBuilder();
 
             char code;
             while (!(code = state.SourceText[++state.Position]).IsNewLine())
@@ -470,7 +538,8 @@ namespace HotChocolate.Language
                 // closing Quote (")
                 if (code.IsQuote())
                 {
-                    value.Append(state.SourceText.Substring(chunkStart, state.Position - chunkStart));
+                    value.Append(state.SourceText.Substring(
+                        chunkStart, state.Position - chunkStart));
                     SyntaxToken token = CreateToken(state, previous,
                         TokenKind.String, start, value.ToString());
                     state.Position++;
@@ -486,7 +555,8 @@ namespace HotChocolate.Language
 
                 if (code.IsBackslash())
                 {
-                    value.Append(state.SourceText.Substring(chunkStart, state.Position - chunkStart));
+                    value.Append(state.SourceText.Substring(
+                        chunkStart, state.Position - chunkStart));
                     value.Append(ReadEscapedChar(state));
                     chunkStart = state.Position + 1;
                 }
@@ -497,7 +567,7 @@ namespace HotChocolate.Language
 
         private char ReadEscapedChar(LexerState state)
         {
-            char code = state.SourceText[++state.Position];
+            var code = state.SourceText[++state.Position];
 
             if (code.IsValidEscapeCharacter())
             {
@@ -508,10 +578,12 @@ namespace HotChocolate.Language
             {
                 if (!TryReadUnicodeChar(state, out code))
                 {
-                    int start = state.Position - 4;
+                    var start = state.Position - 4;
+                    var escapeChar = state.SourceText
+                        .Substring(start, state.Position - start);
                     throw new SyntaxException(state,
                         "Invalid character escape sequence: " +
-                        $"\\u{state.SourceText.Substring(start, state.Position - start)}.");
+                        $"\\u{escapeChar}.");
                 }
                 return code;
             }
@@ -522,14 +594,14 @@ namespace HotChocolate.Language
 
         private bool TryReadUnicodeChar(LexerState state, out char code)
         {
-            int c = (CharToHex(state.SourceText[++state.Position]) << 12)
+            var c = (CharToHex(state.SourceText[++state.Position]) << 12)
                 | (CharToHex(state.SourceText[++state.Position]) << 8)
                 | (CharToHex(state.SourceText[++state.Position]) << 4)
                 | CharToHex(state.SourceText[++state.Position]);
 
             if (c < 0)
             {
-                code = default(char);
+                code = default;
                 return false;
             }
 
@@ -548,19 +620,31 @@ namespace HotChocolate.Language
                   : -1;
         }
 
-        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind)
+        private SyntaxToken CreateToken(
+            LexerState state,
+            SyntaxToken previous,
+            TokenKind kind)
         {
             return new SyntaxToken(kind, state.Position - 1, state.Position,
                 state.Line, state.Column, previous);
         }
 
-        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind, int start)
+        private SyntaxToken CreateToken(
+            LexerState state,
+            SyntaxToken previous,
+            TokenKind kind,
+            int start)
         {
             return new SyntaxToken(kind, start, state.Position,
                 state.Line, state.Column, previous);
         }
 
-        private SyntaxToken CreateToken(LexerState state, SyntaxToken previous, TokenKind kind, int start, string value)
+        private SyntaxToken CreateToken(
+            LexerState state,
+            SyntaxToken previous,
+            TokenKind kind,
+            int start,
+            string value)
         {
             return new SyntaxToken(kind, start, state.Position,
                 state.Line, state.Column, value, previous);

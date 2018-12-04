@@ -12,19 +12,11 @@ namespace HotChocolate.Language
             NameNode name,
             IReadOnlyCollection<DirectiveNode> directives)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
             Location = location;
-            Name = name;
-            Directives = directives;
+            Name = name 
+                ?? throw new ArgumentNullException(nameof(name));
+            Directives = directives 
+                ?? throw new ArgumentNullException(nameof(directives));
         }
 
         public abstract NodeKind Kind { get; }

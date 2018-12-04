@@ -16,13 +16,9 @@ namespace HotChocolate.Language
             SelectionSetNode selectionSet)
             : base(location, name, directives)
         {
-            if (arguments == null)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
-
             Alias = alias;
-            Arguments = arguments;
+            Arguments = arguments 
+                ?? throw new ArgumentNullException(nameof(arguments));
             SelectionSet = selectionSet;
         }
 

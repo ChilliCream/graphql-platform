@@ -9,13 +9,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             Location = location;
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public NodeKind Kind { get; } = NodeKind.NamedType;

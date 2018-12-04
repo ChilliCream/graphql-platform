@@ -13,12 +13,7 @@ namespace HotChocolate.Language
             IReadOnlyCollection<NamedTypeNode> types)
             : base(location, name, directives)
         {
-            if (types == null)
-            {
-                throw new ArgumentNullException(nameof(types));
-            }
-
-            Types = types;
+            Types = types ?? throw new ArgumentNullException(nameof(types));
         }
 
         public IReadOnlyCollection<NamedTypeNode> Types { get; }

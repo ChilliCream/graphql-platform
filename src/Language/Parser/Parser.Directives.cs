@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -34,7 +32,7 @@ namespace HotChocolate.Language
         private static List<NameNode> ParseDirectiveLocations(
             ParserContext context)
         {
-            List<NameNode> list = new List<NameNode>();
+            var list = new List<NameNode>();
 
             // skip optional leading pipe.
             context.Skip(TokenKind.Pipe);
@@ -62,7 +60,7 @@ namespace HotChocolate.Language
         private static List<DirectiveNode> ParseDirectives(
             ParserContext context, bool isConstant)
         {
-            List<DirectiveNode> list = new List<DirectiveNode>();
+            var list = new List<DirectiveNode>();
 
             while (context.Current.IsAt())
             {

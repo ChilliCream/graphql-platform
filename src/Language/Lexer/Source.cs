@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -49,7 +50,7 @@ namespace HotChocolate.Language
         /// </returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -77,7 +78,7 @@ namespace HotChocolate.Language
         /// </returns>
         public bool Equals(Source other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -180,12 +181,12 @@ namespace HotChocolate.Language
         /// </returns>
         public static Source FromStream(Stream stream)
         {
-            using (MemoryStream memoryStream = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
                 stream.CopyTo(memoryStream);
                 memoryStream.Position = 0;
 
-                StreamReader reader = new StreamReader(stream);
+                var reader = new StreamReader(stream, Encoding.UTF8);
                 return new Source(reader.ReadToEnd());
             }
         }

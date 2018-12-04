@@ -11,19 +11,11 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives,
             IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
         {
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            if (operationTypes == null)
-            {
-                throw new ArgumentNullException(nameof(operationTypes));
-            }
-
             Location = location;
-            Directives = directives;
-            OperationTypes = operationTypes;
+            Directives = directives 
+                ?? throw new ArgumentNullException(nameof(directives));
+            OperationTypes = operationTypes 
+                ?? throw new ArgumentNullException(nameof(operationTypes));
         }
 
         public abstract NodeKind Kind { get; }

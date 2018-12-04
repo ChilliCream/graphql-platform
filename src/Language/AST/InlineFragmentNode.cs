@@ -12,20 +12,12 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            if (selectionSet == null)
-            {
-                throw new ArgumentNullException(nameof(selectionSet));
-            }
-
             Location = location;
             TypeCondition = typeCondition;
-            Directives = directives;
-            SelectionSet = selectionSet;
+            Directives = directives 
+                ?? throw new ArgumentNullException(nameof(directives));
+            SelectionSet = selectionSet 
+                ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
         public NodeKind Kind { get; } = NodeKind.InlineFragment;
@@ -45,7 +37,8 @@ namespace HotChocolate.Language
                 Directives, SelectionSet);
         }
 
-        public InlineFragmentNode WithTypeCondition(NamedTypeNode typeCondition)
+        public InlineFragmentNode WithTypeCondition(
+            NamedTypeNode typeCondition)
         {
             return new InlineFragmentNode(
                 Location, typeCondition,
