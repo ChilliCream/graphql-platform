@@ -279,5 +279,22 @@ namespace HotChocolate.Utilities
                 t => Assert.Equal(2, t),
                 t => Assert.Equal(3, t));
         }
+
+        [Fact]
+        public void Convert_ArrayOfString_String()
+        {
+            // arrange
+            var list = new[] { "1", "2", "3" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(string),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<string>(output);
+            Assert.Equal("1,2,3", output);
+        }
     }
 }
