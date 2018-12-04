@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -14,14 +13,6 @@ namespace HotChocolate.Execution
     internal sealed class ResolverContext
         : IResolverContext
     {
-        // todo: remove
-        private static readonly List<IInputValueConverter> _converters =
-            new List<IInputValueConverter>
-            {
-                new ListValueConverter(),
-                new FloatValueConverter(),
-                new DateTimeValueConverter()
-            };
         private readonly IExecutionContext _executionContext;
         private readonly ResolverTask _resolverTask;
         private readonly Dictionary<string, ArgumentValue> _arguments;
