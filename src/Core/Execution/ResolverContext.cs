@@ -16,6 +16,7 @@ namespace HotChocolate.Execution
         private readonly IExecutionContext _executionContext;
         private readonly ResolverTask _resolverTask;
         private readonly Dictionary<string, ArgumentValue> _arguments;
+        private readonly ITypeConversion _converter;
 
         public ResolverContext(
             IExecutionContext executionContext,
@@ -36,6 +37,7 @@ namespace HotChocolate.Execution
             _resolverTask = resolverTask;
             RequestAborted = requestAborted;
 
+            _converter = _executionContext.Services.GetTypeConversion();
             _arguments = resolverTask.FieldSelection
                 .CoerceArgumentValues(executionContext.Variables);
         }
@@ -104,19 +106,16 @@ namespace HotChocolate.Execution
                     _resolverTask.FieldSelection.Selection));
         }
 
-        private static bool TryConvertValue<T>(
+        private bool TryConvertValue<T>(
             ArgumentValue argumentValue,
             out T value)
         {
-            foreach (IInputValueConverter converter in _converters
-                .Where(t => t.CanConvert(argumentValue.Type)))
+            if (_converter.TryConvert(
+                argumentValue.ClrType, typeof(T),
+                argumentValue.Value, out object converted))
             {
-                if (converter.TryConvert(argumentValue.ClrType, typeof(T),
-                    argumentValue.Value, out object cv))
-                {
-                    value = (T)cv;
-                    return true;
-                }
+                value = (T)converted;
+                return true;
             }
 
             value = default(T);
