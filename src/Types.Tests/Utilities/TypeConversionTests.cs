@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -179,6 +180,104 @@ namespace HotChocolate.Utilities
             Assert.True(success);
             Assert.IsType<string>(output);
             Assert.Equal(expectedOutput, output);
+        }
+
+        [InlineData(1, "1")]
+        [InlineData(null, null)]
+        [InlineData("foo", "foo")]
+        [InlineData(true, "true")]
+        [Theory]
+        public void Convert_Object_String(object input, object expectedOutput)
+        {
+            // arrange
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(object), typeof(string),
+                input, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(expectedOutput, output);
+        }
+
+        [Fact]
+        public void Convert_ArrayOfString_ListOfString()
+        {
+            // arrange
+            var list = new[] { "a", "b", "c" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(List<string>),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<string>>(output);
+            Assert.Collection((List<string>)output,
+                t => Assert.Equal("a", t),
+                t => Assert.Equal("b", t),
+                t => Assert.Equal("c", t));
+        }
+
+        [Fact]
+        public void Convert_ArrayOfString_ListOfInt()
+        {
+            // arrange
+            var list = new[] { "1", "2", "3" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(List<int>),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<int>>(output);
+            Assert.Collection((List<int>)output,
+                t => Assert.Equal(1, t),
+                t => Assert.Equal(2, t),
+                t => Assert.Equal(3, t));
+        }
+
+        [Fact]
+        public void Convert_ArrayOfString_IListOfInt()
+        {
+            // arrange
+            var list = new[] { "1", "2", "3" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(IList<int>),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<int>>(output);
+            Assert.Collection((List<int>)output,
+                t => Assert.Equal(1, t),
+                t => Assert.Equal(2, t),
+                t => Assert.Equal(3, t));
+        }
+
+        [Fact]
+        public void Convert_ArrayOfString_ICollectionOfInt()
+        {
+            // arrange
+            var list = new[] { "1", "2", "3" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(ICollection<int>),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<int>>(output);
+            Assert.Collection((List<int>)output,
+                t => Assert.Equal(1, t),
+                t => Assert.Equal(2, t),
+                t => Assert.Equal(3, t));
         }
     }
 }
