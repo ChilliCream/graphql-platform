@@ -3,7 +3,7 @@ using HotChocolate.Stitching;
 
 namespace HotChocolate
 {
-    public static class SchemaConfigurationExtensions
+    public static class StitchingSchemaConfigurationExtensions
     {
         public static ISchemaConfiguration UseStitching(
             this ISchemaConfiguration configuration)

@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
-    internal static class AstStitchingExtensions
+    internal static class StitchingAstExtensions
     {
         private static readonly HashSet<string> _stitchingDirectives =
             new HashSet<string>
