@@ -78,7 +78,7 @@ namespace HotChocolate.Utilities
         [InlineData((double)1.1, "1.1", typeof(double), typeof(string))]
 
         [Theory]
-        public void ConvertNumbers(object input, object expectedOutput,
+        public void ConvertNumber(object input, object expectedOutput,
             Type from, Type to)
         {
             // arrange
@@ -92,5 +92,41 @@ namespace HotChocolate.Utilities
             Assert.Equal(expectedOutput, output);
         }
 
+
+        [InlineData("{2d84dcd6-3439-4ebe-8427-f4b1e1730c47}")]
+        [InlineData("2d84dcd6-3439-4ebe-8427-f4b1e1730c47")]
+        [InlineData("2d84dcd634394ebe8427f4b1e1730c47")]
+        [Theory]
+        public void Convert_String_Guid(string input)
+        {
+            // arrange
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string), typeof(Guid),
+                input, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<Guid>(output);
+            Assert.Equal(Guid.Parse(input), output);
+        }
+
+        [Fact]
+        public void Convert_Guid_String()
+        {
+            // arrange
+            const string expectedOutput = "2d84dcd634394ebe8427f4b1e1730c47";
+            Guid input = Guid.Parse(expectedOutput);
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(Guid), typeof(string),
+                input, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<string>(output);
+            Assert.Equal(expectedOutput, output);
+        }
     }
 }
