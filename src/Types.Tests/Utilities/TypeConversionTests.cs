@@ -128,5 +128,57 @@ namespace HotChocolate.Utilities
             Assert.IsType<string>(output);
             Assert.Equal(expectedOutput, output);
         }
+
+        [Fact]
+        public void Convert_String_Uri()
+        {
+            // arrange
+            const string expectedOutput = "http://foo/";
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string), typeof(Uri),
+                expectedOutput, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<Uri>(output);
+            Assert.Equal(expectedOutput, output.ToString());
+        }
+
+        [Fact]
+        public void Convert_Uri_String()
+        {
+            // arrange
+            const string expectedOutput = "http://foo/";
+            var input = new Uri(expectedOutput);
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(Uri), typeof(string),
+                input, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<string>(output);
+            Assert.Equal(expectedOutput, output);
+        }
+
+        [Fact]
+        public void Convert_String_String()
+        {
+            // arrange
+            const string expectedOutput = "2d84dcd634394ebe8427f4b1e1730c47";
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string), typeof(string),
+                expectedOutput, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<string>(output);
+            Assert.Equal(expectedOutput, output);
+        }
     }
 }

@@ -28,6 +28,12 @@ namespace HotChocolate.Utilities
         public bool TryConvert(Type from, Type to,
             object input, out object output)
         {
+            if (from == to)
+            {
+                output = input;
+                return true;
+            }
+
             if (_converters.TryGetValue(from, out var toLookUp)
                 && toLookUp.TryGetValue(to, out var changeType))
             {

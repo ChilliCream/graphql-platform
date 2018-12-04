@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching
         public string OperationName { get; set; }
         public string NamedQuery { get; set; }
         public string Query { get; set; }
-        public new IReadOnlyDictionary<string, object> Variables { get; set; }
+        public IReadOnlyDictionary<string, object> Variables { get; set; }
     }
 
     public class ClientQueryResult
