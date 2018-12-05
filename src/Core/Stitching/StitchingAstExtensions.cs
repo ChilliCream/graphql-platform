@@ -52,6 +52,12 @@ namespace HotChocolate.Stitching
             return directive.Name.Value.EqualsOrdinal(DirectiveNames.Schema);
         }
 
+        public static bool IsDelegateDirective(
+            this DirectiveNode directive)
+        {
+            return directive.Name.Value.EqualsOrdinal(DirectiveNames.Delegate);
+        }
+
         public static bool IsSchemaDirective(
             this DirectiveNode directive,
             string schemaName)
