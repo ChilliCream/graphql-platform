@@ -51,14 +51,14 @@ namespace HotChocolate.Configuration
             Func<T, CancellationToken, Task> triggerLoaderAsync = null)
         {
             
-            Func<IServiceProvider,object> f = null;
+            Func<IServiceProvider,object> factory = null;
             if(loaderFactory != null)
-                f = s => loaderFactory(s);
-            Func<object,CancellationToken,Task> g = null;
+                factory = s => loaderFactory(s);
+            Func<object,CancellationToken,Task> trigger = null;
             if(triggerLoaderAsync != null)
-                g = (a,b) => triggerLoaderAsync((T)a,b);
+                trigger = (a,b) => triggerLoaderAsync((T)a,b);
 
-            RegisterDataLoader(typeof(T),key,scope,f,g);
+            RegisterDataLoader(typeof(T),key,scope,factory,trigger);
            
         }
     }
