@@ -378,23 +378,6 @@ namespace HotChocolate.Types
             AddResolverTypes(fields);
         }
 
-        private Dictionary<MemberInfo, string> GetAllMembers(
-            ISet<MemberInfo> handledMembers)
-        {
-            var members = new Dictionary<MemberInfo, string>();
-
-            foreach (KeyValuePair<string, MemberInfo> member in
-                ReflectionUtils.GetMembers(ObjectDescription.ClrType))
-            {
-                if (!handledMembers.Contains(member.Value))
-                {
-                    members[member.Value] = member.Key;
-                }
-            }
-
-            return members;
-        }
-
         private void AddImplicitFields(
             IDictionary<string, ObjectFieldDescription> fields,
             ISet<MemberInfo> handledMembers)
@@ -412,6 +395,23 @@ namespace HotChocolate.Types
                         .CreateDescription();
                 }
             }
+        }
+
+        private Dictionary<MemberInfo, string> GetAllMembers(
+            ISet<MemberInfo> handledMembers)
+        {
+            var members = new Dictionary<MemberInfo, string>();
+
+            foreach (KeyValuePair<string, MemberInfo> member in
+                ReflectionUtils.GetMembers(ObjectDescription.ClrType))
+            {
+                if (!handledMembers.Contains(member.Value))
+                {
+                    members[member.Value] = member.Key;
+                }
+            }
+
+            return members;
         }
 
         #region IObjectTypeDescriptor<T>

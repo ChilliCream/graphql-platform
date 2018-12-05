@@ -10,44 +10,65 @@ namespace HotChocolate.Configuration
 
         public void RegisterType<T>()
         {
-            if (typeof(T).IsDefined(typeof(GraphQLResolverOfAttribute), false))
+            RegisterType(typeof(T));
+        }
+
+        public void RegisterType(Type type)
+        {
+            if (type.IsDefined(typeof(GraphQLResolverOfAttribute), false))
             {
-                _typeRegistry.RegisterResolverType(typeof(T));
+                _typeRegistry.RegisterResolverType(type);
             }
             else
             {
-                CreateAndRegisterType(typeof(T));
+                CreateAndRegisterType(type);
             }
         }
 
-        public void RegisterQueryType<T>()
-            where T : class
+        public void RegisterQueryType<T>() where T : class
         {
-            INamedType type = RegisterObjectType<T>();
-            Options.QueryTypeName = type.Name;
+            RegisterQueryType(typeof(T));
+        }
+        public void RegisterQueryType(Type type)
+        {
+            INamedType namedType = RegisterObjectType(type);
+            Options.QueryTypeName = namedType.Name;
         }
 
-        public void RegisterMutationType<T>()
-            where T : class
+
+        public void RegisterMutationType<T>() where T : class
         {
-            INamedType type = RegisterObjectType<T>();
-            Options.MutationTypeName = type.Name;
+            RegisterMutationType(typeof(T));
+        }
+        public void RegisterMutationType(Type type)
+        {
+            INamedType namedType = RegisterObjectType(type);
+            Options.MutationTypeName = namedType.Name;
         }
 
-        public void RegisterSubscriptionType<T>()
-            where T : class
+
+        public void RegisterSubscriptionType<T>() where T : class
         {
-            INamedType type = RegisterObjectType<T>();
-            Options.SubscriptionTypeName = type.Name;
+            RegisterSubscriptionType(typeof(T));
+        }
+        public void RegisterSubscriptionType(Type type)
+        {
+            INamedType namedType = RegisterObjectType(type);
+            Options.SubscriptionTypeName = namedType.Name;
         }
 
-        public INamedType RegisterObjectType<T>()
-            where T : class
+        private INamedType RegisterObjectType<T>() where T : class
         {
-            return typeof(ObjectType).IsAssignableFrom(typeof(T))
-                ? CreateAndRegisterType(typeof(T))
-                : CreateAndRegisterType(typeof(ObjectType<T>));
+            return RegisterObjectType(typeof(T));
         }
+        private INamedType RegisterObjectType(Type type)
+        {
+            return typeof(ObjectType).IsAssignableFrom(type)
+                ? CreateAndRegisterType(type)
+                : CreateAndRegisterType(typeof(ObjectType<>).MakeGenericType(type));
+        }
+
+        
 
         private INamedType CreateAndRegisterType(Type type)
         {
@@ -93,19 +114,24 @@ namespace HotChocolate.Configuration
             Options.SubscriptionTypeName = objectType.Name;
             _typeRegistry.RegisterType(objectType);
         }
-
         #endregion
 
         #region Directives
 
         public void RegisterDirective<T>() where T : DirectiveType, new()
         {
-            _directiveRegistry.RegisterDirectiveType<T>();
+            RegisterDirective(typeof(T));
         }
+
+        public void RegisterDirective(Type type)
+        {
+            _directiveRegistry.RegisterDirectiveType(type);
+        }
+
 
         public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
-            _directiveRegistry.RegisterDirectiveType<T>(directive);
+            _directiveRegistry.RegisterDirectiveType(directive);
         }
 
         #endregion
