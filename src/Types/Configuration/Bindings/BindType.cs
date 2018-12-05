@@ -36,14 +36,10 @@ namespace HotChocolate.Configuration
             return new BindField<T>(_bindingInfo, fieldBindingInfo);
         }
 
-        public IBoundType<T> To(string typeName)
+        public IBoundType<T> To(NameString typeName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
 
-            _bindingInfo.Name = typeName;
+            _bindingInfo.Name = typeName.EnsureNotEmpty(nameof(typeName));
             return this;
         }
     }

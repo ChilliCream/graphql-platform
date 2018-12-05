@@ -3,7 +3,7 @@ namespace HotChocolate.Types
     public interface INamedType
         : INullableType
     {
-        string Name { get; }
+        NameString Name { get; }
 
         string Description { get; }
     }

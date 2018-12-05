@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         , IEquatable<IntValueNode>
     {
         public IntValueNode(int value)
-            : this(null, value.ToString(CultureInfo.InvariantCulture))
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
         }
 

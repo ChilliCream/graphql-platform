@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        public T GetType<T>(string typeName)
+        public T GetType<T>(NameString typeName)
             where T : IType
         {
             return TryGetType(typeName, out T type) ? type : default;
@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
             return TryGetType(typeReference, out T type) ? type : default;
         }
 
-        public bool TryGetType<T>(string typeName, out T type)
+        public bool TryGetType<T>(NameString typeName, out T type)
             where T : IType
         {
             if (string.IsNullOrEmpty(typeName))
@@ -53,75 +53,186 @@ namespace HotChocolate.Configuration
 
             if (typeReference.IsClrTypeReference())
             {
-                return TryGetTypeFromNativeType(
-                    typeReference.ClrType, out type);
+                return TryGetTypeFromClrType(
+                    typeReference.ClrType,
+                    typeReference.Context,
+                    out type);
             }
 
             return TryGetTypeFromAst(typeReference.Type, out type);
         }
 
-        private bool TryGetTypeFromNativeType<T>(Type nativeType, out T type)
+        public IEnumerable<Type> GetResolverTypes(NameString typeName)
         {
-            if (_typeInspector.TryCreate(nativeType,
-                out TypeInfo typeInfo))
+            if (_resolverTypes.Count > 0)
             {
-                return TryGetTypeFromNativeNamedType(typeInfo, out type)
-                    || TryGetTypeFromNativeTypeBinding(typeInfo, out type);
+                foreach (Type resolverType in _resolverTypes.ToArray())
+                {
+                    IEnumerable<GraphQLResolverOfAttribute> attributes =
+                        resolverType.GetCustomAttributes(
+                            typeof(GraphQLResolverOfAttribute), false)
+                        .OfType<GraphQLResolverOfAttribute>();
+
+                    var all = true;
+
+                    foreach (GraphQLResolverOfAttribute attribute in attributes)
+                    {
+                        all &= AddResolverTypeToLookup(resolverType, attribute);
+                    }
+
+                    if (all)
+                    {
+                        _resolverTypes.Remove(resolverType);
+                    }
+                }
             }
 
-            type = default;
+            if (_resolverTypeDict.TryGetValue(typeName, out List<Type> types))
+            {
+                return types;
+            }
+
+            return Array.Empty<Type>();
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            GraphQLResolverOfAttribute attribute)
+        {
+            if (attribute.Types == null)
+            {
+                AddResolverTypeToLookup(resolverType, attribute.TypeNames);
+                return true;
+            }
+
+            return AddResolverTypeToLookup(resolverType, attribute.Types);
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            IEnumerable<Type> types)
+        {
+            var all = true;
+
+            foreach (Type type in types)
+            {
+                all &= AddResolverTypeToLookup(resolverType, type);
+            }
+
+            return all;
+        }
+
+        private bool AddResolverTypeToLookup(
+            Type resolverType,
+            Type clrType)
+        {
+            if (_clrTypeToSchemaType.TryGetValue(clrType,
+                out NameString typeName))
+            {
+                AddResolverTypeToLookup(resolverType, typeName);
+                return true;
+            }
+
+            if (_clrTypes.TryGetValue(clrType,
+                out HashSet<NameString> typeNames))
+            {
+                ObjectType objectType = GetNamedTypes(typeNames)
+                    .OfType<ObjectType>().FirstOrDefault();
+                if (objectType != null)
+                {
+                    AddResolverTypeToLookup(resolverType, objectType.Name);
+                    return true;
+                }
+            }
+
             return false;
         }
 
-        private bool TryGetTypeFromNativeNamedType<T>(
-            TypeInfo typeInfo,
+        private void AddResolverTypeToLookup(
+            Type resolverType,
+            IEnumerable<string> typeNames)
+        {
+            foreach (var typeName in typeNames)
+            {
+                AddResolverTypeToLookup(resolverType, typeName);
+            }
+        }
+
+        private void AddResolverTypeToLookup(
+            Type resolverType,
+            NameString typeName)
+        {
+            if (!_resolverTypeDict.TryGetValue(typeName, out List<Type> types))
+            {
+                types = new List<Type>();
+                _resolverTypeDict[typeName] = types;
+            }
+
+            if (!types.Contains(resolverType))
+            {
+                types.Add(resolverType);
+            }
+        }
+
+        private bool TryGetTypeFromClrType<T>(
+            Type clrType,
+            TypeContext context,
             out T type)
         {
-            if (_clrTypeToSchemaType.TryGetValue(
-                typeInfo.NativeNamedType, out string typeName)
-                && _namedTypes.TryGetValue(typeName, out INamedType namedType))
+            Type unwrappedClrType = DotNetTypeInfoFactory.Unwrap(clrType);
+
+            if (!unwrappedClrType.IsValueType
+                && TryGetTypeFromClrType(
+                    unwrappedClrType, context,
+                    t => t, out type))
             {
-                IType internalType = typeInfo.TypeFactory(namedType);
-                if (internalType is T t)
-                {
-                    type = t;
-                    return true;
-                }
+                return true;
+            }
+
+            if (_typeInspector.TryCreate(clrType, out TypeInfo typeInfo))
+            {
+                return TryGetTypeFromClrTypeReference(
+                        typeInfo.ClrType, context,
+                        typeInfo.TypeFactory, out type)
+                    || TryGetTypeFromClrType(
+                        typeInfo.ClrType, context,
+                        typeInfo.TypeFactory, out type);
             }
 
             type = default;
             return false;
         }
 
-        // TODO : Refactor
-        private bool TryGetTypeFromNativeTypeBinding<T>(
-            TypeInfo typeInfo
-            , out T type)
+        private bool TryGetTypeFromClrTypeReference<T>(
+            Type clrType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
+            out T type)
         {
-            if (_clrTypes.TryGetValue(typeInfo.NativeNamedType,
-                out HashSet<string> namedTypeNames))
+            if (_clrTypeToSchemaType.TryGetValue(clrType, out var typeName)
+                && _namedTypes.TryGetValue(typeName, out var namedType))
             {
-                List<INamedType> namedTypes =
-                    GetNamedTypes(namedTypeNames).ToList();
+                return TryCreateType(namedType, context, factory, out type);
+            }
 
-                if (typeof(T) == typeof(IInputType)
-                    || typeof(T) == typeof(IOutputType))
-                {
-                    type = namedTypes.OfType<T>().FirstOrDefault();
-                    if (ReferenceEquals(type, default(T)))
-                    {
-                        return false;
-                    }
-                    type = (T)typeInfo.TypeFactory((INamedType)type);
-                    return true;
-                }
+            type = default;
+            return false;
+        }
+
+        private bool TryGetTypeFromClrType<T>(
+            Type clrType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
+            out T type)
+        {
+            if (_clrTypes.TryGetValue(clrType, out var namedTypeNames))
+            {
+                var namedTypes = GetNamedTypes(namedTypeNames).ToList();
 
                 foreach (INamedType namedType in namedTypes)
                 {
-                    IType internalType = typeInfo.TypeFactory(namedType);
-                    if (internalType is T t)
+                    if (TryCreateType(namedType, context, factory, out type))
                     {
-                        type = t;
                         return true;
                     }
                 }
@@ -129,6 +240,41 @@ namespace HotChocolate.Configuration
 
             type = default;
             return false;
+        }
+
+        private bool TryCreateType<T>(
+            INamedType namedType,
+            TypeContext context,
+            Func<INamedType, IType> factory,
+            out T type)
+        {
+            if (DoesTypeApplyToContext(namedType, context))
+            {
+                IType internalType = factory(namedType);
+                if (internalType is T t)
+                {
+                    type = t;
+                    return true;
+                }
+            }
+
+            type = default(T);
+            return false;
+        }
+
+        private static bool DoesTypeApplyToContext(
+            INamedType type,
+            TypeContext context)
+        {
+            switch (context)
+            {
+                case TypeContext.Output:
+                    return type is IOutputType;
+                case TypeContext.Input:
+                    return type is IInputType;
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private bool TryGetTypeFromAst<T>(ITypeNode typeNode, out T type)
@@ -176,7 +322,7 @@ namespace HotChocolate.Configuration
         }
 
         private IEnumerable<INamedType> GetNamedTypes(
-            IEnumerable<string> typeNames)
+            IEnumerable<NameString> typeNames)
         {
             foreach (var typeName in typeNames)
             {
@@ -192,14 +338,71 @@ namespace HotChocolate.Configuration
             return _namedTypes.Values;
         }
 
-        public IEnumerable<Type> GetUnresolvedTypes()
+        public IEnumerable<TypeReference> GetUnresolvedTypes()
         {
-            foreach (Type nativeType in _clrTypes.Keys)
+            foreach (TypeReference unresolvedType in _unresolvedTypes.ToArray())
             {
-                _unresolvedTypes.Remove(nativeType);
+                if (IsTypeResolved(unresolvedType))
+                {
+                    _unresolvedTypes.Remove(unresolvedType);
+                }
             }
-
             return _unresolvedTypes;
+        }
+
+        private bool IsTypeResolved(TypeReference typeReference) =>
+            IsTypeResolved(typeReference.ClrType, typeReference.Context);
+
+
+        private bool IsTypeResolved(Type clrType, TypeContext context)
+        {
+            if (_clrTypes.TryGetValue(clrType,
+                out HashSet<NameString> associated))
+            {
+                foreach (NameString name in associated)
+                {
+                    switch (context)
+                    {
+                        case TypeContext.Input:
+                            if (IsInputType(name))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        case TypeContext.Output:
+                            if (IsOutputType(name))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool IsInputType(NameString name)
+        {
+            if (_namedTypes.TryGetValue(name, out INamedType namedType)
+                && namedType is IInputType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool IsOutputType(NameString name)
+        {
+            if (_namedTypes.TryGetValue(name, out INamedType namedType)
+                && namedType is IOutputType)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

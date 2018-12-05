@@ -23,12 +23,14 @@ namespace HotChocolate.Types
         void RegisterResolver(
             Type sourceType,
             Type resolverType,
-            string fieldName,
+            NameString fieldName,
             MemberInfo fieldMember);
 
         void RegisterMiddleware(IDirectiveMiddleware middleware);
 
-        AsyncFieldResolverDelegate GetResolver(string fieldName);
+        AsyncFieldResolverDelegate GetResolver(NameString fieldName);
+
+        IEnumerable<Type> GetResolverTypes(NameString typeName);
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
@@ -42,7 +44,7 @@ namespace HotChocolate.Types
         bool TryGetNativeType(INamedType namedType, out Type nativeType);
 
         bool TryGetProperty<T>(
-            INamedType namedType, string fieldName, out T member)
+            INamedType namedType, NameString fieldName, out T member)
             where T : MemberInfo;
 
         void ReportError(SchemaError error);

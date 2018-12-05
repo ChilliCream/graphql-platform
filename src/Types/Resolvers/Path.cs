@@ -6,7 +6,7 @@ namespace HotChocolate.Resolvers
     public sealed class Path
         : IEquatable<Path>
     {
-        private Path(Path parent, string name)
+        private Path(Path parent, NameString name)
         {
             Parent = parent;
             Name = name;
@@ -15,7 +15,7 @@ namespace HotChocolate.Resolvers
             Depth = parent == null ? 0 : parent.Depth + 1;
         }
 
-        private Path(Path parent, string name, int index)
+        private Path(Path parent, NameString name, int index)
         {
             Parent = parent;
             Name = name;
@@ -25,7 +25,7 @@ namespace HotChocolate.Resolvers
         }
 
         public Path Parent { get; }
-        public string Name { get; }
+        public NameString Name { get; }
         public int Index { get; }
         public bool IsIndexer { get; }
         public int Depth { get; }
@@ -35,7 +35,7 @@ namespace HotChocolate.Resolvers
             return new Path(Parent, Name, index);
         }
 
-        internal Path Append(string name)
+        internal Path Append(NameString name)
         {
             return new Path(this, name);
         }
@@ -72,14 +72,8 @@ namespace HotChocolate.Resolvers
             unchecked
             {
                 int hash = (Parent?.GetHashCode() ?? 0) * 3;
-
-                if (Name != null)
-                {
-                    hash = hash ^ (Name.GetHashCode() * 7);
-                }
-
+                hash = hash ^ (Name.GetHashCode() * 7);
                 hash = hash ^ (Index.GetHashCode() * 11);
-
                 return hash;
             }
         }
@@ -114,7 +108,7 @@ namespace HotChocolate.Resolvers
             return stack;
         }
 
-        internal static Path New(string name)
+        internal static Path New(NameString name)
         {
             return new Path(null, name);
         }

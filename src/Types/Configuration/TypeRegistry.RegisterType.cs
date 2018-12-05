@@ -7,8 +7,10 @@ namespace HotChocolate.Configuration
     internal partial class TypeRegistry
         : ITypeRegistry
     {
-        public void RegisterType(INamedType namedType,
-            ITypeBinding typeBinding = null)
+        public void RegisterType(INamedType namedType) =>
+            RegisterType(namedType, null);
+
+        public void RegisterType(INamedType namedType, ITypeBinding typeBinding)
         {
             if (namedType == null)
             {
@@ -33,30 +35,38 @@ namespace HotChocolate.Configuration
                 && typeReference.IsClrTypeReference()
                 && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
             {
-                RegisterNativeType(typeReference.ClrType);
+                RegisterType(
+                    typeReference.ClrType,
+                    typeReference.Context);
             }
         }
 
-        private void RegisterNativeType(Type type)
+        public void RegisterResolverType(Type resolverType)
+        {
+            if (resolverType == null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            _resolverTypes.Add(resolverType);
+        }
+
+        private void RegisterType(Type type, TypeContext context)
         {
             if (_typeInspector.TryCreate(type, out TypeInfo typeInfo))
             {
-                if (typeof(INamedType).IsAssignableFrom(
-                    typeInfo.NativeNamedType))
+                if (typeof(INamedType).IsAssignableFrom(typeInfo.ClrType))
                 {
-                    TryUpdateNamedType(typeInfo.NativeNamedType);
+                    var namedType = (INamedType)_serviceFactory
+                        .CreateInstance(typeInfo.ClrType);
+                    TryUpdateNamedType(namedType);
                 }
-                else if (!_clrTypes.ContainsKey(typeInfo.NativeNamedType))
+                else if (!IsTypeResolved(typeInfo.ClrType, context))
                 {
-                    _unresolvedTypes.Add(typeInfo.NativeNamedType);
+                    _unresolvedTypes.Add(
+                        new TypeReference(typeInfo.ClrType, context));
                 }
             }
-        }
-
-        private void TryUpdateNamedType(Type type)
-        {
-            TryUpdateNamedType(
-                (INamedType)_serviceFactory.CreateInstance(type));
         }
 
         private void TryUpdateNamedType(INamedType namedType)
@@ -76,14 +86,16 @@ namespace HotChocolate.Configuration
                 _clrTypeToSchemaType[type] = namedTypeRef.Name;
             }
 
-            if (namedTypeRef is IInputType inputType
+            if (namedTypeRef is IHasClrType inputType
                 && inputType.ClrType != null)
             {
                 AddNativeTypeBinding(inputType.ClrType, namedType.Name);
             }
         }
 
-        private void UpdateTypeBinding(string typeName, ITypeBinding typeBinding)
+        private void UpdateTypeBinding(
+            NameString typeName,
+            ITypeBinding typeBinding)
         {
             if (typeBinding != null)
             {

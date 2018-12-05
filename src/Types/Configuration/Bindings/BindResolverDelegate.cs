@@ -15,26 +15,12 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(bindingInfo));
         }
 
-        public void To(string typeName, string fieldName)
+        public void To(NameString typeName, NameString fieldName)
         {
-            if (typeName?.Length == 0)
-            {
-                throw new ArgumentException(
-                    "The type name has to be specified in order " +
-                    "to bind a resolver.",
-                    nameof(typeName));
-            }
-
-            if (fieldName?.Length == 0)
-            {
-                throw new ArgumentException(
-                    "The field name has to be specified in order " +
-                    "to bind a resolver.",
-                    nameof(fieldName));
-            }
-
-            _bindingInfo.ObjectTypeName = typeName;
-            _bindingInfo.FieldName = fieldName;
+            _bindingInfo.ObjectTypeName =
+                typeName.EnsureNotEmpty(nameof(typeName));
+            _bindingInfo.FieldName =
+                fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         public void To<TObjectType>(

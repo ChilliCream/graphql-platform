@@ -9,17 +9,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
     internal static class FieldResolverDiscoverer
     {
         public static IEnumerable<IFieldResolverDescriptor> DiscoverResolvers(
-            Type resolverType, Type sourceType, string typeName,
+            Type resolverType, Type sourceType, NameString typeName,
             Func<FieldMember, string> lookupFieldName)
         {
             if (sourceType == null)
             {
                 throw new ArgumentNullException(nameof(sourceType));
-            }
-
-            if (typeName == null)
-            {
-                throw new ArgumentNullException(nameof(typeName));
             }
 
             if (lookupFieldName == null)
@@ -28,11 +23,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 
             return DiscoverResolversInternal(
-                resolverType, sourceType, typeName, lookupFieldName);
+                resolverType,
+                sourceType,
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                lookupFieldName);
         }
 
         private static IEnumerable<IFieldResolverDescriptor> DiscoverResolversInternal(
-            Type resolverType, Type sourceType, string typeName,
+            Type resolverType, Type sourceType, NameString typeName,
             Func<FieldMember, string> lookupFieldName)
         {
             foreach (FieldMember fieldMember in
@@ -140,24 +138,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         public static IEnumerable<FieldMember> DiscoverResolvableMembers(
-            Type resolverType, string typeName)
+            Type resolverType, NameString typeName)
         {
             if (resolverType == null)
             {
                 throw new ArgumentNullException(nameof(resolverType));
             }
 
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
+            typeName.EnsureNotEmpty(nameof(typeName));
 
             return GetProperties(resolverType, typeName)
                 .Concat(GetMethods(resolverType, typeName));
         }
 
         private static IEnumerable<FieldMember> GetProperties(
-            Type resolverType, string typeName)
+            Type resolverType, NameString typeName)
         {
             PropertyInfo[] properties = resolverType.GetProperties(
                 BindingFlags.Public | BindingFlags.Instance);
@@ -181,7 +176,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         private static IEnumerable<FieldMember> GetMethods(
-            Type resolverType, string typeName)
+            Type resolverType, NameString typeName)
         {
             MethodInfo[] methods = resolverType.GetMethods(
                 BindingFlags.Public | BindingFlags.Instance);

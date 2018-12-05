@@ -40,7 +40,25 @@ namespace HotChocolate.Execution
             set
             {
                 IsResultModified = true;
-                _result = value;
+
+                if (_result is IResolverResult r)
+                {
+                    if (r.IsError)
+                    {
+                        _result = QueryError.CreateFieldError(
+                            r.ErrorMessage,
+                            Path,
+                            FieldSelection);
+                    }
+                    else
+                    {
+                        _result = r.Value;
+                    }
+                }
+                else
+                {
+                    _result = value;
+                }
             }
         }
 
@@ -67,7 +85,7 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted =>
             _resolverContext.RequestAborted;
 
-        public T Argument<T>(string name) =>
+        public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);
 
         public T CustomContext<T>() =>

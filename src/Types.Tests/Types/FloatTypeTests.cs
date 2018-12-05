@@ -5,7 +5,7 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class FloatTypeTests
-        : NumberTypeTests<double, FloatType, FloatValueNode>
+        : NumberTypeTests<double, FloatType, FloatValueNode, double>
     {
         protected override FloatValueNode GetValueNode =>
             new FloatValueNode("1.000000E+000");
@@ -18,12 +18,14 @@ namespace HotChocolate.Types
         protected override object GetWrongValue => 1.0m;
 
         protected override double GetAssertValue => 1.0d;
+        protected override double GetSerializedAssertValue => 1.0d;
 
         protected override double GetMaxValue => double.MaxValue;
         protected override string GetAssertMaxValue => "1.797693E+308";
 
         protected override double GetMinValue => double.MinValue;
         protected override string GetAssertMinValue => "-1.797693E+308";
+
 
         [Fact]
         public void ParseValue_Float_Max()

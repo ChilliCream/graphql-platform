@@ -100,7 +100,7 @@ namespace HotChocolate.Types
             configure(descriptor);
 
             InputObjectTypeDescription description = descriptor.CreateDescription();
-            ClrType = description.NativeType;
+            ClrType = description.ClrType;
             SyntaxNode = description.SyntaxNode;
             Fields = new FieldCollection<InputField>(
                 description.Fields.Select(t => new InputField(t)));
@@ -187,7 +187,7 @@ namespace HotChocolate.Types
         #region Configuration
 
         internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>(typeof(T));
+            new InputObjectTypeDescriptor<T>();
 
         protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
         {

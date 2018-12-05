@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : IField
     {
-        private readonly Dictionary<string, T> _fields;
+        private readonly Dictionary<NameString, T> _fields;
 
         public FieldCollection(IEnumerable<T> fields)
         {
@@ -18,7 +18,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields.ToDictionary(t => t.Name);
+            _fields = fields.ToDictionary(t => (NameString)t.Name);
             Count = _fields.Count;
             IsEmpty = _fields.Count == 0;
         }
@@ -29,28 +29,17 @@ namespace HotChocolate.Types
 
         public bool IsEmpty { get; }
 
-        public bool ContainsField(string fieldName)
+        public bool ContainsField(NameString fieldName)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "A field name must at least consist of one letter.",
-                    nameof(fieldName));
-            }
-
-            return _fields.ContainsKey(fieldName);
+            return _fields.ContainsKey(
+                fieldName.EnsureNotEmpty(nameof(fieldName)));
         }
 
-        public bool TryGetField(string fieldName, out T field)
+        public bool TryGetField(NameString fieldName, out T field)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "A field name must at least consist of one letter.",
-                    nameof(fieldName));
-            }
-
-            return _fields.TryGetValue(fieldName, out field);
+            return _fields.TryGetValue(
+                fieldName.EnsureNotEmpty(nameof(fieldName)),
+                out field);
         }
 
         public IEnumerator<T> GetEnumerator()

@@ -26,23 +26,9 @@ namespace HotChocolate.Types
             FieldDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(name));
-            }
-
-            FieldDescription.Name = name;
+            FieldDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -53,7 +39,9 @@ namespace HotChocolate.Types
         protected void Type<TOutputType>() where TOutputType : IOutputType
         {
             FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(typeof(TOutputType));
+                .TypeReference.GetMoreSpecific(
+                    typeof(TOutputType),
+                    TypeContext.Output);
         }
 
         protected void Type(ITypeNode type)
@@ -62,28 +50,17 @@ namespace HotChocolate.Types
                 .TypeReference.GetMoreSpecific(type);
         }
 
-        protected void Argument(string name, Action<IArgumentDescriptor> argument)
+        protected void Argument(
+            NameString name,
+            Action<IArgumentDescriptor> argument)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The argument name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL argument name.",
-                    nameof(name));
-            }
-
             if (argument == null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            var descriptor = new ArgumentDescriptor(name);
+            var descriptor = new ArgumentDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             argument(descriptor);
             FieldDescription.Arguments.Add(descriptor.CreateDescription());
         }

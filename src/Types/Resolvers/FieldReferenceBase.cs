@@ -1,39 +1,14 @@
 using System;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
     public class FieldReferenceBase
         : IFieldReference
     {
-        protected FieldReferenceBase(string typeName, string fieldName)
+        protected FieldReferenceBase(NameString typeName, NameString fieldName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(typeName))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
-                    nameof(typeName));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(fieldName))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(typeName));
-            }
-
-            TypeName = typeName;
-            FieldName = fieldName;
+            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+            FieldName = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         protected FieldReferenceBase(FieldReferenceBase fieldReference)
@@ -47,9 +22,9 @@ namespace HotChocolate.Resolvers
             FieldName = fieldReference.FieldName;
         }
 
-        public string TypeName { get; }
+        public NameString TypeName { get; }
 
-        public string FieldName { get; }
+        public NameString FieldName { get; }
 
         public override bool Equals(object obj)
         {

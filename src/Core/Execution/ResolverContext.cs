@@ -22,9 +22,6 @@ namespace HotChocolate.Execution
                 new FloatValueConverter(),
                 new DateTimeValueConverter()
             };
-
-        private static readonly ArgumentResolver _argumentResolver =
-            new ArgumentResolver();
         private readonly IExecutionContext _executionContext;
         private readonly ResolverTask _resolverTask;
         private readonly Dictionary<string, ArgumentValue> _arguments;
@@ -48,8 +45,8 @@ namespace HotChocolate.Execution
             _resolverTask = resolverTask;
             RequestAborted = requestAborted;
 
-            _arguments = _argumentResolver.CoerceArgumentValues(
-                resolverTask.FieldSelection, executionContext.Variables);
+            _arguments = resolverTask.FieldSelection
+                .CoerceArgumentValues(executionContext.Variables);
         }
 
         public ISchema Schema => _executionContext.Schema;
@@ -73,7 +70,7 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted { get; }
 
-        public T Argument<T>(string name)
+        public T Argument<T>(NameString name)
         {
             if (string.IsNullOrEmpty(name))
             {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -30,29 +29,13 @@ namespace HotChocolate.Types
 
         public static void AddDirective(
             this IList<DirectiveDescription> directives,
-            string name,
+            NameString name,
             IEnumerable<ArgumentNode> arguments)
         {
-            name.EnsureDirectiveNameIsValid();
             directives.Add(new DirectiveDescription(
-                new DirectiveNode(name, arguments.ToArray())));
-        }
-
-        public static void EnsureDirectiveNameIsValid(this string directiveName)
-        {
-            if (string.IsNullOrEmpty(directiveName))
-            {
-                throw new ArgumentException(
-                    "The directive name cannot be null or empty.",
-                    nameof(directiveName));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(directiveName))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL directive name.",
-                    nameof(directiveName));
-            }
+                new DirectiveNode(
+                    name.EnsureNotEmpty(nameof(name)),
+                    arguments.ToArray())));
         }
     }
 }

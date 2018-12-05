@@ -32,6 +32,35 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void IntArgumentIsInferedAsNonNullType()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            var intType = new IntType();
+            schemaContext.Types.RegisterType(intType);
+
+            // act
+            var fooType = new ObjectType<QueryWithIntArg>();
+
+            // assert
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            ((INeedsInitialization)fooType)
+                .RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            Assert.Empty(errors);
+
+            IType argumentType = fooType.Fields["bar"]
+                .Arguments.First().Type;
+
+            Assert.NotNull(argumentType);
+            Assert.True(argumentType.IsNonNullType());
+            Assert.Equal(intType, argumentType.NamedType());
+        }
+
+        [Fact]
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
@@ -419,6 +448,50 @@ namespace HotChocolate.Types
             Assert.Equal(2, type.Interfaces.Count);
         }
 
+        [Fact]
+        public void Include_TypeWithOneField_ContainsThisField()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new ObjectType<object>(
+                d => d.Include<Foo>());
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.True(fooType.Fields.ContainsField("description"));
+        }
+
+        [Fact]
+        public void NonNullAttribute_StringIsRewritten_NonNullStringType()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+
+            // act
+            var fooType = new ObjectType<Bar>();
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
+            Assert.Equal("String", fooType.Fields["baz"].Type.NamedType().Name);
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -432,6 +505,17 @@ namespace HotChocolate.Types
         public class FooResolver
         {
             public string GetBar(string foo) => "hello foo";
+        }
+
+        public class QueryWithIntArg
+        {
+            public string GetBar(int foo) => "hello foo";
+        }
+
+        public class Bar
+        {
+            [GraphQLNonNullType]
+            public string Baz { get; set; }
         }
 
         public class FooType

@@ -5,6 +5,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public sealed class TypeReference
+        : IEquatable<TypeReference>
     {
         public TypeReference(ITypeNode type)
         {
@@ -13,23 +14,69 @@ namespace HotChocolate.Types
         }
 
         public TypeReference(Type nativeType)
+            : this(nativeType, TypeContext.Output)
+        {
+        }
+
+        public TypeReference(Type nativeType, TypeContext context)
         {
             ClrType = nativeType
                 ?? throw new ArgumentNullException(nameof(nativeType));
+            Context = context;
         }
+
+        public TypeContext Context { get; }
 
         public Type ClrType { get; }
 
         public ITypeNode Type { get; }
 
-        public override string ToString()
+        public bool Equals(TypeReference other)
         {
-            if (ClrType == null)
+            if (other is null)
             {
-                return Type.ToString();
+                return false;
             }
-            return ClrType.GetTypeName();
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (Type == null && other.Type == null)
+            {
+                return ClrType.Equals(other.ClrType)
+                    && Context.Equals(other.Context);
+            }
+
+            return Type.Equals(other.Type);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is TypeReference tr)
+            {
+                return Equals(tr);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                if (Type == null)
+                {
+                    return (ClrType.GetHashCode() * 397)
+                        ^ (Context.GetHashCode() * 97);
+                }
+                return Type.GetHashCode();
+            }
+        }
+
+        public override string ToString() =>
+            ClrType == null ? Type.ToString() : ClrType.GetTypeName();
     }
 
     internal static class TypeReferenceExtensions
@@ -67,17 +114,20 @@ namespace HotChocolate.Types
         }
 
         public static TypeReference GetMoreSpecific(
-            this TypeReference typeReference, Type type)
+            this TypeReference typeReference,
+            Type type,
+            TypeContext context)
         {
             if (type != null && typeReference.IsTypeMoreSpecific(type))
             {
-                return new TypeReference(type);
+                return new TypeReference(type, context);
             }
             return typeReference;
         }
 
         public static TypeReference GetMoreSpecific(
-            this TypeReference typeReference, ITypeNode typeNode)
+            this TypeReference typeReference,
+            ITypeNode typeNode)
         {
             if (typeNode != null && typeReference.IsTypeMoreSpecific(typeNode))
             {

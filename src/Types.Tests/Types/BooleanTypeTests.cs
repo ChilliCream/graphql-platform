@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using Xunit;
 
@@ -51,6 +52,86 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
+
+        [Fact]
+        public void Serialize_Null_Null()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            object result = booleanType.Serialize(null);
+
+            // assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void Serialize_True_True()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            object result = booleanType.Serialize(true);
+
+            // assert
+            Assert.IsType<bool>(result);
+            Assert.True((bool)result);
+        }
+
+        [Fact]
+        public void Serialize_String_Exception()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            Action a = () => booleanType.Serialize("foo");
+
+            // assert
+            Assert.Throws<ArgumentException>(a);
+        }
+
+        [Fact]
+        public void Deserialize_Null_Null()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            object result = booleanType.Serialize(null);
+
+            // assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void Deserialize_True_True()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            object result = booleanType.Serialize(true);
+
+            // assert
+            Assert.IsType<bool>(result);
+            Assert.True((bool)result);
+        }
+
+        [Fact]
+        public void Deserialize_String_Exception()
+        {
+            // arrange
+            BooleanType booleanType = new BooleanType();
+
+            // act
+            Action a = () => booleanType.Serialize("foo");
+
+            // assert
+            Assert.Throws<ArgumentException>(a);
         }
     }
 }

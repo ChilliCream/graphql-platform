@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using System;
 
 namespace HotChocolate.Validation
 {
@@ -55,8 +56,9 @@ namespace HotChocolate.Validation
             {
                 FragmentDefinitionNode fragment = d.Definitions
                     .OfType<FragmentDefinitionNode>()
-                    .FirstOrDefault(t =>
-                        t.Name.Value.EqualsOrdinal(fragmentSpread.Name.Value));
+                    .FirstOrDefault(t => t.Name.Value
+                        .Equals(fragmentSpread.Name.Value,
+                            StringComparison.Ordinal));
 
                 if (fragment != null)
                 {

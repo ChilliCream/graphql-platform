@@ -8,14 +8,15 @@ namespace HotChocolate.Types
         : IUnionTypeDescriptor
         , IDescriptionFactory<UnionTypeDescription>
     {
-        public UnionTypeDescriptor(Type unionType)
+        public UnionTypeDescriptor(Type clrType)
         {
-            if (unionType == null)
+            if (clrType == null)
             {
-                throw new ArgumentNullException(nameof(unionType));
+                throw new ArgumentNullException(nameof(clrType));
             }
 
-            UnionDescription.Name = unionType.GetGraphQLName();
+            UnionDescription.Name = clrType.GetGraphQLName();
+            UnionDescription.Description = clrType.GetGraphQLDescription();
         }
 
         protected UnionTypeDescription UnionDescription { get; } =
@@ -31,23 +32,9 @@ namespace HotChocolate.Types
             UnionDescription.SyntaxNode = syntaxNode;
         }
 
-        public void Name(string name)
+        public void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
-                    nameof(name));
-            }
-
-            UnionDescription.Name = name;
+            UnionDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public void Description(string description)
@@ -57,7 +44,7 @@ namespace HotChocolate.Types
 
         public void Type<TObjectType>()
         {
-            UnionDescription.Types.Add(new TypeReference(typeof(TObjectType)));
+            UnionDescription.Types.Add(typeof(TObjectType).GetOutputType());
         }
 
         public void Type(NamedTypeNode objectType)
@@ -81,7 +68,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Name(string name)
+        IUnionTypeDescriptor IUnionTypeDescriptor.Name(NameString name)
         {
             Name(name);
             return this;
@@ -121,6 +108,14 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor IUnionTypeDescriptor.Directive<T>()
         {
             UnionDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            UnionDescription.Directives.AddDirective(name, arguments);
             return this;
         }
 

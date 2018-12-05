@@ -112,14 +112,16 @@ namespace HotChocolate.Utilities
                 if (IsNonNullType(components[0])
                     && IsNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1], t => new NonNullType(t));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new NonNullType(t));
                     return true;
                 }
 
                 if (IsListType(components[0])
                     && IsNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1], t => new ListType(t));
+                    typeInfo = new TypeInfo(components[1],
+                        t => new ListType(t));
                     return true;
                 }
             }
@@ -183,8 +185,8 @@ namespace HotChocolate.Utilities
                 || typeof(UnionType).IsAssignableFrom(type)
                 || typeof(InputObjectType).IsAssignableFrom(type)
                 || type.IsGenericType
-                    && (typeof(ListType<>) == type.GetGenericTypeDefinition()
-                    || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
+                && (typeof(ListType<>) == type.GetGenericTypeDefinition()
+                || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
         }
     }
 }

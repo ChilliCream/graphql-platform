@@ -11,8 +11,8 @@ namespace HotChocolate.Resolvers
         public void Create()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
@@ -29,36 +29,36 @@ namespace HotChocolate.Resolvers
         public void CreateTypeNull()
         {
             // arrange
-            var fieldName = Guid.NewGuid().ToString();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(null, fieldName, resolver);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void CreateFieldNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             // act
             Action action = () => new FieldResolver(typeName, null, resolver);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void CreateMemberNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
 
             // act
             Action action = () => new FieldResolver(typeName, fieldName, null);
@@ -71,9 +71,9 @@ namespace HotChocolate.Resolvers
         public void WithTypeName()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var newTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var newTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
@@ -90,8 +90,8 @@ namespace HotChocolate.Resolvers
         public void WithTypeNameNull()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
@@ -101,16 +101,16 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldMember.WithTypeName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void WithFieldName()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
-            var newFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
+            var newFieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
@@ -127,8 +127,8 @@ namespace HotChocolate.Resolvers
         public void WithFieldNameNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate resolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
@@ -138,15 +138,15 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldMember.WithFieldName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void WithResolver()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate originalResolver = GetResolverA();
             AsyncFieldResolverDelegate newResolver = GetResolverB();
 
@@ -164,8 +164,8 @@ namespace HotChocolate.Resolvers
         public void WithResolverNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             AsyncFieldResolverDelegate originalResolver = GetResolverA();
 
             var fieldMember = new FieldResolver(
@@ -183,8 +183,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             // act
@@ -199,8 +199,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             // act
@@ -215,8 +215,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             var fieldMember_b = new FieldResolver(
@@ -236,8 +236,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             // act
@@ -252,12 +252,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             var fieldMember_b = new FieldResolver(
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
                 fieldMember_a.FieldName,
                 fieldMember_a.Resolver);
 
@@ -273,13 +273,13 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             var fieldMember_b = new FieldResolver(
                 fieldMember_a.TypeName,
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateFieldName(),
                 fieldMember_a.Resolver);
 
             // act
@@ -294,8 +294,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldMember_a = new FieldResolver(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName(),
                 GetResolverA());
 
             var fieldMember_b = new FieldResolver(

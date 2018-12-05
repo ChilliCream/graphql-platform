@@ -11,11 +11,11 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor SyntaxNode(
             InputObjectTypeDefinitionNode syntaxNode);
 
-        IInputObjectTypeDescriptor Name(string name);
+        IInputObjectTypeDescriptor Name(NameString name);
 
         IInputObjectTypeDescriptor Description(string description);
 
-        IInputFieldDescriptor Field(string name);
+        IInputFieldDescriptor Field(NameString name);
     }
 
     public interface IInputObjectTypeDescriptor<T>
@@ -24,12 +24,14 @@ namespace HotChocolate.Types
         new IInputObjectTypeDescriptor<T> SyntaxNode(
             InputObjectTypeDefinitionNode syntaxNode);
 
-        new IInputObjectTypeDescriptor<T> Name(string name);
+        new IInputObjectTypeDescriptor<T> Name(NameString name);
 
         new IInputObjectTypeDescriptor<T> Description(string description);
 
-        IInputObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
+        IInputObjectTypeDescriptor<T> BindFields(
+            BindingBehavior bindingBehavior);
 
-        IInputFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> property);
+        IInputFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> property);
     }
 }

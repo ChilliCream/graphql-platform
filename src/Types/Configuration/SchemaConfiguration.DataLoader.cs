@@ -15,12 +15,12 @@ namespace HotChocolate.Configuration
         internal IReadOnlyCollection<DataLoaderDescriptor>
             DataLoaderDescriptors => _dataLoaders.Values;
 
-        public void RegisterDataLoader<T>(
+        public void RegisterDataLoader(Type type,
             string key,
             ExecutionScope scope,
-            Func<IServiceProvider, T> loaderFactory = null,
-            Func<T, CancellationToken, Task> triggerLoaderAsync = null)
-        {
+            Func<IServiceProvider, object> loaderFactory = null,
+            Func<object, CancellationToken, Task> triggerLoaderAsync = null){
+
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
@@ -29,22 +29,37 @@ namespace HotChocolate.Configuration
             Func<IServiceProvider, object> factory = null;
             if (loaderFactory != null)
             {
-                factory = new Func<IServiceProvider, object>(
-                    sp => loaderFactory(sp));
+                factory = loaderFactory;
             }
 
             TriggerDataLoaderAsync trigger = null;
             if (triggerLoaderAsync != null)
             {
-                trigger = new TriggerDataLoaderAsync(
-                    (o, c) => triggerLoaderAsync((T)o, c));
+                trigger = (o, c) => triggerLoaderAsync(o, c);
             }
 
             var descriptor = new DataLoaderDescriptor(
-                key, typeof(T), scope,
+                key, type, scope,
                 factory,
                 trigger);
             _dataLoaders[key] = descriptor;
+        }
+        public void RegisterDataLoader<T>(
+            string key,
+            ExecutionScope scope,
+            Func<IServiceProvider, T> loaderFactory = null,
+            Func<T, CancellationToken, Task> triggerLoaderAsync = null)
+        {
+            
+            Func<IServiceProvider,object> f = null;
+            if(loaderFactory != null)
+                f = s => loaderFactory(s);
+            Func<object,CancellationToken,Task> g = null;
+            if(triggerLoaderAsync != null)
+                g = (a,b) => triggerLoaderAsync((T)a,b);
+
+            RegisterDataLoader(typeof(T),key,scope,f,g);
+           
         }
     }
 }

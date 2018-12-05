@@ -96,10 +96,10 @@ namespace HotChocolate
         /// The specified type does not exist or
         /// is not of the specified type kind.
         /// </exception>
-        public T GetType<T>(string typeName)
+        public T GetType<T>(NameString typeName)
             where T : INamedType
         {
-            return _types.GetType<T>(typeName);
+            return _types.GetType<T>(typeName.EnsureNotEmpty(nameof(typeName)));
         }
 
         /// <summary>
@@ -112,29 +112,28 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(string typeName, out T type)
+        public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
-            return _types.TryGetType<T>(typeName, out type);
+            return _types.TryGetType<T>(
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                out type);
         }
 
         /// <summary>
         /// Tries to get the .net type representation of a schema.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
-        /// <param name="nativeType">The resolved .net type.</param>
+        /// <param name="clrType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetNativeType(string typeName, out Type nativeType)
+        public bool TryGetClrType(NameString typeName, out Type clrType)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            return _types.TryGetNativeType(typeName, out nativeType);
+            return _types.TryGetClrType(
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                out clrType);
         }
 
         /// <summary>
@@ -174,9 +173,11 @@ namespace HotChocolate
         /// Returns directive type that was resolved by the given name
         /// or <c>null</c> if there is no directive with the specified name.
         /// </returns>
-        public DirectiveType GetDirectiveType(string directiveName)
+        public DirectiveType GetDirectiveType(NameString directiveName)
         {
-            _directiveTypes.TryGetValue(directiveName, out DirectiveType type);
+            _directiveTypes.TryGetValue(
+                directiveName.EnsureNotEmpty(nameof(directiveName)),
+                out DirectiveType type);
             return type;
         }
 
@@ -195,11 +196,12 @@ namespace HotChocolate
         /// name exists; otherwise, <c>false</c>.
         /// </returns>
         public bool TryGetDirectiveType(
-            string directiveName,
+            NameString directiveName,
             out DirectiveType directiveType)
         {
-            return _directiveTypes
-                .TryGetValue(directiveName, out directiveType);
+            return _directiveTypes.TryGetValue(
+                directiveName.EnsureNotEmpty(nameof(directiveName)),
+                out directiveType);
         }
 
         public void Dispose()

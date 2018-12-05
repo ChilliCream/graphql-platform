@@ -39,6 +39,7 @@ namespace HotChocolate.Execution
         {
             IReadOnlyDictionary<string, object> values =
                 variableValues ?? new Dictionary<string, object>();
+
             Dictionary<string, object> coercedValues =
                 new Dictionary<string, object>();
 
@@ -46,7 +47,7 @@ namespace HotChocolate.Execution
                 _operation.VariableDefinitions)
             {
                 Variable variable = CreateVariable(variableDefinition);
-                CoerceVariableValue(values, ref variable);
+                variable = CoerceVariableValue(values, variable);
                 coercedValues[variable.Name] = variable.ParseLiteral();
             }
 
@@ -72,27 +73,49 @@ namespace HotChocolate.Execution
                 variableName));
         }
 
-        private void CoerceVariableValue(
+        private Variable CoerceVariableValue(
             IReadOnlyDictionary<string, object> variableValues,
-            ref Variable variable)
+            Variable variable)
         {
-            IValueNode valueNode = null;
-            if (variableValues.TryGetValue(variable.Name, out var value))
-            {
-                valueNode = (value is IValueNode v)
-                    ? v
-                    : variable.Type.ParseValue(value);
-            }
-            else
-            {
-                valueNode = variable.DefaultValue ?? NullValueNode.Default;
-            }
+            IValueNode value =
+                variableValues.TryGetValue(variable.Name, out var rawValue)
+                    ? value = Normalize(variable, rawValue)
+                    : value = variable.DefaultValue ?? NullValueNode.Default;
 
-            valueNode = CleanUpValue(variable.Type, valueNode);
-            variable = variable.WithValue(valueNode);
+            value = CleanUpValue(variable.Type, value);
+            variable = variable.WithValue(value);
 
             CheckForNullValueViolation(variable);
             CheckForInvalidValueType(variable);
+
+            return variable;
+        }
+
+        private static IValueNode Normalize(Variable variable, object rawValue)
+        {
+            object value = rawValue;
+
+            if (rawValue is ICollection<KeyValuePair<string, object>>
+                || rawValue is IList<object>)
+            {
+                var ctx = new DeserializationContext();
+                ctx.Type = variable.Type.ClrType;
+
+                var converter = new DictionaryToObjectConverter();
+                converter.Visit(rawValue, ctx);
+                value = ctx.Object;
+            }
+
+            if (!(value is IValueNode)
+                && variable.Type is ISerializableType st
+                && !variable.Type.ClrType.IsInstanceOfType(value))
+            {
+                value = st.Deserialize(value);
+            }
+
+            return (value is IValueNode v)
+                ? v
+                : variable.Type.ParseValue(value);
         }
 
         private IValueNode CleanUpValue(IInputType type, IValueNode value)
@@ -186,7 +209,7 @@ namespace HotChocolate.Execution
                     field.Name,
                     new EnumValueNode(s.Value));
             }
-            else if (fieldDefinition.Type.IsObjectType()
+            else if (fieldDefinition.Type.IsInputObjectType()
                 || fieldDefinition.Type.IsListType())
             {
                 return new ObjectFieldNode(
@@ -280,10 +303,10 @@ namespace HotChocolate.Execution
                     {
                         return field.Value is StringValueNode;
                     }
-                    else if (!fieldDefinition.Type.IsScalarType())
+                    else if (!fieldDefinition.Type.IsScalarType()
+                        && ValueNeedsCleanUp(fieldDefinition.Type, field.Value))
                     {
-                        return ValueNeedsCleanUp(
-                            fieldDefinition.Type, field.Value);
+                        return true;
                     }
                 }
             }

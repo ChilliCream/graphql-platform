@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -7,26 +8,54 @@ namespace HotChocolate.Types
         : DateTimeTypeBase
     {
         public DateTimeType()
-            : base("DateTime", "ISO-8601 compliant date time type.")
+            : base("DateTime")
         {
         }
+
+        public override string Description =>
+            TypeResources.DateTimeType_Description();
 
         public override Type ClrType => typeof(DateTimeOffset);
 
         protected override string Serialize(DateTime value)
         {
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
+            if (value.Kind == DateTimeKind.Utc)
+            {
+                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+            }
+
+            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
         }
 
         protected override string Serialize(DateTimeOffset value)
         {
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:sszzz");
+            if (value.Offset == TimeSpan.Zero)
+            {
+                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+            }
+
+            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
         }
 
         protected override bool TryParseLiteral(
-            StringValueNode literal, out object obj)
+            StringValueNode literal,
+            out object obj)
         {
-            if (DateTimeOffset.TryParse(literal.Value, out DateTimeOffset dateTime))
+            if (literal.Value != null
+                && literal.Value.EndsWith("Z")
+                && DateTime.TryParse(
+                    literal.Value,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal,
+                    out DateTime zuluTime))
+            {
+                obj = new DateTimeOffset(zuluTime);
+                return true;
+            }
+
+            if (DateTimeOffset.TryParse(
+                literal.Value,
+                out DateTimeOffset dateTime))
             {
                 obj = dateTime;
                 return true;

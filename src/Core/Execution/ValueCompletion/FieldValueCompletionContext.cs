@@ -164,8 +164,8 @@ namespace HotChocolate.Execution
             {
                 _enqueueResolverTask(new ResolverTask(
                     ExecutionContext, objectType, field,
-                    Path.Append(field.ResponseName), Source.Push(Value),
-                    objectResult));
+                    Path.Append(field.ResponseName),
+                    Source.Push(Value), objectResult));
             }
         }
 
@@ -173,7 +173,8 @@ namespace HotChocolate.Execution
         {
             if (Type.IsNonNullType())
             {
-                return new FieldValueCompletionContext(this, Type.InnerType(), true);
+                return new FieldValueCompletionContext(
+                    this, Type.InnerType(), false);
             }
 
             throw new InvalidOperationException(

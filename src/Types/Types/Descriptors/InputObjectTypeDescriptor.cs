@@ -25,13 +25,36 @@ namespace HotChocolate.Types
             return ObjectDescription;
         }
 
-        protected virtual void CompleteFields()
+        private void CompleteFields()
         {
+            var fields = new Dictionary<string, InputFieldDescription>();
+            var handledProperties = new HashSet<PropertyInfo>();
+
             foreach (InputFieldDescriptor fieldDescriptor in Fields)
             {
-                ObjectDescription.Fields.Add(
-                    fieldDescriptor.CreateDescription());
+                InputFieldDescription fieldDescription = fieldDescriptor
+                    .CreateDescription();
+
+                if (!fieldDescription.Ignored)
+                {
+                    fields[fieldDescription.Name] = fieldDescription;
+                }
+
+                if (fieldDescription.Property != null)
+                {
+                    handledProperties.Add(fieldDescription.Property);
+                }
             }
+
+            OnCompleteFields(fields, handledProperties);
+
+            ObjectDescription.Fields.AddRange(fields.Values);
+        }
+
+        protected virtual void OnCompleteFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
+        {
         }
 
         protected void SyntaxNode(InputObjectTypeDefinitionNode syntaxNode)
@@ -39,23 +62,9 @@ namespace HotChocolate.Types
             ObjectDescription.SyntaxNode = syntaxNode;
         }
 
-        protected void Name(string name)
+        protected void Name(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsTypeNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL type name.",
-                    nameof(name));
-            }
-
-            ObjectDescription.Name = name;
+            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected void Description(string description)
@@ -63,23 +72,10 @@ namespace HotChocolate.Types
             ObjectDescription.Description = description;
         }
 
-        protected InputFieldDescriptor Field(string name)
+        protected InputFieldDescriptor Field(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The name cannot be null or empty.",
-                    nameof(name));
-            }
-
-            if (!ValidationHelper.IsFieldNameValid(name))
-            {
-                throw new ArgumentException(
-                    "The specified name is not a valid GraphQL field name.",
-                    nameof(name));
-            }
-
-            var field = new InputFieldDescriptor(name);
+            var field = new InputFieldDescriptor(
+                name.EnsureNotEmpty(nameof(name)));
             Fields.Add(field);
             return field;
         }
@@ -93,19 +89,21 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(string name)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(
+            NameString name)
         {
             Name(name);
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(string description)
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(
+            string description)
         {
             Description(description);
             return this;
         }
 
-        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(string name)
+        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(NameString name)
         {
             return Field(name);
         }
@@ -117,37 +115,67 @@ namespace HotChocolate.Types
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
     {
-        public InputObjectTypeDescriptor(Type pocoType)
+        public InputObjectTypeDescriptor()
         {
-            ObjectDescription.NativeType = pocoType
-                ?? throw new ArgumentNullException(nameof(pocoType));
-            ObjectDescription.Name = pocoType.GetGraphQLName();
+            Type clrType = typeof(T);
+            ObjectDescription.ClrType = clrType;
+            ObjectDescription.Name = clrType.GetGraphQLName();
+            ObjectDescription.Description = clrType.GetGraphQLDescription();
 
             // this convention will fix most type colisions where the
             // .net type is and input and an output type.
             // It is still possible to opt out via the descriptor.Name("Foo").
-            if (!ObjectDescription.Name.EndsWith("Input"))
+            if (!ObjectDescription.Name.EndsWith("Input",
+                    StringComparison.Ordinal))
             {
                 ObjectDescription.Name = ObjectDescription.Name + "Input";
             }
         }
 
-        protected override void CompleteFields()
+        protected override void OnCompleteFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
         {
-            base.CompleteFields();
-
-            var descriptions = new Dictionary<string, InputFieldDescription>();
-
-            foreach (InputFieldDescription description in ObjectDescription.Fields)
+            if (ObjectDescription.FieldBindingBehavior ==
+                BindingBehavior.Implicit)
             {
-                descriptions[description.Name] = description;
+                AddImplicitFields(fields, handledProperties);
+            }
+        }
+
+        private void AddImplicitFields(
+            IDictionary<string, InputFieldDescription> fields,
+            ISet<PropertyInfo> handledProperties)
+        {
+            foreach (KeyValuePair<PropertyInfo, string> property in
+                GetProperties(handledProperties))
+            {
+                if (!fields.ContainsKey(property.Value))
+                {
+                    var fieldDescriptor =
+                        new InputFieldDescriptor(property.Key);
+
+                    fields[property.Value] = fieldDescriptor
+                        .CreateDescription();
+                }
+            }
+        }
+
+        private Dictionary<PropertyInfo, string> GetProperties(
+            ISet<PropertyInfo> handledProperties)
+        {
+            var properties = new Dictionary<PropertyInfo, string>();
+
+            foreach (KeyValuePair<string, PropertyInfo> property in
+                ReflectionUtils.GetProperties(ObjectDescription.ClrType))
+            {
+                if (!handledProperties.Contains(property.Value))
+                {
+                    properties[property.Value] = property.Key;
+                }
             }
 
-            if (ObjectDescription.FieldBindingBehavior == BindingBehavior.Implicit)
-            {
-                DeriveFieldsFromType(descriptions);
-                ObjectDescription.Fields = descriptions.Values.ToList();
-            }
+            return properties;
         }
 
         protected void BindFields(BindingBehavior bindingBehavior)
@@ -170,43 +198,6 @@ namespace HotChocolate.Types
                 nameof(property));
         }
 
-        private void DeriveFieldsFromType(
-                Dictionary<string, InputFieldDescription> descriptions)
-        {
-            Dictionary<PropertyInfo, string> properties =
-                GetProperties(ObjectDescription.NativeType);
-
-            foreach (InputFieldDescription description in descriptions.Values
-                .Where(t => t.Property != null))
-            {
-                properties.Remove(description.Property);
-            }
-
-            foreach (KeyValuePair<PropertyInfo, string> property in properties)
-            {
-                if (!descriptions.ContainsKey(property.Value))
-                {
-                    var descriptor = new InputFieldDescriptor(property.Key);
-                    descriptions[property.Value] = descriptor
-                        .CreateDescription();
-                }
-            }
-        }
-
-        private static Dictionary<PropertyInfo, string> GetProperties(Type type)
-        {
-            var properties = new Dictionary<PropertyInfo, string>();
-
-            foreach (PropertyInfo property in type.GetProperties(
-                BindingFlags.Instance | BindingFlags.Public)
-                .Where(t => t.DeclaringType != typeof(object)))
-            {
-                properties[property] = property.GetGraphQLName();
-            }
-
-            return properties;
-        }
-
         #region IInputObjectTypeDescriptor<T>
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.SyntaxNode(
@@ -217,7 +208,7 @@ namespace HotChocolate.Types
         }
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
-            string name)
+            NameString name)
         {
             Name(name);
             return this;

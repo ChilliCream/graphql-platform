@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using HotChocolate.Resolvers;
 
@@ -7,14 +7,8 @@ namespace HotChocolate.Execution
     internal static class ResolverDiagnosticEvents
     {
         private const string _diagnosticListenerName = "HotChocolate.Execution";
-        private const string _resolverActivityName =
-            _diagnosticListenerName + ".Resolver";
-        private const string _resolverActivityStartName =
-            _resolverActivityName + ".Start";
-        private const string _resolverActivityStopName =
-            _resolverActivityName + ".Stop";
-        private const string _exceptionEventName =
-            _resolverActivityName + ".Error";
+        private const string _resolverActivityName = "Resolver";
+        private const string _exceptionEventName = "ResolverError";
 
         private static readonly DiagnosticSource _src =
             new DiagnosticListener(_diagnosticListenerName);
@@ -22,16 +16,16 @@ namespace HotChocolate.Execution
         public static Activity BeginResolveField(
             IResolverContext resolverContext)
         {
-            if (_src.IsEnabled(_resolverActivityStartName, resolverContext)
-                || _src.IsEnabled(_resolverActivityStopName, resolverContext))
+            var payload = new
+            {
+                Context = resolverContext
+            };
+
+            if (_src.IsEnabled(_resolverActivityName, payload))
             {
                 var activity = new Activity(_resolverActivityName);
 
-                _src.StartActivity(activity, new
-                {
-                    Context = resolverContext,
-                    Timestamp = Stopwatch.GetTimestamp()
-                });
+                _src.StartActivity(activity, payload);
 
                 return activity;
             }
@@ -46,12 +40,16 @@ namespace HotChocolate.Execution
         {
             if (activity != null)
             {
-                _src.StopActivity(activity, new
+                var payload = new
                 {
                     Context = resolverContext,
-                    Result = resolvedValue,
-                    Timestamp = Stopwatch.GetTimestamp()
-                });
+                    Result = resolvedValue
+                };
+
+                if (_src.IsEnabled(_resolverActivityName, payload))
+                {
+                    _src.StopActivity(activity, payload);
+                }
             }
         }
 
@@ -59,13 +57,15 @@ namespace HotChocolate.Execution
             IResolverContext resolverContext,
             Exception exception)
         {
-            if (_src.IsEnabled(_exceptionEventName))
+            var payload = new
             {
-                _src.Write(_exceptionEventName, new
-                {
-                    Context = resolverContext,
-                    Exception = exception
-                });
+                Context = resolverContext,
+                Exception = exception
+            };
+
+            if (_src.IsEnabled(_exceptionEventName, payload))
+            {
+                _src.Write(_exceptionEventName, payload);
             }
         }
     }

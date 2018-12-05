@@ -9,8 +9,8 @@ namespace HotChocolate.Resolvers
         public void Create()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
 
             // act
             var fieldReference = new FieldReference(typeName, fieldName);
@@ -24,35 +24,35 @@ namespace HotChocolate.Resolvers
         public void CreateTypeNull()
         {
             // arrange
-            var fieldName = Guid.NewGuid().ToString();
+            var fieldName = TestUtils.CreateFieldName();
 
             // act
             Action action = () => new FieldReference(null, fieldName);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void CreateFieldNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
 
             // act
             Action action = () => new FieldReference(typeName, null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void WithTypeName()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var newTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var newTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             var fieldReference = new FieldReference(
                 originalTypeName, fieldName);
 
@@ -67,8 +67,8 @@ namespace HotChocolate.Resolvers
         public void WithTypeNameNull()
         {
             // arrange
-            var originalTypeName = Guid.NewGuid().ToString();
-            var fieldName = Guid.NewGuid().ToString();
+            var originalTypeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
             var fieldReference = new FieldReference(
                 originalTypeName, fieldName);
 
@@ -76,16 +76,16 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldReference.WithTypeName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void WithFieldName()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
-            var newFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
+            var newFieldName = TestUtils.CreateFieldName();
             var fieldReference = new FieldReference(
                 typeName, originalFieldName);
 
@@ -100,8 +100,8 @@ namespace HotChocolate.Resolvers
         public void WithFieldNameNull()
         {
             // arrange
-            var typeName = Guid.NewGuid().ToString();
-            var originalFieldName = Guid.NewGuid().ToString();
+            var typeName = TestUtils.CreateTypeName();
+            var originalFieldName = TestUtils.CreateFieldName();
             var fieldReference = new FieldReference(
                 typeName, originalFieldName);
 
@@ -109,7 +109,7 @@ namespace HotChocolate.Resolvers
             Action action = () => fieldReference.WithFieldName(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
@@ -117,8 +117,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             // act
             bool result = fieldReference.Equals(default(object));
@@ -132,8 +132,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             // act
             bool result = fieldReference.Equals((object)fieldReference);
@@ -147,8 +147,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference_a = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             var fieldReference_b = new FieldReference(
                 fieldReference_a.TypeName,
@@ -166,8 +166,8 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             // act
             bool result = fieldReference.Equals(new object());
@@ -181,11 +181,11 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference_a = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             var fieldReference_b = new FieldReference(
-                Guid.NewGuid().ToString(),
+                TestUtils.CreateTypeName(),
                 fieldReference_a.FieldName);
 
             // act
@@ -200,12 +200,12 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             var fieldReference_a = new FieldReference(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString());
+                TestUtils.CreateTypeName(),
+                TestUtils.CreateFieldName());
 
             var fieldReference_b = new FieldReference(
                 fieldReference_a.TypeName,
-                Guid.NewGuid().ToString());
+                TestUtils.CreateFieldName());
 
             // act
             bool result = fieldReference_a.Equals((object)fieldReference_b);

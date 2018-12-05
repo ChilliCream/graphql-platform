@@ -14,31 +14,21 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(bindingInfo));
         }
 
-        public IBindFieldResolver<TResolver> Resolve(string fieldName)
+        public IBindFieldResolver<TResolver> Resolve(NameString fieldName)
         {
-            if (string.IsNullOrEmpty(fieldName))
+            var bindingInfo = new FieldResolverBindungInfo
             {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
+                FieldName = fieldName.EnsureNotEmpty(nameof(fieldName))
+            };
+            _bindingInfo.Fields.Add(bindingInfo);
 
-            FieldResolverBindungInfo fieldBindingInfo =
-                new FieldResolverBindungInfo
-                {
-                    FieldName = fieldName
-                };
-            _bindingInfo.Fields.Add(fieldBindingInfo);
-            return new BindFieldResolver<TResolver>(
-                _bindingInfo, fieldBindingInfo);
+            return new BindFieldResolver<TResolver>(_bindingInfo, bindingInfo);
         }
 
-        public IBoundResolver<TResolver> To(string typeName)
+        public IBoundResolver<TResolver> To(NameString typeName)
         {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            _bindingInfo.ObjectTypeName = typeName;
+            _bindingInfo.ObjectTypeName =
+                typeName.EnsureNotEmpty(nameof(typeName));
             return this;
         }
 

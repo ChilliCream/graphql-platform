@@ -288,6 +288,35 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public void GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            string query = @"
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+                hero(episode: $episode) {
+                    name
+                    friends @skip(if: $withFriends) {
+                        name
+                    }
+                }
+            }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "episode", "JEDI" },
+                { "withFriends", false }
+            };
+
+            // act
+            IExecutionResult result = schema.Execute(
+                query, variableValues: variables);
+
+            // assert
+            result.Snapshot();
+        }
+
+        [Fact]
         public void GraphQLOrgDirectiveSkipExample2()
         {
             // arrange
@@ -699,11 +728,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             return Schema.Create(c =>
             {
                 c.Options.MaxExecutionDepth = executionDepth;
+
                 c.RegisterServiceProvider(serviceProvider.Object);
+
                 c.RegisterDataLoader<HumanDataLoader>();
+
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
                 c.RegisterSubscriptionType<SubscriptionType>();
+
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();

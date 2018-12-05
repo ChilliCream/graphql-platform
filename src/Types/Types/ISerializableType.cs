@@ -4,5 +4,7 @@ namespace HotChocolate.Types
         : IType
     {
         object Serialize(object value);
+
+        object Deserialize(object value);
     }
 }

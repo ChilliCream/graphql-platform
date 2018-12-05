@@ -78,14 +78,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public AsyncFieldResolverDelegate GetResolver(string fieldName)
+        public AsyncFieldResolverDelegate GetResolver(NameString fieldName)
         {
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "The name of the field cannot be null or empty.",
-                    nameof(fieldName));
-            }
+            fieldName.EnsureNotEmpty(nameof(fieldName));
 
             if (Type is ObjectType t
                 && t.Fields.ContainsField(fieldName))
@@ -107,18 +102,11 @@ namespace HotChocolate.Types
 
         public void RegisterResolver(
             Type sourceType, Type resolverType,
-            string fieldName, MemberInfo fieldMember)
+            NameString fieldName, MemberInfo fieldMember)
         {
             if (sourceType == null)
             {
                 throw new ArgumentNullException(nameof(sourceType));
-            }
-
-            if (string.IsNullOrEmpty(fieldName))
-            {
-                throw new ArgumentException(
-                    "The name of the field cannot be null or empty.",
-                    nameof(fieldName));
             }
 
             if (fieldMember == null)
@@ -127,12 +115,15 @@ namespace HotChocolate.Types
             }
 
             RegisterResolverInternal(
-                sourceType, resolverType, fieldName, fieldMember);
+                sourceType,
+                resolverType,
+                fieldName.EnsureNotEmpty(nameof(fieldName)),
+                fieldMember);
         }
 
         private void RegisterResolverInternal(
             Type sourceType, Type resolverType,
-            string fieldName, MemberInfo fieldMember)
+            NameString fieldName, MemberInfo fieldMember)
         {
             if (resolverType == null)
             {
@@ -184,7 +175,7 @@ namespace HotChocolate.Types
         }
 
         public bool TryGetProperty<T>(
-            INamedType namedType, string fieldName, out T member)
+            INamedType namedType, NameString fieldName, out T member)
             where T : MemberInfo
         {
             if (namedType is ObjectType
@@ -245,6 +236,11 @@ namespace HotChocolate.Types
             }
 
             return _schemaContext.Resolvers.GetMiddleware(directiveName);
+        }
+
+        public IEnumerable<Type> GetResolverTypes(NameString typeName)
+        {
+            return _schemaContext.Types.GetResolverTypes(typeName);
         }
     }
 }

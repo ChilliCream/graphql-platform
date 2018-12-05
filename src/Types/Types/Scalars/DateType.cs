@@ -7,9 +7,12 @@ namespace HotChocolate.Types
         : DateTimeTypeBase
     {
         public DateType()
-            : base("Date", "ISO-8601 compliant date type.")
+            : base("Date")
         {
         }
+
+        public override string Description =>
+            TypeResources.DateType_Description();
 
         public override Type ClrType => typeof(DateTime);
 

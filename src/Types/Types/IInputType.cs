@@ -5,13 +5,17 @@ namespace HotChocolate.Types
 {
     public interface IInputType
         : IType
+        , IHasClrType
     {
-        Type ClrType { get; }
-
         bool IsInstanceOfType(IValueNode literal);
 
         object ParseLiteral(IValueNode literal);
 
         IValueNode ParseValue(object value);
+    }
+
+    public interface IHasClrType
+    {
+        Type ClrType { get; }
     }
 }
