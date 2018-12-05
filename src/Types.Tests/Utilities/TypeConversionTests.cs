@@ -241,6 +241,26 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
+        public void Convert_ArrayOfString_ArraOfInt()
+        {
+            // arrange
+            var list = new[] { "1", "2", "3" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(int[]),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<int[]>(output);
+            Assert.Collection((int[])output,
+                t => Assert.Equal(1, t),
+                t => Assert.Equal(2, t),
+                t => Assert.Equal(3, t));
+        }
+
+        [Fact]
         public void Convert_ArrayOfString_IListOfInt()
         {
             // arrange

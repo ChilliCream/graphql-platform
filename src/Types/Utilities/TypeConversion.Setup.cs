@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -26,6 +27,24 @@ namespace HotChocolate.Utilities
             RegisterSingleConversions(registry);
             RegisterDoubleConversions(registry);
             RegisterDecimalConversions(registry);
+
+            registry.Register<IEnumerable, string>(from =>
+            {
+                var items = new List<string>();
+
+                foreach (object element in from)
+                {
+                    if (element != null)
+                    {
+                        items.Add(element.ToString());
+                    }
+                }
+
+                return string.Join(",", items);
+            });
+
+            registry.Register<IEnumerable<string>, string>(
+                from => string.Join(",", from));
         }
 
         private static void RegisterDateTimeConversions(
