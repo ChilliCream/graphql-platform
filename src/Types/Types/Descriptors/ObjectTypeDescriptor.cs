@@ -138,6 +138,30 @@ namespace HotChocolate.Types
             return fieldDescriptor;
         }
 
+        protected ObjectFieldDescriptor Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod)
+        {
+            if (propertyOrMethod == null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            MemberInfo member = propertyOrMethod.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
+            {
+                ObjectFieldDescriptor fieldDescriptor =
+                    CreateResolverDescriptor(
+                        ObjectDescription.ClrType,
+                        typeof(TResolver), member);
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            throw new ArgumentException(
+                "A field of an entity can only be a property or a method.",
+                nameof(member));
+        }
+
         protected void AddResolverTypes(
             IDictionary<string, ObjectFieldDescription> fields)
         {
@@ -295,6 +319,12 @@ namespace HotChocolate.Types
             return Field(name);
         }
 
+        IObjectFieldDescriptor IObjectTypeDescriptor.Field<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod)
+        {
+            return Field(propertyOrMethod);
+        }
+
         IObjectTypeDescriptor IObjectTypeDescriptor.Directive<T>(T directive)
         {
             ObjectDescription.Directives.AddDirective(directive);
@@ -339,30 +369,6 @@ namespace HotChocolate.Types
         protected void BindFields(BindingBehavior bindingBehavior)
         {
             ObjectDescription.FieldBindingBehavior = bindingBehavior;
-        }
-
-        protected ObjectFieldDescriptor Field<TResolver>(
-           Expression<Func<TResolver, object>> propertyOrMethod)
-        {
-            if (propertyOrMethod == null)
-            {
-                throw new ArgumentNullException(nameof(propertyOrMethod));
-            }
-
-            MemberInfo member = propertyOrMethod.ExtractMember();
-            if (member is PropertyInfo || member is MethodInfo)
-            {
-                ObjectFieldDescriptor fieldDescriptor =
-                    CreateResolverDescriptor(
-                        ObjectDescription.ClrType,
-                        typeof(TResolver), member);
-                Fields.Add(fieldDescriptor);
-                return fieldDescriptor;
-            }
-
-            throw new ArgumentException(
-                "A field of an entity can only be a property or a method.",
-                nameof(member));
         }
 
         protected override void OnCompleteFields(
@@ -457,12 +463,6 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field(
             Expression<Func<T, object>> propertyOrMethod)
-        {
-            return Field(propertyOrMethod);
-        }
-
-        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
         {
             return Field(propertyOrMethod);
         }
