@@ -8,6 +8,6 @@ namespace HotChocolate.Utilities
 
         Type To { get; }
 
-        object Convert(object input);
+        object Convert(object source);
     }
 }

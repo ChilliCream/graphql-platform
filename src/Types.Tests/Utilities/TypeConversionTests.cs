@@ -185,7 +185,7 @@ namespace HotChocolate.Utilities
         [InlineData(1, "1")]
         [InlineData(null, null)]
         [InlineData("foo", "foo")]
-        [InlineData(true, "true")]
+        [InlineData(true, "True")]
         [Theory]
         public void Convert_Object_String(object input, object expectedOutput)
         {

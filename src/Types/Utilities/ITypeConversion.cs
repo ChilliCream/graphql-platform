@@ -7,6 +7,7 @@ namespace HotChocolate.Utilities
 {
     public interface ITypeConversion
     {
-        bool TryConvert(Type from, Type to, object value, out object converted);
+        bool TryConvert(Type from, Type to,
+            object source, out object converted);
     }
 }

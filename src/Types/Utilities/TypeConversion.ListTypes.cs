@@ -42,8 +42,9 @@ namespace HotChocolate.Utilities
             Type fromElement = DotNetTypeInfoFactory.GetInnerListType(from);
             Type toElement = DotNetTypeInfoFactory.GetInnerListType(to);
 
-            if (TryGetConverter(fromElement, toElement,
-                out ChangeType converter))
+            if (fromElement != null && toElement != null
+                && TryGetConverter(fromElement, toElement,
+                    out ChangeType converter))
             {
                 if (to.IsArray)
                 {
@@ -57,7 +58,7 @@ namespace HotChocolate.Utilities
                         ? typeof(List<>).MakeGenericType(toElement)
                         : to;
                     listConverter = source => GenericListConverter(
-                        toElement, (ICollection)source, converter);
+                        listType, (ICollection)source, converter);
                     Register(from, to, listConverter);
                 }
 

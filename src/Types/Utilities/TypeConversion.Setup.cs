@@ -14,6 +14,7 @@ namespace HotChocolate.Utilities
             RegisterDateTimeConversions(registry);
             RegisterGuidConversions(registry);
             RegisterUriConversions(registry);
+            RegisterBooleanConversions(registry);
             RegisterStringConversions(registry);
 
             RegisterUInt16Conversions(registry);
@@ -62,6 +63,19 @@ namespace HotChocolate.Utilities
             registry.Register<Uri, string>(from => from.ToString());
         }
 
+        private static void RegisterBooleanConversions(
+            ITypeConverterRegistry registry)
+        {
+            registry.Register<bool, string>(from =>
+                from.ToString(CultureInfo.InvariantCulture));
+            registry.Register<bool, short>(from =>
+                from ? (short)1 : (short)0);
+            registry.Register<bool, int>(from =>
+                from ? (int)1 : (int)0);
+            registry.Register<bool, long>(from =>
+                from ? (long)1 : (long)0);
+        }
+
         private static void RegisterStringConversions(
             ITypeConverterRegistry registry)
         {
@@ -95,6 +109,8 @@ namespace HotChocolate.Utilities
             registry.Register<string, decimal>(from =>
                 decimal.Parse(from, NumberStyles.Float,
                     CultureInfo.InvariantCulture));
+            registry.Register<string, bool>(from =>
+                bool.Parse(from));
         }
 
         private static void RegisterUInt16Conversions(

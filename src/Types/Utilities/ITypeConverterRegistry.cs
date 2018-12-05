@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace HotChocolate.Utilities
 {
-    public delegate object ChangeType(object value);
-    public delegate TTo ChangeType<TFrom, TTo>(TFrom value);
+    public delegate object ChangeType(object source);
+    public delegate TTo ChangeType<TFrom, TTo>(TFrom source);
 
     public interface ITypeConverterRegistry
     {

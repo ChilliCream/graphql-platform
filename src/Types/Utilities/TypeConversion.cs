@@ -27,6 +27,32 @@ namespace HotChocolate.Utilities
         }
 
         public bool TryConvert(Type from, Type to,
+            object source, out object converted)
+        {
+            if (from == null)
+            {
+                throw new ArgumentNullException(nameof(from));
+            }
+
+            if (to == null)
+            {
+                throw new ArgumentNullException(nameof(to));
+            }
+
+            if (source is null || from == to)
+            {
+                converted = source;
+                return true;
+            }
+
+            Type fromInternal = (from == typeof(object) && source != null)
+                ? source.GetType()
+                : from;
+
+            return TryConvertInternal(fromInternal, to, source, out converted);
+        }
+
+        private bool TryConvertInternal(Type from, Type to,
             object input, out object output)
         {
             if (from == to)
@@ -50,6 +76,12 @@ namespace HotChocolate.Utilities
             Type from, Type to,
             out ChangeType converter)
         {
+            if (from == to)
+            {
+                converter = source => source;
+                return true;
+            }
+
             if (_converters.TryGetValue(from, out var toLookUp)
                 && toLookUp.TryGetValue(to, out var changeType))
             {
