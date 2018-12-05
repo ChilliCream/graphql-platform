@@ -28,23 +28,7 @@ namespace HotChocolate.Utilities
             RegisterDoubleConversions(registry);
             RegisterDecimalConversions(registry);
 
-            registry.Register<IEnumerable, string>(from =>
-            {
-                var items = new List<string>();
-
-                foreach (object element in from)
-                {
-                    if (element != null)
-                    {
-                        items.Add(element.ToString());
-                    }
-                }
-
-                return string.Join(",", items);
-            });
-
-            registry.Register<IEnumerable<string>, string>(
-                from => string.Join(",", from));
+            RegisterStringListConversions(registry);
         }
 
         private static void RegisterDateTimeConversions(
@@ -246,6 +230,31 @@ namespace HotChocolate.Utilities
             registry.Register<decimal, double>(from => Convert.ToDouble(from));
             registry.Register<decimal, string>(from =>
                 from.ToString("E", CultureInfo.InvariantCulture));
+        }
+
+        private static void RegisterStringListConversions(
+            ITypeConverterRegistry registry)
+        {
+            registry.Register<IEnumerable<string>, string>(
+                from => string.Join(",", from));
+
+            registry.Register<IReadOnlyCollection<string>, string>(
+                from => string.Join(",", from));
+
+            registry.Register<IReadOnlyList<string>, string>(
+                from => string.Join(",", from));
+
+            registry.Register<ICollection<string>, string>(
+                from => string.Join(",", from));
+
+            registry.Register<IList<string>, string>(
+                from => string.Join(",", from));
+
+            registry.Register<string[], string>(
+                from => string.Join(",", from));
+
+            registry.Register<List<string>, string>(
+                from => string.Join(",", from));
         }
     }
 }
