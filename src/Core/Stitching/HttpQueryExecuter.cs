@@ -37,13 +37,13 @@ namespace HotChocolate.Stitching
                 JsonConvert.SerializeObject(remoteRquest,
                     new JsonSerializerSettings
                     {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        ContractResolver =
+                            new CamelCasePropertyNamesContractResolver()
                     }),
                 Encoding.UTF8,
                 "application/json");
 
-            HttpResponseMessage response = await _client.PostAsync(
-                "", content);
+            HttpResponseMessage response = await _client.PostAsync("", content);
 
             string json = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
@@ -52,7 +52,7 @@ namespace HotChocolate.Stitching
                 ? null
                 : result.Data.ToDictionary();
 
-            return new QueryResult(data, result.Errors);
+            return new QueryResult(data);
         }
     }
 
@@ -67,7 +67,8 @@ namespace HotChocolate.Stitching
     public class ClientQueryResult
     {
         public JObject Data { get; set; }
-        public List<QueryError> Errors { get; set; }
+        // TODO : error serialization
+        // public List<QueryError> Errors { get; set; }
     }
 
     internal static class ResultSerializationUtilities
