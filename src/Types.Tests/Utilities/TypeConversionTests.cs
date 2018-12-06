@@ -93,6 +93,72 @@ namespace HotChocolate.Utilities
             Assert.Equal(expectedOutput, output);
         }
 
+        [Fact]
+        public void Convert_Int_NullableLong()
+        {
+            // arrange
+            int source = 55;
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(int), typeof(Nullable<long>),
+                source, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<long>(output);
+            Assert.Equal(55L, output);
+        }
+
+        [Fact]
+        public void Convert_NullableInt_NullableLong()
+        {
+            // arrange
+            Nullable<int> source = 55;
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(Nullable<int>), typeof(Nullable<long>),
+                source, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<long>(output);
+            Assert.Equal(55L, output);
+        }
+
+        [Fact]
+        public void Convert_NullString_NullableLong()
+        {
+            // arrange
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string), typeof(Nullable<long>),
+                null, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(output);
+        }
+
+
+        [Fact]
+        public void Convert_NullableLong_Int()
+        {
+            // arrange
+            Nullable<long> source = 55;
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(Nullable<long>), typeof(int),
+                source, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<int>(output);
+            Assert.Equal(55, output);
+        }
+
 
         [InlineData("{2d84dcd6-3439-4ebe-8427-f4b1e1730c47}")]
         [InlineData("2d84dcd6-3439-4ebe-8427-f4b1e1730c47")]

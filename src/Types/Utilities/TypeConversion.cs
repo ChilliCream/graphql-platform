@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace HotChocolate.Utilities
 {
@@ -62,7 +63,8 @@ namespace HotChocolate.Utilities
             }
 
             if (TryGetConverter(from, to, out ChangeType converter)
-                || TryCreateListTypeConverter(from, to, out converter))
+                || TryCreateListTypeConverter(from, to, out converter)
+                || TryCreateNullableConverter(from, to, out converter))
             {
                 output = converter(input);
                 return true;
@@ -70,6 +72,34 @@ namespace HotChocolate.Utilities
 
             output = null;
             return false;
+        }
+
+        private bool TryCreateNullableConverter(
+            Type from, Type to, out ChangeType converter)
+        {
+            Type innerFrom = GetUnderlyingNullableType(from);
+            Type innerTo = GetUnderlyingNullableType(to);
+
+            if ((innerFrom != from || innerTo != to)
+                && TryGetConverter(innerFrom, innerTo, out converter))
+            {
+                Register(from, to, converter);
+                return true;
+            }
+
+            converter = null;
+            return false;
+        }
+
+        private Type GetUnderlyingNullableType(Type type)
+        {
+            if (type.IsValueType && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var nullableConverter = new NullableConverter(type);
+                return nullableConverter.UnderlyingType;
+            }
+            return type;
         }
 
         private bool TryGetConverter(
