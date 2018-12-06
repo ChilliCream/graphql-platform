@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 
 namespace HotChocolate.Utilities
@@ -9,18 +11,12 @@ namespace HotChocolate.Utilities
         : ITypeConversion
         , ITypeConverterRegistry
     {
-        private Dictionary<Type, Dictionary<Type, ChangeType>> _converters =
-            new Dictionary<Type, Dictionary<Type, ChangeType>>();
-
-        public TypeConversion(IEnumerable<ITypeConverter> converters)
-        {
-            RegisterConverters(this);
-
-            foreach (ITypeConverter converter in converters)
-            {
-                TypeConverterRegistryExtensions.Register(this, converter);
-            }
-        }
+        private readonly object _sync = new object();
+        private ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>> _converters =
+            new ConcurrentDictionary<Type, ConcurrentDictionary<Type, ChangeType>>();
+        private ImmutableList<ChangeTypeFactory> _converterFactories =
+            ImmutableList<ChangeTypeFactory>.Empty;
+        private bool _hasFactories;
 
         public TypeConversion()
         {
@@ -95,12 +91,33 @@ namespace HotChocolate.Utilities
             out ChangeType converter)
         {
             if (TryGetConverter(from, to, out converter)
+                || TryCreateConverterFromFactory(from, to, out converter)
                 || TryCreateListTypeConverter(from, to, out converter)
                 || TryCreateNullableConverter(from, to, out converter)
                 || TryCreateEnumConverter(from, to, out converter))
             {
                 return true;
             }
+            return false;
+        }
+
+        private bool TryCreateConverterFromFactory(
+            Type from, Type to,
+            out ChangeType converter)
+        {
+            if (_hasFactories)
+            {
+                ImmutableList<ChangeTypeFactory> factories = _converterFactories;
+                foreach (ChangeTypeFactory factory in factories)
+                {
+                    if (factory(from, to, out converter))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            converter = null;
             return false;
         }
 
@@ -142,21 +159,40 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(converter));
             }
 
-            lock (_converters)
+            if (!_converters.TryGetValue(from, out var toLookUp))
             {
-                if (!_converters.TryGetValue(from, out var toLookUp))
+                toLookUp = new ConcurrentDictionary<Type, ChangeType>();
+                if (!_converters.TryAdd(from, toLookUp))
                 {
-                    toLookUp = new Dictionary<Type, ChangeType>();
-                    _converters[from] = toLookUp;
+                    toLookUp = _converters[from];
                 }
-                toLookUp[to] = converter;
             }
+            toLookUp.AddOrUpdate(to, converter, (f, c) => converter);
         }
 
         public void Register<TFrom, TTo>(ChangeType<TFrom, TTo> converter)
         {
+            if (converter == null)
+            {
+                throw new ArgumentNullException(nameof(converter));
+            }
+
             Register(typeof(TFrom), typeof(TTo),
                 from => converter((TFrom)from));
+        }
+
+        public void Register(ChangeTypeFactory converterFactory)
+        {
+            if (converterFactory == null)
+            {
+                throw new ArgumentNullException(nameof(converterFactory));
+            }
+
+            lock (_sync)
+            {
+                _converterFactories = _converterFactories.Add(converterFactory);
+                _hasFactories = true;
+            }
         }
 
         public static TypeConversion Default { get; } = new TypeConversion();

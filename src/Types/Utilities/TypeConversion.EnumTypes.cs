@@ -12,6 +12,7 @@ namespace HotChocolate.Utilities
             if (from == typeof(string) && to.IsEnum)
             {
                 converter = source => Enum.Parse(to, (string)source, true);
+                Register(from, to, converter);
                 return true;
             }
 

@@ -73,7 +73,7 @@ namespace HotChocolate.Utilities
                 for (int i = 0; i < list.Count; i++)
                 {
                     var valueContext = new ConverterContext();
-                    valueContext.Type = context.Type.GetElementType();
+                    valueContext.Type = elementType;
                     Visit(list[i], valueContext);
 
                     temp.Add(valueContext.Object);
