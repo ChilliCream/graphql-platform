@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -27,17 +28,18 @@ namespace HotChocolate.Execution
             _integrateResult = resolverTask.IntegrateResult;
             _enqueueResolverTask = enqueueTask
                 ?? throw new ArgumentNullException(nameof(enqueueTask));
-
             ExecutionContext = executionContext
                 ?? throw new ArgumentNullException(nameof(executionContext));
             ResolverContext = resolverContext
-            ?? throw new ArgumentNullException(nameof(resolverContext));
+                ?? throw new ArgumentNullException(nameof(resolverContext));
+
             Source = resolverContext.Source;
             Selection = resolverTask.FieldSelection;
             SelectionSet = resolverTask.FieldSelection.Selection.SelectionSet;
             Type = resolverContext.Field.Type;
             Path = resolverContext.Path;
             Value = resolverTask.ResolverResult;
+            Converter = executionContext.Services.GetTypeConversion();
             IsNullable = true;
         }
 
@@ -55,6 +57,7 @@ namespace HotChocolate.Execution
             SelectionSet = completionContext.SelectionSet;
             Path = completionContext.Path;
             Value = completionContext.Value;
+            Converter = completionContext.Converter;
 
             Type = type;
             IsNullable = isNullable;
@@ -74,6 +77,7 @@ namespace HotChocolate.Execution
             Selection = completionContext.Selection;
             SelectionSet = completionContext.SelectionSet;
             IsNullable = completionContext.IsNullable;
+            Converter = completionContext.Converter;
 
             Path = elementPath;
             Type = elementType;
@@ -97,6 +101,8 @@ namespace HotChocolate.Execution
         public object Value { get; }
 
         public bool IsNullable { get; }
+
+        public ITypeConversion Converter { get; }
 
         public void ReportError(IEnumerable<IError> errors)
         {
