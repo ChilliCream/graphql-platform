@@ -77,6 +77,7 @@ namespace HotChocolate.Utilities
                 for (int i = 0; i < list.Count; i++)
                 {
                     var valueContext = new ConverterContext();
+                    valueContext.InputType = (IInputType)listType.ElementType;
                     valueContext.ClrType = listType.ElementType.ToClrType();
 
                     Visit(list[i], valueContext);

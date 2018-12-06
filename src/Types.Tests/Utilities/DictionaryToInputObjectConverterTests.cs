@@ -25,6 +25,7 @@ namespace HotChocolate.Utilities
             var bar = new Dictionary<string, object>();
             bar["state"] = "On";
             bar["bazs"] = new List<object> { baz };
+            bar["stringArray"] = new List<object> { "1", 2, 5.0 };
 
             var foo = new Dictionary<string, object>();
             foo["text"] = "abc";
@@ -39,7 +40,31 @@ namespace HotChocolate.Utilities
             converted.Snapshot();
         }
 
+        [Fact]
+        public void Convert_Dictionary_InputObjectWithoutClrType()
+        {
+            // arrange
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InputObjectType(t =>
+                    t.Name("FooInput")
+                        .Field("a")
+                        .Type<ListType<StringType>>()));
+            });
 
+            var type = schema.GetType<INamedInputType>("FooInput");
+
+            var foo = new Dictionary<string, object>();
+            foo["a"] = new List<object> { "abc", "def" };
+
+            // assert
+            var converter = new DictionaryToInputObjectConverter(
+                TypeConversion.Default);
+            object converted = converter.Convert(foo, type);
+
+            // assert
+            converted.Snapshot();
+        }
 
         public class Foo
         {

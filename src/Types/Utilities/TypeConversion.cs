@@ -125,7 +125,7 @@ namespace HotChocolate.Utilities
             Type from, Type to,
             out ChangeType converter)
         {
-            if (from == to)
+            if (from == to || to == typeof(object))
             {
                 converter = source => source;
                 return true;
