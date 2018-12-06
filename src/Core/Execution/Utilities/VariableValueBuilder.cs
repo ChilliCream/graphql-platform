@@ -106,9 +106,10 @@ namespace HotChocolate.Execution
                 return null;
             }
 
-            if (value is IValueNode valueNode)
+            if (value is IValueNode literal)
             {
-                value = variable.Type.ParseLiteral(valueNode);
+                CheckForInvalidValueType(variable, literal);
+                value = variable.Type.ParseLiteral(literal);
             }
 
             if (value is IDictionary<string, object>
@@ -143,6 +144,17 @@ namespace HotChocolate.Execution
         {
             if (variable.Value != null
                 && !variable.Type.ClrType.IsInstanceOfType(variable.Value))
+            {
+                throw new QueryException(QueryError.CreateVariableError(
+                    "The variable value is not of the correct type.",
+                    variable.Name));
+            }
+        }
+
+        private void CheckForInvalidValueType(
+            Variable variable, IValueNode value)
+        {
+            if (!variable.Type.IsInstanceOfType(value))
             {
                 throw new QueryException(QueryError.CreateVariableError(
                     "The variable value is not of the correct type.",

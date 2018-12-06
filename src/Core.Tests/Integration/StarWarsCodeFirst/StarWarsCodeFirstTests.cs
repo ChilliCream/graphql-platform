@@ -528,7 +528,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             var variables = new Dictionary<string, object>
             {
-                ["episode"] = new StringValueNode("NEWHOPE")
+                ["episode"] = "NEWHOPE"
             };
 
             // act
