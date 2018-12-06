@@ -241,6 +241,11 @@ namespace HotChocolate.Types
                 return LeafTypeToClrType(type);
             }
 
+            if (type.IsNonNullType())
+            {
+                return ToClrType(type.InnerType());
+            }
+
             if (type is IHasClrType t)
             {
                 return t.ClrType;

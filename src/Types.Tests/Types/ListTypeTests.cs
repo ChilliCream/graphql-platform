@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -37,12 +39,13 @@ namespace HotChocolate.Types
         {
             // arrange
             NonNullType innerType = new NonNullType(new StringType());
-
-            // act
             ListType type = new ListType(innerType);
 
+            // act
+            Type clrType = type.ClrType;
+
             // assert
-            Assert.Equal(typeof(string[]), type.ClrType);
+            Assert.Equal(typeof(List<string>), clrType);
         }
 
         [Fact]
