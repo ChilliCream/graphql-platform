@@ -20,7 +20,7 @@ namespace HotChocolate.Utilities
 
         public object Convert(object from, Type to)
         {
-            var context = new ConverterContext { Type = to };
+            var context = new ConverterContext { ClrType = to };
             Visit(from, context);
             return context.Object;
         }
@@ -29,13 +29,14 @@ namespace HotChocolate.Utilities
             IDictionary<string, object> dictionary,
             ConverterContext context)
         {
-            if (!context.Type.IsValueType && context.Type != typeof(string))
+            if (!context.ClrType.IsValueType
+                && context.ClrType != typeof(string))
             {
                 ILookup<string, PropertyInfo> properties =
-                    context.Type.CreatePropertyLookup();
+                    context.ClrType.CreatePropertyLookup();
 
                 context.Fields = properties;
-                context.Object = Activator.CreateInstance(context.Type);
+                context.Object = Activator.CreateInstance(context.ClrType);
 
                 foreach (KeyValuePair<string, object> field in dictionary)
                 {
@@ -52,7 +53,7 @@ namespace HotChocolate.Utilities
             if (property != null)
             {
                 var valueContext = new ConverterContext();
-                valueContext.Type = property.PropertyType;
+                valueContext.ClrType = property.PropertyType;
                 Visit(field.Value, valueContext);
                 property.SetValue(context.Object, valueContext.Object);
             }
@@ -63,7 +64,7 @@ namespace HotChocolate.Utilities
             ConverterContext context)
         {
             Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(context.Type);
+                .GetInnerListType(context.ClrType);
 
             if (elementType != null)
             {
@@ -73,15 +74,15 @@ namespace HotChocolate.Utilities
                 for (int i = 0; i < list.Count; i++)
                 {
                     var valueContext = new ConverterContext();
-                    valueContext.Type = elementType;
+                    valueContext.ClrType = elementType;
                     Visit(list[i], valueContext);
 
                     temp.Add(valueContext.Object);
                 }
 
-                context.Object = context.Type.IsAssignableFrom(listType)
+                context.Object = context.ClrType.IsAssignableFrom(listType)
                     ? temp
-                    : _converter.Convert(listType, context.Type, temp);
+                    : _converter.Convert(listType, context.ClrType, temp);
             }
         }
 
@@ -90,7 +91,7 @@ namespace HotChocolate.Utilities
             ConverterContext context)
         {
             context.Object = _converter.Convert(
-                typeof(object), context.Type, value);
+                typeof(object), context.ClrType, value);
         }
     }
 }

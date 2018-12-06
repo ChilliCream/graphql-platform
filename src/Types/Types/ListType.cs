@@ -34,11 +34,7 @@ namespace HotChocolate.Types
             _inputType = elementType as IInputType;
 
             ElementType = elementType;
-
-            if (_isInputType && _inputType != null)
-            {
-                ClrType = CreateListType(_inputType.ClrType);
-            }
+            ClrType = elementType.ToClrType();
         }
 
         public IType ElementType { get; }
@@ -163,11 +159,6 @@ namespace HotChocolate.Types
 
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
-        }
-
-        private static Type CreateListType(Type elementType)
-        {
-            return Array.CreateInstance(elementType, 0).GetType();
         }
     }
 

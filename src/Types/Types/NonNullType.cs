@@ -30,7 +30,7 @@ namespace HotChocolate.Types
             _inputType = type as IInputType;
 
             Type = type;
-            ClrType = _inputType?.ClrType;
+            ClrType = type.ToClrType();
         }
 
         public IType Type { get; }
