@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
-    internal static class AstStitchingExtensions
+    internal static class StitchingAstExtensions
     {
         private static readonly HashSet<string> _stitchingDirectives =
             new HashSet<string>
@@ -50,6 +50,12 @@ namespace HotChocolate.Stitching
             this DirectiveNode directive)
         {
             return directive.Name.Value.EqualsOrdinal(DirectiveNames.Schema);
+        }
+
+        public static bool IsDelegateDirective(
+            this DirectiveNode directive)
+        {
+            return directive.Name.Value.EqualsOrdinal(DirectiveNames.Delegate);
         }
 
         public static bool IsSchemaDirective(

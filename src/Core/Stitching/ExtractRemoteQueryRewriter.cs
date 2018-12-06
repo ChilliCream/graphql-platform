@@ -40,6 +40,11 @@ namespace HotChocolate.Stitching
 
         private bool IsRelevant(ISelectionNode selection, string schemaName)
         {
+            if (selection.Directives.Any(t => t.IsDelegateDirective()))
+            {
+                return false;
+            }
+
             return selection.Directives
                 .Any(t => t.IsSchemaDirective(schemaName));
         }

@@ -9,20 +9,13 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
     internal class QueryBroker
         : IQueryBroker
     {
-        private readonly IStitchingContext _stitchingContext;
-
-        public QueryBroker(IStitchingContext stitchingContext)
-        {
-            _stitchingContext = stitchingContext
-                ?? throw new ArgumentNullException(nameof(stitchingContext));
-        }
-
         public Task<IExecutionResult> RedirectQueryAsync(
             IDirectiveContext directiveContext)
         {
@@ -32,9 +25,10 @@ namespace HotChocolate.Stitching
             }
 
             string schemaName = directiveContext.FieldSelection.GetSchemaName();
+            var stitchingCtx = directiveContext.Service<IStitchingContext>();
 
             IQueryExecuter queryExecuter =
-                _stitchingContext.GetQueryExecuter(schemaName);
+                stitchingCtx.GetQueryExecuter(schemaName);
 
             QueryRequest queryRequest = CreateQuery(directiveContext);
 
@@ -76,9 +70,27 @@ namespace HotChocolate.Stitching
         {
             FieldNode current = selection;
 
-            while (path.Any())
+            if (path.Any())
             {
-                current = CreateSelection(current, path.Pop());
+                string responseName = current.Alias == null
+                    ? current.Name.Value
+                    : current.Alias.Value;
+
+                SelectionPathComponent component = path.Pop();
+
+                string alias = component.Name.Value.EqualsOrdinal(responseName)
+                    ? null
+                    : responseName;
+
+                current = CreateSelection(
+                    current.SelectionSet,
+                    component,
+                    responseName);
+
+                while (path.Any())
+                {
+                    current = CreateSelection(current, path.Pop());
+                }
             }
 
             return new DocumentNode(
@@ -97,11 +109,22 @@ namespace HotChocolate.Stitching
                 null,
                 new List<ISelectionNode> { previous });
 
+            return CreateSelection(selectionSet, next, null);
+        }
+
+        private FieldNode CreateSelection(
+            SelectionSetNode selectionSet,
+            SelectionPathComponent next,
+            string alias)
+        {
+            var aliasNode = string.IsNullOrEmpty(alias)
+                ? null : new NameNode(alias);
+
             return new FieldNode
             (
                 null,
                 next.Name,
-                null,
+                aliasNode,
                 Array.Empty<DirectiveNode>(),
                 RewriteVariableNames(next.Arguments).ToList(),
                 selectionSet
@@ -206,6 +229,9 @@ namespace HotChocolate.Stitching
                             case "variables":
                                 break;
                             case "properties":
+                                root[sv.ToVariableName()] = directiveContext
+                                    .Parent<IDictionary<string, object>>()
+                                        [sv.Name.Value];
                                 break;
                             default:
                                 throw new NotSupportedException();

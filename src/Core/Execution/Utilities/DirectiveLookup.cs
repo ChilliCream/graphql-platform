@@ -89,9 +89,13 @@ namespace HotChocolate.Execution
                 }
             };
 
+            HashSet<string> processed = new HashSet<string>();
             foreach (IDirective directive in directives.Reverse())
             {
-                component = BuildComponent(directive, updateContext, component);
+                if (processed.Add(directive.Name))
+                {
+                    component = BuildComponent(directive, updateContext, component);
+                }
             }
 
             return async (context, executeResolver) =>

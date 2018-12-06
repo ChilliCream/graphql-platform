@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -129,7 +130,7 @@ namespace HotChocolate.Execution
 
         public T Service<T>()
         {
-            return (T)_executionContext.Services.GetService(typeof(T));
+            return (T)_executionContext.Services.GetRequiredService(typeof(T));
         }
 
         public T CustomContext<T>()
