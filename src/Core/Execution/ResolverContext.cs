@@ -73,13 +73,13 @@ namespace HotChocolate.Execution
 
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
-                return ConvertArgumentValue<T>(name, argumentValue);
+                return CoerceArgumentValue<T>(name, argumentValue);
             }
 
             return default(T);
         }
 
-        private T ConvertArgumentValue<T>(
+        private T CoerceArgumentValue<T>(
             string name,
             ArgumentValue argumentValue)
         {
@@ -98,10 +98,11 @@ namespace HotChocolate.Execution
                 return value;
             }
 
+            // TODO : Resources
             throw new QueryException(
                QueryError.CreateFieldError(
                     $"Could not convert argument {name} from " +
-                    $"{argumentValue.ClrType.FullName} to " +
+                    $"{argumentValue.Type.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
                     _resolverTask.Path,
                     _resolverTask.FieldSelection.Selection));
@@ -112,7 +113,7 @@ namespace HotChocolate.Execution
             out T value)
         {
             if (_converter.TryConvert(
-                argumentValue.ClrType, typeof(T),
+                argumentValue.Type.ClrType, typeof(T),
                 argumentValue.Value, out object converted))
             {
                 value = (T)converted;

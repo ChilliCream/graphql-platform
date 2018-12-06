@@ -382,5 +382,30 @@ namespace HotChocolate.Utilities
             Assert.IsType<string>(output);
             Assert.Equal("1,2,3", output);
         }
+
+        [Fact]
+        public void Convert_ArrayOfString_NullableListOfFooOrBar()
+        {
+            // arrange
+            var list = new[] { "Foo", "Bar" };
+
+            // act
+            bool success = TypeConversion.Default.TryConvert(
+                typeof(string[]), typeof(List<Nullable<FooOrBar>>),
+                list, out object output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<Nullable<FooOrBar>>>(output);
+            Assert.Collection((List<Nullable<FooOrBar>>)output,
+                t => Assert.Equal(FooOrBar.Foo, t),
+                t => Assert.Equal(FooOrBar.Bar, t));
+        }
+
+        public enum FooOrBar
+        {
+            Foo,
+            Bar
+        }
     }
 }

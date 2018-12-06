@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -98,12 +99,9 @@ namespace HotChocolate.Execution
             if (rawValue is ICollection<KeyValuePair<string, object>>
                 || rawValue is IList<object>)
             {
-                var ctx = new DeserializationContext();
-                ctx.Type = variable.Type.ClrType;
-
-                var converter = new DictionaryToObjectConverter();
-                converter.Visit(rawValue, ctx);
-                value = ctx.Object;
+                var converter = new DictionaryToObjectConverter(
+                    TypeConversion.Default);
+                value = converter.Convert(rawValue, variable.Type.ClrType);
             }
 
             if (!(value is IValueNode)

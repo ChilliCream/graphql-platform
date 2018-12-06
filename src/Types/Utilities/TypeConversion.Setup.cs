@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using SysConv = System.Convert;
 
 namespace HotChocolate.Utilities
 {
@@ -116,14 +117,14 @@ namespace HotChocolate.Utilities
         private static void RegisterUInt16Conversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<ushort, short>(from => Convert.ToInt16(from));
-            registry.Register<ushort, int>(from => Convert.ToInt32(from));
-            registry.Register<ushort, long>(from => Convert.ToInt64(from));
-            registry.Register<ushort, uint>(from => Convert.ToUInt32(from));
-            registry.Register<ushort, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<ushort, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<ushort, float>(from => Convert.ToSingle(from));
-            registry.Register<ushort, double>(from => Convert.ToDouble(from));
+            registry.Register<ushort, short>(from => SysConv.ToInt16(from));
+            registry.Register<ushort, int>(from => SysConv.ToInt32(from));
+            registry.Register<ushort, long>(from => SysConv.ToInt64(from));
+            registry.Register<ushort, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<ushort, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<ushort, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<ushort, float>(from => SysConv.ToSingle(from));
+            registry.Register<ushort, double>(from => SysConv.ToDouble(from));
             registry.Register<ushort, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -131,14 +132,14 @@ namespace HotChocolate.Utilities
         private static void RegisterUInt32Conversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<uint, short>(from => Convert.ToInt16(from));
-            registry.Register<uint, int>(from => Convert.ToInt32(from));
-            registry.Register<uint, long>(from => Convert.ToInt64(from));
-            registry.Register<uint, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<uint, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<uint, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<uint, float>(from => Convert.ToSingle(from));
-            registry.Register<uint, double>(from => Convert.ToDouble(from));
+            registry.Register<uint, short>(from => SysConv.ToInt16(from));
+            registry.Register<uint, int>(from => SysConv.ToInt32(from));
+            registry.Register<uint, long>(from => SysConv.ToInt64(from));
+            registry.Register<uint, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<uint, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<uint, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<uint, float>(from => SysConv.ToSingle(from));
+            registry.Register<uint, double>(from => SysConv.ToDouble(from));
             registry.Register<uint, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -146,14 +147,14 @@ namespace HotChocolate.Utilities
         private static void RegisterUInt64Conversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<ulong, short>(from => Convert.ToInt16(from));
-            registry.Register<ulong, int>(from => Convert.ToInt32(from));
-            registry.Register<ulong, long>(from => Convert.ToInt64(from));
-            registry.Register<ulong, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<ulong, uint>(from => Convert.ToUInt32(from));
-            registry.Register<ulong, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<ulong, float>(from => Convert.ToSingle(from));
-            registry.Register<ulong, double>(from => Convert.ToDouble(from));
+            registry.Register<ulong, short>(from => SysConv.ToInt16(from));
+            registry.Register<ulong, int>(from => SysConv.ToInt32(from));
+            registry.Register<ulong, long>(from => SysConv.ToInt64(from));
+            registry.Register<ulong, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<ulong, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<ulong, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<ulong, float>(from => SysConv.ToSingle(from));
+            registry.Register<ulong, double>(from => SysConv.ToDouble(from));
             registry.Register<ulong, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -161,14 +162,14 @@ namespace HotChocolate.Utilities
         private static void RegisterInt16Conversions(
            ITypeConverterRegistry registry)
         {
-            registry.Register<short, int>(from => Convert.ToInt32(from));
-            registry.Register<short, long>(from => Convert.ToInt64(from));
-            registry.Register<short, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<short, uint>(from => Convert.ToUInt32(from));
-            registry.Register<short, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<short, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<short, float>(from => Convert.ToSingle(from));
-            registry.Register<short, double>(from => Convert.ToDouble(from));
+            registry.Register<short, int>(from => SysConv.ToInt32(from));
+            registry.Register<short, long>(from => SysConv.ToInt64(from));
+            registry.Register<short, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<short, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<short, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<short, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<short, float>(from => SysConv.ToSingle(from));
+            registry.Register<short, double>(from => SysConv.ToDouble(from));
             registry.Register<short, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -176,14 +177,14 @@ namespace HotChocolate.Utilities
         private static void RegisterInt32Conversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<int, short>(from => Convert.ToInt16(from));
-            registry.Register<int, long>(from => Convert.ToInt64(from));
-            registry.Register<int, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<int, uint>(from => Convert.ToUInt32(from));
-            registry.Register<int, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<int, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<int, float>(from => Convert.ToSingle(from));
-            registry.Register<int, double>(from => Convert.ToDouble(from));
+            registry.Register<int, short>(from => SysConv.ToInt16(from));
+            registry.Register<int, long>(from => SysConv.ToInt64(from));
+            registry.Register<int, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<int, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<int, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<int, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<int, float>(from => SysConv.ToSingle(from));
+            registry.Register<int, double>(from => SysConv.ToDouble(from));
             registry.Register<int, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -191,14 +192,14 @@ namespace HotChocolate.Utilities
         private static void RegisterInt64Conversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<long, short>(from => Convert.ToInt16(from));
-            registry.Register<long, int>(from => Convert.ToInt32(from));
-            registry.Register<long, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<long, uint>(from => Convert.ToUInt32(from));
-            registry.Register<long, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<long, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<long, float>(from => Convert.ToSingle(from));
-            registry.Register<long, double>(from => Convert.ToDouble(from));
+            registry.Register<long, short>(from => SysConv.ToInt16(from));
+            registry.Register<long, int>(from => SysConv.ToInt32(from));
+            registry.Register<long, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<long, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<long, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<long, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<long, float>(from => SysConv.ToSingle(from));
+            registry.Register<long, double>(from => SysConv.ToDouble(from));
             registry.Register<long, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -206,14 +207,14 @@ namespace HotChocolate.Utilities
         private static void RegisterSingleConversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<float, short>(from => Convert.ToInt16(from));
-            registry.Register<float, int>(from => Convert.ToInt32(from));
-            registry.Register<float, long>(from => Convert.ToInt64(from));
-            registry.Register<float, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<float, uint>(from => Convert.ToUInt32(from));
-            registry.Register<float, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<float, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<float, double>(from => Convert.ToDouble(from));
+            registry.Register<float, short>(from => SysConv.ToInt16(from));
+            registry.Register<float, int>(from => SysConv.ToInt32(from));
+            registry.Register<float, long>(from => SysConv.ToInt64(from));
+            registry.Register<float, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<float, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<float, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<float, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<float, double>(from => SysConv.ToDouble(from));
             registry.Register<float, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -221,14 +222,14 @@ namespace HotChocolate.Utilities
         private static void RegisterDoubleConversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<double, short>(from => Convert.ToInt16(from));
-            registry.Register<double, int>(from => Convert.ToInt32(from));
-            registry.Register<double, long>(from => Convert.ToInt64(from));
-            registry.Register<double, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<double, uint>(from => Convert.ToUInt32(from));
-            registry.Register<double, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<double, decimal>(from => Convert.ToDecimal(from));
-            registry.Register<double, float>(from => Convert.ToSingle(from));
+            registry.Register<double, short>(from => SysConv.ToInt16(from));
+            registry.Register<double, int>(from => SysConv.ToInt32(from));
+            registry.Register<double, long>(from => SysConv.ToInt64(from));
+            registry.Register<double, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<double, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<double, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<double, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<double, float>(from => SysConv.ToSingle(from));
             registry.Register<double, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -236,14 +237,14 @@ namespace HotChocolate.Utilities
         private static void RegisterDecimalConversions(
             ITypeConverterRegistry registry)
         {
-            registry.Register<decimal, short>(from => Convert.ToInt16(from));
-            registry.Register<decimal, int>(from => Convert.ToInt32(from));
-            registry.Register<decimal, long>(from => Convert.ToInt64(from));
-            registry.Register<decimal, ushort>(from => Convert.ToUInt16(from));
-            registry.Register<decimal, uint>(from => Convert.ToUInt32(from));
-            registry.Register<decimal, ulong>(from => Convert.ToUInt64(from));
-            registry.Register<decimal, float>(from => Convert.ToSingle(from));
-            registry.Register<decimal, double>(from => Convert.ToDouble(from));
+            registry.Register<decimal, short>(from => SysConv.ToInt16(from));
+            registry.Register<decimal, int>(from => SysConv.ToInt32(from));
+            registry.Register<decimal, long>(from => SysConv.ToInt64(from));
+            registry.Register<decimal, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<decimal, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<decimal, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<decimal, float>(from => SysConv.ToSingle(from));
+            registry.Register<decimal, double>(from => SysConv.ToDouble(from));
             registry.Register<decimal, string>(from =>
                 from.ToString("E", CultureInfo.InvariantCulture));
         }

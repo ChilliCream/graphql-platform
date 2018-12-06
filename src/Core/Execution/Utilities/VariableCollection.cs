@@ -27,6 +27,7 @@ namespace HotChocolate.Execution
 
             if (!TryGetVariable(variableName, out T variableValue))
             {
+                // TODO : Resources
                 throw new QueryException(QueryError.CreateVariableError(
                     "The specified variable was not declared.",
                     variableName));

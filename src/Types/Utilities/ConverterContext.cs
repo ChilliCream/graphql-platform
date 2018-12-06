@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Utilities
 {
-    internal class DeserializationContext
+    internal class ConverterContext
     {
         public object Object { get; set; }
 

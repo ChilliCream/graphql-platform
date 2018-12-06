@@ -27,6 +27,16 @@ namespace HotChocolate.Utilities
             RegisterConverters(this);
         }
 
+        public object Convert(Type from, Type to, object source)
+        {
+            if (!TryConvert(from, to, source, out object converted))
+            {
+                // TODO : Resources and exception
+                throw new NotSupportedException();
+            }
+            return converted;
+        }
+
         public bool TryConvert(Type from, Type to,
             object source, out object converted)
         {
@@ -46,11 +56,19 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            Type fromInternal = (from == typeof(object) && source != null)
-                ? source.GetType()
-                : from;
+            try
+            {
+                Type fromInternal = (from == typeof(object) && source != null)
+                    ? source.GetType()
+                    : from;
 
-            return TryConvertInternal(fromInternal, to, source, out converted);
+                return TryConvertInternal(fromInternal, to, source, out converted);
+            }
+            catch
+            {
+                converted = null;
+                return false;
+            }
         }
 
         private bool TryConvertInternal(Type from, Type to,
@@ -62,9 +80,7 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            if (TryGetConverter(from, to, out ChangeType converter)
-                || TryCreateListTypeConverter(from, to, out converter)
-                || TryCreateNullableConverter(from, to, out converter))
+            if (TryGetOrCreateConverter(from, to, out ChangeType converter))
             {
                 output = converter(input);
                 return true;
@@ -74,32 +90,18 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private bool TryCreateNullableConverter(
-            Type from, Type to, out ChangeType converter)
+        private bool TryGetOrCreateConverter(
+            Type from, Type to,
+            out ChangeType converter)
         {
-            Type innerFrom = GetUnderlyingNullableType(from);
-            Type innerTo = GetUnderlyingNullableType(to);
-
-            if ((innerFrom != from || innerTo != to)
-                && TryGetConverter(innerFrom, innerTo, out converter))
+            if (TryGetConverter(from, to, out converter)
+                || TryCreateListTypeConverter(from, to, out converter)
+                || TryCreateNullableConverter(from, to, out converter)
+                || TryCreateEnumConverter(from, to, out converter))
             {
-                Register(from, to, converter);
                 return true;
             }
-
-            converter = null;
             return false;
-        }
-
-        private Type GetUnderlyingNullableType(Type type)
-        {
-            if (type.IsValueType && type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                var nullableConverter = new NullableConverter(type);
-                return nullableConverter.UnderlyingType;
-            }
-            return type;
         }
 
         private bool TryGetConverter(
