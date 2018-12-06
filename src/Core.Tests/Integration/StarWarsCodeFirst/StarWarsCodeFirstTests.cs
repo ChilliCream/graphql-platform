@@ -18,7 +18,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 hero {
                     name
@@ -41,7 +41,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 human(id: ""1000"") {
                     name
@@ -61,7 +61,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 human(id: ""1000"") {
                     name
@@ -81,7 +81,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 empireHero: hero(episode: EMPIRE) {
                     name
@@ -103,7 +103,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 leftComparison: hero(episode: EMPIRE) {
                     ...comparisonFields
@@ -133,7 +133,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query HeroNameAndFriends {
                 hero {
                     name
@@ -155,7 +155,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query HeroNameAndFriends($episode: Episode) {
                 hero(episode: $episode) {
                     name
@@ -183,7 +183,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query HeroNameAndFriends($episode: Episode = JEDI) {
                 hero(episode: $episode) {
                     name
@@ -205,7 +205,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
@@ -234,7 +234,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
@@ -263,7 +263,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
@@ -292,7 +292,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
@@ -321,7 +321,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
@@ -350,7 +350,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
                 createReview(episode: $ep, review: $review) {
                     stars
@@ -369,7 +369,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             // act
             IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+                query, variables);
 
             // assert
             result.Snapshot();
@@ -380,7 +380,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query HeroForEpisode($ep: Episode!) {
                 hero(episode: $ep) {
                     name
@@ -399,7 +399,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(
+                query, variables);
 
             // assert
             result.Snapshot();
@@ -410,7 +411,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query HeroForEpisode($ep: Episode!) {
                 hero(episode: $ep) {
                     name
@@ -429,7 +430,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             };
 
             // act
-            IExecutionResult result = schema.Execute(query, variableValues: variables);
+            IExecutionResult result = schema.Execute(query, variables);
 
             // assert
             result.Snapshot();
@@ -440,7 +441,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 search(text: ""an"") {
                     __typename
@@ -471,7 +472,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query op($ep: [Episode!]!)
             {
                 heroes(episodes: $ep) {
@@ -496,7 +497,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 heroes(episodes: [EMPIRE]) {
                     name
@@ -518,15 +519,17 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
                 query getHero($episode: Episode!) {
                     hero(episode: $episode) {
                         name
                     }
                 }";
 
-            var variables = new Dictionary<string, object>();
-            variables["episode"] = new StringValueNode("NEWHOPE");
+            var variables = new Dictionary<string, object>
+            {
+                ["episode"] = new StringValueNode("NEWHOPE")
+            };
 
             // act
             IExecutionResult result = schema.Execute(query, variables);
@@ -540,7 +543,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             {
                 heroes(episodes: EMPIRE) {
                     name
@@ -559,7 +562,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
                 query foo {
                     hero(episode: NEWHOPE) {
                         __typename
@@ -599,7 +602,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema();
-            string query = @"
+            var query = @"
             query {
                 human(id: ""1001"") {
                     id
@@ -624,7 +627,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Schema schema = CreateSchema();
 
             // act
-            IResponseStream responseStream =
+            var responseStream =
                 (IResponseStream)await schema.ExecuteAsync(
                     "subscription { onCreateReview(episode: NEWHOPE) " +
                     "{ stars } }");
@@ -653,7 +656,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             Schema schema = CreateSchema(3);
-            string query = @"
+            var query = @"
             query foo {
                 hero(episode: NEWHOPE) {
                     __typename
@@ -701,25 +704,27 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             var repository = new CharacterRepository();
             var eventRegistry = new InMemoryEventRegistry();
 
-            var services = new Dictionary<Type, object>();
-            services[typeof(CharacterRepository)] = repository;
-            services[typeof(Query)] = new Query(repository);
-            services[typeof(Mutation)] = new Mutation();
-            services[typeof(Subscription)] = new Subscription();
-            services[typeof(IEventSender)] = eventRegistry;
-            services[typeof(IEventRegistry)] = eventRegistry;
+            var services = new Dictionary<Type, object>
+            {
+                [typeof(CharacterRepository)] = repository,
+                [typeof(Query)] = new Query(repository),
+                [typeof(Mutation)] = new Mutation(),
+                [typeof(Subscription)] = new Subscription(),
+                [typeof(IEventSender)] = eventRegistry,
+                [typeof(IEventRegistry)] = eventRegistry
+            };
 
             var serviceResolver = new Func<Type, object>(
                 t =>
                 {
-                    if (services.TryGetValue(t, out object s))
+                    if (services.TryGetValue(t, out var s))
                     {
                         return s;
                     }
                     return null;
                 });
 
-            Mock<IServiceProvider> serviceProvider =
+            var serviceProvider =
                 new Mock<IServiceProvider>(MockBehavior.Strict);
 
             serviceProvider.Setup(t => t.GetService(It.IsAny<Type>()))
