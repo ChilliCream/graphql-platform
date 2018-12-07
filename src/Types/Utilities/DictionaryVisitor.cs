@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Language;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Utilities
 {
-    internal class QueryResultVisitor<TContext>
+    internal class DictionaryVisitor<TContext>
     {
-        protected QueryResultVisitor()
+        protected DictionaryVisitor()
         {
         }
 
@@ -30,7 +29,7 @@ namespace HotChocolate.Execution
         }
 
         protected virtual void VisitObject(
-            ICollection<KeyValuePair<string, object>> dictionary,
+            IDictionary<string, object> dictionary,
             TContext context)
         {
             foreach (KeyValuePair<string, object> field in dictionary)

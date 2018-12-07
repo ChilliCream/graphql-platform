@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -17,7 +16,7 @@ namespace HotChocolate.Language
         {
             SyntaxToken start = context.Current;
             context.ExpectSpread();
-            bool isOnKeyword = context.Current.IsOnKeyword();
+            var isOnKeyword = context.Current.IsOnKeyword();
 
             if (!isOnKeyword && context.Current.IsName())
             {

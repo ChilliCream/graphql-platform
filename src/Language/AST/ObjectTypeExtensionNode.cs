@@ -13,8 +13,7 @@ namespace HotChocolate.Language
             IReadOnlyCollection<NamedTypeNode> interfaces,
             IReadOnlyCollection<FieldDefinitionNode> fields)
             : base(location, name, directives, interfaces, fields)
-        {
-        }
+        { }
 
         public override NodeKind Kind { get; } = NodeKind.ObjectTypeExtension;
 

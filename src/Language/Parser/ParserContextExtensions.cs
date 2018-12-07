@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language
 {
     internal static class ParserContextExtensions

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -31,7 +30,7 @@ namespace HotChocolate.Language
                     $"Expected a name token: {context.Current}.");
             }
 
-            List<T> list = new List<T>();
+            var list = new List<T>();
 
             // skip opening token
             context.MoveNext();

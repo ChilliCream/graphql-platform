@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -11,7 +10,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             IReadOnlyCollection<DirectiveNode> directives)
-            : base(location, name, directives) { }
+            : base(location, name, directives)
+        { }
 
         public override NodeKind Kind { get; } = NodeKind.FragmentSpread;
 

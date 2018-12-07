@@ -10,13 +10,9 @@ namespace HotChocolate.Language
             Location location,
             IReadOnlyCollection<IDefinitionNode> definitions)
         {
-            if (definitions == null)
-            {
-                throw new ArgumentNullException(nameof(definitions));
-            }
-
             Location = location;
-            Definitions = definitions;
+            Definitions = definitions 
+                ?? throw new ArgumentNullException(nameof(definitions));
         }
 
         public NodeKind Kind { get; } = NodeKind.Document;

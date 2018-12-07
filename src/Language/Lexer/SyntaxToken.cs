@@ -98,17 +98,20 @@ namespace HotChocolate.Language
         public int End { get; }
 
         /// <summary>
-        /// Gets the 1-indexed line number on which this <see cref="SyntaxToken" /> appears.
+        /// Gets the 1-indexed line number on which this 
+        /// <see cref="SyntaxToken" /> appears.
         /// </summary>
         public int Line { get; }
 
         /// <summary>
-        /// Gets the 1-indexed column number at which this <see cref="SyntaxToken" /> begins.
+        /// Gets the 1-indexed column number at which this 
+        /// <see cref="SyntaxToken" /> begins.
         /// </summary>
         public int Column { get; }
 
         /// <summary>
-        /// For non-punctuation tokens, represents the interpreted value of the token.
+        /// For non-punctuation tokens, represents the interpreted 
+        /// value of the token.
         /// </summary>
         public string Value { get; }
 

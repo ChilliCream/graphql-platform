@@ -85,5 +85,33 @@ namespace HotChocolate.Language
             // assert
             Assert.Throws<ArgumentNullException>(action);
         }
+
+        [Fact]
+        public void ArgumentNode_WithNewName_NewNameIsSet()
+        {
+            // arrange
+            var argument = new ArgumentNode(
+                "foo", new StringValueNode("bar"));
+
+            // act
+            argument = argument.WithName(new NameNode("bar"));
+
+            // assert
+            Assert.Equal("bar", argument.Name.Value);
+        }
+
+        [Fact]
+        public void ArgumentNode_WithNewValue_NewValueIsSet()
+        {
+            // arrange
+            var argument = new ArgumentNode(
+                "foo", new StringValueNode("bar"));
+
+            // act
+            argument = argument.WithValue(new StringValueNode("foo"));
+
+            // assert
+            Assert.Equal("foo", ((StringValueNode)argument.Value).Value);
+        }
     }
 }

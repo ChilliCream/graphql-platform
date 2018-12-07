@@ -74,11 +74,6 @@ namespace HotChocolate.Types
                 return new StringValueNode(null, s, false);
             }
 
-            if (value is char c)
-            {
-                return new StringValueNode(null, c.ToString(), false);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -97,29 +92,26 @@ namespace HotChocolate.Types
                 return s;
             }
 
-            if (value is char c)
-            {
-                return c.ToString(CultureInfo.InvariantCulture);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value is null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is string)
+            if (serialized is string s)
             {
-                return value;
+                value = s;
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
     }
 }

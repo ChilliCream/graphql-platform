@@ -9,24 +9,12 @@ namespace HotChocolate.Language
             SyntaxToken start,
             SyntaxToken end)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (start == null)
-            {
-                throw new ArgumentNullException(nameof(start));
-            }
-
-            if (end == null)
-            {
-                throw new ArgumentNullException(nameof(end));
-            }
-
-            StartToken = start;
-            EndToken = end;
-            Source = source;
+            StartToken = start 
+                ?? throw new ArgumentNullException(nameof(start));
+            EndToken = end 
+                ?? throw new ArgumentNullException(nameof(end));
+            Source = source 
+                ?? throw new ArgumentNullException(nameof(source));
             Start = start.Start;
             End = end.End;
         }

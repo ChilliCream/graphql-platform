@@ -115,12 +115,12 @@ namespace HotChocolate.Language
             {
                 writer.Write("\"\"\"");
 
-                string[] lines = node.Value
+                var lines = node.Value
                     .Replace("\"\"\"", "\\\"\"\"")
                     .Replace("\r", string.Empty)
                     .Split('\n');
 
-                foreach (string line in lines)
+                foreach (var line in lines)
                 {
                     writer.WriteLine();
                     writer.WriteIndentation();

@@ -13,12 +13,7 @@ namespace HotChocolate.Language
             IReadOnlyCollection<EnumValueDefinitionNode> values)
             : base(location, name, directives)
         {
-            if (values == null)
-            {
-                throw new ArgumentNullException(nameof(values));
-            }
-
-            Values = values;
+            Values = values ?? throw new ArgumentNullException(nameof(values));
         }
 
         public IReadOnlyCollection<EnumValueDefinitionNode> Values { get; }

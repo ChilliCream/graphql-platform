@@ -148,5 +148,18 @@ namespace HotChocolate.Language
         {
             Assert.True(typeof(BooleanValueNode).IsSealed);
         }
+
+        [Fact]
+        public void BooleanValue_WithNewValue_NewValueIsSet()
+        {
+            // arrange
+            var booleanValueNode = new BooleanValueNode(false);
+
+            // act
+            booleanValueNode = booleanValueNode.WithValue(true);
+
+            // assert
+            Assert.True(booleanValueNode.Value);
+        }
     }
 }

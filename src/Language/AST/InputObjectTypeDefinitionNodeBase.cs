@@ -13,12 +13,7 @@ namespace HotChocolate.Language
             IReadOnlyCollection<InputValueDefinitionNode> fields)
             : base(location, name, directives)
         {
-            if (fields == null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            Fields = fields;
+            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
         public IReadOnlyCollection<InputValueDefinitionNode> Fields { get; }

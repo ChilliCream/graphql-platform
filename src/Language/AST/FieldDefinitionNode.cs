@@ -15,19 +15,11 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
-            if (arguments == null)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
-
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Description = description;
-            Arguments = arguments;
-            Type = type;
+            Arguments = arguments 
+                ?? throw new ArgumentNullException(nameof(arguments));
+            Type = type 
+                ?? throw new ArgumentNullException(nameof(type));
         }
 
         public override NodeKind Kind { get; } = NodeKind.FieldDefinition;

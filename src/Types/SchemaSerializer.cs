@@ -7,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    public class SchemaSerializer
+    public static class SchemaSerializer
     {
         public static void Serialize(ISchema schema, TextWriter textWriter)
         {

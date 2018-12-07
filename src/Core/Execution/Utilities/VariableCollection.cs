@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal sealed class VariableCollection
     {
+        private readonly ITypeConversion _converter;
         private readonly Dictionary<string, object> _variables;
 
-        public VariableCollection(Dictionary<string, object> variables)
+        public VariableCollection(
+            ITypeConversion converter,
+            Dictionary<string, object> variables)
         {
-            if (variables == null)
-            {
-                throw new ArgumentNullException(nameof(variables));
-            }
-
-            _variables = variables;
+            _converter = converter
+                ?? throw new ArgumentNullException(nameof(converter));
+            _variables = variables
+                ?? throw new ArgumentNullException(nameof(variables));
         }
 
         public T GetVariable<T>(string variableName)
@@ -27,6 +28,7 @@ namespace HotChocolate.Execution
 
             if (!TryGetVariable(variableName, out T variableValue))
             {
+                // TODO : Resources
                 throw new QueryException(QueryError.CreateVariableError(
                     "The specified variable was not declared.",
                     variableName));
@@ -42,11 +44,17 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(variableName));
             }
 
-            if (_variables.TryGetValue(variableName,
-                out object value))
+            if (_variables.TryGetValue(variableName, out object value))
             {
-                // TODO : integrate converters
-                variableValue = (T)value;
+                if (value is T v)
+                {
+                    variableValue = v;
+                }
+                else
+                {
+                    variableValue = (T)_converter.Convert(
+                        typeof(object), typeof(T), value);
+                }
                 return true;
             }
 

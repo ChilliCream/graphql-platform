@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal static class ArgumentResolver
+    internal static class ArgumentValueBuilder
     {
         public static Dictionary<string, ArgumentValue> CoerceArgumentValues(
             this FieldSelection fieldSelection,
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
                 }
 
                 coercedArgumentValues[argumentName] = new ArgumentValue(
-                    argumentType, argumentType.ClrType, argumentValue);
+                    argumentType, argumentValue);
             }
 
             return coercedArgumentValues;

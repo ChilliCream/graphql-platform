@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Types section.

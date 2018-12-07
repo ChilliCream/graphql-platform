@@ -90,11 +90,6 @@ namespace HotChocolate.Types
                 return new FloatValueNode(SerializeDouble(d));
             }
 
-            if (value is float f)
-            {
-                return new FloatValueNode(SerializeDouble(f));
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -113,29 +108,26 @@ namespace HotChocolate.Types
                 return d;
             }
 
-            if (value is float f)
-            {
-                return (double)f;
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value == null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is double d)
+            if (serialized is double d)
             {
-                return d;
+                value = d;
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
 
         private static double ParseDouble(string value) =>

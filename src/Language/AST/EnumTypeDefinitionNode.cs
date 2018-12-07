@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -19,6 +18,7 @@ namespace HotChocolate.Language
         }
 
         public override NodeKind Kind { get; } = NodeKind.EnumTypeDefinition;
+
         public StringValueNode Description { get; }
 
         public EnumTypeDefinitionNode WithLocation(Location location)

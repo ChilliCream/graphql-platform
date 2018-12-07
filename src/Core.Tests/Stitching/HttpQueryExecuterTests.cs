@@ -7,7 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Stitching;
 using Xunit;
 
-namespace Core.Tests.Stitching
+namespace HotChocolate.Stitching
 {
     public class HttpQueryExecuterTests
     {

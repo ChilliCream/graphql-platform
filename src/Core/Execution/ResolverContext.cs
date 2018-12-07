@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Execution.ValueConverters;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -15,17 +14,10 @@ namespace HotChocolate.Execution
     internal sealed class ResolverContext
         : IResolverContext
     {
-        // todo: remove
-        private static readonly List<IInputValueConverter> _converters =
-            new List<IInputValueConverter>
-            {
-                new ListValueConverter(),
-                new FloatValueConverter(),
-                new DateTimeValueConverter()
-            };
         private readonly IExecutionContext _executionContext;
         private readonly ResolverTask _resolverTask;
         private readonly Dictionary<string, ArgumentValue> _arguments;
+        private readonly ITypeConversion _converter;
 
         public ResolverContext(
             IExecutionContext executionContext,
@@ -46,6 +38,7 @@ namespace HotChocolate.Execution
             _resolverTask = resolverTask;
             RequestAborted = requestAborted;
 
+            _converter = _executionContext.Services.GetTypeConversion();
             _arguments = resolverTask.FieldSelection
                 .CoerceArgumentValues(executionContext.Variables);
         }
@@ -80,13 +73,13 @@ namespace HotChocolate.Execution
 
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
-                return ConvertArgumentValue<T>(name, argumentValue);
+                return CoerceArgumentValue<T>(name, argumentValue);
             }
 
             return default(T);
         }
 
-        private T ConvertArgumentValue<T>(
+        private T CoerceArgumentValue<T>(
             string name,
             ArgumentValue argumentValue)
         {
@@ -105,28 +98,26 @@ namespace HotChocolate.Execution
                 return value;
             }
 
+            // TODO : Resources
             throw new QueryException(
                QueryError.CreateFieldError(
                     $"Could not convert argument {name} from " +
-                    $"{argumentValue.ClrType.FullName} to " +
+                    $"{argumentValue.Type.ClrType.FullName} to " +
                     $"{typeof(T).FullName}.",
                     _resolverTask.Path,
                     _resolverTask.FieldSelection.Selection));
         }
 
-        private static bool TryConvertValue<T>(
+        private bool TryConvertValue<T>(
             ArgumentValue argumentValue,
             out T value)
         {
-            foreach (IInputValueConverter converter in _converters
-                .Where(t => t.CanConvert(argumentValue.Type)))
+            if (_converter.TryConvert(
+                argumentValue.Type.ClrType, typeof(T),
+                argumentValue.Value, out object converted))
             {
-                if (converter.TryConvert(argumentValue.ClrType, typeof(T),
-                    argumentValue.Value, out object cv))
-                {
-                    value = (T)cv;
-                    return true;
-                }
+                value = (T)converted;
+                return true;
             }
 
             value = default(T);

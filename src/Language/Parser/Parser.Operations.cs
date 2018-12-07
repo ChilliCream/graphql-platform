@@ -16,33 +16,32 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
+
             if (start.IsLeftBrace())
             {
                 return ParseOperationDefinitionShortHandForm(context, start);
             }
-            else
-            {
-                OperationType operation = ParseOperationType(context);
-                NameNode name = context.Current.IsName()
-                    ? context.ParseName()
-                    : null;
-                List<VariableDefinitionNode> variableDefinitions =
-                    ParseVariableDefinitions(context);
-                List<DirectiveNode> directives =
-                    ParseDirectives(context, false);
-                SelectionSetNode selectionSet = ParseSelectionSet(context);
-                Location location = context.CreateLocation(start);
 
-                return new OperationDefinitionNode
-                (
-                    location,
-                    name,
-                    operation,
-                    variableDefinitions,
-                    directives,
-                    selectionSet
-                );
-            }
+            OperationType operation = ParseOperationType(context);
+            NameNode name = context.Current.IsName()
+                ? context.ParseName()
+                : null;
+            List<VariableDefinitionNode> variableDefinitions =
+                ParseVariableDefinitions(context);
+            List<DirectiveNode> directives =
+                ParseDirectives(context, false);
+            SelectionSetNode selectionSet = ParseSelectionSet(context);
+            Location location = context.CreateLocation(start);
+
+            return new OperationDefinitionNode
+            (
+                location,
+                name,
+                operation,
+                variableDefinitions,
+                directives,
+                selectionSet
+            );
         }
 
         /// <summary>
@@ -202,7 +201,7 @@ namespace HotChocolate.Language
         private static FieldNode ParseField(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            bool hasAlias = context.Peek(TokenKind.Colon);
+            var hasAlias = context.Peek(TokenKind.Colon);
             NameNode alias = null;
             NameNode name = null;
 

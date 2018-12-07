@@ -74,11 +74,6 @@ namespace HotChocolate.Types
                 return new IntValueNode(i);
             }
 
-            if (value is short s)
-            {
-                return new IntValueNode(s);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -97,29 +92,26 @@ namespace HotChocolate.Types
                 return i;
             }
 
-            if (value is short s)
-            {
-                return (int)s;
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value == null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is int i)
+            if (serialized is int i)
             {
-                return i;
+                value = i;
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
     }
 }

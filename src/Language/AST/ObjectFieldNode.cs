@@ -8,9 +8,7 @@ namespace HotChocolate.Language
     {
         private int? _hash;
 
-        public ObjectFieldNode(
-            string name,
-            IValueNode value)
+        public ObjectFieldNode(string name, IValueNode value)
             : this(null, new NameNode(name), value)
         {
         }
@@ -20,19 +18,9 @@ namespace HotChocolate.Language
             NameNode name,
             IValueNode value)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
             Location = location;
-            Name = name;
-            Value = value;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public NodeKind Kind { get; } = NodeKind.ObjectField;

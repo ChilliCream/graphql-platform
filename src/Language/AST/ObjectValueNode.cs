@@ -25,13 +25,8 @@ namespace HotChocolate.Language
             Location location,
             IReadOnlyList<ObjectFieldNode> fields)
         {
-            if (fields == null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
             Location = location;
-            Fields = fields;
+            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
         public NodeKind Kind { get; } = NodeKind.ObjectValue;
@@ -158,8 +153,8 @@ namespace HotChocolate.Language
             {
                 if (_hash == null)
                 {
-                    int hash = 0;
-                    for (int i = 0; i < Fields.Count; i++)
+                    var hash = 0;
+                    for (var i = 0; i < Fields.Count; i++)
                     {
                         hash = hash ^ (Fields[i].GetHashCode() * 397);
                     }

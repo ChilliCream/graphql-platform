@@ -237,6 +237,12 @@ namespace HotChocolate.Discovery
             {
                 throw new NotImplementedException();
             }
+
+            public override bool TryDeserialize(
+                object serialized, out object value)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

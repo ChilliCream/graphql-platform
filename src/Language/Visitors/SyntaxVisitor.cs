@@ -5,8 +5,6 @@ namespace HotChocolate.Language
     {
         protected SyntaxVisitor() { }
 
-        public virtual void Visit(TStart node, TContext context)
-        {
-        }
+        public virtual void Visit(TStart node, TContext context) { }
     }
 }

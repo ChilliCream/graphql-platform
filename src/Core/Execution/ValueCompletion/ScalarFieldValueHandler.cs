@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -10,16 +11,20 @@ namespace HotChocolate.Execution
             IFieldValueCompletionContext completionContext,
             Action<IFieldValueCompletionContext> nextHandler)
         {
-            if (completionContext.Type.IsScalarType()
-                || completionContext.Type.IsEnumType())
+            if (completionContext.Type.IsLeafType())
             {
                 if (completionContext.Type is ISerializableType serializable)
                 {
                     try
                     {
-                        completionContext.IntegrateResult(
-                            serializable.Serialize(
-                                completionContext.Value));
+                        object value = Normalize(
+                            completionContext.Converter,
+                            completionContext.Type,
+                            completionContext.Value);
+
+                        value = serializable.Serialize(value);
+
+                        completionContext.IntegrateResult(value);
                     }
                     catch (ArgumentException ex)
                     {
@@ -41,6 +46,27 @@ namespace HotChocolate.Execution
             {
                 nextHandler?.Invoke(completionContext);
             }
+        }
+
+        private object Normalize(
+            ITypeConversion converter,
+            IType type,
+            object value)
+        {
+            if (value is null)
+            {
+                return value;
+            }
+
+            if (type is IHasClrType leafType
+                && !leafType.ClrType.IsInstanceOfType(value))
+            {
+                return converter.Convert(
+                    typeof(object), leafType.ClrType,
+                    value);
+            }
+
+            return value;
         }
     }
 }
