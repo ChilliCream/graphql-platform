@@ -43,7 +43,7 @@ namespace HotChocolate.Utilities
         {
             if (obj is null)
             {
-                setValue(null);
+                setValue(NullValueNode.Default);
             }
             else if (type.IsListType())
             {

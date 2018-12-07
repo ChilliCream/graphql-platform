@@ -105,6 +105,5 @@ namespace HotChocolate.Utilities
             Foo,
             Bar
         }
-
     }
 }
