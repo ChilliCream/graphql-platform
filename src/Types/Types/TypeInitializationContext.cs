@@ -43,6 +43,8 @@ namespace HotChocolate.Types
 
         public bool IsDirective { get; }
 
+        public IServiceProvider Services => _schemaContext.Services;
+
         public IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType)
         {

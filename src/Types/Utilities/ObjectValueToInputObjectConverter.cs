@@ -1,22 +1,24 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal class DictionaryToInputObjectConverter
-        : DictionaryVisitor<ConverterContext>
+    internal class ObjectValueToInputObjectConverter
+        : SyntaxWalkerBase<IValueNode, ConverterContext>
     {
         private readonly ITypeConversion _converter;
 
-        public DictionaryToInputObjectConverter(ITypeConversion converter)
+        public ObjectValueToInputObjectConverter(ITypeConversion converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public object Convert(object from, IInputType to)
+        public object Convert(ObjectValueNode from, InputObjectType to)
         {
             if (from == null)
             {
@@ -34,13 +36,13 @@ namespace HotChocolate.Utilities
                 ClrType = to.ToClrType()
             };
 
-            Visit(from, context);
+            VisitObjectValue(from, context);
 
             return context.Object;
         }
 
-        protected override void VisitObject(
-            IDictionary<string, object> dictionary,
+        protected override void VisitObjectValue(
+            ObjectValueNode node,
             ConverterContext context)
         {
             if (context.InputType.NamedType() is InputObjectType type)
@@ -52,32 +54,32 @@ namespace HotChocolate.Utilities
                 context.Object = Activator.CreateInstance(clrType);
                 context.InputFields = type.Fields;
 
-                foreach (KeyValuePair<string, object> field in dictionary)
+                foreach (ObjectFieldNode field in node.Fields)
                 {
-                    VisitField(field, context);
+                    VisitObjectField(field, context);
                 }
             }
         }
 
-        protected override void VisitField(
-            KeyValuePair<string, object> field,
+        protected override void VisitObjectField(
+            ObjectFieldNode node,
             ConverterContext context)
         {
             if (context.InputFields.TryGetField(
-                field.Key, out InputField inputField))
+                node.Name.Value, out InputField inputField))
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
                 valueContext.ClrType = GetClrType(inputField, context.Object);
 
-                Visit(field.Value, valueContext);
+                VisitValue(node.Value, valueContext);
 
                 inputField.SetValue(context.Object, valueContext.Object);
             }
         }
 
-        protected override void VisitList(
-            IList<object> list,
+        protected override void VisitListValue(
+            ListValueNode node,
             ConverterContext context)
         {
             if (context.InputType.IsListType())
@@ -86,13 +88,13 @@ namespace HotChocolate.Utilities
                 Type tempType = listType.ToClrType();
                 IList temp = (IList)Activator.CreateInstance(tempType);
 
-                for (int i = 0; i < list.Count; i++)
+                for (int i = 0; i < node.Items.Count; i++)
                 {
                     var valueContext = new ConverterContext();
                     valueContext.InputType = (IInputType)listType.ElementType;
                     valueContext.ClrType = listType.ElementType.ToClrType();
 
-                    Visit(list[i], valueContext);
+                    VisitValue(node.Items[i], valueContext);
 
                     temp.Add(valueContext.Object);
                 }
@@ -108,11 +110,29 @@ namespace HotChocolate.Utilities
         }
 
         protected override void VisitValue(
-            object value,
+            IValueNode node,
             ConverterContext context)
         {
-            context.Object = _converter.Convert(
-                typeof(object), context.ClrType, value);
+            if (node is null)
+            {
+                return;
+            }
+
+            switch (node)
+            {
+                case ListValueNode value:
+                    VisitListValue(value, context);
+                    break;
+                case ObjectValueNode value:
+                    VisitObjectValue(value, context);
+                    break;
+                case VariableNode value:
+                    VisitVariable(value, context);
+                    break;
+                default:
+                    context.Object = context.InputType.ParseLiteral(node);
+                    break;
+            }
         }
 
         public Type GetClrType(InputField field, object obj)

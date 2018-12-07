@@ -1,21 +1,22 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal class InputObjectToDictionaryConverter
+    internal class InputObjectToObjectValueConverter
     {
         private readonly ITypeConversion _converter;
 
-        public InputObjectToDictionaryConverter(ITypeConversion converter)
+        public InputObjectToObjectValueConverter(ITypeConversion converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
         }
 
-        public Dictionary<string, object> Convert(
+        public ObjectValueNode Convert(
             InputObjectType type, object obj)
         {
             if (type == null)
@@ -28,16 +29,16 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            Dictionary<string, object> dict = null;
-            Action<object> setValue =
-                value => dict = (Dictionary<string, object>)value;
+            ObjectValueNode objectValueNode = null;
+            Action<IValueNode> setValue =
+                value => objectValueNode = (ObjectValueNode)value;
             VisitInputObject(type, obj, setValue, new HashSet<object>());
-            return dict;
+            return objectValueNode;
         }
 
         private void VisitValue(
             IInputType type, object obj,
-            Action<object> setValue,
+            Action<IValueNode> setValue,
             ISet<object> processed)
         {
             if (obj is null)
@@ -70,44 +71,49 @@ namespace HotChocolate.Utilities
 
         private void VisitInputObject(
             InputObjectType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+            Action<IValueNode> setValue,
+            ISet<object> processed)
         {
             if (processed.Add(obj))
             {
-                var dict = new Dictionary<string, object>();
-                setValue(dict);
+                var fields = new List<ObjectFieldNode>();
 
                 foreach (InputField field in type.Fields)
                 {
                     object fieldValue = field.GetValue(obj);
-                    Action<object> setField = value => dict[field.Name] = value;
+                    Action<IValueNode> setField = value =>
+                        fields.Add(new ObjectFieldNode(field.Name, value));
                     VisitValue(field.Type, fieldValue, setField, processed);
                 }
+
+                setValue(new ObjectValueNode(fields));
             }
         }
 
         private void VisitList(
             ListType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+            Action<IValueNode> setValue,
+            ISet<object> processed)
         {
             if (obj is IEnumerable sourceList)
             {
-                var list = new List<object>();
-                setValue(list);
-
+                var list = new List<IValueNode>();
                 var itemType = (IInputType)type.ElementType;
-                Action<object> addItem = item => list.Add(item);
+                Action<IValueNode> addItem = item => list.Add(item);
 
                 foreach (object item in sourceList)
                 {
                     VisitValue(itemType, item, addItem, processed);
                 }
+
+                setValue(new ListValueNode(list));
             }
         }
 
         private void VisitLeaf(
             INamedInputType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+            Action<IValueNode> setValue,
+            ISet<object> processed)
         {
             if (type is IHasClrType hasClrType)
             {
@@ -115,7 +121,8 @@ namespace HotChocolate.Utilities
                 object normalized = currentType == hasClrType.ClrType
                     ? obj
                     : _converter.Convert(currentType, hasClrType.ClrType, obj);
-                setValue(obj);
+
+                setValue(type.ParseValue(normalized));
             }
         }
     }

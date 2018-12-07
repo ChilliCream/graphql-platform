@@ -20,6 +20,16 @@ namespace HotChocolate.Utilities
 
         public object Convert(object from, Type to)
         {
+            if (from == null)
+            {
+                throw new ArgumentNullException(nameof(from));
+            }
+
+            if (to == null)
+            {
+                throw new ArgumentNullException(nameof(to));
+            }
+
             var context = new ConverterContext { ClrType = to };
             Visit(from, context);
             return context.Object;

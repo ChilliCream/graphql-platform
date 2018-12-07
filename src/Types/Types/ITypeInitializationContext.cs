@@ -14,6 +14,8 @@ namespace HotChocolate.Types
 
         bool IsQueryType { get; }
 
+        IServiceProvider Services { get; }
+
         void RegisterType(
             INamedType namedType,
             ITypeBinding typeBinding = null);
