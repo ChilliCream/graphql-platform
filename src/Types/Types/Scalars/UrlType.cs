@@ -87,20 +87,22 @@ namespace HotChocolate.Types
             return value.AbsoluteUri;
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value is null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is string s && TryParseUri(s, out Uri uri))
+            if (serialized is string s && TryParseUri(s, out Uri uri))
             {
-                return uri;
+                value = uri;
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+            value = null;
+            return false;
         }
 
         private bool TryParseUri(string value, out Uri uri) =>

@@ -112,21 +112,39 @@ namespace HotChocolate.Execution
                 value = variable.Type.ParseLiteral(literal);
             }
 
+            value = DeserializeValue(variable.Type, value);
+            value = EnsureClrTypeIsCorrect(variable.Type, value);
+
+            return value;
+        }
+
+        private object DeserializeValue(IInputType type, object value)
+        {
             if (value is IDictionary<string, object>
                 || value is IList<object>)
             {
-                value = _inputTypeConverter.Convert(value, variable.Type);
+                return _inputTypeConverter.Convert(value, type);
+            }
+            else if (type.IsLeafType()
+                && type.NamedType() is ISerializableType serializable
+                && serializable.TryDeserialize(value, out object deserialized))
+            {
+                return deserialized;
             }
 
-            if (variable.Type.ClrType != typeof(object)
-                && value.GetType() != variable.Type.ClrType
+            return value;
+        }
+
+        private object EnsureClrTypeIsCorrect(IInputType type, object value)
+        {
+            if (type.ClrType != typeof(object)
+                && value.GetType() != type.ClrType
                 && _converter.TryConvert(value.GetType(),
-                    variable.Type.ClrType, value,
+                    type.ClrType, value,
                     out object converted))
             {
-                value = converted;
+                return converted;
             }
-
             return value;
         }
 

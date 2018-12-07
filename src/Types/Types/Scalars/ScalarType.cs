@@ -106,6 +106,32 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
+        /// The <paramref name="serialized" /> can be one of the following types:
+        /// - <see cref="System.String" />
+        /// - <see cref="System.Boolean" />
+        /// - <see cref="System.Int32" />
+        /// - <see cref="System.Double" />
+        /// </summary>
+        /// <param name="serialized">
+        /// The serialized value representation.
+        /// </param>
+        /// <returns>
+        /// Returns the .net value representation.
+        /// </returns>
+        public virtual object Deserialize(object serialized)
+        {
+            if (TryDeserialize(serialized, out object v))
+            {
+                return v;
+            }
+
+            throw new ArgumentException(
+                TypeResources.Scalar_Cannot_Deserialize(Name));
+        }
+
+
+        /// <summary>
+        /// Deserializes the serialized value to it`s .net value representation.
         /// The <paramref name="value" /> can be one of the following types:
         /// - <see cref="System.String" />
         /// - <see cref="System.Boolean" />
@@ -118,6 +144,7 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns the .net value representation.
         /// </returns>
-        public abstract object Deserialize(object value);
+        public abstract bool TryDeserialize(
+            object serialized, out object value);
     }
 }

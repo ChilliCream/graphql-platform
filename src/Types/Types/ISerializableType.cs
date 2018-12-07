@@ -15,5 +15,10 @@ namespace HotChocolate.Types
         /// Deserializes a serialized instance of this type.
         /// </summary>
         object Deserialize(object value);
+
+        /// <summary>
+        /// Tries to deserialize a serialized instance of this type.
+        /// </summary>
+        bool TryDeserialize(object serialized, out object value);
     }
 }

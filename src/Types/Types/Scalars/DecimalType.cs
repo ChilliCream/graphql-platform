@@ -82,20 +82,22 @@ namespace HotChocolate.Types
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value == null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is string s)
+            if (serialized is string s)
             {
-                return ParseDecimal(s);
+                value = ParseDecimal(s);
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+            value = null;
+            return false;
         }
 
         private static decimal ParseDecimal(string value) =>

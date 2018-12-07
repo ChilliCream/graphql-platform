@@ -132,19 +132,32 @@ namespace HotChocolate.Types
 
         public object Deserialize(object value)
         {
-            if (value is null)
+            if (TryDeserialize(value, out object v))
             {
-                return null;
-            }
-
-            if (value is string name
-                && _nameToValues.TryGetValue(name, out EnumValue enumValue))
-            {
-                return enumValue.Value;
+                return v;
             }
 
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Deserialize(Name));
+        }
+
+        public bool TryDeserialize(object serialized, out object value)
+        {
+            if (serialized is null)
+            {
+                value = null;
+                return true;
+            }
+
+            if (serialized is string name
+                && _nameToValues.TryGetValue(name, out EnumValue enumValue))
+            {
+                value = enumValue.Value;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 
         #endregion
