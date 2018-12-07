@@ -111,8 +111,27 @@ namespace HotChocolate.Utilities
             object value,
             ConverterContext context)
         {
-            context.Object = _converter.Convert(
-                typeof(object), context.ClrType, value);
+            if (value == null)
+            {
+                context.Object = null;
+            }
+            else if (context.InputType.ClrType.IsInstanceOfType(value))
+            {
+                context.Object = value;
+            }
+            else if (context.InputType is ISerializableType serializable)
+            {
+                context.Object = serializable.Deserialize(value);
+            }
+
+            if (context.Object != null
+                && context.Object.GetType() != context.ClrType)
+            {
+                context.Object = _converter.Convert(
+                    context.Object.GetType(),
+                    context.ClrType,
+                    context.Object);
+            }
         }
 
         public Type GetClrType(InputField field, object obj)
