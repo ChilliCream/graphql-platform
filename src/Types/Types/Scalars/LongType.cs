@@ -64,18 +64,6 @@ namespace HotChocolate.Types
                     l.ToString("D", CultureInfo.InvariantCulture));
             }
 
-            if (value is int i)
-            {
-                return new StringValueNode(
-                    i.ToString("D", CultureInfo.InvariantCulture));
-            }
-
-            if (value is short s)
-            {
-                return new StringValueNode(
-                    s.ToString("D", CultureInfo.InvariantCulture));
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -92,16 +80,6 @@ namespace HotChocolate.Types
             if (value is long l)
             {
                 return l.ToString("D", CultureInfo.InvariantCulture);
-            }
-
-            if (value is int i)
-            {
-                return i.ToString("D", CultureInfo.InvariantCulture);
-            }
-
-            if (value is short s)
-            {
-                return s.ToString("D", CultureInfo.InvariantCulture);
             }
 
             throw new ArgumentException(

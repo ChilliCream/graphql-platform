@@ -74,11 +74,6 @@ namespace HotChocolate.Types
                 return new IntValueNode(i);
             }
 
-            if (value is short s)
-            {
-                return new IntValueNode(s);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -95,11 +90,6 @@ namespace HotChocolate.Types
             if (value is int i)
             {
                 return i;
-            }
-
-            if (value is short s)
-            {
-                return (int)s;
             }
 
             throw new ArgumentException(

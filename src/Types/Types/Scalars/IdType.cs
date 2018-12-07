@@ -82,16 +82,6 @@ namespace HotChocolate.Types
                 return new StringValueNode(s);
             }
 
-            if (value is char c)
-            {
-                return new StringValueNode(c.ToString());
-            }
-
-            if (value is int i)
-            {
-                return new IntValueNode(i);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -110,16 +100,6 @@ namespace HotChocolate.Types
                 return s;
             }
 
-            if (value is char c)
-            {
-                return c.ToString(CultureInfo.InvariantCulture);
-            }
-
-            if (value is int i)
-            {
-                return i.ToString(CultureInfo.InvariantCulture);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
@@ -134,11 +114,6 @@ namespace HotChocolate.Types
             if (value is string)
             {
                 return value;
-            }
-
-            if (value is int i)
-            {
-                return i.ToString(CultureInfo.InvariantCulture);
             }
 
             throw new ArgumentException(

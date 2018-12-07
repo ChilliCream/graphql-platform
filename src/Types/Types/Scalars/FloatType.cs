@@ -90,11 +90,6 @@ namespace HotChocolate.Types
                 return new FloatValueNode(SerializeDouble(d));
             }
 
-            if (value is float f)
-            {
-                return new FloatValueNode(SerializeDouble(f));
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -111,11 +106,6 @@ namespace HotChocolate.Types
             if (value is double d)
             {
                 return d;
-            }
-
-            if (value is float f)
-            {
-                return (double)f;
             }
 
             throw new ArgumentException(

@@ -74,11 +74,6 @@ namespace HotChocolate.Types
                 return new StringValueNode(null, s, false);
             }
 
-            if (value is char c)
-            {
-                return new StringValueNode(null, c.ToString(), false);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -95,11 +90,6 @@ namespace HotChocolate.Types
             if (value is string s)
             {
                 return s;
-            }
-
-            if (value is char c)
-            {
-                return c.ToString(CultureInfo.InvariantCulture);
             }
 
             throw new ArgumentException(
