@@ -89,7 +89,7 @@ namespace HotChocolate.Integration.TypeConversion
         }
 
         [Fact]
-        public void Floa()
+        public void VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
         {
             // arrange
             ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
@@ -101,7 +101,7 @@ namespace HotChocolate.Integration.TypeConversion
                     {
                         {"id", "934b987bc0d842bbabfd8a3b3f8b476e"},
                         {"time", "2018-05-29T01:00Z"},
-                        {"number", 123.5f}
+                        {"number", 123}
                     }
                 }
             };

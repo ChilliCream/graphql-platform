@@ -124,6 +124,10 @@ namespace HotChocolate.Utilities
             {
                 context.Object = s;
             }
+            else
+            {
+                context.Object = value;
+            }
 
             if (context.Object != null
                 && context.Object.GetType() != context.ClrType)
