@@ -144,7 +144,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResources.Scalar_Cannot_Deserialize(Name));
         }
 
         #endregion
@@ -194,6 +194,7 @@ namespace HotChocolate.Types
         {
             if (!Values.Any())
             {
+                // TODO : Resources
                 context.ReportError(new SchemaError(
                     $"The enum type `{Name}` has no values."));
             }

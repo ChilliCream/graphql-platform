@@ -26,37 +26,6 @@ namespace HotChocolate.Types
         protected override double GetMinValue => double.MinValue;
         protected override string GetAssertMinValue => "-1.797693E+308";
 
-
-        [Fact]
-        public void ParseValue_Float_Max()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            float input = float.MaxValue;
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal("3.402823E+038", literal.Value);
-        }
-
-        [Fact]
-        public void ParseValue_Float_Min()
-        {
-            // arrange
-            FloatType type = new FloatType();
-            float input = float.MinValue;
-
-            // act
-            FloatValueNode literal =
-                (FloatValueNode)type.ParseValue(input);
-
-            // assert
-            Assert.Equal("-3.402823E+038", literal.Value);
-        }
-
         [Fact]
         public void IsInstanceOfType_IntValueNode()
         {

@@ -14,7 +14,8 @@ namespace HotChocolate.Types
         , ISerializableType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:HotChocolate.Types.ScalarType"/> class.
+        /// Initializes a new instance of the
+        /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
         /// </summary>
         /// <param name="name">Name.</param>
         protected ScalarType(NameString name)

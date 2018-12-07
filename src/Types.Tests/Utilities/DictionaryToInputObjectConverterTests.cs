@@ -23,9 +23,9 @@ namespace HotChocolate.Utilities
             baz["number"] = "1.5";
 
             var bar = new Dictionary<string, object>();
-            bar["state"] = "On";
+            bar["state"] = "ON";
             bar["bazs"] = new List<object> { baz };
-            bar["stringArray"] = new List<object> { "1", 2, 5.0 };
+            bar["stringArray"] = new List<object> { "1", "2", "5" };
 
             var foo = new Dictionary<string, object>();
             foo["text"] = "abc";

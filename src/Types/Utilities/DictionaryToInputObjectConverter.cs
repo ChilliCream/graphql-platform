@@ -119,9 +119,9 @@ namespace HotChocolate.Utilities
             {
                 context.Object = value;
             }
-            else if (context.InputType is ISerializableType serializable)
+            else if (context.InputType.NamedType() is ISerializableType st)
             {
-                context.Object = serializable.Deserialize(value);
+                context.Object = st.Deserialize(value);
             }
 
             if (context.Object != null

@@ -108,7 +108,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResources.Scalar_Cannot_Deserialize(Name));
         }
 
         protected virtual bool TrySerialize(

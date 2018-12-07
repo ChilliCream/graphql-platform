@@ -103,37 +103,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Serialize_Char()
-        {
-            // arrange
-            var type = new IdType();
-            var input = '1';
-
-            // act
-            object serializedValue = type.Serialize(input);
-
-            // assert
-            Assert.IsType<string>(serializedValue);
-            Assert.Equal("1", serializedValue);
-        }
-
-        [Fact]
-        public void Serialize_Int()
-        {
-            // arrange
-            var type = new IdType();
-            var input = 123456;
-
-            // act
-            object serializedValue = type.Serialize(input);
-
-            // assert
-            Assert.IsType<string>(serializedValue);
-            Assert.Equal("123456", serializedValue);
-        }
-
-
-        [Fact]
         public void Serialize_Null()
         {
             // arrange
@@ -263,20 +232,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<StringValueNode>(output);
-        }
-
-        [Fact]
-        public void ParseValue_Int()
-        {
-            // arrange
-            var type = new IdType();
-            object input = 1234;
-
-            // act
-            object output = type.ParseValue(input);
-
-            // assert
-            Assert.IsType<IntValueNode>(output);
         }
     }
 }
