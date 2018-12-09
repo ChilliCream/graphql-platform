@@ -109,6 +109,9 @@ namespace HotChocolate.Resolvers
 
         public T Service<T>() => _resolverContext.Service<T>();
 
+        public object Service(Type service) =>
+            _resolverContext.Service(service);
+
         public async Task<T> ResolveAsync<T>()
         {
             if (!_isResultResolved)

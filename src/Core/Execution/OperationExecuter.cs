@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -94,6 +95,53 @@ namespace HotChocolate.Execution
                 cancellationToken);
 
             return executionContext;
+        }
+    }
+
+    public class Operation
+    {
+        public Operation(ISchema schema, DocumentNode queryDocument, OperationDefinitionNode operation)
+        {
+            this.Schema = schema;
+            this.QueryDocument = queryDocument;
+            this.Operation = operation;
+
+        }
+        public ISchema Schema { get; }
+        public DocumentNode QueryDocument { get; }
+        public OperationDefinitionNode Operation { get; }
+    }
+
+    public delegate IReadOnlyDictionary<TKey, TValue> FetchData<TKey, TValue>(
+        IEnumerable<TKey> keys);
+
+    public delegate ILookup<TKey, TValue> FetchGroupData<TKey, TValue>(
+        IEnumerable<TKey> keys);
+
+    public interface IDataLoaderSession
+    {
+        object LoadAsync<TKey, TValue>(string key, FetchData<TKey, TValue> fetchData);
+
+        ILookup<string, object> s
+
+
+
+
+
+        IDataLoader = ctx.DataLoader<int, ICharacter>("foo", ctx.Service().GetCharacters));
+
+IDataLoader = ctx.DataLoader<int, ICharacter>(ctx.Service().GetCharacters));
+
+public User Resolver([DataLoader("key")]IDataLoader loader)
+
+// schema data loader
+        public User Resolver([DataLoader("key")]Func<int, Task> loadCharacter)
+
+public Task Resolver(IResolverContext context, IRepository repository, int userId)
+        {
+            // adhoc
+            IDataLoader loader = context.DataLoader<int, ICharacter>("foo", repository.GetCharacters));
+            return loader.LoadAsync(userId);
         }
     }
 }

@@ -134,6 +134,9 @@ namespace HotChocolate.Execution
             return (T)_executionContext.Services.GetRequiredService(typeof(T));
         }
 
+        public object Service(Type service) =>
+            _executionContext.Services.GetRequiredService(service);
+
         public T CustomContext<T>()
         {
             if (_executionContext.CustomContexts == null)
@@ -156,6 +159,7 @@ namespace HotChocolate.Execution
                 return v;
             }
 
+            // TODO : Resources
             throw new ArgumentException(
                 "The specified property does not exist.");
         }

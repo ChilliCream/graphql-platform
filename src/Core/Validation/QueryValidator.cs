@@ -7,6 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Validation
 {
     public class QueryValidator
+        : IQueryValidator
     {
         private static readonly IQueryValidationRule[] _rules =
         {
