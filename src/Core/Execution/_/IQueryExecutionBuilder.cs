@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
 
         IQueryExecutionBuilder Use(QueryMiddleware middleware);
 
-        IQueryExecuter BuildQueryExecuter(ISchema schema);
+        IQueryExecuter Build(ISchema schema);
     }
 
     public delegate QueryDelegate QueryMiddleware(QueryDelegate next);

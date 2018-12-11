@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public class QueryExecuter
+    internal class QueryExecuter
         : IQueryExecuter
     {
         private readonly IServiceProvider _applicationServices;
@@ -24,6 +24,14 @@ namespace HotChocolate.Execution
         }
 
         public ISchema Schema { get; }
+
+        public void Dispose()
+        {
+            if (_applicationServices is IDisposable d)
+            {
+                d.Dispose();
+            }
+        }
 
         public Task<IExecutionResult> ExecuteAsync(
             QueryRequest request,

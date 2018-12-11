@@ -4,6 +4,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Language;
+using HotChocolate.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -27,8 +29,9 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryExecuter BuildQueryExecuter(ISchema schema)
+        public IQueryExecuter Build(ISchema schema)
         {
+            QueryExecutionBuilderExtensions.AddDefaultQueryCache(this);
             IServiceProvider services = Services.BuildServiceProvider();
             QueryDelegate middleware = Compile(_middlewareComponents);
             return new QueryExecuter(schema, services, middleware);
@@ -112,6 +115,7 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IQueryParser> factory)
         {
+            builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton<IQueryParser>(factory);
             return builder;
         }
@@ -121,7 +125,53 @@ namespace HotChocolate.Execution
             T parser)
             where T : IQueryParser
         {
+            builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton<IQueryParser>(parser);
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddQueryCache(
+            this IQueryExecutionBuilder builder,
+            int size)
+        {
+            builder.RemoveService<Cache<DirectiveLookup>>()
+                .RemoveService<Cache<DocumentNode>>()
+                .RemoveService<Cache<OperationDefinitionNode>>();
+
+            builder.Services
+                .AddSingleton<Cache<DirectiveLookup>>(
+                    new Cache<DirectiveLookup>(size))
+                .AddSingleton<Cache<DocumentNode>>(
+                    new Cache<DocumentNode>(size))
+                .AddSingleton<Cache<OperationDefinitionNode>>(
+                    new Cache<OperationDefinitionNode>(size));
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddDefaultQueryCache(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder.Services.Any(t =>
+                t.ServiceType == typeof(Cache<DirectiveLookup>)))
+            {
+                builder.AddQueryCache(100);
+            }
+            return builder;
+        }
+
+        private static IQueryExecutionBuilder RemoveService<TService>(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.RemoveService(typeof(TService));
+        }
+
+        private static IQueryExecutionBuilder RemoveService(
+            this IQueryExecutionBuilder builder,
+            Type serviceType)
+        {
+            ServiceDescriptor serviceDescriptor = builder.Services
+                .FirstOrDefault(t => t.ServiceType == serviceType);
+            builder.Services.Remove(serviceDescriptor);
             return builder;
         }
 
