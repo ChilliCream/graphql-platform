@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="GreenDonut" Version="1.1.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

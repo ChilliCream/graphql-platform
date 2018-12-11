@@ -31,7 +31,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(directiveCache));
         }
 
-        //DirectiveLookup
         public async Task InvokeAsync(IQueryContext context)
         {
             if (!IsContextValid(context))

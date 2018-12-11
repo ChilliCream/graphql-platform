@@ -7,12 +7,18 @@ namespace HotChocolate.Execution
     public class QueryExecuter
         : IQueryExecuter
     {
+        private readonly IServiceProvider _applicationServices;
         private readonly QueryDelegate _queryDelegate;
 
-        public QueryExecuter(ISchema schema, QueryDelegate queryDelegate)
+        public QueryExecuter(
+            ISchema schema,
+            IServiceProvider applicationServices,
+            QueryDelegate queryDelegate)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
+            _applicationServices = applicationServices
+                ?? throw new ArgumentNullException(nameof(applicationServices));
             _queryDelegate = queryDelegate
                 ?? throw new ArgumentNullException(nameof(queryDelegate));
         }
@@ -28,7 +34,15 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var context = new QueryContext(Schema, request.ToReadOnly());
+            IServiceProvider services = (request.Services == null)
+                ? _applicationServices.Include(Schema.Services)
+                : _applicationServices.Include(request.Services);
+
+            var context = new QueryContext(
+                Schema,
+                services,
+                request.ToReadOnly());
+
             return ExecuteMiddlewareAsync(context);
         }
 

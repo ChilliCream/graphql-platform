@@ -14,13 +14,14 @@ namespace HotChocolate.Execution
 
         public QueryContext(
             ISchema schema,
+            IServiceProvider services,
             IReadOnlyQueryRequest request)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
             Request = request
                 ?? throw new ArgumentNullException(nameof(request));
-            Services = request.Services ?? schema.Services;
+            Services = services;
         }
 
         public ISchema Schema { get; }

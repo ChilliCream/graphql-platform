@@ -14,8 +14,7 @@ namespace HotChocolate.Execution
         private readonly List<QueryMiddleware> _middlewareComponents =
             new List<QueryMiddleware>();
 
-        public IServiceCollection Services =>
-            throw new System.NotImplementedException();
+        public IServiceCollection Services { get; } = new ServiceCollection();
 
         public IQueryExecutionBuilder Use(QueryMiddleware middleware)
         {
@@ -30,7 +29,9 @@ namespace HotChocolate.Execution
 
         public IQueryExecuter BuildQueryExecuter(ISchema schema)
         {
-            return new QueryExecuter(schema, Compile(_middlewareComponents));
+            IServiceProvider services = Services.BuildServiceProvider();
+            QueryDelegate middleware = Compile(_middlewareComponents);
+            return new QueryExecuter(schema, services, middleware);
         }
 
         private QueryDelegate Compile(IEnumerable<QueryMiddleware> components)
@@ -44,16 +45,83 @@ namespace HotChocolate.Execution
 
             return current;
         }
+
+        public static IQueryExecutionBuilder New() =>
+            new QueryExecutionBuilder();
     }
 
     public static class QueryExecutionBuilderExtensions
     {
+        public static IQueryExecutionBuilder UseDiagnostics(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<DiagnosticMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseExceptionHandling(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ExceptionMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseQueryParser(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ParseQueryMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseValidation(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ValidateQueryMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseOperationResolver(
+           this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ResolveOperationMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseOperationExecuter(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ExecuteOperationMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseDefaultPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.UseDiagnostics()
+                .UseExceptionHandling()
+                .UseQueryParser()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseOperationExecuter();
+        }
+
         public static IQueryExecutionBuilder Use<TMiddleware>(
             this IQueryExecutionBuilder builder)
             where TMiddleware : class
         {
             builder.Services.AddSingleton<TMiddleware>();
             builder.Use(next => Compile(typeof(TMiddleware)));
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddParser<T>(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, IQueryParser> factory)
+        {
+            builder.Services.AddSingleton<IQueryParser>(factory);
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddParser<T>(
+            this IQueryExecutionBuilder builder,
+            T parser)
+            where T : IQueryParser
+        {
+            builder.Services.AddSingleton<IQueryParser>(parser);
             return builder;
         }
 
