@@ -54,14 +54,14 @@ namespace HotChocolate.Stitching
 
             var schemas = new Dictionary<string, IQueryExecuter>();
 
-            schemas["a"] = new QueryExecuter(
+            schemas["a"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_a, c => c.Use(next => context =>
                 {
                     context.Result = "foo";
                     return Task.CompletedTask;
                 })));
 
-            schemas["b"] = new QueryExecuter(
+            schemas["b"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_b, c => c.Use(next => context =>
                 {
                     context.Result = "bar";
@@ -139,14 +139,14 @@ namespace HotChocolate.Stitching
 
             var schemas = new Dictionary<string, IQueryExecuter>();
 
-            schemas["a"] = new QueryExecuter(
+            schemas["a"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_a, c => c.Use(next => context =>
                 {
                     context.Result = "foo";
                     return Task.CompletedTask;
                 })));
 
-            schemas["b"] = new QueryExecuter(
+            schemas["b"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_b, c => c.Use(next => context =>
                 {
                     context.Result = "bar";

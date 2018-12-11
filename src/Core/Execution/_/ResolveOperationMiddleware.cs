@@ -10,7 +10,6 @@ namespace HotChocolate.Execution
     internal sealed class ResolveOperationMiddleware
     {
         private readonly QueryDelegate _next;
-        private readonly IQueryParser _parser;
         private readonly Cache<OperationDefinitionNode> _queryCache;
 
         public ResolveOperationMiddleware(
