@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,52 +28,87 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryExecuter BuildQueryExecuter()
+        public IQueryExecuter BuildQueryExecuter(ISchema schema)
         {
-            throw new System.NotImplementedException();
+            return new QueryExecuter(schema, Compile(_middlewareComponents));
+        }
+
+        private QueryDelegate Compile(IEnumerable<QueryMiddleware> components)
+        {
+            QueryDelegate current = context => Task.CompletedTask;
+
+            foreach (QueryMiddleware component in components.Reverse())
+            {
+                current = component(current);
+            }
+
+            return current;
         }
     }
 
-    public class QueryExecuter
-        : IQueryExecuter
+    public static class QueryExecutionBuilderExtensions
     {
-        private readonly QueryDelegate _queryDelegate;
-
-        public QueryExecuter(ISchema schema, QueryDelegate queryDelegate)
+        public static IQueryExecutionBuilder Use<TMiddleware>(
+            this IQueryExecutionBuilder builder)
+            where TMiddleware : class
         {
-            Schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
-            _queryDelegate = queryDelegate
-                ?? throw new ArgumentNullException(nameof(queryDelegate));
+            builder.Services.AddSingleton<TMiddleware>();
+            builder.Use(next => Compile(typeof(TMiddleware)));
+            return builder;
         }
 
-        public ISchema Schema { get; }
-
-        public Task<IExecutionResult> ExecuteAsync(
-            QueryRequest request,
-            CancellationToken cancellationToken)
+        private static QueryDelegate Compile(Type middleware)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            MethodInfo method = middleware.GetMethod("InvokeAsync")
+                ?? middleware.GetMethod("Invoke");
 
-            var context = new QueryContext(Schema, request.ToReadOnly());
-            return ExecuteMiddlewareAsync(context);
-        }
-
-        private async Task<IExecutionResult> ExecuteMiddlewareAsync(
-            IQueryContext context)
-        {
-            await _queryDelegate(context);
-
-            if (context.Result == null)
+            if (method == null)
             {
                 // TODO : Resources
-                throw new InvalidOperationException();
+                throw new ArgumentException(
+                    "The provided middleware type must contain " +
+                    "an invoke method.");
             }
 
-            return context.Result;
+            var context = Expression.Parameter(typeof(IQueryContext));
+            var services = Expression.Parameter(typeof(IServiceProvider));
+            var type = Expression.Parameter(typeof(Type));
+
+            var middlewareInstance = Expression.Call(
+                services,
+                typeof(IServiceProvider).GetMethod("GetService"),
+                type);
+
+            var middlewareCall = Expression.Call(
+                middlewareInstance,
+                method,
+                CreateParameters(method, context, services));
+
+            ClassQueryDelegate call = Expression.Lambda<ClassQueryDelegate>(
+                middlewareCall, context, services, type).Compile();
+
+            return c => call(c, c.Services, middleware);
+        }
+
+        private static IEnumerable<Expression> CreateParameters(
+            MethodInfo invokeMethod,
+            ParameterExpression context,
+            ParameterExpression services)
+        {
+            foreach (ParameterInfo parameter in invokeMethod.GetParameters())
+            {
+                if (parameter.ParameterType == typeof(IQueryContext))
+                {
+                    yield return context;
+                }
+                else
+                {
+                    yield return Expression.Call(
+                        services,
+                        typeof(IServiceProvider).GetMethod("GetService"),
+                        Expression.Constant(parameter.ParameterType));
+                }
+            }
         }
     }
 }
