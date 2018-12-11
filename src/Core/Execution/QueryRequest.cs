@@ -39,26 +39,10 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<string, object> Properties { get; set; }
 
         public IServiceProvider Services { get; set; }
-    }
 
-    public interface IReadOnlyQueryRequest
-    {
-        string Query { get; }
-
-        string OperationName { get; set; }
-
-        IReadOnlyDictionary<string, object> VariableValues { get; set; }
-
-        object InitialValue { get; set; }
-
-        IReadOnlyDictionary<string, object> Properties { get; set; }
-
-        IServiceProvider Services { get; set; }
-    }
-
-    public interface IVariableCollection
-    {
-        T GetVariable<T>(string variableName);
-        bool TryGetVariable<T>(string variableName, out T variableValue);
+        public IReadOnlyQueryRequest ToReadOnly()
+        {
+            return new ReadOnlyQueryRequest(this);
+        }
     }
 }
