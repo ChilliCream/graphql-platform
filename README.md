@@ -79,7 +79,13 @@ type Query {
 
 Moreover, we bound a resolver to the field that returns a fixed value _world_. A resolver is basically a function that resolves the data for the specified field.
 
-Now that the schema is setup we can serve up a query against it.
+In order to serve up queries agains our schema lets make it executable:
+
+```csharp
+var executer = schema.MakeExecutable();
+```
+
+Now that the schema is setup and executable we can serve up a query against it.
 
 ```graphql
 {
@@ -92,7 +98,7 @@ Now that the schema is setup we can serve up a query against it.
 // {
 //   data: { hello: "world" }
 // }
-Console.WriteLine(schema.Execute("{ hello }"));
+Console.WriteLine(executer.Execute("{ hello }"));
 ```
 
 This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
@@ -112,7 +118,7 @@ This runs a query fetching the one field defined. The graphql function will firs
 //     }
 //   ]
 // }
-Console.WriteLine(schema.Execute("{ foo }"));
+Console.WriteLine(executer.Execute("{ foo }"));
 ```
 
 In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP.net core middleware.
@@ -296,8 +302,7 @@ We are currently working on the following features that are proposed for the nex
   - [ ] _WebSockets_ (in development - 0.8.0)
   - [ ] Schema Builder (in development - 1.0.0)
   - [x] .net Framework 4.7
-  - [ ] .net Framework 4.6
-  - [ ] .net Framework 4.5
+  - [x] .net Framework 4.6
 
 - [x] ASP.NET Core
   - [x] Get
