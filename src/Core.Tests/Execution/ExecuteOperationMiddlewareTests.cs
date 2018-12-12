@@ -13,7 +13,6 @@ namespace HotChocolate.Execution
 {
     public class ExecuteOperationMiddlewareTests
     {
-
         [Fact]
         public async Task ExecuteOperationMiddleware_Mutation_ExecutedSerially()
         {
@@ -37,14 +36,17 @@ namespace HotChocolate.Execution
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
             OperationDefinitionNode operation = query.Definitions
-                .OfType<OperationDefinitionNode>().FirstOrDefault();
+                .OfType<OperationDefinitionNode>()
+                .FirstOrDefault();
 
             var request = new QueryRequest("{ a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
-            context.Document = query;
-            context.Operation = operation;
+                schema, new EmptyServiceProvider(), request)
+            {
+                Document = query,
+                Operation = operation
+            };
 
             var middleware = new ExecuteOperationMiddleware(
                 c => Task.CompletedTask, null);
