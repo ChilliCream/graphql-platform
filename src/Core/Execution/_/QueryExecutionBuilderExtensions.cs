@@ -65,7 +65,6 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder)
             where TMiddleware : class
         {
-            builder.Services.AddSingleton<TMiddleware>();
             builder.Use(next =>
             {
                 object sync = new object();

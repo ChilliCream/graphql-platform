@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Utilities
 {
     internal sealed class CombinedServiceProvider
         : IServiceProvider
@@ -20,16 +20,6 @@ namespace HotChocolate.Execution
         {
             return _first.GetService(serviceType)
                 ?? _second.GetService(serviceType);
-        }
-    }
-
-    internal static class ServiceProviderExtensions
-    {
-        public static IServiceProvider Include(
-            this IServiceProvider first,
-            IServiceProvider second)
-        {
-            return new CombinedServiceProvider(first, second);
         }
     }
 }

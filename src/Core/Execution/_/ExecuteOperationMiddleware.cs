@@ -18,7 +18,6 @@ namespace HotChocolate.Execution
             };
 
         private readonly QueryDelegate _next;
-        private readonly IQueryParser _parser;
         private readonly Cache<DirectiveLookup> _directiveCache;
 
         public ExecuteOperationMiddleware(
