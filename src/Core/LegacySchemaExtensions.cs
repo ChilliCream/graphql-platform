@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    public static class SchemaExtensions
+    // TODO : make obsolete
+    public static class LegacySchemaExtensions
     {
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query,
@@ -106,21 +105,6 @@ namespace HotChocolate
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
-        }
-
-        public static ObjectType GetOperationType(this ISchema schema, OperationType operation)
-        {
-            switch (operation)
-            {
-                case Language.OperationType.Query:
-                    return schema.QueryType;
-                case Language.OperationType.Mutation:
-                    return schema.MutationType;
-                case Language.OperationType.Subscription:
-                    return schema.SubscriptionType;
-                default:
-                    throw new NotSupportedException();
-            }
         }
     }
 }

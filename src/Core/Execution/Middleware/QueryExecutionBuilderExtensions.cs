@@ -51,8 +51,10 @@ namespace HotChocolate.Execution
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
         {
-            return builder.AddQueryValidation()
+            return builder
+                .AddQueryValidation()
                 .AddDefaultValidationRules()
+                .AddDefaultQueryCache()
                 .UseDiagnostics()
                 .UseExceptionHandling()
                 .UseQueryParser()

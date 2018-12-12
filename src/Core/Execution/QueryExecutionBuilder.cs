@@ -27,7 +27,6 @@ namespace HotChocolate.Execution
 
         public IQueryExecuter Build(ISchema schema)
         {
-            QueryExecutionBuilderExtensions.AddDefaultQueryCache(this);
             IServiceProvider services = Services.BuildServiceProvider();
             QueryDelegate middleware = Compile(_middlewareComponents);
             return new QueryExecuter(schema, services, middleware);
