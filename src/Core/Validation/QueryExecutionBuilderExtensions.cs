@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +23,22 @@ namespace HotChocolate.Validation
             this IQueryExecutionBuilder builder)
         {
             builder.Services.AddDefaultValidationRules();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddValidationRule<T>(
+            this IQueryExecutionBuilder builder)
+            where T : class, IQueryValidationRule
+        {
+            builder.Services.AddSingleton<IQueryValidationRule, T>();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddValidationRule(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, IQueryValidationRule> factory)
+        {
+            builder.Services.AddSingleton<IQueryValidationRule>(factory);
             return builder;
         }
 
@@ -57,6 +74,5 @@ namespace HotChocolate.Validation
             services.AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>();
             return services;
         }
-
     }
 }
