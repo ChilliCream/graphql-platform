@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation
@@ -9,46 +8,21 @@ namespace HotChocolate.Validation
     public class QueryValidator
         : IQueryValidator
     {
-        private static readonly IQueryValidationRule[] _rules =
-        {
-            new ExecutableDefinitionsRule(),
-            new LoneAnonymousOperationRule(),
-            new OperationNameUniquenessRule(),
-            new VariableUniquenessRule(),
-            new ArgumentUniquenessRule(),
-            new RequiredArgumentRule(),
-            new SubscriptionSingleRootFieldRule(),
-            new FieldMustBeDefinedRule(),
-            new AllVariablesUsedRule(),
-            new DirectivesAreInValidLocationsRule(),
-            new VariablesAreInputTypesRule(),
-            new FieldSelectionMergingRule(),
-            new AllVariableUsagesAreAllowedRule(),
-            new ArgumentNamesRule(),
-            new FragmentsMustBeUsedRule(),
-            new FragmentNameUniquenessRule(),
-            new LeafFieldSelectionsRule(),
-            new FragmentsOnCompositeTypesRule(),
-            new FragmentSpreadsMustNotFormCyclesRule(),
-            new FragmentSpreadTargetDefinedRule(),
-            new FragmentSpreadIsPossibleRule(),
-            new FragmentSpreadTypeExistenceRule(),
-            new InputObjectFieldNamesRule(),
-            new InputObjectRequiredFieldsRule(),
-            new InputObjectFieldUniquenessRule(),
-            new DirectivesAreDefinedRule(),
-            new ValuesOfCorrectTypeRule()
-        };
+        private static IQueryValidationRule[] _rules;
 
-        private readonly ISchema _schema;
-
-        public QueryValidator(ISchema schema)
+        public QueryValidator(IEnumerable<IQueryValidationRule> rules)
         {
-            _schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
+            if (rules == null)
+            {
+                throw new ArgumentNullException(nameof(rules));
+            }
+
+            _rules = rules.ToArray();
         }
 
-        public QueryValidationResult Validate(DocumentNode query)
+        public QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode query)
         {
             if (query == null)
             {
@@ -56,9 +30,10 @@ namespace HotChocolate.Validation
             }
 
             List<IError> errors = new List<IError>();
-            foreach (IQueryValidationRule rule in _rules)
+            for (int i = 0; i < _rules.Length; i++)
             {
-                QueryValidationResult result = rule.Validate(_schema, query);
+                QueryValidationResult result =
+                    _rules[i].Validate(schema, query);
                 if (result.HasErrors)
                 {
                     errors.AddRange(result.Errors);

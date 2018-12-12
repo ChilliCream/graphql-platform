@@ -5,6 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
+    public delegate QueryDelegate QueryMiddleware(QueryDelegate next);
+
+    public delegate Task QueryDelegate(IQueryContext context);
+
     public interface IQueryExecutionBuilder
     {
         IServiceCollection Services { get; }
@@ -13,14 +17,4 @@ namespace HotChocolate.Execution
 
         IQueryExecuter Build(ISchema schema);
     }
-
-    public delegate QueryDelegate QueryMiddleware(QueryDelegate next);
-
-    public delegate Task QueryDelegate(IQueryContext context);
-
-    internal delegate Task ClassQueryDelegate(
-        IQueryContext context,
-        IServiceProvider services,
-        Type middlewareType);
 }
-

@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _queryCache = queryCache
-                ?? throw new ArgumentNullException(nameof(queryCache));
+                ?? new Cache<OperationDefinitionNode>(Defaults.CacheSize);
         }
 
         public Task InvokeAsync(IQueryContext context)

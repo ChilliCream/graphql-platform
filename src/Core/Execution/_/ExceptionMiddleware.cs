@@ -11,8 +11,7 @@ namespace HotChocolate.Execution
 
         public ExceptionMiddleware(QueryDelegate next)
         {
-            _next = next
-                ?? throw new ArgumentNullException(nameof(next));
+            _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
         public async Task InvokeAsync(IQueryContext context)

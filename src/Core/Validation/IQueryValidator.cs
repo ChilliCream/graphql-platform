@@ -4,6 +4,6 @@ namespace HotChocolate.Validation
 {
     public interface IQueryValidator
     {
-        QueryValidationResult Validate(DocumentNode query);
+        QueryValidationResult Validate(ISchema schema, DocumentNode query);
     }
 }

@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _directiveCache = directiveCache
-                ?? throw new ArgumentNullException(nameof(directiveCache));
+                ?? new Cache<DirectiveLookup>(Defaults.CacheSize);
         }
 
         public async Task InvokeAsync(IQueryContext context)

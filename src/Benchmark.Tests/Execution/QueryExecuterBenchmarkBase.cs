@@ -22,7 +22,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
         {
             _schema = SchemaFactory.Create();
             _queryExecuter = QueryExecutionBuilder.New()
-                .UseQueryParser()
+                .UseDefaultPipeline()
                 .AddQueryCache(cacheSize)
                 .Build(_schema);
         }

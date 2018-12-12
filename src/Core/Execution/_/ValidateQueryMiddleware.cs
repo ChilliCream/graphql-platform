@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             _validator = validator
                 ?? throw new ArgumentNullException(nameof(validator));
             _validatorCache = validatorCache
-                ?? throw new ArgumentNullException(nameof(validatorCache));
+                ?? new Cache<QueryValidationResult>(Defaults.CacheSize);
         }
 
         public Task InvokeAsync(IQueryContext context)
@@ -36,7 +36,8 @@ namespace HotChocolate.Execution
             }
 
             context.ValidationResult = _validatorCache.GetOrCreate(
-                context.Request.Query, () => Validate(context.Document));
+                context.Request.Query,
+                () => Validate(context.Schema, context.Document));
 
             if (context.ValidationResult.HasErrors)
             {
@@ -45,10 +46,11 @@ namespace HotChocolate.Execution
             return _next(context);
         }
 
-        private QueryValidationResult Validate(DocumentNode document)
+        private QueryValidationResult Validate(
+            ISchema schema,
+            DocumentNode document)
         {
-            return _validator.Validate(document);
+            return _validator.Validate(schema, document);
         }
     }
 }
-
