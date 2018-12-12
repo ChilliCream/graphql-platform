@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
-    public static class QueryExecutionBuilderExtensions
+    public static class ClassQueryExecutionBuilderExtensions
     {
         public static IQueryExecutionBuilder UseDiagnostics(
             this IQueryExecutionBuilder builder)
