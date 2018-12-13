@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Paging
     public interface IConnection
     {
         IPageInfo PageInfo { get; }
+
         Task<IEnumerable<IEdge>> GetEdgesAsync(
             CancellationToken cancellationToken);
     }

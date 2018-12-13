@@ -142,6 +142,20 @@ namespace HotChocolate.Types.Paging
             IQueryable<T> allEdges,
             QueryablePagingDetails pagingDetails)
         {
+            if (pagingDetails.First.HasValue)
+            {
+                IQueryable<T> edges = ApplyCursorToEdges(
+                    allEdges, pagingDetails.Before, pagingDetails.After);
+                return edges.Skip(pagingDetails.First.Value).Any();
+            }
+
+            if (pagingDetails.Before.HasValue)
+            {
+                IQueryable<T> edges = ApplyCursorToEdges(
+                    allEdges, pagingDetails.Before, null);
+                return edges.Any();
+            }
+
             return false;
         }
 
@@ -166,7 +180,7 @@ namespace HotChocolate.Types.Paging
             return false;
         }
 
-        private IQueryable<T> ApplyCursorToEdges(
+        protected virtual IQueryable<T> ApplyCursorToEdges(
             IQueryable<T> allEdges, int? before, int? after)
         {
             IQueryable<T> edges = allEdges;
