@@ -534,6 +534,19 @@ namespace HotChocolate.Types
             Assert.Equal("String", fooType.Fields["baz"].Type.NamedType().Name);
         }
 
+        [Fact]
+        public void FooTest()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t.Name("Bar").Field("_123").Type<StringType>().Resolver(() => "").Argument("_456", a => a.Type<InputObjectType<Foo>>().DefaultValue(new Foo())));
+
+            // act
+            var schema = Schema.Create(t => t.RegisterQueryType(objectType));
+
+            // assert
+            schema.ToString().Snapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }

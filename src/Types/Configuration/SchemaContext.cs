@@ -49,6 +49,11 @@ namespace HotChocolate.Configuration
             // directives
             CompleteDirectives(errors);
 
+            // InputObjects
+            CompleteTypes(
+                _typeRegistry.GetTypes().OfType<InputObjectType>(),
+                processed, errors);
+
             // interfaces
             CompleteTypes(
                 _typeRegistry.GetTypes().OfType<InterfaceType>(),

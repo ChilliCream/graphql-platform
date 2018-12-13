@@ -26,7 +26,6 @@ namespace HotChocolate.Types
         internal InputField(ArgumentDescription argumentDescription)
             : this(argumentDescription, DirectiveLocation.ArgumentDefinition)
         {
-
         }
 
         internal InputField(InputFieldDescription inputFieldDescription)
