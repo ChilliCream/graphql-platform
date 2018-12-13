@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Paging
             return Task.Run(_hasNextPage, cancellationToken);
         }
 
-        public Task<bool> HasPreviousAsync(CancellationToken cancellationToken)
+        public Task<bool> HasPreviousPageAsync(CancellationToken cancellationToken)
         {
             return Task.Run(_hasPreviousPage, cancellationToken);
         }

@@ -219,7 +219,7 @@ namespace HotChocolate.Types.Paging
 
             // act
             bool result = await connection.PageInfo
-                .HasPreviousAsync(CancellationToken.None);
+                .HasPreviousPageAsync(CancellationToken.None);
 
             // assert
             Assert.True(result);
@@ -238,7 +238,7 @@ namespace HotChocolate.Types.Paging
 
             // act
             bool result = await connection.PageInfo
-                .HasPreviousAsync(CancellationToken.None);
+                .HasPreviousPageAsync(CancellationToken.None);
 
             // assert
             Assert.False(result);

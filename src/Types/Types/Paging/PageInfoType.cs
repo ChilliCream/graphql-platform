@@ -8,9 +8,11 @@ namespace HotChocolate.Types.Paging
             descriptor.Name("PageInfo");
 
             descriptor.Field(t => t.HasNextPageAsync(default))
+                .Name("hasNextPage")
                 .Type<NonNullType<BooleanType>>();
 
-            descriptor.Field(t => t.HasPreviousAsync(default))
+            descriptor.Field(t => t.HasPreviousPageAsync(default))
+                .Name("hasPreviousPage")
                 .Type<NonNullType<BooleanType>>();
         }
     }

@@ -10,9 +10,11 @@ namespace HotChocolate.Types.Paging
             descriptor.Name($"{new T().Name}Edge");
 
             descriptor.Field(t => t.Cursor)
+                .Name("cursor")
                 .Type<NonNullType<StringType>>();
 
             descriptor.Field(t => t.Node)
+                .Name("node")
                 .Type<T>();
         }
     }
