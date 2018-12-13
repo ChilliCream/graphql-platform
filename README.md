@@ -79,7 +79,7 @@ type Query {
 
 Moreover, we bound a resolver to the field that returns a fixed value _world_. A resolver is basically a function that resolves the data for the specified field.
 
-In order to serve up queries agains our schema lets make it executable:
+In order to serve up queries against our schema lets make it executable:
 
 ```csharp
 var executer = schema.MakeExecutable();
