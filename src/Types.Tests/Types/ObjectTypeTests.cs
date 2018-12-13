@@ -535,10 +535,14 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void FooTest()
+        public void ObjectType_FieldDefaultValue_SerializesCorrectly()
         {
             // arrange
-            var objectType = new ObjectType(t => t.Name("Bar").Field("_123").Type<StringType>().Resolver(() => "").Argument("_456", a => a.Type<InputObjectType<Foo>>().DefaultValue(new Foo())));
+            var objectType = new ObjectType(t => t.Name("Bar")
+                .Field("_123").Type<StringType>()
+                .Resolver(() => "").Argument("_456",
+                    a => a.Type<InputObjectType<Foo>>()
+                        .DefaultValue(new Foo())));
 
             // act
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
