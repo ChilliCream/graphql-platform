@@ -92,41 +92,60 @@ namespace HotChocolate.Types.Paging
 
             if (pagingDetails.First.HasValue)
             {
-                if (pagingDetails.First.Value < 0)
-                {
-                    throw new ArgumentException();
-                }
-
-                edges = edges.Take(pagingDetails.First.Value);
+                edges = GetFirstEdges(
+                    edges, pagingDetails.First.Value,
+                    ref offset);
             }
 
             if (pagingDetails.Last.HasValue)
             {
-                if (pagingDetails.Last.Value < 0)
-                {
-                    throw new ArgumentException();
-                }
-
-                // TODO: this is quite imperformant since it would result in three calls to the source.
-                offset += edges.Count();
-                edges = edges
-                    .Reverse()
-                    .Take(pagingDetails.Last.Value)
-                    .Reverse();
-                offset -= edges.Count();
+                edges = GetLastEdges(
+                    edges, pagingDetails.Last.Value,
+                    ref offset);
             }
 
             return edges.ToList();
         }
 
-        private bool HasNextPage(
+        protected virtual IQueryable<T> GetFirstEdges(
+            IQueryable<T> edges, int first,
+            ref int offset)
+        {
+            if (first < 0)
+            {
+                throw new ArgumentException();
+            }
+            return edges.Take(first);
+        }
+
+        protected virtual IQueryable<T> GetLastEdges(
+            IQueryable<T> edges, int last,
+            ref int offset)
+        {
+            if (last < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            // TODO: this is quite imperformant since it would result in three calls to the source.
+            IQueryable<T> temp = edges;
+            offset += temp.Count();
+            temp = temp
+                .Reverse()
+                .Take(last)
+                .Reverse();
+            offset -= temp.Count();
+            return temp;
+        }
+
+        protected virtual bool HasNextPage(
             IQueryable<T> allEdges,
             QueryablePagingDetails pagingDetails)
         {
             return false;
         }
 
-        private bool HasPreviousPage(
+        protected virtual bool HasPreviousPage(
             IQueryable<T> allEdges,
             QueryablePagingDetails pagingDetails)
         {
@@ -139,7 +158,9 @@ namespace HotChocolate.Types.Paging
 
             if (pagingDetails.After.HasValue)
             {
-                // TODO : ?
+                IQueryable<T> edges = ApplyCursorToEdges(
+                    allEdges, null, pagingDetails.After);
+                return edges.Any();
             }
 
             return false;
@@ -188,9 +209,7 @@ namespace HotChocolate.Types.Paging
             return Convert.ToInt32(properties[_position]);
         }
 
-
-
-        private class QueryablePagingDetails
+        protected class QueryablePagingDetails
         {
             public int? Before { get; set; }
             public int? After { get; set; }
