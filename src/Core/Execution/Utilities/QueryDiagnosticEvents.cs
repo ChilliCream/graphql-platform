@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
 
         public static Activity BeginExecute(
             ISchema schema,
-            QueryRequest request)
+            IReadOnlyQueryRequest request)
         {
             var payload = new
             {
@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
         public static void EndExecute(
             Activity activity,
             ISchema schema,
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             DocumentNode query)
         {
             if (activity != null)
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
 
         public static void QueryError(
             ISchema schema,
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             DocumentNode query,
             Exception exception)
         {
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
 
         public static void ValidationError(
             ISchema schema,
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             DocumentNode query,
             IReadOnlyCollection<IError> errors)
         {

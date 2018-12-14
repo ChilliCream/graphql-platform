@@ -45,6 +45,15 @@ namespace HotChocolate.Language
             SourceText = context.Source.Text;
         }
 
+        internal SyntaxException(
+            SyntaxToken token, string message)
+            : base(message)
+        {
+            Position = token.Start;
+            Line = token.Line;
+            Column = token.Column;
+        }
+
         public int Position { get; }
         public int Line { get; }
         public int Column { get; }

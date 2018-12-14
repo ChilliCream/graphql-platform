@@ -98,6 +98,15 @@ namespace HotChocolate.Resolvers
         T Service<T>();
 
         /// <summary>
+        /// Gets as specific service from the dependency injection container.
+        /// </summary>
+        /// <param name="service">The service type.</param>
+        /// <returns>
+        /// Returns the specified service.
+        /// </returns>
+        object Service(Type service);
+
+        /// <summary>
         /// Gets a specific custom context object that can be used
         /// to build up a state.
         /// </summary>

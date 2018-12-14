@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,6 +10,19 @@ namespace HotChocolate
 {
     public static class SchemaSerializer
     {
+        public static string Serialize(ISchema schema)
+        {
+            var sb = new StringBuilder();
+            using (var stringWriter = new StringWriter(sb))
+            using (var documentWriter = new DocumentWriter(stringWriter))
+            {
+                DocumentNode document = SerializeSchema(schema);
+                var serializer = new SchemaSyntaxSerializer(true);
+                serializer.Visit(document, documentWriter);
+            }
+            return sb.ToString();
+        }
+
         public static void Serialize(ISchema schema, TextWriter textWriter)
         {
             using (var documentWriter = new DocumentWriter(textWriter))

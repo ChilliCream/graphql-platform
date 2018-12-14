@@ -1,0 +1,20 @@
+{
+  "Data": {
+    "s": {
+      "edges": [
+        {
+          "cursor": "eyJfX3Bvc2l0aW9uIjo1fQ==",
+          "node": "f"
+        },
+        {
+          "cursor": "eyJfX3Bvc2l0aW9uIjo2fQ==",
+          "node": "g"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false
+      }
+    }
+  },
+  "Errors": null
+}

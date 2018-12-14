@@ -204,6 +204,11 @@ namespace HotChocolate
                 out directiveType);
         }
 
+        public override string ToString()
+        {
+            return SchemaSerializer.Serialize(this);
+        }
+
         public void Dispose()
         {
             Dispose(true);

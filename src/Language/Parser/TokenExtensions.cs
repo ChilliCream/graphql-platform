@@ -79,8 +79,9 @@ namespace HotChocolate.Language
         {
             if (token.Kind == TokenKind.EndOfFile)
             {
-                throw new InvalidOperationException(
-                    "The specified token is the last token in the token chain.");
+                throw new SyntaxException(token,
+                    "The specified token is the last " +
+                    "token in the token chain.");
             }
 
             SyntaxToken next = token;

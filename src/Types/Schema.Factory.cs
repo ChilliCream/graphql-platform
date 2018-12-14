@@ -95,7 +95,7 @@ namespace HotChocolate
             }
 
             return new Schema(
-                context.Services ?? new ServiceFactory(),
+                context.Services ?? new EmptyServiceProvider(),
                 context,
                 options);
         }

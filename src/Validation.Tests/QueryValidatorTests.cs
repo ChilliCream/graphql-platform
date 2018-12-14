@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -7,25 +9,31 @@ namespace HotChocolate.Validation
     public class QueryValidatorTests
     {
         [Fact]
-        public void SchemaIsNull()
+        public void QueryIsNull()
         {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            var queryValidator = CreateValidator();
+
             // act
-            Action a = () => new QueryValidator(null);
+            // act
+            Action a = () => queryValidator.Validate(schema, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void QueryIsNull()
+        public void SchemaIsNull()
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
             // act
-            Action a = () => queryValidator.Validate(null);
+            Action a = () => queryValidator.Validate(null,
+                new DocumentNode(null, new List<IDefinitionNode>()));
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -49,10 +57,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -86,10 +95,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -124,10 +134,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -151,10 +162,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -180,10 +192,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -207,10 +220,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -239,10 +253,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -270,10 +285,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -312,10 +328,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -336,10 +353,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -375,10 +393,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -421,10 +440,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -449,10 +469,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -486,10 +507,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -522,10 +544,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -550,10 +573,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -583,10 +607,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -619,10 +644,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -647,10 +673,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -678,10 +705,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -711,10 +739,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -739,10 +768,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -767,10 +797,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -794,10 +825,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -820,10 +852,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -851,10 +884,11 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = new QueryValidator(schema);
+            var queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result = queryValidator.Validate(query);
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -864,5 +898,17 @@ namespace HotChocolate.Validation
                     "does not match the argument type.",
                     t.Message));
         }
+
+
+        private IQueryValidator CreateValidator()
+        {
+            var services = new ServiceCollection();
+            services.AddQueryValidation();
+            services.AddDefaultValidationRules();
+            return services.BuildServiceProvider()
+                .GetRequiredService<IQueryValidator>();
+        }
     }
+
+
 }

@@ -15,7 +15,8 @@ namespace HotChocolate.Integration.DataLoader
         {
             // arrange
             ISchema schema = CreateSchema(ExecutionScope.Request);
-            QueryExecuter executer = new QueryExecuter(schema, 10);
+            IQueryExecuter executer =
+                QueryExecutionBuilder.BuildDefault(schema);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
@@ -49,7 +50,8 @@ namespace HotChocolate.Integration.DataLoader
         {
             // arrange
             ISchema schema = CreateSchema(ExecutionScope.Global);
-            QueryExecuter executer = new QueryExecuter(schema, 10);
+            IQueryExecuter executer =
+                QueryExecutionBuilder.BuildDefault(schema);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();

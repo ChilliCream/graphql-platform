@@ -7,7 +7,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Execution
 {
-    internal class QueryResult
+    public class QueryResult
         : IQueryExecutionResult
     {
         private const string _data = "data";

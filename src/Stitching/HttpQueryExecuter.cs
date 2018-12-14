@@ -22,6 +22,13 @@ namespace HotChocolate.Stitching
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
+        public ISchema Schema => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+
+        }
+
         public async Task<IExecutionResult> ExecuteAsync(
             QueryRequest request,
             CancellationToken cancellationToken)
