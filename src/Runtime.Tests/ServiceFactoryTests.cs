@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -38,12 +39,13 @@ namespace HotChocolate.Runtime
         public void CreateInstanceWithServiceProvider()
         {
             // arrange
-            var services = new Mock<IServiceProvider>();
-            services.Setup(t => t.GetService(It.IsAny<Type>()))
-                .Returns(new ClassWithNoDependencies());
+            var services = new ServiceCollection();
+            services.AddSingleton<ClassWithNoDependencies>();
+            IServiceProvider serviceProvider =
+                 services.BuildServiceProvider();
 
             var factory = new ServiceFactory();
-            factory.Services = services.Object;
+            factory.Services = serviceProvider;
 
             // act
             object instance =

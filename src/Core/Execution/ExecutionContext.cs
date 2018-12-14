@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
     internal class ExecutionContext
         : IExecutionContext
     {
-        private readonly List<IQueryError> _errors = new List<IQueryError>();
+        private readonly List<IError> _errors = new List<IError>();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly DirectiveLookup _directiveLookup;
         private readonly FieldCollector _fieldCollector;
@@ -93,7 +93,7 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<string, object> RequestProperties =>
             _request.Properties;
 
-        public void ReportError(IQueryError error)
+        public void ReportError(IError error)
         {
             if (error == null)
             {
@@ -103,7 +103,7 @@ namespace HotChocolate.Execution
             _errors.Add(error);
         }
 
-        public IEnumerable<IQueryError> GetErrors() => _errors;
+        public IEnumerable<IError> GetErrors() => _errors;
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType objectType, SelectionSetNode selectionSet)

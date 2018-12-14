@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution
         public void Fields()
         {
             // arrange
-            bool errorRaised = false;
+            var errorRaised = false;
             Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
@@ -22,15 +23,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { errorRaised = true; });
@@ -56,7 +58,7 @@ namespace HotChocolate.Execution
         public void InvalidFieldError()
         {
             // arrange
-            bool errorRaised = false;
+            var errorRaised = false;
             Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
@@ -66,15 +68,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { errorRaised = true; });
@@ -108,15 +111,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -143,15 +147,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -178,15 +183,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -218,15 +224,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -267,15 +274,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -313,15 +321,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -369,15 +378,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -428,15 +438,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });
@@ -470,15 +481,16 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            VariableCollection variables = new VariableCollection(
+            var variables = new VariableCollection(
+                TypeConversion.Default,
                 new Dictionary<string, object>());
-            FragmentCollection fragments = new FragmentCollection(schema, query);
+            var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            FieldCollector fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(variables, fragments);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, e => { });

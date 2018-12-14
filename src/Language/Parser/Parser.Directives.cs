@@ -1,18 +1,17 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
     public partial class Parser
     {
-        private DirectiveDefinitionNode ParseDirectiveDefinition(ParserContext context)
+        private static DirectiveDefinitionNode ParseDirectiveDefinition(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             StringValueNode description = ParseDescription(context);
             context.ExpectDirectiveKeyword();
             context.ExpectAt();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions(context);
             context.ExpectOnKeyword();
@@ -30,9 +29,10 @@ namespace HotChocolate.Language
             );
         }
 
-        private List<NameNode> ParseDirectiveLocations(ParserContext context)
+        private static List<NameNode> ParseDirectiveLocations(
+            ParserContext context)
         {
-            List<NameNode> list = new List<NameNode>();
+            var list = new List<NameNode>();
 
             // skip optional leading pipe.
             context.Skip(TokenKind.Pipe);
@@ -46,10 +46,10 @@ namespace HotChocolate.Language
             return list;
         }
 
-        private NameNode ParseDirectiveLocation(ParserContext context)
+        private static NameNode ParseDirectiveLocation(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             if (DirectiveLocation.IsValidName(name.Value))
             {
                 return name;
@@ -57,10 +57,10 @@ namespace HotChocolate.Language
             throw context.Unexpected(start);
         }
 
-        private List<DirectiveNode> ParseDirectives(
+        private static List<DirectiveNode> ParseDirectives(
             ParserContext context, bool isConstant)
         {
-            List<DirectiveNode> list = new List<DirectiveNode>();
+            var list = new List<DirectiveNode>();
 
             while (context.Current.IsAt())
             {
@@ -70,12 +70,12 @@ namespace HotChocolate.Language
             return list;
         }
 
-        private DirectiveNode ParseDirective(
+        private static DirectiveNode ParseDirective(
             ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
             context.ExpectAt();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<ArgumentNode> arguments =
                 ParseArguments(context, isConstant);
             Location location = context.CreateLocation(start);

@@ -16,13 +16,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             Location = location;
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public NodeKind Kind { get; } = NodeKind.Variable;
@@ -149,6 +144,16 @@ namespace HotChocolate.Language
         public override string ToString()
         {
             return Value;
+        }
+
+        public VariableNode WithLocation(Location location)
+        {
+            return new VariableNode(Location, Name);
+        }
+
+        public VariableNode WithName(NameNode name)
+        {
+            return new VariableNode(Location, Name);
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -20,6 +19,45 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } =
             NodeKind.InterfaceTypeDefinition;
+
         public StringValueNode Description { get; }
+
+        public InterfaceTypeDefinitionNode WithLocation(Location location)
+        {
+            return new InterfaceTypeDefinitionNode(
+                location, Name, Description,
+                Directives, Fields);
+        }
+
+        public InterfaceTypeDefinitionNode WithName(NameNode name)
+        {
+            return new InterfaceTypeDefinitionNode(
+                Location, name, Description,
+                Directives, Fields);
+        }
+
+        public InterfaceTypeDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new InterfaceTypeDefinitionNode(
+                Location, Name, description,
+                Directives, Fields);
+        }
+
+        public InterfaceTypeDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new InterfaceTypeDefinitionNode(
+                Location, Name, Description,
+                directives, Fields);
+        }
+
+        public InterfaceTypeDefinitionNode WithFields(
+            IReadOnlyCollection<FieldDefinitionNode> fields)
+        {
+            return new InterfaceTypeDefinitionNode(
+                Location, Name, Description,
+                Directives, fields);
+        }
     }
 }

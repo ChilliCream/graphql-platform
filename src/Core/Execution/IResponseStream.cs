@@ -21,6 +21,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Reads the next result from the current response stream.
         /// </summary>
-        Task<IQueryExecutionResult> ReadAsync(CancellationToken cancellationToken);
+        Task<IQueryExecutionResult> ReadAsync(
+            CancellationToken cancellationToken);
     }
 }

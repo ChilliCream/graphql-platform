@@ -65,10 +65,11 @@ namespace HotChocolate.Configuration
         {
             return typeof(ObjectType).IsAssignableFrom(type)
                 ? CreateAndRegisterType(type)
-                : CreateAndRegisterType(typeof(ObjectType<>).MakeGenericType(type));
+                : CreateAndRegisterType(typeof(ObjectType<>)
+                    .MakeGenericType(type));
         }
 
-        
+
 
         private INamedType CreateAndRegisterType(Type type)
         {

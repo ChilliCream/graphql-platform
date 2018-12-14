@@ -115,5 +115,10 @@ namespace HotChocolate.Language
         public override int GetHashCode() => 104729;
 
         public static NullValueNode Default { get; } = new NullValueNode();
+
+        public NullValueNode WithLocation(Location location)
+        {
+            return new NullValueNode(location);
+        }
     }
 }

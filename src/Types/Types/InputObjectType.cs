@@ -9,7 +9,8 @@ namespace HotChocolate.Types
         : NamedTypeBase
         , INamedInputType
     {
-        private Func<ObjectValueNode, object> _deserialize;
+        private InputObjectToObjectValueConverter _objectToValueConverter;
+        private ObjectValueToInputObjectConverter _valueToObjectConverter;
 
         internal InputObjectType()
             : base(TypeKind.InputObject)
@@ -49,16 +50,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (_deserialize == null)
-            {
-                throw new InvalidOperationException(
-                    "No deserializer was configured for " +
-                    $"input object type `{Name}`.");
-            }
-
             if (literal is ObjectValueNode ov)
             {
-                return _deserialize(ov);
+                return _valueToObjectConverter.Convert(ov, this);
             }
 
             if (literal is NullValueNode)
@@ -66,6 +60,7 @@ namespace HotChocolate.Types
                 return null;
             }
 
+            // TODO : resources
             throw new ArgumentException(
                 "The input object type can only parse object value literals.",
                 nameof(literal));
@@ -73,7 +68,7 @@ namespace HotChocolate.Types
 
         public IValueNode ParseValue(object value)
         {
-            return InputObjectDefaultSerializer.ParseValue(this, value);
+            return _objectToValueConverter.Convert(this, value);
         }
 
         #endregion
@@ -99,8 +94,9 @@ namespace HotChocolate.Types
             InputObjectTypeDescriptor descriptor = CreateDescriptor();
             configure(descriptor);
 
-            InputObjectTypeDescription description = descriptor.CreateDescription();
-            ClrType = description.ClrType;
+            InputObjectTypeDescription description =
+                descriptor.CreateDescription();
+            ClrType = description.ClrType ?? typeof(object);
             SyntaxNode = description.SyntaxNode;
             Fields = new FieldCollection<InputField>(
                 description.Fields.Select(t => new InputField(t)));
@@ -126,6 +122,13 @@ namespace HotChocolate.Types
         protected override void OnCompleteType(
             ITypeInitializationContext context)
         {
+            ITypeConversion converter = context.Services.GetTypeConversion();
+
+            _objectToValueConverter =
+                new InputObjectToObjectValueConverter(converter);
+            _valueToObjectConverter =
+                new ObjectValueToInputObjectConverter(converter);
+
             base.OnCompleteType(context);
 
             CompleteNativeType(context);
@@ -143,14 +146,12 @@ namespace HotChocolate.Types
 
             if (ClrType == null)
             {
+                // TODO :resources
                 context.ReportError(new SchemaError(
                     "Could not resolve the native type associated with " +
                     $"input object type `{Name}`.",
                     this));
             }
-
-            _deserialize = InputObjectDeserializerFactory.Create(
-                    context, this, ClrType);
         }
 
         private void CompleteFields(

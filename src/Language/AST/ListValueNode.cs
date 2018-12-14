@@ -38,13 +38,8 @@ namespace HotChocolate.Language
             Location location,
             IReadOnlyList<IValueNode> items)
         {
-            if (items == null)
-            {
-                throw new ArgumentNullException(nameof(items));
-            }
-
             Location = location;
-            Items = items;
+            Items = items ?? throw new ArgumentNullException(nameof(items));
         }
 
         public NodeKind Kind { get; } = NodeKind.ListValue;
@@ -171,7 +166,7 @@ namespace HotChocolate.Language
             {
                 if (_hash == null)
                 {
-                    int hash = 0;
+                    var hash = 0;
                     for (int i = 0; i < Items.Count; i++)
                     {
                         hash = hash ^ (Items[i].GetHashCode() * 397);
@@ -181,6 +176,16 @@ namespace HotChocolate.Language
 
                 return _hash.Value;
             }
+        }
+
+        public ListValueNode WithLocation(Location location)
+        {
+            return new ListValueNode(location, Items);
+        }
+
+        public ListValueNode WithItems(IReadOnlyList<IValueNode> items)
+        {
+            return new ListValueNode(Location, items);
         }
     }
 }

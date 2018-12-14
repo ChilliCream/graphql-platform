@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Types section.
@@ -15,7 +11,7 @@ namespace HotChocolate.Language
         /// - NonNullType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private ITypeNode ParseTypeReference(ParserContext context)
+        private static ITypeNode ParseTypeReference(ParserContext context)
         {
             SyntaxToken start = context.Current;
             ITypeNode type;
@@ -56,10 +52,10 @@ namespace HotChocolate.Language
         /// Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private NamedTypeNode ParseNamedType(ParserContext context)
+        private static NamedTypeNode ParseNamedType(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             Location location = context.CreateLocation(start);
 
             return new NamedTypeNode

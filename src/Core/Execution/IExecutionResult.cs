@@ -4,6 +4,6 @@ namespace HotChocolate.Execution
 {
     public interface IExecutionResult
     {
-        IReadOnlyCollection<IQueryError> Errors { get; }
+        IReadOnlyCollection<IError> Errors { get; }
     }
 }

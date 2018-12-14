@@ -12,5 +12,7 @@
         IOutputType Type { get; }
 
         IFieldCollection<IInputField> Arguments { get; }
+
+        IDirectiveCollection Directives { get; }
     }
 }

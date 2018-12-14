@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -12,6 +13,8 @@ namespace HotChocolate.Execution
         IExecutionContext ExecutionContext { get; }
 
         IResolverContext ResolverContext { get; }
+
+        ITypeConversion Converter { get; }
 
         ImmutableStack<object> Source { get; }
 
@@ -27,16 +30,18 @@ namespace HotChocolate.Execution
 
         bool IsNullable { get; }
 
-        void ReportError(IEnumerable<IQueryError> errors);
+        void ReportError(IEnumerable<IError> errors);
 
-        void ReportError(IQueryError error);
+        void ReportError(IError error);
 
         void ReportError(string message);
 
         void IntegrateResult(object value);
 
         // enqueues the selectionset fields for processing in the next batch
-        void EnqueueForProcessing(ObjectType objectType, OrderedDictionary objectResult);
+        void EnqueueForProcessing(
+            ObjectType objectType,
+            OrderedDictionary objectResult);
 
         IFieldValueCompletionContext AsNonNullValueContext();
 

@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HotChocolate.Language
 {
     public partial class Parser
     {
-        private ITypeExtensionNode ParseTypeExtension(ParserContext context)
+        private static ITypeExtensionNode ParseTypeExtension(
+            ParserContext context)
         {
             SyntaxToken keywordToken = context.Current.Peek();
 
@@ -41,7 +40,8 @@ namespace HotChocolate.Language
         /// * - extend schema Directives[Const]
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private SchemaExtensionNode ParseSchemaExtension(ParserContext context)
+        private static SchemaExtensionNode ParseSchemaExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
@@ -68,7 +68,7 @@ namespace HotChocolate.Language
             );
         }
 
-        private List<OperationTypeDefinitionNode> ParseOperationTypeDefinitions(
+        private static List<OperationTypeDefinitionNode> ParseOperationTypeDefinitions(
             ParserContext context)
         {
             if (context.Current.IsLeftBrace())
@@ -81,13 +81,13 @@ namespace HotChocolate.Language
             return new List<OperationTypeDefinitionNode>();
         }
 
-        private ScalarTypeExtensionNode ParseScalarTypeExtension(
+        private static ScalarTypeExtensionNode ParseScalarTypeExtension(
             ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectScalarKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             if (directives.Count == 0)
@@ -104,12 +104,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private ObjectTypeExtensionNode ParseObjectTypeExtension(ParserContext context)
+        private static ObjectTypeExtensionNode ParseObjectTypeExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectTypeKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<NamedTypeNode> interfaces =
                 ParseImplementsInterfaces(context);
             List<DirectiveNode> directives =
@@ -135,12 +136,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private InterfaceTypeExtensionNode ParseInterfaceTypeExtension(ParserContext context)
+        private static InterfaceTypeExtensionNode ParseInterfaceTypeExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInterfaceKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
@@ -162,12 +164,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private UnionTypeExtensionNode ParseUnionTypeExtension(ParserContext context)
+        private static UnionTypeExtensionNode ParseUnionTypeExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectUnionKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<NamedTypeNode> types =
@@ -188,12 +191,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private EnumTypeExtensionNode ParseEnumTypeExtension(ParserContext context)
+        private static EnumTypeExtensionNode ParseEnumTypeExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectEnumKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<EnumValueDefinitionNode> values =
@@ -214,12 +218,13 @@ namespace HotChocolate.Language
             );
         }
 
-        private InputObjectTypeExtensionNode ParseInputObjectTypeExtension(ParserContext context)
+        private static InputObjectTypeExtensionNode ParseInputObjectTypeExtension(
+            ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();
             context.ExpectInputKeyword();
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
             List<InputValueDefinitionNode> fields =

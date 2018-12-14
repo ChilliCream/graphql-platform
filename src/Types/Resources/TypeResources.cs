@@ -60,13 +60,6 @@ namespace HotChocolate
                 $"value of type `{valueType.FullName}`.";
         }
 
-        public static string Type_Name_IsNotValid(string typeName)
-        {
-            string name = typeName ?? "null";
-            return $"`{name}` is not a valid " +
-                "GraphQL type name.";
-        }
-
         public static string String_Argument_NullOrEmpty(string parameterName)
         {
             const string text = "The `{0}` cannot be null or empty.";

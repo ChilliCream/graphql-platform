@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Execution;
 using Xunit;
 
-namespace Core.Tests.Execution
+namespace HotChocolate.Execution
 {
     public class QueryResultTests
     {

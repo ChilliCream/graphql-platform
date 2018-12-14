@@ -67,9 +67,32 @@ Task("Build")
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
-        NoRestore = true
+        NoRestore = true,
+        Runtime = "net461"
     };
     DotNetCoreBuild("./src", settings);
+});
+
+Task("PublishWith461")
+    .Does(() =>
+{
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:restore /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:build /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Publish")
@@ -125,8 +148,10 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    DotNetCoreTest("./src/Language.Tests", testSettings);
+    DotNetCoreTest("./src/Utilities.Tests", testSettings);
+    DotNetCoreTest("./src/Abstractions.Tests", testSettings);
     DotNetCoreTest("./src/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Language.Tests", testSettings);
     DotNetCoreTest("./src/Types.Tests", testSettings);
     DotNetCoreTest("./src/Validation.Tests", testSettings);
     DotNetCoreTest("./src/Core.Tests", testSettings);
@@ -187,8 +212,11 @@ Task("Release")
     .IsDependentOn("Sonar")
     .IsDependentOn("Publish");
 
+Task("ReleaseWithNet461")
+    .IsDependentOn("Sonar")
+    .IsDependentOn("PublishWith461");
+
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
 //////////////////////////////////////////////////////////////////////
-
 RunTarget(target);

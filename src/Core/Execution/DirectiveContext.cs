@@ -10,6 +10,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+    // TODO : rework after error types have been relocated. ---> inherit MiddlewareContext
     internal sealed class DirectiveContext
         : IDirectiveContext
     {
@@ -102,9 +103,15 @@ namespace HotChocolate.Execution
         public void ReportError(string errorMessage) =>
             _resolverContext.ReportError(errorMessage);
 
+        public void ReportError(IError error) =>
+            _resolverContext.ReportError(error);
+
         public T Resolver<T>() => _resolverContext.Resolver<T>();
 
         public T Service<T>() => _resolverContext.Service<T>();
+
+        public object Service(Type service) =>
+            _resolverContext.Service(service);
 
         public async Task<T> ResolveAsync<T>()
         {
@@ -114,11 +121,11 @@ namespace HotChocolate.Execution
                 _isResultResolved = true;
             }
 
-            if (_resolvedResult is IQueryError error)
+            if (_resolvedResult is IError error)
             {
                 throw new QueryException(error);
             }
-            else if (_resolvedResult is IEnumerable<IQueryError> errors)
+            else if (_resolvedResult is IEnumerable<IError> errors)
             {
                 throw new QueryException(errors);
             }

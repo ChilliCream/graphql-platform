@@ -6,15 +6,12 @@ namespace HotChocolate.Language
         : ISyntaxNode
         , IEquatable<NameNode>
     {
-        public NameNode(
-            string value)
+        public NameNode(string value)
             : this(null, value)
         {
         }
 
-        public NameNode(
-            Location location,
-            string value)
+        public NameNode(Location location, string value)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -116,6 +113,16 @@ namespace HotChocolate.Language
         public override string ToString()
         {
             return Value;
+        }
+
+        public NameNode WithLocation(Location location)
+        {
+            return new NameNode(location, Value);
+        }
+
+        public NameNode WithValue(string value)
+        {
+            return new NameNode(Location, value);
         }
     }
 }

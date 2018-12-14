@@ -355,5 +355,13 @@ namespace HotChocolate.Utilities
 
             return property;
         }
+
+        public static ILookup<string, PropertyInfo> CreatePropertyLookup(
+            this Type type)
+        {
+            return type.GetProperties().ToLookup(
+                t => t.Name,
+                StringComparer.OrdinalIgnoreCase);
+        }
     }
 }

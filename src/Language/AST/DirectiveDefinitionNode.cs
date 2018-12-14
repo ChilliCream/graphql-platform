@@ -12,26 +12,14 @@ namespace HotChocolate.Language
             IReadOnlyCollection<InputValueDefinitionNode> arguments,
             IReadOnlyCollection<NameNode> locations)
         {
-            if (name == null)
-            {
-                throw new System.ArgumentNullException(nameof(name));
-            }
-
-            if (arguments == null)
-            {
-                throw new System.ArgumentNullException(nameof(arguments));
-            }
-
-            if (locations == null)
-            {
-                throw new System.ArgumentNullException(nameof(locations));
-            }
-
             Location = location;
-            Name = name;
+            Name = name 
+                ?? throw new System.ArgumentNullException(nameof(name));
             Description = description;
-            Arguments = arguments;
-            Locations = locations;
+            Arguments = arguments 
+                ?? throw new System.ArgumentNullException(nameof(arguments));
+            Locations = locations 
+                ?? throw new System.ArgumentNullException(nameof(locations));
         }
 
         public NodeKind Kind { get; } = NodeKind.DirectiveDefinition;

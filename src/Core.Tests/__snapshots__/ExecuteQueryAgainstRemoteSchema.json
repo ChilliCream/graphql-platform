@@ -1,0 +1,34 @@
+{
+  "Data": {
+    "systems": {
+      "edges": [
+        {
+          "node": {
+            "id": "U3lzdGVtOjE2NDM5OQ=="
+          }
+        },
+        {
+          "node": {
+            "id": "U3lzdGVtOjE2NDQwMA=="
+          }
+        },
+        {
+          "node": {
+            "id": "U3lzdGVtOjE2NDQwMQ=="
+          }
+        },
+        {
+          "node": {
+            "id": "U3lzdGVtOjE2NDQwMg=="
+          }
+        },
+        {
+          "node": {
+            "id": "U3lzdGVtOjE2NDQwMw=="
+          }
+        }
+      ]
+    }
+  },
+  "Errors": null
+}

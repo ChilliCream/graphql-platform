@@ -11,14 +11,17 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly Dictionary<FieldReference, AsyncFieldResolverDelegate> _resolvers =
-            new Dictionary<FieldReference, AsyncFieldResolverDelegate>();
+        private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
+            new Dictionary<FieldReference, FieldResolverDelegate>();
         private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
             new Dictionary<FieldReference, IFieldReference>();
         private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
             new Dictionary<FieldReference, IFieldResolverDescriptor>();
         private readonly Dictionary<string, IDirectiveMiddleware> _middlewares =
             new Dictionary<string, IDirectiveMiddleware>();
+
+        private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
+            new List<FieldMiddleware>();
 
         public void RegisterResolver(IFieldReference resolverBinding)
         {
@@ -65,13 +68,12 @@ namespace HotChocolate.Configuration
                 || _resolverBindings.ContainsKey(fieldReference);
         }
 
-        public AsyncFieldResolverDelegate GetResolver(
+        public FieldResolverDelegate GetResolver(
             NameString typeName,
             NameString fieldName)
         {
             var fieldReference = new FieldReference(typeName, fieldName);
-            if (_resolvers.TryGetValue(fieldReference,
-                out AsyncFieldResolverDelegate resolver))
+            if (_resolvers.TryGetValue(fieldReference, out var resolver))
             {
                 return resolver;
             }
@@ -151,6 +153,52 @@ namespace HotChocolate.Configuration
                 yield return new DirectiveMiddlewareDescriptor(
                     methodMiddleware);
             }
+        }
+
+        public void RegisterMiddleware(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _fieldMiddlewareComponents.Add(middleware);
+        }
+
+        public FieldResolverDelegate CreateMiddleware(
+            FieldResolverDelegate fieldResolver)
+        {
+            if (_fieldMiddlewareComponents.Count == 0)
+            {
+                return fieldResolver;
+            }
+
+            return BuildMiddleware(_fieldMiddlewareComponents, fieldResolver);
+        }
+
+        private FieldResolverDelegate BuildMiddleware(
+            IEnumerable<FieldMiddleware> components,
+            FieldResolverDelegate first)
+        {
+            FieldDelegate next = async ctx =>
+            {
+                if (!ctx.IsResultModified && first != null)
+                {
+                    ctx.Result = await first(ctx);
+                }
+            };
+
+            foreach (FieldMiddleware component in components.Reverse())
+            {
+                next = component(next);
+            }
+
+            return async ctx =>
+            {
+                var context = new MiddlewareContext(ctx, () => first(ctx));
+                await next(context);
+                return context.Result;
+            };
         }
     }
 }

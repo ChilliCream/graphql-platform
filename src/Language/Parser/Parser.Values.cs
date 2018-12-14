@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -27,7 +26,8 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private IValueNode ParseValueLiteral(ParserContext context, bool isConstant)
+        internal static IValueNode ParseValueLiteral(
+            ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
 
@@ -59,7 +59,8 @@ namespace HotChocolate.Language
             throw context.Unexpected(start);
         }
 
-        private StringValueNode ParseStringLiteral(ParserContext context)
+        private static StringValueNode ParseStringLiteral(
+            ParserContext context)
         {
             SyntaxToken start = context.ExpectString();
             bool isBlock = start.Kind == TokenKind.BlockString;
@@ -68,7 +69,7 @@ namespace HotChocolate.Language
             return new StringValueNode(location, start.Value, isBlock);
         }
 
-        private IValueNode ParseConstantValue(ParserContext context)
+        private static IValueNode ParseConstantValue(ParserContext context)
         {
             return ParseValueLiteral(context, true);
         }
@@ -84,7 +85,8 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private ListValueNode ParseList(ParserContext context, bool isConstant)
+        private static ListValueNode ParseList(
+            ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
             List<IValueNode> items = isConstant
@@ -112,7 +114,8 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private ObjectValueNode ParseObject(ParserContext context, bool isConstant)
+        private static ObjectValueNode ParseObject(
+            ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
             List<ObjectFieldNode> fields = ParseMany(context,
@@ -128,10 +131,11 @@ namespace HotChocolate.Language
             );
         }
 
-        private ObjectFieldNode ParseObjectField(ParserContext context, bool isConstant)
+        private static ObjectFieldNode ParseObjectField(
+            ParserContext context, bool isConstant)
         {
             SyntaxToken start = context.Current;
-            NameNode name = context.ParseName();
+            NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = ParseValueLiteral(context, isConstant);
             Location location = context.CreateLocation(start);
@@ -144,7 +148,7 @@ namespace HotChocolate.Language
             );
         }
 
-        private IValueNode ParseScalarValue(ParserContext context)
+        private static IValueNode ParseScalarValue(ParserContext context)
         {
             if (context.Current.IsString())
             {
@@ -175,7 +179,7 @@ namespace HotChocolate.Language
             throw context.Unexpected(start);
         }
 
-        private IValueNode ParseEnumValue(ParserContext context)
+        private static IValueNode ParseEnumValue(ParserContext context)
         {
             SyntaxToken start = context.Current;
             Location location = context.CreateLocation(start);

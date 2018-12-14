@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -32,19 +31,11 @@ namespace HotChocolate.Language
             NameNode name,
             IReadOnlyCollection<ArgumentNode> arguments)
         {
-            if (name == null)
-            {
-                throw new System.ArgumentNullException(nameof(name));
-            }
-
-            if (arguments == null)
-            {
-                throw new System.ArgumentNullException(nameof(arguments));
-            }
-
             Location = location;
-            Name = name;
-            Arguments = arguments;
+            Name = name 
+                ?? throw new System.ArgumentNullException(nameof(name));
+            Arguments = arguments 
+                ?? throw new System.ArgumentNullException(nameof(arguments));
         }
 
         public NodeKind Kind { get; } = NodeKind.Directive;
@@ -55,5 +46,20 @@ namespace HotChocolate.Language
 
         public IReadOnlyCollection<ArgumentNode> Arguments { get; }
 
+        public DirectiveNode WithLocation(Location location)
+        {
+            return new DirectiveNode(location, Name, Arguments);
+        }
+
+        public DirectiveNode WithName(NameNode name)
+        {
+            return new DirectiveNode(Location, name, Arguments);
+        }
+
+        public DirectiveNode WithArguments(
+            IReadOnlyCollection<ArgumentNode> arguments)
+        {
+            return new DirectiveNode(Location, Name, arguments);
+        }
     }
 }

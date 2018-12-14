@@ -61,6 +61,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             GeneratedClass resolverClass = _codeGenerator
                 .Generate(resolverDescriptors);
+
             GeneratedClass middlewareClass = _codeGenerator
                 .Generate(middlewareDescriptors);
 
@@ -89,7 +90,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 yield return new FieldResolver(
                     resolverDescriptors[i].Field.TypeName,
                     resolverDescriptors[i].Field.FieldName,
-                    (AsyncFieldResolverDelegate)field.GetValue(field));
+                    (FieldResolverDelegate)field.GetValue(field));
             }
         }
 

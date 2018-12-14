@@ -13,6 +13,7 @@ namespace HotChocolate.Types
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-ID
     /// </summary>
+    [SpecScalar]
     public sealed class IdType
         : ScalarType
     {
@@ -81,16 +82,6 @@ namespace HotChocolate.Types
                 return new StringValueNode(s);
             }
 
-            if (value is char c)
-            {
-                return new StringValueNode(c.ToString());
-            }
-
-            if (value is int i)
-            {
-                return new IntValueNode(i);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -109,39 +100,26 @@ namespace HotChocolate.Types
                 return s;
             }
 
-            if (value is char c)
-            {
-                return c.ToString(CultureInfo.InvariantCulture);
-            }
-
-            if (value is int i)
-            {
-                return i.ToString(CultureInfo.InvariantCulture);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value is null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is string)
+            if (serialized is string s)
             {
-                return value;
+                value = s;
+                return true;
             }
 
-            if (value is int i)
-            {
-                return i.ToString(CultureInfo.InvariantCulture);
-            }
-
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
     }
 }

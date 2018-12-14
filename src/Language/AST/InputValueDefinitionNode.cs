@@ -15,13 +15,8 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Description = description;
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
             DefaultValue = defaultValue;
         }
 
@@ -32,5 +27,50 @@ namespace HotChocolate.Language
         public ITypeNode Type { get; }
 
         public IValueNode DefaultValue { get; }
+
+        public InputValueDefinitionNode WithLocation(Location location)
+        {
+            return new InputValueDefinitionNode(
+                location, Name, Description,
+                Type, DefaultValue, Directives);
+        }
+
+        public InputValueDefinitionNode WithName(NameNode name)
+        {
+            return new InputValueDefinitionNode(
+                Location, name, Description,
+                Type, DefaultValue, Directives);
+        }
+
+        public InputValueDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new InputValueDefinitionNode(
+                Location, Name, description,
+                Type, DefaultValue, Directives);
+        }
+
+        public InputValueDefinitionNode WithType(ITypeNode type)
+        {
+            return new InputValueDefinitionNode(
+                Location, Name, Description,
+                type, DefaultValue, Directives);
+        }
+
+        public InputValueDefinitionNode WithDefaultValue(
+            IValueNode defaultValue)
+        {
+            return new InputValueDefinitionNode(
+                Location, Name, Description,
+                Type, defaultValue, Directives);
+        }
+
+        public InputValueDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new InputValueDefinitionNode(
+                Location, Name, Description,
+                Type, DefaultValue, directives);
+        }
     }
 }

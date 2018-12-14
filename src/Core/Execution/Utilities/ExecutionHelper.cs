@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
             return false;
         }
 
-        public static IQueryError CreateError(
+        public static IError CreateError(
             this ResolverTask resolverTask,
             Exception exception)
         {

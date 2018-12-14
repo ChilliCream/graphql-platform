@@ -98,6 +98,15 @@ namespace HotChocolate.Resolvers
         T Service<T>();
 
         /// <summary>
+        /// Gets as specific service from the dependency injection container.
+        /// </summary>
+        /// <param name="service">The service type.</param>
+        /// <returns>
+        /// Returns the specified service.
+        /// </returns>
+        object Service(Type service);
+
+        /// <summary>
         /// Gets a specific custom context object that can be used
         /// to build up a state.
         /// </summary>
@@ -152,6 +161,17 @@ namespace HotChocolate.Resolvers
         /// The error message.
         /// </param>
         void ReportError(string errorMessage);
+
+        /// <summary>
+        /// Report a non-terminating resolver error to the execution enhgine.
+        /// The error will be displayed in the errorsection with a reference to
+        /// the field selection that is associated with the current
+        /// resolver context.
+        /// </summary>
+        /// <param name="errorMessage">
+        /// The error message.
+        /// </param>
+        void ReportError(IError error);
 
         [Obsolete("Use RequestAborted.")]
         CancellationToken CancellationToken { get; }

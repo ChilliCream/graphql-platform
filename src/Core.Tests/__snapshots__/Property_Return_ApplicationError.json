@@ -4,6 +4,7 @@
   },
   "Errors": [
     {
+      "Code": null,
       "message": "query error 12"
     }
   ]

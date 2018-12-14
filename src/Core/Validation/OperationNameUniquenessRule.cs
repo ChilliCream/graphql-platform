@@ -31,7 +31,7 @@ namespace HotChocolate.Validation
 
             Dictionary<string, List<ISyntaxNode>> operations =
                 CollectOperations(queryDocument);
-            List<IQueryError> errors =
+            List<IError> errors =
                 CheckForRuleViolations(operations);
 
             if (errors.Count == 0)
@@ -64,10 +64,10 @@ namespace HotChocolate.Validation
             return operations;
         }
 
-        private List<IQueryError> CheckForRuleViolations(
+        private List<IError> CheckForRuleViolations(
             Dictionary<string, List<ISyntaxNode>> operations)
         {
-            List<IQueryError> errors = new List<IQueryError>();
+            List<IError> errors = new List<IError>();
             foreach (KeyValuePair<string, List<ISyntaxNode>> operation in
                 operations)
             {

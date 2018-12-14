@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Types
 {
@@ -225,6 +226,46 @@ namespace HotChocolate.Types
             }
 
             return false;
+        }
+
+        public static Type ToClrType(this IType type)
+        {
+            if (type.IsListType())
+            {
+                Type elementType = ToClrType(type.ElementType());
+                return typeof(List<>).MakeGenericType(elementType);
+            }
+
+            if (type.IsLeafType())
+            {
+                return LeafTypeToClrType(type);
+            }
+
+            if (type.IsNonNullType())
+            {
+                return ToClrType(type.InnerType());
+            }
+
+            if (type is IHasClrType t)
+            {
+                return t.ClrType;
+            }
+
+            return typeof(object);
+        }
+
+        private static Type LeafTypeToClrType(IType type)
+        {
+            if (type.IsLeafType() && type.NamedType() is IHasClrType t)
+            {
+                if (!type.IsNonNullType() && t.ClrType.IsValueType)
+                {
+                    return typeof(Nullable<>).MakeGenericType(t.ClrType);
+                }
+                return t.ClrType;
+            }
+
+            throw new NotSupportedException();
         }
     }
 }

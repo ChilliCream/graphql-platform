@@ -70,9 +70,12 @@ namespace HotChocolate.Execution
 
             ListValueNode list = new ListValueNode(new List<IValueNode>
             {
-                new ObjectValueNode(new[] { new ObjectFieldNode("bar", new StringValueNode("123")) }),
-                new ObjectValueNode(new[] { new ObjectFieldNode("bar", new StringValueNode("456")) }),
-                new ObjectValueNode(new[] { new ObjectFieldNode("bar", new StringValueNode("789")) }),
+                new ObjectValueNode(new[] {
+                    new ObjectFieldNode("bar", new StringValueNode("123")) }),
+                new ObjectValueNode(new[] {
+                    new ObjectFieldNode("bar", new StringValueNode("456")) }),
+                new ObjectValueNode(new[] {
+                    new ObjectFieldNode("bar", new StringValueNode("789")) }),
             });
 
             // act

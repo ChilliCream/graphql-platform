@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -19,14 +16,16 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, object> variableValues =
-                new Dictionary<string, object>();
-            variableValues.Add("test",
-                new StringValueNode(null, "123456", false));
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "test",
+                    new StringValueNode(null, "123456", false)
+                }
+            };
 
             // act
-            VariableValueBuilder resolver =
-                new VariableValueBuilder(schema, operation);
+            var resolver = new VariableValueBuilder(schema, operation);
             VariableCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
@@ -42,13 +41,13 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, object> variableValues =
-                new Dictionary<string, object>();
-            variableValues.Add("test", NullValueNode.Default);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", NullValueNode.Default }
+            };
 
             // act
-            VariableValueBuilder resolver =
-                new VariableValueBuilder(schema, operation);
+            var resolver = new VariableValueBuilder(schema, operation);
             Action action = () => resolver.CreateValues(variableValues);
 
             // assert
@@ -62,12 +61,10 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String! = \"foo\") { a }");
-            Dictionary<string, object> variableValues =
-                new Dictionary<string, object>();
+            var variableValues = new Dictionary<string, object>();
 
             // act
-            VariableValueBuilder resolver =
-                new VariableValueBuilder(schema, operation);
+            var resolver = new VariableValueBuilder(schema, operation);
             VariableCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
@@ -77,14 +74,16 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void QueryWithNullableVariableAndNoDefaultWhereNoValueWasProvided()
+        public void QueryWithNullableVarAndNoDefaultWhereNoValueWasProvided()
         {
             // arrange
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: String) { a }");
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", NullValueNode.Default);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", NullValueNode.Default }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -104,8 +103,10 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: BarEnum!) { a }");
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", BarEnum.A);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", BarEnum.A }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -126,8 +127,10 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: BarEnum!) { a }");
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", new StringValueNode("A"));
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", "A" }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -148,8 +151,10 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: BarEnum!) { a }");
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", new EnumValueNode("A"));
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new EnumValueNode("A") }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -163,22 +168,27 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void CoerceInputObjectWithEnumAsStringValueNode()
+        public void CoerceInputObjectWithEnumInDictionaryGraph()
         {
             // arrange
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: BarInput!) { a }");
 
-            ObjectValueNode fooInput = new ObjectValueNode(
-                new ObjectFieldNode("b",
-                    new StringValueNode("B")));
+            var fooInput = new Dictionary<string, object>
+            {
+                { "b", "B" }
+            };
 
-            ObjectValueNode barInput = new ObjectValueNode(
-                new ObjectFieldNode("f", fooInput));
+            var barInput = new Dictionary<string, object>
+            {
+                { "f", fooInput }
+            };
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", barInput);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", barInput }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -200,15 +210,17 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: BarInput!) { a }");
 
-            ObjectValueNode fooInput = new ObjectValueNode(
+            var fooInput = new ObjectValueNode(
                 new ObjectFieldNode("b",
                     new EnumValueNode("B")));
 
-            ObjectValueNode barInput = new ObjectValueNode(
+            var barInput = new ObjectValueNode(
                 new ObjectFieldNode("f", fooInput));
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", barInput);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", barInput }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -235,8 +247,10 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: Int) { a }");
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", value);
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", value }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -245,7 +259,7 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            int result = coercedVariableValues.GetVariable<int>("test");
+            var result = coercedVariableValues.GetVariable<int>("test");
             Assert.Equal(value, result);
         }
 
@@ -286,8 +300,10 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: [String]) { a }");
 
-            var variableValues = new Dictionary<string, object>();
-            variableValues.Add("test", new List<object> { "a", "b" });
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new List<object> { "a", "b" } }
+            };
 
             var resolver = new VariableValueBuilder(schema, operation);
 
@@ -296,7 +312,7 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            string[] list = coercedVariableValues.GetVariable<string[]>("test");
+            var list = coercedVariableValues.GetVariable<string[]>("test");
             Assert.Collection(list,
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t));
@@ -309,7 +325,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: Decimal) { a }");
-            string input = "1.000000E-004";
+            var input = "1.000000E-004";
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", input);
@@ -321,7 +337,7 @@ namespace HotChocolate.Execution
                 resolver.CreateValues(variableValues);
 
             // assert
-            decimal result = coercedVariableValues.GetVariable<decimal>("test");
+            var result = coercedVariableValues.GetVariable<decimal>("test");
             Assert.Equal(0.0001m, result);
         }
 
@@ -340,7 +356,7 @@ namespace HotChocolate.Execution
 
         private OperationDefinitionNode CreateQuery(string query)
         {
-            Parser parser = new Parser();
+            var parser = new Parser();
             return parser.Parse(query)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         }

@@ -64,18 +64,6 @@ namespace HotChocolate.Types
                     l.ToString("D", CultureInfo.InvariantCulture));
             }
 
-            if (value is int i)
-            {
-                return new StringValueNode(
-                    i.ToString("D", CultureInfo.InvariantCulture));
-            }
-
-            if (value is short s)
-            {
-                return new StringValueNode(
-                    s.ToString("D", CultureInfo.InvariantCulture));
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
@@ -94,37 +82,29 @@ namespace HotChocolate.Types
                 return l.ToString("D", CultureInfo.InvariantCulture);
             }
 
-            if (value is int i)
-            {
-                return i.ToString("D", CultureInfo.InvariantCulture);
-            }
-
-            if (value is short s)
-            {
-                return s.ToString("D", CultureInfo.InvariantCulture);
-            }
-
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value == null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is string s)
+            if (serialized is string s)
             {
-                return long.Parse(
+                value = long.Parse(
                     s,
                     NumberStyles.Integer,
                     CultureInfo.InvariantCulture);
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
     }
 }

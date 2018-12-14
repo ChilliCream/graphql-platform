@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
@@ -9,14 +10,15 @@ namespace HotChocolate
     public static class SchemaConfigurationExtensions
     {
         public static IBindResolverDelegate BindResolver(
-            this ISchemaConfiguration schemaConfiguration,
+            this ISchemaFirstConfiguration schemaConfiguration,
             Func<IResolverContext, object> resolver)
         {
-            return schemaConfiguration.BindResolver((ctx, ct) => resolver(ctx));
+            return schemaConfiguration.BindResolver(
+                ctx => Task.FromResult(resolver(ctx)));
         }
 
         public static IBindResolverDelegate BindResolver(
-            this ISchemaConfiguration schemaConfiguration,
+            this ISchemaFirstConfiguration schemaConfiguration,
             Func<object> resolver)
         {
             if (resolver == null)
@@ -24,23 +26,12 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return schemaConfiguration.BindResolver((ctx, ct) => resolver());
+            return schemaConfiguration.BindResolver(
+                ctx => Task.FromResult(resolver()));
         }
 
         public static IBindResolverDelegate BindResolver(
-            this ISchemaConfiguration schemaConfiguration,
-            Func<IResolverContext, Task<object>> resolver)
-        {
-            if (resolver == null)
-            {
-                throw new ArgumentNullException(nameof(resolver));
-            }
-
-            return schemaConfiguration.BindResolver((ctx, ct) => resolver(ctx));
-        }
-
-        public static IBindResolverDelegate BindResolver(
-            this ISchemaConfiguration schemaConfiguration,
+            this ISchemaFirstConfiguration schemaConfiguration,
             Func<Task<object>> resolver)
         {
             if (resolver == null)
@@ -48,7 +39,20 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return schemaConfiguration.BindResolver((ctx, ct) => resolver());
+            return schemaConfiguration.BindResolver(ctx => resolver());
+        }
+
+        public static IBindResolverDelegate BindResolver(
+            this ISchemaFirstConfiguration schemaConfiguration,
+            Func<IResolverContext, CancellationToken, Task<object>> resolver)
+        {
+            if (resolver == null)
+            {
+                throw new ArgumentNullException(nameof(resolver));
+            }
+
+            return schemaConfiguration.BindResolver(
+                ctx => resolver(ctx, ctx.RequestAborted));
         }
 
         public static IBindType<T> BindType<T>(
@@ -62,7 +66,8 @@ namespace HotChocolate
             this ISchemaFirstConfiguration configuration)
             where TResolver : class
         {
-            return configuration.BindResolver<TResolver>(BindingBehavior.Implicit);
+            return configuration.BindResolver<TResolver>(
+                BindingBehavior.Implicit);
         }
     }
 }

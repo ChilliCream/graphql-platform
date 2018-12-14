@@ -8,6 +8,7 @@ namespace HotChocolate
         , ICodeFirstConfiguration
         , IDataLoaderConfiguration
         , ICustomContextConfiguration
+        , IMiddlewareConfiguration
     {
         ISchemaOptions Options { get; }
 

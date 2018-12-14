@@ -28,5 +28,15 @@ namespace HotChocolate.Language
         {
             return $"[{Type.ToString()}]";
         }
+
+        public ListTypeNode WithLocation(Location location)
+        {
+            return new ListTypeNode(location, Type);
+        }
+
+        public ListTypeNode WithType(ITypeNode type)
+        {
+            return new ListTypeNode(Location, type);
+        }
     }
 }

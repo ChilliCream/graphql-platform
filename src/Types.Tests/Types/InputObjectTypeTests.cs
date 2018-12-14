@@ -50,51 +50,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue()
-        {
-            // arrange
-            Schema schema = Create();
-            InputObjectType object1Type =
-                schema.GetType<InputObjectType>("Object1");
-            SerializationInputObject1 object1Instance =
-                new SerializationInputObject1
-                {
-                    Foo = new SerializationInputObject2()
-                };
-
-            // act
-            IValueNode value = InputObjectDefaultSerializer
-                .ParseValue(object1Type, object1Instance);
-
-            // assert
-            Assert.IsType<ObjectValueNode>(value);
-            value.Snapshot();
-        }
-
-        [Fact]
-        public void DetectLoop()
-        {
-            // arrange
-            Schema schema = Create();
-            InputObjectType object1Type =
-                schema.GetType<InputObjectType>("Object1");
-            SerializationInputObject1 object1Instance =
-                new SerializationInputObject1
-                {
-                    Foo = new SerializationInputObject2()
-                };
-            object1Instance.Foo.FooList.Add(object1Instance);
-
-            // act
-            IValueNode value = InputObjectDefaultSerializer
-                .ParseValue(object1Type, object1Instance);
-
-            // assert
-            Assert.IsType<ObjectValueNode>(value);
-            value.Snapshot();
-        }
-
-        [Fact]
         public void EnsureInputObjectTypeKindIsCorret()
         {
             // arrange

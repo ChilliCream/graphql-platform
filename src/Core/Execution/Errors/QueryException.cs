@@ -11,34 +11,34 @@ namespace HotChocolate.Execution
         public QueryException(string message)
             : base(message)
         {
-            var errors = new List<IQueryError> { new QueryError(message) };
+            var errors = new List<IError> { new QueryError(message) };
             Errors = errors.AsReadOnly();
         }
 
-        public QueryException(IQueryError error)
+        public QueryException(IError error)
         {
             if (error == null)
             {
-                Errors = Array.Empty<IQueryError>();
+                Errors = Array.Empty<IError>();
             }
             else
             {
-                var errors = new List<IQueryError> { error };
+                var errors = new List<IError> { error };
                 Errors = errors.AsReadOnly();
             }
         }
 
-        public QueryException(params IQueryError[] errors)
+        public QueryException(params IError[] errors)
         {
-            Errors = new List<IQueryError>(
-                errors ?? Array.Empty<IQueryError>())
+            Errors = new List<IError>(
+                errors ?? Array.Empty<IError>())
                     .AsReadOnly();
         }
 
-        public QueryException(IEnumerable<IQueryError> errors)
+        public QueryException(IEnumerable<IError> errors)
         {
-            Errors = new List<IQueryError>(
-               errors ?? Array.Empty<IQueryError>())
+            Errors = new List<IError>(
+               errors ?? Array.Empty<IError>())
                    .AsReadOnly();
         }
 
@@ -49,6 +49,6 @@ namespace HotChocolate.Execution
         {
         }
 
-        public IReadOnlyCollection<IQueryError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors { get; }
     }
 }

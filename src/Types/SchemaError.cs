@@ -16,6 +16,7 @@ namespace HotChocolate
             }
 
             Message = message;
+            AssociatedException = associatedException;
         }
 
         public SchemaError(
@@ -29,6 +30,7 @@ namespace HotChocolate
 
             Message = message;
             Type = type;
+            AssociatedException = associatedException;
         }
 
         public SchemaError(
@@ -44,6 +46,7 @@ namespace HotChocolate
             Message = message;
             Type = type;
             SyntaxNode = syntaxNode;
+            AssociatedException = associatedException;
         }
 
         public string Message { get; }

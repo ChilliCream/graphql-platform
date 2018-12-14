@@ -7,7 +7,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Execution
 {
-    internal class QueryResult
+    public class QueryResult
         : IQueryExecutionResult
     {
         private const string _data = "data";
@@ -24,12 +24,12 @@ namespace HotChocolate.Execution
             Data.MakeReadOnly();
         }
 
-        public QueryResult(params IQueryError[] errors)
-            : this(errors as IEnumerable<IQueryError>)
+        public QueryResult(params IError[] errors)
+            : this(errors as IEnumerable<IError>)
         {
         }
 
-        public QueryResult(IEnumerable<IQueryError> errors)
+        public QueryResult(IEnumerable<IError> errors)
         {
             if (errors == null)
             {
@@ -46,25 +46,26 @@ namespace HotChocolate.Execution
 
         public QueryResult(
             OrderedDictionary data,
-            IEnumerable<IQueryError> errors)
+            IEnumerable<IError> errors)
         {
-            if (data == null)
+            if (data == null && errors == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }
 
-            if (errors == null)
+            if (data != null)
             {
-                throw new ArgumentNullException(nameof(errors));
+                Data = data;
+                Data.MakeReadOnly();
             }
 
-            Data = data;
-            Data.MakeReadOnly();
-
-            Errors = new List<IQueryError>(errors).AsReadOnly();
-            if (Errors.Count == 0)
+            if (errors != null)
             {
-                Errors = null;
+                Errors = new List<IError>(errors).AsReadOnly();
+                if (Errors.Count == 0)
+                {
+                    Errors = null;
+                }
             }
         }
 
@@ -72,7 +73,7 @@ namespace HotChocolate.Execution
 
         IOrderedDictionary IQueryExecutionResult.Data => Data;
 
-        public IReadOnlyCollection<IQueryError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors { get; }
 
         public T ToObject<T>()
         {

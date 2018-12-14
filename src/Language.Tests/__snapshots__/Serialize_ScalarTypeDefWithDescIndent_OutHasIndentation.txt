@@ -1,0 +1,2 @@
+"abc"
+scalar A @a @b(c: 1)

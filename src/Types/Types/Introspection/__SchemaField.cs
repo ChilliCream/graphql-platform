@@ -1,5 +1,6 @@
 namespace HotChocolate.Types.Introspection
 {
+    [Introspection]
     internal sealed class __SchemaField
         : ObjectField
     {

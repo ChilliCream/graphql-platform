@@ -4,6 +4,7 @@
   },
   "Errors": [
     {
+      "Code": null,
       "message": "Argument is not valid.",
       "path": [
         "sayHello"

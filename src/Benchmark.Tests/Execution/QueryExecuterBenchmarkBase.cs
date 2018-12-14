@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Attributes.Columns;
@@ -15,12 +16,15 @@ namespace HotChocolate.Benchmark.Tests.Execution
     public class QueryExecuterBenchmarkBase
     {
         private readonly Schema _schema;
-        private readonly QueryExecuter _queryExecuter;
+        private readonly IQueryExecuter _queryExecuter;
 
         public QueryExecuterBenchmarkBase(int cacheSize)
         {
             _schema = SchemaFactory.Create();
-            _queryExecuter = new QueryExecuter(_schema, cacheSize);
+            _queryExecuter = QueryExecutionBuilder.New()
+                .UseDefaultPipeline()
+                .AddQueryCache(cacheSize)
+                .Build(_schema);
         }
 
         [Benchmark]
@@ -37,7 +41,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -51,7 +57,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -65,7 +73,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -81,7 +91,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -105,7 +117,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -121,7 +135,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -144,7 +160,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -160,7 +177,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -183,7 +202,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -206,7 +226,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -229,7 +250,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -252,7 +274,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -276,7 +299,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-               new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -301,7 +325,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -326,7 +351,8 @@ namespace HotChocolate.Benchmark.Tests.Execution
             };
 
             return await _queryExecuter.ExecuteAsync(
-                new QueryRequest(query) { VariableValues = variables });
+                new QueryRequest(query) { VariableValues = variables },
+                CancellationToken.None);
         }
 
         [Benchmark]
@@ -351,7 +377,9 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(new QueryRequest(query));
+            return await _queryExecuter.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
         }
     }
 }

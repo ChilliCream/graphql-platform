@@ -8,6 +8,7 @@ namespace HotChocolate.Types
     ///
     /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
+    [SpecScalar]
     public sealed class BooleanType
         : ScalarType
     {
@@ -92,20 +93,22 @@ namespace HotChocolate.Types
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 
-        public override object Deserialize(object value)
+        public override bool TryDeserialize(object serialized, out object value)
         {
-            if (value is null)
+            if (serialized is null)
             {
-                return null;
+                value = null;
+                return true;
             }
 
-            if (value is bool)
+            if (serialized is bool)
             {
-                return value;
+                value = serialized;
+                return true;
             }
 
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            value = null;
+            return false;
         }
     }
 }

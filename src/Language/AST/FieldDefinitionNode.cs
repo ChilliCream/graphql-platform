@@ -15,19 +15,11 @@ namespace HotChocolate.Language
             IReadOnlyCollection<DirectiveNode> directives)
             : base(location, name, directives)
         {
-            if (arguments == null)
-            {
-                throw new ArgumentNullException(nameof(arguments));
-            }
-
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Description = description;
-            Arguments = arguments;
-            Type = type;
+            Arguments = arguments 
+                ?? throw new ArgumentNullException(nameof(arguments));
+            Type = type 
+                ?? throw new ArgumentNullException(nameof(type));
         }
 
         public override NodeKind Kind { get; } = NodeKind.FieldDefinition;
@@ -37,5 +29,49 @@ namespace HotChocolate.Language
         public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
 
         public ITypeNode Type { get; }
+
+        public FieldDefinitionNode WithLocation(Location location)
+        {
+            return new FieldDefinitionNode(
+                location, Name, Description,
+                Arguments, Type, Directives);
+        }
+
+        public FieldDefinitionNode WithName(NameNode name)
+        {
+            return new FieldDefinitionNode(
+                Location, name, Description,
+                Arguments, Type, Directives);
+        }
+
+        public FieldDefinitionNode WithDescription(StringValueNode description)
+        {
+            return new FieldDefinitionNode(
+                Location, Name, description,
+                Arguments, Type, Directives);
+        }
+
+        public FieldDefinitionNode WithArguments(
+            IReadOnlyCollection<InputValueDefinitionNode> arguments)
+        {
+            return new FieldDefinitionNode(
+                Location, Name, Description,
+                arguments, Type, Directives);
+        }
+
+        public FieldDefinitionNode WithType(ITypeNode type)
+        {
+            return new FieldDefinitionNode(
+                Location, Name, Description,
+                Arguments, type, Directives);
+        }
+
+        public FieldDefinitionNode WithDirectives(
+            IReadOnlyCollection<DirectiveNode> directives)
+        {
+            return new FieldDefinitionNode(
+                Location, Name, Description,
+                Arguments, Type, directives);
+        }
     }
 }

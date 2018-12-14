@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Moq;
 using Xunit;
 
@@ -15,12 +16,13 @@ namespace HotChocolate.Execution
             object result = null;
             bool nextHandlerIsRaised = false;
 
-            StringType stringType = new StringType();
+            var stringType = new StringType();
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            var context = new Mock<IFieldValueCompletionContext>(
+                MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(stringType);
             context.Setup(t => t.Value).Returns(expectedResult);
+            context.Setup(t => t.Converter).Returns(TypeConversion.Default);
             context.Setup(t => t.IntegrateResult(Moq.It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
@@ -28,8 +30,9 @@ namespace HotChocolate.Execution
                 }));
 
             // act
-            ScalarFieldValueHandler handler = new ScalarFieldValueHandler();
-            handler.CompleteValue(context.Object, c => nextHandlerIsRaised = true);
+            var handler = new ScalarFieldValueHandler();
+            handler.CompleteValue(context.Object,
+                c => nextHandlerIsRaised = true);
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -44,16 +47,17 @@ namespace HotChocolate.Execution
             object result = null;
             bool nextHandlerIsRaised = false;
 
-            EnumType enumType = new EnumType(d =>
+            var enumType = new EnumType(d =>
             {
                 d.Name("Foo");
                 d.Item("ABC");
             });
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            var context = new Mock<IFieldValueCompletionContext>(
+                MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(enumType);
             context.Setup(t => t.Value).Returns(expectedResult);
+            context.Setup(t => t.Converter).Returns(TypeConversion.Default);
             context.Setup(t => t.IntegrateResult(It.IsAny<string>()))
                 .Callback(new Action<object>(v =>
                 {
@@ -61,8 +65,9 @@ namespace HotChocolate.Execution
                 }));
 
             // act
-            ScalarFieldValueHandler handler = new ScalarFieldValueHandler();
-            handler.CompleteValue(context.Object, c => nextHandlerIsRaised = true);
+            var handler = new ScalarFieldValueHandler();
+            handler.CompleteValue(context.Object,
+                c => nextHandlerIsRaised = true);
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -77,10 +82,10 @@ namespace HotChocolate.Execution
             object result = null;
             bool nextHandlerIsRaised = false;
 
-            ListType listType = new ListType(new StringType());
+            var listType = new ListType(new StringType());
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            var context = new Mock<IFieldValueCompletionContext>(
+                MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(resolverValue);
             context.Setup(t => t.IntegrateResult(Moq.It.IsAny<string>()))
@@ -90,8 +95,9 @@ namespace HotChocolate.Execution
                 }));
 
             // act
-            ScalarFieldValueHandler handler = new ScalarFieldValueHandler();
-            handler.CompleteValue(context.Object, c => nextHandlerIsRaised = true);
+            var handler = new ScalarFieldValueHandler();
+            handler.CompleteValue(context.Object,
+                c => nextHandlerIsRaised = true);
 
             // assert
             Assert.Null(result);

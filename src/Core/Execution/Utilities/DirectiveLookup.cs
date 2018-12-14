@@ -89,9 +89,13 @@ namespace HotChocolate.Execution
                 }
             };
 
+            HashSet<string> processed = new HashSet<string>();
             foreach (IDirective directive in directives.Reverse())
             {
-                component = BuildComponent(directive, updateContext, component);
+                if (processed.Add(directive.Name))
+                {
+                    component = BuildComponent(directive, updateContext, component);
+                }
             }
 
             return async (context, executeResolver) =>
@@ -126,8 +130,8 @@ namespace HotChocolate.Execution
 
         private bool HasErrors(object result)
         {
-            if (result is IQueryError error
-                || result is IEnumerable<IQueryError> errors)
+            if (result is IError error
+                || result is IEnumerable<IError> errors)
             {
                 return true;
             }

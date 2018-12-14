@@ -19,20 +19,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
             string delegateName, T descriptor, StringBuilder source)
         {
             source.AppendLine($"/* {descriptor.Field.TypeName}.{descriptor.Field.FieldName} */");
-            source.Append($"public static {nameof(AsyncFieldResolverDelegate)}");
+            source.Append($"public static {nameof(FieldResolverDelegate)}");
             source.Append(" ");
             source.Append(delegateName);
             source.Append(" ");
             source.Append(" = ");
             if (IsAsync)
             {
-                source.Append("async (ctx, ct) => {");
+                source.Append("async ctx => {");
             }
             else
             {
-                source.Append("(ctx, ct) => {");
+                source.Append("ctx => {");
             }
             source.AppendLine();
+            source.AppendLine($"var ct = ctx.{nameof(IResolverContext.RequestAborted)};");
         }
 
         protected override void GenerateDelegateFooter(

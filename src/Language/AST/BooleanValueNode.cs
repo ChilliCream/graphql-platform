@@ -147,5 +147,15 @@ namespace HotChocolate.Language
             return Value.ToString(CultureInfo.InvariantCulture);
 #endif
         }
+
+        public BooleanValueNode WithLocation(Location location)
+        {
+            return new BooleanValueNode(location, Value);
+        }
+
+        public BooleanValueNode WithValue(bool value)
+        {
+            return new BooleanValueNode(Location, value);
+        }
     }
 }

@@ -9,13 +9,8 @@ namespace HotChocolate.Language
             Location location,
             INullableType type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Location = location;
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public NodeKind Kind { get; } = NodeKind.NonNullType;
@@ -27,6 +22,16 @@ namespace HotChocolate.Language
         public override string ToString()
         {
             return $"{Type.ToString()}!";
+        }
+
+        public NonNullTypeNode WithLocation(Location location)
+        {
+            return new NonNullTypeNode(location, Type);
+        }
+
+        public NonNullTypeNode WithType(INullableType type)
+        {
+            return new NonNullTypeNode(Location, Type);
         }
     }
 }
