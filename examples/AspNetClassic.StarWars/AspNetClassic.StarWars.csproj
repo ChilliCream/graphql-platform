@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>7.2</LangVersion>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject>StarWars.Program</StartupObject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Server\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetClassic.GraphiQL\AspNetClassic.GraphiQL.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetClassic\AspNetClassic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.StarWars\**\*.cs" Exclude="..\AspNetCore.StarWars\bin\**\*.cs;..\AspNetCore.StarWars\obj\**\*.cs;..\AspNetCore.StarWars\Program.cs;..\AspNetCore.StarWars\Startup.cs;" />
+  </ItemGroup>
+
+</Project>

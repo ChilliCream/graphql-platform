@@ -1,0 +1,10 @@
+{
+  "Data": {
+    "withObjectArgument": {
+      "a": "44",
+      "b": "2",
+      "c": 66
+    }
+  },
+  "Errors": null
+}
