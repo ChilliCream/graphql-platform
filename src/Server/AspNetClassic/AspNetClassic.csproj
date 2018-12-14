@@ -25,12 +25,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate" Version="0.7.0-preview.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
   </ItemGroup>
 

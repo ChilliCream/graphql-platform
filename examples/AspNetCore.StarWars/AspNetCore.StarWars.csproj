@@ -17,11 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="0.7.0-preview.10" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
