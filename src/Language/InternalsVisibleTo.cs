@@ -1,4 +1,4 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("HotChocolate.Language.Tests")]
-[assembly: InternalsVisibleTo("HotChocolate.Core")]
+[assembly: InternalsVisibleTo("HotChocolate.Stitching")]

@@ -174,5 +174,96 @@ namespace HotChocolate.Stitching
             // assert
             result.Snapshot();
         }
+
+
+        [Fact]
+        public async Task ExecuteQueryOnStitchedSchema1()
+        {
+            // arrange
+            string schema_a = @"
+                type Query { item: Item }
+                type Foo implements Item { name1: String name2: String }
+                interface Item { name1: String }";
+
+            string schema_b = @"
+                type Query { bar: Bar }
+                type Bar { name: String }";
+
+            string schema_stiched = @"
+                type Query {
+                    item: Item
+                        @schema(name: ""a"")
+                        @delegate
+                }
+                interface Item { name1: String }
+                type Foo implements Item {
+                    name1: String @schema(name: ""a"")
+                    name2: String @schema(name: ""a"")
+                    bar: Bar
+                        @schema(name: ""b"")
+                        @delegate
+                }
+                type Bar {
+                    name: String @schema(name: ""b"")
+                }";
+
+            string query = @"
+                {
+                    item
+                    {
+                        ... on Foo {
+                            name1
+                            name2
+                            bar
+                            {
+                                name
+                            }
+                        }
+                    }
+                }";
+
+            DocumentNode queryDocument = Parser.Default.Parse(query);
+            FieldNode fieldSelection = queryDocument.Definitions
+                .OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().Last();
+
+            var schemas = new Dictionary<string, IQueryExecuter>();
+
+            schemas["a"] = QueryExecutionBuilder.BuildDefault(
+                Schema.Create(schema_a, c => c.Use(next => context =>
+                {
+                    context.Result = "foo";
+                    return Task.CompletedTask;
+                })));
+
+            schemas["b"] = QueryExecutionBuilder.BuildDefault(
+                Schema.Create(schema_b, c => c.Use(next => context =>
+                {
+                    context.Result = "bar";
+                    return Task.CompletedTask;
+                })));
+
+            var services = new ServiceCollection();
+            services.AddSingleton<IStitchingContext>(
+                new StitchingContext(schemas));
+            services.AddSingleton<IQueryBroker, QueryBroker>();
+            services.AddSingleton<IQueryParser, AnnotationQueryParser>();
+            services.AddSingleton<ISchema>(sp => Schema.Create(
+                schema_stiched,
+                c =>
+                {
+                    c.RegisterServiceProvider(sp);
+                    c.UseStitching();
+                }));
+
+            var schema = services.BuildServiceProvider().GetService<ISchema>();
+
+            // act
+            IExecutionResult result = await schema.ExecuteAsync(query);
+
+            // assert
+            result.Snapshot();
+        }
     }
 }

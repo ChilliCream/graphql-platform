@@ -129,12 +129,17 @@ namespace HotChocolate.Types.Paging
 
             // TODO: this is quite imperformant since it would result in three calls to the source.
             IQueryable<T> temp = edges;
-            offset += temp.Count();
-            temp = temp
-                .Reverse()
-                .Take(last)
-                .Reverse();
-            offset -= temp.Count();
+
+            int count = temp.Count();
+            int skip = count - last;
+
+            if (skip > 1)
+            {
+                temp = temp.Skip(skip);
+                offset += count;
+                offset -= temp.Count();
+            }
+
             return temp;
         }
 
