@@ -50,46 +50,39 @@ Task("Clean")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    DotNetCoreClean("./src");
+    DotNetCoreClean("./src/Core");
+    DotNetCoreClean("./src/Server");
 });
 
 Task("Restore")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    DotNetCoreRestore("./src");
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
 {
-    var settings = new DotNetCoreBuildSettings
-    {
-        Configuration = configuration,
-        NoRestore = true,
-        Runtime = "net461"
-    };
-    DotNetCoreBuild("./src", settings);
-});
-
-Task("PublishWith461")
-    .Does(() =>
-{
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src /t:restore /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Release"}))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src /t:build /p:configuration=Release"}))
-    {
-        process.WaitForExit();
-    }
-
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src /t:pack /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Release"}))
     {
         process.WaitForExit();
     }
@@ -99,28 +92,17 @@ Task("Publish")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var settings = new DotNetCorePackSettings
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=Release"}))
     {
-        Configuration = configuration,
-        OutputDirectory = publishOutputDir,
-        NoRestore = true,
-        NoBuild = true,
-        IncludeSource = true,
-        IncludeSymbols = true,
-        ArgumentCustomization = args =>
-        {
-            var a = args;
+        process.WaitForExit();
+    }
 
-            if(!string.IsNullOrEmpty(packageVersion))
-            {
-                a = a.Append($"/p:PackageVersion={packageVersion}");
-                a = a.Append($"/p:VersionPrefix={packageVersion.Split('-').First()}");
-            }
-
-            return a;
-        }
-    };
-    DotNetCorePack("./src", settings);
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=Release"}))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Tests")
@@ -148,14 +130,20 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    DotNetCoreTest("./src/Utilities.Tests", testSettings);
-    DotNetCoreTest("./src/Abstractions.Tests", testSettings);
-    DotNetCoreTest("./src/Runtime.Tests", testSettings);
-    DotNetCoreTest("./src/Language.Tests", testSettings);
-    DotNetCoreTest("./src/Types.Tests", testSettings);
-    DotNetCoreTest("./src/Validation.Tests", testSettings);
-    DotNetCoreTest("./src/Core.Tests", testSettings);
-    DotNetCoreTest("./src/Subscriptions.Tests", testSettings);
+    // core
+    DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Language.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Types.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Validation.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Core.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Subscriptions.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
+
+    // server
+    DotNetCoreTest("./src/Core/AspNetCore.Tests", testSettings);
+    DotNetCoreTest("./src/Core/AspNetClassic.Tests", testSettings);
 });
 
 Task("SonarBegin")
@@ -212,9 +200,6 @@ Task("Release")
     .IsDependentOn("Sonar")
     .IsDependentOn("Publish");
 
-Task("ReleaseWithNet461")
-    .IsDependentOn("Sonar")
-    .IsDependentOn("PublishWith461");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
