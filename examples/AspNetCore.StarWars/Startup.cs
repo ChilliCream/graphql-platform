@@ -67,7 +67,7 @@ namespace StarWars
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             app
                 .UseWebSockets()
                 .UseGraphQL("/graphql")

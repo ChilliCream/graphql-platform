@@ -22,10 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj" />
-    <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

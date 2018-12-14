@@ -57,7 +57,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
         public override async Task Invoke(HttpContext context)
 #else
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -69,7 +69,6 @@ namespace HotChocolate.AspNetCore.GraphiQL
                 _subscriptionPath);
 
             context.Response.ContentType = "application/javascript";
-
             await context.Response.WriteAsync($@"
                 window.Settings = {{
                     url: ""{queryUrl}"",

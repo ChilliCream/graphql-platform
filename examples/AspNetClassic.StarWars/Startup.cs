@@ -53,7 +53,7 @@ namespace StarWars
 
             return services.BuildServiceProvider();
         }
-        
+
         public void Configuration(IAppBuilder appBuilder)
         {
             IServiceProvider services = ConfigureServices();
