@@ -33,9 +33,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate" Version="0.7.0-preview.10" />
     <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
     <PackageReference Include="Microsoft.Owin.StaticFiles" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
