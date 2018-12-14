@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Http.Extensions;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.GraphiQL
+namespace HotChocolate.AspNetClassic.Playground
 #else
-namespace HotChocolate.AspNetCore.GraphiQL
+namespace HotChocolate.AspNetCore.Playground
 #endif
 {
     internal sealed class SettingsMiddleware
@@ -22,13 +22,13 @@ namespace HotChocolate.AspNetCore.GraphiQL
         : RequestDelegate
 #endif
     {
-        private readonly GraphiQLOptions _options;
+        private readonly PlaygroundOptions _options;
         private readonly string _queryPath;
         private readonly string _subscriptionPath;
 
         public SettingsMiddleware(
             RequestDelegate next,
-            GraphiQLOptions options)
+            PlaygroundOptions options)
 #if ASPNETCLASSIC
                 : base(next)
 #endif
@@ -57,7 +57,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
         public override async Task Invoke(HttpContext context)
 #else
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -69,6 +69,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
                 _subscriptionPath);
 
             context.Response.ContentType = "application/javascript";
+
             await context.Response.WriteAsync($@"
                 window.Settings = {{
                     url: ""{queryUrl}"",

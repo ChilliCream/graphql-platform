@@ -15,53 +15,53 @@ using Microsoft.Extensions.FileProviders;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.GraphiQL
+namespace HotChocolate.AspNetClassic.Playground
 #else
-namespace HotChocolate.AspNetCore.GraphiQL
+namespace HotChocolate.AspNetCore.Playground
 #endif
 {
     public static class ApplicationBuilderExtensions
     {
 #if ASPNETCLASSIC
         private const string _resourcesNamespace =
-            "HotChocolate.AspNetClassic.GraphiQL.Resources";
+            "HotChocolate.AspNetClassic.Playground.Resources";
 #else
         private const string _resourcesNamespace =
-            "HotChocolate.AspNetCore.GraphiQL.Resources";
+            "HotChocolate.AspNetCore.Playground.Resources";
 #endif
 
-        public static IApplicationBuilder UseGraphiQL(
+        public static IApplicationBuilder UsePlayground(
             this IApplicationBuilder applicationBuilder)
         {
-            return applicationBuilder.UseGraphiQL(new GraphiQLOptions());
+            return applicationBuilder.UsePlayground(new PlaygroundOptions());
         }
 
-        public static IApplicationBuilder UseGraphiQL(
+        public static IApplicationBuilder UsePlayground(
             this IApplicationBuilder applicationBuilder,
             PathString queryPath)
         {
-            return applicationBuilder.UseGraphiQL(new GraphiQLOptions
+            return applicationBuilder.UsePlayground(new PlaygroundOptions
             {
                 QueryPath = queryPath,
-                Path = queryPath + new PathString("/graphiql")
+                Path = queryPath + new PathString("/playground")
             });
         }
 
-        public static IApplicationBuilder UseGraphiQL(
+        public static IApplicationBuilder UsePlayground(
             this IApplicationBuilder applicationBuilder,
             PathString queryPath,
             PathString uiPath)
         {
-            return applicationBuilder.UseGraphiQL(new GraphiQLOptions
+            return applicationBuilder.UsePlayground(new PlaygroundOptions
             {
                 QueryPath = queryPath,
                 Path = uiPath
             });
         }
 
-        public static IApplicationBuilder UseGraphiQL(
+        public static IApplicationBuilder UsePlayground(
             this IApplicationBuilder applicationBuilder,
-            GraphiQLOptions options)
+            PlaygroundOptions options)
         {
             if (options == null)
             {
@@ -69,13 +69,13 @@ namespace HotChocolate.AspNetCore.GraphiQL
             }
 
             return applicationBuilder
-                .UseGraphiQLSettingsMiddleware(options)
-                .UseGraphiQLFileServer(options.Path);
+                .UsePlaygroundSettingsMiddleware(options)
+                .UsePlaygroundFileServer(options.Path);
         }
 
-        private static IApplicationBuilder UseGraphiQLSettingsMiddleware(
+        private static IApplicationBuilder UsePlaygroundSettingsMiddleware(
            this IApplicationBuilder applicationBuilder,
-           GraphiQLOptions options)
+           PlaygroundOptions options)
         {
             return applicationBuilder.Map(
                 options.Path.Add(new PathString("/settings.js")),
@@ -87,7 +87,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
         }
 
 #if ASPNETCLASSIC
-        private static IApplicationBuilder UseGraphiQLFileServer(
+        private static IApplicationBuilder UsePlaygroundFileServer(
             this IApplicationBuilder applicationBuilder,
             PathString route)
         {
@@ -106,7 +106,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
             return applicationBuilder.UseFileServer(fileServerOptions);
         }
 #else
-        private static IApplicationBuilder UseGraphiQLFileServer(
+        private static IApplicationBuilder UsePlaygroundFileServer(
             this IApplicationBuilder applicationBuilder,
             string path)
         {

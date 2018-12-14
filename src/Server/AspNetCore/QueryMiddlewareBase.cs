@@ -88,7 +88,7 @@ namespace HotChocolate.AspNetCore
         public override async Task Invoke(HttpContext context)
 #else
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -196,6 +196,7 @@ namespace HotChocolate.AspNetCore
                 string json = queryResult.ToJson();
                 byte[] buffer = Encoding.UTF8.GetBytes(json);
 
+                response.ContentType = ContentType.Json;
                 await response.Body.WriteAsync(buffer, 0, buffer.Length)
                     .ConfigureAwait(false);
             }

@@ -27,9 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Server\AspNetClassic\AspNetClassic.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetClassic.GraphiQL\AspNetClassic.GraphiQL.csproj" />
-    <ProjectReference Include="..\..\src\Server\AspNetClassic\AspNetClassic.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetClassic.Playground\AspNetClassic.Playground.csproj" />
   </ItemGroup>
 
   <ItemGroup>
