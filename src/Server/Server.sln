@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.GraphiQL", "A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.GraphiQL", "AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj", "{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Playground", "AspNetClassic.Playground\AspNetClassic.Playground.csproj", "{B0C20795-BD73-4A48-8E4F-6ACFCE5812C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Playground", "AspNetCore.Playground\AspNetCore.Playground.csproj", "{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +73,14 @@ Global
 		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DF5C731-BAB3-4E27-89B0-3B83A02221B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0C20795-BD73-4A48-8E4F-6ACFCE5812C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0C20795-BD73-4A48-8E4F-6ACFCE5812C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0C20795-BD73-4A48-8E4F-6ACFCE5812C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0C20795-BD73-4A48-8E4F-6ACFCE5812C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CCA2B79-FB04-4E6E-BBEB-04BAF14980BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

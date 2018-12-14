@@ -3,6 +3,7 @@ using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.AspNetCore.GraphiQL;
+using HotChocolate.AspNetCore.Playground;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -70,7 +71,8 @@ namespace StarWars
             app
                 .UseWebSockets()
                 .UseGraphQL("/graphql")
-                .UseGraphiQL("/graphql");
+                .UseGraphiQL("/graphql")
+                .UsePlayground("/graphql");
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this

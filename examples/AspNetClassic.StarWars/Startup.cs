@@ -3,6 +3,7 @@ using HotChocolate;
 using HotChocolate.AspNetClassic;
 using HotChocolate.AspNetClassic.Authorization;
 using HotChocolate.AspNetClassic.GraphiQL;
+using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Owin;
@@ -59,7 +60,8 @@ namespace StarWars
 
             appBuilder
                 .UseGraphQL(services, new PathString("/graphql"))
-                .UseGraphiQL(new PathString("/graphql"));
+                .UseGraphiQL(new PathString("/graphql"))
+                .UsePlayground(new PathString("/graphql"));
         }
     }
 }
