@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <AssemblyName>HotChocolate.AspNetClassic.GraphiQL</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetClassic.GraphiQL</RootNamespace>
+    <PackageId>HotChocolate.AspNetClassic.GraphiQL</PackageId>
+    <Description>Provides a GraphiQL middleware for ASP.net classic.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HotChocolate" Version="0.7.0-preview.10" />
+    <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Owin.StaticFiles" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.GraphiQL\**\*.cs" Exclude="..\AspNetCore.GraphiQL\bin\**\*.cs;..\AspNetCore.GraphiQL\obj\**\*.cs" />
+  </ItemGroup>
+
+</Project>
