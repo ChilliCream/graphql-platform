@@ -59,13 +59,13 @@ Task("Restore")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
@@ -76,13 +76,13 @@ Task("Build")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
@@ -93,13 +93,13 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=Release"}))
+        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration}))
     {
         process.WaitForExit();
     }
@@ -109,12 +109,17 @@ Task("Tests")
     .IsDependentOn("Restore")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
+        using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Debug"}))
     {
-        Configuration = "Debug",
-        NoRestore = true
-    };
-    DotNetCoreBuild("./src", buildSettings);
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Debug"}))
+    {
+        process.WaitForExit();
+    }
 
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
@@ -142,8 +147,8 @@ Task("Tests")
     DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
 
     // server
-    DotNetCoreTest("./src/Core/AspNetCore.Tests", testSettings);
-    DotNetCoreTest("./src/Core/AspNetClassic.Tests", testSettings);
+    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
+    // DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
 });
 
 Task("SonarBegin")
