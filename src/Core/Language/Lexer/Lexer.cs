@@ -12,7 +12,7 @@ namespace HotChocolate.Language
     /// and returns the first token.
     /// The tokens are chained as a a doubly linked syntax token chain.
     /// </summary>
-    public partial class Lexer
+    public class Lexer
     {
         /// <summary>
         /// Reads <see cref="SyntaxToken" />s from a GraphQL
@@ -66,16 +66,16 @@ namespace HotChocolate.Language
         }
 
         /// <summary>
-        /// Reads the token that comes after the 
+        /// Reads the token that comes after the
         /// <paramref name="previous"/>-token.
         /// </summary>
         /// <returns>
-        /// Returns token that comes after the 
+        /// Returns token that comes after the
         /// <paramref name="previous"/>-token.
         /// </returns>
         /// <param name="state">The lexer state.</param>
         /// <param name="previous">The previous-token.</param>
-        private SyntaxToken ReadNextToken(
+        private static SyntaxToken ReadNextToken(
             LexerState state,
             SyntaxToken previous)
         {
@@ -143,7 +143,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadPunctuatorToken(
+        private static SyntaxToken ReadPunctuatorToken(
             LexerState state,
             SyntaxToken previous,
             in char firstCode)
@@ -221,7 +221,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the comment token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadCommentToken(
+        private static SyntaxToken ReadCommentToken(
             LexerState state,
             SyntaxToken previous)
         {
@@ -248,7 +248,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the name token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNameToken(
+        private static SyntaxToken ReadNameToken(
             LexerState state,
             SyntaxToken previous)
         {
@@ -283,7 +283,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNumberToken(
+        private static SyntaxToken ReadNumberToken(
             LexerState state,
             SyntaxToken previous,
             in char firstCode)
@@ -342,7 +342,7 @@ namespace HotChocolate.Language
                 state.SourceText.Substring(start, state.Position - start));
         }
 
-        private void ReadDigits(LexerState state, in char firstCode)
+        private static void ReadDigits(LexerState state, in char firstCode)
         {
             if (!firstCode.IsDigit())
             {
@@ -365,7 +365,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the block string token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadBlockStringToken(LexerState state, SyntaxToken previous)
+        private static SyntaxToken ReadBlockStringToken(LexerState state, SyntaxToken previous)
         {
             var rawValue = new StringBuilder();
             var start = state.Position - 2;
@@ -428,7 +428,7 @@ namespace HotChocolate.Language
             throw new SyntaxException(state, "Unterminated string.");
         }
 
-        private (string value, int lines) TrimBlockStringValue(
+        private static (string value, int lines) TrimBlockStringValue(
             string rawString)
         {
             var lines = rawString.Split('\n');
@@ -442,7 +442,7 @@ namespace HotChocolate.Language
                 lines.Length);
         }
 
-        private int DetermineCommonIdentation(
+        private static int DetermineCommonIdentation(
             string[] lines,
             string[] trimmedLines)
         {
@@ -462,7 +462,7 @@ namespace HotChocolate.Language
             return commonIndent;
         }
 
-        private void RemoveCommonIndetation(string[] lines, in int commonIndent)
+        private static void RemoveCommonIndetation(string[] lines, in int commonIndent)
         {
             if (commonIndent > 0)
             {
@@ -477,7 +477,7 @@ namespace HotChocolate.Language
         /// Trims leading and trailing the blank lines.
         /// </summary>
         /// <returns>Returns the trimmed down lines.</returns>
-        private IEnumerable<string> TrimBlankLines(
+        private static IEnumerable<string> TrimBlankLines(
             string[] lines,
             string[] trimmedLines)
         {
@@ -524,7 +524,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the string value token read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadStringValueToken(
+        private static SyntaxToken ReadStringValueToken(
             LexerState state,
             SyntaxToken previous)
         {
@@ -565,7 +565,7 @@ namespace HotChocolate.Language
             throw new SyntaxException(state, "Unterminated string.");
         }
 
-        private char ReadEscapedChar(LexerState state)
+        private static char ReadEscapedChar(LexerState state)
         {
             var code = state.SourceText[++state.Position];
 
@@ -592,7 +592,7 @@ namespace HotChocolate.Language
                 $"Invalid character escape sequence: \\{code}.");
         }
 
-        private bool TryReadUnicodeChar(LexerState state, out char code)
+        private static bool TryReadUnicodeChar(LexerState state, out char code)
         {
             var c = (CharToHex(state.SourceText[++state.Position]) << 12)
                 | (CharToHex(state.SourceText[++state.Position]) << 8)
@@ -609,7 +609,7 @@ namespace HotChocolate.Language
             return true;
         }
 
-        private int CharToHex(int a)
+        private static int CharToHex(int a)
         {
             return a >= 48 && a <= 57
               ? a - 48 // 0-9
@@ -620,7 +620,7 @@ namespace HotChocolate.Language
                   : -1;
         }
 
-        private SyntaxToken CreateToken(
+        private static SyntaxToken CreateToken(
             LexerState state,
             SyntaxToken previous,
             TokenKind kind)
@@ -629,7 +629,7 @@ namespace HotChocolate.Language
                 state.Line, state.Column, previous);
         }
 
-        private SyntaxToken CreateToken(
+        private static SyntaxToken CreateToken(
             LexerState state,
             SyntaxToken previous,
             TokenKind kind,
@@ -639,7 +639,7 @@ namespace HotChocolate.Language
                 state.Line, state.Column, previous);
         }
 
-        private SyntaxToken CreateToken(
+        private static SyntaxToken CreateToken(
             LexerState state,
             SyntaxToken previous,
             TokenKind kind,
@@ -655,7 +655,7 @@ namespace HotChocolate.Language
         /// Skips the whitespaces and moves the position
         /// to the next non whitespace character.
         /// </summary>
-        private void SkipWhitespaces(LexerState state)
+        private static void SkipWhitespaces(LexerState state)
         {
             if (state.IsEndOfStream())
             {
