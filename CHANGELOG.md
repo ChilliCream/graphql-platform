@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Merged _ASP.NET core_ and _classic_ codebases [#349](https://github.com/ChilliCream/hotchocolate/issues/349).
 
+## [0.6.11] - 2018-12-06
+
+### Added
+
+- _GraphQL_ _Playground_ [#353](https://github.com/ChilliCream/hotchocolate/issues/353). Special thanks to [@akaSybe](https://github.com/akaSybe) who contributed the playground middleware.
+
+### Changed
+
+- Improve `IObjectTypeDescriptor` interface [#390](https://github.com/ChilliCream/hotchocolate/issues/390).
+
 ## [0.6.10] - 2018-12-05
 
 ### Added
@@ -92,7 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 
-[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.6.10...HEAD
+[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.6.11...HEAD
+[0.6.11]: https://github.com/ChilliCream/hotchocolate/compare/0.6.10...0.6.11
 [0.6.10]: https://github.com/ChilliCream/hotchocolate/compare/0.6.9...0.6.10
 [0.6.9]: https://github.com/ChilliCream/hotchocolate/compare/0.6.8...0.6.9
 [0.6.8]: https://github.com/ChilliCream/hotchocolate/compare/0.6.7...0.6.8
