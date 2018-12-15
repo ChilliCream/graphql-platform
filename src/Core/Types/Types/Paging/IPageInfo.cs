@@ -5,7 +5,9 @@ namespace HotChocolate.Types.Paging
 {
     public interface IPageInfo
     {
-        Task<bool> HasNextPageAsync(CancellationToken cancellationToken);
-        Task<bool> HasPreviousPageAsync(CancellationToken cancellationToken);
+        bool HasNextPage { get; }
+        bool HasPreviousPage { get; }
+        string StartToken { get; }
+        string EndToken { get; }
     }
 }

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Paging
                 .Name("pageInfo")
                 .Type<NonNullType<PageInfoType>>();
 
-            descriptor.Field(t => t.GetEdgesAsync(default))
+            descriptor.Field(t => t.Edges)
                 .Name("edges")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
         }

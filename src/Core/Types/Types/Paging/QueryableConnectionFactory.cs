@@ -8,72 +8,87 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Paging
 {
-    public class QueryableConnection<T>
-        : IConnection
+    public class QueryableConnectionFactory<T>
+        : IConnectionFactory
     {
         private const string _position = "__position";
 
         private readonly IQueryable<T> _source;
         private readonly IDictionary<string, object> _properties;
         private readonly QueryablePagingDetails _pageDetails;
-        private int? _offset;
+        private readonly bool _hasNextRequested;
+        private readonly bool _hasPreviousRequested;
 
-        public QueryableConnection(
+        public QueryableConnectionFactory(
             IQueryable<T> source,
-            PagingDetails pagingDetails)
+            PagingDetails pagingDetails,
+            bool hasNextRequested,
+            bool hasPreviousRequested)
         {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             if (pagingDetails == null)
             {
                 throw new ArgumentNullException(nameof(pagingDetails));
             }
 
-            _source = source
-                ?? throw new ArgumentNullException(nameof(source));
+            _source = source;
+            _pageDetails = DeserializePagingDetails(pagingDetails);
+            _hasNextRequested = hasNextRequested;
+            _hasPreviousRequested = hasPreviousRequested;
 
             _properties = pagingDetails.Properties
                 ?? new Dictionary<string, object>();
-
-            _pageDetails = DeserializePagingDetails(pagingDetails);
-
-            PageInfo = new QueryablePageInfo(
-                () => HasNextPage(source, _pageDetails),
-                () => HasPreviousPage(source, _pageDetails));
-
         }
 
-        public QueryableConnection(QueryablePageInfo pageInfo)
-        {
-            this.PageInfo = pageInfo;
 
-        }
-
-        public QueryablePageInfo PageInfo { get; }
-
-        public Task<ICollection<Edge<T>>> GetEdgesAsync(
+        public Task<Connection<T>> CreateAsync(
             CancellationToken cancellationToken)
         {
-            return Task.Run<ICollection<Edge<T>>>(() =>
+            return Task.Run(() => Create(), cancellationToken);
+        }
+
+        public Connection<T> Create()
+        {
+            IQueryable<T> edges = ApplyCursorToEdges(
+                _source, _pageDetails.Before, _pageDetails.After);
+
+            bool hasNextPage = _hasNextRequested
+                && HasNextPage(edges, _pageDetails);
+            bool hasPreviousPage = _hasPreviousRequested
+                && HasPreviousPage(edges, _pageDetails);
+
+            IReadOnlyCollection<Edge<T>> selectedEdges = GetSelectedEdges();
+
+            var pageInfo = new PageInfo(
+                hasNextPage, hasPreviousPage,
+                selectedEdges.FirstOrDefault()?.Cursor,
+                selectedEdges.LastOrDefault()?.Cursor);
+
+            return new Connection<T>(pageInfo, selectedEdges);
+        }
+
+        Task<IConnection> IConnectionFactory.CreateAsync(
+            CancellationToken cancellationToken) =>
+                Task.Run<IConnection>(() => Create(), cancellationToken);
+
+        public IReadOnlyCollection<Edge<T>> GetSelectedEdges()
+        {
+            List<Edge<T>> list = new List<Edge<T>>();
+            List<T> edges = GetEdgesToReturn(
+                _source, _pageDetails, out int offset);
+
+            for (int i = 0; i < edges.Count; i++)
             {
-                List<Edge<T>> list = new List<Edge<T>>();
-                List<T> edges = GetEdgesToReturn(
-                    _source, _pageDetails, out int offset);
+                _properties[_position] = offset + i;
+                string cursor = Base64Serializer.Serialize(_properties);
+                list.Add(new Edge<T>(cursor, edges[i]));
+            }
 
-                for (int i = 0; i < edges.Count; i++)
-                {
-                    _properties[_position] = offset + i;
-                    string cursor = Base64Serializer.Serialize(_properties);
-                    list.Add(new Edge<T>(cursor, edges[i]));
-                }
-                return list;
-            }, cancellationToken);
-        }
-
-        IPageInfo IConnection.PageInfo => PageInfo;
-
-        async Task<IEnumerable<IEdge>> IConnection.GetEdgesAsync(
-            CancellationToken cancellationToken)
-        {
-            return await GetEdgesAsync(cancellationToken);
+            return list;
         }
 
         private List<T> GetEdgesToReturn(
@@ -127,7 +142,6 @@ namespace HotChocolate.Types.Paging
                 throw new ArgumentException();
             }
 
-            // TODO: this is quite imperformant since it would result in three calls to the source.
             IQueryable<T> temp = edges;
 
             int count = temp.Count();
@@ -144,21 +158,17 @@ namespace HotChocolate.Types.Paging
         }
 
         protected virtual bool HasNextPage(
-            IQueryable<T> allEdges,
+            IQueryable<T> appliedEdges,
             QueryablePagingDetails pagingDetails)
         {
             if (pagingDetails.First.HasValue)
             {
-                IQueryable<T> edges = ApplyCursorToEdges(
-                    allEdges, pagingDetails.Before, pagingDetails.After);
-                return edges.Skip(pagingDetails.First.Value).Any();
+                return appliedEdges.Skip(pagingDetails.First.Value).Any();
             }
 
             if (pagingDetails.Before.HasValue)
             {
-                IQueryable<T> edges = ApplyCursorToEdges(
-                    allEdges, pagingDetails.Before, null);
-                return edges.Any();
+                return appliedEdges.Any();
             }
 
             return false;

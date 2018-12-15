@@ -8,7 +8,6 @@ namespace HotChocolate.Types.Paging
     {
         IPageInfo PageInfo { get; }
 
-        Task<IEnumerable<IEdge>> GetEdgesAsync(
-            CancellationToken cancellationToken);
+        IReadOnlyCollection<IEdge> Edges { get; }
     }
 }
