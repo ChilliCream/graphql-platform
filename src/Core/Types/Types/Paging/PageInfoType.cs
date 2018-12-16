@@ -8,20 +8,26 @@ namespace HotChocolate.Types.Paging
             descriptor.Name("PageInfo");
 
             descriptor.Field(t => t.HasNextPage)
+                .Type<NonNullType<BooleanType>>()
                 .Name("hasNextPage")
-                .Type<NonNullType<BooleanType>>();
+                .Description(
+                    "Indicates whether more edges exist following " +
+                    "the set defined by the clients arguments.");
 
             descriptor.Field(t => t.HasPreviousPage)
+                .Type<NonNullType<BooleanType>>()
                 .Name("hasPreviousPage")
-                .Type<NonNullType<BooleanType>>();
+                .Description(
+                    "Indicates whether more edges exist prior " +
+                    "the set defined by the clients arguments.");
 
             descriptor.Field(t => t.StartCursor)
-                .Name("startCursor")
-                .Type<StringType>();
+                .Type<StringType>()
+                .Name("startCursor");
 
             descriptor.Field(t => t.EndCursor)
-                .Name("endCursor")
-                .Type<StringType>();
+                .Type<StringType>()
+                .Name("endCursor");
         }
     }
 }
