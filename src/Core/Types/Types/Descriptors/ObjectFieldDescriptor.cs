@@ -70,6 +70,16 @@ namespace HotChocolate.Types
                 .GetMoreSpecific(resultType, TypeContext.Output);
         }
 
+        protected void Use(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            FieldDescription.MiddlewareComponents.Add(middleware);
+        }
+
         private void CompleteArguments()
         {
             if (!_argumentsInitialized)
@@ -186,6 +196,13 @@ namespace HotChocolate.Types
             Type resultType)
         {
             Resolver(fieldResolver, resultType);
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Use(
+            FieldMiddleware middleware)
+        {
+            Use(middleware);
             return this;
         }
 

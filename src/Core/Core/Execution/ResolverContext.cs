@@ -131,6 +131,10 @@ namespace HotChocolate.Execution
 
         public T Service<T>()
         {
+            if (typeof(T) == typeof(IServiceProvider))
+            {
+                return (T)_executionContext.Services;
+            }
             return (T)_executionContext.Services.GetRequiredService(typeof(T));
         }
 

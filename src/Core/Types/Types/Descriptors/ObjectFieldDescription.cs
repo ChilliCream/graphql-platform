@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
@@ -14,5 +15,8 @@ namespace HotChocolate.Types
         public MemberInfo Member { get; set; }
 
         public FieldResolverDelegate Resolver { get; set; }
+
+        public List<FieldMiddleware> MiddlewareComponents { get; } =
+            new List<FieldMiddleware>();
     }
 }

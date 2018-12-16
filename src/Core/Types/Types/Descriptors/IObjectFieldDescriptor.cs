@@ -35,6 +35,8 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             Type resultType);
 
+        IObjectFieldDescriptor Use(FieldMiddleware middleware);
+
         IObjectFieldDescriptor Directive<T>(T directive)
             where T : class;
 

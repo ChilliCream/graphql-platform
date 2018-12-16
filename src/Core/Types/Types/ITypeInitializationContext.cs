@@ -37,6 +37,7 @@ namespace HotChocolate.Types
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
         FieldResolverDelegate CreateFieldMiddleware(
+            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
             FieldResolverDelegate fieldResolver);
 
         T GetType<T>(TypeReference typeReference) where T : IType;

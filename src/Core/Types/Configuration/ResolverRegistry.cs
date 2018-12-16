@@ -166,6 +166,7 @@ namespace HotChocolate.Configuration
         }
 
         public FieldResolverDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
             FieldResolverDelegate fieldResolver)
         {
             if (_fieldMiddlewareComponents.Count == 0)
@@ -173,11 +174,15 @@ namespace HotChocolate.Configuration
                 return fieldResolver;
             }
 
-            return BuildMiddleware(_fieldMiddlewareComponents, fieldResolver);
+            return BuildMiddleware(
+                _fieldMiddlewareComponents,
+                mappedMiddlewareComponents,
+                fieldResolver);
         }
 
         private FieldResolverDelegate BuildMiddleware(
             IEnumerable<FieldMiddleware> components,
+            IEnumerable<FieldMiddleware> mappedComponents,
             FieldResolverDelegate first)
         {
             FieldDelegate next = async ctx =>
@@ -187,6 +192,11 @@ namespace HotChocolate.Configuration
                     ctx.Result = await first(ctx);
                 }
             };
+
+            foreach (FieldMiddleware component in mappedComponents.Reverse())
+            {
+                next = component(next);
+            }
 
             foreach (FieldMiddleware component in components.Reverse())
             {

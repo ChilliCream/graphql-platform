@@ -62,20 +62,8 @@ namespace HotChocolate.Types.Paging
             {
                 descriptor.Name("Query");
                 descriptor.Field("s")
-                    .Argument("first", a => a.Type<IntType>())
-                    .Argument("after", a => a.Type<StringType>())
-                    .Argument("last", a => a.Type<IntType>())
-                    .Argument("before", a => a.Type<StringType>())
-                    .Type<ConnectionType<StringType>>()
-                    .Resolver(ctx => new QueryableConnection<string>(
-                        _source.AsQueryable(),
-                        new PagingDetails
-                        {
-                            First = ctx.Argument<int?>("first"),
-                            After = ctx.Argument<string>("after"),
-                            Last = ctx.Argument<int?>("last"),
-                            Before = ctx.Argument<string>("before")
-                        }));
+                    .UsePaging<StringType, string>()
+                    .Resolver(ctx => _source);
             }
         }
     }
