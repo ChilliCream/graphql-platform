@@ -49,11 +49,13 @@ namespace HotChocolate.Types.Paging
 
             if (source != null)
             {
-                var connectionFactory = new QueryableConnectionFactory<T>(
-                        source,
-                        pagingDetails,
-                        HasNextPageRequested(context.FieldSelection),
-                        HasPreviousPageRequested(context.FieldSelection));
+                var factory = new QueryableConnectionFactory<T>(
+                    source,
+                    pagingDetails,
+                    HasNextPageRequested(context.FieldSelection),
+                    HasPreviousPageRequested(context.FieldSelection));
+                context.Result = await factory.CreateAsync(
+                    context.RequestAborted);
             }
         }
 

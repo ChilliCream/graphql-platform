@@ -169,7 +169,8 @@ namespace HotChocolate.Configuration
             IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
             FieldResolverDelegate fieldResolver)
         {
-            if (_fieldMiddlewareComponents.Count == 0)
+            if (_fieldMiddlewareComponents.Count == 0
+                && !mappedMiddlewareComponents.Any())
             {
                 return fieldResolver;
             }
