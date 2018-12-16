@@ -14,6 +14,14 @@ namespace HotChocolate.Types.Paging
             descriptor.Field(t => t.HasPreviousPage)
                 .Name("hasPreviousPage")
                 .Type<NonNullType<BooleanType>>();
+
+            descriptor.Field(t => t.StartCursor)
+                .Name("startCursor")
+                .Type<StringType>();
+
+            descriptor.Field(t => t.EndCursor)
+                .Name("endCursor")
+                .Type<StringType>();
         }
     }
 }

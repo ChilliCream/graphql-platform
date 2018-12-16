@@ -13,16 +13,16 @@ namespace HotChocolate.Types.Paging
         {
             HasNextPage = hasNextPage;
             HasPreviousPage = hasPreviousPage;
-            StartToken = startToken;
-            EndToken = endToken;
+            StartCursor = startToken;
+            EndCursor = endToken;
         }
 
         public bool HasNextPage { get; }
 
         public bool HasPreviousPage { get; }
 
-        public string StartToken { get; }
+        public string StartCursor { get; }
 
-        public string EndToken { get; }
+        public string EndCursor { get; }
     }
 }
