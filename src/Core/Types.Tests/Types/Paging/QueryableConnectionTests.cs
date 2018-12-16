@@ -21,15 +21,15 @@ namespace HotChocolate.Types.Paging
                 First = 2
             };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            ICollection<Edge<string>> edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.Collection(edges,
+            Assert.Collection(connection.Edges,
                 t =>
                 {
                     Assert.Equal("a", t.Node);
@@ -53,15 +53,15 @@ namespace HotChocolate.Types.Paging
                 Last = 2
             };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            ICollection<Edge<string>> edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.Collection(edges,
+            Assert.Collection(connection.Edges,
                 t =>
                 {
                     Assert.Equal("f", t.Node);
@@ -80,27 +80,29 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 });
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), new PagingDetails { First = 1 },
+                true, true);
 
-            ICollection<Edge<string>> edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             var pagingDetails = new PagingDetails
             {
-                After = edges.First().Cursor,
+                After = connection.PageInfo.StartCursor,
                 First = 2
             };
 
-            connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), new PagingDetails { First = 1 },
+                true, true);
 
             // act
-            edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.Collection(edges,
+            Assert.Collection(connection.Edges,
                 t =>
                 {
                     Assert.Equal("b", t.Node);
@@ -119,27 +121,29 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), new PagingDetails { First = 5 });
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), new PagingDetails { First = 5 },
+                true, true);
 
-            ICollection<Edge<string>> edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             var pagingDetails = new PagingDetails
             {
-                Before = edges.Last().Cursor,
+                Before = connection.PageInfo.EndCursor,
                 Last = 2
             };
 
-            connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), new PagingDetails { First = 1 },
+                true, true);
 
             // act
-            edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.Collection(edges,
+            Assert.Collection(connection.Edges,
                 t =>
                 {
                     Assert.Equal("c", t.Node);
@@ -163,15 +167,15 @@ namespace HotChocolate.Types.Paging
                 First = 5
             };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            bool result = await connection.PageInfo
-                .HasNextPageAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.True(result);
+            Assert.True(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
@@ -185,15 +189,15 @@ namespace HotChocolate.Types.Paging
                 First = 7
             };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            bool result = await connection.PageInfo
-                .HasNextPageAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.False(result);
+            Assert.True(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
@@ -202,27 +206,29 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 });
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), new PagingDetails { First = 1 },
+                true, true);
 
-            ICollection<Edge<string>> edges = await connection
-                .GetEdgesAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             var pagingDetails = new PagingDetails
             {
-                After = edges.First().Cursor,
+                After = connection.PageInfo.StartCursor,
                 First = 2
             };
 
-            connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails,
+                true, true);
 
             // act
-            bool result = await connection.PageInfo
-                .HasPreviousPageAsync(CancellationToken.None);
+            connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.True(result);
+            Assert.True(connection.PageInfo.HasPreviousPage);
         }
 
         [Fact]
@@ -233,15 +239,15 @@ namespace HotChocolate.Types.Paging
 
             var pagingDetails = new PagingDetails();
 
-            var connection = new QueryableConnection<string>(
-                list.AsQueryable(), pagingDetails);
+            var connectionFactory = new QueryableConnectionFactory<string>(
+                list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            bool result = await connection.PageInfo
-                .HasPreviousPageAsync(CancellationToken.None);
+            var connection = await connectionFactory.CreateAsync(
+                CancellationToken.None);
 
             // assert
-            Assert.False(result);
+            Assert.False(connection.PageInfo.HasPreviousPage);
         }
 
         private int GetPositionFromCursor(string cursor)

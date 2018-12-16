@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Paging
@@ -44,14 +45,13 @@ namespace HotChocolate.Types.Paging
                 ?? new Dictionary<string, object>();
         }
 
-
         public Task<Connection<T>> CreateAsync(
             CancellationToken cancellationToken)
         {
             return Task.Run(() => Create(), cancellationToken);
         }
 
-        public Connection<T> Create()
+        private Connection<T> Create()
         {
             IQueryable<T> edges = ApplyCursorToEdges(
                 _source, _pageDetails.Before, _pageDetails.After);
@@ -244,6 +244,80 @@ namespace HotChocolate.Types.Paging
             public int? After { get; set; }
             public int? First { get; set; }
             public int? Last { get; set; }
+        }
+    }
+
+    public class QueryableConnectionMiddleware<T>
+    {
+        private readonly FieldDelegate _next;
+
+        public QueryableConnectionMiddleware(FieldDelegate next)
+        {
+            _next = next ?? throw new ArgumentNullException(nameof(next));
+        }
+
+        public async Task InvokeAsync(IMiddlewareContext context)
+        {
+            await _next(context);
+
+            var pagingDetails = new PagingDetails
+            {
+                First = context.Argument<int?>("first"),
+                After = context.Argument<string>("after"),
+                Last = context.Argument<int?>("last"),
+                Before = context.Argument<string>("before"),
+                // TODO : how do we get the Properties down here?
+            };
+
+            IQueryable<T> source = null;
+
+            if (context.Result is IQueryable<T> q)
+            {
+                source = q;
+            }
+            if (context.Result is IEnumerable<T> e)
+            {
+                source = e.AsQueryable();
+            }
+
+            if (source != null)
+            {
+                var connectionFactory = new QueryableConnectionFactory<T>(
+                        source,
+                        pagingDetails,
+                        HasNextPageRequested(context.FieldSelection),
+                        HasPreviousPageRequested(context.FieldSelection));
+            }
+        }
+
+        private bool HasNextPageRequested(FieldNode fieldSelection) =>
+            IsPageInfoFieldSelected(fieldSelection, "hasNextPage");
+
+        private bool HasPreviousPageRequested(FieldNode fieldSelection) =>
+            IsPageInfoFieldSelected(fieldSelection, "hasPreviousPage");
+
+
+        private bool IsPageInfoFieldSelected(
+            FieldNode fieldSelection,
+            string fieldName)
+        {
+            if (fieldSelection.SelectionSet == null)
+            {
+                return false;
+            }
+
+            FieldNode pageInfo = fieldSelection.SelectionSet.Selections
+                .OfType<FieldNode>().FirstOrDefault(
+                    t => t.Name.Value.EqualsOrdinal("pageInfo"));
+
+            if (pageInfo == null)
+            {
+                return false;
+            }
+
+            return fieldSelection.SelectionSet.Selections
+                .OfType<FieldNode>().Any(
+                    t => t.Name.Value.EqualsOrdinal(fieldName));
         }
     }
 }
