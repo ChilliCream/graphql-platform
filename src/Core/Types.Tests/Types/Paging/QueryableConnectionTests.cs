@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Paging
             };
 
             connectionFactory = new QueryableConnectionFactory<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 },
+                list.AsQueryable(), pagingDetails,
                 true, true);
 
             // act
@@ -135,7 +135,7 @@ namespace HotChocolate.Types.Paging
             };
 
             connectionFactory = new QueryableConnectionFactory<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 },
+                list.AsQueryable(), pagingDetails,
                 true, true);
 
             // act
@@ -197,7 +197,7 @@ namespace HotChocolate.Types.Paging
                 CancellationToken.None);
 
             // assert
-            Assert.True(connection.PageInfo.HasNextPage);
+            Assert.False(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
