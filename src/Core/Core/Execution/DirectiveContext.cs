@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection => _resolverContext.FieldSelection;
 
-        public ImmutableStack<object> Source => _resolverContext.Source;
+        public IImmutableStack<object> Source => _resolverContext.Source;
 
         public Path Path => _resolverContext.Path;
 

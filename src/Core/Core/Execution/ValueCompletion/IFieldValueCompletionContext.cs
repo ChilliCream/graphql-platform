@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
 
         ITypeConversion Converter { get; }
 
-        ImmutableStack<object> Source { get; }
+        IImmutableStack<object> Source { get; }
 
         FieldSelection Selection { get; }
 
