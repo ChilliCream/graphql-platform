@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -72,10 +73,11 @@ namespace HotChocolate.Execution
                 object sync = new object();
                 TMiddleware middleware = null;
 
-                MiddlewareFactory<TMiddleware> factory =
-                    MiddlewareActivator.CompileFactory<TMiddleware>();
-                ClassQueryDelegate<TMiddleware> compiled =
-                    MiddlewareActivator.CompileMiddleware<TMiddleware>();
+                var factory = MiddlewareActivator
+                    .CompileFactory<TMiddleware, QueryDelegate>();
+
+                var compiled = MiddlewareActivator
+                    .CompileMiddleware<TMiddleware, IQueryContext>();
 
                 return context =>
                 {

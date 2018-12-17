@@ -5,7 +5,7 @@
   "tasks": [
     {
       "label": "build",
-      "command": "dotnet build src",
+      "command": "dotnet build src/Core",
       "type": "shell",
       "presentation": {
         "reveal": "silent"
@@ -13,40 +13,6 @@
       "problemMatcher": "$msCompile",
       "group": {
         "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "test language with coverage",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "test",
-        "${workspaceFolder}/src/Language.Tests",
-        "/p:CollectCoverage=true",
-        "/p:CoverletOutputFormat=lcov",
-        "/p:CoverletOutput=./lcov"
-      ],
-      "problemMatcher": "$msCompile",
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "test core with coverage",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "test",
-        "${workspaceFolder}/src/Core.Tests",
-        "/p:CollectCoverage=true",
-        "/p:CoverletOutputFormat=lcov",
-        "/p:CoverletOutput=./lcov"
-      ],
-      "problemMatcher": "$msCompile",
-      "group": {
-        "kind": "test",
         "isDefault": true
       }
     }

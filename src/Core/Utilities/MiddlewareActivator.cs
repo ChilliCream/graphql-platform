@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -17,24 +18,24 @@ namespace HotChocolate.Utilities
 
     internal static class MiddlewareActivator
     {
-        internal static MiddlewareFactory<T, TRequestDelegate> CompileFactory<T, TRequestDelegate>()
+        internal static MiddlewareFactory<TMiddleware, TRequestDelegate> CompileFactory<TMiddleware, TRequestDelegate>()
         {
             var services = Expression.Parameter(typeof(IServiceProvider));
             var nextDelegate = Expression.Parameter(typeof(TRequestDelegate));
 
             NewExpression createInstance = CreateMiddleware<TRequestDelegate>(
-                typeof(T), services, nextDelegate);
+                typeof(TMiddleware).GetTypeInfo(), services, nextDelegate);
 
-            return Expression.Lambda<MiddlewareFactory<T, TRequestDelegate>>(
+            return Expression.Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
                 createInstance, services, nextDelegate)
                 .Compile();
         }
 
-        internal static ClassQueryDelegate<T, TContext> CompileMiddleware<T, TContext>()
+        internal static ClassQueryDelegate<TMiddleware, TContext> CompileMiddleware<TMiddleware, TContext>()
         {
-            Type middlewareType = typeof(T);
-            MethodInfo method = middlewareType.GetMethod("InvokeAsync")
-                ?? middlewareType.GetMethod("Invoke");
+            TypeInfo middlewareType = typeof(TMiddleware).GetTypeInfo();
+            MethodInfo method = middlewareType.GetDeclaredMethod("InvokeAsync")
+                ?? middlewareType.GetDeclaredMethod("Invoke");
 
             if (method == null)
             {
@@ -46,20 +47,21 @@ namespace HotChocolate.Utilities
 
             var context = Expression.Parameter(typeof(TContext));
             var services = Expression.Parameter(typeof(IServiceProvider));
-            var middlewareInstance = Expression.Parameter(middlewareType);
+            var middlewareInstance = Expression.Parameter(
+                middlewareType.AsType());
 
             var middlewareCall = Expression.Call(
                 middlewareInstance,
                 method,
                 CreateParameters<TContext>(method, services, context));
 
-            return Expression.Lambda<ClassQueryDelegate<T, TContext>>(
+            return Expression.Lambda<ClassQueryDelegate<TMiddleware, TContext>>(
                 middlewareCall, context, services, middlewareInstance)
                 .Compile();
         }
 
         private static NewExpression CreateMiddleware<TRequestDelegate>(
-            Type middleware,
+            TypeInfo middleware,
             ParameterExpression services,
             Expression next)
         {
@@ -69,9 +71,9 @@ namespace HotChocolate.Utilities
             return Expression.New(constructor, arguments);
         }
 
-        private static ConstructorInfo CreateConstructor(Type middleware)
+        private static ConstructorInfo CreateConstructor(TypeInfo middleware)
         {
-            var constructors = middleware.GetConstructors();
+            var constructors = middleware.DeclaredConstructors.ToArray();
             if (constructors.Length == 1)
             {
                 return constructors[0];
@@ -116,6 +118,10 @@ namespace HotChocolate.Utilities
             ParameterExpression services,
             IDictionary<Type, Expression> custom)
         {
+            MethodInfo getService = typeof(IServiceProvider)
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetService");
+
             foreach (ParameterInfo parameter in parameters)
             {
                 if (custom.TryGetValue(parameter.ParameterType,
@@ -127,7 +133,7 @@ namespace HotChocolate.Utilities
                 {
                     yield return Expression.Convert(Expression.Call(
                         services,
-                        typeof(IServiceProvider).GetMethod("GetService"),
+                        getService,
                         Expression.Constant(parameter.ParameterType)),
                         parameter.ParameterType);
                 }
