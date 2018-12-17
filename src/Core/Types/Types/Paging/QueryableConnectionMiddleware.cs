@@ -8,13 +8,24 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Paging
 {
+    public delegate IConnectionResolver ConnectionResolverFactory<T>(
+            IQueryable<T> source,
+            PagingDetails pagingDetails,
+            bool hasNextRequested,
+            bool hasPreviousRequested);
+
     public class QueryableConnectionMiddleware<T>
     {
         private readonly FieldDelegate _next;
+        private readonly ConnectionResolverFactory<T> _createConnectionResolver;
 
-        public QueryableConnectionMiddleware(FieldDelegate next)
+        public QueryableConnectionMiddleware(
+            FieldDelegate next,
+            ConnectionResolverFactory<T> createConnectionResolver)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _createConnectionResolver = createConnectionResolver
+                ?? CreateConnectionResolver;
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -49,12 +60,13 @@ namespace HotChocolate.Types.Paging
 
             if (source != null)
             {
-                var factory = new QueryableConnectionFactory<T>(
+                var connectionResolver = _createConnectionResolver(
                     source,
                     pagingDetails,
                     HasNextPageRequested(context.FieldSelection),
                     HasPreviousPageRequested(context.FieldSelection));
-                context.Result = await factory.CreateAsync(
+
+                context.Result = await connectionResolver.ResolveAsync(
                     context.RequestAborted);
             }
         }
@@ -87,6 +99,18 @@ namespace HotChocolate.Types.Paging
             return fieldSelection.SelectionSet.Selections
                 .OfType<FieldNode>().Any(
                     t => t.Name.Value.EqualsOrdinal(fieldName));
+        }
+
+        private static IConnectionResolver CreateConnectionResolver(
+            IQueryable<T> source,
+            PagingDetails pagingDetails,
+            bool hasNextRequested,
+            bool hasPreviousRequested)
+        {
+            return new QueryableConnectionResolver<T>(
+                source, pagingDetails,
+                hasNextRequested,
+                hasPreviousRequested);
         }
     }
 }

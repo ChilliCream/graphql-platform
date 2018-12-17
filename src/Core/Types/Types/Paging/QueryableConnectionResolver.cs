@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,8 +8,8 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Paging
 {
-    public class QueryableConnectionFactory<T>
-        : IConnectionFactory
+    public class QueryableConnectionResolver<T>
+        : IConnectionResolver
     {
         private const string _position = "__position";
 
@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Paging
         private readonly bool _hasNextRequested;
         private readonly bool _hasPreviousRequested;
 
-        public QueryableConnectionFactory(
+        public QueryableConnectionResolver(
             IQueryable<T> source,
             PagingDetails pagingDetails,
             bool hasNextRequested,
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Paging
                 ?? new Dictionary<string, object>();
         }
 
-        public Task<Connection<T>> CreateAsync(
+        public Task<Connection<T>> ResolveAsync(
             CancellationToken cancellationToken)
         {
             return Task.Run(() => Create(), cancellationToken);
@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Paging
             return new Connection<T>(pageInfo, selectedEdges);
         }
 
-        Task<IConnection> IConnectionFactory.CreateAsync(
+        Task<IConnection> IConnectionResolver.ResolveAsync(
             CancellationToken cancellationToken) =>
                 Task.Run<IConnection>(() => Create(), cancellationToken);
 

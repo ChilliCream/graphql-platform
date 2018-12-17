@@ -21,11 +21,11 @@ namespace HotChocolate.Types.Paging
                 First = 2
             };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -53,11 +53,11 @@ namespace HotChocolate.Types.Paging
                 Last = 2
             };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -80,11 +80,11 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails { First = 1 },
                 true, true);
 
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -93,12 +93,12 @@ namespace HotChocolate.Types.Paging
                 First = 2
             };
 
-            connectionFactory = new QueryableConnectionFactory<string>(
+            connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails,
                 true, true);
 
             // act
-            connection = await connectionFactory.CreateAsync(
+            connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -121,11 +121,11 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails { First = 5 },
                 true, true);
 
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -134,12 +134,12 @@ namespace HotChocolate.Types.Paging
                 Last = 2
             };
 
-            connectionFactory = new QueryableConnectionFactory<string>(
+            connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails,
                 true, true);
 
             // act
-            connection = await connectionFactory.CreateAsync(
+            connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -167,11 +167,11 @@ namespace HotChocolate.Types.Paging
                 First = 5
             };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -189,11 +189,11 @@ namespace HotChocolate.Types.Paging
                 First = 7
             };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -206,11 +206,11 @@ namespace HotChocolate.Types.Paging
             // arrange
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails { First = 1 },
                 true, true);
 
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -219,12 +219,12 @@ namespace HotChocolate.Types.Paging
                 First = 2
             };
 
-            connectionFactory = new QueryableConnectionFactory<string>(
+            connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails,
                 true, true);
 
             // act
-            connection = await connectionFactory.CreateAsync(
+            connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -239,11 +239,11 @@ namespace HotChocolate.Types.Paging
 
             var pagingDetails = new PagingDetails();
 
-            var connectionFactory = new QueryableConnectionFactory<string>(
+            var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), pagingDetails, true, true);
 
             // act
-            var connection = await connectionFactory.CreateAsync(
+            var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
