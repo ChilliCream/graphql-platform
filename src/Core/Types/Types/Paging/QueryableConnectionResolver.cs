@@ -57,15 +57,15 @@ namespace HotChocolate.Types.Paging
                     _pageDetails.TotalCount.Value;
             }
 
-            IReadOnlyCollection<QueryableEdge<T>> selectedEdges =
+            IReadOnlyCollection<QueryableEdge> selectedEdges =
                 GetSelectedEdges();
-            QueryableEdge<T> firstEdge = selectedEdges.FirstOrDefault();
-            QueryableEdge<T> lastEdge = selectedEdges.LastOrDefault();
+            QueryableEdge firstEdge = selectedEdges.FirstOrDefault();
+            QueryableEdge lastEdge = selectedEdges.LastOrDefault();
 
 
             var pageInfo = new PageInfo(
+                lastEdge?.Index < _pageDetails.TotalCount.Value,
                 firstEdge?.Index > 0,
-                lastEdge?.Index < 0,
                 selectedEdges.FirstOrDefault()?.Cursor,
                 selectedEdges.LastOrDefault()?.Cursor);
 
@@ -76,9 +76,9 @@ namespace HotChocolate.Types.Paging
             CancellationToken cancellationToken) =>
                 Task.Run<IConnection>(() => Create(), cancellationToken);
 
-        private IReadOnlyCollection<QueryableEdge<T>> GetSelectedEdges()
+        private IReadOnlyCollection<QueryableEdge> GetSelectedEdges()
         {
-            List<QueryableEdge<T>> list = new List<QueryableEdge<T>>();
+            List<QueryableEdge> list = new List<QueryableEdge>();
             List<T> edges = GetEdgesToReturn(
                 _source, _pageDetails, out int offset);
 
@@ -87,7 +87,7 @@ namespace HotChocolate.Types.Paging
                 int index = offset + i;
                 _properties[_position] = index;
                 string cursor = Base64Serializer.Serialize(_properties);
-                list.Add(new QueryableEdge<T>(cursor, edges[i], index));
+                list.Add(new QueryableEdge(cursor, edges[i], index));
             }
 
             return list;
@@ -241,7 +241,7 @@ namespace HotChocolate.Types.Paging
             public int? Last { get; set; }
         }
 
-        protected class QueryableEdge<T>
+        protected class QueryableEdge
             : Edge<T>
         {
             public QueryableEdge(string cursor, T node, int index)
