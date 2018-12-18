@@ -151,6 +151,36 @@ Task("Tests")
     // DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
 });
 
+Task("CoreTests")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+    };
+
+    // core
+    DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Language.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Types.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Validation.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Core.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Subscriptions.Tests", testSettings);
+    DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
+    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
+});
+
 Task("SonarBegin")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
@@ -162,6 +192,7 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
+        Exclusions = "**/*.js,**/*.html,**/*.css,",
         Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = args => {

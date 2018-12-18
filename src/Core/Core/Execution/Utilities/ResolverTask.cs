@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             ObjectType objectType,
             FieldSelection fieldSelection,
             Path path,
-            ImmutableStack<object> source,
+            IImmutableStack<object> source,
             OrderedDictionary result)
         {
             _executionContext = executionContext;
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
         public IReadOnlySchemaOptions Options { get; }
 
-        public ImmutableStack<object> Source { get; }
+        public IImmutableStack<object> Source { get; }
 
         public ObjectType ObjectType { get; }
 

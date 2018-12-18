@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0; netstandard1.4</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard1.4; netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard1.4; netstandard2.0; net461</TargetFrameworks>
     <AssemblyName>HotChocolate.Language</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <PackageId>HotChocolate.Language</PackageId>

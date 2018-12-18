@@ -13,6 +13,7 @@ namespace HotChocolate.Types
             new List<InterfaceField>();
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
+        private List<FieldMiddleware> _middlewareComponents;
         private readonly Type _sourceType;
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
@@ -34,6 +35,7 @@ namespace HotChocolate.Types
             _sourceType = fieldDescription.SourceType;
             _resolverType = fieldDescription.ResolverType;
             _member = fieldDescription.Member;
+            _middlewareComponents = fieldDescription.MiddlewareComponents;
 
             Resolver = fieldDescription.Resolver;
             InterfaceFields = _interfaceFields.AsReadOnly();
@@ -144,7 +146,8 @@ namespace HotChocolate.Types
             }
 
             // TODO : review if that is what we want. Sometimes a middleware can replace a resolver ... but not all middleware components are resolver replacements.
-            Resolver = context.CreateFieldMiddleware(Resolver);
+            Resolver = context.CreateFieldMiddleware(
+                _middlewareComponents, Resolver);
 
             // TODO : All executable middlewars should have a middleware so could we rewrite this?
             if (Resolver == null && _executableDirectives.All(
@@ -154,6 +157,8 @@ namespace HotChocolate.Types
                     $"The field `{context.Type.Name}.{Name}` " +
                     "has no resolver.", context.Type));
             }
+
+            _middlewareComponents = null;
         }
     }
 }

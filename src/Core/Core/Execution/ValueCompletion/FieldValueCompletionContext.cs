@@ -88,7 +88,7 @@ namespace HotChocolate.Execution
 
         public IResolverContext ResolverContext { get; }
 
-        public ImmutableStack<object> Source { get; }
+        public IImmutableStack<object> Source { get; }
 
         public FieldSelection Selection { get; }
 

@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
+
 namespace HotChocolate.Resolvers
 {
     public static class ResolverContextExtensions

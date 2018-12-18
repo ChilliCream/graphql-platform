@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 
@@ -22,6 +23,7 @@ namespace HotChocolate.Configuration
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
         FieldResolverDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
             FieldResolverDelegate fieldResolver);
     }
 }

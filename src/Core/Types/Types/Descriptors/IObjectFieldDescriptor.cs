@@ -35,6 +35,8 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             Type resultType);
 
+        IObjectFieldDescriptor Use(FieldMiddleware middleware);
+
         IObjectFieldDescriptor Directive<T>(T directive)
             where T : class;
 
@@ -118,6 +120,14 @@ namespace HotChocolate.Types
         {
             return descriptor.Resolver(async ctx => await fieldResolver(),
                 typeof(NativeType<TResult>));
+        }
+
+        public static IObjectFieldDescriptor Use<TMiddleware>(
+            this IObjectFieldDescriptor descriptor)
+            where TMiddleware : class
+        {
+            return descriptor.Use(
+                ClassMiddlewareFactory.Create<TMiddleware>());
         }
     }
 }

@@ -8,20 +8,7 @@ jobs:
       - checkout
       - run:
           name: Pull Request Build
-          command: ./build.sh -t Tests
-      - store_test_results:
-          path: /work/testoutput
-      - store_artifacts:
-          path: /work/testoutput
-  release:
-    working_directory: /work
-    docker:
-      - image: chillicream/dotnet-build:2.0
-    steps:
-      - checkout
-      - run:
-          name: Release Build
-          command: ./build.sh -t Release
+          command: ./build.sh -t CoreTests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
@@ -37,11 +24,3 @@ workflows:
               ignore: master
             tags:
               ignore: /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(\-\w*?\.[1-9]\d*)?$/
-  release:
-    jobs:
-      - release:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(\-\w*?\.[1-9]\d*)?$/

@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection =>
             _resolverTask.FieldSelection.Selection;
 
-        public ImmutableStack<object> Source => _resolverTask.Source;
+        public IImmutableStack<object> Source => _resolverTask.Source;
 
         public Path Path => _resolverTask.Path;
 
@@ -131,6 +131,10 @@ namespace HotChocolate.Execution
 
         public T Service<T>()
         {
+            if (typeof(T) == typeof(IServiceProvider))
+            {
+                return (T)_executionContext.Services;
+            }
             return (T)_executionContext.Services.GetRequiredService(typeof(T));
         }
 
