@@ -6,6 +6,8 @@ namespace HotChocolate.Types.Paging
         protected override void Configure(IObjectTypeDescriptor<IPageInfo> descriptor)
         {
             descriptor.Name("PageInfo");
+            descriptor.Description(
+                "Information about pagination in a connection.");
 
             descriptor.Field(t => t.HasNextPage)
                 .Type<NonNullType<BooleanType>>()
@@ -23,11 +25,15 @@ namespace HotChocolate.Types.Paging
 
             descriptor.Field(t => t.StartCursor)
                 .Type<StringType>()
-                .Name("startCursor");
+                .Name("startCursor")
+                .Description(
+                    "When paginating backwards, the cursor to continue.");
 
             descriptor.Field(t => t.EndCursor)
                 .Type<StringType>()
-                .Name("endCursor");
+                .Name("endCursor")
+                .Description(
+                    "When paginating forwards, the cursor to continue."); ;
         }
     }
 }
