@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Paging
             if (!_pageDetails.TotalCount.HasValue)
             {
                 _pageDetails.TotalCount = _source.Count();
-                _pageDetails.Properties[_totalCount] =
+                _properties[_totalCount] =
                     _pageDetails.TotalCount.Value;
             }
 
@@ -239,7 +239,6 @@ namespace HotChocolate.Types.Paging
             public int? After { get; set; }
             public int? First { get; set; }
             public int? Last { get; set; }
-            public IDictionary<string, object> Properties { get; set; }
         }
 
         protected class QueryableEdge<T>
