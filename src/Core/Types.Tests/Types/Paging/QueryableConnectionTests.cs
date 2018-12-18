@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Paging
             };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails, true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             var connection = await connectionFactory.ResolveAsync(
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Paging
             };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails, true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             var connection = await connectionFactory.ResolveAsync(
@@ -81,8 +81,7 @@ namespace HotChocolate.Types.Paging
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 },
-                true, true);
+                list.AsQueryable(), new PagingDetails { First = 1 });
 
             var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -94,8 +93,7 @@ namespace HotChocolate.Types.Paging
             };
 
             connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails,
-                true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             connection = await connectionFactory.ResolveAsync(
@@ -122,8 +120,7 @@ namespace HotChocolate.Types.Paging
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 5 },
-                true, true);
+                list.AsQueryable(), new PagingDetails { First = 5 });
 
             var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -135,8 +132,7 @@ namespace HotChocolate.Types.Paging
             };
 
             connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails,
-                true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             connection = await connectionFactory.ResolveAsync(
@@ -168,7 +164,7 @@ namespace HotChocolate.Types.Paging
             };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails, true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             var connection = await connectionFactory.ResolveAsync(
@@ -190,7 +186,7 @@ namespace HotChocolate.Types.Paging
             };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails, true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             var connection = await connectionFactory.ResolveAsync(
@@ -207,8 +203,7 @@ namespace HotChocolate.Types.Paging
             var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails { First = 1 },
-                true, true);
+                list.AsQueryable(), new PagingDetails { First = 1 });
 
             var connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -220,8 +215,7 @@ namespace HotChocolate.Types.Paging
             };
 
             connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails,
-                true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             connection = await connectionFactory.ResolveAsync(
@@ -240,7 +234,7 @@ namespace HotChocolate.Types.Paging
             var pagingDetails = new PagingDetails();
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), pagingDetails, true, true);
+                list.AsQueryable(), pagingDetails);
 
             // act
             var connection = await connectionFactory.ResolveAsync(

@@ -11,19 +11,16 @@ namespace HotChocolate.Types.Paging
     public class QueryableConnectionResolver<T>
         : IConnectionResolver
     {
+        private const string _totalCount = "__totalCount";
         private const string _position = "__position";
 
         private readonly IQueryable<T> _source;
         private readonly IDictionary<string, object> _properties;
         private readonly QueryablePagingDetails _pageDetails;
-        private readonly bool _hasNextRequested;
-        private readonly bool _hasPreviousRequested;
 
         public QueryableConnectionResolver(
             IQueryable<T> source,
-            PagingDetails pagingDetails,
-            bool hasNextRequested,
-            bool hasPreviousRequested)
+            PagingDetails pagingDetails)
         {
             if (source == null)
             {
@@ -37,8 +34,6 @@ namespace HotChocolate.Types.Paging
 
             _source = source;
             _pageDetails = DeserializePagingDetails(pagingDetails);
-            _hasNextRequested = hasNextRequested;
-            _hasPreviousRequested = hasPreviousRequested;
 
             _properties = pagingDetails.Properties
                 ?? new Dictionary<string, object>();
@@ -55,15 +50,22 @@ namespace HotChocolate.Types.Paging
             IQueryable<T> edges = ApplyCursorToEdges(
                 _source, _pageDetails.Before, _pageDetails.After);
 
-            bool hasNextPage = _hasNextRequested
-                && HasNextPage(edges, _pageDetails);
-            bool hasPreviousPage = _hasPreviousRequested
-                && HasPreviousPage(edges, _pageDetails);
+            if (!_pageDetails.TotalCount.HasValue)
+            {
+                _pageDetails.TotalCount = _source.Count();
+                _pageDetails.Properties[_totalCount] =
+                    _pageDetails.TotalCount.Value;
+            }
 
-            IReadOnlyCollection<Edge<T>> selectedEdges = GetSelectedEdges();
+            IReadOnlyCollection<QueryableEdge<T>> selectedEdges =
+                GetSelectedEdges();
+            QueryableEdge<T> firstEdge = selectedEdges.FirstOrDefault();
+            QueryableEdge<T> lastEdge = selectedEdges.LastOrDefault();
+
 
             var pageInfo = new PageInfo(
-                hasNextPage, hasPreviousPage,
+                firstEdge?.Index > 0,
+                lastEdge?.Index < 0,
                 selectedEdges.FirstOrDefault()?.Cursor,
                 selectedEdges.LastOrDefault()?.Cursor);
 
@@ -74,17 +76,18 @@ namespace HotChocolate.Types.Paging
             CancellationToken cancellationToken) =>
                 Task.Run<IConnection>(() => Create(), cancellationToken);
 
-        public IReadOnlyCollection<Edge<T>> GetSelectedEdges()
+        private IReadOnlyCollection<QueryableEdge<T>> GetSelectedEdges()
         {
-            List<Edge<T>> list = new List<Edge<T>>();
+            List<QueryableEdge<T>> list = new List<QueryableEdge<T>>();
             List<T> edges = GetEdgesToReturn(
                 _source, _pageDetails, out int offset);
 
             for (int i = 0; i < edges.Count; i++)
             {
-                _properties[_position] = offset + i;
+                int index = offset + i;
+                _properties[_position] = index;
                 string cursor = Base64Serializer.Serialize(_properties);
-                list.Add(new Edge<T>(cursor, edges[i]));
+                list.Add(new QueryableEdge<T>(cursor, edges[i], index));
             }
 
             return list;
@@ -156,44 +159,6 @@ namespace HotChocolate.Types.Paging
             return temp;
         }
 
-        protected virtual bool HasNextPage(
-            IQueryable<T> appliedEdges,
-            QueryablePagingDetails pagingDetails)
-        {
-            if (pagingDetails.First.HasValue)
-            {
-                return appliedEdges.Skip(pagingDetails.First.Value).Any();
-            }
-
-            if (pagingDetails.Before.HasValue)
-            {
-                return appliedEdges.Any();
-            }
-
-            return false;
-        }
-
-        protected virtual bool HasPreviousPage(
-            IQueryable<T> allEdges,
-            QueryablePagingDetails pagingDetails)
-        {
-            if (pagingDetails.Last.HasValue)
-            {
-                IQueryable<T> edges = ApplyCursorToEdges(
-                    allEdges, pagingDetails.Before, pagingDetails.After);
-                return edges.Count() > pagingDetails.Last.Value;
-            }
-
-            if (pagingDetails.After.HasValue)
-            {
-                IQueryable<T> edges = ApplyCursorToEdges(
-                    allEdges, null, pagingDetails.After);
-                return edges.Any();
-            }
-
-            return false;
-        }
-
         protected virtual IQueryable<T> ApplyCursorToEdges(
             IQueryable<T> allEdges, int? before, int? after)
         {
@@ -215,16 +180,46 @@ namespace HotChocolate.Types.Paging
         private static QueryablePagingDetails DeserializePagingDetails(
             PagingDetails pagingDetails)
         {
+            Dictionary<string, object> afterProperties =
+                DeserializeCursor(pagingDetails.After);
+            Dictionary<string, object> beforeProperties =
+                DeserializeCursor(pagingDetails.Before);
+
             return new QueryablePagingDetails
             {
-                After = GetPositionFromCurser(pagingDetails.After),
-                Before = GetPositionFromCurser(pagingDetails.Before),
+                After = GetPositionFromCurser(afterProperties),
+                Before = GetPositionFromCurser(beforeProperties),
+                TotalCount = GetPositionFromCurser(afterProperties)
+                    ?? GetPositionFromCurser(beforeProperties),
                 First = pagingDetails.First,
                 Last = pagingDetails.Last
             };
         }
 
-        private static int? GetPositionFromCurser(string cursor)
+        private static int? GetPositionFromCurser(
+            Dictionary<string, object> properties)
+        {
+            if (properties == null)
+            {
+                return null;
+            }
+
+            return Convert.ToInt32(properties[_position]);
+        }
+
+        private static int? GetTotalCountFromCursor(
+            Dictionary<string, object> properties)
+        {
+            if (properties == null)
+            {
+                return null;
+            }
+
+            return Convert.ToInt32(properties[_totalCount]);
+        }
+
+        private static Dictionary<string, object> DeserializeCursor(
+            string cursor)
         {
             if (cursor == null)
             {
@@ -234,15 +229,29 @@ namespace HotChocolate.Types.Paging
             var properties = Base64Serializer
                 .Deserialize<Dictionary<string, object>>(cursor);
 
-            return Convert.ToInt32(properties[_position]);
+            return properties;
         }
 
         protected class QueryablePagingDetails
         {
+            public int? TotalCount { get; set; }
             public int? Before { get; set; }
             public int? After { get; set; }
             public int? First { get; set; }
             public int? Last { get; set; }
+            public IDictionary<string, object> Properties { get; set; }
+        }
+
+        protected class QueryableEdge<T>
+            : Edge<T>
+        {
+            public QueryableEdge(string cursor, T node, int index)
+                : base(cursor, node)
+            {
+                Index = index;
+            }
+
+            public int Index { get; set; }
         }
     }
 }
