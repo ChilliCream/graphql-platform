@@ -9,12 +9,12 @@ namespace HotChocolate.Types.Paging
     {
         public PageInfo(
             bool hasNextPage, bool hasPreviousPage,
-            string startToken, string endToken)
+            string startCursor, string endCursor)
         {
             HasNextPage = hasNextPage;
             HasPreviousPage = hasPreviousPage;
-            StartCursor = startToken;
-            EndCursor = endToken;
+            StartCursor = startCursor;
+            EndCursor = endCursor;
         }
 
         public bool HasNextPage { get; }
