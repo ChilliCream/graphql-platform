@@ -121,5 +121,13 @@ namespace HotChocolate.Types
             return descriptor.Resolver(async ctx => await fieldResolver(),
                 typeof(NativeType<TResult>));
         }
+
+        public static IObjectFieldDescriptor Use<TMiddleware>(
+            this IObjectFieldDescriptor descriptor)
+            where TMiddleware : class
+        {
+            return descriptor.Use(
+                ClassMiddlewareFactory.Create<TMiddleware>());
+        }
     }
 }

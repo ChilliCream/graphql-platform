@@ -73,7 +73,8 @@ namespace HotChocolate.Utilities
 
         private static ConstructorInfo CreateConstructor(TypeInfo middleware)
         {
-            var constructors = middleware.DeclaredConstructors.ToArray();
+            var constructors = middleware.DeclaredConstructors
+                .Where(t => t.IsPublic).ToArray();
             if (constructors.Length == 1)
             {
                 return constructors[0];

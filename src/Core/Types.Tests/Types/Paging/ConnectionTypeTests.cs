@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Paging
             : ObjectType
         {
             private readonly List<string> _source =
-                new List<string> { "a", "b", "c", "d", "e", "f", "g", };
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
 
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
@@ -64,6 +64,43 @@ namespace HotChocolate.Types.Paging
                 descriptor.Field("s")
                     .UsePaging<StringType, string>()
                     .Resolver(ctx => _source);
+            }
+        }
+
+        public class Query
+        {
+            public ICollection<string> Strings { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+        }
+
+        public class QueryType2
+            : ObjectType<Query>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+            {
+                descriptor.Field(t => t.Strings)
+                    .Argument("descending", a => a.Type<BooleanType>())
+                    .UsePaging<StringType, string>()
+                    .Resolver(ctx =>
+                    {
+                        IDictionary<string, object> cursorProperties =
+                            ctx.GetCursorProperties();
+
+                        // get the sort order from the sorting argument or from a cursor that was passed in.
+                        bool descending = cursorProperties.TryGetValue("descending", out object d)
+                            ? (bool)d
+                            : ctx.Argument<bool>("descending");
+
+                        // set the curosr sorting property.
+                        cursorProperties["descending"] = descending;
+
+                        IEnumerable<string> strings = ctx.Parent<Query>().Strings;
+
+                        // return the sorted string dataset with the cursor properties.
+                        return descending
+                            ? new PageableData<string>(strings.OrderByDescending(t => t), cursorProperties)
+                            : new PageableData<string>(strings.OrderBy(t => t), cursorProperties);
+                    });
             }
         }
     }
