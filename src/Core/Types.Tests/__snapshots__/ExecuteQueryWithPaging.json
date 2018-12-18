@@ -12,7 +12,7 @@
         }
       ],
       "pageInfo": {
-        "hasNextPage": true
+        "hasNextPage": false
       }
     }
   },
