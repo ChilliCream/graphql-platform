@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Paging
 
 
             var pageInfo = new PageInfo(
-                lastEdge?.Index < _pageDetails.TotalCount.Value,
+                lastEdge?.Index < (_pageDetails.TotalCount.Value - 1),
                 firstEdge?.Index > 0,
                 selectedEdges.FirstOrDefault()?.Cursor,
                 selectedEdges.LastOrDefault()?.Cursor);
