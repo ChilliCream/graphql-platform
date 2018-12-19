@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Factories;

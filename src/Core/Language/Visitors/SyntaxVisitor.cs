@@ -1,4 +1,4 @@
-namespace HotChocolate.Language
+﻿namespace HotChocolate.Language
 {
     public partial class SyntaxVisitor<TStart, TContext>
         where TStart : ISyntaxNode

@@ -1,4 +1,4 @@
-namespace StarWars.Models
+﻿namespace StarWars.Models
 {
     public class Starship
     {

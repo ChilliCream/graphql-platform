@@ -1,4 +1,4 @@
-namespace HotChocolate.Configuration
+﻿namespace HotChocolate.Configuration
 {
     public interface IBindType<T>
         : IBoundType<T>

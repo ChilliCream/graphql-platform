@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Utilities;
 using HotChocolate.Language;

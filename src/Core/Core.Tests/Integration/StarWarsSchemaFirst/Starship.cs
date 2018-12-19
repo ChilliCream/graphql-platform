@@ -1,4 +1,4 @@
-namespace HotChocolate.Integration.StarWarsSchemaFirst
+﻿namespace HotChocolate.Integration.StarWarsSchemaFirst
 {
     public class Starship
     {

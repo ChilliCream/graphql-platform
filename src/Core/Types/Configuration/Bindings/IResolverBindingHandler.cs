@@ -1,4 +1,4 @@
-namespace HotChocolate.Configuration
+﻿namespace HotChocolate.Configuration
 {
     // applies the bindings and creates a FieldResolverObjects from the specified binding object
     // the FieldResolverObject contains the actual field resolver delegate.

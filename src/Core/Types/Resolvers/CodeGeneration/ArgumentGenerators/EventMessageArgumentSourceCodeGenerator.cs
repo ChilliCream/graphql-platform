@@ -1,4 +1,4 @@
-using HotChocolate.Subscriptions;
+﻿using HotChocolate.Subscriptions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration

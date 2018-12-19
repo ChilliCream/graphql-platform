@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Introspection
+﻿namespace HotChocolate.Types.Introspection
 {
     internal static class IntrospectionFields
     {

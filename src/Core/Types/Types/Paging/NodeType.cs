@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Paging
+﻿namespace HotChocolate.Types.Paging
 {
     // TODO : Add description
     // TODO : Consider moving this type to a different namespace

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types

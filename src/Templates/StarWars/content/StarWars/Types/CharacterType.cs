@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using StarWars.Data;

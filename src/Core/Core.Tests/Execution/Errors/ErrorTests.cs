@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Xunit;

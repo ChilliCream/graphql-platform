@@ -1,4 +1,4 @@
-namespace HotChocolate.Stitching
+﻿namespace HotChocolate.Stitching
 {
     internal static class DirectiveNames
     {

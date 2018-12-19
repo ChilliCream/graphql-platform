@@ -1,4 +1,4 @@
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     /// <summary>
     /// Represents types that can be null.

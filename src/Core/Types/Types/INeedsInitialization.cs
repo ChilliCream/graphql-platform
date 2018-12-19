@@ -1,4 +1,4 @@
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     /// <summary>
     /// Types that implement this have a three step initialization.

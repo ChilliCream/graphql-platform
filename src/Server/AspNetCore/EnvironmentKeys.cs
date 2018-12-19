@@ -1,4 +1,4 @@
-#if ASPNETCLASSIC
+﻿#if ASPNETCLASSIC
 
 namespace HotChocolate.AspNetClassic
 {

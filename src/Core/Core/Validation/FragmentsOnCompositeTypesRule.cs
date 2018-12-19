@@ -1,4 +1,4 @@
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Fragments can only be declared on unions, interfaces, and objects.

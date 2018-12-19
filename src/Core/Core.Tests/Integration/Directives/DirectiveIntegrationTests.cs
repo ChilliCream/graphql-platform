@@ -1,4 +1,4 @@
-using ChilliCream.Testing;
+﻿using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Xunit;
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Every input field provided in an input object value must be defined in

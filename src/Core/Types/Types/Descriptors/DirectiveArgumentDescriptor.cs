@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

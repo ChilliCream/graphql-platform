@@ -1,4 +1,4 @@
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Fragments are declared on a type and will only apply when the

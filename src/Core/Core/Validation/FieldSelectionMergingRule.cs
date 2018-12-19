@@ -1,4 +1,4 @@
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// If multiple field selections with the same response names are

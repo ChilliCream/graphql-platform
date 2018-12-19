@@ -1,4 +1,4 @@
-using HotChocolate.Execution;
+﻿using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching

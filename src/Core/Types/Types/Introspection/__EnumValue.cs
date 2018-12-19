@@ -1,4 +1,4 @@
-using HotChocolate.Configuration;
+﻿using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Introspection
 {

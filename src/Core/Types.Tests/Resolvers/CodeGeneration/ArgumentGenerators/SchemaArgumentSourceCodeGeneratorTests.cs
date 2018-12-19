@@ -1,4 +1,4 @@
-using HotChocolate.Resolvers.CodeGeneration;
+﻿using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers
 {

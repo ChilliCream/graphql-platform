@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetClassic
+﻿namespace HotChocolate.AspNetClassic
 {
     public class Foo
     {

@@ -1,4 +1,4 @@
-namespace HotChocolate.Server
+﻿namespace HotChocolate.Server
 {
     public class Query
     {

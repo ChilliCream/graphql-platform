@@ -1,4 +1,4 @@
-namespace HotChocolate.Integration.ArgumentValidation
+﻿namespace HotChocolate.Integration.ArgumentValidation
 {
     public class Query
     {

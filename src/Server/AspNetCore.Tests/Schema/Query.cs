@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 

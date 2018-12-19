@@ -1,4 +1,4 @@
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Input objects must not contain more than one field of the same name,

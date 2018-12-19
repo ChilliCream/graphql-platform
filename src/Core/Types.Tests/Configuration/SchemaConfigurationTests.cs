@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

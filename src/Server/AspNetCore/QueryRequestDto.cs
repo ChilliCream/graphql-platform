@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
 #if ASPNETCLASSIC
 namespace HotChocolate.AspNetClassic
