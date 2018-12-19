@@ -1,4 +1,4 @@
-namespace HotChocolate.Language
+﻿namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Types section.
     public partial class Parser

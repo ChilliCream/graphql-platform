@@ -1,4 +1,4 @@
-namespace HotChocolate.Resolvers.CodeGeneration
+﻿namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal abstract class ArgumentSourceCodeGenerator
         : SourceCodeGenerator<ArgumentDescriptor>

@@ -1,4 +1,4 @@
-namespace HotChocolate.Integration.InputOutputObjectAreTheSame
+﻿namespace HotChocolate.Integration.InputOutputObjectAreTheSame
 {
     public class Person
     {

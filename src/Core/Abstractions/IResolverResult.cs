@@ -1,4 +1,4 @@
-namespace HotChocolate
+﻿namespace HotChocolate
 {
     /// <summary>
     /// A resolver result represents an error or a value that is returned by the

@@ -1,4 +1,4 @@
-namespace HotChocolate.Resolvers.CodeGeneration
+﻿namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal sealed class DirectiveContextArgumentSourceCodeGenerator
         : ContextArgumentSourceCodeGenerator

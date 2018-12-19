@@ -1,4 +1,4 @@
-using HotChocolate.Subscriptions;
+﻿using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst
 {

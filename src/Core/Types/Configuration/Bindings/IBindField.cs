@@ -1,4 +1,4 @@
-namespace HotChocolate.Configuration
+﻿namespace HotChocolate.Configuration
 {
     public interface IBindField<T>
         where T : class

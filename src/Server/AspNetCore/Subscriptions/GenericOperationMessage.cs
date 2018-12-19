@@ -1,4 +1,4 @@
-#if !ASPNETCLASSIC
+﻿#if !ASPNETCLASSIC
 
 using Newtonsoft.Json.Linq;
 

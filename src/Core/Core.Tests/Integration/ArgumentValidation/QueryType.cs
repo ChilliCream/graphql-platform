@@ -1,4 +1,4 @@
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 
 namespace HotChocolate.Integration.ArgumentValidation
 {

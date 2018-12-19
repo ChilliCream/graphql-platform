@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using ChilliCream.Testing;
 using HotChocolate.Resolvers.CodeGeneration;
 using Xunit;

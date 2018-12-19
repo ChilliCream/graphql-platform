@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Introspection
+﻿namespace HotChocolate.Types.Introspection
 {
     [Introspection]
     internal sealed class __DirectiveLocation

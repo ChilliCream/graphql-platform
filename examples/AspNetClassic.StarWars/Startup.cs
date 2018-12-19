@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
 using HotChocolate.AspNetClassic.Authorization;

@@ -1,4 +1,4 @@
-#if !ASPNETCLASSIC
+﻿#if !ASPNETCLASSIC
 
 using System.Threading;
 using System.Threading.Tasks;

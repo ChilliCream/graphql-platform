@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst

@@ -1,4 +1,4 @@
-namespace HotChocolate.Runtime
+﻿namespace HotChocolate.Runtime
 {
     public enum ExecutionScope
     {

@@ -1,4 +1,4 @@
-namespace HotChocolate.Integration.HelloWorldCodeFirst
+﻿namespace HotChocolate.Integration.HelloWorldCodeFirst
 {
     public class DataStoreHelloWorld
     {

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

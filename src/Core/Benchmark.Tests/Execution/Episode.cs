@@ -1,4 +1,4 @@
-namespace HotChocolate.Benchmark.Tests.Execution
+﻿namespace HotChocolate.Benchmark.Tests.Execution
 {
     public enum Episode
     {

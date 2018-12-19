@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 #if ASPNETCLASSIC
 using HotChocolate.Execution;

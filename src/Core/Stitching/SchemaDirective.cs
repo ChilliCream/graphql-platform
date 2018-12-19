@@ -1,4 +1,4 @@
-namespace HotChocolate.Stitching
+﻿namespace HotChocolate.Stitching
 {
     public class SchemaDirective
     {

@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Paging
+﻿namespace HotChocolate.Types.Paging
 {
     public interface IEdge
     {

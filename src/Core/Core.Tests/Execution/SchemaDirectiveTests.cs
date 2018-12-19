@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Xunit;

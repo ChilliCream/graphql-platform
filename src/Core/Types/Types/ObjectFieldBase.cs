@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate.Subscriptions;
 using StarWars.Data;
 using StarWars.Models;

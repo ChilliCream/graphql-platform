@@ -1,4 +1,4 @@
-using HotChocolate.AspNetCore;
+﻿using HotChocolate.AspNetCore;
 using HotChocolate.Types;
 using StarWars.Models;
 

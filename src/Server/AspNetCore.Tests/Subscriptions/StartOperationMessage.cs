@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore.Subscriptions
+﻿namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal class StartOperationMessage
         : OperationMessage

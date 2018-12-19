@@ -1,4 +1,4 @@
-namespace HotChocolate.AspNetCore
+﻿namespace HotChocolate.AspNetCore
 {
     public class Foo
     {

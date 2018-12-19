@@ -1,4 +1,4 @@
-using HotChocolate.Resolvers;
+﻿using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst

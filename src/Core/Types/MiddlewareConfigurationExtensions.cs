@@ -1,4 +1,4 @@
-using HotChocolate.Configuration;
+﻿using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate

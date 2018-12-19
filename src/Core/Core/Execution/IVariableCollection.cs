@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution
+﻿namespace HotChocolate.Execution
 {
     public interface IVariableCollection
     {
