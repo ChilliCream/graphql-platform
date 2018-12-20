@@ -13,7 +13,8 @@ namespace HotChocolate
             Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
-            configuration.RegisterDataLoader<TLoader>(key, scope, loaderFactory,(d, c) => d.DispatchAsync());
+            configuration.RegisterDataLoader<TLoader>(
+                key, scope, loaderFactory, (d, c) => d.DispatchAsync());
         }
 
         public static void RegisterDataLoader(
@@ -22,9 +23,10 @@ namespace HotChocolate
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
-            
+
         {
-            configuration.RegisterDataLoader(type,key, scope, loaderFactory,(d, c) => ((IDispatchableDataLoader)d).DispatchAsync());
+            configuration.RegisterDataLoader(type, key, scope, loaderFactory,
+                (d, c) => ((IDispatchableDataLoader)d).DispatchAsync());
         }
 
         public static void RegisterDataLoader<TLoader>(
@@ -33,7 +35,8 @@ namespace HotChocolate
             Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
-            RegisterDataLoader<TLoader>(configuration, typeof(TLoader).FullName,scope, loaderFactory);
+            RegisterDataLoader<TLoader>(configuration,
+                typeof(TLoader).FullName, scope, loaderFactory);
         }
 
         public static void RegisterDataLoader(
@@ -42,7 +45,8 @@ namespace HotChocolate
             ExecutionScope scope,
             Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
         {
-            RegisterDataLoader(configuration, type, type.FullName, scope, loaderFactory);
+            RegisterDataLoader(configuration, type,
+                type.FullName, scope, loaderFactory);
         }
 
         public static void RegisterDataLoader<TLoader>(
@@ -50,16 +54,19 @@ namespace HotChocolate
             Func<IServiceProvider, TLoader> loaderFactory)
             where TLoader : IDispatchableDataLoader
         {
-            RegisterDataLoader<TLoader>(configuration, typeof(TLoader).FullName,ExecutionScope.Request, loaderFactory);
+            RegisterDataLoader<TLoader>(
+                configuration, typeof(TLoader).FullName,
+                ExecutionScope.Request, loaderFactory);
         }
 
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
             Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
-           
+
         {
-            RegisterDataLoader(configuration, type,type.FullName,ExecutionScope.Request, loaderFactory);
+            RegisterDataLoader(configuration, type, type.FullName,
+                ExecutionScope.Request, loaderFactory);
         }
 
         public static void RegisterDataLoader<TLoader>(
@@ -68,7 +75,8 @@ namespace HotChocolate
            ExecutionScope scope)
            where TLoader : class, IDispatchableDataLoader
         {
-            configuration.RegisterDataLoader<TLoader>(key, scope, triggerLoaderAsync:(d, c) => d.DispatchAsync());
+            configuration.RegisterDataLoader<TLoader>(key, scope,
+                triggerLoaderAsync: (d, c) => d.DispatchAsync());
         }
 
         public static void RegisterDataLoader(
@@ -76,9 +84,11 @@ namespace HotChocolate
             Type type,
             string key,
             ExecutionScope scope)
-           
+
         {
-            configuration.RegisterDataLoader(type,key, scope, triggerLoaderAsync:(d, c) => ((IDispatchableDataLoader)d).DispatchAsync());
+            configuration.RegisterDataLoader(type, key, scope,
+                triggerLoaderAsync: (d, c) => ((IDispatchableDataLoader)d)
+                    .DispatchAsync());
         }
 
         public static void RegisterDataLoader<TLoader>(
@@ -86,16 +96,17 @@ namespace HotChocolate
             ExecutionScope scope)
             where TLoader : class, IDispatchableDataLoader
         {
-            RegisterDataLoader<TLoader>(configuration, typeof(TLoader).FullName,scope);
+            RegisterDataLoader<TLoader>(
+                configuration, typeof(TLoader).FullName, scope);
         }
 
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
             ExecutionScope scope)
-            
+
         {
-            RegisterDataLoader(configuration, type, type.FullName,scope);
+            RegisterDataLoader(configuration, type, type.FullName, scope);
         }
 
         public static void RegisterDataLoader<TLoader>(
@@ -103,14 +114,16 @@ namespace HotChocolate
             where TLoader : class, IDispatchableDataLoader
         {
 
-            RegisterDataLoader<TLoader>(configuration, typeof(TLoader).FullName,ExecutionScope.Request);
+            RegisterDataLoader<TLoader>(configuration,
+            typeof(TLoader).FullName, ExecutionScope.Request);
         }
 
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration, Type type)
-            
+
         {
-            RegisterDataLoader(configuration,type, type.FullName,ExecutionScope.Request);
+            RegisterDataLoader(configuration, type,
+                type.FullName, ExecutionScope.Request);
         }
     }
 }
