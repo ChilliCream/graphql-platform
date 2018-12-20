@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Execution
 {
     public static class ClassMiddlewareFactory
     {
-        internal static FieldMiddleware Create<TMiddleware>()
+        internal static QueryMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
             {
                 var factory = MiddlewareActivator
-                    .CompileFactory<TMiddleware, FieldDelegate>();
+                    .CompileFactory<TMiddleware, QueryDelegate>();
 
                 return CreateDelegate<TMiddleware>(
                     (s, n) => factory(s, n),
@@ -19,23 +19,23 @@ namespace HotChocolate.Resolvers
             };
         }
 
-        internal static FieldMiddleware Create<TMiddleware>(
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+        internal static QueryMiddleware Create<TMiddleware>(
+            Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
             return next => CreateDelegate<TMiddleware>(factory, next);
         }
 
-        internal static FieldDelegate CreateDelegate<TMiddleware>(
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory,
-            FieldDelegate next)
+        internal static QueryDelegate CreateDelegate<TMiddleware>(
+            Func<IServiceProvider, QueryDelegate, TMiddleware> factory,
+            QueryDelegate next)
             where TMiddleware : class
         {
             object sync = new object();
             TMiddleware middleware = null;
 
             var compiled = MiddlewareActivator
-                .CompileMiddleware<TMiddleware, IMiddlewareContext>();
+                .CompileMiddleware<TMiddleware, IQueryContext>();
 
             return context =>
             {
@@ -45,17 +45,12 @@ namespace HotChocolate.Resolvers
                     {
                         if (middleware == null)
                         {
-                            middleware = factory(
-                                context.Service<IServiceProvider>(),
-                                next);
+                            middleware = factory(context.Services, next);
                         }
                     }
                 }
 
-                return compiled(
-                    context,
-                    context.Service<IServiceProvider>(),
-                    middleware);
+                return compiled(context, context.Services, middleware);
             };
         }
     }

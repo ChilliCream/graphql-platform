@@ -68,34 +68,16 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder)
             where TMiddleware : class
         {
-            builder.Use(next =>
-            {
-                object sync = new object();
-                TMiddleware middleware = null;
+            return builder.Use(ClassMiddlewareFactory.Create<TMiddleware>());
+        }
 
-                var factory = MiddlewareActivator
-                    .CompileFactory<TMiddleware, QueryDelegate>();
-
-                var compiled = MiddlewareActivator
-                    .CompileMiddleware<TMiddleware, IQueryContext>();
-
-                return context =>
-                {
-                    if (middleware == null)
-                    {
-                        lock (sync)
-                        {
-                            if (middleware == null)
-                            {
-                                middleware = factory(context.Services, next);
-                            }
-                        }
-                    }
-
-                    return compiled(context, context.Services, middleware);
-                };
-            });
-            return builder;
+        public static IQueryExecutionBuilder Use<TMiddleware>(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            return builder.Use(
+                ClassMiddlewareFactory.Create<TMiddleware>(factory));
         }
 
         public static IQueryExecutionBuilder AddParser<T>(

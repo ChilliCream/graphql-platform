@@ -7,12 +7,15 @@ namespace HotChocolate
 {
     public static class ExecutionSchemaExtensions
     {
-        public static IQueryExecuter MakeExecutable(this ISchema schema)
+        public static IQueryExecuter MakeExecutable(
+            this ISchema schema)
         {
             return QueryExecutionBuilder.BuildDefault(schema);
         }
 
-        public static ObjectType GetOperationType(this ISchema schema, OperationType operation)
+        public static ObjectType GetOperationType(
+            this ISchema schema,
+            OperationType operation)
         {
             switch (operation)
             {

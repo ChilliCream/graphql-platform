@@ -9,7 +9,28 @@ namespace HotChocolate.Execution
             this IQueryExecuter executer,
             QueryRequest request)
         {
-            return executer.ExecuteAsync(request, CancellationToken.None);
+            return executer.ExecuteAsync(
+                request,
+                CancellationToken.None);
+        }
+
+        public static Task<IExecutionResult> ExecuteAsync(
+            this IQueryExecuter executer,
+            string query)
+        {
+            return executer.ExecuteAsync(
+                new QueryRequest(query),
+                CancellationToken.None);
+        }
+
+        public static Task<IExecutionResult> ExecuteAsync(
+            this IQueryExecuter executer,
+            string query,
+            CancellationToken cancellationToken)
+        {
+            return executer.ExecuteAsync(
+                new QueryRequest(query),
+                cancellationToken);
         }
     }
 }
