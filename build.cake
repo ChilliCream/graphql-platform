@@ -153,7 +153,7 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
-        Exclusions = "**/*.js,**/*.html,**/*.css,",
+        Exclusions = "**/*.js,**/*.html,**/*.css,**/src/Core/Benchmark.Tests/**/*.*,**/src/Templates/**/*.*",
         Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = args => {
