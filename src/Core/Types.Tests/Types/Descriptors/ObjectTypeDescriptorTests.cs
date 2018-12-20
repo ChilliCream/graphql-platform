@@ -1,5 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using ChilliCream.Testing;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -141,6 +146,20 @@ namespace HotChocolate.Types
                t => Assert.Equal("a", t));
         }
 
+        [Fact]
+        public async Task UseMiddleware()
+        {
+            // arrange
+            ISchema schema = Schema.Create(c => c.RegisterQueryType<BarType>());
+            IQueryExecuter executer = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync("{ a b c}");
+
+            // assert
+            result.Snapshot();
+        }
+
         public class Foo
             : FooBase
         {
@@ -162,6 +181,58 @@ namespace HotChocolate.Types
         public class FooBase
         {
             public virtual string B { get; set; }
+        }
+
+        public class BarType
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Bar");
+
+                descriptor.Field("a").Use(next => context =>
+                {
+                    context.Result = "a_123";
+                    return next(context);
+                }).Type<StringType>();
+
+                descriptor.Field("b").Use<TestFieldMiddleware1>()
+                    .Type<StringType>();
+                descriptor.Field("c").Use<TestFieldMiddleware2>()
+                    .Type<StringType>();
+            }
+        }
+
+        public class TestFieldMiddleware1
+        {
+            private FieldDelegate _next;
+
+            public TestFieldMiddleware1(FieldDelegate next)
+            {
+                _next = next ?? throw new ArgumentNullException(nameof(next));
+            }
+
+            public Task InvokeAsync(IMiddlewareContext context)
+            {
+                context.Result = context.Field.Name + "_456";
+                return _next(context);
+            }
+        }
+
+        public class TestFieldMiddleware2
+        {
+            private FieldDelegate _next;
+
+            public TestFieldMiddleware2(FieldDelegate next)
+            {
+                _next = next ?? throw new ArgumentNullException(nameof(next));
+            }
+
+            public Task InvokeAsync(IMiddlewareContext context)
+            {
+                context.Result = context.Field.Name + "_789";
+                return _next(context);
+            }
         }
     }
 }
