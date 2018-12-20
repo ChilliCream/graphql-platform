@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -13,6 +13,22 @@ namespace HotChocolate.Execution
 {
     public static class ClassQueryExecutionBuilderExtensions
     {
+        public static IQueryExecutionBuilder UseDefaultPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder
+                .AddQueryValidation()
+                .AddDefaultValidationRules()
+                .AddDefaultQueryCache()
+                .UseDiagnostics()
+                .UseRequestTimeout()
+                .UseExceptionHandling()
+                .UseQueryParser()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseOperationExecuter();
+        }
+
         public static IQueryExecutionBuilder UseDiagnostics(
             this IQueryExecutionBuilder builder)
         {
@@ -25,16 +41,10 @@ namespace HotChocolate.Execution
             return builder.Use<ExceptionMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseQueryParser(
+        public static IQueryExecutionBuilder UseOperationExecuter(
             this IQueryExecutionBuilder builder)
         {
-            return builder.Use<ParseQueryMiddleware>();
-        }
-
-        public static IQueryExecutionBuilder UseValidation(
-            this IQueryExecutionBuilder builder)
-        {
-            return builder.Use<ValidateQueryMiddleware>();
+            return builder.Use<ExecuteOperationMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseOperationResolver(
@@ -43,25 +53,22 @@ namespace HotChocolate.Execution
             return builder.Use<ResolveOperationMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseOperationExecuter(
+        public static IQueryExecutionBuilder UseQueryParser(
             this IQueryExecutionBuilder builder)
         {
-            return builder.Use<ExecuteOperationMiddleware>();
+            return builder.Use<ParseQueryMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseDefaultPipeline(
+        public static IQueryExecutionBuilder UseRequestTimeout(
             this IQueryExecutionBuilder builder)
         {
-            return builder
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
-                .AddDefaultQueryCache()
-                .UseDiagnostics()
-                .UseExceptionHandling()
-                .UseQueryParser()
-                .UseValidation()
-                .UseOperationResolver()
-                .UseOperationExecuter();
+            return builder.Use<RequestTimeoutMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseValidation(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<ValidateQueryMiddleware>();
         }
 
         public static IQueryExecutionBuilder Use<TMiddleware>(

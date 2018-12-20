@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,18 +15,26 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            using (var requestTimeoutCts =
-                new CancellationTokenSource(
-                    context.Schema.Options.ExecutionTimeout))
+            try
             {
-
-                using (var combinedCts =
-                    CancellationTokenSource.CreateLinkedTokenSource(
-                        requestTimeoutCts.Token, context.RequestAborted))
+                using (var requestTimeoutCts =
+                    new CancellationTokenSource(
+                        context.Schema.Options.ExecutionTimeout))
                 {
-                    context.RequestAborted = combinedCts.Token;
-                    await _next(context);
+                    using (var combinedCts =
+                        CancellationTokenSource.CreateLinkedTokenSource(
+                            requestTimeoutCts.Token, context.RequestAborted))
+                    {
+                        context.RequestAborted = combinedCts.Token;
+                        await _next(context);
+                    }
                 }
+            }
+            catch (TaskCanceledException ex)
+            {
+                context.Exception = ex;
+                context.Result = new QueryResult(
+                    new QueryError("Execution timeout has been exceeded."));
             }
         }
     }
