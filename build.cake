@@ -106,20 +106,14 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("Restore")
+    .IsDependentOn("CoreTests")
     .Does(() =>
 {
-        using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Debug"}))
+    var buildSettings = new DotNetCoreBuildSettings
     {
-        process.WaitForExit();
-    }
-
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Debug"}))
-    {
-        process.WaitForExit();
-    }
+        Configuration = "Debug",
+        NoRestore = false,
+    };
 
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
@@ -135,40 +129,36 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    // core
-    DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Language.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Types.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Validation.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Core.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Subscriptions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
-
-    // server
-    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
-    // DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
+    DotNetCoreBuild("./src/Server/AspNetClassic.Tests", buildSettings);
+    DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
 });
 
 Task("CoreTests")
     .Does(() =>
 {
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = false,
+    };
+
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = false,
-        NoBuild = false,
+        NoRestore = true,
+        NoBuild = true,
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    // core
+    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
+
     DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
     DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
     DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
@@ -192,8 +182,8 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
-        Exclusions = "**/*.js,**/*.html,**/*.css,",
-        Verbose = true,
+        Exclusions = "**/*.js,**/*.html,**/*.css,**/src/Core/Benchmark.Tests/**/*.*,**/src/Templates/**/*.*",
+        // Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
