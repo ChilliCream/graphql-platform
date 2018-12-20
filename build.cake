@@ -106,49 +106,10 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("Restore")
+    .IsDependentOn("CoreTests")
     .Does(() =>
 {
-        using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Debug"}))
-    {
-        process.WaitForExit();
-    }
 
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Debug"}))
-    {
-        process.WaitForExit();
-    }
-
-    int i = 0;
-    var testSettings = new DotNetCoreTestSettings
-    {
-        Configuration = "Debug",
-        ResultsDirectory = $"./{testOutputDir}",
-        Logger = "trx",
-        NoRestore = true,
-        NoBuild = true,
-        ArgumentCustomization = args => args
-            .Append($"/p:CollectCoverage=true")
-            .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
-    };
-
-    // core
-    DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Language.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Types.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Validation.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Core.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Subscriptions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
-
-    // server
-    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
-    // DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
 });
 
 Task("CoreTests")
