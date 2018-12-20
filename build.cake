@@ -109,27 +109,56 @@ Task("Tests")
     .IsDependentOn("CoreTests")
     .Does(() =>
 {
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = false,
+    };
 
-});
-
-Task("CoreTests")
-    .Does(() =>
-{
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = false,
-        NoBuild = false,
+        NoRestore = true,
+        NoBuild = true,
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    // core
+    DotNetCoreBuild("./src/Server/AspNetClassic.Tests", buildSettings);
+    DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
+});
+
+Task("CoreTests")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = false,
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
+
     DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
     DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
     DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
@@ -154,7 +183,7 @@ Task("SonarBegin")
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/src/Core/Benchmark.Tests/**/*.*,**/src/Templates/**/*.*",
-        Verbose = true,
+        // Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
