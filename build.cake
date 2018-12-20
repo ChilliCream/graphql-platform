@@ -115,21 +115,29 @@ Task("Tests")
 Task("CoreTests")
     .Does(() =>
 {
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug",
+        NoRestore = false,
+    };
+
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = false,
-        NoBuild = false,
+        NoRestore = true,
+        NoBuild = true,
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
     };
 
-    // core
+    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
+
     DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
     DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
     DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
