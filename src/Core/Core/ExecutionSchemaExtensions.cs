@@ -21,6 +21,15 @@ namespace HotChocolate
             return QueryExecutionBuilder.BuildDefault(schema, options);
         }
 
+        public static IQueryExecuter MakeExecutable(
+            this ISchema schema,
+            Func<IQueryExecutionBuilder, IQueryExecutionBuilder> configure)
+        {
+            IQueryExecutionBuilder builder =
+                configure(QueryExecutionBuilder.New());
+            return builder.Build(schema);
+        }
+
         public static ObjectType GetOperationType(
             this ISchema schema,
             OperationType operation)

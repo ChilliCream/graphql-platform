@@ -105,6 +105,11 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return builder.Use(ClassMiddlewareFactory.Create(factory));
         }
 
@@ -128,6 +133,11 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IQueryParser> factory)
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton(factory);
 
@@ -137,8 +147,13 @@ namespace HotChocolate.Execution
         public static IQueryExecutionBuilder AddParser<T>(
             this IQueryExecutionBuilder builder,
             T parser)
-            where T : IQueryParser
+            where T : class, IQueryParser
         {
+            if (parser == null)
+            {
+                throw new ArgumentNullException(nameof(parser));
+            }
+
             builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton<IQueryParser>(parser);
 
@@ -176,6 +191,11 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             IErrorHandlerOptionsAccessor options)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             builder
                 .RemoveService<IErrorHandler>()
                 .RemoveService<IErrorHandlerOptionsAccessor>();
@@ -189,8 +209,27 @@ namespace HotChocolate.Execution
 
         public static IQueryExecutionBuilder AddErrorFilter(
             this IQueryExecutionBuilder builder,
+            Func<IError, Exception, IError> errorFilter)
+        {
+            if (errorFilter == null)
+            {
+                throw new ArgumentNullException(nameof(errorFilter));
+            }
+
+            builder.Services.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter));
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IErrorFilter> factory)
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             builder.Services.AddSingleton<IErrorFilter>(factory);
             return builder;
         }

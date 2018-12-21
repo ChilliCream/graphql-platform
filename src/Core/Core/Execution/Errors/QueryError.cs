@@ -96,9 +96,17 @@ namespace HotChocolate.Execution
                 if (value == null)
                 {
                     _extensions = _extensions.Remove("code");
+                    if (_extensions.Count == 0)
+                    {
+                        _extensions = null;
+                    }
                 }
                 else
                 {
+                    if (_extensions == null)
+                    {
+                        _extensions = ImmutableDictionary<string, object>.Empty;
+                    }
                     _extensions = _extensions.SetItem("code", value);
                 }
             }

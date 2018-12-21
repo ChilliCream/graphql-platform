@@ -1,0 +1,24 @@
+{
+  "Data": {
+    "foo": null
+  },
+  "Errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "foo"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "message": "Foo",
+        "stackTrace": "   at Core.Tests.Execution.Errors.ErrorHandlerTests.<>c.<AddClassErrorFilterWithFactory>b__3_2(IResolverContext ctx) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 124\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteFieldMiddlewareAsync(ResolverTask resolverTask) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 88\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverTask resolverTask, IErrorHandler errorHandler) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 58",
+        "code": "Foo123"
+      }
+    }
+  ]
+}
