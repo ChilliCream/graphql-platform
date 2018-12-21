@@ -157,7 +157,6 @@ namespace HotChocolate.Stitching
             services.AddSingleton<IStitchingContext>(
                 new StitchingContext(schemas));
             services.AddSingleton<IQueryBroker, QueryBroker>();
-            services.AddSingleton<IQueryParser, AnnotationQueryParser>();
             services.AddSingleton<ISchema>(sp => Schema.Create(
                 schema_stiched,
                 c =>
@@ -167,9 +166,11 @@ namespace HotChocolate.Stitching
                 }));
 
             var schema = services.BuildServiceProvider().GetService<ISchema>();
+            IQueryExecuter executer = schema.MakeExecutable(
+                t => t.UseDefaultPipeline().AddParser<AnnotationQueryParser>());
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             result.Snapshot();

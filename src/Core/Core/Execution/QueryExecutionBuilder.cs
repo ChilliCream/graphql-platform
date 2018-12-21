@@ -28,10 +28,28 @@ namespace HotChocolate.Execution
 
         public IQueryExecuter Build(ISchema schema)
         {
-            IServiceProvider services = Services.BuildServiceProvider();
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            IServiceProvider services = CopyServiceCollection()
+                .AddSingleton<ISchema>(schema)
+                .BuildServiceProvider();
+
             QueryDelegate middleware = Compile(_middlewareComponents);
 
             return new QueryExecuter(schema, services, middleware);
+        }
+
+        private ServiceCollection CopyServiceCollection()
+        {
+            var copy = new ServiceCollection();
+            foreach (var descriptor in Services)
+            {
+                ((IList<ServiceDescriptor>)copy).Add(descriptor);
+            }
+            return copy;
         }
 
         private QueryDelegate Compile(IEnumerable<QueryMiddleware> components)
