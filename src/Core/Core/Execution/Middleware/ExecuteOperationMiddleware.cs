@@ -28,17 +28,16 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            if (!IsContextValid(context))
+            if (IsContextValid(context))
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                IExecutionStrategy strategy =
+                    _strategyResolver.Resolve(context.Operation.Operation);
+                IExecutionContext execContext =
+                    CreateExecutionContext(context);
+                context.Result = await strategy.ExecuteAsync(
+                    execContext, execContext.RequestAborted);
             }
-
-            IExecutionStrategy strategy =
-                _strategyResolver.Resolve(context.Operation.Operation);
-            IExecutionContext execContext = CreateExecutionContext(context);
-            context.Result = await strategy.ExecuteAsync(
-                execContext, execContext.RequestAborted);
+            await _next(context);
         }
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
@@ -96,7 +95,8 @@ namespace HotChocolate.Execution
 
         private bool IsContextValid(IQueryContext context)
         {
-            return true;
+            return context.Document != null
+                && context.Operation != null;
         }
     }
 }
