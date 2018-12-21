@@ -75,8 +75,7 @@ namespace HotChocolate.Execution
         private OperationRequest CreateOperationRequest(
             IQueryContext context)
         {
-            IServiceProvider services = context.Request.Services
-                ?? context.Schema.Services;
+            IServiceProvider services = context.Services;
 
             return new OperationRequest(services,
                 context.Schema.Sessions.CreateSession(services))

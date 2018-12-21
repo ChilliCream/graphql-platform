@@ -13,8 +13,10 @@ namespace HotChocolate.Execution
             QueryDelegate next,
             IErrorHandler errorHandler)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _errorHandler = errorHandler ?? ErrorHandler.Default;
+            _next = next
+                ?? throw new ArgumentNullException(nameof(next));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
         }
 
         public async Task InvokeAsync(IQueryContext context)

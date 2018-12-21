@@ -33,13 +33,16 @@ namespace HotChocolate.Execution
                 schema, new EmptyServiceProvider(), request);
             var middleware = new RequestTimeoutMiddleware(
                 c => Task.Delay(1000, c.RequestAborted),
+                ErrorHandler.Default,
                 options.Object);
 
             // act
-            Func<Task> func = () => middleware.InvokeAsync(context);
+            await middleware.InvokeAsync(context);
 
             // assert
-            await Assert.ThrowsAsync<TaskCanceledException>(func);
+            Assert.NotNull(context.Result);
+            Assert.IsType<TaskCanceledException>(context.Exception);
+            context.Result.Snapshot();
         }
     }
 }

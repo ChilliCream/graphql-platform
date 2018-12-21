@@ -49,8 +49,7 @@ namespace HotChocolate.Execution
             Services = _serviceFactory.Services = request.Services;
             _resolverCache = request.Session?.CustomContexts
                 .GetCustomContext<IResolverCache>();
-            ErrorHandler = Services.GetService<IErrorHandler>()
-                ?? HotChocolate.Execution.ErrorHandler.Default;
+            ErrorHandler = Services.GetRequiredService<IErrorHandler>();
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);

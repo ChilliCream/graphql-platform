@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -41,8 +43,12 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ a }").ToReadOnly();
 
-            var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request)
+            var services = new DictionaryServiceProvider(
+                new KeyValuePair<Type, object>(
+                    typeof(IErrorHandler),
+                    ErrorHandler.Default));
+
+            var context = new QueryContext(schema, services, request)
             {
                 Document = query,
                 Operation = operation
