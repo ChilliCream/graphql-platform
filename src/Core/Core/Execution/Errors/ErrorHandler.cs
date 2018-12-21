@@ -16,10 +16,24 @@ namespace HotChocolate.Execution
             IEnumerable<IErrorFilter> errorFilters,
             IErrorHandlerOptionsAccessor options)
         {
-            _filters = errorFilters?.ToArray()
-                ?? Array.Empty<IErrorFilter>();
-            _includeExceptionDetails = options?.IncludeExceptionDetails
-                ?? false;
+            if (errorFilters == null)
+            {
+                throw new ArgumentNullException(nameof(errorFilters));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _filters = errorFilters.ToArray();
+            _includeExceptionDetails = options.IncludeExceptionDetails;
+        }
+
+        private ErrorHandler()
+        {
+            _filters = Array.Empty<IErrorFilter>(); ;
+            _includeExceptionDetails = false;
         }
 
         public IError Handle(IError error)
@@ -97,6 +111,6 @@ namespace HotChocolate.Execution
         }
 
         public static ErrorHandler Default { get; } =
-            new ErrorHandler(null, null);
+            new ErrorHandler();
     }
 }

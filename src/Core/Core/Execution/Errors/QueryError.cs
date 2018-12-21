@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
             Path = path;
             Locations = locations;
 
-            if (extensions.Count > 0)
+            if (extensions != null && extensions.Count > 0)
             {
                 _extensions = extensions;
             }

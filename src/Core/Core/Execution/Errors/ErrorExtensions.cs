@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
                 error.Message,
                 error.Path,
                 QueryError.CreateLocations(nodes),
-                error.Extensions.ToImmutableDictionary());
+                error.Extensions?.ToImmutableDictionary());
         }
     }
 }

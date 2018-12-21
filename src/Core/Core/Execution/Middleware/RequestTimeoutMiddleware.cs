@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
                     await _next(context);
                 }
             }
-            catch (Exception ex)
+            catch (TaskCanceledException ex)
             {
                 if (requestTimeoutCts.IsCancellationRequested)
                 {
@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                requestTimeoutCts?.Dispose();
+                requestTimeoutCts.Dispose();
             }
         }
     }
