@@ -6,12 +6,15 @@ namespace HotChocolate.Execution
 {
     internal sealed class ExceptionMiddleware
     {
-        public readonly QueryDelegate _next;
-        public readonly IQueryValidator _validator;
+        private readonly QueryDelegate _next;
+        private readonly IErrorHandler _errorHandler;
 
-        public ExceptionMiddleware(QueryDelegate next)
+        public ExceptionMiddleware(
+            QueryDelegate next,
+            IErrorHandler errorHandler)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _errorHandler = errorHandler ?? ErrorHandler.Default;
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -23,28 +26,14 @@ namespace HotChocolate.Execution
             catch (QueryException ex)
             {
                 context.Exception = ex;
-                context.Result = new QueryResult(ex.Errors);
+                context.Result = new QueryResult(
+                    _errorHandler.Handle(ex.Errors));
             }
             catch (Exception ex)
             {
                 context.Exception = ex;
                 context.Result = new QueryResult(
-                    CreateErrorFromException(context.Schema, ex));
-            }
-        }
-
-        private IError CreateErrorFromException(
-            ISchema schema,
-            Exception exception)
-        {
-            if (schema.Options.DeveloperMode)
-            {
-                return new QueryError(
-                    $"{exception.Message}\r\n\r\n{exception.StackTrace}");
-            }
-            else
-            {
-                return new QueryError("Unexpected execution error.");
+                    _errorHandler.Handle(ex));
             }
         }
     }

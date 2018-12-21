@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate
 {
-    public interface IErrorHanlder
+    public interface IErrorHandler
     {
         IError Handle(IError error);
+
+        IEnumerable<IError> Handle(IEnumerable<IError> error);
 
         IError Handle(Exception exception);
     }

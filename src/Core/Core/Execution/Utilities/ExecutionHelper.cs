@@ -52,21 +52,6 @@ namespace HotChocolate.Execution
 
             return false;
         }
-
-        public static IError CreateError(
-            this ResolverTask resolverTask,
-            Exception exception)
-        {
-            if (resolverTask.Options.DeveloperMode)
-            {
-                return resolverTask.CreateError(
-                    $"{exception.Message}\r\n\r\n{exception.StackTrace}");
-            }
-            else
-            {
-                return resolverTask.CreateError("Unexpected execution error.");
-            }
-        }
     }
 
 }

@@ -65,6 +65,7 @@ namespace HotChocolate.Execution
             // start field resolvers
             BeginExecuteResolverBatch(
                 currentBatch,
+                executionContext.ErrorHandler,
                 cancellationToken);
 
             // execute batch data loaders
@@ -82,6 +83,7 @@ namespace HotChocolate.Execution
 
         private void BeginExecuteResolverBatch(
             IEnumerable<ResolverTask> currentBatch,
+            IErrorHandler errorHanlder,
             CancellationToken cancellationToken)
         {
             foreach (ResolverTask resolverTask in currentBatch)
@@ -102,6 +104,7 @@ namespace HotChocolate.Execution
                 {
                     resolverTask.Task = ExecuteResolverAsync(
                         resolverTask,
+                        errorHanlder,
                         cancellationToken);
                 }
 

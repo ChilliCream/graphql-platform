@@ -80,6 +80,7 @@ namespace HotChocolate.Execution
         {
             resolverTask.Task = ExecuteResolverAsync(
                 resolverTask,
+                executionContext.ErrorHandler,
                 cancellationToken);
 
             await CompleteDataLoadersAsync(

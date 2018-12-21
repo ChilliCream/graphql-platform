@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,6 +11,9 @@ namespace HotChocolate.Execution
     public class QueryError
        : IError
     {
+        [JsonIgnore]
+        private ImmutableDictionary<string, object> _extensions;
+
         public QueryError(string message, params ErrorProperty[] extensions)
             : this(message, null, null, extensions)
         {
@@ -24,13 +28,22 @@ namespace HotChocolate.Execution
         public QueryError(
             string message, IReadOnlyCollection<Location> locations,
             params ErrorProperty[] extensions)
-            : this(message, null, locations, extensions)
+            : this(message, (Path)null, locations, extensions)
         {
         }
 
         public QueryError(string message, Path path,
             IReadOnlyCollection<Location> locations,
             params ErrorProperty[] extensions)
+            : this(message, path?.ToCollection(), locations,
+                extensions?.ToImmutableDictionary(p => p.Name, p => p.Value))
+        {
+        }
+
+        private QueryError(string message,
+            IReadOnlyCollection<string> path,
+            IReadOnlyCollection<Location> locations,
+            ImmutableDictionary<string, object> extensions)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -40,12 +53,12 @@ namespace HotChocolate.Execution
             }
 
             Message = message;
-            Path = path?.ToCollection();
+            Path = path;
             Locations = locations;
 
-            if (extensions?.Length > 0)
+            if (extensions.Count > 0)
             {
-                Extensions = extensions.ToDictionary(p => p.Name, p => p.Value);
+                _extensions = extensions;
             }
         }
 
@@ -65,9 +78,31 @@ namespace HotChocolate.Execution
         [JsonProperty("extensions",
             Order = int.MaxValue,
             NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyDictionary<string, object> Extensions { get; }
+        public IReadOnlyDictionary<string, object> Extensions => _extensions;
 
-        public string Code => null;
+        [JsonIgnore]
+        public string Code
+        {
+            get
+            {
+                if (_extensions.TryGetValue("code", out object o))
+                {
+                    return o.ToString();
+                }
+                return null;
+            }
+            private set
+            {
+                if (value == null)
+                {
+                    _extensions = _extensions.Remove("code");
+                }
+                else
+                {
+                    _extensions = _extensions.SetItem("code", value);
+                }
+            }
+        }
 
         #region Factories
 
@@ -213,6 +248,60 @@ namespace HotChocolate.Execution
             return syntaxNodes.Select(t => new Location(
                 t.Location.StartToken.Line,
                 t.Location.StartToken.Column)).ToArray();
+        }
+
+        public IError WithMessage(string message)
+        {
+            return new QueryError(message, Path, Locations, _extensions);
+        }
+
+        public IError WithCode(string code)
+        {
+            return new QueryError(Message, Path, Locations, _extensions)
+            {
+                Code = code
+            };
+        }
+
+        public IError WithPath(Path path)
+        {
+            return new QueryError(Message,
+                path?.ToCollection(),
+                Locations, _extensions);
+        }
+
+        public IError WithLocations(IReadOnlyCollection<Location> locations)
+        {
+            return new QueryError(Message, Path, locations, _extensions);
+        }
+
+        public IError WithExtensions(
+            IReadOnlyDictionary<string, object> extensions)
+        {
+            return new QueryError(Message, Path, Locations,
+                extensions?.ToImmutableDictionary());
+        }
+
+        public IError AddExtension(string key, object value)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return new QueryError(Message, Path, Locations,
+                _extensions.SetItem(key, value));
+        }
+
+        public IError RemoveExtension(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return new QueryError(Message, Path, Locations,
+                _extensions.Remove(key));
         }
 
         #endregion
