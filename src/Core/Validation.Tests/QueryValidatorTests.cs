@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -13,7 +14,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             // act
@@ -28,7 +29,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             // act
@@ -57,7 +58,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -95,7 +96,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -134,7 +135,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -162,7 +163,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -192,7 +193,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -220,7 +221,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -253,7 +254,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -285,7 +286,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -328,7 +329,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -353,7 +354,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -393,7 +394,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -440,7 +441,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -469,7 +470,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -507,7 +508,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -544,7 +545,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -573,7 +574,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -607,7 +608,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -644,7 +645,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -673,7 +674,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -705,7 +706,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -739,7 +740,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -768,7 +769,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -797,7 +798,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -825,7 +826,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -852,7 +853,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -884,7 +885,7 @@ namespace HotChocolate.Validation
             ");
 
             Schema schema = ValidationUtils.CreateSchema();
-            var queryValidator = CreateValidator();
+            IQueryValidator queryValidator = CreateValidator();
 
             // act
             QueryValidationResult result =
@@ -903,8 +904,11 @@ namespace HotChocolate.Validation
         private IQueryValidator CreateValidator()
         {
             var services = new ServiceCollection();
-            services.AddQueryValidation();
+            var options = new QueryExecutionOptions();
+
+            services.AddQueryValidation(options);
             services.AddDefaultValidationRules();
+
             return services.BuildServiceProvider()
                 .GetRequiredService<IQueryValidator>();
         }

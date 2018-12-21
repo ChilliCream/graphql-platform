@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
         {
         }
 
-        private QueryError(string message,
+        internal QueryError(string message,
             IReadOnlyCollection<string> path,
             IReadOnlyCollection<Location> locations,
             ImmutableDictionary<string, object> extensions)
@@ -221,7 +221,7 @@ namespace HotChocolate.Execution
                 new ErrorProperty(nameof(variableName), variableName));
         }
 
-        protected static Location[] ConvertLocation(
+        protected internal static Location[] ConvertLocation(
             Language.Location tokenLocation)
         {
             if (tokenLocation == null)
@@ -237,7 +237,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        protected static IReadOnlyCollection<Location> CreateLocations(
+        protected internal static IReadOnlyCollection<Location> CreateLocations(
             params Language.ISyntaxNode[] syntaxNodes)
         {
             if (syntaxNodes?.Length == 0)

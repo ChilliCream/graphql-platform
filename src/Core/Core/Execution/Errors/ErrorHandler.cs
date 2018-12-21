@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Execution
 {
@@ -9,12 +10,16 @@ namespace HotChocolate.Execution
         : IErrorHandler
     {
         private readonly IErrorFilter[] _filters;
-        // TODO : add error options
         private readonly bool _includeExceptionDetails;
 
-        public ErrorHandler(IEnumerable<IErrorFilter> errorFilters)
+        public ErrorHandler(
+            IEnumerable<IErrorFilter> errorFilters,
+            IErrorHandlerOptionsAccessor options)
         {
-            _filters = errorFilters?.ToArray() ?? Array.Empty<IErrorFilter>();
+            _filters = errorFilters?.ToArray()
+                ?? Array.Empty<IErrorFilter>();
+            _includeExceptionDetails = options?.IncludeExceptionDetails
+                ?? false;
         }
 
         public IError Handle(IError error)
@@ -53,14 +58,15 @@ namespace HotChocolate.Execution
             }
         }
 
-        public IError Handle(Exception exception)
+        public IError Handle(Exception exception,
+            Func<IError, IError> configure)
         {
             if (exception == null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            IError current = CreateErrorFromException(exception);
+            IError current = configure(CreateErrorFromException(exception));
 
             foreach (IErrorFilter filter in _filters)
             {
@@ -90,6 +96,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public static ErrorHandler Default { get; } = new ErrorHandler(null);
+        public static ErrorHandler Default { get; } =
+            new ErrorHandler(null, null);
     }
 }

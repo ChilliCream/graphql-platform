@@ -26,8 +26,7 @@ namespace HotChocolate.Execution
             object result = await ExecuteMiddlewareAsync(
                 resolverTask, errorHandler);
 
-            // TODO : ErrorFilter
-            if (result is IError error)
+            if (result is IError || result is IEnumerable<IError>)
             {
                 activity?.AddTag("error", "true");
             }
@@ -60,7 +59,6 @@ namespace HotChocolate.Execution
                         resolverTask);
                 }
             }
-            // TODO : ErrorFilter
             catch (QueryException ex)
             {
                 result = ex.Errors;
@@ -71,7 +69,9 @@ namespace HotChocolate.Execution
                     resolverTask.ResolverContext,
                     ex);
 
-                result = errorHandler.Handle(ex);
+                result = errorHandler.Handle(ex, error => error
+                    .WithPath(resolverTask.Path)
+                    .WithSyntaxNodes(resolverTask.FieldSelection.Selection));
             }
 
             return result;

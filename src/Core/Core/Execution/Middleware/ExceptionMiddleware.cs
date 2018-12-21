@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             {
                 context.Exception = ex;
                 context.Result = new QueryResult(
-                    _errorHandler.Handle(ex));
+                    _errorHandler.Handle(ex, error => error));
             }
         }
     }

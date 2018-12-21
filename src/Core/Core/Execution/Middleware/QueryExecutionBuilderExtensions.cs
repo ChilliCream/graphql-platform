@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +10,36 @@ namespace HotChocolate.Execution
 {
     public static class ClassQueryExecutionBuilderExtensions
     {
+        public static IQueryExecutionBuilder UseDefaultPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder
+                .UseDefaultPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UseDefaultPipeline(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return builder
+                .AddErrorHandler(options)
+                .AddQueryValidation(options)
+                .AddDefaultValidationRules()
+                .AddDefaultQueryCache()
+                .UseDiagnostics()
+                .UseRequestTimeout(options)
+                .UseExceptionHandling()
+                .UseQueryParser()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseOperationExecuter();
+        }
+
         public static IQueryExecutionBuilder UseDiagnostics(
             this IQueryExecutionBuilder builder)
         {
@@ -25,16 +52,10 @@ namespace HotChocolate.Execution
             return builder.Use<ExceptionMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseQueryParser(
+        public static IQueryExecutionBuilder UseOperationExecuter(
             this IQueryExecutionBuilder builder)
         {
-            return builder.Use<ParseQueryMiddleware>();
-        }
-
-        public static IQueryExecutionBuilder UseValidation(
-            this IQueryExecutionBuilder builder)
-        {
-            return builder.Use<ValidateQueryMiddleware>();
+            return builder.Use<ExecuteOperationMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseOperationResolver(
@@ -43,26 +64,31 @@ namespace HotChocolate.Execution
             return builder.Use<ResolveOperationMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseOperationExecuter(
+        public static IQueryExecutionBuilder UseQueryParser(
             this IQueryExecutionBuilder builder)
         {
-            return builder.Use<ExecuteOperationMiddleware>();
+            return builder.Use<ParseQueryMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseDefaultPipeline(
+        public static IQueryExecutionBuilder UseRequestTimeout(
+            this IQueryExecutionBuilder builder,
+            IRequestTimeoutOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            builder.Services
+                .AddSingleton(options);
+
+            return builder.Use<RequestTimeoutMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseValidation(
             this IQueryExecutionBuilder builder)
         {
-            return builder
-                .AddErrorHandler()
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
-                .AddDefaultQueryCache()
-                .UseDiagnostics()
-                .UseExceptionHandling()
-                .UseQueryParser()
-                .UseValidation()
-                .UseOperationResolver()
-                .UseOperationExecuter();
+            return builder.Use<ValidateQueryMiddleware>();
         }
 
         public static IQueryExecutionBuilder Use<TMiddleware>(
@@ -77,8 +103,7 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return builder.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>(factory));
+            return builder.Use(ClassMiddlewareFactory.Create(factory));
         }
 
         public static IQueryExecutionBuilder AddParser<T>(
@@ -86,7 +111,8 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, IQueryParser> factory)
         {
             builder.RemoveService<IQueryParser>();
-            builder.Services.AddSingleton<IQueryParser>(factory);
+            builder.Services.AddSingleton(factory);
+
             return builder;
         }
 
@@ -97,6 +123,7 @@ namespace HotChocolate.Execution
         {
             builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton<IQueryParser>(parser);
+
             return builder;
         }
 
@@ -104,17 +131,15 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             int size)
         {
-            builder.RemoveService<Cache<DirectiveLookup>>()
+            builder
+                .RemoveService<Cache<DirectiveLookup>>()
                 .RemoveService<Cache<DocumentNode>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
-
             builder.Services
-                .AddSingleton<Cache<DirectiveLookup>>(
-                    new Cache<DirectiveLookup>(size))
-                .AddSingleton<Cache<DocumentNode>>(
-                    new Cache<DocumentNode>(size))
-                .AddSingleton<Cache<OperationDefinitionNode>>(
-                    new Cache<OperationDefinitionNode>(size));
+                .AddSingleton(new Cache<DirectiveLookup>(size))
+                .AddSingleton(new Cache<DocumentNode>(size))
+                .AddSingleton(new Cache<OperationDefinitionNode>(size));
+
             return builder;
         }
 
@@ -126,13 +151,17 @@ namespace HotChocolate.Execution
             {
                 builder.AddQueryCache(Defaults.CacheSize);
             }
+
             return builder;
         }
 
         public static IQueryExecutionBuilder AddErrorHandler(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder,
+            IErrorHandlerOptionsAccessor options)
         {
-            builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
+            builder.Services
+                .AddSingleton<IErrorHandler, ErrorHandler>()
+                .AddSingleton<IErrorHandlerOptionsAccessor>(options);
             return builder;
         }
 
@@ -164,7 +193,9 @@ namespace HotChocolate.Execution
         {
             ServiceDescriptor serviceDescriptor = builder.Services
                 .FirstOrDefault(t => t.ServiceType == serviceType);
+
             builder.Services.Remove(serviceDescriptor);
+
             return builder;
         }
     }

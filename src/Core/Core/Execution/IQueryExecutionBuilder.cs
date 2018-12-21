@@ -1,6 +1,5 @@
-﻿using System;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution

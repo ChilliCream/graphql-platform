@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -34,24 +34,5 @@ namespace HotChocolate.Execution
 
             return resolverResult;
         }
-
-        public static bool IsMaxExecutionDepthReached(
-            this ResolverTask resolverTask)
-        {
-            if (resolverTask.Options.MaxExecutionDepth.HasValue)
-            {
-                bool isLeafField =
-                    resolverTask.FieldSelection.Field.Type.IsLeafType();
-
-                int maxExecutionDepth = isLeafField
-                    ? resolverTask.Options.MaxExecutionDepth.Value - 1
-                    : resolverTask.Options.MaxExecutionDepth.Value;
-
-                return resolverTask.Path.Depth > maxExecutionDepth;
-            }
-
-            return false;
-        }
     }
-
 }
