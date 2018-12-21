@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -48,6 +49,7 @@ namespace HotChocolate.Execution
             Services = _serviceFactory.Services = request.Services;
             _resolverCache = request.Session?.CustomContexts
                 .GetCustomContext<IResolverCache>();
+            ErrorHandler = Services.GetRequiredService<IErrorHandler>();
 
             Fragments = new FragmentCollection(schema, queryDocument);
             _fieldCollector = new FieldCollector(variables, Fragments);
@@ -93,6 +95,8 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<string, object> RequestProperties =>
             _request.Properties;
 
+        public IErrorHandler ErrorHandler { get; }
+
         public void ReportError(IError error)
         {
             if (error == null)
@@ -100,7 +104,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _errors.Add(error);
+            _errors.Add(ErrorHandler.Handle(error));
         }
 
         public IEnumerable<IError> GetErrors() => _errors;

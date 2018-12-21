@@ -5,7 +5,6 @@
   },
   "Errors": [
     {
-      "Code": null,
       "message": "hello world y",
       "path": [
         "y"
@@ -18,7 +17,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "hello world yasync",
       "path": [
         "yasync"

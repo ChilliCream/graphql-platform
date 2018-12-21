@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,22 +45,23 @@ namespace HotChocolate.Execution
 
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                if (resolverTask.IsMaxExecutionDepthReached())
-                {
-                    resolverTask.ReportError(
-                        "The field has a depth of " +
-                        $"{resolverTask.Path.Depth + 1}," +
-                        " which exceeds max allowed depth of " +
-                        $"{executionContext.Options.MaxExecutionDepth}");
-                }
-                else
-                {
-                    await ExecuteResolverSeriallyAsync(
-                        executionContext,
-                        resolverTask,
-                        nextBatch.Add,
-                        cancellationToken);
-                }
+                // TODO: This need to be refactored, cause MaxExecutionDepth has been moved to execution options.
+                //if (resolverTask.IsMaxExecutionDepthReached())
+                //{
+                //    resolverTask.ReportError(
+                //        "The field has a depth of " +
+                //        $"{resolverTask.Path.Depth + 1}," +
+                //        " which exceeds max allowed depth of " +
+                //        $"{executionContext.Options.MaxExecutionDepth}");
+                //}
+                //else
+                //{
+                await ExecuteResolverSeriallyAsync(
+                    executionContext,
+                    resolverTask,
+                    nextBatch.Add,
+                    cancellationToken);
+                //}
 
                 // execute child fields with the default parallel flow logic
                 await ExecuteResolversAsync(
@@ -80,6 +81,7 @@ namespace HotChocolate.Execution
         {
             resolverTask.Task = ExecuteResolverAsync(
                 resolverTask,
+                executionContext.ErrorHandler,
                 cancellationToken);
 
             await CompleteDataLoadersAsync(

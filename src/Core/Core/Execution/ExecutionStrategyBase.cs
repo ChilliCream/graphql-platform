@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,6 +65,7 @@ namespace HotChocolate.Execution
             // start field resolvers
             BeginExecuteResolverBatch(
                 currentBatch,
+                executionContext.ErrorHandler,
                 cancellationToken);
 
             // execute batch data loaders
@@ -82,29 +83,13 @@ namespace HotChocolate.Execution
 
         private void BeginExecuteResolverBatch(
             IEnumerable<ResolverTask> currentBatch,
+            IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                bool isLeafField =
-                    resolverTask.FieldSelection.Field.Type.IsLeafType();
-
-                if (resolverTask.IsMaxExecutionDepthReached())
-                {
-                    resolverTask.Task = Task.FromResult<object>(null);
-                    resolverTask.ReportError(
-                        "The field has a depth of " +
-                        $"{resolverTask.Path.Depth + 1}, " +
-                        "which exceeds max allowed depth of " +
-                        $"{resolverTask.Options.MaxExecutionDepth}");
-                }
-                else
-                {
-                    resolverTask.Task = ExecuteResolverAsync(
-                        resolverTask,
-                        cancellationToken);
-                }
-
+                resolverTask.Task = ExecuteResolverAsync(
+                    resolverTask, errorHandler, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }

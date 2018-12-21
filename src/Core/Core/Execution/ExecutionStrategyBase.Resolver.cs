@@ -17,15 +17,16 @@ namespace HotChocolate.Execution
 
         protected static async Task<object> ExecuteResolverAsync(
            ResolverTask resolverTask,
+           IErrorHandler errorHandler,
            CancellationToken cancellationToken)
         {
             Activity activity = ResolverDiagnosticEvents.BeginResolveField(
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask);
+                resolverTask, errorHandler);
 
-            if (result is IError error)
+            if (result is IError || result is IEnumerable<IError>)
             {
                 activity?.AddTag("error", "true");
             }
@@ -39,7 +40,8 @@ namespace HotChocolate.Execution
         }
 
         private static async Task<object> ExecuteMiddlewareAsync(
-            ResolverTask resolverTask)
+            ResolverTask resolverTask,
+            IErrorHandler errorHandler)
         {
             object result = null;
 
@@ -67,7 +69,9 @@ namespace HotChocolate.Execution
                     resolverTask.ResolverContext,
                     ex);
 
-                result = resolverTask.CreateError(ex);
+                result = errorHandler.Handle(ex, error => error
+                    .WithPath(resolverTask.Path)
+                    .WithSyntaxNodes(resolverTask.FieldSelection.Selection));
             }
 
             return result;

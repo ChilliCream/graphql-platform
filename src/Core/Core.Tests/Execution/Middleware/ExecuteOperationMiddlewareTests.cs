@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
@@ -41,15 +44,24 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ a }").ToReadOnly();
 
-            var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request)
+            var services = new DictionaryServiceProvider(
+                new KeyValuePair<Type, object>(
+                    typeof(IErrorHandler),
+                    ErrorHandler.Default));
+
+            var context = new QueryContext(schema, services, request)
             {
                 Document = query,
                 Operation = operation
             };
 
+            var options = new QueryExecutionOptions();
+            var strategyResolver = new ExecutionStrategyResolver(options);
+
             var middleware = new ExecuteOperationMiddleware(
-                c => Task.CompletedTask, null);
+                c => Task.CompletedTask,
+                strategyResolver,
+                new Cache<DirectiveLookup>(10));
 
             // act
             await middleware.InvokeAsync(context);

@@ -20,9 +20,9 @@ namespace HotChocolate.Execution
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _parser = parser
-                ?? new DefaultQueryParser();
+                ?? throw new ArgumentNullException(nameof(parser));
             _queryCache = queryCache
-                ?? new Cache<DocumentNode>(Defaults.CacheSize);
+                ?? throw new ArgumentNullException(nameof(queryCache));
         }
 
         public Task InvokeAsync(IQueryContext context)

@@ -19,6 +19,8 @@ namespace HotChocolate.Execution
 
         IServiceProvider Services { get; }
 
+        IErrorHandler ErrorHandler { get; }
+
         // context
         object RootValue { get; }
 

@@ -37,5 +37,19 @@ namespace HotChocolate
         /// This property is optional and can be null.
         /// </summary>
         IReadOnlyDictionary<string, object> Extensions { get; }
+
+        IError WithMessage(string message);
+
+        IError WithCode(string code);
+
+        IError WithPath(Path path);
+
+        IError WithLocations(IReadOnlyCollection<Location> locations);
+
+        IError WithExtensions(IReadOnlyDictionary<string, object> extensions);
+
+        IError AddExtension(string key, object value);
+
+        IError RemoveExtension(string key);
     }
 }

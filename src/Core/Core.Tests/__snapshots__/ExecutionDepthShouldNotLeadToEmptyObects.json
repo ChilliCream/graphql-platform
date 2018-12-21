@@ -62,7 +62,6 @@
   },
   "Errors": [
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -78,7 +77,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -94,7 +92,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -110,7 +107,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -126,7 +122,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -142,7 +137,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -158,7 +152,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -174,7 +167,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -190,7 +182,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -206,7 +197,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -222,7 +212,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "The field has a depth of 4, which exceeds max allowed depth of 3",
       "path": [
         "hero",
@@ -238,7 +227,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -254,7 +242,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -270,7 +257,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -286,7 +272,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -302,7 +287,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -318,7 +302,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -334,7 +317,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -350,7 +332,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -366,7 +347,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -382,7 +362,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",
@@ -398,7 +377,6 @@
       ]
     },
     {
-      "Code": null,
       "message": "Cannot return null for non-nullable field.",
       "path": [
         "hero",

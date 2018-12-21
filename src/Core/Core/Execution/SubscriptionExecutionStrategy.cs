@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
@@ -13,6 +14,18 @@ namespace HotChocolate.Execution
     internal class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
+        private IRequestTimeoutOptionsAccessor _options;
+
+        public SubscriptionExecutionStrategy(
+            IRequestTimeoutOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            _options = options;
+        }
+
         public override Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
@@ -54,14 +67,13 @@ namespace HotChocolate.Execution
             if (selections.Count == 1)
             {
                 FieldSelection selection = selections.Single();
-
                 Dictionary<string, ArgumentValue> argumentValues =
                     selection.CoerceArgumentValues(
                         executionContext.Variables);
+                var arguments = new List<ArgumentNode>();
 
-                List<ArgumentNode> arguments = new List<ArgumentNode>();
-
-                foreach (var argumentValue in argumentValues)
+                foreach (KeyValuePair<string, ArgumentValue> argumentValue in
+                    argumentValues)
                 {
                     IInputType argumentType = argumentValue.Value.Type;
                     object value = argumentValue.Value.Value;
@@ -101,25 +113,22 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            TimeSpan executionTimeout =
-                executionContext.Schema.Options.ExecutionTimeout;
-
-            var requestTimeoutCts =
-                new CancellationTokenSource(executionTimeout);
-
-            var combinedCts =
-                CancellationTokenSource.CreateLinkedTokenSource(
-                    requestTimeoutCts.Token, cancellationToken);
+            var requestTimeoutCts = new CancellationTokenSource(
+                _options.ExecutionTimeout);
 
             try
             {
-                return await ExecuteQueryAsync(
-                    executionContext,
-                    combinedCts.Token);
+                using (var combinedCts = CancellationTokenSource
+                    .CreateLinkedTokenSource(requestTimeoutCts.Token,
+                        cancellationToken))
+                {
+                    return await ExecuteQueryAsync(
+                        executionContext,
+                        cancellationToken);
+                }
             }
             finally
             {
-                combinedCts.Dispose();
                 requestTimeoutCts.Dispose();
             }
         }

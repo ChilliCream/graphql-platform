@@ -9,46 +9,35 @@ namespace HotChocolate.Execution
 {
     internal sealed class ExecuteOperationMiddleware
     {
-        private static readonly Dictionary<OperationType, IExecutionStrategy> _executionStrategy =
-            new Dictionary<OperationType, IExecutionStrategy>
-            {
-                { OperationType.Query, new QueryExecutionStrategy() },
-                { OperationType.Mutation, new MutationExecutionStrategy() },
-                { OperationType.Subscription, new SubscriptionExecutionStrategy() }
-            };
-
         private readonly QueryDelegate _next;
+        private readonly IExecutionStrategyResolver _strategyResolver;
         private readonly Cache<DirectiveLookup> _directiveCache;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
+            IExecutionStrategyResolver strategyResolver,
             Cache<DirectiveLookup> directiveCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
+            _strategyResolver = strategyResolver
+                ?? throw new ArgumentNullException(nameof(strategyResolver));
             _directiveCache = directiveCache
-                ?? new Cache<DirectiveLookup>(Defaults.CacheSize);
+                ?? throw new ArgumentNullException(nameof(directiveCache));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            if (!IsContextValid(context))
+            if (IsContextValid(context))
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                IExecutionStrategy strategy =
+                    _strategyResolver.Resolve(context.Operation.Operation);
+                IExecutionContext execContext =
+                    CreateExecutionContext(context);
+                context.Result = await strategy.ExecuteAsync(
+                    execContext, execContext.RequestAborted);
             }
-
-
-            if (!_executionStrategy.TryGetValue(context.Operation.Operation,
-                out IExecutionStrategy strategy))
-            {
-                // TODO : Resources
-                throw new NotSupportedException("Operation not supported!");
-            }
-
-            IExecutionContext execContext = CreateExecutionContext(context);
-            context.Result = await strategy.ExecuteAsync(
-                execContext, execContext.RequestAborted);
+            await _next(context);
         }
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
@@ -75,8 +64,7 @@ namespace HotChocolate.Execution
         private OperationRequest CreateOperationRequest(
             IQueryContext context)
         {
-            IServiceProvider services = context.Request.Services
-                ?? context.Schema.Services;
+            IServiceProvider services = context.Services;
 
             return new OperationRequest(services,
                 context.Schema.Sessions.CreateSession(services))
@@ -107,7 +95,8 @@ namespace HotChocolate.Execution
 
         private bool IsContextValid(IQueryContext context)
         {
-            return true;
+            return context.Document != null
+                && context.Operation != null;
         }
     }
 }

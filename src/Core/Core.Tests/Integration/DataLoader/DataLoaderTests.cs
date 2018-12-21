@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Runtime;
 using Xunit;
 
@@ -15,8 +16,9 @@ namespace HotChocolate.Integration.DataLoader
         {
             // arrange
             ISchema schema = CreateSchema(ExecutionScope.Request);
-            IQueryExecuter executer =
-                QueryExecutionBuilder.BuildDefault(schema);
+            IQueryExecutionOptionsAccessor options = CreateOptions();
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema, options);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
@@ -50,8 +52,9 @@ namespace HotChocolate.Integration.DataLoader
         {
             // arrange
             ISchema schema = CreateSchema(ExecutionScope.Global);
-            IQueryExecuter executer =
-                QueryExecutionBuilder.BuildDefault(schema);
+            IQueryExecutionOptionsAccessor options = CreateOptions();
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema, options);
 
             // act
             List<IExecutionResult> results = new List<IExecutionResult>();
@@ -94,12 +97,20 @@ namespace HotChocolate.Integration.DataLoader
         {
             return Schema.Create(c =>
             {
-                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.Options.DeveloperMode = true;
 
                 c.RegisterDataLoader<TestDataLoader>(scope);
                 c.RegisterQueryType<Query>();
             });
+        }
+
+        private static IQueryExecutionOptionsAccessor CreateOptions()
+        {
+            var options = new QueryExecutionOptions();
+
+            options.ExecutionTimeout = TimeSpan.FromSeconds(30);
+
+            return options;
         }
     }
 }

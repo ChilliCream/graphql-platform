@@ -6,8 +6,7 @@
   },
   "Errors": [
     {
-      "Code": null,
-      "message": "Unexpected execution error.",
+      "message": "Unexpected Execution Error",
       "path": [
         "error13",
         "bar"

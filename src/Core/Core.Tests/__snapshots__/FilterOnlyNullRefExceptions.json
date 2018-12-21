@@ -1,0 +1,35 @@
+{
+  "Data": {
+    "foo": null,
+    "bar": null
+  },
+  "Errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "foo"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "path": [
+        "bar"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 7
+        }
+      ],
+      "extensions": {
+        "code": "NullRef"
+      }
+    }
+  ]
+}

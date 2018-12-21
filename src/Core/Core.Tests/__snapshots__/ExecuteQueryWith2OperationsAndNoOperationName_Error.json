@@ -2,7 +2,6 @@
   "Data": null,
   "Errors": [
     {
-      "Code": null,
       "message": "Only queries that contain one operation can be executed without specifying the opartion name."
     }
   ]

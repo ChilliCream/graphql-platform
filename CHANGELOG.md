@@ -7,9 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Query Middleware [#338](https://github.com/ChilliCream/hotchocolate/issues/338).
+- Field Middleware [#338](https://github.com/ChilliCream/hotchocolate/issues/338).
+- Implemented the relay cursor connections [specification](https://facebook.github.io/relay/graphql/connections.htm).
+- Added another `ReportError` overload to `IResolverContext` that takes `IError` [#359](https://github.com/ChilliCream/hotchocolate/issues/359).
+- Added a schema endpoint that will let you download the server schema file [#370](https://github.com/ChilliCream/hotchocolate/issues/370).
+- Added SyntaxRewriter and SyntaxWalker classes to enable developers to extend the execution pipeline more easily.
+- Introduced a new execution builder which allows to fully customize the execution pipeline.
+- Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
+- Integrated `RequestTimeoutMiddleware` into default pipeline [#418](https://github.com/ChilliCream/hotchocolate/issues/418).
+
 ### Changed
 
 - Merged _ASP.NET core_ and _classic_ codebases [#349](https://github.com/ChilliCream/hotchocolate/issues/349).
+- Made the type conversion API extendable and added more default type converter [#384](https://github.com/ChilliCream/hotchocolate/issues/384).
+- Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
+
+### Deprecated
+
+- The `Schema.Execute...` extension methods are depricated and will be removed with the next version.
+
+### Removed
+
+- Execution options from the schema options. They can now be configured with the `QueryExecutionBuilder`.
 
 ## [0.6.11] - 2018-12-06
 

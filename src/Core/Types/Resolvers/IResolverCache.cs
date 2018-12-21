@@ -8,8 +8,8 @@ namespace HotChocolate.Resolvers
 
         /// <summary>
         /// Tries to add the resolver to the cache.
-        /// If there is alreade a resolver registered
-        /// the registered resilver will be returned.
+        /// If there is already a resolver registered
+        /// the registered resolver will be returned.
         /// </summary>
         /// <param name="resolverFactory">
         /// The factory to create a new resolver instance.

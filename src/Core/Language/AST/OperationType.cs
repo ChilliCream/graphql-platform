@@ -2,8 +2,8 @@
 {
     public enum OperationType
     {
-        Query,
-        Mutation,
-        Subscription
+        Query = 0,
+        Mutation = 1,
+        Subscription = 2
     }
 }

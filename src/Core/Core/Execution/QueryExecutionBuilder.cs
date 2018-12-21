@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -27,9 +28,28 @@ namespace HotChocolate.Execution
 
         public IQueryExecuter Build(ISchema schema)
         {
-            IServiceProvider services = Services.BuildServiceProvider();
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            IServiceProvider services = CopyServiceCollection()
+                .AddSingleton<ISchema>(schema)
+                .BuildServiceProvider();
+
             QueryDelegate middleware = Compile(_middlewareComponents);
+
             return new QueryExecuter(schema, services, middleware);
+        }
+
+        private ServiceCollection CopyServiceCollection()
+        {
+            var copy = new ServiceCollection();
+            foreach (var descriptor in Services)
+            {
+                ((IList<ServiceDescriptor>)copy).Add(descriptor);
+            }
+            return copy;
         }
 
         private QueryDelegate Compile(IEnumerable<QueryMiddleware> components)
@@ -49,5 +69,9 @@ namespace HotChocolate.Execution
 
         public static IQueryExecuter BuildDefault(ISchema schema) =>
             New().UseDefaultPipeline().Build(schema);
+
+        public static IQueryExecuter BuildDefault(ISchema schema,
+            IQueryExecutionOptionsAccessor options) =>
+                New().UseDefaultPipeline(options).Build(schema);
     }
 }

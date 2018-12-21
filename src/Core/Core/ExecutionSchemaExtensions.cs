@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -11,6 +12,22 @@ namespace HotChocolate
             this ISchema schema)
         {
             return QueryExecutionBuilder.BuildDefault(schema);
+        }
+
+        public static IQueryExecuter MakeExecutable(
+            this ISchema schema,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return QueryExecutionBuilder.BuildDefault(schema, options);
+        }
+
+        public static IQueryExecuter MakeExecutable(
+            this ISchema schema,
+            Func<IQueryExecutionBuilder, IQueryExecutionBuilder> configure)
+        {
+            IQueryExecutionBuilder builder =
+                configure(QueryExecutionBuilder.New());
+            return builder.Build(schema);
         }
 
         public static ObjectType GetOperationType(

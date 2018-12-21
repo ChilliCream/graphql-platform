@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Utilities;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -12,28 +14,35 @@ namespace HotChocolate.Execution
         public async Task InnerMiddlewareTimesOut()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var options = new Mock<IRequestTimeoutOptionsAccessor>();
+
+            options
+                .SetupGet(o => o.ExecutionTimeout)
+                .Returns(TimeSpan.FromMilliseconds(10));
+
+            var schema = Schema.Create(@"
                 type Query { a: String }
                 ", c =>
             {
-                c.Options.ExecutionTimeout = TimeSpan.FromMilliseconds(10);
                 c.BindResolver(() => "hello world")
                     .To("Query", "a");
             });
-
-            var request = new QueryRequest("{ a }").ToReadOnly();
-
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
+                .ToReadOnly();
             var context = new QueryContext(
                 schema, new EmptyServiceProvider(), request);
-
             var middleware = new RequestTimeoutMiddleware(
-                c => Task.Delay(1000, c.RequestAborted));
+                c => Task.Delay(1000, c.RequestAborted),
+                ErrorHandler.Default,
+                options.Object);
 
             // act
-            Func<Task> func = () => middleware.InvokeAsync(context);
+            await middleware.InvokeAsync(context);
 
             // assert
-            await Assert.ThrowsAsync<TaskCanceledException>(func);
+            Assert.NotNull(context.Result);
+            Assert.IsType<TaskCanceledException>(context.Exception);
+            context.Result.Snapshot();
         }
     }
 }

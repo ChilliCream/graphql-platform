@@ -2,7 +2,6 @@
   "Data": null,
   "Errors": [
     {
-      "Code": null,
       "message": "The variable value cannot be null.",
       "extensions": {
         "variableName": "a"
