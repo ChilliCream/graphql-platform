@@ -9,19 +9,13 @@ namespace HotChocolate.Execution
 {
     internal sealed class ExecuteOperationMiddleware
     {
-        private static readonly Dictionary<OperationType, IExecutionStrategy> _executionStrategy =
-            new Dictionary<OperationType, IExecutionStrategy>
-            {
-                { OperationType.Query, new QueryExecutionStrategy() },
-                { OperationType.Mutation, new MutationExecutionStrategy() },
-                { OperationType.Subscription, new SubscriptionExecutionStrategy() }
-            };
-
         private readonly QueryDelegate _next;
+        private readonly IExecutionStrategyResolver _strategyResolver;
         private readonly Cache<DirectiveLookup> _directiveCache;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
+            IExecutionStrategyResolver executionStrategyResolver,
             Cache<DirectiveLookup> directiveCache)
         {
             _next = next
@@ -38,14 +32,8 @@ namespace HotChocolate.Execution
                 throw new InvalidOperationException();
             }
 
-
-            if (!_executionStrategy.TryGetValue(context.Operation.Operation,
-                out IExecutionStrategy strategy))
-            {
-                // TODO : Resources
-                throw new NotSupportedException("Operation not supported!");
-            }
-
+            IExecutionStrategy strategy =
+                _strategyResolver.Resolve(context.Operation.Operation);
             IExecutionContext execContext = CreateExecutionContext(context);
             context.Result = await strategy.ExecuteAsync(
                 execContext, execContext.RequestAborted);

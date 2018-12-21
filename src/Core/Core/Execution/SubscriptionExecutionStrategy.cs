@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
@@ -13,6 +14,18 @@ namespace HotChocolate.Execution
     internal class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
+        private IRequestTimeoutOptionsAccessor _options;
+
+        public SubscriptionExecutionStrategy(
+            IRequestTimeoutOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+            _options = options;
+        }
+
         public override Task<IExecutionResult> ExecuteAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
@@ -100,27 +113,24 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            // TODO: This need to be refactored, cause ExecutionTimeout has been moved to execution options.
-            //TimeSpan executionTimeout = executionContext.Schema.Options
-            //    .ExecutionTimeout;
-            //var requestTimeoutCts = new CancellationTokenSource(
-            //    executionTimeout);
+            var requestTimeoutCts = new CancellationTokenSource(
+                _options.ExecutionTimeout);
 
-            //try
-            //{
-            //    using (var combinedCts = CancellationTokenSource
-            //        .CreateLinkedTokenSource(requestTimeoutCts.Token,
-            //            cancellationToken))
-            //    {
-            return await ExecuteQueryAsync(
-                executionContext,
-                cancellationToken);
-            //    }
-            //}
-            //finally
-            //{
-            //    requestTimeoutCts.Dispose();
-            //}
+            try
+            {
+                using (var combinedCts = CancellationTokenSource
+                    .CreateLinkedTokenSource(requestTimeoutCts.Token,
+                        cancellationToken))
+                {
+                    return await ExecuteQueryAsync(
+                        executionContext,
+                        cancellationToken);
+                }
+            }
+            finally
+            {
+                requestTimeoutCts.Dispose();
+            }
         }
     }
 }

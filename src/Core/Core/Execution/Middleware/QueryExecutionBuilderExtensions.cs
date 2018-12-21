@@ -31,6 +31,7 @@ namespace HotChocolate.Execution
                 .AddQueryValidation(options)
                 .AddDefaultValidationRules()
                 .AddDefaultQueryCache()
+                .AddExecutionStrategyResolver()
                 .UseDiagnostics()
                 .UseRequestTimeout(options)
                 .UseExceptionHandling()
@@ -104,6 +105,15 @@ namespace HotChocolate.Execution
             where TMiddleware : class
         {
             return builder.Use(ClassMiddlewareFactory.Create(factory));
+        }
+
+        public static IQueryExecutionBuilder AddExecutionStrategyResolver(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.Services.AddSingleton<
+                IExecutionStrategyResolver,
+                ExecutionStrategyResolver>();
+            return builder;
         }
 
         public static IQueryExecutionBuilder AddParser<T>(
