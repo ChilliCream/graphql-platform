@@ -30,8 +30,9 @@ namespace HotChocolate.Execution
                 .AddErrorHandler(options)
                 .AddQueryValidation(options)
                 .AddDefaultValidationRules()
-                .AddDefaultQueryCache()
+                .AddQueryCache(100)
                 .AddExecutionStrategyResolver()
+                .AddDefaultParser()
                 .UseDiagnostics()
                 .UseRequestTimeout(options)
                 .UseExceptionHandling()
@@ -110,10 +111,17 @@ namespace HotChocolate.Execution
         public static IQueryExecutionBuilder AddExecutionStrategyResolver(
             this IQueryExecutionBuilder builder)
         {
+            builder.RemoveService<IExecutionStrategyResolver>();
             builder.Services.AddSingleton<
                 IExecutionStrategyResolver,
                 ExecutionStrategyResolver>();
             return builder;
+        }
+
+        public static IQueryExecutionBuilder AddDefaultParser(
+            this IQueryExecutionBuilder builder)
+        {
+            return AddParser<DefaultQueryParser>(builder);
         }
 
         public static IQueryExecutionBuilder AddParser<T>(
@@ -137,6 +145,16 @@ namespace HotChocolate.Execution
             return builder;
         }
 
+        public static IQueryExecutionBuilder AddParser<T>(
+            this IQueryExecutionBuilder builder)
+            where T : class, IQueryParser
+        {
+            builder.RemoveService<IQueryParser>();
+            builder.Services.AddSingleton<IQueryParser, T>();
+
+            return builder;
+        }
+
         public static IQueryExecutionBuilder AddQueryCache(
             this IQueryExecutionBuilder builder,
             int size)
@@ -145,6 +163,7 @@ namespace HotChocolate.Execution
                 .RemoveService<Cache<DirectiveLookup>>()
                 .RemoveService<Cache<DocumentNode>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
+
             builder.Services
                 .AddSingleton(new Cache<DirectiveLookup>(size))
                 .AddSingleton(new Cache<DocumentNode>(size))
@@ -153,25 +172,18 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddDefaultQueryCache(
-            this IQueryExecutionBuilder builder)
-        {
-            if (builder.Services.Any(t =>
-                t.ServiceType == typeof(Cache<DirectiveLookup>)))
-            {
-                builder.AddQueryCache(Defaults.CacheSize);
-            }
-
-            return builder;
-        }
-
         public static IQueryExecutionBuilder AddErrorHandler(
             this IQueryExecutionBuilder builder,
             IErrorHandlerOptionsAccessor options)
         {
+            builder
+                .RemoveService<IErrorHandler>()
+                .RemoveService<IErrorHandlerOptionsAccessor>();
+
             builder.Services
                 .AddSingleton<IErrorHandler, ErrorHandler>()
                 .AddSingleton<IErrorHandlerOptionsAccessor>(options);
+
             return builder;
         }
 

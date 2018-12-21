@@ -15,13 +15,15 @@ namespace HotChocolate.Execution
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
-            IExecutionStrategyResolver executionStrategyResolver,
+            IExecutionStrategyResolver strategyResolver,
             Cache<DirectiveLookup> directiveCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
+            _strategyResolver = strategyResolver
+                ?? throw new ArgumentNullException(nameof(strategyResolver));
             _directiveCache = directiveCache
-                ?? new Cache<DirectiveLookup>(Defaults.CacheSize);
+                ?? throw new ArgumentNullException(nameof(directiveCache));
         }
 
         public async Task InvokeAsync(IQueryContext context)
