@@ -4,5 +4,6 @@ namespace HotChocolate.Execution.Configuration
         : IRequestTimeoutOptionsAccessor
         , IValidateQueryOptionsAccessor
         , IErrorHandlerOptionsAccessor
+        , IQueryCacheSizeOptionsAccessor
     { }
 }

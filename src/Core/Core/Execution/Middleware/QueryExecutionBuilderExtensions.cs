@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
                 .AddErrorHandler(options)
                 .AddQueryValidation(options)
                 .AddDefaultValidationRules()
-                .AddQueryCache(100)
+                .AddQueryCache(options)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
                 .UseDiagnostics()
@@ -168,6 +168,13 @@ namespace HotChocolate.Execution
             builder.Services.AddSingleton<IQueryParser, T>();
 
             return builder;
+        }
+
+        public static IQueryExecutionBuilder AddQueryCache(
+            this IQueryExecutionBuilder builder,
+            IQueryCacheSizeOptionsAccessor options)
+        {
+            return AddQueryCache(builder, options.QueryCacheSize);
         }
 
         public static IQueryExecutionBuilder AddQueryCache(

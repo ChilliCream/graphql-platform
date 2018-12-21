@@ -7,16 +7,17 @@ namespace HotChocolate.Execution.Configuration
         : IQueryExecutionOptionsAccessor
     {
         private const int _minMaxExecutionDepth = 1;
+        private const int _minQueryCacheSize = 10;
         private static readonly TimeSpan _minExecutionTimeout =
             TimeSpan.FromMilliseconds(100);
 
         private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
         private int? _maxExecutionDepth;
-
+        private int _queryCacheSize = _minQueryCacheSize;
 
         public TimeSpan ExecutionTimeout
         {
-            get { return _executionTimeout; }
+            get => _executionTimeout;
             set
             {
                 _executionTimeout = (value < _minExecutionTimeout)
@@ -27,7 +28,7 @@ namespace HotChocolate.Execution.Configuration
 
         public int? MaxExecutionDepth
         {
-            get { return _maxExecutionDepth; }
+            get => _maxExecutionDepth;
             set
             {
                 _maxExecutionDepth =
@@ -38,5 +39,16 @@ namespace HotChocolate.Execution.Configuration
         }
 
         public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
+
+        public int QueryCacheSize
+        {
+            get => _queryCacheSize;
+            set
+            {
+                _queryCacheSize = (value < _minQueryCacheSize)
+                    ? _minQueryCacheSize
+                    : value;
+            }
+        }
     }
 }
