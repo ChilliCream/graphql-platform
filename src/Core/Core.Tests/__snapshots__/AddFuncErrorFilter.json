@@ -15,8 +15,6 @@
         }
       ],
       "extensions": {
-        "message": "Foo",
-        "stackTrace": "   at Core.Tests.Execution.Errors.ErrorHandlerTests.<>c.<AddFuncErrorFilter>b__0_2(IResolverContext ctx) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 21\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteFieldMiddlewareAsync(ResolverTask resolverTask) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 88\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverTask resolverTask, IErrorHandler errorHandler) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 58",
         "code": "Foo123"
       }
     }

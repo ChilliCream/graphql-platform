@@ -23,7 +23,7 @@ namespace Core.Tests.Execution.Errors
 
             var options = new QueryExecutionOptions
             {
-                IncludeExceptionDetails = true
+                IncludeExceptionDetails = false
             };
 
             IQueryExecuter executer = schema.MakeExecutable(builder =>
@@ -99,7 +99,7 @@ namespace Core.Tests.Execution.Errors
 
             var options = new QueryExecutionOptions
             {
-                IncludeExceptionDetails = true
+                IncludeExceptionDetails = false
             };
 
             IQueryExecuter executer = schema.MakeExecutable(builder =>
@@ -126,7 +126,7 @@ namespace Core.Tests.Execution.Errors
 
             var options = new QueryExecutionOptions
             {
-                IncludeExceptionDetails = true
+                IncludeExceptionDetails = false
             };
 
             IQueryExecuter executer = schema.MakeExecutable(builder =>

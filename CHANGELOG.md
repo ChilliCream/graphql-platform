@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a schema endpoint that will let you download the server schema file [#370](https://github.com/ChilliCream/hotchocolate/issues/370).
 - Added SyntaxRewriter and SyntaxWalker classes to enable developers to extend the execution pipeline more easily.
 - Introduced a new execution builder which allows to fully customize the execution pipeline.
-- Introduced exception filter.
+- Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
 
 ### Changed
 
