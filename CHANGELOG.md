@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added SyntaxRewriter and SyntaxWalker classes to enable developers to extend the execution pipeline more easily.
 - Introduced a new execution builder which allows to fully customize the execution pipeline.
 - Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
+- Integrated `RequestTimeoutMiddleware` into default pipeline [#418](https://github.com/ChilliCream/hotchocolate/issues/418).
 
 ### Changed
 
 - Merged _ASP.NET core_ and _classic_ codebases [#349](https://github.com/ChilliCream/hotchocolate/issues/349).
-- Made the type conversion API extendable and added more default type converter [#384](https://github.com/ChilliCream/hotchocolate/issues/384)..
+- Made the type conversion API extendable and added more default type converter [#384](https://github.com/ChilliCream/hotchocolate/issues/384).
+- Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
 
 ### Deprecated
 
