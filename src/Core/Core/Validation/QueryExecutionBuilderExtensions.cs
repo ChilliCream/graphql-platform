@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation
@@ -7,22 +8,33 @@ namespace HotChocolate.Validation
     public static class QueryExecutionBuilderExtensions
     {
         public static IQueryExecutionBuilder AddQueryValidation(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder,
+            IValidateQueryOptionsAccessor options)
         {
-            builder.Services.AddQueryValidation();
+            builder.Services.AddQueryValidation(options);
+
             return builder;
         }
 
         public static IServiceCollection AddQueryValidation(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            IValidateQueryOptionsAccessor options)
         {
-            return services.AddSingleton<IQueryValidator, QueryValidator>();
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return services
+                .AddSingleton(options)
+                .AddSingleton<IQueryValidator, QueryValidator>();
         }
 
         public static IQueryExecutionBuilder AddDefaultValidationRules(
             this IQueryExecutionBuilder builder)
         {
             builder.Services.AddDefaultValidationRules();
+
             return builder;
         }
 
@@ -31,6 +43,7 @@ namespace HotChocolate.Validation
             where T : class, IQueryValidationRule
         {
             builder.Services.AddSingleton<IQueryValidationRule, T>();
+
             return builder;
         }
 
@@ -38,41 +51,42 @@ namespace HotChocolate.Validation
             this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IQueryValidationRule> factory)
         {
-            builder.Services.AddSingleton<IQueryValidationRule>(factory);
+            builder.Services.AddSingleton(factory);
+
             return builder;
         }
 
         public static IServiceCollection AddDefaultValidationRules(
             this IServiceCollection services)
         {
-            services.AddSingleton<IQueryValidationRule, ExecutableDefinitionsRule>();
-            services.AddSingleton<IQueryValidationRule, LoneAnonymousOperationRule>();
-            services.AddSingleton<IQueryValidationRule, OperationNameUniquenessRule>();
-            services.AddSingleton<IQueryValidationRule, VariableUniquenessRule>();
-            services.AddSingleton<IQueryValidationRule, ArgumentUniquenessRule>();
-            services.AddSingleton<IQueryValidationRule, RequiredArgumentRule>();
-            services.AddSingleton<IQueryValidationRule, SubscriptionSingleRootFieldRule>();
-            services.AddSingleton<IQueryValidationRule, FieldMustBeDefinedRule>();
-            services.AddSingleton<IQueryValidationRule, AllVariablesUsedRule>();
-            services.AddSingleton<IQueryValidationRule, DirectivesAreInValidLocationsRule>();
-            services.AddSingleton<IQueryValidationRule, VariablesAreInputTypesRule>();
-            services.AddSingleton<IQueryValidationRule, FieldSelectionMergingRule>();
-            services.AddSingleton<IQueryValidationRule, AllVariableUsagesAreAllowedRule>();
-            services.AddSingleton<IQueryValidationRule, ArgumentNamesRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentsMustBeUsedRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentNameUniquenessRule>();
-            services.AddSingleton<IQueryValidationRule, LeafFieldSelectionsRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentsOnCompositeTypesRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentSpreadsMustNotFormCyclesRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentSpreadTargetDefinedRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentSpreadIsPossibleRule>();
-            services.AddSingleton<IQueryValidationRule, FragmentSpreadTypeExistenceRule>();
-            services.AddSingleton<IQueryValidationRule, InputObjectFieldNamesRule>();
-            services.AddSingleton<IQueryValidationRule, InputObjectRequiredFieldsRule>();
-            services.AddSingleton<IQueryValidationRule, InputObjectFieldUniquenessRule>();
-            services.AddSingleton<IQueryValidationRule, DirectivesAreDefinedRule>();
-            services.AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>();
-            return services;
+            return services
+                .AddSingleton<IQueryValidationRule, ExecutableDefinitionsRule>()
+                .AddSingleton<IQueryValidationRule, LoneAnonymousOperationRule>()
+                .AddSingleton<IQueryValidationRule, OperationNameUniquenessRule>()
+                .AddSingleton<IQueryValidationRule, VariableUniquenessRule>()
+                .AddSingleton<IQueryValidationRule, ArgumentUniquenessRule>()
+                .AddSingleton<IQueryValidationRule, RequiredArgumentRule>()
+                .AddSingleton<IQueryValidationRule, SubscriptionSingleRootFieldRule>()
+                .AddSingleton<IQueryValidationRule, FieldMustBeDefinedRule>()
+                .AddSingleton<IQueryValidationRule, AllVariablesUsedRule>()
+                .AddSingleton<IQueryValidationRule, DirectivesAreInValidLocationsRule>()
+                .AddSingleton<IQueryValidationRule, VariablesAreInputTypesRule>()
+                .AddSingleton<IQueryValidationRule, FieldSelectionMergingRule>()
+                .AddSingleton<IQueryValidationRule, AllVariableUsagesAreAllowedRule>()
+                .AddSingleton<IQueryValidationRule, ArgumentNamesRule>()
+                .AddSingleton<IQueryValidationRule, FragmentsMustBeUsedRule>()
+                .AddSingleton<IQueryValidationRule, FragmentNameUniquenessRule>()
+                .AddSingleton<IQueryValidationRule, LeafFieldSelectionsRule>()
+                .AddSingleton<IQueryValidationRule, FragmentsOnCompositeTypesRule>()
+                .AddSingleton<IQueryValidationRule, FragmentSpreadsMustNotFormCyclesRule>()
+                .AddSingleton<IQueryValidationRule, FragmentSpreadTargetDefinedRule>()
+                .AddSingleton<IQueryValidationRule, FragmentSpreadIsPossibleRule>()
+                .AddSingleton<IQueryValidationRule, FragmentSpreadTypeExistenceRule>()
+                .AddSingleton<IQueryValidationRule, InputObjectFieldNamesRule>()
+                .AddSingleton<IQueryValidationRule, InputObjectRequiredFieldsRule>()
+                .AddSingleton<IQueryValidationRule, InputObjectFieldUniquenessRule>()
+                .AddSingleton<IQueryValidationRule, DirectivesAreDefinedRule>()
+                .AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>();
         }
     }
 }

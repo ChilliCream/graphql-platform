@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Runtime;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Integration.DataLoader
@@ -14,12 +16,19 @@ namespace HotChocolate.Integration.DataLoader
         public async Task RequestCustomContext()
         {
             // arrange
+            var options = new Mock<IQueryExecutionOptionsAccessor>();
+
+            options
+                .SetupGet(o => o.ExecutionTimeout)
+                .Returns(TimeSpan.FromSeconds(30));
+
             ISchema schema = CreateSchema(ExecutionScope.Request);
-            IQueryExecuter executer =
-                QueryExecutionBuilder.BuildDefault(schema);
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema, options.Object);
 
             // act
-            List<IExecutionResult> results = new List<IExecutionResult>();
+            var results = new List<IExecutionResult>();
+
             results.Add(await executer.ExecuteAsync(
                 new QueryRequest("{ a: a b: a }")));
             results.Add(await executer.ExecuteAsync(
@@ -47,7 +56,8 @@ namespace HotChocolate.Integration.DataLoader
                 QueryExecutionBuilder.BuildDefault(schema);
 
             // act
-            List<IExecutionResult> results = new List<IExecutionResult>();
+            var results = new List<IExecutionResult>();
+
             results.Add(await executer.ExecuteAsync(new QueryRequest("{ a }")));
             results.Add(await executer.ExecuteAsync(new QueryRequest("{ a }")));
             results.Add(await executer.ExecuteAsync(new QueryRequest("{ a }")));
@@ -66,7 +76,6 @@ namespace HotChocolate.Integration.DataLoader
         {
             return Schema.Create("type Query { a: String }", c =>
             {
-                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.RegisterCustomContext<MyCustomContext>(scope);
                 c.BindResolver(ctx =>
                 {

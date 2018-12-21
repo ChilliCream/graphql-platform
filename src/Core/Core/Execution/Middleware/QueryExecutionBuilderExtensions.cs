@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,11 +14,24 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder)
         {
             return builder
-                .AddQueryValidation()
+                .UseDefaultPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UseDefaultPipeline(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return builder
+                .AddQueryValidation(options)
                 .AddDefaultValidationRules()
                 .AddDefaultQueryCache()
                 .UseDiagnostics()
-                .UseRequestTimeout()
+                .UseRequestTimeout(options)
                 .UseExceptionHandling()
                 .UseQueryParser()
                 .UseValidation()
@@ -60,8 +70,17 @@ namespace HotChocolate.Execution
         }
 
         public static IQueryExecutionBuilder UseRequestTimeout(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder,
+            IRequestTimeoutOptionsAccessor options)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            builder.Services
+                .AddSingleton(options);
+
             return builder.Use<RequestTimeoutMiddleware>();
         }
 
@@ -83,8 +102,7 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return builder.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>(factory));
+            return builder.Use(ClassMiddlewareFactory.Create(factory));
         }
 
         public static IQueryExecutionBuilder AddParser<T>(
@@ -92,7 +110,8 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, IQueryParser> factory)
         {
             builder.RemoveService<IQueryParser>();
-            builder.Services.AddSingleton<IQueryParser>(factory);
+            builder.Services.AddSingleton(factory);
+
             return builder;
         }
 
@@ -103,6 +122,7 @@ namespace HotChocolate.Execution
         {
             builder.RemoveService<IQueryParser>();
             builder.Services.AddSingleton<IQueryParser>(parser);
+
             return builder;
         }
 
@@ -110,17 +130,15 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder,
             int size)
         {
-            builder.RemoveService<Cache<DirectiveLookup>>()
+            builder
+                .RemoveService<Cache<DirectiveLookup>>()
                 .RemoveService<Cache<DocumentNode>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
-
             builder.Services
-                .AddSingleton<Cache<DirectiveLookup>>(
-                    new Cache<DirectiveLookup>(size))
-                .AddSingleton<Cache<DocumentNode>>(
-                    new Cache<DocumentNode>(size))
-                .AddSingleton<Cache<OperationDefinitionNode>>(
-                    new Cache<OperationDefinitionNode>(size));
+                .AddSingleton(new Cache<DirectiveLookup>(size))
+                .AddSingleton(new Cache<DocumentNode>(size))
+                .AddSingleton(new Cache<OperationDefinitionNode>(size));
+
             return builder;
         }
 
@@ -132,6 +150,7 @@ namespace HotChocolate.Execution
             {
                 builder.AddQueryCache(Defaults.CacheSize);
             }
+
             return builder;
         }
 
@@ -147,7 +166,9 @@ namespace HotChocolate.Execution
         {
             ServiceDescriptor serviceDescriptor = builder.Services
                 .FirstOrDefault(t => t.ServiceType == serviceType);
+
             builder.Services.Remove(serviceDescriptor);
+
             return builder;
         }
     }

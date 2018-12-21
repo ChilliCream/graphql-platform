@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Configuration
 {
@@ -7,8 +7,6 @@ namespace HotChocolate.Configuration
         string QueryTypeName { get; }
         string MutationTypeName { get; }
         string SubscriptionTypeName { get; }
-        int? MaxExecutionDepth { get; }
-        TimeSpan ExecutionTimeout { get; }
         bool StrictValidation { get; }
         bool DeveloperMode { get; }
     }

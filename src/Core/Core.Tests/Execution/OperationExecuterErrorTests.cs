@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
@@ -192,16 +192,13 @@ namespace HotChocolate.Execution
 
         private async Task<IExecutionResult> ExecuteQuery(string query)
         {
-            Schema schema = CreateSchema();
-            return await schema.ExecuteAsync(query);
+            return await CreateSchema().ExecuteAsync(query);
         }
 
-        private Schema CreateSchema()
+        private ISchema CreateSchema()
         {
-
             return Schema.Create(c =>
             {
-                c.Options.ExecutionTimeout = TimeSpan.FromSeconds(30);
                 c.Options.StrictValidation = true;
                 c.RegisterQueryType<QueryType>();
             });
