@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation
 {
-    public static class QueryExecutionBuilderExtensions
+    public static class ValidationQueryExecutionBuilderExtensions
     {
         public static IQueryExecutionBuilder AddQueryValidation(
             this IQueryExecutionBuilder builder)

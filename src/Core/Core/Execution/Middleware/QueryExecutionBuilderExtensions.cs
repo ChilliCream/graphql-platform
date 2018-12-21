@@ -53,6 +53,7 @@ namespace HotChocolate.Execution
             this IQueryExecutionBuilder builder)
         {
             return builder
+                .AddErrorHandler()
                 .AddQueryValidation()
                 .AddDefaultValidationRules()
                 .AddDefaultQueryCache()
@@ -125,6 +126,29 @@ namespace HotChocolate.Execution
             {
                 builder.AddQueryCache(Defaults.CacheSize);
             }
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorHandler(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.Services.AddSingleton<IErrorHandler, ErrorHandler>();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, IErrorFilter> factory)
+        {
+            builder.Services.AddSingleton<IErrorFilter>(factory);
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter<T>(
+            this IQueryExecutionBuilder builder)
+            where T : class, IErrorFilter
+        {
+            builder.Services.AddSingleton<IErrorFilter, T>();
             return builder;
         }
 
