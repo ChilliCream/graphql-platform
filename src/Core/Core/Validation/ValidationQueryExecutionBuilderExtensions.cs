@@ -86,7 +86,8 @@ namespace HotChocolate.Validation
                 .AddSingleton<IQueryValidationRule, InputObjectRequiredFieldsRule>()
                 .AddSingleton<IQueryValidationRule, InputObjectFieldUniquenessRule>()
                 .AddSingleton<IQueryValidationRule, DirectivesAreDefinedRule>()
-                .AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>();
+                .AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>()
+                .AddSingleton<IQueryValidationRule, MaxDepthRule>();
         }
     }
 }
