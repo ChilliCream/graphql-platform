@@ -38,18 +38,102 @@ namespace HotChocolate
         /// </summary>
         IReadOnlyDictionary<string, object> Extensions { get; }
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="message" />.
+        /// </summary>
+        /// <param name="message">
+        /// The error message.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="message" />.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="message" /> is null or empty.
+        /// </exception>
         IError WithMessage(string message);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="code" />.
+        /// </summary>
+        /// <param name="code">
+        /// An error code that is specified as custom error property.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="code" />.
+        /// </returns>
         IError WithCode(string code);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="path" />.
+        /// </summary>
+        /// <param name="path">
+        /// A path representing a ceratain syntax node of a query or schema.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="path" />.
+        /// </returns>
         IError WithPath(Path path);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="locations" />.
+        /// </summary>
+        /// <param name="locations">
+        /// A collection of locations referring to certain
+        /// syntax nodes of a query or schema.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="locations" />.
+        /// </returns>
         IError WithLocations(IReadOnlyCollection<Location> locations);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="extensions" />.
+        /// </summary>
+        /// <param name="extensions">
+        /// A collection of custom error properties.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="extensions" />.
+        /// </returns>
         IError WithExtensions(IReadOnlyDictionary<string, object> extensions);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with and additional custom error property.
+        /// </summary>
+        /// <param name="key">The custom error property name.</param>
+        /// <param name="value">The value of the custiom error property.</param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with and additional custom error property.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="key" /> is null or empty.
+        /// </exception>
         IError AddExtension(string key, object value);
 
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified additional custom error property removed.
+        /// </summary>
+        /// <param name="key">The custom error property name.</param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified additional custom error property removed.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="key" /> is null or empty.
+        /// </exception>
         IError RemoveExtension(string key);
     }
 }
