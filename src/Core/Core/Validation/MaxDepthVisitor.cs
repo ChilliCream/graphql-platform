@@ -40,7 +40,8 @@ namespace HotChocolate.Validation
 
         internal bool IsMaxDepthReached { get; private set; }
 
-        internal IReadOnlyCollection<FieldNode> ViolatingFields { get; }
+        internal IReadOnlyCollection<FieldNode> ViolatingFields =>
+            _violatingFields;
 
         public void Visit(DocumentNode node)
         {
@@ -69,13 +70,14 @@ namespace HotChocolate.Validation
             MaxDepthVisitor.Context context)
         {
             MaxDepthVisitor.Context current = context.AddField(field);
+
             if (current.FieldPath.Count > _maxExecutionDepth)
             {
                 IsMaxDepthReached = true;
                 _violatingFields.Add(field);
             }
 
-            base.VisitField(field, context);
+            base.VisitField(field, current);
         }
 
         protected override void VisitFragmentSpread(

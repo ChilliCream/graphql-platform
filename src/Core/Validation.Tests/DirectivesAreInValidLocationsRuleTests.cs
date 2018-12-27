@@ -50,6 +50,5 @@ namespace HotChocolate.Validation
             // assert
             Assert.False(result.HasErrors);
         }
-
     }
 }
