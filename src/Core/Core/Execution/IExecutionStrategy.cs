@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {

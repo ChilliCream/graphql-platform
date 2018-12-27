@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Named fragment spreads must refer to fragments defined within the

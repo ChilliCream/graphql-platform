@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Runtime;
-using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {

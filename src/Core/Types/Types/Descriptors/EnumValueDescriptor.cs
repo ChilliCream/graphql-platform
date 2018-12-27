@@ -1,5 +1,4 @@
 ﻿using System;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types

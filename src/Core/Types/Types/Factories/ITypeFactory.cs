@@ -1,5 +1,4 @@
 ﻿using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types.Factories
 {

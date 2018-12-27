@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
+using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
@@ -8,6 +9,7 @@ using Microsoft.Owin.StaticFiles.ContentTypes;
 using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
 #else
+using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
@@ -15,9 +17,9 @@ using Microsoft.Extensions.FileProviders;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Playground
+namespace HotChocolate.AspNetClassic
 #else
-namespace HotChocolate.AspNetCore.Playground
+namespace HotChocolate.AspNetCore
 #endif
 {
     public static class ApplicationBuilderExtensions

@@ -1,5 +1,4 @@
-﻿using HotChocolate.Configuration;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Types.Introspection

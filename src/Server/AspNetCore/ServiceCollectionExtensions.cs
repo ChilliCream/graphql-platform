@@ -2,10 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
+using HotChocolate.AspNetClassic;
 #else
-namespace HotChocolate.AspNetCore
+using HotChocolate.AspNetCore;
 #endif
+
+namespace HotChocolate
 {
     public static class ServiceCollectionExtensions
     {

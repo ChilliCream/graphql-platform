@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

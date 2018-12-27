@@ -1,4 +1,3 @@
-﻿using System.Threading;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -8,9 +7,9 @@ using Microsoft.AspNetCore.Http;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.GraphiQL
+namespace HotChocolate.AspNetClassic
 #else
-namespace HotChocolate.AspNetCore.GraphiQL
+namespace HotChocolate.AspNetCore
 #endif
 {
     internal static class HttpRequestExtensions
