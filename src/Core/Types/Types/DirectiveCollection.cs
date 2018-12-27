@@ -18,11 +18,12 @@ namespace HotChocolate.Types
             DirectiveLocation location,
             IReadOnlyCollection<DirectiveDescription> directiveDescriptions)
         {
-            _source = source;
+            _source = source
+                ?? throw new ArgumentNullException(nameof(source));
             _location = location;
             _descriptions = directiveDescriptions
                 ?? throw new ArgumentNullException(
-                        nameof(directiveDescriptions));
+                    nameof(directiveDescriptions));
         }
 
         public int Count => _directives.Count;
@@ -32,32 +33,44 @@ namespace HotChocolate.Types
         protected override void OnCompleteType(
             ITypeInitializationContext context)
         {
+            var processed = new HashSet<string>();
+
             foreach (DirectiveDescription description in _descriptions)
             {
-                CompleteDirecive(context, description);
+                CompleteDirecive(context, description, processed);
             }
         }
 
         private void CompleteDirecive(
             ITypeInitializationContext context,
-            DirectiveDescription description)
+            DirectiveDescription description,
+            HashSet<string> processed)
         {
             DirectiveReference reference =
                 DirectiveReference.FromDescription(description);
-            DirectiveType type = context.GetDirectiveType(reference);
+            DirectiveType directiveType = context.GetDirectiveType(reference);
 
-            if (type != null)
+            if (directiveType != null)
             {
-                if (type.Locations.Contains(_location))
+                if (!processed.Add(directiveType.Name)
+                    && !directiveType.IsRepeatable)
                 {
-                    _directives.Add(
-                        Directive.FromDescription(type, description, _source));
+                    context.ReportError(new SchemaError(
+                        $"The specified directive `@{directiveType.Name}` " +
+                        "is unique and cannot be added twice.",
+                        context.Type));
+                }
+                else if (directiveType.Locations.Contains(_location))
+                {
+                    _directives.Add(Directive.FromDescription(
+                        directiveType, description, _source));
                 }
                 else
                 {
                     context.ReportError(new SchemaError(
-                        $"The specified directive `{type.Name}` is not " +
-                        $"allowed on the current location `{_location}`.",
+                        $"The specified directive `@{directiveType.Name}` " +
+                        "is not allowed on the current location " +
+                        $"`{_location}`.",
                         context.Type));
                 }
             }

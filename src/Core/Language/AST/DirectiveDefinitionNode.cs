@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -9,17 +10,19 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
+            bool isRepeatable,
             IReadOnlyCollection<InputValueDefinitionNode> arguments,
             IReadOnlyCollection<NameNode> locations)
         {
             Location = location;
-            Name = name 
-                ?? throw new System.ArgumentNullException(nameof(name));
+            Name = name
+                ?? throw new ArgumentNullException(nameof(name));
             Description = description;
-            Arguments = arguments 
-                ?? throw new System.ArgumentNullException(nameof(arguments));
-            Locations = locations 
-                ?? throw new System.ArgumentNullException(nameof(locations));
+            IsRepeatable = isRepeatable;
+            Arguments = arguments
+                ?? throw new ArgumentNullException(nameof(arguments));
+            Locations = locations
+                ?? throw new ArgumentNullException(nameof(locations));
         }
 
         public NodeKind Kind { get; } = NodeKind.DirectiveDefinition;
@@ -29,6 +32,8 @@ namespace HotChocolate.Language
         public NameNode Name { get; }
 
         public StringValueNode Description { get; }
+
+        public bool IsRepeatable { get; }
 
         public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
 

@@ -200,6 +200,11 @@
             return match;
         }
 
+        public static bool SkipRepeatableKeyword(this ParserContext context)
+        {
+            return SkipKeyword(context, Keywords.Repeatable);
+        }
+
         public static bool SkipKeyword(
             this ParserContext context,
             string keyword)

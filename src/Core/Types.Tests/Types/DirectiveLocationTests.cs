@@ -6,7 +6,7 @@ namespace HotChocolate.Types
 {
     public class DirectiveLocationTests
     {
-        // flag values must be set correct 
+        // flag values must be set correct
         [Fact]
         public void FlagsCorrect()
         {
@@ -18,6 +18,6 @@ namespace HotChocolate.Types
                     Assert.Equal(v, (int)loc);
                     return v;
                 });
-        } 
+        }
     }
 }

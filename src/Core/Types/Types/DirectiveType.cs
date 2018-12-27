@@ -25,9 +25,11 @@ namespace HotChocolate.Types
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; private set; }
+        public NameString Name { get; private set; }
 
         public string Description { get; private set; }
+
+        public bool IsRepeatable { get; private set; }
 
         public ICollection<DirectiveLocation> Locations { get; private set; }
 
@@ -67,6 +69,7 @@ namespace HotChocolate.Types
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;
+            IsRepeatable = description.IsRepeatable;
             Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));

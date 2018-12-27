@@ -13,6 +13,7 @@
         public const string Extend = "extend";
         public const string Directive = "directive";
         public const string Implements = "implements";
+        public const string Repeatable = "repeatable";
 
         // query
         public const string Query = "query";

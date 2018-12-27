@@ -1500,6 +1500,62 @@
         "Value": "skip"
       },
       "Description": null,
+      "IsRepeatable": false,
+      "Arguments": [
+        {
+          "Kind": "InputValueDefinition",
+          "Description": null,
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": null,
+            "Type": {
+              "Kind": "NamedType",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "Boolean"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "if"
+          },
+          "Directives": []
+        }
+      ],
+      "Locations": [
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FIELD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "FRAGMENT_SPREAD"
+        },
+        {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "INLINE_FRAGMENT"
+        }
+      ]
+    },
+    {
+      "Kind": "DirectiveDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "skip2"
+      },
+      "Description": null,
+      "IsRepeatable": true,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
@@ -1554,6 +1610,7 @@
         "Value": "include"
       },
       "Description": null,
+      "IsRepeatable": false,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
@@ -1608,6 +1665,7 @@
         "Value": "include2"
       },
       "Description": null,
+      "IsRepeatable": false,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",

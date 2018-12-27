@@ -15,6 +15,7 @@ namespace HotChocolate.Utilities
             RegisterUriConversions(registry);
             RegisterBooleanConversions(registry);
             RegisterStringConversions(registry);
+            RegisterNameStringConversions(registry);
 
             RegisterUInt16Conversions(registry);
             RegisterUInt32Conversions(registry);
@@ -110,6 +111,13 @@ namespace HotChocolate.Utilities
                     CultureInfo.InvariantCulture));
             registry.Register<string, bool>(from =>
                 bool.Parse(from));
+            registry.Register<string, NameString>(from => from);
+        }
+
+        private static void RegisterNameStringConversions(
+            ITypeConverterRegistry registry)
+        {
+            registry.Register<NameString, string>(from => from);
         }
 
         private static void RegisterUInt16Conversions(

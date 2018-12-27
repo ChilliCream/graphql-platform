@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>HotChocolate.Hosting.Authorization</AssemblyName>
-    <RootNamespace>HotChocolate.Hosting.Authorization</RootNamespace>
-    <PackageId>HotChocolate.Hosting.Authorization</PackageId>
+    <AssemblyName>HotChocolate.AspNetCore.Authorization</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>
+    <PackageId>HotChocolate.AspNetCore.Authorization</PackageId>
     <Description>Provides authorization extensions for the hot chocolate ASP.net core GraphQL middleware.</Description>
   </PropertyGroup>
 

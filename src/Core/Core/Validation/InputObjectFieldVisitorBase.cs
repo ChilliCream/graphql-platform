@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
     internal abstract class InputObjectFieldVisitorBase
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, DirectiveType> _directives;
+        private readonly Dictionary<NameString, DirectiveType> _directives;
 
         protected InputObjectFieldVisitorBase(ISchema schema)
             : base(schema)

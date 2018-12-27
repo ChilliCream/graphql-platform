@@ -5,7 +5,7 @@ namespace HotChocolate.Types
 {
     public interface IDirective
     {
-        string Name { get; }
+        NameString Name { get; }
 
         DirectiveType Type { get; }
 

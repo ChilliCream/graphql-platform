@@ -8,12 +8,12 @@ namespace HotChocolate.Validation
     internal sealed class DirectivesAreDefinedVisitor
         : QueryVisitorErrorBase
     {
-        private readonly HashSet<string> _directives;
+        private readonly HashSet<NameString> _directives;
 
         public DirectivesAreDefinedVisitor(ISchema schema)
             : base(schema)
         {
-            _directives = new HashSet<string>(
+            _directives = new HashSet<NameString>(
                 schema.DirectiveTypes.Select(t => t.Name));
         }
 

@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
     internal sealed class DirectivesAreInValidLocationsVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, DirectiveType> _directives;
+        private readonly Dictionary<NameString, DirectiveType> _directives;
 
         public DirectivesAreInValidLocationsVisitor(ISchema schema)
             : base(schema)
