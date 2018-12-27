@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using Moq;
@@ -13,11 +14,10 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 {
     public class StarWarsCodeFirstTests
     {
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgFieldExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 hero {
@@ -29,18 +29,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgFieldArgumentExample1()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 human(id: ""1000"") {
@@ -49,18 +50,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgFieldArgumentExample2()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 human(id: ""1000"") {
@@ -69,18 +71,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgAliasExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 empireHero: hero(episode: EMPIRE) {
@@ -91,18 +94,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgFragmentExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 leftComparison: hero(episode: EMPIRE) {
@@ -121,18 +125,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgOperationNameExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query HeroNameAndFriends {
                 hero {
@@ -143,18 +148,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgVariableExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query HeroNameAndFriends($episode: Episode) {
                 hero(episode: $episode) {
@@ -170,19 +176,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "episode", new EnumValueNode("JEDI") }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgVariableWithDefaultValueExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query HeroNameAndFriends($episode: Episode = JEDI) {
                 hero(episode: $episode) {
@@ -193,18 +199,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgDirectiveIncludeExample1()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
@@ -221,19 +228,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "withFriends", new BooleanValueNode(false) }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgDirectiveIncludeExample2()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
@@ -250,19 +257,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "withFriends", new BooleanValueNode(true) }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgDirectiveSkipExample1()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
@@ -279,19 +286,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "withFriends", new BooleanValueNode(false) }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
@@ -308,19 +315,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "withFriends", false }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgDirectiveSkipExample2()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
@@ -337,19 +344,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "withFriends", new BooleanValueNode(true) }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variableValues: variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgMutationExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
                 createReview(episode: $ep, review: $review) {
@@ -367,19 +374,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                             new StringValueNode("This is a great movie!"))) }
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgInlineFragmentExample1()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query HeroForEpisode($ep: Episode!) {
                 hero(episode: $ep) {
@@ -398,19 +405,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "ep", new EnumValueNode("JEDI") },
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(
-                query, variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgInlineFragmentExample2()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query HeroForEpisode($ep: Episode!) {
                 hero(episode: $ep) {
@@ -429,18 +436,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 { "ep", new EnumValueNode("EMPIRE") },
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query, variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void GraphQLOrgMetaFieldAndUnionExample()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 search(text: ""an"") {
@@ -460,18 +468,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void NonNullListVariableValues()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query op($ep: [Episode!]!)
             {
@@ -485,18 +494,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 {"ep", new ListValueNode(new[] {new EnumValueNode("EMPIRE")})}
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query, variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void ConditionalInlineFragment()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 heroes(episodes: [EMPIRE]) {
@@ -507,18 +517,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void NonNullEnumsSerializeCorrectlyFromVariables()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
                 query getHero($episode: Episode!) {
                     hero(episode: $episode) {
@@ -531,18 +542,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 ["episode"] = "NEWHOPE"
             };
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query, variables);
+            IExecutionResult result = executer.Execute(query, variables);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void EnumValueIsCoercedToListValue()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             {
                 heroes(episodes: EMPIRE) {
@@ -550,18 +562,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void TypeNameFieldIsCorrectlyExecutedOnInterfaces()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
                 query foo {
                     hero(episode: NEWHOPE) {
@@ -590,18 +603,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }
                 }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public void Execute_ListWithNullValues_ResultContainsNullElement()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query {
                 human(id: ""1001"") {
@@ -613,27 +627,29 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 20")]
+        [Fact]
         public async Task SubscribeToReview()
         {
             // arrange
-            Schema schema = CreateSchema();
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
             var responseStream =
-                (IResponseStream)await schema.ExecuteAsync(
+                (IResponseStream)await executer.ExecuteAsync(
                     "subscription { onCreateReview(episode: NEWHOPE) " +
                     "{ stars } }");
 
             // assert
-            IExecutionResult result = await schema.ExecuteAsync(@"
+            IExecutionResult result = await executer.ExecuteAsync(@"
                 mutation {
                     createReview(episode: NEWHOPE,
                         review: { stars: 5 commentary: ""foo"" }) {
@@ -651,11 +667,10 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             eventResult.Snapshot();
         }
 
-        [Fact(Skip = "Due to options refactoring; MaxExecutionDepth was set to 3")]
+        [Fact]
         public void ExecutionDepthShouldNotLeadToEmptyObects()
         {
             // arrange
-            Schema schema = CreateSchema();
             var query = @"
             query foo {
                 hero(episode: NEWHOPE) {
@@ -690,13 +705,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }";
 
+            IQueryExecuter executer = CreateSchema().MakeExecutable(
+                new QueryExecutionOptions
+                {
+                    MaxExecutionDepth = 3
+                });
+
             // act
-            IExecutionResult result = schema.Execute(query);
+            IExecutionResult result = executer.Execute(query);
 
             // assert
             result.Snapshot();
         }
-        
+
         private static Schema CreateSchema()
         {
             var repository = new CharacterRepository();
