@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Xunit;
 
@@ -59,6 +61,169 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<InvalidOperationException>(a);
+        }
+
+        [Fact]
+        public void RepeatableDirective()
+        {
+            // arrange
+            var directiveType = new DirectiveType(
+                t => t.Name("foo")
+                    .Repeatable()
+                    .Location(DirectiveLocation.Object)
+                    .Argument("a").Type<StringType>());
+
+            var objectType = new ObjectType(t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Directive("foo", new ArgumentNode("a", "2"));
+                t.Field("foo").Resolver(() => "baz");
+            });
+
+            // act
+            var schema = Schema.Create(t =>
+            {
+                t.RegisterDirective(directiveType);
+                t.RegisterQueryType(objectType);
+            });
+
+            // assert
+            IDirectiveCollection collection =
+                schema.GetType<ObjectType>("Bar").Directives;
+            Assert.Collection(collection,
+                t =>
+                {
+                    Assert.Equal("foo", t.Name);
+                    Assert.Equal("1", t.GetArgument<string>("a"));
+                },
+                t =>
+                {
+                    Assert.Equal("foo", t.Name);
+                    Assert.Equal("2", t.GetArgument<string>("a"));
+                });
+        }
+
+        [Fact]
+        public void ExecutableRepeatableDirectives()
+        {
+            // arrange
+            var directiveType = new DirectiveType(
+                t => t.Name("foo")
+                    .Repeatable()
+                    .Location(DirectiveLocation.Object)
+                    .Location(DirectiveLocation.FieldDefinition)
+                    .Middleware(next => context => Task.CompletedTask)
+                    .Argument("a").Type<StringType>());
+
+
+            var objectType = new ObjectType(t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Field("foo").Resolver(() => "baz")
+                    .Directive("foo", new ArgumentNode("a", "2"));
+            });
+
+            // act
+            var schema = Schema.Create(t =>
+            {
+                t.RegisterDirective(directiveType);
+                t.RegisterQueryType(objectType);
+            });
+
+            // assert
+            IReadOnlyCollection<IDirective> collection =
+                schema.GetType<ObjectType>("Bar")
+                    .Fields["foo"].ExecutableDirectives;
+
+            Assert.Collection(collection,
+                t =>
+                {
+                    Assert.Equal("foo", t.Name);
+                    Assert.Equal("1", t.GetArgument<string>("a"));
+                },
+                t =>
+                {
+                    Assert.Equal("foo", t.Name);
+                    Assert.Equal("2", t.GetArgument<string>("a"));
+                });
+        }
+
+        [Fact]
+        public void UniqueDirective()
+        {
+            // arrange
+            var directiveType = new DirectiveType(
+                t => t.Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Argument("a").Type<StringType>());
+
+            var objectType = new ObjectType(t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Directive("foo", new ArgumentNode("a", "2"));
+                t.Field("foo").Resolver(() => "baz");
+            });
+
+            // act
+            Action a = () => Schema.Create(t =>
+             {
+                 t.RegisterDirective(directiveType);
+                 t.RegisterQueryType(objectType);
+             });
+
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(a);
+            Assert.Collection(exception.Errors,
+                t =>
+                {
+                    Assert.Equal(
+                        "The specified directive `@foo` " +
+                        "is unique and cannot be added twice.",
+                        t.Message);
+                });
+        }
+
+        [Fact]
+        public void ExecutableUniqueDirectives()
+        {
+            // arrange
+            var directiveType = new DirectiveType(
+                t => t.Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Location(DirectiveLocation.FieldDefinition)
+                    .Middleware(next => context => Task.CompletedTask)
+                    .Argument("a").Type<StringType>());
+
+
+            var objectType = new ObjectType(t =>
+            {
+                t.Name("Bar");
+                t.Directive("foo", new ArgumentNode("a", "1"));
+                t.Field("foo").Resolver(() => "baz")
+                    .Directive("foo", new ArgumentNode("a", "2"));
+            });
+
+            // act
+            var schema = Schema.Create(t =>
+            {
+                t.RegisterDirective(directiveType);
+                t.RegisterQueryType(objectType);
+            });
+
+            // assert
+            IReadOnlyCollection<IDirective> collection =
+                schema.GetType<ObjectType>("Bar")
+                    .Fields["foo"].ExecutableDirectives;
+
+            Assert.Collection(collection,
+                t =>
+                {
+                    Assert.Equal("foo", t.Name);
+                    Assert.Equal("2", t.GetArgument<string>("a"));
+                });
         }
 
         private DirectiveType CreateDirective<T>()

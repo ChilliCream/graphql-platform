@@ -8,8 +8,8 @@ namespace HotChocolate.Stitching
     internal sealed class AnnotateQueryRewriter
         : QuerySyntaxRewriter<AnnotationContext>
     {
-        private static readonly HashSet<string> _stitchingDirectives =
-            new HashSet<string>
+        private static readonly HashSet<NameString> _stitchingDirectives =
+            new HashSet<NameString>
             {
                 DirectiveNames.Schema,
                 DirectiveNames.Delegate
@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching
                 && type.Fields.TryGetField(fieldName, out IOutputField field))
             {
 
-                ILookup<string, IDirective> directiveLookup =
+                ILookup<NameString, IDirective> directiveLookup =
                     field.Directives.ToLookup(t => t.Name);
 
                 var directives = new List<DirectiveNode>(node.Directives);

@@ -9,7 +9,7 @@ namespace HotChocolate.Validation
     internal sealed class RequiredArgumentVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, DirectiveType> _directives;
+        private readonly Dictionary<NameString, DirectiveType> _directives;
 
         public RequiredArgumentVisitor(ISchema schema)
             : base(schema)

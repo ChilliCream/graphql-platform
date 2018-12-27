@@ -114,7 +114,8 @@ namespace HotChocolate.Types
         private void CompleteExecutableDirectives(
             ITypeInitializationContext context)
         {
-            HashSet<string> processed = new HashSet<string>();
+            var processed = new HashSet<string>();
+
             if (context.Type is ObjectType ot)
             {
                 AddExectableDirectives(processed, ot.Directives);
@@ -129,9 +130,12 @@ namespace HotChocolate.Types
             foreach (IDirective directive in
                 directives.Where(t => t.IsExecutable))
             {
-                if (processed.Contains(directive.Name))
+                if (!processed.Add(directive.Name)
+                    && !directive.Type.IsRepeatable)
                 {
-                    _executableDirectives.Remove(directive);
+                    IDirective remove = _executableDirectives
+                        .First(t => t.Name.Equals(directive.Name));
+                    _executableDirectives.Remove(remove);
                 }
                 _executableDirectives.Add(directive);
             }

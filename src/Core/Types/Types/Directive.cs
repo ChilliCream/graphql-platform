@@ -43,13 +43,13 @@ namespace HotChocolate.Types
             Name = directiveType.Name;
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public DirectiveType Type { get; }
 
         public object Source { get; }
 
-        public DirectiveMiddleware Middleware  => Type.Middleware;
+        public DirectiveMiddleware Middleware => Type.Middleware;
 
         public bool IsExecutable => Type.IsExecutable;
 

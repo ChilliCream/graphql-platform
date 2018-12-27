@@ -58,7 +58,9 @@ namespace HotChocolate.Utilities
                     ? source.GetType()
                     : from;
 
-                return TryConvertInternal(fromInternal, to, source, out converted);
+                return TryConvertInternal(
+                    fromInternal, to, source,
+                    out converted);
             }
             catch
             {
@@ -107,7 +109,9 @@ namespace HotChocolate.Utilities
         {
             if (_hasFactories)
             {
-                ImmutableList<ChangeTypeFactory> factories = _converterFactories;
+                ImmutableList<ChangeTypeFactory> factories =
+                    _converterFactories;
+
                 foreach (ChangeTypeFactory factory in factories)
                 {
                     if (factory(from, to, out converter))

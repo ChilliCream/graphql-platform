@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
     internal sealed class AllVariableUsagesAreAllowedVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, DirectiveType> _directives;
+        private readonly Dictionary<NameString, DirectiveType> _directives;
         private readonly Dictionary<string, VariableDefinitionNode> _variableDefinitions
             = new Dictionary<string, VariableDefinitionNode>();
         private readonly List<VariableUsage> _variablesUsages =
