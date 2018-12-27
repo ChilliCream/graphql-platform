@@ -11,11 +11,11 @@ namespace HotChocolate.Execution
         public async Task TypeNameIntrospectionOnQuery()
         {
             // arrange
-            Schema schema = CreateSchema();
             string query = "{ __typename }";
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -26,11 +26,11 @@ namespace HotChocolate.Execution
         public async Task TypeNameIntrospectionNotOnQuery()
         {
             // arrange
-            Schema schema = CreateSchema();
             string query = "{ b { __typename } }";
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -41,11 +41,11 @@ namespace HotChocolate.Execution
         public async Task TypeIntrospectionOnQuery()
         {
             // arrange
-            Schema schema = CreateSchema();
             string query = "{ __type (type: \"Foo\") { name } }";
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -56,13 +56,13 @@ namespace HotChocolate.Execution
         public async Task TypeIntrospectionOnQueryWithFields()
         {
             // arrange
-            Schema schema = CreateSchema();
             string query =
                 "{ __type (type: \"Foo\") " +
                 "{ name fields { name type { name } } } }";
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);
@@ -73,12 +73,12 @@ namespace HotChocolate.Execution
         public async Task ExecuteGraphiQLIntrospectionQuery()
         {
             // arrange
-            Schema schema = CreateSchema();
             string query =
                 FileResource.Open("IntrospectionQuery.graphql");
+            IQueryExecuter executer = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
             Assert.Null(result.Errors);

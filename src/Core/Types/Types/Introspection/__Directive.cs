@@ -27,6 +27,10 @@ namespace HotChocolate.Types.Introspection
                 .Type<StringType>()
                 .Resolver(c => c.Parent<DirectiveType>().Description);
 
+            descriptor.Field("isRepeatable")
+                .Type<BooleanType>()
+                .Resolver(c => c.Parent<DirectiveType>().IsRepeatable);
+
             descriptor.Field("locations")
                 .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
                 .Resolver(c => c.Parent<DirectiveType>().Locations);
