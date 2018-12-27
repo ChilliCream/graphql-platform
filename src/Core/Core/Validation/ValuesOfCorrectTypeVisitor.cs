@@ -12,7 +12,7 @@ namespace HotChocolate.Validation
     {
         private readonly HashSet<ObjectValueNode> _visited =
             new HashSet<ObjectValueNode>();
-        private readonly Dictionary<string, DirectiveType> _directives;
+        private readonly Dictionary<NameString, DirectiveType> _directives;
 
         public ValuesOfCorrectTypeVisitor(ISchema schema)
             : base(schema)

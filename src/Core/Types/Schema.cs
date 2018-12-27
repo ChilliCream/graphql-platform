@@ -20,7 +20,7 @@ namespace HotChocolate
     {
         private readonly SchemaTypes _types;
         private bool _disposed;
-        private readonly Dictionary<string, DirectiveType> _directiveTypes;
+        private readonly Dictionary<NameString, DirectiveType> _directiveTypes;
 
         private Schema(
             IServiceProvider services,

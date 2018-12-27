@@ -27,7 +27,7 @@ namespace HotChocolate.Types
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        public string Name { get; private set; }
+        public NameString Name { get; private set; }
 
         public string Description { get; private set; }
 
