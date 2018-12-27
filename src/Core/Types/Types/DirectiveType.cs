@@ -31,6 +31,8 @@ namespace HotChocolate.Types
 
         public string Description { get; private set; }
 
+        public bool IsRepeatable { get; private set; }
+
         public ICollection<DirectiveLocation> Locations { get; private set; }
 
         public FieldCollection<InputField> Arguments { get; private set; }
@@ -69,6 +71,7 @@ namespace HotChocolate.Types
             SyntaxNode = description.SyntaxNode;
             Name = description.Name;
             Description = description.Description;
+            IsRepeatable = description.IsRepeatable;
             Locations = description.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<InputField>(
                 description.Arguments.Select(t => new InputField(t)));
