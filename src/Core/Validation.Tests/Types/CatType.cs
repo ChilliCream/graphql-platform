@@ -11,7 +11,8 @@ namespace HotChocolate.Validation
             descriptor.Field(t => t.Name)
                 .Type<NonNullType<StringType>>();
             descriptor.Field(t => t.DoesKnowCommand(default))
-                .Argument("catCommand", a => a.Type<NonNullType<EnumType<CatCommand>>>());
+                .Argument("catCommand", a =>
+                    a.Type<NonNullType<EnumType<CatCommand>>>());
         }
     }
 }

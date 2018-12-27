@@ -900,11 +900,52 @@ namespace HotChocolate.Validation
                     t.Message));
         }
 
+        [Fact]
+        public void MaxDepthRuleIsIncluded()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query {
+                    catOrDog
+                    {
+                        ... on Cat {
+                            name
+                        }
+                    }
+                }
+            ");
+
+            Schema schema = ValidationUtils.CreateSchema();
+            IQueryValidator queryValidator = CreateValidator(
+                new QueryExecutionOptions
+                {
+                    MaxExecutionDepth = 1
+                });
+
+            // act
+            QueryValidationResult result =
+                queryValidator.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t =>
+                {
+                    Assert.Equal(
+                        "The query exceded the maximum allowed execution " +
+                        "depth of 1.", t.Message);
+                });
+        }
 
         private IQueryValidator CreateValidator()
         {
+            return CreateValidator(new QueryExecutionOptions());
+        }
+
+        private IQueryValidator CreateValidator(
+            IValidateQueryOptionsAccessor options)
+        {
             var services = new ServiceCollection();
-            var options = new QueryExecutionOptions();
 
             services.AddQueryValidation(options);
             services.AddDefaultValidationRules();
