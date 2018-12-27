@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using HotChocolate.Execution;
@@ -91,8 +91,9 @@ namespace HotChocolate.AspNetCore
 
             return applicationBuilder
                 .Use<PostQueryMiddleware>(executer, options)
-                .Use<GetQueryMiddleware>(executer, options);
-                //.Use<SubscriptionMiddleware>(executer, options);
+                .Use<GetQueryMiddleware>(executer, options)
+                //.Use<SubscriptionMiddleware>(executer, options)
+                .Use<SchemaMiddleware>(executer, options);
         }
 #else
         public static IApplicationBuilder UseGraphQL(
@@ -112,7 +113,8 @@ namespace HotChocolate.AspNetCore
             return applicationBuilder
                 .UseMiddleware<PostQueryMiddleware>(options)
                 .UseMiddleware<GetQueryMiddleware>(options)
-                .UseMiddleware<SubscriptionMiddleware>(options);
+                .UseMiddleware<SubscriptionMiddleware>(options)
+                .UseMiddleware<SchemaMiddleware>(options);
         }
 #endif
     }

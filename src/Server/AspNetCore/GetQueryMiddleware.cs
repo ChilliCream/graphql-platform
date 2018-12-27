@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -21,7 +21,6 @@ namespace HotChocolate.AspNetCore
     public class GetQueryMiddleware
         : QueryMiddlewareBase
     {
-        private static readonly string _getMethod = "GET";
         private static readonly string _namedQueryIdentifier = "namedQuery";
         private static readonly string _operationNameIdentifier = "operationName";
         private static readonly string _queryIdentifier = "query";
@@ -37,8 +36,11 @@ namespace HotChocolate.AspNetCore
         /// <inheritdoc />
         protected override bool CanHandleRequest(HttpContext context)
         {
-            return string.Equals(context.Request.Method, _getMethod,
-                StringComparison.Ordinal) && HasQueryParameter(context);
+            return string.Equals(
+                context.Request.Method,
+                HttpMethods.Get,
+                StringComparison.Ordinal) &&
+                    HasQueryParameter(context);
         }
 
         /// <inheritdoc />
