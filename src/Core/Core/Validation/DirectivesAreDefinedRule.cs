@@ -1,6 +1,4 @@
-﻿using HotChocolate.Types;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// GraphQL servers define what directives they support.

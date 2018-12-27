@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Text;
-using HotChocolate.Utilities;
+﻿using System.Text;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {

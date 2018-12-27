@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Utilities;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public class FieldDescriptionBase
         : TypeDescriptionBase

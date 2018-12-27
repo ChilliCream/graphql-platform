@@ -1,9 +1,6 @@
 ﻿using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Authorization;
-using HotChocolate.AspNetCore.GraphiQL;
-using HotChocolate.AspNetCore.Playground;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

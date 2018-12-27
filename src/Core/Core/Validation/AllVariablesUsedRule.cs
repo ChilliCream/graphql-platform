@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// All variables defined by an operation must be used in that operation

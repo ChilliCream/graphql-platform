@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Threading;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {

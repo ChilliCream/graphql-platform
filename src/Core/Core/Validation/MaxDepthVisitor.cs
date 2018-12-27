@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Validation
 {

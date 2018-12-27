@@ -1,5 +1,4 @@
 using System;
-using HotChocolate;
 
 namespace HotChocolate.Execution
 {

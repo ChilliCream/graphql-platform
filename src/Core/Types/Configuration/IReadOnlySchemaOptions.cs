@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Configuration
 {
     public interface IReadOnlySchemaOptions

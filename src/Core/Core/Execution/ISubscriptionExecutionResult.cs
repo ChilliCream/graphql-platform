@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace HotChocolate.Execution
+﻿namespace HotChocolate.Execution
 {
     public interface ISubscriptionExecutionResult
         : IExecutionResult
