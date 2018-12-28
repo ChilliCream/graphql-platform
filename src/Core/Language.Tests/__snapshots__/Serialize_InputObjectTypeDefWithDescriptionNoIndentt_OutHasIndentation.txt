@@ -1,5 +1,9 @@
-"abc"
+"""
+abc
+"""
 input A {
-  "abc"
+  """
+  abc
+  """
   b: String
 }

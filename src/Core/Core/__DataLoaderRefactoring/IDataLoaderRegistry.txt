@@ -8,7 +8,10 @@ using HotChocolate.Runtime;
 namespace HotChocolate
 {
     public delegate Fetch<TKey, TValue> FetchFactory<TKey, TValue>(IServiceProvider services);
+
     public delegate Task<IReadOnlyDictionary<TKey, TValue>> Fetch<TKey, TValue>(IReadOnlyCollection<TKey> keys);
+
+    public delegate FetchGrouped<TKey, TValue> FetchGroupedFactory<TKey, TValue>(IServiceProvider services);
 
     public delegate Task<ILookup<TKey, TValue>> FetchGrouped<TKey, TValue>(IReadOnlyCollection<TKey> keys);
 

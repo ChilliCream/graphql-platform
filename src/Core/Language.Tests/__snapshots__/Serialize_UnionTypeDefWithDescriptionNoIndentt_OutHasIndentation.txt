@@ -1,2 +1,4 @@
-"abc"
+"""
+abc
+"""
 union A = B | C

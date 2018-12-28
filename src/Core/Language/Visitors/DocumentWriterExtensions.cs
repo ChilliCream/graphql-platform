@@ -111,7 +111,15 @@ namespace HotChocolate.Language
             this DocumentWriter writer,
             StringValueNode node)
         {
-            if (node.Block)
+            WriteStringValue(writer, node, null);
+        }
+
+        public static void WriteStringValue(
+            this DocumentWriter writer,
+            StringValueNode node,
+            bool? block)
+        {
+            if (block ?? node.Block)
             {
                 writer.Write("\"\"\"");
 
