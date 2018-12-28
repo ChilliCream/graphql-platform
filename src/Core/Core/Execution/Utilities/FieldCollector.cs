@@ -94,7 +94,18 @@ namespace HotChocolate.Execution
                 string name = fieldSelection.Alias == null
                     ? fieldSelection.Name.Value
                     : fieldSelection.Alias.Value;
-                fields[name] = new FieldSelection(fieldSelection, field, name);
+
+                if (fields.TryGetValue(name, out FieldSelection selection))
+                {
+                    fields[name] = new FieldSelection(
+                        selection.Selection.Merge(fieldSelection),
+                        selection.Field, name);
+                }
+                else
+                {
+                    fields.Add(name, new FieldSelection(
+                        fieldSelection, field, name));
+                }
             }
             else
             {

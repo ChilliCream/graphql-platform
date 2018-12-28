@@ -17,7 +17,7 @@ namespace HotChocolate.Language
             : base(location, name, directives)
         {
             Alias = alias;
-            Arguments = arguments 
+            Arguments = arguments
                 ?? throw new ArgumentNullException(nameof(arguments));
             SelectionSet = selectionSet;
         }
@@ -67,6 +67,27 @@ namespace HotChocolate.Language
         {
             return new FieldNode(Location, Name, Alias,
                 Directives, Arguments, selectionSet);
+        }
+
+        public FieldNode Merge(FieldNode other)
+        {
+            if (other == null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var directives = new List<DirectiveNode>(Directives);
+            directives.AddRange(other.Directives);
+
+            return new FieldNode
+            (
+                Location,
+                Name,
+                Alias,
+                directives,
+                Arguments,
+                SelectionSet.Merge(other.SelectionSet)
+            );
         }
     }
 }

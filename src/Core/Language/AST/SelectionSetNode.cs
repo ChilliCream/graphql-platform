@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -32,6 +33,19 @@ namespace HotChocolate.Language
         {
             return new SelectionSetNode(
                 Location, selections);
+        }
+
+        public SelectionSetNode Merge(SelectionSetNode other)
+        {
+            if (other == null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            var selections = new List<ISelectionNode>(Selections);
+            selections.AddRange(other.Selections);
+
+            return new SelectionSetNode(Location, selections);
         }
     }
 }
