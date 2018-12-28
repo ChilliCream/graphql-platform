@@ -139,59 +139,59 @@ namespace HotChocolate.Language
         }
 
 
-        public static string WriteEscapeCharacters(string input)
+        private static string WriteEscapeCharacters(string input)
         {
             var stringBuilder = new StringBuilder();
 
             for (int i = 0; i < input.Length; i++)
             {
-                WriteEscapeCharacter(stringBuilder, input[i]);
+                char c = input[i];
+                WriteEscapeCharacter(stringBuilder, in c);
             }
 
             return stringBuilder.ToString();
         }
 
-        public static void WriteEscapeCharacter(
-            StringBuilder stringBuilder, char c)
+        private static void WriteEscapeCharacter(
+            StringBuilder stringBuilder, in char c)
         {
             switch (c)
             {
                 case '"':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('"');
+                    WriteEscapeCharacterHelper(stringBuilder, '"');
                     break;
                 case '\\':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('\\');
+                    WriteEscapeCharacterHelper(stringBuilder, '\\');
                     break;
                 case '/':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('/');
+                    WriteEscapeCharacterHelper(stringBuilder, '/');
                     break;
                 case '\b':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('"');
+                    WriteEscapeCharacterHelper(stringBuilder, '"');
                     break;
                 case '\f':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('f');
+                    WriteEscapeCharacterHelper(stringBuilder, 'f');
                     break;
                 case '\n':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('n');
+                    WriteEscapeCharacterHelper(stringBuilder, 'n');
                     break;
                 case '\r':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('r');
+                    WriteEscapeCharacterHelper(stringBuilder, 'r');
                     break;
                 case '\t':
-                    stringBuilder.Append('\\');
-                    stringBuilder.Append('t');
+                    WriteEscapeCharacterHelper(stringBuilder, 't');
                     break;
                 default:
                     stringBuilder.Append(c);
                     break;
             }
+        }
+
+        private static void WriteEscapeCharacterHelper(
+           StringBuilder stringBuilder, in char c)
+        {
+            stringBuilder.Append('\\');
+            stringBuilder.Append(c);
         }
 
         public static void WriteBooleanValue(
