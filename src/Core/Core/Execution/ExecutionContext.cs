@@ -85,7 +85,7 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted { get; }
 
         public IReadOnlyDictionary<string, object> Custom =>
-            _request.Properties;
+            _request.Custom;
 
         public IErrorHandler ErrorHandler { get; }
 
@@ -195,32 +195,6 @@ namespace HotChocolate.Execution
         private T CreateResolver<T>() =>
             (T)_serviceFactory.CreateInstance(typeof(T));
 
-        public IExecutionContext Clone(
-            IReadOnlyDictionary<string, object> requestProperties,
-            CancellationToken requestAborted)
-        {
-            var properties = new Dictionary<string, object>();
-            CopyProperties(_request.Properties, properties);
-            CopyProperties(requestProperties, properties);
-
-            ISession session = Schema.Sessions.CreateSession(Services);
-
-            OperationRequest request = _request.Clone(session);
-            request.Properties = properties;
-
-            return new ExecutionContext(
-                Schema,
-                _directiveLookup,
-                QueryDocument,
-                Operation,
-                request,
-                Variables,
-                requestAborted)
-            {
-                _disposeSession = true
-            };
-        }
-
         private static void CopyProperties(
             IReadOnlyDictionary<string, object> source,
             Dictionary<string, object> target)
@@ -248,11 +222,6 @@ namespace HotChocolate.Execution
                     if (_disposeRootValue && RootValue is IDisposable d)
                     {
                         d.Dispose();
-                    }
-
-                    if (_disposeSession)
-                    {
-                        _request.Session.Dispose();
                     }
                 }
 

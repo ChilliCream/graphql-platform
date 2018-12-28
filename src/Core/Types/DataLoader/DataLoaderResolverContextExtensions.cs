@@ -208,7 +208,7 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static bool TryGetDataLoader<T>(
+        private static bool TryGetDataLoader<T>(
             IResolverContext context,
             string key,
             out T dataLoader,
@@ -231,7 +231,7 @@ namespace HotChocolate.Resolvers
             return false;
         }
 
-        public static T GetOrCreate<T>(
+        private static T GetOrCreate<T>(
             string key,
             IDataLoaderRegistry registry,
             Action<IDataLoaderRegistry> register)

@@ -4,8 +4,8 @@ using System.Threading;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
 
         VariableCollection Variables { get; }
 
-        IReadOnlyDictionary<string, object> Custom { get; }
+        IDictionary<string, object> Custom { get; }
 
         CancellationToken RequestAborted { get; }
 
@@ -51,9 +51,5 @@ namespace HotChocolate.Execution
             FieldNode fieldSelection);
 
         T GetResolver<T>();
-
-        IExecutionContext Clone(
-            IReadOnlyDictionary<string, object> requestProperties,
-            CancellationToken requestAborted);
     }
 }

@@ -65,11 +65,10 @@ namespace HotChocolate.Execution
         {
             IServiceProvider services = context.Services;
 
-            return new OperationRequest(services,
-                context.Schema.Sessions.CreateSession(services))
+            return new OperationRequest(services)
             {
                 VariableValues = context.Request.VariableValues,
-                Properties = context.Request.Properties,
+                Custom = context.Request.Properties,
                 InitialValue = context.Request.InitialValue,
             };
         }

@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
-    internal delegate Task<object> ExecuteMiddleware(
+    public delegate Task<object> ExecuteMiddleware(
         IResolverContext context,
         Func<Task<object>> executeResolver);
 }
