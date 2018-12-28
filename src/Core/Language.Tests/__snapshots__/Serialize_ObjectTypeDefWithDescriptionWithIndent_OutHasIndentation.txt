@@ -1,27 +1,15 @@
-"""
-abc
-"""
+"abc"
 type Foo @a {
-  """
-  abc
-  """
+  "abc"
   bar: String
-  """
-  abc
-  """
+  "abc"
   baz: [Int]
 }
 
-"""
-abc
-"""
+"abc"
 type Foo @a @b {
-  """
-  abc
-  """
+  "abc"
   bar: String @foo
-  """
-  abc
-  """
+  "abc"
   baz("abc" a: String = "abc"): [Int] @foo @bar
 }

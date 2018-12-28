@@ -320,7 +320,7 @@ namespace HotChocolate.Language
         {
             if (description != null)
             {
-                writer.WriteStringValue(description, true);
+                writer.WriteStringValue(description);
 
                 if (_indent)
                 {

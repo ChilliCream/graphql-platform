@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -111,15 +112,7 @@ namespace HotChocolate.Language
             this DocumentWriter writer,
             StringValueNode node)
         {
-            WriteStringValue(writer, node, null);
-        }
-
-        public static void WriteStringValue(
-            this DocumentWriter writer,
-            StringValueNode node,
-            bool? block)
-        {
-            if (block ?? node.Block)
+            if (node.Block)
             {
                 writer.Write("\"\"\"");
 
@@ -141,7 +134,63 @@ namespace HotChocolate.Language
             }
             else
             {
-                writer.Write($"\"{node.Value}\"");
+                writer.Write($"\"{WriteEscapeCharacters(node.Value)}\"");
+            }
+        }
+
+
+        public static string WriteEscapeCharacters(string input)
+        {
+            var stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                WriteEscapeCharacter(stringBuilder, input[i]);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public static void WriteEscapeCharacter(
+            StringBuilder stringBuilder, char c)
+        {
+            switch (c)
+            {
+                case '"':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('"');
+                    break;
+                case '\\':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('\\');
+                    break;
+                case '/':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('/');
+                    break;
+                case '\b':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('"');
+                    break;
+                case '\f':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('f');
+                    break;
+                case '\n':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('n');
+                    break;
+                case '\r':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('r');
+                    break;
+                case '\t':
+                    stringBuilder.Append('\\');
+                    stringBuilder.Append('t');
+                    break;
+                default:
+                    stringBuilder.Append(c);
+                    break;
             }
         }
 

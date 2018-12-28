@@ -1,13 +1,7 @@
-"""
-abc
-"""
+"abc"
 enum A {
-  """
-  def
-  """
+  "def"
   B
-  """
-  ghi
-  """
+  "ghi"
   C
 }
