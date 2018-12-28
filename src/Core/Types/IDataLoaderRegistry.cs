@@ -449,14 +449,14 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static bool Register<TKey, TValue>(
+        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchSingleFactory<TKey, TValue> factory)
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
+                // TODO : resources
                 throw new ArgumentException(
                     "The DataLoader key cannot be null or empty.",
                     nameof(key));
@@ -467,19 +467,25 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return registry.Register(key, services =>
-                new FetchSingle<TKey, TValue>(
-                    factory(services)));
+            if (TryGetDataLoader(context, key,
+                out IDataLoader<TKey, TValue> dataLoader,
+                out IDataLoaderRegistry registry))
+            {
+                return dataLoader;
+            }
+
+            return GetOrCreate<IDataLoader<TKey, TValue>>(
+                key, registry, r => r.Register(key, factory));
         }
 
-        public static bool Register<TKey, TValue>(
-            this IDataLoaderRegistry registry,
+        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
+            this IResolverContext context,
             string key,
             FetchSingle<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
+                // TODO : resources
                 throw new ArgumentException(
                     "The DataLoader key cannot be null or empty.",
                     nameof(key));
@@ -490,18 +496,17 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return registry.Register(key, services =>
-                new FetchSingle<TKey, TValue>(fetch));
+            return DataLoader(context, key, services => fetch);
         }
 
-        public static bool Register<TValue>(
-            this IDataLoaderRegistry registry,
+        public static Func<Task<TValue>> DataLoader<TValue>(
+            this IResolverContext context,
             string key,
             FetchOnceFactory<TValue> factory)
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
+                // TODO : resources
                 throw new ArgumentException(
                     "The DataLoader key cannot be null or empty.",
                     nameof(key));
@@ -512,21 +517,25 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return registry.Register(key, services =>
+            if (!TryGetDataLoader(context, key,
+                out IDataLoader<string, TValue> dataLoader,
+                out IDataLoaderRegistry registry))
             {
-                FetchOnce<TValue> fetch = factory(services);
-                return new FetchSingle<string, TValue>(k => fetch());
-            });
+                dataLoader = GetOrCreate<IDataLoader<string, TValue>>(
+                    key, registry, r => r.Register(key, factory));
+            }
+
+            return () => dataLoader.LoadAsync("none");
         }
 
-        public static bool Register<TValue>(
-            this IDataLoaderRegistry registry,
+        public static Func<Task<TValue>> DataLoader<TValue>(
+            this IResolverContext context,
             string key,
             FetchOnce<TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
+                // TODO : resources
                 throw new ArgumentException(
                     "The DataLoader key cannot be null or empty.",
                     nameof(key));
@@ -537,10 +546,7 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return registry.Register(key, services =>
-            {
-                return new FetchSingle<string, TValue>(k => fetch());
-            });
+            return DataLoader(context, key, services => fetch);
         }
 
         public static bool TryGetDataLoader<T>(
