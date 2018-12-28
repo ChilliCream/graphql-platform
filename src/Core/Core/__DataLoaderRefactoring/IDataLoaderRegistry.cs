@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Runtime;
@@ -30,7 +32,7 @@ namespace HotChocolate
     public delegate Task<TValue> FetchOnce<TValue>();
 
     public interface IDataLoaderRegistry
-        : IBatchedOperation
+        : IBatchOperation
     {
         bool Register<TKey, TValue>(
             string key,
@@ -51,7 +53,7 @@ namespace HotChocolate
         bool TryGet<T>(string key, out T dataLoader);
     }
 
-    public interface IBatchedOperation
+    public interface IBatchOperation
     {
         event EventHandler<EventArgs> BatchSizeIncreased;
 
@@ -64,11 +66,6 @@ namespace HotChocolate
         /// Executes the current batch
         /// </summary>
         /// <returns></returns>
-        Task InvokeAsync();
-    }
-
-    internal class BatchedOperationHandler
-   {
-
+        Task InvokeAsync(CancellationToken cancellationToken);
     }
 }
