@@ -5,6 +5,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Execution
 {
     internal sealed class VariableCollection
+        : IVariableCollection
     {
         private readonly ITypeConversion _converter;
         private readonly Dictionary<string, object> _variables;
