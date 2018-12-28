@@ -79,6 +79,11 @@ namespace HotChocolate.Language
             var directives = new List<DirectiveNode>(Directives);
             directives.AddRange(other.Directives);
 
+            SelectionSetNode selectionSet =
+                (SelectionSet == null || other.SelectionSet == null)
+                    ? SelectionSet ?? other.SelectionSet
+                    : SelectionSet.Merge(other.SelectionSet);
+
             return new FieldNode
             (
                 Location,
@@ -86,7 +91,7 @@ namespace HotChocolate.Language
                 Alias,
                 directives,
                 Arguments,
-                SelectionSet.Merge(other.SelectionSet)
+                selectionSet
             );
         }
     }
