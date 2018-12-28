@@ -68,17 +68,9 @@ namespace HotChocolate.Execution
 
         public ISchema Schema { get; }
 
-        public IReadOnlySchemaOptions Options => Schema.Options;
-
         public IServiceProvider Services { get; }
 
         public object RootValue { get; }
-
-        public IDataLoaderProvider DataLoaders =>
-            _request.Session.DataLoaders;
-
-        public ICustomContextProvider CustomContexts =>
-            _request.Session.CustomContexts;
 
         public DocumentNode QueryDocument { get; }
 
@@ -92,7 +84,7 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted { get; }
 
-        public IReadOnlyDictionary<string, object> RequestProperties =>
+        public IReadOnlyDictionary<string, object> Custom =>
             _request.Properties;
 
         public IErrorHandler ErrorHandler { get; }
@@ -245,21 +237,23 @@ namespace HotChocolate.Execution
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!_disposed && disposing)
+            if (!_disposed)
             {
-                if (_disposeRootValue && RootValue is IDisposable d)
+                if (disposing)
                 {
-                    d.Dispose();
-                }
+                    if (_disposeRootValue && RootValue is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
 
-                if (_disposeSession)
-                {
-                    _request.Session.Dispose();
+                    if (_disposeSession)
+                    {
+                        _request.Session.Dispose();
+                    }
                 }
 
                 _disposed = true;

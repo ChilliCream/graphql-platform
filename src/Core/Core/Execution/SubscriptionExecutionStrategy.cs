@@ -113,6 +113,8 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
+            BatchOperationHandler batchOperationHandler =
+                CreateBatchOperationHandler(executionContext);
             var requestTimeoutCts = new CancellationTokenSource(
                 _options.ExecutionTimeout);
 
@@ -124,11 +126,13 @@ namespace HotChocolate.Execution
                 {
                     return await ExecuteQueryAsync(
                         executionContext,
+                        batchOperationHandler,
                         cancellationToken);
                 }
             }
             finally
             {
+                batchOperationHandler?.Dispose();
                 requestTimeoutCts.Dispose();
             }
         }

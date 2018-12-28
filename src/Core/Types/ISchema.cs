@@ -12,7 +12,6 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public interface ISchema
-        : IDisposable
     {
         /// <summary>
         /// Gets the schema options.
@@ -50,12 +49,6 @@ namespace HotChocolate
         /// Gets all the direcive types that are supported by this schema.
         /// </summary>
         IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
-
-        /// <summary>
-        /// Gets the session manager which can be used to create
-        /// new query execution sessions.
-        /// </summary>
-        ISessionManager Sessions { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.

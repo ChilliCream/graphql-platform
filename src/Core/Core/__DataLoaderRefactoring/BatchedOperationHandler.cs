@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate
 {
-    internal class BatchedOperationHandler
+    internal class BatchOperationHandler
         : IDisposable
     {
         private readonly SemaphoreSlim _processSync = new SemaphoreSlim(0, 1);
@@ -18,7 +18,7 @@ namespace HotChocolate
             new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public BatchedOperationHandler(
+        public BatchOperationHandler(
             IEnumerable<IBatchOperation> batchOperations)
         {
             if (batchOperations == null)
@@ -48,6 +48,9 @@ namespace HotChocolate
             {
                 return Task.CompletedTask;
             }
+
+            _completed = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
 
             Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
 
@@ -84,8 +87,6 @@ namespace HotChocolate
             {
                 _completed.SetResult(true);
                 _touched = new HashSet<IBatchOperation>();
-                _completed = new TaskCompletionSource<bool>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
             }
         }
 

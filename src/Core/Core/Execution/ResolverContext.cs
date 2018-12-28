@@ -140,15 +140,6 @@ namespace HotChocolate.Execution
         public object Service(Type service) =>
             _executionContext.Services.GetRequiredService(service);
 
-        public T CustomContext<T>()
-        {
-            if (_executionContext.CustomContexts == null)
-            {
-                return default;
-            }
-            return _executionContext.CustomContexts.GetCustomContext<T>();
-        }
-
         public T CustomProperty<T>(string key)
         {
             if (key == null)
@@ -156,7 +147,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_executionContext.RequestProperties
+            if (_executionContext.Custom
                 .TryGetValue(key, out object value) && value is T v)
             {
                 return v;
@@ -165,15 +156,6 @@ namespace HotChocolate.Execution
             // TODO : Resources
             throw new ArgumentException(
                 "The specified property does not exist.");
-        }
-
-        public T DataLoader<T>(string key)
-        {
-            if (_executionContext.DataLoaders == null)
-            {
-                return default;
-            }
-            return _executionContext.DataLoaders.GetDataLoader<T>(key);
         }
 
         public T Resolver<T>()

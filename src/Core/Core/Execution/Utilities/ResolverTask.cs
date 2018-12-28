@@ -32,14 +32,10 @@ namespace HotChocolate.Execution
                 executionContext, this,
                 executionContext.RequestAborted);
 
-            Options = executionContext.Options;
-
             ExecuteMiddleware = executionContext.GetMiddleware(
                 objectType, fieldSelection.Selection);
             HasMiddleware = ExecuteMiddleware != null;
         }
-
-        public IReadOnlySchemaOptions Options { get; }
 
         public IImmutableStack<object> Source { get; }
 

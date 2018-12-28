@@ -15,18 +15,12 @@ namespace HotChocolate.Execution
         // schema
         ISchema Schema { get; }
 
-        IReadOnlySchemaOptions Options { get; }
-
         IServiceProvider Services { get; }
 
         IErrorHandler ErrorHandler { get; }
 
         // context
         object RootValue { get; }
-
-        IDataLoaderProvider DataLoaders { get; }
-
-        ICustomContextProvider CustomContexts { get; }
 
         // query ast
         DocumentNode QueryDocument { get; }
@@ -40,7 +34,7 @@ namespace HotChocolate.Execution
 
         VariableCollection Variables { get; }
 
-        IReadOnlyDictionary<string, object> RequestProperties { get; }
+        IReadOnlyDictionary<string, object> Custom { get; }
 
         CancellationToken RequestAborted { get; }
 

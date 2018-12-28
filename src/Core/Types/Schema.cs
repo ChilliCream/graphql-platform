@@ -17,7 +17,6 @@ namespace HotChocolate
         : ISchema
     {
         private readonly SchemaTypes _types;
-        private bool _disposed;
         private readonly Dictionary<NameString, DirectiveType> _directiveTypes;
 
         private Schema(
@@ -35,10 +34,6 @@ namespace HotChocolate
                 .ToDictionary(t => t.Name);
             DirectiveTypes = _directiveTypes.Values;
             Options = options;
-            Sessions = new SessionManager(
-                services,
-                context.DataLoaders,
-                context.CustomContexts);
         }
 
         /// <summary>
@@ -77,12 +72,6 @@ namespace HotChocolate
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
         public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
-
-        /// <summary>
-        /// Gets the session manager which can be used to create
-        /// new query execution sessions.
-        /// </summary>
-        public ISessionManager Sessions { get; }
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -205,21 +194,6 @@ namespace HotChocolate
         public override string ToString()
         {
             return SchemaSerializer.Serialize(this);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed && disposing)
-            {
-                Sessions.Dispose();
-                _disposed = true;
-            }
         }
     }
 }

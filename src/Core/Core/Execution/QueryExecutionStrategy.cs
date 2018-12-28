@@ -23,8 +23,22 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            return await ExecuteQueryAsync(executionContext, cancellationToken)
-                .ConfigureAwait(false);
+            BatchOperationHandler batchOperationHandler =
+                CreateBatchOperationHandler(executionContext);
+
+            try
+            {
+
+                return await ExecuteQueryAsync(
+                    executionContext,
+                    batchOperationHandler,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                batchOperationHandler?.Dispose();
+            }
         }
     }
 }
