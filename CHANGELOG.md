@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
 - Changed how max query depth is validated an configured.
 
+### Fixed
+
+- Field merging of node fields did not work properly.
+
 ### Deprecated
 
 - The `Schema.Execute...` extension methods are depricated and will be removed with the next version.
