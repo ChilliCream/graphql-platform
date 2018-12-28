@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Field selections on scalars or enums are never allowed,

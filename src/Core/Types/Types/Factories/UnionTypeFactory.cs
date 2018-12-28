@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
 {

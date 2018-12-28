@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Directives are used to describe some metadata or behavioral change on

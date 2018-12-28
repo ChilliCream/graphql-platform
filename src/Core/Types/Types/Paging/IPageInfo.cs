@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace HotChocolate.Types.Paging
+﻿namespace HotChocolate.Types.Paging
 {
     public interface IPageInfo
     {

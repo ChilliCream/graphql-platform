@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// The target field of a field selection must be defined on the scoped

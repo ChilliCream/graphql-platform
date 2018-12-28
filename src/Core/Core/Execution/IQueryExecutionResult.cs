@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace HotChocolate.Execution
+﻿namespace HotChocolate.Execution
 {
     public interface IQueryExecutionResult
         : IExecutionResult

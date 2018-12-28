@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Variables can only be input types. Objects,

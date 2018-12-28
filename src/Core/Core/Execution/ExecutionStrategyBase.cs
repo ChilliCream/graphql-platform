@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {

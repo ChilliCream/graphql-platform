@@ -1,9 +1,6 @@
-﻿using System;
+using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
-using HotChocolate.AspNetClassic.Authorization;
-using HotChocolate.AspNetClassic.GraphiQL;
-using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Owin;

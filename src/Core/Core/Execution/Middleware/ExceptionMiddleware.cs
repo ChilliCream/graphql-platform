@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {

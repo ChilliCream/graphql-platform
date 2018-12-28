@@ -1,8 +1,10 @@
-﻿#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Authorization
+#if ASPNETCLASSIC
+using HotChocolate.AspNetClassic.Authorization;
 #else
-namespace HotChocolate.AspNetCore.Authorization
+using HotChocolate.AspNetCore.Authorization;
 #endif
+
+namespace HotChocolate
 {
     public static class SchemaConfigurationExtensions
     {
