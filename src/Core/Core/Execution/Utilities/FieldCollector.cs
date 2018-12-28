@@ -96,13 +96,11 @@ namespace HotChocolate.Execution
 
                 if (fields.TryGetValue(name, out FieldSelection selection))
                 {
-                    fields[name] = new FieldSelection(
-                        selection.Selection.Merge(fieldSelection),
-                        selection.Field, name);
+                    fields[name] = selection.Merge(fieldSelection);
                 }
                 else
                 {
-                    fields.Add(name, new FieldSelection(
+                    fields.Add(name, FieldSelection.Create(
                         fieldSelection, field, name));
                 }
             }

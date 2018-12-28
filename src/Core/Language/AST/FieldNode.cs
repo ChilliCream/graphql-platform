@@ -68,31 +68,5 @@ namespace HotChocolate.Language
             return new FieldNode(Location, Name, Alias,
                 Directives, Arguments, selectionSet);
         }
-
-        public FieldNode Merge(FieldNode other)
-        {
-            if (other == null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
-            var directives = new List<DirectiveNode>(Directives);
-            directives.AddRange(other.Directives);
-
-            SelectionSetNode selectionSet =
-                (SelectionSet == null || other.SelectionSet == null)
-                    ? SelectionSet ?? other.SelectionSet
-                    : SelectionSet.Merge(other.SelectionSet);
-
-            return new FieldNode
-            (
-                Location,
-                Name,
-                Alias,
-                directives,
-                Arguments,
-                selectionSet
-            );
-        }
     }
 }
