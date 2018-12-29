@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -9,30 +10,24 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResolverTask
     {
-        private readonly IExecutionContext _executionContext;
-
         public ResolverTask(
             IExecutionContext executionContext,
             ObjectType objectType,
             FieldSelection fieldSelection,
             Path path,
-            IImmutableStack<object> source,
-            OrderedDictionary result)
+            IImmutableStack<object> source)
         {
-            _executionContext = executionContext;
-
             Source = source;
             ObjectType = objectType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
             Path = path;
-            Result = result;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
                 executionContext.RequestAborted);
 
-            ExecuteMiddleware = executionContext.GetMiddleware(
+            ExecuteMiddleware = executionContext.FieldHelper.CreateMiddleware(
                 objectType, fieldSelection.Selection);
             HasMiddleware = ExecuteMiddleware != null;
         }
@@ -47,7 +42,7 @@ namespace HotChocolate.Execution
 
         public Path Path { get; }
 
-        private OrderedDictionary Result { get; }
+        private IQueryResponse Response { get; }
 
         public IResolverContext ResolverContext { get; }
 
@@ -61,17 +56,31 @@ namespace HotChocolate.Execution
 
         public void IntegrateResult(object value)
         {
-            Result[FieldSelection.ResponseName] = value;
+            Response.Data.Add(new KeyValuePair<string, object>(
+                FieldSelection.ResponseName, value));
         }
 
         public void ReportError(string message)
         {
+            if (string.IsNullOrEmpty(message))
+            {
+                // TODO : Resources
+                throw new ArgumentException(
+                    "The error message cannot be null or empty.",
+                    nameof(message));
+            }
+
             ReportError(CreateError(message));
         }
 
         public void ReportError(IError error)
         {
-            _executionContext.ReportError(error);
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
+            Response.Errors.Add(error);
         }
 
         public IError CreateError(string message)
@@ -79,7 +88,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "A field error mustn't be null or empty.",
+                    "The error message cannot be null or empty.",
                     nameof(message));
             }
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -27,10 +28,34 @@ namespace HotChocolate.Execution
             string operationName = context.Request.OperationName;
             string cacheKey = CreateKey(operationName, context.Request.Query);
 
-            context.Operation = _queryCache.GetOrCreate(cacheKey,
+            OperationDefinitionNode node = _queryCache.GetOrCreate(cacheKey,
                 () => GetOperation(context.Document, operationName));
 
-            return _next(context);
+            ObjectType rootType = ResolveRootType(context, node.Operation);
+            object rootValue = ResolveRootValue(context, rootType);
+            bool disposeRootValue = false;
+
+            if (rootValue == null)
+            {
+                rootValue = CreateRootValue(context, rootType);
+                disposeRootValue = true;
+            }
+
+            context.Operation = new Operation(
+                context.Document, node,
+                rootType, rootValue);
+
+            try
+            {
+                return _next(context);
+            }
+            finally
+            {
+                if (disposeRootValue && rootValue is IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
         }
 
         private string CreateKey(string operationName, string queryText)
@@ -74,6 +99,49 @@ namespace HotChocolate.Execution
                 }
                 return operation;
             }
+        }
+
+        private ObjectType ResolveRootType(
+            IQueryContext context,
+            OperationType operationType)
+        {
+            if (!context.Schema.TryGetType(operationType.ToString(),
+                out ObjectType rootType))
+            {
+                throw new QueryException(
+                    $"The specified root type `{operationType}` " +
+                    "does not exist.");
+            }
+            return rootType;
+        }
+
+        private static object ResolveRootValue(
+            IQueryContext context, ObjectType rootType)
+        {
+            object rootValue = context.Request.InitialValue;
+            Type clrType = rootType.ToClrType();
+
+            if (rootValue == null && clrType != typeof(object))
+            {
+                rootValue = context.Services.GetService(clrType);
+            }
+
+            return rootValue;
+        }
+
+        private static object CreateRootValue(
+            IQueryContext context, ObjectType rootType)
+        {
+            Type clrType = rootType.ToClrType();
+
+            if (clrType != typeof(object))
+            {
+                var serviceFactory = new ServiceFactory();
+                serviceFactory.Services = context.Services;
+                return serviceFactory.CreateInstance(clrType);
+            }
+
+            return null;
         }
     }
 }

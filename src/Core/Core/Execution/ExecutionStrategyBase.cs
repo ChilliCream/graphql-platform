@@ -22,10 +22,8 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var data = new OrderedDictionary();
-
             IEnumerable<ResolverTask> rootResolverTasks =
-                CreateRootResolverTasks(executionContext, data);
+                CreateRootResolverTasks(executionContext);
 
             await ExecuteResolversAsync(
                 executionContext,
@@ -147,26 +145,24 @@ namespace HotChocolate.Execution
         }
 
         protected IEnumerable<ResolverTask> CreateRootResolverTasks(
-            IExecutionContext executionContext,
-            OrderedDictionary result)
+            IExecutionContext executionContext)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
-                .Push(executionContext.RootValue);
+                .Push(executionContext.Operation.RootValue);
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.CollectFields(
-                    executionContext.OperationType,
-                    executionContext.Operation.SelectionSet);
+                executionContext.FieldHelper.CollectFields(
+                    executionContext.Operation.RootType,
+                    executionContext.Operation.Node.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
                 yield return new ResolverTask(
                     executionContext,
-                    executionContext.OperationType,
+                    executionContext.Operation.RootType,
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),
-                    source,
-                    result);
+                    source);
             }
         }
 

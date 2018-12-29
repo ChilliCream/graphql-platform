@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
     {
         public static bool Include(
             this IEnumerable<DirectiveNode> directives,
-            VariableCollection variables)
+            IVariableCollection variables)
         {
             return directives.GetIncludeDirective()
                 .EvaluateDirective(variables) ?? true;
@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
 
         public static bool Skip(
             this IEnumerable<DirectiveNode> directives,
-            VariableCollection variables)
+            IVariableCollection variables)
         {
             return directives.GetSkipDirective()
                 .EvaluateDirective(variables) ?? false;
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
 
         private static bool? EvaluateDirective(
             this DirectiveNode directive,
-            VariableCollection variables)
+            IVariableCollection variables)
         {
             if (directive == null)
             {

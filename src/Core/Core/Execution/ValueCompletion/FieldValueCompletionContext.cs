@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
 
             foreach (IError error in errors)
             {
-                ExecutionContext.ReportError(error);
+                ExecutionContext.Response.Errors.Add(error);
             }
 
             _integrateResult(null);
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            ExecutionContext.ReportError(error);
+            ExecutionContext.Response.Errors.Add(error);
             _integrateResult(null);
         }
 
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(message));
             }
 
-            ExecutionContext.ReportError(QueryError.CreateFieldError(
+            ExecutionContext.Response.Errors.Add(QueryError.CreateFieldError(
                 message, Path, Selection.Selection));
             _integrateResult(null);
         }
@@ -164,7 +164,8 @@ namespace HotChocolate.Execution
             OrderedDictionary objectResult)
         {
             IReadOnlyCollection<FieldSelection> fields =
-                ExecutionContext.CollectFields(objectType, SelectionSet);
+                ExecutionContext.FieldHelper
+                    .CollectFields(objectType, SelectionSet);
 
             foreach (FieldSelection field in fields)
             {

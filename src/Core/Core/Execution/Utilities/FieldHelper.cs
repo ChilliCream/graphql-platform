@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
         public FieldHelper(
             FieldCollector fieldCollector,
             DirectiveLookup directives,
-            VariableCollection variables,
+            IVariableCollection variables,
             ICollection<IError> errors)
         {
             if (directives == null)
