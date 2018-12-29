@@ -64,5 +64,7 @@ namespace HotChocolate.Execution
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
+
+        IExecutionContext Clone();
     }
 }

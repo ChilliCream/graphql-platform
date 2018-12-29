@@ -63,10 +63,8 @@ namespace HotChocolate.Execution
             IEventMessage message,
             CancellationToken cancellationToken)
         {
-            using (IExecutionContext context = _contextFactory(message))
-            {
-                return await _executeQuery(context, cancellationToken);
-            }
+            IExecutionContext context = _contextFactory(message);
+            return await _executeQuery(context, cancellationToken);
         }
 
         public void Dispose()
@@ -77,6 +75,4 @@ namespace HotChocolate.Execution
             _cancellationTokenSource.Dispose();
         }
     }
-
-
 }

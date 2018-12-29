@@ -10,18 +10,22 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResolverTask
     {
+        private readonly OrderedDictionary _result;
+
         public ResolverTask(
             IExecutionContext executionContext,
             ObjectType objectType,
             FieldSelection fieldSelection,
             Path path,
-            IImmutableStack<object> source)
+            IImmutableStack<object> source,
+            OrderedDictionary result)
         {
             Source = source;
             ObjectType = objectType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
             Path = path;
+            _result = result;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
@@ -56,8 +60,7 @@ namespace HotChocolate.Execution
 
         public void IntegrateResult(object value)
         {
-            Response.Data.Add(new KeyValuePair<string, object>(
-                FieldSelection.ResponseName, value));
+            _result[FieldSelection.ResponseName] = value;
         }
 
         public void ReportError(string message)

@@ -4,8 +4,10 @@ namespace HotChocolate.Execution
 {
     public interface IQueryResponse
     {
-        ICollection<KeyValuePair<string, object>> Data { get; }
+        OrderedDictionary Data { get; }
+
         IDictionary<string, object> Extensions { get; }
+
         ICollection<IError> Errors { get; }
     }
 }

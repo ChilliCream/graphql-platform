@@ -55,9 +55,9 @@ namespace HotChocolate.Execution
 
         public DirectiveLookup Directives { get; }
 
-        public IQueryResponse Response { get; }
+        public IQueryResponse Response { get; private set; }
 
-        public IDictionary<string, object> ContextData { get; }
+        public IDictionary<string, object> ContextData { get; private set; }
 
         public CancellationToken RequestAborted { get; }
 
@@ -77,6 +77,15 @@ namespace HotChocolate.Execution
             return new FieldHelper(
                 fieldCollector, directives,
                 variables, errors);
+        }
+
+        public IExecutionContext Clone()
+        {
+            var cloned = (ExecutionContext)base.MemberwiseClone();
+            cloned.ContextData = new ConcurrentDictionary<string, object>(
+                cloned.ContextData);
+            cloned.Response = new QueryResonse();
+            return cloned;
         }
     }
 }

@@ -6,8 +6,8 @@ namespace HotChocolate.Execution
     internal class QueryResonse
         : IQueryResponse
     {
-        public ICollection<KeyValuePair<string, object>> Data { get; } =
-            new List<KeyValuePair<string, object>>();
+        public OrderedDictionary Data { get; } =
+            new OrderedDictionary();
 
         public IDictionary<string, object> Extensions { get; } =
             new ConcurrentDictionary<string, object>();

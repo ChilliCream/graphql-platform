@@ -42,15 +42,20 @@ namespace HotChocolate.Execution
                 .CoerceArgumentValues(executionContext.Variables);
         }
 
-        public ISchema Schema => _executionContext.Schema;
+        public ISchema Schema =>
+            _executionContext.Schema;
 
-        public ObjectType ObjectType => _resolverTask.ObjectType;
+        public ObjectType ObjectType =>
+            _resolverTask.ObjectType;
 
-        public ObjectField Field => _resolverTask.FieldSelection.Field;
+        public ObjectField Field =>
+            _resolverTask.FieldSelection.Field;
 
-        public DocumentNode QueryDocument => _executionContext.QueryDocument;
+        public DocumentNode QueryDocument =>
+            _executionContext.Operation.Query;
 
-        public OperationDefinitionNode Operation => _executionContext.Operation;
+        public OperationDefinitionNode Operation =>
+            _executionContext.Operation.Node;
 
         public FieldNode FieldSelection =>
             _resolverTask.FieldSelection.Selection;
@@ -147,7 +152,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_executionContext.Custom
+            if (_executionContext.ContextData
                 .TryGetValue(key, out object value) && value is T v)
             {
                 return v;
@@ -160,7 +165,7 @@ namespace HotChocolate.Execution
 
         public T Resolver<T>()
         {
-            return _executionContext.GetResolver<T>();
+            return _executionContext.Activator.GetOrCreateResolver<T>();
         }
 
         public void ReportError(string errorMessage)
@@ -168,6 +173,6 @@ namespace HotChocolate.Execution
                     errorMessage, Path, FieldSelection));
 
         public void ReportError(IError error)
-            => _executionContext.ReportError(error);
+            => _executionContext.Response.Errors.Add(error);
     }
 }

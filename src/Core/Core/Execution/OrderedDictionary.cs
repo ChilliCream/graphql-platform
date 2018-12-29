@@ -14,16 +14,6 @@ namespace HotChocolate.Execution
         private readonly Dictionary<string, object> _map =
             new Dictionary<string, object>();
 
-        public OrderedDictionary(
-            IEnumerable<KeyValuePair<string, object>> values)
-        {
-            foreach(KeyValuePair<string, object> values )
-        }
-
-        public OrderedDictionary()
-        {
-        }
-
         public object this[string key]
         {
             get

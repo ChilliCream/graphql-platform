@@ -2,7 +2,6 @@
 using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
@@ -40,7 +39,7 @@ namespace HotChocolate.Execution
             IFieldValueCompletionContext context,
             ObjectType objectType)
         {
-            var objectResult = new List<KeyValuePair<string, object>>();
+            var objectResult = new OrderedDictionary();
             context.IntegrateResult(objectResult);
             context.EnqueueForProcessing(objectType, objectResult);
         }
