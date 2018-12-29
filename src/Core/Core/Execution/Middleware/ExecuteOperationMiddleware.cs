@@ -40,6 +40,7 @@ namespace HotChocolate.Execution
                 context.Result = await strategy.ExecuteAsync(
                     executionContext, executionContext.RequestAborted);
             }
+
             await _next(context);
         }
 

@@ -31,7 +31,9 @@ namespace HotChocolate.Execution
                 batchOperationHandler,
                 cancellationToken);
 
-            return new QueryResult(data, executionContext.GetErrors());
+
+            OrderedDictionary
+            return new QueryResult(data, executionContext.Response.Errors);
         }
 
         protected async Task ExecuteResolversAsync(

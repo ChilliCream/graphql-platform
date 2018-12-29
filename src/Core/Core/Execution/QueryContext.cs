@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
             new Dictionary<string, object>();
 
         public DocumentNode Document { get; set; }
-        public OperationDefinitionNode Operation { get; set; }
+        public IOperation Operation { get; set; }
         public QueryValidationResult ValidationResult { get; set; }
         public IVariableCollection Variables { get; set; }
         public CancellationToken RequestAborted { get; set; }
