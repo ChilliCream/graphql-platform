@@ -31,12 +31,10 @@ namespace HotChocolate.DataLoader
 
     public interface IDataLoaderRegistry
     {
-        bool Register<T>(
-            string key,
-            Func<IServiceProvider, T> factory);
+        bool Register<T>(string key, Func<IServiceProvider, T> factory)
+            where T : IDataLoader;
 
-        bool TryGet<T>(
-            string key,
-            out T dataLoader);
+        bool TryGet<T>(string key, out T dataLoader)
+            where T : IDataLoader;
     }
 }
