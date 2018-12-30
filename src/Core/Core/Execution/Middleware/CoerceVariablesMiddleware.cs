@@ -14,11 +14,20 @@ namespace HotChocolate.Execution
 
         public Task InvokeAsync(IQueryContext context)
         {
-            var variableBuilder = new VariableValueBuilder(
-                context.Schema, context.Operation.Definition);
-            context.Variables = variableBuilder.CreateValues(
-                context.Request.VariableValues);
+            if (IsContextValid(context))
+            {
+                var variableBuilder = new VariableValueBuilder(
+                    context.Schema, context.Operation.Definition);
+                context.Variables = variableBuilder.CreateValues(
+                    context.Request.VariableValues);
+            }
             return _next(context);
+        }
+
+        private bool IsContextValid(IQueryContext context)
+        {
+            return context.Document != null
+                && context.Operation != null;
         }
     }
 }
