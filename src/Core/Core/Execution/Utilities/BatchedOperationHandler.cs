@@ -30,8 +30,7 @@ namespace HotChocolate.Execution
 
             foreach (IBatchOperation batchOperation in _batchOperations)
             {
-                batchOperation.BatchSizeIncreased +=
-                    (sender, args) => BatchSizeIncreased(batchOperation);
+                batchOperation.BatchSizeIncreased += BatchSizeIncreased;
             }
         }
 
@@ -116,8 +115,10 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void BatchSizeIncreased(IBatchOperation operation)
+        private void BatchSizeIncreased(object sender, EventArgs args)
         {
+            IBatchOperation operation = (IBatchOperation)sender;
+
             _touchedSync.Wait();
 
             try
@@ -151,9 +152,7 @@ namespace HotChocolate.Execution
 
                     foreach (IBatchOperation batchOperation in _batchOperations)
                     {
-                        batchOperation.BatchSizeIncreased -=
-                            (sender, args) => BatchSizeIncreased(
-                                batchOperation);
+                        batchOperation.BatchSizeIncreased -= BatchSizeIncreased;
                     }
                 }
 
