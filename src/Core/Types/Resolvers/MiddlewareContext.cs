@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +84,9 @@ namespace HotChocolate.Resolvers
 
         public CancellationToken RequestAborted =>
             _resolverContext.RequestAborted;
+
+        public IDictionary<string, object> ContextData =>
+            _resolverContext.ContextData;
 
         public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);

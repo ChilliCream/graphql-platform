@@ -68,6 +68,9 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted { get; }
 
+        public IDictionary<string, object> ContextData =>
+            _executionContext.ContextData;
+
         public T Argument<T>(NameString name)
         {
             if (string.IsNullOrEmpty(name))
@@ -152,8 +155,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_executionContext.ContextData
-                .TryGetValue(key, out object value) && value is T v)
+            if (ContextData.TryGetValue(key, out object value)
+                && value is T v)
             {
                 return v;
             }

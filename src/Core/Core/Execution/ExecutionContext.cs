@@ -15,6 +15,7 @@ namespace HotChocolate.Execution
             IOperation operation,
             IVariableCollection variables,
             DirectiveLookup directives,
+            IDictionary<string, object> contextData,
             CancellationToken requestAborted)
         {
             Schema = schema
@@ -27,12 +28,13 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(variables));
             Directives = directives
                 ?? throw new ArgumentNullException(nameof(directives));
+            ContextData = contextData
+                ?? throw new ArgumentNullException(nameof(contextData));
             RequestAborted = requestAborted;
 
             ErrorHandler = services.GetRequiredService<IErrorHandler>();
 
             Response = new QueryResonse();
-            ContextData = new ConcurrentDictionary<string, object>();
 
             FieldHelper = CreateFieldHelper(
                 variables,
