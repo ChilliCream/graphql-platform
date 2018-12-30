@@ -65,6 +65,13 @@ namespace HotChocolate.Execution
         /// </summary>
         IActivator Activator { get; }
 
+        /// <summary>
+        /// Creates a copy of this execution context
+        /// where the copy of this object has new instances
+        /// of <see cref="ContextData" /> and <see cref="Response" />.
+        /// <see cref="ContextData" /> will have all values inserted
+        /// from the original context.
+        /// </summary>
         IExecutionContext Clone();
     }
 }
