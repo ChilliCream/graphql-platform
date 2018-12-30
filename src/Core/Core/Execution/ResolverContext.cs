@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
             _executionContext.Operation.Query;
 
         public OperationDefinitionNode Operation =>
-            _executionContext.Operation.Node;
+            _executionContext.Operation.Definition;
 
         public FieldNode FieldSelection =>
             _resolverTask.FieldSelection.Selection;

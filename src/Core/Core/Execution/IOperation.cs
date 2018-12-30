@@ -5,12 +5,22 @@ namespace HotChocolate.Execution
 {
     public interface IOperation
     {
+        /// <summary>
+        /// Gets the parsed query document that contains the
+        /// operation-<see cref="Definition" />.
+        /// </summary>
+        /// <value></value>
+        DocumentNode Query { get; }
+
+        /// <summary>
+        /// Gets the syntax node representing the operation definition.
+        /// </summary>
+        OperationDefinitionNode Definition { get; }
 
         /// <summary>
         /// Gets the value representing the instance of the
         /// <see cref="RootType" />
         /// </summary>
-        /// <value></value>
         object RootValue { get; }
 
         /// <summary>
@@ -19,15 +29,13 @@ namespace HotChocolate.Execution
         ObjectType RootType { get; }
 
         /// <summary>
-        /// Gets the parsed query document that contains the
-        /// operation-<see cref="Node" />.
+        /// Gets the name of the operation.
         /// </summary>
-        /// <value></value>
-        DocumentNode Query { get; }
+        string Name { get; }
 
         /// <summary>
-        /// Gets the syntax node representing the operation definition.
+        /// Gets the operation type (Query, Mutation, Subscription).
         /// </summary>
-        OperationDefinitionNode Node { get; }
+        OperationType Type { get; }
     }
 }

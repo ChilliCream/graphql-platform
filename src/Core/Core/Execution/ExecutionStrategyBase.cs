@@ -157,7 +157,7 @@ namespace HotChocolate.Execution
             IReadOnlyCollection<FieldSelection> fieldSelections =
                 executionContext.FieldHelper.CollectFields(
                     executionContext.Operation.RootType,
-                    executionContext.Operation.Node.SelectionSet);
+                    executionContext.Operation.Definition.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {

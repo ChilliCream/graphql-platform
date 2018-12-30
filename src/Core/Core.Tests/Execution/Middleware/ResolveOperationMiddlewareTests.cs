@@ -36,7 +36,7 @@ namespace Core.Tests.Execution.Middleware
 
             // assert
             Assert.NotNull(context.Operation);
-            Assert.Equal("a", context.Operation.Name.Value);
+            Assert.Equal("a", context.Operation.Name);
         }
 
         [Fact]

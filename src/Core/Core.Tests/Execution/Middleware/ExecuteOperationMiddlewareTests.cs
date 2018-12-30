@@ -38,9 +38,13 @@ namespace HotChocolate.Execution
             DocumentNode query = Parser.Default.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
-            OperationDefinitionNode operation = query.Definitions
+            OperationDefinitionNode operationNode = query.Definitions
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
+
+            var operation = new Operation(
+                query, operationNode, schema.QueryType,
+                null);
 
             var request = new QueryRequest("{ a }").ToReadOnly();
 

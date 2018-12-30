@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
             {
                 IExecutionStrategy strategy =
                     _strategyResolver.Resolve(
-                        context.Operation.Node.Operation);
+                        context.Operation.Type);
 
                 IExecutionContext executionContext =
                     CreateExecutionContext(context);
@@ -43,8 +43,6 @@ namespace HotChocolate.Execution
 
             await _next(context);
         }
-
-
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
         {
@@ -72,7 +70,8 @@ namespace HotChocolate.Execution
         private bool IsContextValid(IQueryContext context)
         {
             return context.Document != null
-                && context.Operation != null;
+                && context.Operation != null
+                && context.Variables != null;
         }
     }
 }
