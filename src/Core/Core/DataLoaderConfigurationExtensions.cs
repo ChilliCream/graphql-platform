@@ -6,79 +6,86 @@ namespace HotChocolate
 {
     public static class DataLoaderConfigurationExtensions
     {
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             string key,
             ExecutionScope scope,
             Func<IServiceProvider, TLoader> loaderFactory)
-            where TLoader : IDispatchableDataLoader
+            where TLoader : IDataLoader
         {
-            configuration.RegisterDataLoader<TLoader>(
-                key, scope, loaderFactory, (d, c) => d.DispatchAsync());
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
             string key,
             ExecutionScope scope,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, IDataLoader> loaderFactory)
 
         {
-            configuration.RegisterDataLoader(type, key, scope, loaderFactory,
-                (d, c) => ((IDispatchableDataLoader)d).DispatchAsync());
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             ExecutionScope scope,
             Func<IServiceProvider, TLoader> loaderFactory)
-            where TLoader : IDispatchableDataLoader
+            where TLoader : IDataLoader
         {
-            RegisterDataLoader<TLoader>(configuration,
-                typeof(TLoader).FullName, scope, loaderFactory);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
             ExecutionScope scope,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, IDataLoader> loaderFactory)
         {
-            RegisterDataLoader(configuration, type,
-                type.FullName, scope, loaderFactory);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             Func<IServiceProvider, TLoader> loaderFactory)
-            where TLoader : IDispatchableDataLoader
+            where TLoader : IDataLoader
         {
-            RegisterDataLoader<TLoader>(
-                configuration, typeof(TLoader).FullName,
-                ExecutionScope.Request, loaderFactory);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
-            Func<IServiceProvider, IDispatchableDataLoader> loaderFactory)
+            Func<IServiceProvider, IDataLoader> loaderFactory)
 
         {
-            RegisterDataLoader(configuration, type, type.FullName,
-                ExecutionScope.Request, loaderFactory);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
-           this ISchemaConfiguration configuration,
-           string key,
-           ExecutionScope scope)
-           where TLoader : class, IDispatchableDataLoader
+            this ISchemaConfiguration configuration,
+            string key,
+            ExecutionScope scope)
+            where TLoader : class, IDataLoader
         {
-            configuration.RegisterDataLoader<TLoader>(key, scope,
-                triggerLoaderAsync: (d, c) => d.DispatchAsync());
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -86,44 +93,48 @@ namespace HotChocolate
             ExecutionScope scope)
 
         {
-            configuration.RegisterDataLoader(type, key, scope,
-                triggerLoaderAsync: (d, c) => ((IDispatchableDataLoader)d)
-                    .DispatchAsync());
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             ExecutionScope scope)
-            where TLoader : class, IDispatchableDataLoader
+            where TLoader : class, IDataLoader
         {
-            RegisterDataLoader<TLoader>(
-                configuration, typeof(TLoader).FullName, scope);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
             ExecutionScope scope)
 
         {
-            RegisterDataLoader(configuration, type, type.FullName, scope);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration)
-            where TLoader : class, IDispatchableDataLoader
+            where TLoader : class, IDataLoader
         {
 
-            RegisterDataLoader<TLoader>(configuration,
-            typeof(TLoader).FullName, ExecutionScope.Request);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
 
+        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration, Type type)
 
         {
-            RegisterDataLoader(configuration, type,
-                type.FullName, ExecutionScope.Request);
+            throw new NotSupportedException(
+                "This method is no longer supported.");
         }
     }
 }

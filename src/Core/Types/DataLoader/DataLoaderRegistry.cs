@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Execution;
 
 namespace HotChocolate.DataLoader
@@ -34,6 +35,7 @@ namespace HotChocolate.DataLoader
         }
 
         public bool Register<T>(string key, Func<IServiceProvider, T> factory)
+            where T : IDataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -52,6 +54,7 @@ namespace HotChocolate.DataLoader
         }
 
         public bool TryGet<T>(string key, out T dataLoader)
+            where T : IDataLoader
         {
             if (string.IsNullOrEmpty(key))
             {

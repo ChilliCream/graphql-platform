@@ -21,7 +21,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         public List<IReadOnlyList<string>> Loads { get; } =
             new List<IReadOnlyList<string>>();
 
-        protected override Task<IReadOnlyList<IResult<Human>>> Fetch(
+        protected override Task<IReadOnlyList<Result<Human>>> FetchAsync(
             IReadOnlyList<string> keys)
         {
             var result = _repository.GetHumans(keys).ToDictionary(t => t.Id);
@@ -31,15 +31,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             {
                 if (result.TryGetValue(key, out Human human))
                 {
-                    list.Add(Result<Human>.Resolve(human));
+                    list.Add(human);
                 }
                 else
                 {
-                    list.Add(Result<Human>.Resolve(null));
+                    list.Add((Human)null);
                 }
             }
 
-            return Task.FromResult<IReadOnlyList<IResult<Human>>>(list);
+            return Task.FromResult<IReadOnlyList<Result<Human>>>(list);
         }
     }
 }

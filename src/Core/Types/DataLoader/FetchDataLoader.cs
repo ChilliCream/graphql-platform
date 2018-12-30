@@ -23,17 +23,17 @@ namespace HotChocolate.DataLoader
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
-        protected override async Task<IReadOnlyList<IResult<TValue>>> Fetch(
+        protected override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys)
         {
             IReadOnlyDictionary<TKey, TValue> result = await _fetch(keys);
-            var items = new IResult<TValue>[keys.Count];
+            var items = new Result<TValue>[keys.Count];
 
             for (int i = 0; i < keys.Count; i++)
             {
                 if (result.TryGetValue(keys[i], out TValue value))
                 {
-                    items[i] = Result<TValue>.Resolve(value);
+                    items[i] = value;
                 }
             }
 
