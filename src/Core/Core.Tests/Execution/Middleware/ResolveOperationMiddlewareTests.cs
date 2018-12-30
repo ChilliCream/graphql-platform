@@ -105,5 +105,37 @@ namespace Core.Tests.Execution.Middleware
                 "The specified operation `c` does not exist.",
                 exception.Message);
         }
+
+        [InlineData("subscription")]
+        [InlineData("mutation")]
+        [InlineData("query")]
+        [Theory]
+        public async Task ResolveRootTypeWithCustomNames(string rootType)
+        {
+            // arrange
+            Schema schema = Schema.Create(@"
+                type Foo { a: String }
+                schema { " + rootType + @": Foo }
+                ", c =>
+            {
+                c.BindResolver(() => "hello world")
+                    .To("Foo", "a");
+            });
+
+            var request = new QueryRequest("query a { a }").ToReadOnly();
+
+            var context = new QueryContext(
+                schema, new EmptyServiceProvider(), request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            Assert.NotNull(context.Operation.RootType);
+        }
     }
 }

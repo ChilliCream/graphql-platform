@@ -105,13 +105,34 @@ namespace HotChocolate.Execution
             IQueryContext context,
             OperationType operationType)
         {
-            if (!context.Schema.TryGetType(operationType.ToString(),
-                out ObjectType rootType))
+            ObjectType rootType;
+
+            switch (operationType)
+            {
+                case OperationType.Query:
+                    rootType = context.Schema.QueryType;
+                    break;
+
+                case OperationType.Mutation:
+                    rootType = context.Schema.MutationType;
+                    break;
+
+                case OperationType.Subscription:
+                    rootType = context.Schema.SubscriptionType;
+                    break;
+
+                default:
+                    rootType = null;
+                    break;
+            }
+
+            if (rootType == null)
             {
                 throw new QueryException(
                     $"The specified root type `{operationType}` " +
                     "does not exist.");
             }
+
             return rootType;
         }
 
