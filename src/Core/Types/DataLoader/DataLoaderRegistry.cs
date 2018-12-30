@@ -11,11 +11,11 @@ namespace HotChocolate.DataLoader
         : IDataLoaderRegistry
         , IBatchOperation
     {
-        private readonly ConcurrentDictionary<string, Func<object>> _factories
-            = new ConcurrentDictionary<string, Func<object>>();
+        private readonly ConcurrentDictionary<string, Func<IDataLoader>> _factories
+            = new ConcurrentDictionary<string, Func<IDataLoader>>();
 
-        private readonly ConcurrentDictionary<string, object> _instances
-            = new ConcurrentDictionary<string, object>();
+        private readonly ConcurrentDictionary<string, IDataLoader> _instances
+            = new ConcurrentDictionary<string, IDataLoader>();
 
         private readonly IServiceProvider _services;
 
@@ -64,16 +64,20 @@ namespace HotChocolate.DataLoader
                     nameof(key));
             }
 
-            if (!_instances.TryGetValue(key, out object loader))
+            if (!_instances.TryGetValue(key, out IDataLoader loader))
             {
-                if (_factories.TryGetValue(key, out Func<object> factory))
+                if (_factories.TryGetValue(key, out Func<IDataLoader> factory))
                 {
                     lock (factory)
                     {
                         if (!_instances.TryGetValue(key, out loader))
                         {
-                            loader = factory();
-                            _instances.TryAdd(key, loader);
+                            loader = _instances.GetOrAdd(key, k =>
+                            {
+                                IDataLoader instance = factory();
+                                // register event
+                                return instance;
+                            });
                             SendBatchSizeIncreasedEvent();
                         }
                     }

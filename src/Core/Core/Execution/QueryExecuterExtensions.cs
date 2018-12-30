@@ -7,7 +7,6 @@ namespace HotChocolate.Execution
 {
     public static class QueryExecuterExtensions
     {
-        [Obsolete("Use MakeExecutable instead.")]
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecuter executer,
             QueryRequest request)
@@ -17,7 +16,6 @@ namespace HotChocolate.Execution
                 CancellationToken.None);
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecuter executer,
             string query)
@@ -27,7 +25,6 @@ namespace HotChocolate.Execution
                 CancellationToken.None);
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecuter executer,
             string query,
@@ -38,7 +35,6 @@ namespace HotChocolate.Execution
                 cancellationToken);
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecuter executer,
             string query,
@@ -52,7 +48,6 @@ namespace HotChocolate.Execution
                 CancellationToken.None);
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecuter executer,
             string query,
@@ -67,7 +62,6 @@ namespace HotChocolate.Execution
                 cancellationToken);
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static IExecutionResult Execute(
             this IQueryExecuter executer,
             QueryRequest request)
@@ -79,7 +73,6 @@ namespace HotChocolate.Execution
                 .GetResult();
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static IExecutionResult Execute(
             this IQueryExecuter executer,
             string query)
@@ -87,7 +80,6 @@ namespace HotChocolate.Execution
             return executer.Execute(new QueryRequest(query));
         }
 
-        [Obsolete("Use MakeExecutable instead.")]
         public static IExecutionResult Execute(
             this IQueryExecuter executer,
             string query,

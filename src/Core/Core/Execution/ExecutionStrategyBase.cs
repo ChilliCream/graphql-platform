@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
+using HotChocolate.DataLoader;
 
 namespace HotChocolate.Execution
 {
@@ -177,10 +178,15 @@ namespace HotChocolate.Execution
             var batchOperations = executionContext.Services
                 .GetService<IEnumerable<IBatchOperation>>();
 
+            batchOperations = batchOperations.Concat(executionContext.Services
+                .GetService<IEnumerable<IDataLoaderRegistry>>()
+                    .OfType<IBatchOperation>()).Distinct().ToArray();
+
             if (batchOperations.Any())
             {
                 return new BatchOperationHandler(batchOperations);
             }
+
             return null;
         }
     }
