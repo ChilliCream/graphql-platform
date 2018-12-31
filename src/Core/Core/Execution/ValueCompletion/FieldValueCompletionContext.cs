@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
 
             foreach (IError error in errors)
             {
-                ExecutionContext.Response.Errors.Add(error);
+                ReportError(error);
             }
 
             _integrateResult(null);
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(message));
             }
 
-            ExecutionContext.Response.Errors.Add(QueryError.CreateFieldError(
+            ReportError(QueryError.CreateFieldError(
                 message, Path, Selection.Selection));
             _integrateResult(null);
         }

@@ -54,6 +54,16 @@ namespace HotChocolate.Execution
                     result = await ExecuteFieldMiddlewareAsync(
                         resolverTask);
                 }
+
+                if (result is IError error)
+                {
+                    result = errorHandler.Handle(error);
+                }
+
+                if (result is IEnumerable<IError> errors)
+                {
+                    result = errorHandler.Handle(errors);
+                }
             }
             catch (QueryException ex)
             {

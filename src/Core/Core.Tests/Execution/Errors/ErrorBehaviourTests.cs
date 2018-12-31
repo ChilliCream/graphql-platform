@@ -13,12 +13,14 @@ namespace HotChocolate.Execution
         {
             // arrange
             string query = "{ error1 }";
+            int i = 0;
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -26,13 +28,15 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Throw_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error4 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -40,13 +44,15 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Throw_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error7 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -54,10 +60,11 @@ namespace HotChocolate.Execution
         public async Task Property_Throw_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error10 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -68,13 +75,15 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_NoAwait_Throw_UnexpectedError()
         {
             // arrange
+            int i = 0;
             string query = "{ error2 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -82,13 +91,15 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Throw_UnexpectedError()
         {
             // arrange
+            int i = 0;
             string query = "{ error5 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -96,13 +107,15 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Throw_UnexpectedError()
         {
             // arrange
+            int i = 0;
             string query = "{ error8 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -110,13 +123,15 @@ namespace HotChocolate.Execution
         public async Task Property_Throw_UnexpectedError()
         {
             // arrange
+            int i = 0;
             string query = "{ error11 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -124,13 +139,15 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_NoAwait_Return_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error3 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -138,13 +155,15 @@ namespace HotChocolate.Execution
         public async Task AsyncMethod_Await_Return_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error6 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -152,13 +171,15 @@ namespace HotChocolate.Execution
         public async Task SyncMethod_Return_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error9 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -166,13 +187,15 @@ namespace HotChocolate.Execution
         public async Task Property_Return_ApplicationError()
         {
             // arrange
+            int i = 0;
             string query = "{ error12 }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
@@ -180,19 +203,30 @@ namespace HotChocolate.Execution
         public async Task Property_Return_UnexpectedErrorWithPath()
         {
             // arrange
+            int i = 0;
             string query = "{ error13 { bar } }";
 
             // act
-            IExecutionResult result = await ExecuteQuery(query);
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
 
             // assert
             Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
             result.Snapshot();
         }
 
-        private async Task<IExecutionResult> ExecuteQuery(string query)
+        private async Task<IExecutionResult> ExecuteQuery(
+            string query,
+            Action errorHandled)
         {
-            return await CreateSchema().MakeExecutable().ExecuteAsync(query);
+            IQueryExecuter queryExecuter = CreateSchema().MakeExecutable(
+                b => b.UseDefaultPipeline().AddErrorFilter((error, ex) =>
+                {
+                    errorHandled();
+                    return error;
+                }));
+
+            return await queryExecuter.ExecuteAsync(query);
         }
 
         private ISchema CreateSchema()
@@ -230,7 +264,8 @@ namespace HotChocolate.Execution
 
             public Task<object> Error3()
             {
-                return Task.FromResult<object>(new QueryError("query error 3"));
+                return Task.FromResult<object>(
+                    new QueryError("query error 3"));
             }
 
             public async Task<string> Error4()
@@ -248,7 +283,8 @@ namespace HotChocolate.Execution
             public async Task<object> Error6()
             {
                 await Task.Delay(1);
-                return await Task.FromResult<object>(new QueryError("query error 6"));
+                return await Task.FromResult<object>(
+                    new QueryError("query error 6"));
             }
 
             public string Error7()
