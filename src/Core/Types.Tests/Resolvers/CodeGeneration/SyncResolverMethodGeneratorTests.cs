@@ -105,7 +105,8 @@ namespace HotChocolate.Resolvers
 
             var argumentDescriptor = new ArgumentDescriptor(
                     "a", "b", argumentKind,
-                    typeof(GeneratorTestDummy));
+                    typeof(GeneratorTestDummy),
+                    null);
 
             return new ResolverDescriptor(sourceType, fieldMember);
         }

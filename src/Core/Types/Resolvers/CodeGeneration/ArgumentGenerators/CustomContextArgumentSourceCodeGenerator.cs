@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -11,7 +12,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override string Generate(
             ArgumentDescriptor descriptor)
         {
-            return $"ctx.{nameof(IResolverContext.CustomProperty)}<{descriptor.Type.GetTypeName()}>()";
+            string typeName = descriptor.Type.GetTypeName();
+            string key = null;
+
+            if (descriptor.Parameter != null
+                && descriptor.Parameter.IsDefined(typeof(StateAttribute)))
+            {
+                key = WriteEscapeCharacters(descriptor.Parameter
+                    .GetCustomAttribute<StateAttribute>().Key);
+            }
+            else
+            {
+                key = WriteEscapeCharacters(typeName);
+            }
+
+            return $"ctx.{nameof(IResolverContext.CustomProperty)}<{descriptor.Type.GetTypeName()}>(\"{key}\")";
         }
     }
 }

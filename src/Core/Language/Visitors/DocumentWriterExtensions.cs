@@ -167,7 +167,7 @@ namespace HotChocolate.Language
                     WriteEscapeCharacterHelper(stringBuilder, '/');
                     break;
                 case '\b':
-                    WriteEscapeCharacterHelper(stringBuilder, '"');
+                    WriteEscapeCharacterHelper(stringBuilder, 'b');
                     break;
                 case '\f':
                     WriteEscapeCharacterHelper(stringBuilder, 'f');
