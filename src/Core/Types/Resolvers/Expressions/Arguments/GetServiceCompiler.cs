@@ -3,22 +3,21 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetParentCompiler<T>
+    internal sealed class GetServiceCompiler<T>
         : GetFromGenericMethodCompilerBase<T>
         where T : IResolverContext
     {
-        public GetParentCompiler()
+        public GetServiceCompiler()
         {
             GenericMethod = ContextTypeInfo.GetDeclaredMethod(
-                nameof(IResolverContext.Parent));
+                nameof(IResolverContext.Service));
         }
 
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
         {
-            return sourceType == parameter.ParameterType
-                || parameter.IsDefined(typeof(ParentAttribute));
+            return parameter.IsDefined(typeof(ServiceAttribute));
         }
     }
 }
