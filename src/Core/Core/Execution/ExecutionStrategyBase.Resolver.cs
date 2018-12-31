@@ -59,8 +59,7 @@ namespace HotChocolate.Execution
                 {
                     result = errorHandler.Handle(error);
                 }
-
-                if (result is IEnumerable<IError> errors)
+                else if (result is IEnumerable<IError> errors)
                 {
                     result = errorHandler.Handle(errors);
                 }
