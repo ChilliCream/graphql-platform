@@ -37,7 +37,8 @@ Task("EnvironmentSetup")
     {
         sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
         sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
-        sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+        // sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+        sonarBranchBase = "master";
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
