@@ -175,7 +175,8 @@ Task("SonarBegin")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    SonarBegin(new SonarBeginSettings{
+    SonarBegin(new SonarBeginSettings
+    {
         Url = "https://sonarcloud.io",
         Login = sonarLogin,
         Key = "HotChocolate",
@@ -193,11 +194,10 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
                 a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
+                a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
+                a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
+                // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
-
-            a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
-            a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
-            // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
 
             return a;
         }
@@ -207,9 +207,10 @@ Task("SonarBegin")
 Task("SonarEnd")
     .Does(() =>
 {
-    SonarEnd(new SonarEndSettings{
+    SonarEnd(new SonarEndSettings
+    {
         Login = sonarLogin,
-     });
+    });
 });
 
 //////////////////////////////////////////////////////////////////////
