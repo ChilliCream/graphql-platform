@@ -96,7 +96,7 @@ namespace HotChocolate.Types
 
             InputObjectTypeDescription description =
                 descriptor.CreateDescription();
-            ClrType = description.ClrType ?? typeof(object);
+            ClrType = description.ClrType;
             SyntaxNode = description.SyntaxNode;
             Fields = new FieldCollection<InputField>(
                 description.Fields.Select(t => new InputField(t)));
@@ -131,26 +131,22 @@ namespace HotChocolate.Types
 
             base.OnCompleteType(context);
 
-            CompleteNativeType(context);
+            CompleteClrType(context);
             CompleteFields(context);
         }
 
-        private void CompleteNativeType(
+        private void CompleteClrType(
             ITypeInitializationContext context)
         {
             if (ClrType == null
-                && context.TryGetNativeType(this, out Type nativeType))
+                && context.TryGetNativeType(this, out Type clrType))
             {
-                ClrType = nativeType;
+                ClrType = clrType;
             }
 
             if (ClrType == null)
             {
-                // TODO :resources
-                context.ReportError(new SchemaError(
-                    "Could not resolve the native type associated with " +
-                    $"input object type `{Name}`.",
-                    this));
+                ClrType = typeof(object);
             }
         }
 

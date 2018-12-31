@@ -189,35 +189,45 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
+            CompleteClrType(context);
             CompleteIsOfType();
             CompleteInterfaces(context);
             CompleteFields(context);
 
+            ValidateInterfaceImplementation(context);
+        }
+
+        private void CompleteClrType(
+            ITypeInitializationContext context)
+        {
             if (ClrType == null
                 && context.TryGetNativeType(this, out Type clrType))
             {
                 ClrType = clrType;
             }
 
-            ValidateInterfaceImplementation(context);
+            if (ClrType == null)
+            {
+                ClrType = typeof(object);
+            }
         }
 
         private void CompleteIsOfType()
         {
             if (_isOfType == null)
             {
-                if (_typeBinding?.Type == null)
+                if (ClrType == typeof(object))
                 {
-                    _isOfType = IsOfTypeNameBased;
+                    _isOfType = IsOfTypeWithName;
                 }
                 else
                 {
-                    _isOfType = IsOfTypeWithNativeType;
+                    _isOfType = IsOfTypeWithClrType;
                 }
             }
         }
 
-        private bool IsOfTypeWithNativeType(
+        private bool IsOfTypeWithClrType(
             IResolverContext context,
             object result)
         {
@@ -225,10 +235,10 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return _typeBinding.Type.IsInstanceOfType(result);
+            return ClrType.IsInstanceOfType(result);
         }
 
-        private bool IsOfTypeNameBased(
+        private bool IsOfTypeWithName(
             IResolverContext context,
             object result)
         {
