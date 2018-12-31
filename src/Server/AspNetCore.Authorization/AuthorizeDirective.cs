@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,6 +25,9 @@ namespace HotChocolate.AspNetCore.Authorization
             Roles = roles.ToArray();
         }
 #else
+        public AuthorizeDirective()
+            : this(null, null) { }
+
         public AuthorizeDirective(string policy)
             : this(policy, null)
         { }
@@ -38,12 +41,18 @@ namespace HotChocolate.AspNetCore.Authorization
             ReadOnlyCollection<string> readOnlyRoles =
                 roles?.ToList().AsReadOnly();
 
+//mlm - I'm not sure if the other changes I've made in AuthorizeDirectiveType
+// are applicable only to AspNet Core or not. So, I'm keeping this in but gating
+// it for AspNetClassic until someone can confirm it's okay to remove this for both
+// AspNetClassic and AspNetCore.
+#if ASPNETCLASSIC
             if (string.IsNullOrEmpty(policy)
                 && (readOnlyRoles == null || readOnlyRoles.Any()))
             {
                 throw new ArgumentException(
                     "Either policy or roles has to be set.");
             }
+#endif
 
             Policy = policy;
             Roles = readOnlyRoles;
