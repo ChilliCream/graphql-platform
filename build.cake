@@ -37,8 +37,7 @@ Task("EnvironmentSetup")
     {
         sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
         sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
-        // sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
-        sonarBranchBase = "master";
+        sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -192,15 +191,7 @@ Task("SonarBegin")
             if(!string.IsNullOrEmpty(sonarPrKey))
             {
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
-            }
-
-            if(!string.IsNullOrEmpty(sonarBranch))
-            {
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
-            }
-
-            if(!string.IsNullOrEmpty(sonarBranchBase))
-            {
                 a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
             }
 
