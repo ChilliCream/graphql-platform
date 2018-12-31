@@ -19,7 +19,8 @@ namespace HotChocolate
                 c => c.RegisterType<QueryTypeWithProperty>());
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync("{ test }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
             Assert.Null(result.Errors);
@@ -34,7 +35,8 @@ namespace HotChocolate
                 c => c.RegisterType<QueryTypeWithMethod>());
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync("{ test }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ test }");
 
             // assert
             Assert.Null(result.Errors);
@@ -48,8 +50,14 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ fooOrBar { ... on Bar { nameBar } ... on Foo { nameFoo } } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    @"{
+                        fooOrBar {
+                            ... on Bar { nameBar }
+                            ... on Foo { nameFoo }
+                        }
+                    }");
 
             // assert
             Assert.Null(result.Errors);
@@ -67,7 +75,7 @@ namespace HotChocolate
 
             // act
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
-            ObjectType teaType = fooBar.ResolveType(context.Object, "black_tea");
+            ObjectType teaType = fooBar.ResolveType(context.Object, "tea");
             ObjectType barType = fooBar.ResolveType(context.Object, "bar");
 
             // assert
@@ -82,8 +90,9 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ drink { ... on Tea { kind } } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ drink { ... on Tea { kind } } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -100,7 +109,7 @@ namespace HotChocolate
 
             // act
             InterfaceType drink = schema.GetType<InterfaceType>("Drink");
-            ObjectType teaType = drink.ResolveType(context.Object, "black_tea");
+            ObjectType teaType = drink.ResolveType(context.Object, "tea");
             ObjectType barType = drink.ResolveType(context.Object, "bar");
 
             // assert
@@ -115,8 +124,9 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ dog { name } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ dog { name } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -130,8 +140,9 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ dog { desc } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ dog { desc } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -145,8 +156,9 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ dog { name2 } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ dog { name2 } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -160,8 +172,9 @@ namespace HotChocolate
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "{ dog { names } }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ dog { names } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -182,10 +195,21 @@ namespace HotChocolate
             });
         }
 
+        public class Query
+        {
+            public string GetTest()
+            {
+                return "Hello World!";
+            }
+
+            public string TestProp => "Hello World!";
+        }
+
         public class QueryTypeWithProperty
             : ObjectType<Query>
         {
-            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor<Query> descriptor)
             {
                 descriptor.Name("Query");
                 descriptor.Field(t => t.TestProp).Name("test");
@@ -195,7 +219,8 @@ namespace HotChocolate
         public class QueryTypeWithMethod
             : ObjectType<Query>
         {
-            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor<Query> descriptor)
             {
                 descriptor.Name("Query");
                 descriptor.Field(t => t.GetTest()).Name("test");
@@ -205,7 +230,8 @@ namespace HotChocolate
         public class QueryType
             : ObjectType
         {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
                 descriptor.Field("foo")
@@ -232,7 +258,8 @@ namespace HotChocolate
         public class FooType
             : ObjectType
         {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Foo");
                 descriptor.Field("bar")
@@ -274,7 +301,8 @@ namespace HotChocolate
         public class DrinkType
             : InterfaceType
         {
-            protected override void Configure(IInterfaceTypeDescriptor descriptor)
+            protected override void Configure(
+                IInterfaceTypeDescriptor descriptor)
             {
                 descriptor.Name("Drink");
                 descriptor.Field("kind")
@@ -285,7 +313,8 @@ namespace HotChocolate
         public class DrinkKindType
             : EnumType<DrinkKind>
         {
-            protected override void Configure(IEnumTypeDescriptor<DrinkKind> descriptor)
+            protected override void Configure(
+                IEnumTypeDescriptor<DrinkKind> descriptor)
             {
                 descriptor.Name("DrinkKind");
             }
@@ -335,12 +364,14 @@ namespace HotChocolate
         public class DogType
             : ObjectType<Dog>
         {
-            protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor<Dog> descriptor)
             {
-                descriptor.Field(t => t.WithTail).Type<NonNullType<BooleanType>>();
-                descriptor.Field(t => t.GetNames()).Type<ListType<StringType>>();
+                descriptor.Field(t => t.WithTail)
+                    .Type<NonNullType<BooleanType>>();
+                descriptor.Field(t => t.GetNames())
+                    .Type<ListType<StringType>>();
             }
         }
-
     }
 }

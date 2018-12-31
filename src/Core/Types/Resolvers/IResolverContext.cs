@@ -156,7 +156,9 @@ namespace HotChocolate.Resolvers
         /// </param>
         void ReportError(IError error);
 
-        [Obsolete("Use RequestAborted.")]
+        [Obsolete(
+            "Use RequestAborted. " +
+            "This property will be removed with version 1.0.0.")]
         CancellationToken CancellationToken { get; }
     }
 }

@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class OperationExecuterErrorTests
+    public class ErrorBehaviourTests
     {
         [Fact]
         public async Task AsyncMethod_NoAwait_Throw_ApplicationError()
@@ -176,7 +176,7 @@ namespace HotChocolate.Execution
             result.Snapshot();
         }
 
-         [Fact]
+        [Fact]
         public async Task Property_Return_UnexpectedErrorWithPath()
         {
             // arrange
@@ -192,7 +192,7 @@ namespace HotChocolate.Execution
 
         private async Task<IExecutionResult> ExecuteQuery(string query)
         {
-            return await CreateSchema().ExecuteAsync(query);
+            return await CreateSchema().MakeExecutable().ExecuteAsync(query);
         }
 
         private ISchema CreateSchema()

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.Execute("{ person { phone } }");
+                schema.MakeExecutable().Execute("{ person { phone } }");
 
             // assert
             result.Snapshot();
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.Execute("{ person { name } }");
+                schema.MakeExecutable().Execute("{ person { name } }");
 
             // assert
             result.Snapshot();
@@ -43,7 +43,8 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.Execute("{ person { name @c(append:\"Baz\") } }");
+                schema.MakeExecutable().Execute(
+                    "{ person { name @c(append:\"Baz\") } }");
 
             // assert
             result.Snapshot();
@@ -64,7 +65,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.Execute("{ a @lower @upper }");
+                schema.MakeExecutable().Execute("{ a @lower @upper }");
 
             // assert
             result.Snapshot();

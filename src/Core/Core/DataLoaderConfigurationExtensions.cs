@@ -6,7 +6,12 @@ namespace HotChocolate
 {
     public static class DataLoaderConfigurationExtensions
     {
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             string key,
@@ -18,7 +23,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -31,7 +41,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             ExecutionScope scope,
@@ -42,7 +57,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -53,7 +73,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             Func<IServiceProvider, TLoader> loaderFactory)
@@ -63,7 +88,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -74,7 +104,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             string key,
@@ -85,7 +120,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -97,7 +137,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration,
             ExecutionScope scope)
@@ -107,7 +152,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration,
             Type type,
@@ -118,7 +168,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader<TLoader>(
             this ISchemaConfiguration configuration)
             where TLoader : class, IDataLoader
@@ -128,7 +183,12 @@ namespace HotChocolate
                 "This method is no longer supported.");
         }
 
-        [Obsolete("Use the DataLoaderRegistry instead. See XXX for more information.", true)]
+        [Obsolete(
+            "Use the DataLoaderRegistry instead. " +
+            "See https://hotchocolate.io/docs/migrate_dataloader " +
+            "for more information." +
+            "This type will be removed with version 1.0.0.",
+            true)]
         public static void RegisterDataLoader(
             this ISchemaConfiguration configuration, Type type)
 

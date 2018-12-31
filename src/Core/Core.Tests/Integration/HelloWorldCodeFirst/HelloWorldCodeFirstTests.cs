@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Moq;
@@ -10,7 +11,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
     public class HelloWorldCodeFirstTests
     {
         [Fact]
-        public void ExecuteHelloWorldCodeFirstQuery()
+        public async Task ExecuteHelloWorldCodeFirstQuery()
         {
             // arrange
             Schema schema = Schema.Create(c =>
@@ -21,8 +22,9 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            IExecutionResult result = schema.Execute(
-                "{ hello state }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello state }");
 
             // assert
             Assert.Null(result.Errors);
@@ -30,7 +32,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         }
 
         [Fact]
-        public void ExecuteHelloWorldCodeFirstQueryWithArgument()
+        public async Task ExecuteHelloWorldCodeFirstQueryWithArgument()
         {
             // arrange
             Schema schema = Schema.Create(c =>
@@ -41,8 +43,9 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            IExecutionResult result = schema.Execute(
-                "{ hello(to: \"me\") state }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello(to: \"me\") state }");
 
             // assert
             Assert.Null(result.Errors);
@@ -50,7 +53,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         }
 
         [Fact]
-        public void ExecuteHelloWorldCodeFirstClrQuery()
+        public async Task ExecuteHelloWorldCodeFirstClrQuery()
         {
             // arrange
             Schema schema = Schema.Create(c =>
@@ -60,8 +63,9 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            IExecutionResult result = schema.Execute(
-                "{ hello state }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello state }");
 
             // assert
             Assert.Null(result.Errors);
@@ -69,7 +73,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         }
 
         [Fact]
-        public void ExecuteHelloWorldCodeFirstClrQueryWithArgument()
+        public async Task ExecuteHelloWorldCodeFirstClrQueryWithArgument()
         {
             // arrange
             Schema schema = Schema.Create(c =>
@@ -79,8 +83,9 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            IExecutionResult result = schema.Execute(
-                "{ hello(to: \"me\") state }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello(to: \"me\") state }");
 
             // assert
             Assert.Null(result.Errors);
@@ -88,7 +93,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         }
 
         [Fact]
-        public void ExecuteHelloWorldCodeFirstMutation()
+        public async Task ExecuteHelloWorldCodeFirstMutation()
         {
             // arrange
             Schema schema = Schema.Create(c =>
@@ -99,8 +104,9 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             });
 
             // act
-            IExecutionResult result = schema.Execute(
-                "mutation { newState(state:\"1234567\") }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "mutation { newState(state:\"1234567\") }");
 
             // assert
             Assert.Null(result.Errors);
@@ -124,9 +130,12 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
                     return null;
                 });
 
-            var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
+            var serviceProvider = new Mock<IServiceProvider>(
+                MockBehavior.Strict);
+
             serviceProvider.Setup(t => t.GetService(It.IsAny<Type>()))
                 .Returns(serviceResolver);
+
             return serviceProvider.Object;
         }
     }

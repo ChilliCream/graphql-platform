@@ -40,9 +40,10 @@ namespace HotChocolate.Execution
             });
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:[Int]) { a(foo:$x) { foo } }",
-                new Dictionary<string, object> { { "x", list } });
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query x($x:[Int]) { a(foo:$x) { foo } }",
+                    new Dictionary<string, object> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -61,7 +62,8 @@ namespace HotChocolate.Execution
                     d.Field(t => t.ListOfFoo(default))
                         .Name("a")
                         .Type<ListType<ObjectType<Bar>>>()
-                        .Argument("foo", a => a.Type<ListType<InputObjectType<Foo>>>());
+                        .Argument("foo", a =>
+                            a.Type<ListType<InputObjectType<Foo>>>());
                 }));
 
                 c.RegisterType(new ObjectType<Bar>());
@@ -79,9 +81,10 @@ namespace HotChocolate.Execution
             });
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:[FooInput]) { a(foo:$x) { foo } }",
-                new Dictionary<string, object> { { "x", list } });
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query x($x:[FooInput]) { a(foo:$x) { foo } }",
+                    new Dictionary<string, object> { { "x", list } });
 
             // assert
             Assert.Null(result.Errors);
@@ -109,9 +112,10 @@ namespace HotChocolate.Execution
             IntValueNode value = new IntValueNode(123);
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:Int) { a(foo:$x) { foo } }",
-                new Dictionary<string, object> { { "x", value } });
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query x($x:Int) { a(foo:$x) { foo } }",
+                    new Dictionary<string, object> { { "x", value } });
 
             // assert
             Assert.Null(result.Errors);
@@ -143,9 +147,10 @@ namespace HotChocolate.Execution
             });
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(
-                "query x($x:FooInput) { a(foo:$x) { foo } }",
-                new Dictionary<string, object> { { "x", obj } });
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query x($x:FooInput) { a(foo:$x) { foo } }",
+                    new Dictionary<string, object> { { "x", obj } });
 
             // assert
             Assert.Null(result.Errors);

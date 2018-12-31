@@ -3,7 +3,8 @@
 namespace HotChocolate.Execution
 {
     [Obsolete(
-        "Use QueryError.CreateVariableError(message, variableName).")]
+        "Use QueryError.CreateVariableError(message, variableName). " +
+        "This type will be removed with version 1.0.0.")]
     public class VariableError
         : QueryError
     {
