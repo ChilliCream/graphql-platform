@@ -245,10 +245,10 @@ namespace HotChocolate
                     .Resolver(() => new object[] { "foo", "bar" });
                 descriptor.Field("tea")
                     .Type<TeaType>()
-                    .Resolver(() => "black_tea");
+                    .Resolver(() => "tea");
                 descriptor.Field("drink")
                     .Type<DrinkType>()
-                    .Resolver(() => "black_tea");
+                    .Resolver(() => "tea");
                 descriptor.Field("dog")
                     .Type<DogType>()
                     .Resolver(() => new Dog());
@@ -294,7 +294,7 @@ namespace HotChocolate
                 descriptor.Field("kind")
                     .Type<NonNullType<DrinkKindType>>()
                     .Resolver(() => DrinkKind.BlackTea);
-                descriptor.IsOfType((c, obj) => obj.Equals("black_tea"));
+                descriptor.IsOfType((c, obj) => obj.Equals("tea"));
             }
         }
 
