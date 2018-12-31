@@ -57,16 +57,20 @@ namespace HotChocolate.Execution
 
                 if (result is IError error)
                 {
-                    result = errorHandler.Handle(error);
+                    return errorHandler.Handle(error);
                 }
                 else if (result is IEnumerable<IError> errors)
                 {
-                    result = errorHandler.Handle(errors);
+                    return errorHandler.Handle(errors);
+                }
+                else
+                {
+                    return result;
                 }
             }
             catch (QueryException ex)
             {
-                result = ex.Errors;
+                return errorHandler.Handle(ex.Errors);
             }
             catch (Exception ex)
             {
@@ -74,12 +78,10 @@ namespace HotChocolate.Execution
                     resolverTask.ResolverContext,
                     ex);
 
-                result = errorHandler.Handle(ex, error => error
+                return errorHandler.Handle(ex, error => error
                     .WithPath(resolverTask.Path)
                     .WithSyntaxNodes(resolverTask.FieldSelection.Selection));
             }
-
-            return result;
         }
 
         private static async Task<object> ExecuteFieldMiddlewareAsync(
