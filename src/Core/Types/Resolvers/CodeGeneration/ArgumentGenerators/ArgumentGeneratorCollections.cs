@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             new List<ArgumentSourceCodeGenerator>()
             {
                 new CancellationTokenArgumentSourceCodeGenerator(),
-                new CustomContextArgumentSourceCodeGenerator(),
+                // new CustomContextArgumentSourceCodeGenerator(),
                 new DataLoaderArgumentSourceCodeGenerator(),
                 new ContextArgumentSourceCodeGenerator(),
                 new SourceArgumentSourceCodeGenerator(),

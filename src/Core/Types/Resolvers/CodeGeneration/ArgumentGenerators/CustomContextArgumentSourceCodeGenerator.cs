@@ -11,10 +11,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override string Generate(
             ArgumentDescriptor descriptor)
         {
-            // DataLoaderResolverContextExtensions.DataLoader<T>(context, key)
-            //$"{nameof(DataLoaderResolverContextExtensions)}.{nameof(DataLoaderResolverContextExtensions.DataLoader)}<T>(context, key)"
-            // return $"ctx.{nameof(IResolverContext.CustomContext)}<{descriptor.Type.GetTypeName()}>()";
-            throw new NotImplementedException();
+            return $"ctx.{nameof(IResolverContext.CustomProperty)}<{descriptor.Type.GetTypeName()}>()";
         }
     }
 }
