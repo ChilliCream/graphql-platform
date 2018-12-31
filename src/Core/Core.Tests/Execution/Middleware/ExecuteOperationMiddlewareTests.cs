@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
                 .FirstOrDefault();
 
             var operation = new Operation(
-                query, operationNode, schema.QueryType,
+                query, operationNode, schema.MutationType,
                 null);
 
             var request = new QueryRequest("{ a }").ToReadOnly();
@@ -56,7 +56,10 @@ namespace HotChocolate.Execution
             var context = new QueryContext(schema, services, request)
             {
                 Document = query,
-                Operation = operation
+                Operation = operation,
+                Variables = new VariableValueBuilder(
+                    schema, operation.Definition)
+                    .CreateValues(new Dictionary<string, object>())
             };
 
             var options = new QueryExecutionOptions();

@@ -9,7 +9,7 @@ namespace HotChocolate
     public class SchemaFirstTests
     {
         [Fact]
-        public async Task ExecuteOneFieldQuery()
+        public async Task BindObjectTypeImplicit()
         {
             // arrange
             Schema schema = Schema.Create(
@@ -31,7 +31,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public async Task BindInputType()
+        public async Task BindInputTypeImplicit()
         {
             // arrange
             Schema schema = Schema.Create(
@@ -68,10 +68,10 @@ namespace HotChocolate
         {
             public string GetTest()
             {
-                return "Hello World!";
+                return "Hello World 1!";
             }
 
-            public string TestProp => "Hello World!";
+            public string TestProp => "Hello World 2!";
         }
 
         public class FooQuery

@@ -17,8 +17,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             if (descriptor.Parameter != null
                 && descriptor.Parameter.IsDefined(typeof(DataLoaderAttribute)))
             {
-                key = WriteEscapeCharacters(descriptor.Parameter
-                    .GetCustomAttribute<DataLoaderAttribute>().Key);
+                key = descriptor.Parameter
+                    .GetCustomAttribute<DataLoaderAttribute>().Key;
             }
 
             if (string.IsNullOrEmpty(key))
@@ -27,6 +27,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
             else
             {
+                key = WriteEscapeCharacters(key);
                 return $"ctx.DataLoader<{descriptor.Type.GetTypeName()}>(\"{key}\")";
             }
         }

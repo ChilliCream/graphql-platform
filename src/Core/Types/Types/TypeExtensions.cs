@@ -246,7 +246,7 @@ namespace HotChocolate.Types
                 return ToClrType(type.InnerType());
             }
 
-            if (type is IHasClrType t)
+            if (type is IHasClrType t && t.ClrType != null)
             {
                 return t.ClrType;
             }

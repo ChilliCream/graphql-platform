@@ -15,8 +15,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             if (descriptor.Parameter != null
                 && descriptor.Parameter.IsDefined(typeof(DirectiveArgumentAttribute)))
             {
-                name = WriteEscapeCharacters(descriptor.Parameter
-                    .GetCustomAttribute<DirectiveArgumentAttribute>().Name);
+                var attribute = descriptor.Parameter
+                    .GetCustomAttribute<DirectiveArgumentAttribute>();
+                if (attribute.Name != null)
+                {
+                    name = WriteEscapeCharacters(attribute.Name);
+                }
             }
 
             return $"dir.GetArgument<{descriptor.Type.GetTypeName()}>(\"{descriptor.Name}\")";

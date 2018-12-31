@@ -11,6 +11,7 @@ namespace HotChocolate.Types
     public class ObjectType
         : NamedTypeBase
         , IComplexOutputType
+        , IHasClrType
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
@@ -32,6 +33,8 @@ namespace HotChocolate.Types
         }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
+
+        public Type ClrType { get; protected set; }
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces =>
             _interfaceMap;
@@ -189,6 +192,12 @@ namespace HotChocolate.Types
             CompleteIsOfType();
             CompleteInterfaces(context);
             CompleteFields(context);
+
+            if (ClrType == null
+                && context.TryGetNativeType(this, out Type clrType))
+            {
+                ClrType = clrType;
+            }
 
             ValidateInterfaceImplementation(context);
         }
@@ -380,19 +389,17 @@ namespace HotChocolate.Types
 
     public class ObjectType<T>
         : ObjectType
-        , IHasClrType
     {
         public ObjectType()
         {
+            ClrType = typeof(T);
         }
 
         public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
             : base(d => configure((IObjectTypeDescriptor<T>)d))
         {
+            ClrType = typeof(T);
         }
-
-        public Type ClrType { get; } = typeof(T);
-
 
         #region Configuration
 

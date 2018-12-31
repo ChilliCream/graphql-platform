@@ -614,7 +614,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             result.Snapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "waiting for greendonut")]
         public void Execute_ListWithNullValues_ResultContainsNullElement()
         {
             // arrange
