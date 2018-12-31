@@ -205,8 +205,8 @@ Task("SonarBegin")
             }
 
             a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
-            a = a.Append($"/d:sonar.pullrequest.github.repository=\"hotchocolate\"");
-            a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
+            a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
+            // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
 
             return a;
         }
