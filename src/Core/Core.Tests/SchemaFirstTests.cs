@@ -22,8 +22,8 @@ namespace HotChocolate
 
             // act
             IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync
-                    ("{ test testProp }");
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ test testProp }");
 
             // assert
             Assert.Null(result.Errors);

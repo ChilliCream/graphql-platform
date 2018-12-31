@@ -178,11 +178,7 @@ namespace HotChocolate.Execution
             var batchOperations = executionContext.Services
                 .GetService<IEnumerable<IBatchOperation>>();
 
-            batchOperations = batchOperations.Concat(executionContext.Services
-                .GetService<IEnumerable<IDataLoaderRegistry>>()
-                    .OfType<IBatchOperation>()).Distinct().ToArray();
-
-            if (batchOperations.Any())
+            if (batchOperations != null && batchOperations.Any())
             {
                 return new BatchOperationHandler(batchOperations);
             }
