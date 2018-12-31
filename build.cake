@@ -8,8 +8,9 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var sonarLogin = Argument("sonarLogin", default(string));
+var sonarPrKey = Argument("sonarPrKey", default(string));
 var sonarBranch = Argument("sonarBranch", default(string));
-var sonarBranchTitle = Argument("sonarBranchTitle", default(string));
+var sonarBranchBase = Argument("sonarBranch", default(string));
 var packageVersion = Argument("packageVersion", default(string));
 
 //////////////////////////////////////////////////////////////////////
@@ -32,12 +33,11 @@ Task("EnvironmentSetup")
     }
     Environment.SetEnvironmentVariable("Version", packageVersion);
 
-    if(string.IsNullOrEmpty(sonarBranch))
+    if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarBranch = EnvironmentVariable("CIRCLE_PR_NUMBER")
-            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
-        sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST")
-            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_TITLE");
+        sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
+        sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
+        sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -188,15 +188,24 @@ Task("SonarBegin")
         ArgumentCustomization = args => {
             var a = args;
 
-            if(!string.IsNullOrEmpty(sonarBranch))
+            if(!string.IsNullOrEmpty(sonarPrKey))
             {
-                a = a.Append($"/d:sonar.pullrequest.key=\"{sonarBranch}\"");
+                a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
             }
 
-            if(!string.IsNullOrEmpty(sonarBranchTitle))
+            if(!string.IsNullOrEmpty(sonarBranch))
             {
-                a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranchTitle}\"");
+                a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
             }
+
+            if(!string.IsNullOrEmpty(sonarBranchBase))
+            {
+                a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
+            }
+
+            a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
+            a = a.Append($"/d:sonar.pullrequest.github.repository=\"hotchocolate\"");
+            a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
 
             return a;
         }
