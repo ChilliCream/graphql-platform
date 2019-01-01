@@ -64,22 +64,20 @@ namespace HotChocolate.DataLoader
                     nameof(key));
             }
 
-            if (!_instances.TryGetValue(key, out IDataLoader loader))
+            if (!_instances.TryGetValue(key, out IDataLoader loader)
+                && _factories.TryGetValue(key, out Func<IDataLoader> factory))
             {
-                if (_factories.TryGetValue(key, out Func<IDataLoader> factory))
+                lock (factory)
                 {
-                    lock (factory)
+                    if (!_instances.TryGetValue(key, out loader))
                     {
-                        if (!_instances.TryGetValue(key, out loader))
+                        loader = _instances.GetOrAdd(key, k =>
                         {
-                            loader = _instances.GetOrAdd(key, k =>
-                            {
-                                IDataLoader instance = factory();
-                                // register event
-                                return instance;
-                            });
-                            SendBatchSizeIncreasedEvent();
-                        }
+                            IDataLoader instance = factory();
+                            // TODO : register event
+                            return instance;
+                        });
+                        SendBatchSizeIncreasedEvent();
                     }
                 }
             }
