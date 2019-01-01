@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Utilities
 {
-    internal class ActivatorHelper
+    internal static class ActivatorHelper
     {
         public static Func<IServiceProvider, object> CreateInstanceFactory(
             TypeInfo typeInfo)
@@ -70,7 +70,7 @@ namespace HotChocolate.Utilities
 
         private static IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,
-            ParameterExpression services)
+            Expression services)
         {
             MethodInfo getService = typeof(IServiceProvider)
                 .GetTypeInfo()
