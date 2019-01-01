@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -54,14 +54,13 @@ namespace HotChocolate.AspNetCore.Authorization
             }
 
 #if !ASPNETCLASSIC
-            
-            AuthorizationPolicy policy = null;
-            if (string.IsNullOrWhiteSpace(directive.Policy))
-                policy = await policyProvider.GetDefaultPolicyAsync();
-            else
-                policy = await policyProvider.GetPolicyAsync(directive.Policy);
 
-            if(policy == null)
+            AuthorizationPolicy policy =
+                string.IsNullOrWhiteSpace(directive.Policy)
+                    ? await policyProvider.GetDefaultPolicyAsync()
+                    : await policyProvider.GetPolicyAsync(directive.Policy);
+
+            if (policy == null)
             {
                 context.Result = BuildUnauthorizedError(context, true);
                 return;
@@ -87,7 +86,9 @@ namespace HotChocolate.AspNetCore.Authorization
             string message =
                 "The current user is not authorized to access this resource.";
             if (policyNotfound)
+            {
                 message += " A valid authorization policy could not be found.";
+            }
 
             return QueryError.CreateFieldError(message,
                     context.Path,
