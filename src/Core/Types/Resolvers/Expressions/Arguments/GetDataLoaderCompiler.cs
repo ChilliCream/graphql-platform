@@ -38,7 +38,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
             return string.IsNullOrEmpty(attribute.Key)
                 ? Expression.Call(_dataLoader, Context)
-                : Expression.Call(_dataLoader, Context,
+                : Expression.Call(_dataLoaderWithKey, Context,
                     Expression.Constant(attribute.Key));
         }
     }
