@@ -127,7 +127,7 @@ Task("Tests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/classic_{i++}\" --blame")
     };
 
     DotNetCoreBuild("./src/Server/AspNetClassic.Tests", buildSettings);
@@ -154,7 +154,7 @@ Task("CoreTests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
 
     DotNetCoreBuild("./src/Core", buildSettings);
