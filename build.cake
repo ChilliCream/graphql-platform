@@ -59,13 +59,13 @@ Task("Restore")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
@@ -76,13 +76,13 @@ Task("Build")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
@@ -93,13 +93,13 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
