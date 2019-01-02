@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public Task CompleteAsync(
+        public async Task CompleteAsync(
             IReadOnlyCollection<Task> tasks,
             CancellationToken cancellationToken)
         {
@@ -43,17 +43,28 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(tasks));
             }
 
-            if (tasks.Count == 0)
+            if (tasks.Count == 0 || tasks.All(IsFinished))
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            _completed = new TaskCompletionSource<bool>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
+            SubscribeToTasks(tasks);
+            await InvokeBatchOperationsAsync(cancellationToken);
 
-            Task.Run(() => CompleteTasksAsync(tasks, CancellationToken.None));
+            if (tasks.Any(IsInProgress))
+            {
+                _completed = new TaskCompletionSource<bool>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                StartCompleteTask(tasks, cancellationToken);
+                await _completed.Task;
+            }
+        }
 
-            return _completed.Task;
+        private void StartCompleteTask(
+            IReadOnlyCollection<Task> tasks,
+            CancellationToken cancellationToken)
+        {
+            Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
         }
 
         private async Task CompleteTasksAsync(
@@ -62,27 +73,10 @@ namespace HotChocolate.Execution
         {
             try
             {
-                SubscribeToTasks(tasks, () =>
-                {
-                    if (_processSync.CurrentCount == 0)
-                    {
-                        _processSync.Release();
-                    }
-                });
-
-                while (tasks.Any(t => !IsFinished(t)))
+                while (tasks.Any(IsInProgress))
                 {
                     await _processSync.WaitAsync(cancellationToken);
-
-                    foreach (IBatchOperation batchOperation in
-                        GetTouchedOperations())
-                    {
-                        if (batchOperation.BufferSize > 0)
-                        {
-                            await batchOperation.InvokeAsync(
-                                cancellationToken);
-                        }
-                    }
+                    await InvokeBatchOperationsAsync(cancellationToken);
                 }
             }
             finally
@@ -92,9 +86,24 @@ namespace HotChocolate.Execution
             }
         }
 
-        private HashSet<IBatchOperation> GetTouchedOperations()
+        private async Task InvokeBatchOperationsAsync(
+            CancellationToken cancellationToken)
         {
-            _touchedSync.Wait();
+            foreach (IBatchOperation batchOperation in
+                await GetTouchedOperationsAsync(cancellationToken))
+            {
+                if (batchOperation.BufferSize > 0)
+                {
+                    await batchOperation.InvokeAsync(
+                        cancellationToken);
+                }
+            }
+        }
+
+        private async Task<HashSet<IBatchOperation>> GetTouchedOperationsAsync(
+            CancellationToken cancellationToken)
+        {
+            await _touchedSync.WaitAsync(cancellationToken);
 
             try
             {
@@ -108,13 +117,18 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static void SubscribeToTasks(
-            IReadOnlyCollection<Task> tasks,
-            Action finished)
+        private void SubscribeToTasks(
+            IReadOnlyCollection<Task> tasks)
         {
             foreach (Task task in tasks)
             {
-                task.GetAwaiter().OnCompleted(finished);
+                task.GetAwaiter().OnCompleted(() =>
+                {
+                    if (_processSync.CurrentCount == 0)
+                    {
+                        _processSync.Release();
+                    }
+                });
             }
         }
 
@@ -138,6 +152,8 @@ namespace HotChocolate.Execution
                 }
             }
         }
+
+        private bool IsInProgress(Task task) => !IsFinished(task);
 
         private bool IsFinished(Task task)
         {

@@ -431,5 +431,58 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Null(t.Errors));
             results.Snapshot();
         }
+
+        [Fact]
+        public async Task StackedDataLoader()
+        {
+            // arrange
+            IServiceProvider serviceProvider = new ServiceCollection()
+                .AddDataLoaderRegistry()
+                .BuildServiceProvider();
+
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<Query>();
+                c.Options.DeveloperMode = true;
+            });
+
+            IQueryExecuter executer = schema.MakeExecutable();
+            IServiceScope scope = serviceProvider.CreateScope();
+
+            // act
+            var results = new List<IExecutionResult>();
+
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withStackedDataLoader(key: ""a"")
+                    b: withStackedDataLoader(key: ""b"")
+                }")
+            {
+                Services = scope.ServiceProvider
+            }));
+
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    a: withStackedDataLoader(key: ""a"")
+                }")
+            {
+                Services = scope.ServiceProvider
+            }));
+
+            results.Add(await executer.ExecuteAsync(new QueryRequest(
+                @"{
+                    c: withStackedDataLoader(key: ""c"")
+                }")
+            {
+                Services = scope.ServiceProvider
+            }));
+
+            // assert
+            Assert.Collection(results,
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
+            results.Snapshot();
+        }
     }
 }
