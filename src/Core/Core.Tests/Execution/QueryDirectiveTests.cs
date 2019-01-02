@@ -75,10 +75,6 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(c =>
             {
-                c.RegisterCustomContext<Dictionary<string, string>>(
-                    ExecutionScope.Request,
-                    s => new Dictionary<string, string>());
-
                 c.RegisterDirective<ResolveDirective>();
                 c.RegisterDirective<AppendStringDirectiveType>();
                 c.RegisterDirective<AppendStringMethodDirectiveType>();
