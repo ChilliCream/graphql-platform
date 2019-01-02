@@ -17,6 +17,7 @@ namespace HotChocolate.Integration.DataLoader
 {
     public class DataLoaderTests
     {
+        [Fact]
         public async Task FetchOnceDataLoader()
         {
             // arrange
@@ -25,16 +26,16 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         Func<Task<string>> dataLoader =
                             ctx.DataLoader<string>(
                                 "fetchItems",
                                 () => Task.FromResult("fooBar"));
-                        return dataLoader();
+                        return await dataLoader();
                     }).To("Query", "fetchItem");
                 });
 
@@ -52,6 +53,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchOnceDataLoaderWithFactory()
         {
             // arrange
@@ -60,16 +62,16 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         Func<Task<string>> dataLoader =
                             ctx.DataLoader<string>(
                                 "fetchItems",
                                 services => () => Task.FromResult("fooBar"));
-                        return dataLoader();
+                        return await dataLoader();
                     }).To("Query", "fetchItem");
                 });
 
@@ -87,6 +89,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchSingleDataLoader()
         {
             // arrange
@@ -95,16 +98,16 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
                             ctx.DataLoader<string, string>(
                                 "fetchItems",
                                 key => Task.FromResult(key));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -122,6 +125,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchSingleDataLoaderWithFactory()
         {
             // arrange
@@ -130,16 +134,16 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
                             ctx.DataLoader<string, string>(
                                 "fetchItems",
                                 services => key => Task.FromResult(key));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -165,10 +169,10 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
                             ctx.DataLoader<string, string>(
@@ -176,7 +180,7 @@ namespace HotChocolate.Integration.DataLoader
                                 keys =>
                                 Task.FromResult<IReadOnlyDictionary<string, string>>(
                                     keys.ToDictionary(t => t)));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -194,6 +198,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchDataLoaderWithFactory()
         {
             // arrange
@@ -202,10 +207,10 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
                             ctx.DataLoader<string, string>(
@@ -214,7 +219,7 @@ namespace HotChocolate.Integration.DataLoader
                                 keys =>
                                 Task.FromResult<IReadOnlyDictionary<string, string>>(
                                     keys.ToDictionary(t => t)));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -232,6 +237,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchGroupDataLoader()
         {
             // arrange
@@ -240,17 +246,17 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string[]> dataLoader =
                             ctx.DataLoader<string, string>(
                                 "fetchItems",
                                 keys =>
                                 Task.FromResult(keys.ToLookup(t => t)));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -268,6 +274,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchGroupDataLoaderWithFactory()
         {
             // arrange
@@ -276,10 +283,10 @@ namespace HotChocolate.Integration.DataLoader
                 .BuildServiceProvider();
 
             var schema = Schema.Create(
-                @"type Query { fetchItem }",
+                @"type Query { fetchItem: String }",
                 c =>
                 {
-                    c.BindResolver(ctx =>
+                    c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string[]> dataLoader =
                             ctx.DataLoader<string, string>(
@@ -287,7 +294,7 @@ namespace HotChocolate.Integration.DataLoader
                                 services =>
                                 keys =>
                                 Task.FromResult(keys.ToLookup(t => t)));
-                        return dataLoader.LoadAsync("fooBar");
+                        return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
 
@@ -305,6 +312,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task ClassDataLoader()
         {
             // arrange
@@ -364,6 +372,7 @@ namespace HotChocolate.Integration.DataLoader
             results.Snapshot();
         }
 
+        [Fact]
         public async Task ClassDataLoaderWithKey()
         {
             // arrange

@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
 
             foreach (IBatchOperation batchOperation in _batchOperations)
             {
-                batchOperation.BatchSizeIncreased += BatchSizeIncreased;
+                batchOperation.BufferedRequests += BatchSizeIncreased;
             }
         }
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
             _completed = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
-            Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
+            Task.Run(() => CompleteTasksAsync(tasks, CancellationToken.None));
 
             return _completed.Task;
         }
@@ -64,7 +64,10 @@ namespace HotChocolate.Execution
             {
                 SubscribeToTasks(tasks, () =>
                 {
-                    _processSync.Release();
+                    if (_processSync.CurrentCount == 0)
+                    {
+                        _processSync.Release();
+                    }
                 });
 
                 while (tasks.Any(t => !IsFinished(t)))
@@ -74,7 +77,7 @@ namespace HotChocolate.Execution
                     foreach (IBatchOperation batchOperation in
                         GetTouchedOperations())
                     {
-                        if (batchOperation.BatchSize > 0)
+                        if (batchOperation.BufferSize > 0)
                         {
                             await batchOperation.InvokeAsync(
                                 cancellationToken);
@@ -128,7 +131,11 @@ namespace HotChocolate.Execution
             finally
             {
                 _touchedSync.Release();
-                _processSync.Release();
+
+                if (_processSync.CurrentCount == 0)
+                {
+                    _processSync.Release();
+                }
             }
         }
 
@@ -152,7 +159,7 @@ namespace HotChocolate.Execution
 
                     foreach (IBatchOperation batchOperation in _batchOperations)
                     {
-                        batchOperation.BatchSizeIncreased -= BatchSizeIncreased;
+                        batchOperation.BufferedRequests -= BatchSizeIncreased;
                     }
                 }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
@@ -12,16 +13,46 @@ namespace HotChocolate.DataLoader
         , IObserver<IDataLoader>
     {
         private readonly object _sync = new object();
-        private readonly HashSet<IDataLoader> _dataLoader =
-            new HashSet<IDataLoader>();
 
-        public int BatchSize => throw new NotImplementedException();
+        private ImmutableHashSet<IDataLoader> _touched =
+            ImmutableHashSet<IDataLoader>.Empty;
 
-        public event EventHandler<EventArgs> BatchSizeIncreased;
+        public int BufferSize => _touched.Count;
 
-        public Task InvokeAsync(CancellationToken cancellationToken)
+        public event EventHandler<EventArgs> BufferedRequests;
+
+        public async Task InvokeAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            foreach (IDataLoader dataLoader in GetTouchedDataLoaders())
+            {
+                if (dataLoader.BufferedRequests > 0)
+                {
+                    await dataLoader.DispatchAsync(cancellationToken);
+                }
+            }
+        }
+
+        private void RequestBuffered(IDataLoader sender, EventArgs eventArgs)
+        {
+            if (!_touched.Contains(sender))
+            {
+                lock (_sync)
+                {
+                    _touched = _touched.Add(sender);
+                }
+            }
+
+            BufferedRequests(this, EventArgs.Empty);
+        }
+
+        private ImmutableHashSet<IDataLoader> GetTouchedDataLoaders()
+        {
+            lock (_sync)
+            {
+                ImmutableHashSet<IDataLoader> touched = _touched;
+                _touched = ImmutableHashSet<IDataLoader>.Empty;
+                return touched;
+            }
         }
 
         public void OnNext(IDataLoader value)
@@ -31,16 +62,19 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(value));
             }
 
-            if (!_dataLoader.Contains(value))
+            if (!_touched.Contains(value))
             {
                 lock (_sync)
                 {
-                    if (_dataLoader.Add(value))
+                    if (!_touched.Contains(value))
                     {
-                        // TODO : Register Event
+                        _touched = _touched.Add(value);
+                        value.RequestBuffered += RequestBuffered;
                     }
                 }
             }
+
+            BufferedRequests(this, EventArgs.Empty);
         }
 
         public void OnCompleted()

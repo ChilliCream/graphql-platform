@@ -6,12 +6,12 @@ namespace HotChocolate.Execution
 {
     public interface IBatchOperation
     {
-        event EventHandler<EventArgs> BatchSizeIncreased;
+        event EventHandler<EventArgs> BufferedRequests;
 
         /// <summary>
         /// Gets count of items in the current batch.
         /// </summary>
-        int BatchSize { get; }
+        int BufferSize { get; }
 
         /// <summary>
         /// Executes the current batch

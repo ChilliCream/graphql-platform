@@ -11,7 +11,18 @@ namespace HotChocolate
         {
             return services
                 .AddScoped<IDataLoaderRegistry, DataLoaderRegistry>()
-                .AddScoped<IBatchOperation, DataLoaderBatchOperation>();
+                .AddScoped<IBatchOperation>(sp =>
+                {
+                    var batchOperation = new DataLoaderBatchOperation();
+
+                    foreach (IDataLoaderRegistry registry in
+                        sp.GetServices<IDataLoaderRegistry>())
+                    {
+                        registry.Subscribe(batchOperation);
+                    }
+
+                    return batchOperation;
+                });
         }
     }
 }
