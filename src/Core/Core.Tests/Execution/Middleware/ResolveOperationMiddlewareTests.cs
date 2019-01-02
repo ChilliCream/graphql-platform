@@ -6,7 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
 
-namespace Core.Tests.Execution.Middleware
+namespace HotChocolate.Execution
 {
     public class ResolveOperationMiddlewareTests
     {

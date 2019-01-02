@@ -26,6 +26,7 @@ namespace HotChocolate.Execution
             FieldType = fieldSelection.Field.Type;
             Path = path;
             _result = result;
+            Response = executionContext.Response;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
