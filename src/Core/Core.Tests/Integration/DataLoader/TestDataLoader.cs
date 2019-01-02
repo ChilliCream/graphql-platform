@@ -21,7 +21,7 @@ namespace HotChocolate.Integration.DataLoader
         {
             Loads.Add(keys.OrderBy(t => t).ToArray());
             return Task.FromResult<IReadOnlyList<Result<string>>>(
-                keys.Select(t => Result<string>.Resolve(t)).ToArray());
+                keys.Select(t => (Result<string>)t).ToArray());
         }
     }
 }

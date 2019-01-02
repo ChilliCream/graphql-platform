@@ -1,22 +1,22 @@
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Immutable;
+using System.Linq;
 using GreenDonut;
-using HotChocolate.Execution;
 
 namespace HotChocolate.DataLoader
 {
-    public class DataLoaderRegistry
+    public sealed class DataLoaderRegistry
         : IDataLoaderRegistry
-        , IBatchOperation
+        , IDisposable
     {
-        private readonly ConcurrentDictionary<string, Func<IDataLoader>> _factories
-            = new ConcurrentDictionary<string, Func<IDataLoader>>();
-
-        private readonly ConcurrentDictionary<string, IDataLoader> _instances
-            = new ConcurrentDictionary<string, IDataLoader>();
-
+        private readonly object _sync = new object();
+        private readonly ConcurrentDictionary<string, Func<IDataLoader>> _factories =
+            new ConcurrentDictionary<string, Func<IDataLoader>>();
+        private readonly ConcurrentDictionary<string, IDataLoader> _instances =
+            new ConcurrentDictionary<string, IDataLoader>();
+        private ImmutableHashSet<IObserver<IDataLoader>> _observers =
+            ImmutableHashSet<IObserver<IDataLoader>>.Empty;
         private readonly IServiceProvider _services;
 
         public DataLoaderRegistry(IServiceProvider services)
@@ -25,13 +25,25 @@ namespace HotChocolate.DataLoader
                 ?? throw new ArgumentNullException(nameof(services));
         }
 
-        public event EventHandler<EventArgs> BatchSizeIncreased;
-
-        public int BatchSize => _instances.Count;
-
-        public Task InvokeAsync(CancellationToken cancellationToken)
+        public IDisposable Subscribe(IObserver<IDataLoader> observer)
         {
-            throw new NotImplementedException();
+            if (observer == null)
+            {
+                throw new ArgumentNullException(nameof(observer));
+            }
+
+            lock (_sync)
+            {
+                _observers = _observers.Add(observer);
+            }
+
+            return new ObserverSession(() =>
+            {
+                lock (_sync)
+                {
+                    _observers = _observers.Remove(observer);
+                }
+            });
         }
 
         public bool Register<T>(string key, Func<IServiceProvider, T> factory)
@@ -71,13 +83,8 @@ namespace HotChocolate.DataLoader
                 {
                     if (!_instances.TryGetValue(key, out loader))
                     {
-                        loader = _instances.GetOrAdd(key, k =>
-                        {
-                            IDataLoader instance = factory();
-                            // TODO : register event
-                            return instance;
-                        });
-                        SendBatchSizeIncreasedEvent();
+                        loader = _instances.GetOrAdd(key, k => factory());
+                        NotifyObservers(loader);
                     }
                 }
             }
@@ -92,11 +99,46 @@ namespace HotChocolate.DataLoader
             return false;
         }
 
-        private void SendBatchSizeIncreasedEvent()
+        private void NotifyObservers(IDataLoader dataLoader)
         {
-            if (BatchSizeIncreased != null)
+            foreach (IObserver<IDataLoader> observer in _observers)
             {
-                BatchSizeIncreased(this, EventArgs.Empty);
+                observer.OnNext(dataLoader);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (IObserver<IDataLoader> observer in _observers)
+            {
+                observer.OnCompleted();
+            }
+
+            foreach (IDataLoader dataLoader in _instances.Values)
+            {
+                if (dataLoader is IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
+
+            _observers = _observers.Clear();
+            _instances.Clear();
+        }
+
+        private class ObserverSession
+            : IDisposable
+        {
+            private readonly Action _unregister;
+
+            public ObserverSession(Action unregister)
+            {
+                _unregister = unregister;
+            }
+
+            public void Dispose()
+            {
+                _unregister();
             }
         }
     }
