@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
@@ -9,20 +10,23 @@ namespace HotChocolate.Integration.DataLoader
         public Task<string> GetWithDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader]TestDataLoader testDataLoader)
+            [DataLoader]TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
         {
-            return testDataLoader.LoadAsync(key);
+            return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
         public Task<string> GetWithDataLoader2(
             string key,
             FieldNode fieldSelection,
-            [DataLoader("fooBar")]TestDataLoader testDataLoader)
+            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
         {
-            return testDataLoader.LoadAsync(key);
+            return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
-        public List<string> GetLoads([DataLoader]TestDataLoader testDataLoader)
+        public List<string> GetLoads([
+            DataLoader]TestDataLoader testDataLoader)
         {
             List<string> list = new List<string>();
 
@@ -34,7 +38,8 @@ namespace HotChocolate.Integration.DataLoader
             return list;
         }
 
-        public List<string> GetLoads2([DataLoader("fooBar")]TestDataLoader testDataLoader)
+        public List<string> GetLoads2(
+            [DataLoader("fooBar")]TestDataLoader testDataLoader)
         {
             List<string> list = new List<string>();
 

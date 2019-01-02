@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     internal class ObjectFieldDescription
         : ObjectFieldDescriptionBase
     {
-        public Type SourceType { get; set; }
+        public Type SourceType { get; set; } = typeof(object);
 
         public Type ResolverType { get; set; }
 

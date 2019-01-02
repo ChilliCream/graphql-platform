@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
@@ -17,7 +18,8 @@ namespace HotChocolate.Integration.DataLoader
             new List<IReadOnlyList<string>>();
 
         protected override Task<IReadOnlyList<Result<string>>> FetchAsync(
-            IReadOnlyList<string> keys)
+            IReadOnlyList<string> keys,
+            CancellationToken cancellationToken)
         {
             Loads.Add(keys.OrderBy(t => t).ToArray());
             return Task.FromResult<IReadOnlyList<Result<string>>>(

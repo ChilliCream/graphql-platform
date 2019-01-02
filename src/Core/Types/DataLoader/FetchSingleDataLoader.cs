@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
@@ -31,7 +32,8 @@ namespace HotChocolate.DataLoader
         }
 
         protected override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
-            IReadOnlyList<TKey> keys)
+            IReadOnlyList<TKey> keys,
+            CancellationToken cancellationToken)
         {
             var items = new Result<TValue>[keys.Count];
 
