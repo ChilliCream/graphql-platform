@@ -556,6 +556,7 @@ namespace HotChocolate.Types
         [Fact]
         public async Task ObjectType_SourceTypeObject_BindsResolverCorrectly()
         {
+            // arrange
             var objectType = new ObjectType(t => t.Name("Bar")
                 .Field<FooResolver>(f => f.GetDescription(default))
                 .Name("desc")
@@ -564,12 +565,15 @@ namespace HotChocolate.Types
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
 
             IQueryExecuter executer = schema.MakeExecutable();
+
+            // act
             IExecutionResult result = await executer.ExecuteAsync(
                 new QueryRequest("{ desc }")
                 {
                     InitialValue = new Foo()
                 });
 
+            // assert
             result.Snapshot();
         }
 
