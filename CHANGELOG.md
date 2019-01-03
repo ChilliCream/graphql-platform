@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merged _ASP.NET core_ and _classic_ codebases [#349](https://github.com/ChilliCream/hotchocolate/issues/349).
 - Made the type conversion API extendable and added more default type converter [#384](https://github.com/ChilliCream/hotchocolate/issues/384).
 - Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
-- Changed how max query depth is validated an configured.
+- Changed how max query depth is validated and configured.
+- The DataLoader API is now offering a simpler interface.
 
 ### Fixed
 

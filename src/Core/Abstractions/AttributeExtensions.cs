@@ -2,23 +2,51 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
     internal static class AttributeExtensions
     {
+        public static string GetGraphQLName(this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            TypeInfo typeInfo = type.GetTypeInfo();
+            string name = typeInfo.IsDefined(
+                typeof(GraphQLNameAttribute), false)
+                ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>().Name
+                : GetFromType(typeInfo);
+            return NameUtils.RemoveInvalidCharacters(name);
+        }
+
+        public static string GetGraphQLName(this PropertyInfo property)
+        {
+            string name = property.IsDefined(
+                typeof(GraphQLNameAttribute), false)
+                ? property.GetCustomAttribute<GraphQLNameAttribute>().Name
+                : NormalizeName(property.Name);
+            return NameUtils.RemoveInvalidCharacters(name);
+        }
+
+        public static string GetGraphQLName(this MethodInfo method)
+        {
+            string name = method.IsDefined(
+                typeof(GraphQLNameAttribute), false)
+                ? method.GetCustomAttribute<GraphQLNameAttribute>().Name
+                : NormalizeMethodName(method);
+            return NameUtils.RemoveInvalidCharacters(name);
+        }
+
         public static string GetGraphQLName(this MemberInfo member)
         {
             if (member == null)
             {
                 throw new ArgumentNullException(nameof(member));
-            }
-
-            if (member.IsDefined(typeof(GraphQLNameAttribute), false))
-            {
-                return NameUtils.RemoveInvalidCharacters(
-                    member.GetCustomAttribute<GraphQLNameAttribute>().Name);
             }
 
             if (member is MethodInfo m)
@@ -33,7 +61,13 @@ namespace HotChocolate
 
             if (member is Type t)
             {
-                return NameUtils.RemoveInvalidCharacters(GetFromType(t));
+                return GetGraphQLName(t);
+            }
+
+            if (member.IsDefined(typeof(GraphQLNameAttribute), false))
+            {
+                return NameUtils.RemoveInvalidCharacters(
+                    member.GetCustomAttribute<GraphQLNameAttribute>().Name);
             }
 
             return NameUtils.RemoveInvalidCharacters(member.Name);
@@ -43,32 +77,31 @@ namespace HotChocolate
         {
             if (parameter.IsDefined(typeof(GraphQLNameAttribute), false))
             {
-                return parameter.GetCustomAttribute<GraphQLNameAttribute>().Name;
+                return parameter
+                    .GetCustomAttribute<GraphQLNameAttribute>()
+                    .Name;
             }
             return NormalizeName(parameter.Name);
         }
 
-        public static string GetGraphQLName(this MethodInfo method)
+        private static string NormalizeMethodName(MethodInfo method)
         {
-            string name;
+            string name = method.Name;
 
-            if (method.Name.StartsWith("Get", StringComparison.Ordinal)
-                && method.Name.Length > 3)
+            if (name.StartsWith("Get", StringComparison.Ordinal)
+                && name.Length > 3)
             {
-                name = NormalizeName(method.Name.Substring(3));
-            }
-            else
-            {
-                name = NormalizeName(method.Name);
+                name = name.Substring(3);
             }
 
-            return NameUtils.RemoveInvalidCharacters(name);
-        }
+            if (typeof(Task).IsAssignableFrom(method.ReturnType)
+                && name.Length > 5
+                && name.EndsWith("Async", StringComparison.Ordinal))
+            {
+                name = name.Substring(0, name.Length - 5);
+            }
 
-        public static string GetGraphQLName(this PropertyInfo property)
-        {
-            return NameUtils.RemoveInvalidCharacters(
-                NormalizeName(property.Name));
+            return name;
         }
 
         public static string GetGraphQLDescription(
@@ -89,16 +122,17 @@ namespace HotChocolate
             return null;
         }
 
-        private static string GetFromType(Type type)
+        private static string GetFromType(TypeInfo typeInfo)
         {
-            if (type.IsGenericType)
+            if (typeInfo.IsGenericType)
             {
-                string name = type.Name.Substring(0, type.Name.Length - 2);
-                IEnumerable<string> arguments = type.GetGenericArguments()
-                    .Select(GetFromType);
+                string name = typeInfo.Name
+                    .Substring(0, typeInfo.Name.Length - 2);
+                IEnumerable<string> arguments = typeInfo.GenericTypeArguments
+                    .Select(t => GetFromType(t.GetTypeInfo()));
                 return $"{name}Of{string.Join("And", arguments)}";
             }
-            return type.Name;
+            return typeInfo.Name;
         }
 
         private static string NormalizeName(string name)
