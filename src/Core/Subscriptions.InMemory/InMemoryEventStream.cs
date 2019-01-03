@@ -68,7 +68,7 @@ namespace HotChocolate.Subscriptions
 
         #region IDisposable
 
-        private bool _disposedValue = false; // To detect redundant calls
+        private bool _disposedValue;
 
         protected virtual void Dispose(bool disposing)
         {
