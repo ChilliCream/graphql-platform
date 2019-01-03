@@ -28,7 +28,6 @@ namespace HotChocolate.Execution
 
             try
             {
-
                 return await ExecuteQueryAsync(
                     executionContext,
                     batchOperationHandler,

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
@@ -11,7 +12,7 @@ namespace HotChocolate.DataLoader
         private readonly FetchSingle<TKey, TValue> _fetch;
 
         public FetchSingleDataLoader(FetchSingle<TKey, TValue> fetch)
-            : this(fetch, 100)
+            : this(fetch, DataLoaderDefaults.CacheSize)
         {
         }
 
@@ -23,28 +24,29 @@ namespace HotChocolate.DataLoader
                 AutoDispatching = false,
                 Batching = false,
                 CacheSize = cacheSize,
-                MaxBatchSize = 0,
+                MaxBatchSize = DataLoaderDefaults.MaxBatchSize,
                 SlidingExpiration = TimeSpan.Zero
             })
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
-        protected override async Task<IReadOnlyList<IResult<TValue>>> Fetch(
-            IReadOnlyList<TKey> keys)
+        protected override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+            IReadOnlyList<TKey> keys,
+            CancellationToken cancellationToken)
         {
-            var items = new IResult<TValue>[keys.Count];
+            var items = new Result<TValue>[keys.Count];
 
             for (int i = 0; i < keys.Count; i++)
             {
                 try
                 {
                     TValue value = await _fetch(keys[i]);
-                    items[i] = Result<TValue>.Resolve(value);
+                    items[i] = value;
                 }
                 catch (Exception ex)
                 {
-                    items[i] = Result<TValue>.Reject(ex);
+                    items[i] = ex;
                 }
             }
 

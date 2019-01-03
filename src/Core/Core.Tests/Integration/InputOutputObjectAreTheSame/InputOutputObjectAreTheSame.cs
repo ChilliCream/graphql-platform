@@ -1,4 +1,5 @@
-﻿using ChilliCream.Testing;
+﻿using System.Threading.Tasks;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Xunit;
@@ -25,18 +26,19 @@ namespace HotChocolate.Integration.InputOutputObjectAreTheSame
         }
 
         [Fact]
-        public void ExecuteQueryThatReturnsPerson()
+        public async Task ExecuteQueryThatReturnsPerson()
         {
             // arrange
             Schema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(@"{
-                person(person: { firstName:""a"", lastName:""b"" }) {
-                    lastName
-                    firstName
-                }
-             }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(@"{
+                    person(person: { firstName:""a"", lastName:""b"" }) {
+                        lastName
+                        firstName
+                    }
+                }");
 
             // assert
             Assert.Null(result.Errors);

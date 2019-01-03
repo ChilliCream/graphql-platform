@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
+using HotChocolate.DataLoader;
 
 namespace HotChocolate.Execution
 {
@@ -22,10 +23,9 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var data = new OrderedDictionary();
-
             IEnumerable<ResolverTask> rootResolverTasks =
-                CreateRootResolverTasks(executionContext, data);
+                CreateRootResolverTasks(executionContext,
+                    executionContext.Response.Data);
 
             await ExecuteResolversAsync(
                 executionContext,
@@ -33,7 +33,9 @@ namespace HotChocolate.Execution
                 batchOperationHandler,
                 cancellationToken);
 
-            return new QueryResult(data, executionContext.GetErrors());
+            return new QueryResult(
+                executionContext.Response.Data,
+                executionContext.Response.Errors);
         }
 
         protected async Task ExecuteResolversAsync(
@@ -151,18 +153,18 @@ namespace HotChocolate.Execution
             OrderedDictionary result)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
-                .Push(executionContext.RootValue);
+                .Push(executionContext.Operation.RootValue);
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.CollectFields(
-                    executionContext.OperationType,
-                    executionContext.Operation.SelectionSet);
+                executionContext.FieldHelper.CollectFields(
+                    executionContext.Operation.RootType,
+                    executionContext.Operation.Definition.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
                 yield return new ResolverTask(
                     executionContext,
-                    executionContext.OperationType,
+                    executionContext.Operation.RootType,
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),
                     source,
@@ -176,10 +178,11 @@ namespace HotChocolate.Execution
             var batchOperations = executionContext.Services
                 .GetService<IEnumerable<IBatchOperation>>();
 
-            if (batchOperations.Any())
+            if (batchOperations != null && batchOperations.Any())
             {
                 return new BatchOperationHandler(batchOperations);
             }
+
             return null;
         }
     }

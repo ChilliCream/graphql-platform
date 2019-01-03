@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
@@ -9,12 +10,51 @@ namespace HotChocolate.Integration.DataLoader
         public Task<string> GetWithDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader]TestDataLoader testDataLoader)
+            [DataLoader]TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
         {
-            return testDataLoader.LoadAsync(key);
+            return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
-        public List<string> GetLoads([DataLoader]TestDataLoader testDataLoader)
+        public Task<string> GetWithDataLoader2(
+            string key,
+            FieldNode fieldSelection,
+            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
+        {
+            return testDataLoader.LoadAsync(key, cancellationToken);
+        }
+
+        public async Task<string> GetWithStackedDataLoader(
+            string key,
+            FieldNode fieldSelection,
+            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
+        {
+
+            string s = await testDataLoader.LoadAsync(key + "a", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "b", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "c", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "d", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "e", cancellationToken);
+            return s;
+        }
+
+        public List<string> GetLoads([
+            DataLoader]TestDataLoader testDataLoader)
+        {
+            List<string> list = new List<string>();
+
+            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
+            {
+                list.Add(string.Join(", ", request));
+            }
+
+            return list;
+        }
+
+        public List<string> GetLoads2(
+            [DataLoader("fooBar")]TestDataLoader testDataLoader)
         {
             List<string> list = new List<string>();
 

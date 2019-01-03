@@ -7,12 +7,18 @@
     /// </summary>
     internal static partial class CharExtensions
     {
-        private static readonly bool[] _isLetterOrUnderscore = new bool[char.MaxValue + 1];
-        private static readonly bool[] _isControlCharacter = new bool[char.MaxValue + 1];
-        private static readonly bool[] _isEscapeCharacter = new bool[char.MaxValue + 1];
-        private static readonly bool[] _isWhitespace = new bool[char.MaxValue + 1];
-        private static readonly bool[] _isPunctuator = new bool[char.MaxValue + 1];
-        private static readonly bool[] _isDigitOrMinus = new bool[char.MaxValue + 1];
+        private static readonly bool[] _isLetterOrUnderscore =
+            new bool[char.MaxValue + 1];
+        private static readonly bool[] _isControlCharacter =
+            new bool[char.MaxValue + 1];
+        private static readonly bool[] _isEscapeCharacter =
+            new bool[char.MaxValue + 1];
+        private static readonly bool[] _isWhitespace =
+            new bool[char.MaxValue + 1];
+        private static readonly bool[] _isPunctuator =
+            new bool[char.MaxValue + 1];
+        private static readonly bool[] _isDigitOrMinus =
+            new bool[char.MaxValue + 1];
 
         public static bool IsLetterOrDigitOrUnderscore(in this char c)
         {

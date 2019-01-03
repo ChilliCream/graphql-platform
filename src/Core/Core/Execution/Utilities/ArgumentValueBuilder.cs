@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     {
         public static Dictionary<string, ArgumentValue> CoerceArgumentValues(
             this FieldSelection fieldSelection,
-            VariableCollection variables)
+            IVariableCollection variables)
         {
             Dictionary<string, ArgumentValue> coercedArgumentValues =
                 new Dictionary<string, ArgumentValue>();
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
             string argumentName,
             IInputType argumentType,
             IValueNode defaultValue,
-            VariableCollection variables,
+            IVariableCollection variables,
             Dictionary<string, IValueNode> argumentValues)
         {
             if (argumentValues.TryGetValue(argumentName,

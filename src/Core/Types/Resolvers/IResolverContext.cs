@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Language;
@@ -53,6 +54,12 @@ namespace HotChocolate.Resolvers
         /// Gets the current execution path.
         /// </summary>
         Path Path { get; }
+
+        /// <summary>
+        /// The context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution.
+        /// </summary>
+        IDictionary<string, object> ContextData { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted
@@ -149,7 +156,9 @@ namespace HotChocolate.Resolvers
         /// </param>
         void ReportError(IError error);
 
-        [Obsolete("Use RequestAborted.")]
+        [Obsolete(
+            "Use RequestAborted. " +
+            "This property will be removed with version 1.0.0.")]
         CancellationToken CancellationToken { get; }
     }
 }

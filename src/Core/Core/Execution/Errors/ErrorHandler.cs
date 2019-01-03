@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
 
         private ErrorHandler()
         {
-            _filters = Array.Empty<IErrorFilter>(); ;
+            _filters = Array.Empty<IErrorFilter>();
             _includeExceptionDetails = false;
         }
 
@@ -65,6 +65,11 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(errors));
             }
 
+            return HandleEnumerator(errors);
+        }
+
+        private IEnumerable<IError> HandleEnumerator(IEnumerable<IError> errors)
+        {
             foreach (IError error in errors)
             {
                 yield return Handle(error);

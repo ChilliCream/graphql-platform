@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
@@ -20,9 +21,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         public double Height { get; } = 1.72d;
 
         public Task<IReadOnlyList<Human>> GetOtherHuman(
-            [DataLoader]HumanDataLoader humanDataLoader)
+            [DataLoader]HumanDataLoader humanDataLoader,
+            CancellationToken cancellationToken)
         {
-            return humanDataLoader.LoadAsync(new[] { "1001", "1002", "9999" });
+            return humanDataLoader.LoadAsync(
+                new[] { "1001", "1002", "9999" },
+                cancellationToken);
         }
     }
 }

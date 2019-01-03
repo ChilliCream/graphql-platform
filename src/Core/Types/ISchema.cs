@@ -57,7 +57,8 @@ namespace HotChocolate
         /// <param name="typeName">The name of the type.</param>
         /// <returns>The type.</returns>
         /// <exception cref="ArgumentException">
-        /// The specified type does not exist or is not of the specified type kind.
+        /// The specified type does not exist or is not of the
+        /// specified type kind.
         /// </exception>
         T GetType<T>(NameString typeName)
             where T : INamedType;

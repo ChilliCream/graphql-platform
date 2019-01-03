@@ -1,4 +1,6 @@
 using System;
+using GreenDonut;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.DataLoader
 {
@@ -161,7 +163,7 @@ namespace HotChocolate.DataLoader
             {
                 FetchOnce<TValue> fetch = factory(services);
                 return new FetchSingleDataLoader<string, TValue>(
-                    k => fetch(), 1);
+                    k => fetch(), DataLoaderDefaults.MinCacheSize);
             });
         }
 
@@ -186,8 +188,27 @@ namespace HotChocolate.DataLoader
             return registry.Register(key, services =>
             {
                 return new FetchSingleDataLoader<string, TValue>(
-                    k => fetch(), 1);
+                    k => fetch(), DataLoaderDefaults.MinCacheSize);
             });
+        }
+
+        public static bool Register<T>(
+            this IDataLoaderRegistry registry,
+            string key)
+            where T : class, IDataLoader
+        {
+            Func<IServiceProvider, T> createInstance =
+                ActivatorHelper.CreateInstanceFactory<T>();
+            return registry.Register(key, createInstance);
+        }
+
+        public static bool Register<T>(
+            this IDataLoaderRegistry registry)
+            where T : class, IDataLoader
+        {
+            Func<IServiceProvider, T> createInstance =
+                ActivatorHelper.CreateInstanceFactory<T>();
+            return registry.Register(typeof(T).FullName, createInstance);
         }
     }
 }

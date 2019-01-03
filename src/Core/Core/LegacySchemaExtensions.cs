@@ -6,9 +6,12 @@ using HotChocolate.Execution;
 
 namespace HotChocolate
 {
-    // TODO : make obsolete
     public static class LegacySchemaExtensions
     {
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query,
             CancellationToken cancellationToken = default)
@@ -18,6 +21,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query, string operationName,
             CancellationToken cancellationToken = default)
@@ -27,6 +34,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query,
             IReadOnlyDictionary<string, object> variableValues,
@@ -37,6 +48,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static Task<IExecutionResult> ExecuteAsync(
             this ISchema schema, string query,
             Action<QueryRequest> configure,
@@ -47,6 +62,10 @@ namespace HotChocolate
             return ExecuteAsync(schema, request, cancellationToken);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static async Task<IExecutionResult> ExecuteAsync(
            this ISchema schema, QueryRequest request,
            CancellationToken cancellationToken = default)
@@ -58,6 +77,10 @@ namespace HotChocolate
             }
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static IExecutionResult Execute(
             this ISchema schema, string query,
             CancellationToken cancellationToken = default)
@@ -67,6 +90,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static IExecutionResult Execute(
             this ISchema schema, string query, string operationName,
             CancellationToken cancellationToken = default)
@@ -76,6 +103,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static IExecutionResult Execute(
             this ISchema schema, string query,
             IReadOnlyDictionary<string, object> variableValues,
@@ -86,6 +117,10 @@ namespace HotChocolate
                 CancellationToken.None);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static IExecutionResult Execute(
             this ISchema schema, string query,
             Action<QueryRequest> configure,
@@ -96,6 +131,10 @@ namespace HotChocolate
             return Execute(schema, request, cancellationToken);
         }
 
+        [Obsolete(
+            "Use schema.MakeExecutable(). " +
+            "This method will be removed with version 1.0.0.",
+            true)]
         public static IExecutionResult Execute(
             this ISchema schema, QueryRequest request,
            CancellationToken cancellationToken = default)

@@ -10,7 +10,5 @@ namespace HotChocolate.Configuration
         ITypeRegistry Types { get; }
         IDirectiveRegistry Directives { get; }
         IResolverRegistry Resolvers { get; }
-        ICollection<DataLoaderDescriptor> DataLoaders { get; }
-        ICollection<CustomContextDescriptor> CustomContexts { get; }
     }
 }

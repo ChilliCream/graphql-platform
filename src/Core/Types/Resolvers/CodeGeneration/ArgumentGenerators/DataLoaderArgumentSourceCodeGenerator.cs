@@ -1,4 +1,6 @@
-﻿using HotChocolate.Utilities;
+﻿using System;
+using System.Reflection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -10,7 +12,24 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override string Generate(
             ArgumentDescriptor descriptor)
         {
-            return $"ctx.{nameof(IResolverContext.DataLoader)}<{descriptor.Type.GetTypeName()}>()";
+            string key = null;
+
+            if (descriptor.Parameter != null
+                && descriptor.Parameter.IsDefined(typeof(DataLoaderAttribute)))
+            {
+                key = descriptor.Parameter
+                    .GetCustomAttribute<DataLoaderAttribute>().Key;
+            }
+
+            if (string.IsNullOrEmpty(key))
+            {
+                return $"ctx.DataLoader<{descriptor.Type.GetTypeName()}>()";
+            }
+            else
+            {
+                key = WriteEscapeCharacters(key);
+                return $"ctx.DataLoader<{descriptor.Type.GetTypeName()}>(\"{key}\")";
+            }
         }
     }
 }

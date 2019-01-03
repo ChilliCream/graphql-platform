@@ -13,7 +13,8 @@ namespace HotChocolate.Integration.Directives
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute("{ bar baz }");
+            IExecutionResult result = schema.MakeExecutable().Execute(
+                "{ bar baz }");
 
             // assert
             result.Snapshot();
@@ -26,7 +27,7 @@ namespace HotChocolate.Integration.Directives
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(
+            IExecutionResult result = schema.MakeExecutable().Execute(
                 "{ bar baz @constant(value: \"baz\") }");
 
             // assert

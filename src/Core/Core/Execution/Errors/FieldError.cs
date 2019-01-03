@@ -4,7 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution
 {
     [Obsolete(
-        "Use QueryError.CreateFieldError(message, path, fieldSelection).")]
+        "Use QueryError.CreateFieldError(message, path, fieldSelection)." +
+        "This type will be removed with version 1.0.0.")]
     public class FieldError
         : QueryError
     {

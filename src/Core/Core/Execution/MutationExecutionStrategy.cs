@@ -31,10 +31,9 @@ namespace HotChocolate.Execution
 
             try
             {
-                var data = new OrderedDictionary();
-
                 IEnumerable<ResolverTask> rootResolverTasks =
-                    CreateRootResolverTasks(executionContext, data);
+                    CreateRootResolverTasks(executionContext,
+                        executionContext.Response.Data);
 
                 await ExecuteResolverBatchSeriallyAsync(
                     executionContext,
@@ -43,7 +42,9 @@ namespace HotChocolate.Execution
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                return new QueryResult(data, executionContext.GetErrors());
+                return new QueryResult(
+                    executionContext.Response.Data,
+                    executionContext.Response.Errors);
             }
             finally
             {

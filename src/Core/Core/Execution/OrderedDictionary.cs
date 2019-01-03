@@ -9,8 +9,10 @@ namespace HotChocolate.Execution
         , IDictionary<string, object>
     {
         private bool _isReadOnly;
-        private readonly List<KeyValuePair<string, object>> _order = new List<KeyValuePair<string, object>>();
-        private readonly Dictionary<string, object> _map = new Dictionary<string, object>();
+        private readonly List<KeyValuePair<string, object>> _order =
+            new List<KeyValuePair<string, object>>();
+        private readonly Dictionary<string, object> _map =
+            new Dictionary<string, object>();
 
         public object this[string key]
         {

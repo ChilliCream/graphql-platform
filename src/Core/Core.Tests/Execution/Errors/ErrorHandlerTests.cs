@@ -1,12 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Xunit;
 
-namespace Core.Tests.Execution.Errors
+namespace HotChocolate.Execution.Errors
 {
     public class ErrorHandlerTests
     {

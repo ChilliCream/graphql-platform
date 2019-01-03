@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         internal ObjectField(ObjectFieldDescription fieldDescription)
             : base(fieldDescription)
         {
-            _sourceType = fieldDescription.SourceType;
+            _sourceType = fieldDescription.SourceType ?? typeof(object);
             _resolverType = fieldDescription.ResolverType;
             _member = fieldDescription.Member;
             _middlewareComponents = fieldDescription.MiddlewareComponents;

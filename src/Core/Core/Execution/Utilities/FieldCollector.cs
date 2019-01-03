@@ -8,11 +8,11 @@ namespace HotChocolate.Execution
 {
     internal sealed class FieldCollector
     {
-        private readonly VariableCollection _variables;
+        private readonly IVariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldCollector(
-            VariableCollection variables,
+            IVariableCollection variables,
             FragmentCollection fragments)
         {
             _variables = variables

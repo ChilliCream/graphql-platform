@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.DataLoader;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
@@ -208,11 +209,43 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static bool TryGetDataLoader<T>(
+        public static T DataLoader<T>(
+            this IResolverContext context,
+            string key)
+            where T : class, IDataLoader
+        {
+            if (string.IsNullOrEmpty(key))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The DataLoader key cannot be null or empty.",
+                    nameof(key));
+            }
+
+            if (TryGetDataLoader(context, key,
+                out T dataLoader,
+                out IDataLoaderRegistry registry))
+            {
+                return dataLoader;
+            }
+
+            return GetOrCreate<T>(key, registry, r => r.Register(
+                key, ActivatorHelper.CreateInstanceFactory<T>()));
+        }
+
+        public static T DataLoader<T>(
+            this IResolverContext context)
+            where T : class, IDataLoader
+        {
+            return DataLoader<T>(context, typeof(T).FullName);
+        }
+
+        private static bool TryGetDataLoader<T>(
             IResolverContext context,
             string key,
             out T dataLoader,
             out IDataLoaderRegistry registry)
+            where T : IDataLoader
         {
             registry = null;
 
@@ -231,10 +264,11 @@ namespace HotChocolate.Resolvers
             return false;
         }
 
-        public static T GetOrCreate<T>(
+        private static T GetOrCreate<T>(
             string key,
             IDataLoaderRegistry registry,
             Action<IDataLoaderRegistry> register)
+            where T : IDataLoader
         {
             if (registry == null)
             {
@@ -244,14 +278,17 @@ namespace HotChocolate.Resolvers
                     "dependency injection.");
             }
 
-            register(registry);
-
             if (!registry.TryGet(key, out T dataLoader))
             {
-                // TODO : resources
-                throw new InvalidOperationException(
-                    "Unable to register a DataLoader with your " +
-                    "DataLoader registry.");
+                register(registry);
+
+                if (!registry.TryGet(key, out dataLoader))
+                {
+                    // TODO : resources
+                    throw new InvalidOperationException(
+                        "Unable to register a DataLoader with your " +
+                        "DataLoader registry.");
+                }
             }
 
             return dataLoader;

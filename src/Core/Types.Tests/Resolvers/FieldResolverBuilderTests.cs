@@ -60,7 +60,8 @@ namespace HotChocolate.Resolvers
             var argumentDescriptor =
                new ArgumentDescriptor(
                    "foo", "b", ArgumentKind.Source,
-                   typeof(FooType));
+                   typeof(FooType),
+                   null);
 
             var fieldMember = new FieldMember(
                 "type", "field",
@@ -106,7 +107,8 @@ namespace HotChocolate.Resolvers
             var argumentDescriptor =
                 new ArgumentDescriptor(
                     "foo", "b", ArgumentKind.Source,
-                    typeof(FooType));
+                    typeof(FooType),
+                    null);
 
             var fieldMember = new FieldMember(
                 "type", "field",

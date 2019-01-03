@@ -25,14 +25,9 @@ namespace HotChocolate
 
         public Task InvokeAsync(IMiddlewareContext context)
         {
-            if (IsField(context.ObjectType.Name, context.Field.Name))
-            {
-                return _fieldDelegate(context);
-            }
-            else
-            {
-                return _next(context);
-            }
+            return IsField(context.ObjectType.Name, context.Field.Name)
+                ? _fieldDelegate(context)
+                : _next(context);
         }
 
         protected bool IsField(NameString typeName, NameString fieldName)

@@ -49,10 +49,12 @@ namespace HotChocolate.Execution
 
             return new SubscriptionResult(
                 eventStream,
-                message => executionContext.Clone(
-                    new Dictionary<string, object> {
-                        { typeof(IEventMessage).FullName, message } },
-                    cancellationToken),
+                msg =>
+                {
+                    IExecutionContext cloned = executionContext.Clone();
+                    cloned.ContextData[typeof(IEventMessage).FullName] = msg;
+                    return cloned;
+                },
                 ExecuteSubscriptionQueryAsync);
         }
 
@@ -60,9 +62,9 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
-                .CollectFields(
-                    executionContext.OperationType,
-                    executionContext.Operation.SelectionSet);
+                .FieldHelper.CollectFields(
+                    executionContext.Operation.RootType,
+                    executionContext.Operation.Definition.SelectionSet);
 
             if (selections.Count == 1)
             {

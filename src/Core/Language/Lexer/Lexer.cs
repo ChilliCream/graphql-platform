@@ -300,7 +300,6 @@ namespace HotChocolate.Language
             if (code == '0')
             {
                 code = state.SourceText[++state.Position];
-                ;
                 if (char.IsDigit(code))
                 {
                     throw new SyntaxException(state,
@@ -365,7 +364,8 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the block string token read from the current lexer state.
         /// </returns>
-        private static SyntaxToken ReadBlockStringToken(LexerState state, SyntaxToken previous)
+        private static SyntaxToken ReadBlockStringToken(
+            LexerState state, SyntaxToken previous)
         {
             var rawValue = new StringBuilder();
             var start = state.Position - 2;
@@ -462,7 +462,8 @@ namespace HotChocolate.Language
             return commonIndent;
         }
 
-        private static void RemoveCommonIndetation(string[] lines, in int commonIndent)
+        private static void RemoveCommonIndetation(
+            string[] lines, in int commonIndent)
         {
             if (commonIndent > 0)
             {

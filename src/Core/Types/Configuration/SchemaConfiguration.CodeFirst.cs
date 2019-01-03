@@ -29,38 +29,35 @@ namespace HotChocolate.Configuration
         {
             RegisterQueryType(typeof(T));
         }
+
         public void RegisterQueryType(Type type)
         {
             INamedType namedType = RegisterObjectType(type);
             Options.QueryTypeName = namedType.Name;
         }
 
-
         public void RegisterMutationType<T>() where T : class
         {
             RegisterMutationType(typeof(T));
         }
+
         public void RegisterMutationType(Type type)
         {
             INamedType namedType = RegisterObjectType(type);
             Options.MutationTypeName = namedType.Name;
         }
 
-
         public void RegisterSubscriptionType<T>() where T : class
         {
             RegisterSubscriptionType(typeof(T));
         }
+
         public void RegisterSubscriptionType(Type type)
         {
             INamedType namedType = RegisterObjectType(type);
             Options.SubscriptionTypeName = namedType.Name;
         }
 
-        private INamedType RegisterObjectType<T>() where T : class
-        {
-            return RegisterObjectType(typeof(T));
-        }
         private INamedType RegisterObjectType(Type type)
         {
             return typeof(ObjectType).IsAssignableFrom(type)
@@ -68,8 +65,6 @@ namespace HotChocolate.Configuration
                 : CreateAndRegisterType(typeof(ObjectType<>)
                     .MakeGenericType(type));
         }
-
-
 
         private INamedType CreateAndRegisterType(Type type)
         {
@@ -128,7 +123,6 @@ namespace HotChocolate.Configuration
         {
             _directiveRegistry.RegisterDirectiveType(type);
         }
-
 
         public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
