@@ -62,8 +62,8 @@ namespace HotChocolate.Configuration
 
         private void CompleteTypes(
             IEnumerable<INamedType> types,
-            HashSet<INamedType> processed,
-            List<SchemaError> errors)
+            ISet<INamedType> processed,
+            IList<SchemaError> errors)
         {
             foreach (INamedType namedType in types)
             {
@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
         }
 
         private void CompleteDirectives(
-            List<SchemaError> errors)
+            IList<SchemaError> errors)
         {
             foreach (INeedsInitialization directive in
                 _directiveRegistry.GetDirectiveTypes()
