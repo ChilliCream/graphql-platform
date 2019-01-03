@@ -293,25 +293,22 @@ namespace HotChocolate.Configuration
 
         private bool TryGetTypeFromAst(ITypeNode typeNode, out IType type)
         {
-            if (typeNode.Kind == NodeKind.NonNullType
-                && TryGetTypeFromAst(
-                    ((NonNullTypeNode)typeNode).Type,
-                    out type))
+            if (typeNode is NonNullTypeNode nnt
+                && TryGetTypeFromAst(nnt.Type, out type))
             {
                 type = new NonNullType(type);
                 return true;
             }
 
-            if (typeNode.Kind == NodeKind.ListType
-                && TryGetTypeFromAst(((ListTypeNode)typeNode).Type, out type))
+            if (typeNode is ListTypeNode lt
+                && TryGetTypeFromAst(lt.Type, out type))
             {
                 type = new ListType(type);
                 return true;
             }
 
-            if (typeNode.Kind == NodeKind.NamedType
-                && TryGetType(((NamedTypeNode)typeNode).Name.Value,
-                    out INamedType namedType))
+            if (typeNode is NamedTypeNode nt
+                && TryGetType(nt.Name.Value, out INamedType namedType))
             {
                 type = namedType;
                 return true;

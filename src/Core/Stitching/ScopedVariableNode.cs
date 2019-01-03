@@ -47,8 +47,8 @@ namespace HotChocolate.Stitching
         /// <see cref="ScopedVariableNode"/>.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="ScopedVariableNode"/> is equal
-        /// to the current <see cref="ScopedVariableNode"/>;
+        /// <c>true</c> if the specified <see cref="ScopedVariableNode"/>
+        /// is equal to the current <see cref="ScopedVariableNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(ScopedVariableNode other)

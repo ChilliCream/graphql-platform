@@ -87,7 +87,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void ProcessUnresolvedTypes(ITypeRegistry typeRegistry)
+        private static void ProcessUnresolvedTypes(ITypeRegistry typeRegistry)
         {
             foreach (TypeReference unresolvedType in
                 typeRegistry.GetUnresolvedTypes())
