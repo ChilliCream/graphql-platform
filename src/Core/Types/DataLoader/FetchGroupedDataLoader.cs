@@ -17,8 +17,8 @@ namespace HotChocolate.DataLoader
             {
                 AutoDispatching = false,
                 Batching = true,
-                CacheSize = 100,
-                MaxBatchSize = 0,
+                CacheSize = DataLoaderDefaults.CacheSize,
+                MaxBatchSize = DataLoaderDefaults.MaxBatchSize,
                 SlidingExpiration = TimeSpan.Zero
             })
         {

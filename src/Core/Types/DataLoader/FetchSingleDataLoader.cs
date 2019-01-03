@@ -12,7 +12,7 @@ namespace HotChocolate.DataLoader
         private readonly FetchSingle<TKey, TValue> _fetch;
 
         public FetchSingleDataLoader(FetchSingle<TKey, TValue> fetch)
-            : this(fetch, 100)
+            : this(fetch, DataLoaderDefaults.CacheSize)
         {
         }
 
@@ -24,7 +24,7 @@ namespace HotChocolate.DataLoader
                 AutoDispatching = false,
                 Batching = false,
                 CacheSize = cacheSize,
-                MaxBatchSize = 0,
+                MaxBatchSize = DataLoaderDefaults.MaxBatchSize,
                 SlidingExpiration = TimeSpan.Zero
             })
         {
