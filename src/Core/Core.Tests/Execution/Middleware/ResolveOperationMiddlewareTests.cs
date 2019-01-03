@@ -40,6 +40,156 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task RootValueNotProvidedAndRegisteredWithServices()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<DisposableQuery>();
+            });
+
+            var request = new QueryRequest("{ isDisposable }").ToReadOnly();
+
+            var context = new QueryContext(
+                schema, new EmptyServiceProvider(), request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            DisposableQuery query = Assert.IsType<DisposableQuery>(
+                context.Operation.RootValue);
+            Assert.True(query.IsDisposed);
+        }
+
+        [Fact]
+        public async Task RootValueProvidedByRequest()
+        {
+            // arrange
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<DisposableQuery>();
+            });
+
+            var rootValue = new DisposableQuery();
+
+            var request = new QueryRequest("{ isDisposable }")
+            {
+                InitialValue = rootValue
+            }.ToReadOnly();
+
+            var context = new QueryContext(
+                schema, new EmptyServiceProvider(), request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            Assert.True(object.ReferenceEquals(
+                rootValue, context.Operation.RootValue));
+        }
+
+        [Fact]
+        public async Task RooValueIsRegisterdAsService()
+        {
+            // arrange
+            var services = new DictionaryServiceProvider(
+                typeof(DisposableQuery), new DisposableQuery());
+
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<DisposableQuery>();
+            });
+
+            var request = new QueryRequest("{ isDisposable }").ToReadOnly();
+
+            var context = new QueryContext(
+                schema, services, request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            DisposableQuery query = Assert.IsType<DisposableQuery>(
+                context.Operation.RootValue);
+            Assert.False(query.IsDisposed);
+        }
+
+        [Fact]
+        public async Task ProvidedRootValueTakesPrecedenceOverService()
+        {
+            // arrange
+            var services = new DictionaryServiceProvider(
+               typeof(DisposableQuery), new DisposableQuery());
+
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<DisposableQuery>();
+            });
+
+            var rootValue = new DisposableQuery();
+
+            var request = new QueryRequest("{ isDisposable }")
+            {
+                InitialValue = rootValue
+            }.ToReadOnly();
+
+            var context = new QueryContext(
+                schema, services, request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            Assert.True(object.ReferenceEquals(
+                rootValue, context.Operation.RootValue));
+        }
+
+        [Fact]
+        public async Task RootClrTypeIsObject()
+        {
+            // arrange
+            Schema schema = Schema.Create(@"
+                type Query { a: String }
+                ", c =>
+            {
+                c.BindResolver(() => "hello world")
+                    .To("Query", "a");
+            });
+
+            var request = new QueryRequest("query a { a }").ToReadOnly();
+
+            var context = new QueryContext(
+                schema, new EmptyServiceProvider(), request);
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            Assert.Null(context.Operation.RootValue);
+        }
+
+        [Fact]
         public async Task TwoOperations_ShortHand_QueryException()
         {
             // arrange
@@ -136,6 +286,17 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(context.Operation.RootType);
+        }
+
+        public class DisposableQuery
+            : IDisposable
+        {
+            public bool IsDisposed { get; private set; }
+
+            public void Dispose()
+            {
+                IsDisposed = true;
+            }
         }
     }
 }
