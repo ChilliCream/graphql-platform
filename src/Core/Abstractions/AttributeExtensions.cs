@@ -42,6 +42,15 @@ namespace HotChocolate
             return NameUtils.RemoveInvalidCharacters(name);
         }
 
+        public static string GetGraphQLName(this ParameterInfo parameter)
+        {
+            string name = parameter.IsDefined(
+                typeof(GraphQLNameAttribute), false)
+                ? parameter.GetCustomAttribute<GraphQLNameAttribute>().Name
+                : NormalizeName(parameter.Name);
+            return NameUtils.RemoveInvalidCharacters(name);
+        }
+
         public static string GetGraphQLName(this MemberInfo member)
         {
             if (member == null)
@@ -59,29 +68,8 @@ namespace HotChocolate
                 return GetGraphQLName(p);
             }
 
-            if (member is Type t)
-            {
-                return GetGraphQLName(t);
-            }
-
-            if (member.IsDefined(typeof(GraphQLNameAttribute), false))
-            {
-                return NameUtils.RemoveInvalidCharacters(
-                    member.GetCustomAttribute<GraphQLNameAttribute>().Name);
-            }
-
-            return NameUtils.RemoveInvalidCharacters(member.Name);
-        }
-
-        public static string GetGraphQLName(this ParameterInfo parameter)
-        {
-            if (parameter.IsDefined(typeof(GraphQLNameAttribute), false))
-            {
-                return parameter
-                    .GetCustomAttribute<GraphQLNameAttribute>()
-                    .Name;
-            }
-            return NormalizeName(parameter.Name);
+            throw new NotSupportedException(
+                "Only properties and methods are accepted as members.");
         }
 
         private static string NormalizeMethodName(MethodInfo method)
@@ -101,7 +89,7 @@ namespace HotChocolate
                 name = name.Substring(0, name.Length - 5);
             }
 
-            return name;
+            return NormalizeName(name);
         }
 
         public static string GetGraphQLDescription(
