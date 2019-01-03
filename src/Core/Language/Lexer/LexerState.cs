@@ -27,7 +27,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// The source index of where the current line starts.
         /// </summary>
-        public int LineStart { get; private set; } = 0;
+        public int LineStart { get; private set; }
 
         /// <summary>
         /// The column in the line where the lexer is currently pointing to.
@@ -60,7 +60,7 @@ namespace HotChocolate.Language
         {
             if (lines < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(lines), 
+                throw new ArgumentOutOfRangeException(nameof(lines),
                     "Must be greater or equal to 1.");
             }
 
