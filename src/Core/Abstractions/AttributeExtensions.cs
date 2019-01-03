@@ -11,6 +11,7 @@ namespace HotChocolate
     {
         private const string _get = "Get";
         private const string _async = "Async";
+        private const string _typePostfix = "`1";
 
         public static string GetGraphQLName(this Type type)
         {
@@ -120,6 +121,8 @@ namespace HotChocolate
                 string name = type.GetTypeInfo()
                     .GetGenericTypeDefinition()
                     .Name;
+
+                name = name.Substring(0, name.Length - _typePostfix.Length);
 
                 IEnumerable<string> arguments = type
                     .GetTypeInfo().GenericTypeArguments

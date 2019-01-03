@@ -5,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Configuration
 {
     internal class DirectiveRegistry
-    	: IDirectiveRegistry
+        : IDirectiveRegistry
     {
         private readonly Dictionary<string, DirectiveType> _nameLookup =
             new Dictionary<string, DirectiveType>();
