@@ -242,7 +242,7 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private bool TryCreateType<T>(
+        private static bool TryCreateType<T>(
             INamedType namedType,
             TypeContext context,
             Func<INamedType, IType> factory,
