@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Language;
@@ -55,6 +56,12 @@ namespace HotChocolate.Resolvers
         Path Path { get; }
 
         /// <summary>
+        /// The context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution.
+        /// </summary>
+        IDictionary<string, object> ContextData { get; }
+
+        /// <summary>
         /// Notifies when the connection underlying this request is aborted
         /// and thus request operations should be cancelled.
         /// </summary>
@@ -106,19 +113,6 @@ namespace HotChocolate.Resolvers
         object Service(Type service);
 
         /// <summary>
-        /// Gets a specific custom context object that can be used
-        /// to build up a state.
-        /// </summary>
-        /// <typeparam name="T"><
-        /// The context object type.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the specific custom context object that can be used
-        /// to build up a state.
-        /// </returns>
-        T CustomContext<T>();
-
-        /// <summary>
         /// Gets a custom request property that was provided with the request.
         /// </summary>
         /// <typeparam name="T">
@@ -128,16 +122,6 @@ namespace HotChocolate.Resolvers
         /// Returns the value of the custom request property.
         /// </returns>
         T CustomProperty<T>(string key);
-
-        /// <summary>
-        /// Gets a specific DataLoader.
-        /// </summary>
-        /// <param name="key">The DataLoader key.</param>
-        /// <typeparam name="T">The DataLoader type.</typeparam>
-        /// <returns>
-        /// Returns the specific DataLoader.
-        /// </returns>
-        T DataLoader<T>(string key);
 
         /// <summary>
         /// Gets a resolver object containing one or more resolvers.
@@ -172,7 +156,9 @@ namespace HotChocolate.Resolvers
         /// </param>
         void ReportError(IError error);
 
-        [Obsolete("Use RequestAborted.")]
+        [Obsolete(
+            "Use RequestAborted. " +
+            "This property will be removed with version 1.0.0.")]
         CancellationToken CancellationToken { get; }
     }
 }

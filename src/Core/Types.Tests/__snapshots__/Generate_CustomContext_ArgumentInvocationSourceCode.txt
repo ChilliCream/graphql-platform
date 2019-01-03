@@ -1,1 +1,1 @@
-ctx.CustomContext<System.String>()
+ctx.CustomProperty<System.String>("System.String")

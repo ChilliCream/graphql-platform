@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,9 +61,6 @@ namespace HotChocolate.Execution
                 },
                 cancellationToken);
         }
-
-
-
 
         public static IExecutionResult Execute(
             this IQueryExecuter executer,

@@ -53,6 +53,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             source.AppendLine("using System.Threading.Tasks;");
             source.AppendLine("using HotChocolate;");
             source.AppendLine("using HotChocolate.Resolvers;");
+            source.AppendLine("using HotChocolate.DataLoader;");
             source.AppendLine("using HotChocolate.Types;");
 
             source.AppendLine($"namespace {Namespace}");

@@ -113,10 +113,6 @@ namespace HotChocolate
                     context.Resolvers,
                     context.Directives);
 
-                configuration.RegisterCustomContext<IResolverCache>(
-                    ExecutionScope.Global,
-                    s => new ResolverCache());
-
                 configure(configuration);
 
                 var options = new ReadOnlySchemaOptions(configuration.Options);

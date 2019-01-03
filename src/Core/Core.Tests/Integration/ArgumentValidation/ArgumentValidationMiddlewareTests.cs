@@ -13,7 +13,8 @@ namespace HotChocolate.Integration.ArgumentValidation
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute("{ sayHello }");
+            IExecutionResult result = schema.MakeExecutable().Execute(
+                "{ sayHello }");
 
             // assert
             result.Snapshot();

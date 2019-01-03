@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
@@ -21,8 +22,9 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         public List<IReadOnlyList<string>> Loads { get; } =
             new List<IReadOnlyList<string>>();
 
-        protected override Task<IReadOnlyList<IResult<Human>>> Fetch(
-            IReadOnlyList<string> keys)
+        protected override Task<IReadOnlyList<Result<Human>>> FetchAsync(
+            IReadOnlyList<string> keys,
+            CancellationToken cancellationToken)
         {
             var result = _repository.GetHumans(keys).ToDictionary(t => t.Id);
             var list = new List<Result<Human>>();
@@ -31,15 +33,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             {
                 if (result.TryGetValue(key, out Human human))
                 {
-                    list.Add(Result<Human>.Resolve(human));
+                    list.Add(human);
                 }
                 else
                 {
-                    list.Add(Result<Human>.Resolve(null));
+                    list.Add((Human)null);
                 }
             }
 
-            return Task.FromResult<IReadOnlyList<IResult<Human>>>(list);
+            return Task.FromResult<IReadOnlyList<Result<Human>>>(list);
         }
     }
 }

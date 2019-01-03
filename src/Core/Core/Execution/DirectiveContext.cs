@@ -85,18 +85,14 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted =>
             _resolverContext.RequestAborted;
 
+        public IDictionary<string, object> ContextData =>
+            _resolverContext.ContextData;
+
         public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);
 
-        public T CustomContext<T>() =>
-            _resolverContext.CustomContext<T>();
-
         public T CustomProperty<T>(string key) =>
             _resolverContext.CustomProperty<T>(key);
-
-        public T DataLoader<T>(string key) =>
-            _resolverContext.DataLoader<T>(key);
-
         public T Parent<T>() => _resolverContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>

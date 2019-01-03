@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
@@ -22,19 +23,21 @@ namespace HotChocolate.Execution
             Request = request
                 ?? throw new ArgumentNullException(nameof(request));
             Services = services;
+
+
+            ContextData = request.Properties == null
+                ? new ConcurrentDictionary<string, object>()
+                : new ConcurrentDictionary<string, object>(request.Properties);
         }
 
         public ISchema Schema { get; }
         public IReadOnlyQueryRequest Request { get; }
         public IServiceProvider Services { get; }
-
-        public IDictionary<string, object> Custom { get; } =
-            new Dictionary<string, object>();
-
+        public IDictionary<string, object> ContextData { get; }
         public DocumentNode Document { get; set; }
-        public OperationDefinitionNode Operation { get; set; }
+        public IOperation Operation { get; set; }
         public QueryValidationResult ValidationResult { get; set; }
-        public IVariableCollection VariableCollection { get; set; }
+        public IVariableCollection Variables { get; set; }
         public CancellationToken RequestAborted { get; set; }
         public IExecutionResult Result { get; set; }
         public Exception Exception { get; set; }

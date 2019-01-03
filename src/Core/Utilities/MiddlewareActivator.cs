@@ -18,7 +18,8 @@ namespace HotChocolate.Utilities
 
     internal static class MiddlewareActivator
     {
-        internal static MiddlewareFactory<TMiddleware, TRequestDelegate> CompileFactory<TMiddleware, TRequestDelegate>()
+        internal static MiddlewareFactory<TMiddleware, TRequestDelegate>
+            CompileFactory<TMiddleware, TRequestDelegate>()
         {
             var services = Expression.Parameter(typeof(IServiceProvider));
             var nextDelegate = Expression.Parameter(typeof(TRequestDelegate));
@@ -31,7 +32,8 @@ namespace HotChocolate.Utilities
                 .Compile();
         }
 
-        internal static ClassQueryDelegate<TMiddleware, TContext> CompileMiddleware<TMiddleware, TContext>()
+        internal static ClassQueryDelegate<TMiddleware, TContext>
+            CompileMiddleware<TMiddleware, TContext>()
         {
             TypeInfo middlewareType = typeof(TMiddleware).GetTypeInfo();
             MethodInfo method = middlewareType.GetDeclaredMethod("InvokeAsync")
@@ -100,7 +102,8 @@ namespace HotChocolate.Utilities
                 });
         }
 
-        private static IEnumerable<Expression> CreateParameters<TRequestDelegate>(
+        private static IEnumerable<Expression>
+            CreateParameters<TRequestDelegate>(
             ConstructorInfo constructor,
             ParameterExpression services,
             Expression next)

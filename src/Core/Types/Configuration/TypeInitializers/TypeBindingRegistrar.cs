@@ -72,7 +72,7 @@ namespace HotChocolate.Configuration
 
         }
 
-        private IEnumerable<FieldBinding> CreateFieldBindings(
+        private static IEnumerable<FieldBinding> CreateFieldBindings(
             TypeBindingInfo typeBindingInfo,
             FieldCollection<ObjectField> fields)
         {
@@ -149,7 +149,7 @@ namespace HotChocolate.Configuration
             return typeBindings;
         }
 
-        private IEnumerable<InputFieldBinding> CreateInputFieldBindings(
+        private static IEnumerable<InputFieldBinding> CreateInputFieldBindings(
             TypeBindingInfo typeBindingInfo,
             FieldCollection<InputField> fields)
         {

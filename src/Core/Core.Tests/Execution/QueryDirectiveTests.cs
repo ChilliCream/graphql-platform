@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(
+            IExecutionResult result = schema.MakeExecutable().Execute(
                 "{ sayHello @resolve @appendString(s: \"abc\") }");
 
             // assert
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(
+            IExecutionResult result = schema.MakeExecutable().Execute(
                 "{ sayHello @resolve @appendStringMethod(s: \"abc\") }");
 
             // assert
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(
+            IExecutionResult result = schema.MakeExecutable().Execute(
                 "{ sayHello @resolve @appendStringMethodAsync(s: \"abc\") }");
 
             // assert
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution
             ISchema schema = CreateSchema();
 
             // act
-            IExecutionResult result = schema.Execute(
+            IExecutionResult result = schema.MakeExecutable().Execute(
                 "{ sayHello @resolve " +
                 "@appendString(s: \"abc\") " +
                 "@appendStringMethod(s: \"def\") " +
@@ -75,10 +75,6 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(c =>
             {
-                c.RegisterCustomContext<Dictionary<string, string>>(
-                    ExecutionScope.Request,
-                    s => new Dictionary<string, string>());
-
                 c.RegisterDirective<ResolveDirective>();
                 c.RegisterDirective<AppendStringDirectiveType>();
                 c.RegisterDirective<AppendStringMethodDirectiveType>();

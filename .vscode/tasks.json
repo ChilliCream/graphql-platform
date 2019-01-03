@@ -5,7 +5,7 @@
   "tasks": [
     {
       "label": "build",
-      "command": "dotnet build src/Core",
+      "command": "dotnet build src/Core /property:GenerateFullPaths=true",
       "type": "shell",
       "presentation": {
         "reveal": "silent"

@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
                 ISchema schema = CreateSchema();
 
                 // act
-                await schema.ExecuteAsync("{ foo }");
+                await schema.MakeExecutable().ExecuteAsync("{ foo }");
 
                 // assert
                 Assert.True(listener.ResolveFieldStart);
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                 ISchema schema = CreateSchema();
 
                 // act
-                await schema.ExecuteAsync("{ foo }");
+                await schema.MakeExecutable().ExecuteAsync("{ foo }");
 
                 // assert
                 Assert.True(listener.QueryStart);

@@ -1,65 +1,77 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal interface IExecutionContext
-        : IDisposable
+    public interface IExecutionContext
     {
-        // schema
+        /// <summary>
+        /// Gets the schema on which the query is being executed.
+        /// </summary>
         ISchema Schema { get; }
 
-        IReadOnlySchemaOptions Options { get; }
-
+        /// <summary>
+        /// Gets the scoped execution services.
+        /// </summary>
         IServiceProvider Services { get; }
 
+        /// <summary>
+        /// Gets the error handler which adds additional context
+        /// data to errors and exceptions.
+        /// </summary>
         IErrorHandler ErrorHandler { get; }
 
-        // context
-        object RootValue { get; }
+        /// <summary>
+        /// Gets the operation that is being executed.
+        /// </summary>
+        /// <value></value>
+        IOperation Operation { get; }
 
-        IDataLoaderProvider DataLoaders { get; }
+        /// <summary>
+        /// Gets the coerced variables.
+        /// </summary>
+        /// <value></value>
+        IVariableCollection Variables { get; }
 
-        ICustomContextProvider CustomContexts { get; }
+        /// <summary>
+        /// Gets the query response.
+        /// </summary>
+        /// <value></value>
+        IQueryResponse Response { get; }
 
-        // query ast
-        DocumentNode QueryDocument { get; }
+        /// <summary>
+        /// The context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution.
+        /// </summary>
+        IDictionary<string, object> ContextData { get; }
 
-        OperationDefinitionNode Operation { get; }
-
-        ObjectType OperationType { get; }
-
-        // query
-        FragmentCollection Fragments { get; }
-
-        VariableCollection Variables { get; }
-
-        IReadOnlyDictionary<string, object> RequestProperties { get; }
-
+        /// <summary>
+        /// Gets a cancellation token is used to signal
+        /// if the request has be aborted.
+        /// </summary>
         CancellationToken RequestAborted { get; }
 
-        void ReportError(IError error);
+        /// <summary>
+        /// Gets the field helper for collection fields
+        /// and creating a field middleware.
+        /// </summary>
+        /// <value></value>
+        IFieldHelper FieldHelper { get; }
 
-        IEnumerable<IError> GetErrors();
+        /// <summary>
+        /// Gets the activator helper class.
+        /// </summary>
+        IActivator Activator { get; }
 
-        IReadOnlyCollection<FieldSelection> CollectFields(
-            ObjectType objectType,
-            SelectionSetNode selectionSet);
-
-        ExecuteMiddleware GetMiddleware(
-            ObjectType objectType,
-            FieldNode fieldSelection);
-
-        T GetResolver<T>();
-
-        IExecutionContext Clone(
-            IReadOnlyDictionary<string, object> requestProperties,
-            CancellationToken requestAborted);
+        /// <summary>
+        /// Creates a copy of this execution context
+        /// where the copy of this object has new instances
+        /// of <see cref="ContextData" /> and <see cref="Response" />.
+        /// <see cref="ContextData" /> will have all values inserted
+        /// from the original context.
+        /// </summary>
+        IExecutionContext Clone();
     }
 }

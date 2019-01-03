@@ -7,7 +7,7 @@ namespace HotChocolate
     {
         IError Handle(IError error);
 
-        IEnumerable<IError> Handle(IEnumerable<IError> error);
+        IEnumerable<IError> Handle(IEnumerable<IError> errors);
 
         IError Handle(Exception exception, Func<IError, IError> configure);
     }

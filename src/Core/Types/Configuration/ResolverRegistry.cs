@@ -179,7 +179,7 @@ namespace HotChocolate.Configuration
                 fieldResolver);
         }
 
-        private FieldResolverDelegate BuildMiddleware(
+        private static FieldResolverDelegate BuildMiddleware(
             IEnumerable<FieldMiddleware> components,
             IEnumerable<FieldMiddleware> mappedComponents,
             FieldResolverDelegate first)

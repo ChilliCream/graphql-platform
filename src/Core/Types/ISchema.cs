@@ -12,7 +12,6 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public interface ISchema
-        : IDisposable
     {
         /// <summary>
         /// Gets the schema options.
@@ -52,19 +51,14 @@ namespace HotChocolate
         IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
 
         /// <summary>
-        /// Gets the session manager which can be used to create
-        /// new query execution sessions.
-        /// </summary>
-        ISessionManager Sessions { get; }
-
-        /// <summary>
         /// Gets a type by its name and kind.
         /// </summary>
         /// <typeparam name="T">The expected type kind.</typeparam>
         /// <param name="typeName">The name of the type.</param>
         /// <returns>The type.</returns>
         /// <exception cref="ArgumentException">
-        /// The specified type does not exist or is not of the specified type kind.
+        /// The specified type does not exist or is not of the
+        /// specified type kind.
         /// </exception>
         T GetType<T>(NameString typeName)
             where T : INamedType;
