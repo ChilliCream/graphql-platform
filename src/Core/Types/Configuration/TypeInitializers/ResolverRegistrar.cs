@@ -90,12 +90,11 @@ namespace HotChocolate.Configuration
 
                 // TODO : error handling if object type cannot be resolverd
                 CompleteFieldResolverBindungs(
-                    binding, typeBinding, binding.Fields);
+                    typeBinding, binding.Fields);
             }
         }
 
         private static void CompleteFieldResolverBindungs(
-            ResolverCollectionBindingInfo resolverCollectionBinding,
             ObjectTypeBinding typeBinding,
             IEnumerable<FieldResolverBindungInfo> fieldResolverBindings)
         {
