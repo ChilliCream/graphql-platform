@@ -9,6 +9,9 @@ namespace HotChocolate
 {
     internal static class AttributeExtensions
     {
+        private const string _get = "Get";
+        private const string _async = "Async";
+
         public static string GetGraphQLName(this Type type)
         {
             if (type == null)
@@ -76,17 +79,17 @@ namespace HotChocolate
         {
             string name = method.Name;
 
-            if (name.StartsWith("Get", StringComparison.Ordinal)
-                && name.Length > 3)
+            if (name.StartsWith(_get, StringComparison.Ordinal)
+                && name.Length > _get.Length)
             {
-                name = name.Substring(3);
+                name = name.Substring(_get.Length);
             }
 
             if (typeof(Task).IsAssignableFrom(method.ReturnType)
-                && name.Length > 5
-                && name.EndsWith("Async", StringComparison.Ordinal))
+                && name.Length > _async.Length
+                && name.EndsWith(_async, StringComparison.Ordinal))
             {
-                name = name.Substring(0, name.Length - 5);
+                name = name.Substring(0, name.Length - _async.Length);
             }
 
             return NormalizeName(name);
@@ -110,17 +113,21 @@ namespace HotChocolate
             return null;
         }
 
-        private static string GetFromType(TypeInfo typeInfo)
+        private static string GetFromType(Type type)
         {
-            if (typeInfo.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
-                string name = typeInfo.Name
-                    .Substring(0, typeInfo.Name.Length - 2);
-                IEnumerable<string> arguments = typeInfo.GenericTypeArguments
-                    .Select(t => GetFromType(t.GetTypeInfo()));
+                string name = type.GetTypeInfo()
+                    .GetGenericTypeDefinition()
+                    .Name;
+
+                IEnumerable<string> arguments = type
+                    .GetTypeInfo().GenericTypeArguments
+                    .Select(GetFromType);
+
                 return $"{name}Of{string.Join("And", arguments)}";
             }
-            return typeInfo.Name;
+            return type.Name;
         }
 
         private static string NormalizeName(string name)
