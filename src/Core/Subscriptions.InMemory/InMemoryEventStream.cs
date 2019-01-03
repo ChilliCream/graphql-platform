@@ -66,11 +66,30 @@ namespace HotChocolate.Subscriptions
             return Task.CompletedTask;
         }
 
+        #region IDisposable
+
+        private bool _disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    IsCompleted = true;
+                    Completed?.Invoke(this, EventArgs.Empty);
+                }
+
+                _disposedValue = true;
+            }
+        }
+
         public void Dispose()
         {
-            IsCompleted = true;
-            Completed?.Invoke(this, EventArgs.Empty);
+            Dispose(true);
         }
+
+        #endregion
     }
 }
 
