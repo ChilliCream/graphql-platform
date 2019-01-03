@@ -110,14 +110,9 @@ namespace HotChocolate.Subscriptions
         {
             if (_serialized == null)
             {
-                if (Arguments.Any())
-                {
-                    _serialized = $"{Name}({SerializeArguments(Arguments)})";
-                }
-                else
-                {
-                    _serialized = Name;
-                }
+                _serialized = Arguments.Any()
+                    ? _serialized = $"{Name}({SerializeArguments(Arguments)})"
+                    : _serialized = Name;
             }
             return _serialized;
         }
