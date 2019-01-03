@@ -94,7 +94,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void CompleteFieldResolverBindungs(
+        private static void CompleteFieldResolverBindungs(
             ResolverCollectionBindingInfo resolverCollectionBinding,
             ObjectTypeBinding typeBinding,
             IEnumerable<FieldResolverBindungInfo> fieldResolverBindings)
@@ -154,7 +154,7 @@ namespace HotChocolate.Configuration
 
         // tries to register resolvers for type bindings that at
         // this point have no explicite resolver.
-        private void TryRegisterMissingResolvers(
+        private static void TryRegisterMissingResolvers(
             ISchemaContext schemaContext)
         {
             foreach (ObjectTypeBinding typeBinding in schemaContext.Types
