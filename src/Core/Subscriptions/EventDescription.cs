@@ -131,7 +131,7 @@ namespace HotChocolate.Subscriptions
                 {
                     sb.Clear();
                     serializer.Visit(t.Value, documentWriter);
-                    return t.Name.Value + " = " + sb.ToString();
+                    return t.Name.Value + " = " + sb;
                 }));
             }
         }
