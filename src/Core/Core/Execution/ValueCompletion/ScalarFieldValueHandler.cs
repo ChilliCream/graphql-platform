@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private bool TryConvertToScalarValue(
+        private static bool TryConvertToScalarValue(
             ITypeConversion converter,
             IType type,
             object value,

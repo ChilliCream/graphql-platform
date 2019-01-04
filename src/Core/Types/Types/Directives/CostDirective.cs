@@ -6,13 +6,20 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public class CostDirective
+    [Serializable]
+    public sealed class CostDirective
         : ISerializable
     {
+        [NonSerialized]
+        private readonly int _complexity;
+
+        [NonSerialized]
+        private readonly IReadOnlyCollection<NameString> _multipliers;
+
         public CostDirective()
         {
-            Complexity = 1;
-            Multipliers = Array.Empty<NameString>();
+            _complexity = 1;
+            _multipliers = Array.Empty<NameString>();
         }
 
         public CostDirective(int complexity)
@@ -25,8 +32,8 @@ namespace HotChocolate.Types
                     "The complexity cannot be below one.");
             }
 
-            Complexity = complexity;
-            Multipliers = Array.Empty<NameString>();
+            _complexity = complexity;
+            _multipliers = Array.Empty<NameString>();
         }
 
         public CostDirective(int complexity, params NameString[] multipliers)
@@ -44,11 +51,11 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(multipliers));
             }
 
-            Complexity = complexity;
-            Multipliers = multipliers.Where(t => t.HasValue).ToArray();
+            _complexity = complexity;
+            _multipliers = multipliers.Where(t => t.HasValue).ToArray();
         }
 
-        protected CostDirective(
+        internal CostDirective(
             SerializationInfo info,
             StreamingContext context)
         {
@@ -59,8 +66,8 @@ namespace HotChocolate.Types
 
             if (node == null)
             {
-                Complexity = info.GetInt32(nameof(Complexity));
-                Multipliers = ((string[])info
+                _complexity = info.GetInt32(nameof(Complexity));
+                _multipliers = ((string[])info
                     .GetValue(nameof(Multipliers), typeof(string[])))
                     .Where(s => !string.IsNullOrEmpty(s))
                     .Select(s => new NameString(s))
@@ -73,12 +80,12 @@ namespace HotChocolate.Types
                 ArgumentNode multipliersArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "multipliers");
 
-                Complexity = (complexityArgument != null
+                _complexity = (complexityArgument != null
                     && complexityArgument.Value is IntValueNode iv)
                     ? int.Parse(iv.Value)
                     : 1;
 
-                Multipliers = (multipliersArgument != null
+                _multipliers = (multipliersArgument != null
                     && multipliersArgument.Value is ListValueNode lv)
                     ? lv.Items.OfType<StringValueNode>()
                         .Select(t => t.Value?.Trim())
@@ -89,9 +96,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public int Complexity { get; }
+        public int Complexity => _complexity;
 
-        public IReadOnlyCollection<NameString> Multipliers { get; }
+        public IReadOnlyCollection<NameString> Multipliers => _multipliers;
 
         public void GetObjectData(
             SerializationInfo info,
