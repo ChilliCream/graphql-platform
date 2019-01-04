@@ -159,7 +159,7 @@ namespace HotChocolate.Types
                     return false;
                 }
 
-                return elementType == ElementType.ToClrType(); ;
+                return elementType == ElementType.ToClrType();
             }
 
             throw new InvalidOperationException(
