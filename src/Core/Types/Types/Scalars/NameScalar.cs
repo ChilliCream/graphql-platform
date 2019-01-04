@@ -48,7 +48,7 @@ namespace HotChocolate.Types
             {
                 if (!NameUtils.IsValidName(stringLiteral.Value))
                 {
-                    throw new ScalarException(
+                    throw new ScalarSerializationException(
                         AbstractionResources.Type_Name_IsNotValid(
                             stringLiteral.Value));
                 }
@@ -60,7 +60,7 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new ScalarException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()));
         }
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
                 return new StringValueNode(null, n, false);
             }
 
-            throw new ScalarException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_ParseValue(
                     Name, value.GetType()));
         }
@@ -94,7 +94,7 @@ namespace HotChocolate.Types
                 return (string)n;
             }
 
-            throw new ScalarException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 

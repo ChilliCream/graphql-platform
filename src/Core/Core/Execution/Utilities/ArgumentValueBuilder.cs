@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                 argumentValue = CoerceArgumentValue(
                     argument, variables, argumentValues);
             }
-            catch (ScalarException ex)
+            catch (ScalarSerializationException ex)
             {
                 throw new QueryException(QueryError.CreateArgumentError(
                     ex.Message,

@@ -4,13 +4,13 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class IdTypeTests
+    public class NameTypeTests
     {
         [Fact]
         public void EnsureStringTypeKindIsCorret()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
 
             // act
             TypeKind kind = type.Kind;
@@ -20,26 +20,11 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IsInstanceOfType_StringValueNode()
+        public void IsInstanceOfType_ValueNode()
         {
             // arrange
-            var type = new IdType();
-            var input = new StringValueNode("123456");
-
-            // act
-            bool result = type.IsInstanceOfType(input);
-
-            // assert
-            Assert.True(result);
-        }
-
-
-        [Fact]
-        public void IsInstanceOfType_IntValueNode()
-        {
-            // arrange
-            var type = new IdType();
-            var input = new IntValueNode("123456");
+            var type = new NameType();
+            StringValueNode input = new StringValueNode("_123456");
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -52,7 +37,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_NullValueNode()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
             NullValueNode input = NullValueNode.Default;
 
             // act
@@ -66,8 +51,24 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Wrong_ValueNode()
         {
             // arrange
-            var type = new IdType();
-            var input = new FloatValueNode("123456");
+            var type = new NameType();
+            var input = new IntValueNode(123456);
+
+            // act
+            bool result = type.IsInstanceOfType(input);
+
+            // assert
+            Assert.False(result);
+        }
+
+        [InlineData("1234")]
+        [InlineData("  ")]
+        [Theory]
+        public void IsInstanceOfType_Wrong_StringValue(string s)
+        {
+            // arrange
+            var type = new NameType();
+            var input = new StringValueNode(s);
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -80,7 +81,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Null_Throws()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
 
             // act
             // assert
@@ -89,25 +90,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Serialize_String()
+        public void Serialize_Type()
         {
             // arrange
-            var type = new IdType();
-            var input = "123456";
+            var type = new NameType();
+            NameString input = "_123456";
 
             // act
             object serializedValue = type.Serialize(input);
 
             // assert
             Assert.IsType<string>(serializedValue);
-            Assert.Equal("123456", serializedValue);
+            Assert.Equal("_123456", serializedValue);
         }
 
         [Fact]
         public void Serialize_Null()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
 
             // act
             object serializedValue = type.Serialize(null);
@@ -120,8 +121,8 @@ namespace HotChocolate.Types
         public void Serialize_Wrong_Type_Throws()
         {
             // arrange
-            var type = new IdType();
-            object input = Guid.NewGuid();
+            var type = new NameType();
+            object input = 123456;
 
             // act
             // assert
@@ -130,40 +131,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseLiteral_StringValueNode()
+        public void ParseLiteral_ValueNode()
         {
             // arrange
-            var type = new IdType();
-            var input = new StringValueNode("123456");
+            var type = new NameType();
+            var input = new StringValueNode("__123456");
 
             // act
             object output = type.ParseLiteral(input);
 
             // assert
-            Assert.IsType<string>(output);
-            Assert.Equal("123456", output);
-        }
-
-        [Fact]
-        public void ParseLiteral_IntValueNode()
-        {
-            // arrange
-            var type = new IdType();
-            var input = new IntValueNode("123456");
-
-            // act
-            object output = type.ParseLiteral(input);
-
-            // assert
-            Assert.IsType<string>(output);
-            Assert.Equal("123456", output);
+            Assert.IsType<NameString>(output);
+            Assert.Equal(new NameString("__123456"), output);
         }
 
         [Fact]
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
             var input = NullValueNode.Default;
 
             // act
@@ -177,8 +163,8 @@ namespace HotChocolate.Types
         public void ParseLiteral_Wrong_ValueNode_Throws()
         {
             // arrange
-            var type = new IdType();
-            FloatValueNode input = new FloatValueNode("123456");
+            var type = new NameType();
+            var input = new IntValueNode(123456);
 
             // act
             // assert
@@ -190,7 +176,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_Null_Throws()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
 
             // act
             // assert
@@ -201,8 +187,8 @@ namespace HotChocolate.Types
         public void ParseValue_Wrong_Value_Throws()
         {
             // arrange
-            var type = new IdType();
-            object input = 123.456;
+            var type = new NameType();
+            object input = 123456;
 
             // act
             // assert
@@ -214,7 +200,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            var type = new IdType();
+            var type = new NameType();
             object input = null;
 
             // act
@@ -222,20 +208,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<NullValueNode>(output);
-        }
-
-        [Fact]
-        public void ParseValue_String()
-        {
-            // arrange
-            var type = new IdType();
-            object input = "hello";
-
-            // act
-            object output = type.ParseValue(input);
-
-            // assert
-            Assert.IsType<StringValueNode>(output);
         }
     }
 }

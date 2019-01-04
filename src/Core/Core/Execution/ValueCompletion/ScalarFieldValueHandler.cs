@@ -52,7 +52,7 @@ namespace HotChocolate.Execution
                         $"`{completionContext.Type.TypeName()}`.");
                 }
             }
-            catch (ScalarException ex)
+            catch (ScalarSerializationException ex)
             {
                 completionContext.ReportError(ex.Message);
             }

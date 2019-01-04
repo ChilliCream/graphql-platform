@@ -25,6 +25,5 @@ namespace HotChocolate.Types
 
         protected override int GetMinValue => int.MinValue;
         protected override string GetAssertMinValue => "-2147483648";
-
     }
 }
