@@ -16,8 +16,9 @@
                 "fragment when the `if` argument is true.");
 
             descriptor
-                .Location(DirectiveLocation.Field | DirectiveLocation.FragmentSpread)
-                .Location(DirectiveLocation.InlineFragment);
+                .Location(DirectiveLocation.Field
+                    | DirectiveLocation.FragmentSpread
+                    | DirectiveLocation.InlineFragment);
 
             descriptor.Argument("if")
                 .Description("Skipped when true.")

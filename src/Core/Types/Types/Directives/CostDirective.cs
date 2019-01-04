@@ -55,7 +55,7 @@ namespace HotChocolate.Types
             _multipliers = multipliers.Where(t => t.HasValue).ToArray();
         }
 
-        internal CostDirective(
+        private CostDirective(
             SerializationInfo info,
             StreamingContext context)
         {
