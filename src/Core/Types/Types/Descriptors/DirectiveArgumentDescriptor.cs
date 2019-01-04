@@ -40,6 +40,13 @@ namespace HotChocolate.Types
 
         #region IDirectiveArgumentDescriptor
 
+        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Name(
+            NameString name)
+        {
+            InputDescription.Name = name;
+            return this;
+        }
+
         IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.DefaultValue(
             IValueNode defaultValue)
         {

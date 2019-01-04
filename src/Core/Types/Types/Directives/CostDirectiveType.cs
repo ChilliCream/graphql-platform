@@ -1,13 +1,16 @@
+using System.Linq;
+
 namespace HotChocolate.Types
 {
     public sealed class CostDirectiveType
-        : DirectiveType
+        : DirectiveType<CostDirective>
     {
         internal CostDirectiveType()
         {
         }
 
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(
+            IDirectiveTypeDescriptor<CostDirective> descriptor)
         {
             descriptor.Name("cost");
 
@@ -17,12 +20,14 @@ namespace HotChocolate.Types
 
             descriptor.Location(DirectiveLocation.FieldDefinition);
 
-            descriptor.Argument("complexity")
+            descriptor.Argument(t => t.Complexity)
+                .Name("complexity")
                 .Description("Defines the complexity of the field.")
                 .Type<NonNullType<IntType>>()
                 .DefaultValue(1);
 
-            descriptor.Argument("multipliers")
+            descriptor.Argument(t => t.Multipliers)
+                .Name("multipliers")
                 .Description(
                     "Defines field arguments that act as " +
                      "complexity multipliers.")

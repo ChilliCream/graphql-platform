@@ -1,5 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -12,10 +11,5 @@ namespace HotChocolate.Types
         object ParseLiteral(IValueNode literal);
 
         IValueNode ParseValue(object value);
-    }
-
-    public interface IHasClrType
-    {
-        Type ClrType { get; }
     }
 }

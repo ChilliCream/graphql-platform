@@ -68,7 +68,7 @@ namespace HotChocolate.Utilities
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
-                valueContext.ClrType = GetClrType(inputField, context.Object);
+                valueContext.ClrType = inputField.ClrType;
 
                 Visit(field.Value, valueContext);
 
@@ -137,21 +137,6 @@ namespace HotChocolate.Utilities
                     context.ClrType,
                     context.Object);
             }
-        }
-
-        public Type GetClrType(InputField field, object obj)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            if (field.Property != null)
-            {
-                return field.Property.PropertyType;
-            }
-
-            return typeof(object);
         }
     }
 }

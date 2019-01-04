@@ -674,7 +674,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             var query = @"
-            query foo {
+            query ExecutionDepthShouldNotLeadToEmptyObects {
                 hero(episode: NEWHOPE) {
                     __typename
                     id

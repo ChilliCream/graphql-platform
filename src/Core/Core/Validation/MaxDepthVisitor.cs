@@ -14,8 +14,7 @@ namespace HotChocolate.Validation
         private readonly int _maxExecutionDepth;
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
             new Dictionary<string, FragmentDefinitionNode>();
-        private readonly List<FieldNode> _violatingFields =
-            new List<FieldNode>();
+
 
         public MaxDepthVisitor(IValidateQueryOptionsAccessor options)
         {
@@ -24,26 +23,16 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (!options.MaxExecutionDepth.HasValue)
-            {
-                throw new ArgumentException(
-                    "The max depth visitor can only be used " +
-                    "if a max query depth is defined.");
-            }
-
-            _maxExecutionDepth = options.MaxExecutionDepth.Value;
+            _maxExecutionDepth = options.MaxExecutionDepth ?? int.MaxValue;
         }
 
         protected override bool VisitFragmentDefinitions => false;
 
-        internal bool IsMaxDepthReached { get; private set; }
-
-        internal IReadOnlyCollection<FieldNode> ViolatingFields =>
-            _violatingFields;
-
-        public void Visit(DocumentNode node)
+        public IReadOnlyCollection<FieldNode> Visit(DocumentNode node)
         {
-            Visit(node, Context.New());
+            var context = Context.New();
+            Visit(node, context);
+            return context.ViolatingFields;
         }
 
         protected override void VisitDocument(
@@ -71,8 +60,7 @@ namespace HotChocolate.Validation
 
             if (current.FieldPath.Count > _maxExecutionDepth)
             {
-                IsMaxDepthReached = true;
-                _violatingFields.Add(field);
+                current.AddViolation(field);
             }
 
             base.VisitField(field, current);
@@ -103,36 +91,51 @@ namespace HotChocolate.Validation
 
         internal sealed class Context
         {
+            private readonly List<FieldNode> _violatingFields;
+
             private Context()
             {
+                _violatingFields = new List<FieldNode>();
                 FragmentPath = ImmutableHashSet<string>.Empty;
                 FieldPath = ImmutableList<FieldNode>.Empty;
             }
 
             private Context(
                 ImmutableHashSet<string> fragmentPath,
-                ImmutableList<FieldNode> fieldPath)
+                ImmutableList<FieldNode> fieldPath,
+                List<FieldNode> violatingFields)
             {
                 FragmentPath = fragmentPath;
                 FieldPath = fieldPath;
+                _violatingFields = violatingFields;
             }
 
             public ImmutableHashSet<string> FragmentPath { get; }
 
             public ImmutableList<FieldNode> FieldPath { get; }
 
+            public IReadOnlyCollection<FieldNode> ViolatingFields =>
+                _violatingFields;
+
             public Context AddFragment(FragmentDefinitionNode fragment)
             {
                 return new Context(
                     FragmentPath.Add(fragment.Name.Value),
-                    FieldPath);
+                    FieldPath,
+                    _violatingFields);
             }
 
             public Context AddField(FieldNode field)
             {
                 return new Context(
                     FragmentPath,
-                    FieldPath.Add(field));
+                    FieldPath.Add(field),
+                    _violatingFields);
+            }
+
+            public void AddViolation(FieldNode field)
+            {
+                _violatingFields.Add(field);
             }
 
             public static Context New() => new Context();

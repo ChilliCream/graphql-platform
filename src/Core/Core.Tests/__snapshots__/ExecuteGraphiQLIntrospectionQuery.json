@@ -1067,6 +1067,47 @@
           "onOperation": false,
           "onFragment": true,
           "onField": true
+        },
+        {
+          "name": "cost",
+          "description": "The cost directives is used to express the complexity of a field.",
+          "args": [
+            {
+              "name": "complexity",
+              "description": "Defines the complexity of the field.",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "multipliers",
+              "description": "Defines field arguments that act as complexity multipliers.",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                }
+              },
+              "defaultValue": null
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
         }
       ]
     }

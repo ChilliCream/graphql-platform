@@ -161,6 +161,7 @@ namespace HotChocolate.Integration.DataLoader
             result.Snapshot();
         }
 
+        [Fact]
         public async Task FetchDataLoader()
         {
             // arrange

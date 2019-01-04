@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -9,11 +10,13 @@ namespace HotChocolate.Validation
         : IQueryValidationRule
     {
         private readonly IValidateQueryOptionsAccessor _options;
+        private readonly MaxDepthVisitor _visitor;
 
         public MaxDepthRule(IValidateQueryOptionsAccessor options)
         {
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
+            _visitor = new MaxDepthVisitor(_options);
         }
 
         public QueryValidationResult Validate(
@@ -22,16 +25,16 @@ namespace HotChocolate.Validation
         {
             if (_options.MaxExecutionDepth.HasValue)
             {
-                var visitor = new MaxDepthVisitor(_options);
-                visitor.Visit(queryDocument);
+                IReadOnlyCollection<FieldNode> violatingFields =
+                    _visitor.Visit(queryDocument);
 
-                return visitor.IsMaxDepthReached
-                    ? new QueryValidationResult(
+                return violatingFields.Count == 0
+                    ? QueryValidationResult.OK
+                    : new QueryValidationResult(
                         new ValidationError(
                             "The query exceded the maximum allowed execution " +
                             $"depth of {_options.MaxExecutionDepth.Value}.",
-                            visitor.ViolatingFields.ToArray()))
-                    : QueryValidationResult.OK;
+                            violatingFields));
             }
             return QueryValidationResult.OK;
         }
