@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -131,7 +130,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                     parameter.Name,
                     $"v{i}_{parameter.Name}",
                     ArgumentHelper.LookupKind(parameter, sourceType),
-                    parameter.ParameterType);
+                    parameter.ParameterType,
+                    parameter);
             }
 
             return arguments;

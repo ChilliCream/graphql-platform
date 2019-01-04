@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Subscription operations must have exactly one root field.

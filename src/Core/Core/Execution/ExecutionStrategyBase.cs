@@ -4,9 +4,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
-using HotChocolate.Types;
+using HotChocolate.DataLoader;
 
 namespace HotChocolate.Execution
 {
@@ -19,23 +20,28 @@ namespace HotChocolate.Execution
 
         protected async Task<IQueryExecutionResult> ExecuteQueryAsync(
             IExecutionContext executionContext,
+            BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var data = new OrderedDictionary();
-
             IEnumerable<ResolverTask> rootResolverTasks =
-                CreateRootResolverTasks(executionContext, data);
+                CreateRootResolverTasks(executionContext,
+                    executionContext.Response.Data);
 
             await ExecuteResolversAsync(
-                executionContext, rootResolverTasks,
+                executionContext,
+                rootResolverTasks,
+                batchOperationHandler,
                 cancellationToken);
 
-            return new QueryResult(data, executionContext.GetErrors());
+            return new QueryResult(
+                executionContext.Response.Data,
+                executionContext.Response.Errors);
         }
 
         protected async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
             IEnumerable<ResolverTask> initialBatch,
+            BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
             var currentBatch = new List<ResolverTask>(initialBatch);
@@ -44,8 +50,9 @@ namespace HotChocolate.Execution
 
             while (currentBatch.Count > 0)
             {
-                await ExecuteResolverBatchAsync(executionContext,
-                    currentBatch, nextBatch, cancellationToken);
+                await ExecuteResolverBatchAsync(
+                    executionContext, currentBatch, nextBatch,
+                    batchOperationHandler, cancellationToken);
 
                 swap = currentBatch;
                 currentBatch = nextBatch;
@@ -60,17 +67,19 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             IReadOnlyCollection<ResolverTask> currentBatch,
             List<ResolverTask> nextBatch,
+            BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
             // start field resolvers
-            BeginExecuteResolverBatch(
+            IReadOnlyCollection<Task> tasks = BeginExecuteResolverBatch(
                 currentBatch,
                 executionContext.ErrorHandler,
                 cancellationToken);
 
             // execute batch data loaders
-            await CompleteDataLoadersAsync(
-                executionContext.DataLoaders,
+            await CompleteBatchOperationsAsync(
+                tasks,
+                batchOperationHandler,
                 cancellationToken);
 
             // await field resolver results
@@ -81,29 +90,33 @@ namespace HotChocolate.Execution
                 cancellationToken);
         }
 
-        private void BeginExecuteResolverBatch(
+        private IReadOnlyCollection<Task> BeginExecuteResolverBatch(
             IEnumerable<ResolverTask> currentBatch,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
+            var tasks = new List<Task>();
+
             foreach (ResolverTask resolverTask in currentBatch)
             {
                 resolverTask.Task = ExecuteResolverAsync(
                     resolverTask, errorHandler, cancellationToken);
+                tasks.Add(resolverTask.Task);
                 cancellationToken.ThrowIfCancellationRequested();
             }
+
+            return tasks;
         }
 
-        protected async Task CompleteDataLoadersAsync(
-            IDataLoaderProvider dataLoaders,
+        protected Task CompleteBatchOperationsAsync(
+            IReadOnlyCollection<Task> tasks,
+            BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            if (dataLoaders != null)
-            {
-                await Task.WhenAll(dataLoaders.Touched
-                    .Select(t => t.TriggerAsync(cancellationToken)));
-                dataLoaders.Reset();
-            }
+            return (batchOperationHandler == null)
+                ? Task.CompletedTask
+                : batchOperationHandler.CompleteAsync(
+                    tasks, cancellationToken);
         }
 
         private async Task EndExecuteResolverBatchAsync(
@@ -140,23 +153,37 @@ namespace HotChocolate.Execution
             OrderedDictionary result)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
-                .Push(executionContext.RootValue);
+                .Push(executionContext.Operation.RootValue);
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.CollectFields(
-                    executionContext.OperationType,
-                    executionContext.Operation.SelectionSet);
+                executionContext.FieldHelper.CollectFields(
+                    executionContext.Operation.RootType,
+                    executionContext.Operation.Definition.SelectionSet);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
                 yield return new ResolverTask(
                     executionContext,
-                    executionContext.OperationType,
+                    executionContext.Operation.RootType,
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),
                     source,
                     result);
             }
+        }
+
+        protected static BatchOperationHandler CreateBatchOperationHandler(
+            IExecutionContext executionContext)
+        {
+            var batchOperations = executionContext.Services
+                .GetService<IEnumerable<IBatchOperation>>();
+
+            if (batchOperations != null && batchOperations.Any())
+            {
+                return new BatchOperationHandler(batchOperations);
+            }
+
+            return null;
         }
     }
 }

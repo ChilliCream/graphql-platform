@@ -1,11 +1,19 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution;
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
+using HotChocolate.AspNetClassic;
 #else
-namespace HotChocolate.AspNetCore
+using HotChocolate.AspNetCore;
 #endif
+
+public delegate IQueryExecuter BuildExecuter(
+    IServiceProvider services,
+    IQueryExecutionBuilder builder);
+
+namespace HotChocolate
 {
     public static class ServiceCollectionExtensions
     {
@@ -81,6 +89,135 @@ namespace HotChocolate.AspNetCore
                     }))
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
                     .MakeExecutable());
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            ISchema schema,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return serviceCollection
+                .AddSingleton(schema)
+                .AddSingleton(schema.MakeExecutable(options));
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            Func<IServiceProvider, ISchema> schemaFactory,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (schemaFactory == null)
+            {
+                throw new ArgumentNullException(nameof(schemaFactory));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return serviceCollection
+                .AddSingleton(schemaFactory)
+                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
+                    .MakeExecutable(options));
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            Action<ISchemaConfiguration> configure,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return serviceCollection
+                .AddSingleton<ISchema>(s => Schema.Create(c =>
+                {
+                    c.RegisterServiceProvider(s);
+                    configure(c);
+                }))
+                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
+                    .MakeExecutable(options));
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            string schemaSource,
+            Action<ISchemaConfiguration> configure,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (string.IsNullOrEmpty(schemaSource))
+            {
+                throw new ArgumentNullException(nameof(schemaSource));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return serviceCollection
+                .AddSingleton<ISchema>(s => Schema.Create(
+                    schemaSource, c =>
+                    {
+                        c.RegisterServiceProvider(s);
+                        configure(c);
+                    }))
+                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
+                    .MakeExecutable(options));
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            IQueryExecuter executer)
+        {
+            if (executer == null)
+            {
+                throw new ArgumentNullException(nameof(executer));
+            }
+
+            return serviceCollection
+                .AddSingleton(executer)
+                .AddSingleton<ISchema>(s =>
+                    s.GetRequiredService<IQueryExecuter>().Schema);
+        }
+
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection serviceCollection,
+            BuildExecuter buildExecuter)
+        {
+            if (buildExecuter == null)
+            {
+                throw new ArgumentNullException(nameof(buildExecuter));
+            }
+
+            return serviceCollection
+                .AddSingleton<IQueryExecuter>(s =>
+                    buildExecuter(s, QueryExecutionBuilder.New()))
+                .AddSingleton(s =>
+                    s.GetRequiredService<IQueryExecuter>().Schema);
         }
     }
 }

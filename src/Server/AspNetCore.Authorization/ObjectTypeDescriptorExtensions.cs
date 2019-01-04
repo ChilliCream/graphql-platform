@@ -1,11 +1,12 @@
-﻿using System;
-using HotChocolate.Types;
+using System;
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Authorization
+using HotChocolate.AspNetClassic.Authorization;
 #else
-namespace HotChocolate.AspNetCore.Authorization
+using HotChocolate.AspNetCore.Authorization;
 #endif
+
+namespace HotChocolate.Types
 {
     public static class ObjectTypeDescriptorExtensions
     {

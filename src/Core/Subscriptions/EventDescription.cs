@@ -110,14 +110,9 @@ namespace HotChocolate.Subscriptions
         {
             if (_serialized == null)
             {
-                if (Arguments.Any())
-                {
-                    _serialized = $"{Name}({SerializeArguments(Arguments)})";
-                }
-                else
-                {
-                    _serialized = Name;
-                }
+                _serialized = Arguments.Any()
+                    ? $"{Name}({SerializeArguments(Arguments)})"
+                    : Name;
             }
             return _serialized;
         }
@@ -136,7 +131,7 @@ namespace HotChocolate.Subscriptions
                 {
                     sb.Clear();
                     serializer.Visit(t.Value, documentWriter);
-                    return t.Name.Value + " = " + sb.ToString();
+                    return t.Name.Value + " = " + sb;
                 }));
             }
         }

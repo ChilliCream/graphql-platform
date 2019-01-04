@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Moq;
@@ -551,6 +553,30 @@ namespace HotChocolate.Types
             schema.ToString().Snapshot();
         }
 
+        [Fact]
+        public async Task ObjectType_SourceTypeObject_BindsResolverCorrectly()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t.Name("Bar")
+                .Field<FooResolver>(f => f.GetDescription(default))
+                .Name("desc")
+                .Type<StringType>());
+
+            var schema = Schema.Create(t => t.RegisterQueryType(objectType));
+
+            IQueryExecuter executer = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(
+                new QueryRequest("{ desc }")
+                {
+                    InitialValue = new Foo()
+                });
+
+            // assert
+            result.Snapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -564,6 +590,8 @@ namespace HotChocolate.Types
         public class FooResolver
         {
             public string GetBar(string foo) => "hello foo";
+
+            public string GetDescription([Parent]Foo foo) => foo.Description;
         }
 
         public class QueryWithIntArg

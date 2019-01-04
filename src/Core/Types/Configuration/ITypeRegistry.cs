@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {

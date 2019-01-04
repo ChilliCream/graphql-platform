@@ -17,7 +17,7 @@ namespace HotChocolate.Language
             : base(location, name, directives)
         {
             Alias = alias;
-            Arguments = arguments 
+            Arguments = arguments
                 ?? throw new ArgumentNullException(nameof(arguments));
             SelectionSet = selectionSet;
         }

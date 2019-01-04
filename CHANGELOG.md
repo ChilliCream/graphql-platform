@@ -18,12 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a new execution builder which allows to fully customize the execution pipeline.
 - Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
 - Integrated `RequestTimeoutMiddleware` into default pipeline [#418](https://github.com/ChilliCream/hotchocolate/issues/418).
+- Added support for repeatable directive. (https://github.com/facebook/graphql/pull/472)
 
 ### Changed
 
 - Merged _ASP.NET core_ and _classic_ codebases [#349](https://github.com/ChilliCream/hotchocolate/issues/349).
 - Made the type conversion API extendable and added more default type converter [#384](https://github.com/ChilliCream/hotchocolate/issues/384).
 - Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
+- Changed how max query depth is validated and configured.
+- The DataLoader API is now offering a simpler interface.
+
+### Fixed
+
+- Field merging of node fields did not work properly.
 
 ### Deprecated
 

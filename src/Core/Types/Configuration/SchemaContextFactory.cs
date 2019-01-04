@@ -1,5 +1,4 @@
-﻿using HotChocolate.Utilities;
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Configuration
@@ -19,7 +18,7 @@ namespace HotChocolate.Configuration
         }
 
         private static void RegisterSpecScalarTypes(
-            SchemaContext schemaContext)
+            ISchemaContext schemaContext)
         {
             schemaContext.Types.RegisterType(
                 new TypeReference(typeof(StringType)));
@@ -34,7 +33,7 @@ namespace HotChocolate.Configuration
         }
 
         private static void RegisterExtendedScalarTypes(
-            SchemaContext schemaContext)
+            ISchemaContext schemaContext)
         {
             schemaContext.Types.RegisterType(
                 new TypeReference(typeof(DecimalType)));
@@ -51,7 +50,7 @@ namespace HotChocolate.Configuration
         }
 
         private static void RegisterIntrospectionTypes(
-            SchemaContext schemaContext)
+            ISchemaContext schemaContext)
         {
             schemaContext.Types.RegisterType(
                 new TypeReference(typeof(__Directive)));
@@ -72,10 +71,12 @@ namespace HotChocolate.Configuration
         }
 
         private static void RegisterDirectives(
-            SchemaContext schemaContext)
+            ISchemaContext schemaContext)
         {
-            schemaContext.Directives.RegisterDirectiveType(new SkipDirective());
-            schemaContext.Directives.RegisterDirectiveType(new IncludeDirectiveType());
+            schemaContext.Directives.RegisterDirectiveType(
+                new SkipDirective());
+            schemaContext.Directives.RegisterDirectiveType(
+                new IncludeDirectiveType());
         }
     }
 }

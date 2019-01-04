@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 
@@ -181,7 +179,7 @@ namespace HotChocolate.Configuration
                 fieldResolver);
         }
 
-        private FieldResolverDelegate BuildMiddleware(
+        private static FieldResolverDelegate BuildMiddleware(
             IEnumerable<FieldMiddleware> components,
             IEnumerable<FieldMiddleware> mappedComponents,
             FieldResolverDelegate first)

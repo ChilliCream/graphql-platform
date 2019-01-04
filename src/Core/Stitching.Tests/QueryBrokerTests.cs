@@ -261,7 +261,8 @@ namespace HotChocolate.Stitching
             var schema = services.BuildServiceProvider().GetService<ISchema>();
 
             // act
-            IExecutionResult result = await schema.ExecuteAsync(query);
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(query);
 
             // assert
             result.Snapshot();

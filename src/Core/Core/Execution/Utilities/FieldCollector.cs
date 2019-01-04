@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,11 +8,11 @@ namespace HotChocolate.Execution
 {
     internal sealed class FieldCollector
     {
-        private readonly VariableCollection _variables;
+        private readonly IVariableCollection _variables;
         private readonly FragmentCollection _fragments;
 
         public FieldCollector(
-            VariableCollection variables,
+            IVariableCollection variables,
             FragmentCollection fragments)
         {
             _variables = variables
@@ -94,7 +93,16 @@ namespace HotChocolate.Execution
                 string name = fieldSelection.Alias == null
                     ? fieldSelection.Name.Value
                     : fieldSelection.Alias.Value;
-                fields[name] = new FieldSelection(fieldSelection, field, name);
+
+                if (fields.TryGetValue(name, out FieldSelection selection))
+                {
+                    fields[name] = selection.Merge(fieldSelection);
+                }
+                else
+                {
+                    fields.Add(name, FieldSelection.Create(
+                        fieldSelection, field, name));
+                }
             }
             else
             {

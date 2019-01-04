@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -11,7 +12,7 @@ namespace HotChocolate.Integration.TypeConversion
     public class TypeConversionTests
     {
         [Fact]
-        public void VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()
+        public async Task VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()
         {
             // arrange
             ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
@@ -29,21 +30,22 @@ namespace HotChocolate.Integration.TypeConversion
             };
 
             // act
-            IExecutionResult result = schema.Execute(@"
-                query foo($a: FooInput) {
-                    foo(foo: $a) {
-                        id
-                        time
-                        number
-                    }
-                }", variables);
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(@"
+                    query foo($a: FooInput) {
+                        foo(foo: $a) {
+                            id
+                            time
+                            number
+                        }
+                    }", variables);
 
             // assert
             result.Snapshot();
         }
 
         [Fact]
-        public void VariableIsCoercedToTypesOtherThanTheDefinedClrTypes()
+        public async Task VariableIsCoercedToTypesOtherThanTheDefinedClrTypes()
         {
             // arrange
             ISchema schema = Schema.Create(
@@ -55,17 +57,18 @@ namespace HotChocolate.Integration.TypeConversion
             };
 
             // act
-            IExecutionResult result = schema.Execute(@"
-                query foo($time: DateTime) {
-                    time(time: $time)
-                }", variables);
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(@"
+                    query foo($time: DateTime) {
+                        time(time: $time)
+                    }", variables);
 
             // assert
             result.Snapshot();
         }
 
         [Fact]
-        public void VariableIsNotSerializedAndMustBeConvertedToClrType()
+        public async Task VariableIsNotSerializedAndMustBeConvertedToClrType()
         {
             // arrange
             ISchema schema = Schema.Create(
@@ -79,17 +82,18 @@ namespace HotChocolate.Integration.TypeConversion
             };
 
             // act
-            IExecutionResult result = schema.Execute(@"
-                query foo($time: DateTime) {
-                    time(time: $time)
-                }", variables);
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(@"
+                    query foo($time: DateTime) {
+                        time(time: $time)
+                    }", variables);
 
             // assert
             result.Snapshot();
         }
 
         [Fact]
-        public void VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
+        public async Task VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
         {
             // arrange
             ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
@@ -107,14 +111,15 @@ namespace HotChocolate.Integration.TypeConversion
             };
 
             // act
-            IExecutionResult result = schema.Execute(@"
-                query foo($a: FooInput) {
-                    foo(foo: $a) {
-                        id
-                        time
-                        number
-                    }
-                }", variables);
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(@"
+                    query foo($a: FooInput) {
+                        foo(foo: $a) {
+                            id
+                            time
+                            number
+                        }
+                    }", variables);
 
             // assert
             result.Snapshot();

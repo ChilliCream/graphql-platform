@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -43,15 +42,20 @@ namespace HotChocolate.Execution
                 .CoerceArgumentValues(executionContext.Variables);
         }
 
-        public ISchema Schema => _executionContext.Schema;
+        public ISchema Schema =>
+            _executionContext.Schema;
 
-        public ObjectType ObjectType => _resolverTask.ObjectType;
+        public ObjectType ObjectType =>
+            _resolverTask.ObjectType;
 
-        public ObjectField Field => _resolverTask.FieldSelection.Field;
+        public ObjectField Field =>
+            _resolverTask.FieldSelection.Field;
 
-        public DocumentNode QueryDocument => _executionContext.QueryDocument;
+        public DocumentNode QueryDocument =>
+            _executionContext.Operation.Query;
 
-        public OperationDefinitionNode Operation => _executionContext.Operation;
+        public OperationDefinitionNode Operation =>
+            _executionContext.Operation.Definition;
 
         public FieldNode FieldSelection =>
             _resolverTask.FieldSelection.Selection;
@@ -63,6 +67,9 @@ namespace HotChocolate.Execution
         public CancellationToken CancellationToken => RequestAborted;
 
         public CancellationToken RequestAborted { get; }
+
+        public IDictionary<string, object> ContextData =>
+            _executionContext.ContextData;
 
         public T Argument<T>(NameString name)
         {
@@ -141,15 +148,6 @@ namespace HotChocolate.Execution
         public object Service(Type service) =>
             _executionContext.Services.GetRequiredService(service);
 
-        public T CustomContext<T>()
-        {
-            if (_executionContext.CustomContexts == null)
-            {
-                return default;
-            }
-            return _executionContext.CustomContexts.GetCustomContext<T>();
-        }
-
         public T CustomProperty<T>(string key)
         {
             if (key == null)
@@ -157,8 +155,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_executionContext.RequestProperties
-                .TryGetValue(key, out object value) && value is T v)
+            if (ContextData.TryGetValue(key, out object value)
+                && value is T v)
             {
                 return v;
             }
@@ -168,18 +166,9 @@ namespace HotChocolate.Execution
                 "The specified property does not exist.");
         }
 
-        public T DataLoader<T>(string key)
-        {
-            if (_executionContext.DataLoaders == null)
-            {
-                return default;
-            }
-            return _executionContext.DataLoaders.GetDataLoader<T>(key);
-        }
-
         public T Resolver<T>()
         {
-            return _executionContext.GetResolver<T>();
+            return _executionContext.Activator.GetOrCreateResolver<T>();
         }
 
         public void ReportError(string errorMessage)
@@ -187,6 +176,6 @@ namespace HotChocolate.Execution
                     errorMessage, Path, FieldSelection));
 
         public void ReportError(IError error)
-            => _executionContext.ReportError(error);
+            => _executionContext.Response.Errors.Add(error);
     }
 }

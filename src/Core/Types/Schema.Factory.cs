@@ -7,7 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -113,10 +112,6 @@ namespace HotChocolate
                     context.Types,
                     context.Resolvers,
                     context.Directives);
-
-                configuration.RegisterCustomContext<IResolverCache>(
-                    ExecutionScope.Global,
-                    s => new ResolverCache());
 
                 configure(configuration);
 

@@ -1,7 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     /// <summary>
     /// Arguments can be required. An argument is required if the argument

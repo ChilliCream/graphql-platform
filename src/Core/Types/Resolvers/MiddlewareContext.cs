@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,17 +85,14 @@ namespace HotChocolate.Resolvers
         public CancellationToken RequestAborted =>
             _resolverContext.RequestAborted;
 
+        public IDictionary<string, object> ContextData =>
+            _resolverContext.ContextData;
+
         public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);
 
-        public T CustomContext<T>() =>
-            _resolverContext.CustomContext<T>();
-
         public T CustomProperty<T>(string key) =>
             _resolverContext.CustomProperty<T>(key);
-
-        public T DataLoader<T>(string key) =>
-            _resolverContext.DataLoader<T>(key);
 
         public T Parent<T>() => _resolverContext.Parent<T>();
 
@@ -103,7 +101,6 @@ namespace HotChocolate.Resolvers
 
         public void ReportError(IError error) =>
             _resolverContext.ReportError(error);
-
 
         public T Resolver<T>() => _resolverContext.Resolver<T>();
 

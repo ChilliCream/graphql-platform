@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -39,6 +39,7 @@ namespace HotChocolate.Execution
                 .UseQueryParser()
                 .UseValidation()
                 .UseOperationResolver()
+                .UseCoerceVariables()
                 .UseOperationExecuter();
         }
 
@@ -64,6 +65,12 @@ namespace HotChocolate.Execution
            this IQueryExecutionBuilder builder)
         {
             return builder.Use<ResolveOperationMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseCoerceVariables(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<CoerceVariablesMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseQueryParser(

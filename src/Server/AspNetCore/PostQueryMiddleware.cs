@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,8 +22,6 @@ namespace HotChocolate.AspNetCore
     public class PostQueryMiddleware
         : QueryMiddlewareBase
     {
-        private const string _postMethod = "POST";
-
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecuter queryExecuter,
@@ -34,7 +32,8 @@ namespace HotChocolate.AspNetCore
         protected override bool CanHandleRequest(HttpContext context)
         {
             return string.Equals(
-                context.Request.Method, _postMethod,
+                context.Request.Method,
+                HttpMethods.Post,
                 StringComparison.Ordinal);
         }
 

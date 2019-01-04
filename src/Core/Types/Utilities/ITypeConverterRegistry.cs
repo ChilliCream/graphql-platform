@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Linq;
 
 namespace HotChocolate.Utilities
 {

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -24,48 +26,57 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
-            var data = new OrderedDictionary();
+            BatchOperationHandler batchOperationHandler =
+                CreateBatchOperationHandler(executionContext);
 
-            IEnumerable<ResolverTask> rootResolverTasks =
-                CreateRootResolverTasks(executionContext, data);
+            try
+            {
+                IEnumerable<ResolverTask> rootResolverTasks =
+                    CreateRootResolverTasks(executionContext,
+                        executionContext.Response.Data);
 
-            await ExecuteResolverBatchSeriallyAsync(
-                executionContext, rootResolverTasks,
-                cancellationToken);
+                await ExecuteResolverBatchSeriallyAsync(
+                    executionContext,
+                    rootResolverTasks,
+                    batchOperationHandler,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
-            return new QueryResult(data, executionContext.GetErrors());
+                return new QueryResult(
+                    executionContext.Response.Data,
+                    executionContext.Response.Errors);
+            }
+            finally
+            {
+                batchOperationHandler?.Dispose();
+            }
         }
 
         private async Task ExecuteResolverBatchSeriallyAsync(
            IExecutionContext executionContext,
            IEnumerable<ResolverTask> currentBatch,
+           BatchOperationHandler batchOperationHandler,
            CancellationToken cancellationToken)
         {
             var nextBatch = new List<ResolverTask>();
 
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                // TODO: This need to be refactored, cause MaxExecutionDepth has been moved to execution options.
-                //if (resolverTask.IsMaxExecutionDepthReached())
-                //{
-                //    resolverTask.ReportError(
-                //        "The field has a depth of " +
-                //        $"{resolverTask.Path.Depth + 1}," +
-                //        " which exceeds max allowed depth of " +
-                //        $"{executionContext.Options.MaxExecutionDepth}");
-                //}
-                //else
-                //{
                 await ExecuteResolverSeriallyAsync(
                     executionContext,
                     resolverTask,
                     nextBatch.Add,
-                    cancellationToken);
-                //}
+                    batchOperationHandler,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 // execute child fields with the default parallel flow logic
                 await ExecuteResolversAsync(
-                    executionContext, nextBatch, cancellationToken);
+                    executionContext,
+                    nextBatch,
+                    batchOperationHandler,
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 nextBatch.Clear();
 
@@ -77,6 +88,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             ResolverTask resolverTask,
             Action<ResolverTask> enqueueTask,
+            BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
             resolverTask.Task = ExecuteResolverAsync(
@@ -84,8 +96,9 @@ namespace HotChocolate.Execution
                 executionContext.ErrorHandler,
                 cancellationToken);
 
-            await CompleteDataLoadersAsync(
-                executionContext.DataLoaders,
+            await CompleteBatchOperationsAsync(
+                new[] { resolverTask.Task },
+                batchOperationHandler,
                 cancellationToken);
 
             if (resolverTask.Task.IsCompleted)

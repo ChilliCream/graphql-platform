@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Http;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic.Playground
+namespace HotChocolate.AspNetClassic
 #else
-namespace HotChocolate.AspNetCore.Playground
+namespace HotChocolate.AspNetCore
 #endif
 {
     internal static class HttpContextExtensions

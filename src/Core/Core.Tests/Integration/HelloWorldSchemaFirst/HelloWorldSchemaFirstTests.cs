@@ -1,4 +1,5 @@
-﻿using ChilliCream.Testing;
+﻿using System.Threading.Tasks;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Xunit;
@@ -8,7 +9,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
     public class HelloWorldSchemaFirstTests
     {
         [Fact]
-        public void SimpleHelloWorldWithoutTypeBinding()
+        public async Task SimpleHelloWorldWithoutTypeBinding()
         {
             // arrange
             var schema = Schema.Create(
@@ -24,7 +25,8 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 });
 
             // act
-            IExecutionResult result = schema.Execute("{ hello }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ hello }");
 
             // assert
             Assert.Null(result.Errors);
@@ -32,7 +34,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         }
 
         [Fact]
-        public void SimpleHelloWorldWithArgumentWithoutTypeBinding()
+        public async Task SimpleHelloWorldWithArgumentWithoutTypeBinding()
         {
             // arrange
             var schema = Schema.Create(
@@ -48,7 +50,9 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 });
 
             // act
-            IExecutionResult result = schema.Execute("{ hello(a: \"foo\") }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello(a: \"foo\") }");
 
             // assert
             Assert.Null(result.Errors);
@@ -56,7 +60,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         }
 
         [Fact]
-        public void SimpleHelloWorldWithResolverType()
+        public async Task SimpleHelloWorldWithResolverType()
         {
             // arrange
             var schema = Schema.Create(
@@ -75,7 +79,9 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 });
 
             // act
-            IExecutionResult result = schema.Execute("{ hello world }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello world }");
 
             // assert
             Assert.Null(result.Errors);
@@ -83,7 +89,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         }
 
         [Fact]
-        public void SimpleHelloWorldWithResolverTypeAndArgument()
+        public async Task SimpleHelloWorldWithResolverTypeAndArgument()
         {
             // arrange
             var schema = Schema.Create(
@@ -100,7 +106,9 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 });
 
             // act
-            IExecutionResult result = schema.Execute("{ hello(a: \"foo_\") }");
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ hello(a: \"foo_\") }");
 
             // assert
             Assert.Null(result.Errors);

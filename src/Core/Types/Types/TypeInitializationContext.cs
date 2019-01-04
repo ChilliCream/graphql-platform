@@ -201,7 +201,6 @@ namespace HotChocolate.Types
             {
                 member = p;
                 return true;
-
             }
 
             member = null;

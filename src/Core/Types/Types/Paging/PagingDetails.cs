@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Paging
 {

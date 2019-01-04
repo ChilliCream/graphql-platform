@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public interface ISerializableType
         : IType

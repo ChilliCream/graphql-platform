@@ -33,7 +33,8 @@ namespace HotChocolate.Resolvers
             var argumentDescriptor = new ArgumentDescriptor(
                 "foo", "bar",
                 _validArgumentKind,
-                _argumentType);
+                _argumentType,
+                null);
 
             // act
             string result = _generator.Generate("foo", argumentDescriptor);
@@ -49,7 +50,8 @@ namespace HotChocolate.Resolvers
             var argumentDescriptor = new ArgumentDescriptor(
                 "foo", "bar",
                 _validArgumentKind,
-                _argumentType);
+                _argumentType,
+                null);
 
             // act
             bool result = _generator.CanHandle(argumentDescriptor);
@@ -65,7 +67,8 @@ namespace HotChocolate.Resolvers
             var argumentDescriptor = new ArgumentDescriptor(
                 "foo", "bar",
                 _invalidArgumentKind,
-                typeof(object));
+                typeof(object),
+                null);
 
             // act
             bool result = _generator.CanHandle(argumentDescriptor);

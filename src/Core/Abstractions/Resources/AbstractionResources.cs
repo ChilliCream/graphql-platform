@@ -1,7 +1,4 @@
-﻿using System;
-using System.Globalization;
-
-namespace HotChocolate
+﻿namespace HotChocolate
 {
     internal static class AbstractionResources
     {

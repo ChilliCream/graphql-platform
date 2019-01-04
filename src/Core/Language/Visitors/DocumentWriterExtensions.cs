@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -133,8 +134,64 @@ namespace HotChocolate.Language
             }
             else
             {
-                writer.Write($"\"{node.Value}\"");
+                writer.Write($"\"{WriteEscapeCharacters(node.Value)}\"");
             }
+        }
+
+
+        private static string WriteEscapeCharacters(string input)
+        {
+            var stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+                WriteEscapeCharacter(stringBuilder, in c);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        private static void WriteEscapeCharacter(
+            StringBuilder stringBuilder, in char c)
+        {
+            switch (c)
+            {
+                case '"':
+                    WriteEscapeCharacterHelper(stringBuilder, '"');
+                    break;
+                case '\\':
+                    WriteEscapeCharacterHelper(stringBuilder, '\\');
+                    break;
+                case '/':
+                    WriteEscapeCharacterHelper(stringBuilder, '/');
+                    break;
+                case '\b':
+                    WriteEscapeCharacterHelper(stringBuilder, 'b');
+                    break;
+                case '\f':
+                    WriteEscapeCharacterHelper(stringBuilder, 'f');
+                    break;
+                case '\n':
+                    WriteEscapeCharacterHelper(stringBuilder, 'n');
+                    break;
+                case '\r':
+                    WriteEscapeCharacterHelper(stringBuilder, 'r');
+                    break;
+                case '\t':
+                    WriteEscapeCharacterHelper(stringBuilder, 't');
+                    break;
+                default:
+                    stringBuilder.Append(c);
+                    break;
+            }
+        }
+
+        private static void WriteEscapeCharacterHelper(
+           StringBuilder stringBuilder, in char c)
+        {
+            stringBuilder.Append('\\');
+            stringBuilder.Append(c);
         }
 
         public static void WriteBooleanValue(

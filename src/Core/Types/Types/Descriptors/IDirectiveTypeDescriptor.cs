@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 

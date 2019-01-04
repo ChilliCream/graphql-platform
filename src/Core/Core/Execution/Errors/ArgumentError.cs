@@ -4,7 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution
 {
     [Obsolete(
-        "Use QueryError.CreateArgumentError(message, path, argument).")]
+        "Use QueryError.CreateArgumentError(message, path, argument). " +
+        "This type will be removed with version 1.0.0.")]
     public class ArgumentError
         : QueryError
     {

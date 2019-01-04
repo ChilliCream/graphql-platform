@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Utilities;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 
@@ -21,8 +20,6 @@ namespace HotChocolate.Configuration
             _typeRegistry = new TypeRegistry(_serviceFactory);
             _resolverRegistry = new ResolverRegistry();
             _directiveRegistry = new DirectiveRegistry();
-            DataLoaders = new List<DataLoaderDescriptor>();
-            CustomContexts = new List<CustomContextDescriptor>();
         }
 
         public ITypeRegistry Types => _typeRegistry;
@@ -32,10 +29,6 @@ namespace HotChocolate.Configuration
         public IDirectiveRegistry Directives => _directiveRegistry;
 
         public IServiceProvider Services => _serviceFactory.Services;
-
-        public ICollection<DataLoaderDescriptor> DataLoaders { get; }
-
-        public ICollection<CustomContextDescriptor> CustomContexts { get; }
 
         public IEnumerable<SchemaError> CompleteTypes()
         {
@@ -69,8 +62,8 @@ namespace HotChocolate.Configuration
 
         private void CompleteTypes(
             IEnumerable<INamedType> types,
-            HashSet<INamedType> processed,
-            List<SchemaError> errors)
+            ISet<INamedType> processed,
+            ICollection<SchemaError> errors)
         {
             foreach (INamedType namedType in types)
             {
@@ -85,7 +78,7 @@ namespace HotChocolate.Configuration
         }
 
         private void CompleteDirectives(
-            List<SchemaError> errors)
+            ICollection<SchemaError> errors)
         {
             foreach (INeedsInitialization directive in
                 _directiveRegistry.GetDirectiveTypes()

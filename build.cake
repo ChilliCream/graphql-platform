@@ -8,8 +8,9 @@
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var sonarLogin = Argument("sonarLogin", default(string));
+var sonarPrKey = Argument("sonarPrKey", default(string));
 var sonarBranch = Argument("sonarBranch", default(string));
-var sonarBranchTitle = Argument("sonarBranchTitle", default(string));
+var sonarBranchBase = Argument("sonarBranch", default(string));
 var packageVersion = Argument("packageVersion", default(string));
 
 //////////////////////////////////////////////////////////////////////
@@ -32,12 +33,12 @@ Task("EnvironmentSetup")
     }
     Environment.SetEnvironmentVariable("Version", packageVersion);
 
-    if(string.IsNullOrEmpty(sonarBranch))
+    if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarBranch = EnvironmentVariable("CIRCLE_PR_NUMBER")
-            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
-        sonarBranchTitle = EnvironmentVariable("CIRCLE_PULL_REQUEST")
-            ?? EnvironmentVariable("APPVEYOR_PULL_REQUEST_TITLE");
+        sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
+        sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
+        sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+        sonarBranchBase = "master";
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -59,13 +60,13 @@ Task("Restore")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
@@ -76,13 +77,13 @@ Task("Build")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
@@ -93,13 +94,13 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration}))
+        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
@@ -126,7 +127,7 @@ Task("Tests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/classic_{i++}\" --blame")
     };
 
     DotNetCoreBuild("./src/Server/AspNetClassic.Tests", buildSettings);
@@ -153,7 +154,7 @@ Task("CoreTests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/{i++}\" --blame")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
 
     DotNetCoreBuild("./src/Core", buildSettings);
@@ -175,7 +176,8 @@ Task("SonarBegin")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    SonarBegin(new SonarBeginSettings{
+    SonarBegin(new SonarBeginSettings
+    {
         Url = "https://sonarcloud.io",
         Login = sonarLogin,
         Key = "HotChocolate",
@@ -188,14 +190,14 @@ Task("SonarBegin")
         ArgumentCustomization = args => {
             var a = args;
 
-            if(!string.IsNullOrEmpty(sonarBranch))
+            if(!string.IsNullOrEmpty(sonarPrKey))
             {
-                a = a.Append($"/d:sonar.pullrequest.key=\"{sonarBranch}\"");
-            }
-
-            if(!string.IsNullOrEmpty(sonarBranchTitle))
-            {
-                a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranchTitle}\"");
+                a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
+                a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
+                a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
+                a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
+                a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
+                // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
 
             return a;
@@ -206,9 +208,10 @@ Task("SonarBegin")
 Task("SonarEnd")
     .Does(() =>
 {
-    SonarEnd(new SonarEndSettings{
+    SonarEnd(new SonarEndSettings
+    {
         Login = sonarLogin,
-     });
+    });
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -225,7 +228,6 @@ Task("Sonar")
 Task("Release")
     .IsDependentOn("Sonar")
     .IsDependentOn("Publish");
-
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

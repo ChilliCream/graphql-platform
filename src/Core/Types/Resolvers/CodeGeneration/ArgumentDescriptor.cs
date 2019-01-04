@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading;
-using HotChocolate.Language;
-using HotChocolate.Types;
+using System.Reflection;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -12,12 +10,15 @@ namespace HotChocolate.Resolvers.CodeGeneration
             NameString name,
             string variableName,
             ArgumentKind kind,
-            Type type)
+            Type type,
+            ParameterInfo parameter)
         {
             Name = name;
             VariableName = variableName;
+
             Kind = kind;
             Type = type;
+            Parameter = parameter;
         }
 
         /// <summary>
@@ -30,6 +31,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         /// refer to this argment in the generated c# code..
         /// </summary>
         public string VariableName { get; }
+
+        /// <summary>
+        /// Gets the parameter from which this argument is derived.
+        /// </summary>
+        public ParameterInfo Parameter { get; }
 
         /// <summary>
         /// Defines the argument kind.

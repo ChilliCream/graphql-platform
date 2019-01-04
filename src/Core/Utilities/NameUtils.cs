@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace HotChocolate.Utilities
+﻿namespace HotChocolate.Utilities
 {
     internal static class NameUtils
     {

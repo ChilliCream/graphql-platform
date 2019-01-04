@@ -71,15 +71,15 @@ namespace HotChocolate.Configuration
 
         private void TryUpdateNamedType(INamedType namedType)
         {
-            INamedType namedTypeRef = namedType;
-
-            if (!_namedTypes.TryGetValue(namedType.Name, out namedTypeRef))
+            if (!_namedTypes.TryGetValue(namedType.Name,
+                out INamedType namedTypeRef))
             {
                 namedTypeRef = namedType;
                 _namedTypes[namedTypeRef.Name] = namedTypeRef;
             }
 
             Type type = namedTypeRef.GetType();
+
             if (!_clrTypeToSchemaType.ContainsKey(type)
                 && !BaseTypes.IsNonGenericBaseType(type))
             {
@@ -89,7 +89,7 @@ namespace HotChocolate.Configuration
             if (namedTypeRef is IHasClrType inputType
                 && inputType.ClrType != null)
             {
-                AddNativeTypeBinding(inputType.ClrType, namedType.Name);
+                AddNativeTypeBinding(inputType.ClrType, namedTypeRef.Name);
             }
         }
 

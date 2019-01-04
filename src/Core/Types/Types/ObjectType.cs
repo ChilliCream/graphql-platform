@@ -11,6 +11,7 @@ namespace HotChocolate.Types
     public class ObjectType
         : NamedTypeBase
         , IComplexOutputType
+        , IHasClrType
     {
         private readonly Dictionary<string, InterfaceType> _interfaceMap =
             new Dictionary<string, InterfaceType>();
@@ -32,6 +33,8 @@ namespace HotChocolate.Types
         }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
+
+        public Type ClrType { get; protected set; }
 
         public IReadOnlyDictionary<string, InterfaceType> Interfaces =>
             _interfaceMap;
@@ -186,6 +189,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
+            CompleteClrType(context);
             CompleteIsOfType();
             CompleteInterfaces(context);
             CompleteFields(context);
@@ -193,22 +197,37 @@ namespace HotChocolate.Types
             ValidateInterfaceImplementation(context);
         }
 
+        private void CompleteClrType(
+            ITypeInitializationContext context)
+        {
+            if (ClrType == null
+                && context.TryGetNativeType(this, out Type clrType))
+            {
+                ClrType = clrType;
+            }
+
+            if (ClrType == null)
+            {
+                ClrType = typeof(object);
+            }
+        }
+
         private void CompleteIsOfType()
         {
             if (_isOfType == null)
             {
-                if (_typeBinding?.Type == null)
+                if (ClrType == typeof(object))
                 {
-                    _isOfType = IsOfTypeNameBased;
+                    _isOfType = IsOfTypeWithName;
                 }
                 else
                 {
-                    _isOfType = IsOfTypeWithNativeType;
+                    _isOfType = IsOfTypeWithClrType;
                 }
             }
         }
 
-        private bool IsOfTypeWithNativeType(
+        private bool IsOfTypeWithClrType(
             IResolverContext context,
             object result)
         {
@@ -216,10 +235,10 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return _typeBinding.Type.IsInstanceOfType(result);
+            return ClrType.IsInstanceOfType(result);
         }
 
-        private bool IsOfTypeNameBased(
+        private bool IsOfTypeWithName(
             IResolverContext context,
             object result)
         {
@@ -380,19 +399,17 @@ namespace HotChocolate.Types
 
     public class ObjectType<T>
         : ObjectType
-        , IHasClrType
     {
         public ObjectType()
         {
+            ClrType = typeof(T);
         }
 
         public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
             : base(d => configure((IObjectTypeDescriptor<T>)d))
         {
+            ClrType = typeof(T);
         }
-
-        public Type ClrType { get; } = typeof(T);
-
 
         #region Configuration
 
