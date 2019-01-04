@@ -74,9 +74,11 @@ namespace HotChocolate.Configuration
             ISchemaContext schemaContext)
         {
             schemaContext.Directives.RegisterDirectiveType(
-                new SkipDirective());
+                new SkipDirectiveType());
             schemaContext.Directives.RegisterDirectiveType(
                 new IncludeDirectiveType());
+            schemaContext.Directives.RegisterDirectiveType(
+                new CostDirectiveType());
         }
     }
 }
