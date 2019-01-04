@@ -212,14 +212,17 @@ namespace HotChocolate.Types
             // arrange
             // act
             var schema = Schema.Create(
-                @"type Query {
+                @"
+                type Query {
                     field(a: Int): String
                         @cost(complexity: 5 multipliers: [""a""])
+                }
 
-                 interface IQuery {
+                interface IQuery {
                     field(a: Int): String
                         @cost(complexity: 5 multipliers: [""a""])
-                }",
+                }
+                ",
                 t => t.Use(next => context => Task.CompletedTask));
 
             var queryInterface = schema.GetType<InterfaceType>("IQuery");
