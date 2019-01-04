@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -56,18 +56,33 @@ namespace HotChocolate
         }
 
         public static IBindType<T> BindType<T>(
-            this ISchemaFirstConfiguration configuration)
+            this ISchemaFirstConfiguration schemaConfiguration)
             where T : class
         {
-            return configuration.BindType<T>(BindingBehavior.Implicit);
+            return schemaConfiguration.BindType<T>(BindingBehavior.Implicit);
         }
 
         public static IBindResolver<TResolver> BindResolver<TResolver>(
-            this ISchemaFirstConfiguration configuration)
+            this ISchemaFirstConfiguration schemaConfiguration)
             where TResolver : class
         {
-            return configuration.BindResolver<TResolver>(
+            return schemaConfiguration.BindResolver<TResolver>(
                 BindingBehavior.Implicit);
+        }
+
+        public static ISchemaConfiguration RegisterExtendedScalarTypes(
+            this ISchemaConfiguration schemaConfiguration)
+        {
+
+            schemaConfiguration.RegisterType(typeof(DecimalType));
+            schemaConfiguration.RegisterType(typeof(LongType));
+            schemaConfiguration.RegisterType(typeof(DateTimeType));
+            schemaConfiguration.RegisterType(typeof(DateType));
+            schemaConfiguration.RegisterType(typeof(UuidType));
+            schemaConfiguration.RegisterType(typeof(UrlType));
+            schemaConfiguration.RegisterType(typeof(DecimalType));
+
+            return schemaConfiguration;
         }
     }
 }
