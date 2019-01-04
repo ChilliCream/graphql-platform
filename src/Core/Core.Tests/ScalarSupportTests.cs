@@ -125,108 +125,27 @@ namespace HotChocolate
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is FloatValueNode
-                || literal is IntValueNode
-                || literal is NullValueNode;
+            throw new NotImplementedException();
         }
 
         public override object ParseLiteral(IValueNode literal)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is FloatValueNode floatLiteral)
-            {
-                return double.Parse(
-                    floatLiteral.Value,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
-            }
-
-            if (literal is IntValueNode node)
-            {
-                return double.Parse(node.Value,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()),
-                nameof(literal));
+            throw new NotImplementedException();
         }
 
         public override IValueNode ParseValue(object value)
         {
-            if (value is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (value is double d)
-            {
-                return new FloatValueNode(SerializeDouble(d));
-            }
-
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()),
-                nameof(value));
+            throw new NotImplementedException();
         }
 
         public override object Serialize(object value)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (value is double d)
-            {
-                return d;
-            }
-
-            throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+            throw new NotImplementedException();
         }
 
         public override bool TryDeserialize(object serialized, out object value)
         {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is double d)
-            {
-                value = d;
-                return true;
-            }
-
-            value = null;
-            return false;
+            throw new NotImplementedException();
         }
-
-        private static double ParseDouble(string value) =>
-            double.Parse(
-                value,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture);
-
-        private static string SerializeDouble(double value) =>
-            value.ToString("E", CultureInfo.InvariantCulture);
     }
 }
