@@ -71,7 +71,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="literal" /> is <c>null</c>.
         /// </exception>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ScalarException">
         /// The specified <paramref name="literal" /> cannot be parsed
         /// by this scalar.
         /// </exception>
@@ -86,6 +86,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns a GraphQL literal representing the .net value.
         /// </returns>
+        /// <exception cref="ScalarException">
+        /// The specified <paramref name="value" /> cannot be parsed
+        /// by this scalar.
+        /// </exception>
         public abstract IValueNode ParseValue(object value);
 
         /// <summary>
@@ -102,6 +106,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns the serialized value.
         /// </returns>
+        /// <exception cref="ScalarException">
+        /// The specified <paramref name="value" /> cannot be serialized
+        /// by this scalar.
+        /// </exception>
         public abstract object Serialize(object value);
 
         /// <summary>
@@ -118,6 +126,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns the .net value representation.
         /// </returns>
+        /// <exception cref="ScalarException">
+        /// The specified <paramref name="value" /> cannot be deserialized
+        /// by this scalar.
+        /// </exception>
         public virtual object Deserialize(object serialized)
         {
             if (TryDeserialize(serialized, out object v))
@@ -125,7 +137,7 @@ namespace HotChocolate.Types
                 return v;
             }
 
-            throw new ArgumentException(
+            throw new ScalarException(
                 TypeResources.Scalar_Cannot_Deserialize(Name));
         }
 

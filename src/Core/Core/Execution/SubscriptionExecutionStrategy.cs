@@ -71,7 +71,8 @@ namespace HotChocolate.Execution
                 FieldSelection selection = selections.Single();
                 Dictionary<string, ArgumentValue> argumentValues =
                     selection.CoerceArgumentValues(
-                        executionContext.Variables);
+                        executionContext.Variables,
+                        Path.New(selection.ResponseName));
                 var arguments = new List<ArgumentNode>();
 
                 foreach (KeyValuePair<string, ArgumentValue> argumentValue in

@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -32,8 +33,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            return literal is StringValueNode s
+                && NameUtils.IsValidName(s.Value);
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -45,6 +46,12 @@ namespace HotChocolate.Types
 
             if (literal is StringValueNode stringLiteral)
             {
+                if (!NameUtils.IsValidName(stringLiteral.Value))
+                {
+                    throw new ScalarException(
+                        AbstractionResources.Type_Name_IsNotValid(
+                            stringLiteral.Value));
+                }
                 return new NameString(stringLiteral.Value);
             }
 
@@ -53,10 +60,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new ArgumentException(
+            throw new ScalarException(
                 TypeResources.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()),
-                nameof(literal));
+                    Name, literal.GetType()));
         }
 
         public override IValueNode ParseValue(object value)
@@ -66,15 +72,14 @@ namespace HotChocolate.Types
                 return new NullValueNode(null);
             }
 
-            if (value is string s)
+            if (value is NameString n)
             {
-                return new StringValueNode(null, s, false);
+                return new StringValueNode(null, n, false);
             }
 
-            throw new ArgumentException(
+            throw new ScalarException(
                 TypeResources.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()),
-                nameof(value));
+                    Name, value.GetType()));
         }
 
         public override object Serialize(object value)
@@ -84,12 +89,12 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is string s)
+            if (value is NameString n)
             {
-                return s;
+                return (string)n;
             }
 
-            throw new ArgumentException(
+            throw new ScalarException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 

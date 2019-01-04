@@ -15,26 +15,7 @@ namespace HotChocolate.Execution
             {
                 if (completionContext.Type is ISerializableType serializable)
                 {
-                    try
-                    {
-                        object value = Normalize(
-                            completionContext.Converter,
-                            completionContext.Type,
-                            completionContext.Value);
-
-                        value = serializable.Serialize(value);
-
-                        completionContext.IntegrateResult(value);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        completionContext.ReportError(ex.Message);
-                    }
-                    catch (Exception)
-                    {
-                        completionContext.ReportError(
-                            "Undefined field serialization error.");
-                    }
+                    SerializeAndCompleteValue(completionContext, serializable);
                 }
                 else
                 {
@@ -48,25 +29,72 @@ namespace HotChocolate.Execution
             }
         }
 
-        private object Normalize(
+        private void SerializeAndCompleteValue(
+            IFieldValueCompletionContext completionContext,
+            ISerializableType serializable)
+        {
+            try
+            {
+                if (TryConvertToScalarValue(
+                    completionContext.Converter,
+                    completionContext.Type,
+                    completionContext.Value,
+                    out object value))
+                {
+                    value = serializable.Serialize(value);
+                    completionContext.IntegrateResult(value);
+                }
+                else
+                {
+                    completionContext.ReportError(
+                        "The internal resolver value could not be " +
+                        "converted to a valid value of " +
+                        $"`{completionContext.Type.TypeName()}`.");
+                }
+            }
+            catch (ScalarException ex)
+            {
+                completionContext.ReportError(ex.Message);
+            }
+            catch (Exception)
+            {
+                completionContext.ReportError(
+                    "Undefined field serialization error.");
+            }
+        }
+
+        private bool TryConvertToScalarValue(
             ITypeConversion converter,
             IType type,
-            object value)
+            object value,
+            out object scalarValue)
         {
-            if (value is null)
+            try
             {
-                return value;
-            }
+                if (value is null)
+                {
+                    scalarValue = value;
+                    return true;
+                }
 
-            if (type is IHasClrType leafType
-                && !leafType.ClrType.IsInstanceOfType(value))
+                if (type is IHasClrType leafType
+                    && !leafType.ClrType.IsInstanceOfType(value))
+                {
+                    return converter.TryConvert(
+                        typeof(object),
+                        leafType.ClrType,
+                        value,
+                        out scalarValue);
+                }
+
+                scalarValue = value;
+                return true;
+            }
+            catch
             {
-                return converter.Convert(
-                    typeof(object), leafType.ClrType,
-                    value);
+                scalarValue = null;
+                return false;
             }
-
-            return value;
         }
     }
 }
