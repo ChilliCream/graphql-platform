@@ -33,7 +33,7 @@ This document shall give and outlook of what we have planned for the next releas
   - [x] FragmentDefinition
   - [x] FragmentSpread
   - [x] InlineFragment
-  - [ ] Schema (in development - 0.7.0)
+  - [ ] Schema (in development - 0.8.0)
   - [ ] Scalar (in development - 0.8.0)
   - [x] Object
   - [x] FieldDefinition
@@ -87,8 +87,8 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472)
 - [x] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
-- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 0.10.0)
-- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466) (in development - 0.9.0)
+- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 0.8.0)
+- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466) (in development - 0.8.0)
 
 ## Additional Scalar Types
 
@@ -125,7 +125,7 @@ We are currently working on the following features that are proposed for the nex
   - [x] Get
   - [x] Post
   - [ ] _WebSockets_ (in development - 0.8.0)
-  - [ ] Schema Builder (in development - 1.0.0)
+  - [ ] Schema Builder (in development - 0.8.0)
   - [x] .net Framework 4.7
   - [x] .net Framework 4.6
 
@@ -133,7 +133,7 @@ We are currently working on the following features that are proposed for the nex
   - [x] Get
   - [x] Post
   - [x] WebSockets
-  - [ ] Schema Builder (in development - 0.11.0)
+  - [ ] Schema Builder (in development - 0.8.0)
 
 ## GraphQL Compatibility Acceptance Tests
 
