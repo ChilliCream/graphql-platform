@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void SerializeAndCompleteValue(
+        private static void SerializeAndCompleteValue(
             IFieldValueCompletionContext completionContext,
             ISerializableType serializable)
         {
