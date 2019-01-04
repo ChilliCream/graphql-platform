@@ -1,9 +1,9 @@
-using System.Linq;
+﻿using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Language
 {
-    public class DirectiveDefinitionParserTests
+    public class DirectiveParserTests
     {
         [Fact]
         public void ParseUniqueDirective()
@@ -39,6 +39,25 @@ namespace HotChocolate.Language
                 .OfType<DirectiveDefinitionNode>().FirstOrDefault();
             Assert.NotNull(directiveDefinition);
             Assert.True(directiveDefinition.IsRepeatable);
+        }
+
+        [Fact]
+        public void DirectiveOrderIsSignificant()
+        {
+            // arrange
+            var text = "type Query { field: String @a @b @c }";
+            var parser = new Parser();
+
+            // assert
+            DocumentNode document = parser.Parse(text);
+
+            // assert
+            ObjectTypeDefinitionNode type = document.Definitions
+                .OfType<ObjectTypeDefinitionNode>().FirstOrDefault();
+            Assert.Collection(type.Fields.Single().Directives,
+                t => Assert.Equal("a", t.Name.Value),
+                t => Assert.Equal("b", t.Name.Value),
+                t => Assert.Equal("c", t.Name.Value));
         }
     }
 }
