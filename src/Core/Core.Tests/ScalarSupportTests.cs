@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -72,12 +73,8 @@ namespace HotChocolate
                 await schema.MakeExecutable().ExecuteAsync(
                     "{ __type(type: \"" + name + "\") { name, kind, description } }");
 
-            string typeResultDescription = JObject.Parse(result.ToString())
-                ["data"]["__type"]["description"]
-                .ToString();
-
             //assert
-            Assert.Equal(desc, typeResultDescription);
+            result.Snapshot("RegisterCustomExtendedScalarType" + name);
         }
 
         [Theory]
@@ -100,12 +97,8 @@ namespace HotChocolate
                 await schema.MakeExecutable().ExecuteAsync(
                     "{ __type(type: \"" + name + "\") { name, kind, description } }");
 
-            string typeResultDescription = JObject.Parse(result.ToString())
-                ["data"]["__type"]["description"]
-                .ToString();
-
             //assert
-            Assert.NotEqual(desc, typeResultDescription);
+            result.Snapshot("ShouldNotAllowSwappingOfBaseScalarType" + name);
         }
     }
 
