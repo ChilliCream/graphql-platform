@@ -70,8 +70,8 @@ namespace HotChocolate
                 BindingBehavior.Implicit);
         }
 
-        public static ISchemaConfiguration RegisterExtendedScalarTypes(
-            this ISchemaConfiguration schemaConfiguration)
+        public static ICodeFirstConfiguration RegisterExtendedScalarTypes(
+            this ICodeFirstConfiguration schemaConfiguration)
         {
 
             schemaConfiguration.RegisterType(typeof(DecimalType));
