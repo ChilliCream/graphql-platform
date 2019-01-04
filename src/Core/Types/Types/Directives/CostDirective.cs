@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         public CostDirective()
         {
             Complexity = 1;
-            Multipliers = Array.Empty<string>();
+            Multipliers = Array.Empty<NameString>();
         }
 
         public CostDirective(int complexity)
@@ -26,10 +26,10 @@ namespace HotChocolate.Types
             }
 
             Complexity = complexity;
-            Multipliers = Array.Empty<string>();
+            Multipliers = Array.Empty<NameString>();
         }
 
-        public CostDirective(int complexity, params string[] multipliers)
+        public CostDirective(int complexity, params NameString[] multipliers)
         {
             if (complexity <= 0)
             {
@@ -45,9 +45,7 @@ namespace HotChocolate.Types
             }
 
             Complexity = complexity;
-            Multipliers = multipliers
-                .Where(t => !string.IsNullOrEmpty(t))
-                .ToArray();
+            Multipliers = multipliers.Where(t => t.HasValue).ToArray();
         }
 
         protected CostDirective(
@@ -62,8 +60,11 @@ namespace HotChocolate.Types
             if (node == null)
             {
                 Complexity = info.GetInt32(nameof(Complexity));
-                Multipliers = (IReadOnlyCollection<string>)info
-                    .GetValue(nameof(Multipliers), typeof(string[]));
+                Multipliers = ((string[])info
+                    .GetValue(nameof(Multipliers), typeof(string[])))
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .Select(s => new NameString(s))
+                    .ToArray();
             }
             else
             {
@@ -80,14 +81,17 @@ namespace HotChocolate.Types
                 Multipliers = (multipliersArgument != null
                     && multipliersArgument.Value is ListValueNode lv)
                     ? lv.Items.OfType<StringValueNode>()
-                        .Select(t => t.Value).ToArray()
-                    : Array.Empty<string>();
+                        .Select(t => t.Value?.Trim())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .Select(s => new NameString(s))
+                        .ToArray()
+                    : Array.Empty<NameString>();
             }
         }
 
         public int Complexity { get; }
 
-        public IReadOnlyCollection<string> Multipliers { get; }
+        public IReadOnlyCollection<NameString> Multipliers { get; }
 
         public void GetObjectData(
             SerializationInfo info,

@@ -123,6 +123,13 @@ namespace HotChocolate
                 "represent free-form human-readable text.";
         }
 
+        public static string NameType_Description()
+        {
+            return "The name scalar represents a valid GraphQL name " +
+                "as specified in the spec and can be used to refer " +
+                "to fields or types.";
+        }
+
         public static string Name_Cannot_BeEmpty()
         {
             return "The specified name cannot be empty.";
