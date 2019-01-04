@@ -61,6 +61,26 @@ namespace HotChocolate.Types
         public abstract bool IsInstanceOfType(IValueNode literal);
 
         /// <summary>
+        /// Defines if the specified <paramref name="value" />
+        /// is a instance of this type.
+        /// </summary>
+        /// <param name="value">
+        /// A value representation of this type.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the value is a value of this type;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public virtual bool IsInstanceOfType(object value)
+        {
+            if(value is null)
+            {
+                return true;
+            }
+            return ClrType.IsInstanceOfType(value);
+        }
+
+        /// <summary>
         /// Parses the specified <paramref name="literal" />
         /// to the .net representation of this type.
         /// </summary>

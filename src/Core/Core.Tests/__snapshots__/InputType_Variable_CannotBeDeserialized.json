@@ -1,0 +1,11 @@
+{
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The variable value is not of the correct type.",
+      "extensions": {
+        "variableName": "a"
+      }
+    }
+  ]
+}

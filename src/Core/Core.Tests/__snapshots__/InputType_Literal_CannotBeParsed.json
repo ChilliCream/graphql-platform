@@ -1,0 +1,14 @@
+{
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The specified argument value does not match the argument type.\nArgument: `name`\nValue: `  `",
+      "locations": [
+        {
+          "line": 1,
+          "column": 16
+        }
+      ]
+    }
+  ]
+}

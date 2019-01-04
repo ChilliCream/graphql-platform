@@ -8,6 +8,8 @@ namespace HotChocolate.Types
     {
         bool IsInstanceOfType(IValueNode literal);
 
+        bool IsInstanceOfType(object value);
+
         object ParseLiteral(IValueNode literal);
 
         IValueNode ParseValue(object value);

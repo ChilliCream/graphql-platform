@@ -1,0 +1,19 @@
+{
+  "Data": {
+    "stringToName": null
+  },
+  "Errors": [
+    {
+      "message": "The internal resolver value could not be converted to a valid value of `Name`.",
+      "path": [
+        "stringToName"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

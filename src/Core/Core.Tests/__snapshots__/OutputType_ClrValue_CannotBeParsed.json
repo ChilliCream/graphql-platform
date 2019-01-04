@@ -1,0 +1,19 @@
+{
+  "Data": {
+    "stringToFoo": null
+  },
+  "Errors": [
+    {
+      "message": "Cannot serialize foo value.",
+      "path": [
+        "stringToFoo"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

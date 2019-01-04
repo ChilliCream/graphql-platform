@@ -66,6 +66,16 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
+        public bool IsInstanceOfType(object value)
+        {
+            if (value is null)
+            {
+                return true;
+            }
+
+            return ClrType.IsInstanceOfType(value);
+        }
+
         public IValueNode ParseValue(object value)
         {
             return _objectToValueConverter.Convert(this, value);

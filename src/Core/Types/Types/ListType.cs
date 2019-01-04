@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -136,13 +137,42 @@ namespace HotChocolate.Types
             return array;
         }
 
+        public bool IsInstanceOfType(object value)
+        {
+            if (_isInputType)
+            {
+                if (value is null)
+                {
+                    return true;
+                }
+
+                if (ClrType.IsInstanceOfType(value))
+                {
+                    return true;
+                }
+
+                Type elementType = DotNetTypeInfoFactory
+                    .GetInnerListType(value.GetType());
+
+                if (elementType == null)
+                {
+                    return false;
+                }
+
+                return elementType == ElementType.ToClrType(); ;
+            }
+
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
         public IValueNode ParseValue(object value)
         {
             if (_isInputType)
             {
                 if (value == null)
                 {
-                    return new NullValueNode(null);
+                    return NullValueNode.Default;
                 }
 
                 if (value is IEnumerable e)
@@ -176,6 +206,11 @@ namespace HotChocolate.Types
         public TypeKind Kind => throw new NotImplementedException();
 
         public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInstanceOfType(object value)
         {
             throw new NotImplementedException();
         }
