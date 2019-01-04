@@ -26,7 +26,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.NotNull(directive);
-            Assert.IsType<SkipDirective>(directive);
+            Assert.IsType<SkipDirectiveType>(directive);
             Assert.Equal("skip", directive.Name);
             Assert.Collection(directive.Arguments,
                 t =>

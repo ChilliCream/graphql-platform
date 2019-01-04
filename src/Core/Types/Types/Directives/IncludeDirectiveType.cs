@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Types
 {
-    public class IncludeDirectiveType
+    public sealed class IncludeDirectiveType
         : DirectiveType
     {
         internal IncludeDirectiveType()
