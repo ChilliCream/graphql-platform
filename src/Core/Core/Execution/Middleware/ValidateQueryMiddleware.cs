@@ -42,7 +42,9 @@ namespace HotChocolate.Execution
 
             context.ValidationResult = _validatorCache.GetOrCreate(
                 context.Request.Query,
-                () => Validate(context.Schema, context.Document));
+                () => _validator.Validate(
+                    context.Schema, context.Document,
+                    context.Request.VariableValues));
 
             if (context.ValidationResult.HasErrors)
             {
@@ -51,14 +53,6 @@ namespace HotChocolate.Execution
                 return Task.CompletedTask;
             }
             return _next(context);
-        }
-
-        private QueryValidationResult Validate(
-            ISchema schema,
-            DocumentNode document)
-        {
-            // TODO: pass options into Validate(..., _options);
-            return _validator.Validate(schema, document);
         }
     }
 }

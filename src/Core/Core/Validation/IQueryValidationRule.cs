@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
@@ -6,6 +7,7 @@ namespace HotChocolate.Validation
     {
         QueryValidationResult Validate(
             ISchema schema,
-            DocumentNode queryDocument);
+            DocumentNode queryDocument,
+            IReadOnlyDictionary<string, object> variableValues);
     }
 }

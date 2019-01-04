@@ -1,4 +1,5 @@
-﻿using ChilliCream.Testing;
+﻿using System.Collections.Generic;
+using ChilliCream.Testing;
 using HotChocolate.Language;
 using Xunit;
 
@@ -25,7 +26,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -44,7 +46,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -63,7 +66,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -86,7 +90,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -105,7 +110,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -124,7 +130,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -147,7 +154,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -170,7 +178,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -193,7 +202,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -220,7 +230,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -243,7 +254,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -266,7 +278,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -286,7 +299,8 @@ namespace HotChocolate.Validation
                 "{ name fields { name type { name } } } }");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -315,7 +329,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -344,7 +359,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -363,7 +379,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -382,7 +399,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -401,7 +419,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);
@@ -416,7 +435,8 @@ namespace HotChocolate.Validation
                 FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            QueryValidationResult result = Rule.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.False(result.HasErrors);

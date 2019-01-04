@@ -22,18 +22,19 @@ namespace HotChocolate.Validation
 
         public QueryValidationResult Validate(
             ISchema schema,
-            DocumentNode query)
+            DocumentNode queryDocument,
+            IReadOnlyDictionary<string, object> variableValues)
         {
-            if (query == null)
+            if (queryDocument == null)
             {
-                throw new ArgumentNullException(nameof(query));
+                throw new ArgumentNullException(nameof(queryDocument));
             }
 
             List<IError> errors = new List<IError>();
             for (int i = 0; i < _rules.Length; i++)
             {
-                QueryValidationResult result =
-                    _rules[i].Validate(schema, query);
+                QueryValidationResult result = _rules[i].Validate(
+                    schema, queryDocument, variableValues);
                 if (result.HasErrors)
                 {
                     errors.AddRange(result.Errors);

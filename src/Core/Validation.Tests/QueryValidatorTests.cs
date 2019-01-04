@@ -18,7 +18,8 @@ namespace HotChocolate.Validation
 
             // act
             // act
-            Action a = () => queryValidator.Validate(schema, null);
+            Action a = () => queryValidator.Validate(
+                schema, null, new Dictionary<string, object>());
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -32,9 +33,9 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            // act
             Action a = () => queryValidator.Validate(null,
-                new DocumentNode(null, new List<IDefinitionNode>()));
+                new DocumentNode(null, new List<IDefinitionNode>()),
+                new Dictionary<string, object>());
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -61,8 +62,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                    schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -99,8 +100,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -138,8 +139,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -166,8 +167,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -196,8 +197,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -224,8 +225,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -257,8 +258,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -289,8 +290,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -332,8 +333,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -357,8 +358,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -397,8 +398,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -444,8 +445,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -473,8 +474,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -511,8 +512,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -548,8 +549,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -577,8 +578,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -611,8 +612,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -648,8 +649,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -677,8 +678,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -709,8 +710,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -743,8 +744,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -772,8 +773,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -801,8 +802,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -829,8 +830,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -856,8 +857,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -888,8 +889,8 @@ namespace HotChocolate.Validation
             IQueryValidator queryValidator = CreateValidator();
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -923,8 +924,8 @@ namespace HotChocolate.Validation
                 });
 
             // act
-            QueryValidationResult result =
-                queryValidator.Validate(schema, query);
+            QueryValidationResult result = queryValidator.Validate(
+                schema, query, new Dictionary<string, object>());
 
             // assert
             Assert.True(result.HasErrors);
@@ -954,6 +955,4 @@ namespace HotChocolate.Validation
                 .GetRequiredService<IQueryValidator>();
         }
     }
-
-
 }
