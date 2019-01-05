@@ -22,7 +22,8 @@ namespace HotChocolate.Execution
             {
                 await _next(context);
 
-                if (context?.ValidationResult.HasErrors ?? false)
+                if (context.ValidationResult != null
+                    && context.ValidationResult.HasErrors)
                 {
                     QueryDiagnosticEvents.ValidationError(
                         context.Schema, context.Request,
