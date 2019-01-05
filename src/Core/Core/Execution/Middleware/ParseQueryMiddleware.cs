@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
 
         public Task InvokeAsync(IQueryContext context)
         {
-            if (IsContextValid(context))
+            if (!IsContextValid(context))
             {
                 context.Result = new QueryResult(new QueryError(
                    "The parse querymiddleware expectes " +
