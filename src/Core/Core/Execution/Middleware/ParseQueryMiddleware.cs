@@ -27,6 +27,14 @@ namespace HotChocolate.Execution
 
         public Task InvokeAsync(IQueryContext context)
         {
+            if (IsContextValid(context))
+            {
+                context.Result = new QueryResult(new QueryError(
+                   "The parse querymiddleware expectes " +
+                   "a valid query request."));
+                return Task.CompletedTask;
+            }
+
             context.Document = _queryCache.GetOrCreate(
                 context.Request.Query,
                 () => ParseDocument(context.Request.Query));
@@ -37,6 +45,12 @@ namespace HotChocolate.Execution
         private DocumentNode ParseDocument(string queryText)
         {
             return _parser.Parse(queryText);
+        }
+
+        private bool IsContextValid(IQueryContext context)
+        {
+            return context.Request != null
+                && context.Request.Query != null;
         }
     }
 }

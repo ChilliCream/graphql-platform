@@ -34,17 +34,15 @@ namespace HotChocolate.Execution
         {
             if (context.Document == null)
             {
-                // TODO : Resources
-                throw new QueryException(
-                    "The validation pipeline expectes the " +
-                    "query document to be parsed.");
+                context.Result = new QueryResult(new QueryError(
+                    "The validation middleware expectes the " +
+                    "query document to be parsed."));
+                return Task.CompletedTask;
             }
 
             context.ValidationResult = _validatorCache.GetOrCreate(
                 context.Request.Query,
-                () => _validator.Validate(
-                    context.Schema, context.Document,
-                    context.Request.VariableValues));
+                () => _validator.Validate(context.Schema, context.Document));
 
             if (context.ValidationResult.HasErrors)
             {
@@ -52,6 +50,7 @@ namespace HotChocolate.Execution
                     context.ValidationResult.Errors);
                 return Task.CompletedTask;
             }
+
             return _next(context);
         }
     }

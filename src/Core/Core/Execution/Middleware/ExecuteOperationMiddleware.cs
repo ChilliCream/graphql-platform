@@ -30,16 +30,22 @@ namespace HotChocolate.Execution
         {
             if (IsContextValid(context))
             {
-                IExecutionStrategy strategy =
-                    _strategyResolver.Resolve(
-                        context.Operation.Type);
-
-                IExecutionContext executionContext =
-                    CreateExecutionContext(context);
-
-                context.Result = await strategy.ExecuteAsync(
-                    executionContext, executionContext.RequestAborted);
+                context.Result = new QueryResult(new QueryError(
+                    "The execute operation middleware expectes the " +
+                    "query document to be parsed, the operation to " +
+                    "be resolved and the variables to be coerced."));
+                return;
             }
+
+            IExecutionStrategy strategy =
+                _strategyResolver.Resolve(
+                    context.Operation.Type);
+
+            IExecutionContext executionContext =
+                CreateExecutionContext(context);
+
+            context.Result = await strategy.ExecuteAsync(
+                executionContext, executionContext.RequestAborted);
 
             await _next(context);
         }

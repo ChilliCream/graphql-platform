@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Validation
 {
     internal sealed class MaxComplexityRule
-        : IQueryValidationRule
+        : IOperationValidationRule
     {
         public QueryValidationResult Validate(
             ISchema schema,

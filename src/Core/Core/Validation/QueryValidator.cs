@@ -22,8 +22,7 @@ namespace HotChocolate.Validation
 
         public QueryValidationResult Validate(
             ISchema schema,
-            DocumentNode queryDocument,
-            IReadOnlyDictionary<string, object> variableValues)
+            DocumentNode queryDocument)
         {
             if (queryDocument == null)
             {
@@ -34,7 +33,7 @@ namespace HotChocolate.Validation
             for (int i = 0; i < _rules.Length; i++)
             {
                 QueryValidationResult result = _rules[i].Validate(
-                    schema, queryDocument, variableValues);
+                    schema, queryDocument);
                 if (result.HasErrors)
                 {
                     errors.AddRange(result.Errors);

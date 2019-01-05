@@ -21,8 +21,7 @@ namespace HotChocolate.Validation
 
         public QueryValidationResult Validate(
             ISchema schema,
-            DocumentNode queryDocument,
-            IReadOnlyDictionary<string, object> variableValues)
+            DocumentNode queryDocument)
         {
             if (_options.MaxExecutionDepth.HasValue)
             {

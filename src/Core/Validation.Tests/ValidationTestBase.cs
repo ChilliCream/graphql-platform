@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -21,8 +20,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Parser.Default.Parse(@"{ foo }");
 
             // act
-            Action a = () => Rule.Validate(
-                null, query, new Dictionary<string, object>());
+            Action a = () => Rule.Validate(null, query);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -35,23 +33,7 @@ namespace HotChocolate.Validation
             Schema schema = ValidationUtils.CreateSchema();
 
             // act
-            Action a = () => Rule.Validate(
-                schema, null, new Dictionary<string, object>());
-
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void VariableValuesIsNull()
-        {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"{ foo }");
-
-            // act
-            Action a = () => Rule.Validate(
-                schema, query, null);
+            Action a = () => Rule.Validate(schema, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

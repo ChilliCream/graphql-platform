@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Moq;
@@ -46,8 +45,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -100,8 +98,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -140,8 +137,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -186,8 +182,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -225,8 +220,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -258,8 +252,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -299,8 +292,7 @@ namespace HotChocolate.Validation
             var rule = new MaxDepthRule(options.Object);
 
             // act
-            QueryValidationResult result = rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);

@@ -16,11 +16,18 @@ namespace HotChocolate.Execution
         {
             if (IsContextValid(context))
             {
-                var variableBuilder = new VariableValueBuilder(
-                    context.Schema, context.Operation.Definition);
-                context.Variables = variableBuilder.CreateValues(
-                    context.Request.VariableValues);
+                context.Result = new QueryResult(new QueryError(
+                   "The coerce variables middleware expectes the " +
+                   "query document to be parsed and the operation " +
+                   "to be resolved."));
+                return Task.CompletedTask;
             }
+
+            var variableBuilder = new VariableValueBuilder(
+                context.Schema, context.Operation.Definition);
+            context.Variables = variableBuilder.CreateValues(
+                context.Request.VariableValues);
+
             return _next(context);
         }
 

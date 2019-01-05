@@ -7,7 +7,6 @@ namespace HotChocolate.Validation
     {
         QueryValidationResult Validate(
             ISchema schema,
-            DocumentNode queryDocument,
-            IReadOnlyDictionary<string, object> variableValues);
+            DocumentNode queryDocument);
     }
 }

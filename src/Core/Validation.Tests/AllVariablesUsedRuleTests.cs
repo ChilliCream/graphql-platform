@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -26,8 +25,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -55,8 +53,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -84,8 +81,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.False(result.HasErrors);
@@ -121,10 +117,8 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult resulta = Rule.Validate(
-                schema, querya, new Dictionary<string, object>());
-            QueryValidationResult resultb = Rule.Validate(
-                schema, queryb, new Dictionary<string, object>());
+            QueryValidationResult resulta = Rule.Validate(schema, querya);
+            QueryValidationResult resultb = Rule.Validate(schema, queryb);
 
             // assert
             Assert.False(resulta.HasErrors);
@@ -150,8 +144,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
@@ -185,8 +178,7 @@ namespace HotChocolate.Validation
             ");
 
             // act
-            QueryValidationResult result = Rule.Validate(
-                schema, query, new Dictionary<string, object>());
+            QueryValidationResult result = Rule.Validate(schema, query);
 
             // assert
             Assert.True(result.HasErrors);
