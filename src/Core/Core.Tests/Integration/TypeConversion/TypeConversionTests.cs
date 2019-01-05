@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +15,11 @@ namespace HotChocolate.Integration.TypeConversion
         public async Task VariablesAreCoercedToTypesOtherThanTheDefinedClrTypes()
         {
             // arrange
-            ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<Query>();
+                c.RegisterExtendedScalarTypes();
+            });
             var variables = new Dictionary<string, object>
             {
                 {
@@ -96,7 +100,11 @@ namespace HotChocolate.Integration.TypeConversion
         public async Task VariableIsPartlyNotSerializedAndMustBeConvertedToClrType()
         {
             // arrange
-            ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<Query>();
+                c.RegisterExtendedScalarTypes();
+            });
             var variables = new Dictionary<string, object>
             {
                 {
