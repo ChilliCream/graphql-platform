@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
@@ -13,12 +13,7 @@ namespace HotChocolate.Execution
 
         public QueryResult(OrderedDictionary data)
         {
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            Data = data;
+            Data = data ?? throw new ArgumentNullException(nameof(data));
             Data.MakeReadOnly();
         }
 
