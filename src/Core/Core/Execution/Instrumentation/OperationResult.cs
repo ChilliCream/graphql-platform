@@ -1,6 +1,6 @@
-namespace HotChocolate.Execution.Tracing
+namespace HotChocolate.Execution.Instrumentation
 {
-    internal sealed class ApolloTracingParsingResult
+    internal class OperationResult
     {
         public long StartOffset { get; set; }
 

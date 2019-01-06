@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Tracing;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;

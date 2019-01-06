@@ -1,0 +1,44 @@
+{
+  "Version": 1,
+  "StartTime": "2019-01-06T20:11:09.8524527Z",
+  "EndTime": "2019-01-06T20:11:09.9744527Z",
+  "Duration": 122000000,
+  "Parsing": {
+    "StartOffset": 9999800,
+    "Duration": 7930400
+  },
+  "Validation": {
+    "StartOffset": 19999900,
+    "Duration": 30008400
+  },
+  "Execution": {
+    "Resolvers": [
+      {
+        "Path": [
+          {},
+          {},
+          {},
+          {}
+        ],
+        "ParentType": "ParentTypeA",
+        "FieldName": "FieldNameA",
+        "ReturnType": null,
+        "StartOffset": 59999700,
+        "Duration": 9920900
+      },
+      {
+        "Path": [
+          {},
+          {},
+          {},
+          {}
+        ],
+        "ParentType": "ParentTypeB",
+        "FieldName": "FieldNameB",
+        "ReturnType": null,
+        "StartOffset": 79999700,
+        "Duration": 19959800
+      }
+    ]
+  }
+}

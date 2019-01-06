@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Tracing;
+using HotChocolate.Execution.Instrumentation;
 
 namespace HotChocolate.Execution
 {
