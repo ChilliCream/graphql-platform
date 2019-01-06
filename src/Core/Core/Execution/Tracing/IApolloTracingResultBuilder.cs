@@ -4,13 +4,24 @@ namespace HotChocolate.Execution.Tracing
 {
     internal interface IApolloTracingResultBuilder
     {
-        IApolloTracingResult Build();
+        IApolloTracingResultBuilder SetRequestStartTime(
+            DateTimeOffset startTime,
+            long startTimestamp);
+
+        IApolloTracingResultBuilder SetParsingResult(
+            long startOffset,
+            long duration);
+
+        IApolloTracingResultBuilder SetValidationResult(
+            long startOffset,
+            long duration);
+
+        IApolloTracingResultBuilder AddResolverResult(
+            ApolloTracingResolverResult result);
 
         IApolloTracingResultBuilder SetRequestDuration(
             TimeSpan duration);
 
-        IApolloTracingResultBuilder SetRequestStartTime(
-            DateTimeOffset startTime,
-            long startTimestamp);
+        ApolloTracingResult Build();
     }
 }
