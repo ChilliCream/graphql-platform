@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separated the schema config from the execution config [#324](https://github.com/ChilliCream/hotchocolate/issues/324)
 - Changed how max query depth is validated and configured.
 - The DataLoader API is now offering a simpler interface.
+- Extended Scalar Types must now be explicitly registered during schema configuration. [#433](https://github.com/ChilliCream/hotchocolate/issues/433)
 
 ### Fixed
 
