@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
 - Integrated `RequestTimeoutMiddleware` into default pipeline [#418](https://github.com/ChilliCream/hotchocolate/issues/418).
 - Added support for repeatable directive. (https://github.com/facebook/graphql/pull/472)
+- Apollo Tracing Support [#352](https://github.com/ChilliCream/hotchocolate/issues/352).
 
 ### Changed
 
