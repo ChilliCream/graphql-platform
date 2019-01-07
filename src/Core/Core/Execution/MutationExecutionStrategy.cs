@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             {
                 IEnumerable<ResolverTask> rootResolverTasks =
                     CreateRootResolverTasks(executionContext,
-                        executionContext.Response.Data);
+                        executionContext.Result.Data);
 
                 await ExecuteResolverBatchSeriallyAsync(
                     executionContext,
@@ -42,9 +42,7 @@ namespace HotChocolate.Execution
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                return new QueryResult(
-                    executionContext.Response.Data,
-                    executionContext.Response.Errors);
+                return executionContext.Result;
             }
             finally
             {
