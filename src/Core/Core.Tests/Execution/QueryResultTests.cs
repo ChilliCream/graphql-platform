@@ -7,99 +7,52 @@ namespace HotChocolate.Execution
     public class QueryResultTests
     {
         [Fact]
-        public void Create_OnlyData_DataIsReadOnly()
+        public void ResultPropertiesAreNotNull()
         {
             // arrange
-            var data = new OrderedDictionary();
-            Assert.False(data.IsReadOnly);
-
             // act
-            var result = new QueryResult(data);
+            var result = new QueryResult();
 
             // assert
-            Assert.True(result.Data.IsReadOnly);
-            Assert.True(data.IsReadOnly);
+            Assert.NotNull(result.Data);
+            Assert.NotNull(result.Extensions);
+            Assert.NotNull(result.Errors);
         }
 
         [Fact]
-        public void ToJson_OnlyData_JsonStringNoIndentations()
+        public void ResultMapsAreEditable()
         {
             // arrange
-            var data = new OrderedDictionary();
-            var result = new QueryResult(data);
+            var result = new QueryResult();
 
             // act
-            string json = result.ToJson(false);
-
-
-            // assert
-
-        }
-
-        [Fact]
-        public void Create_OnlyData_ErrorIsNull()
-        {
-            // arrange
-            var data = new OrderedDictionary();
-
-            // act
-            var result = new QueryResult(data);
+            result.Data["a"] = "a";
+            result.Extensions["b"] = "b";
+            result.Errors.Add(new QueryError("c"));
 
             // assert
-            Assert.Null(result.Errors);
-        }
-
-        [Fact]
-        public void Create_DataIsNull_ArgumentNullException()
-        {
-            // arrange
-            // act
-            Action a = () => new QueryResult((OrderedDictionary)null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void Create_OnlyError_ErrorIsReadOnly()
-        {
-            // arrange
-            var data = new OrderedDictionary();
-            Assert.False(data.IsReadOnly);
-
-            // act
-            var result = new QueryResult(data);
-
-            // assert
-            Assert.True(result.Data.IsReadOnly);
-            Assert.True(data.IsReadOnly);
-        }
-
-        [Fact]
-        public void Create_WithOneError_ContainsOneError()
-        {
-            // arrange
-            QueryError error = new QueryError("foo");
-
-            // act
-            var result = new QueryResult(error);
-
-            // assert
+            Assert.Collection(result.Data,
+                a => Assert.Equal("a", a.Value));
+            Assert.Collection(result.Extensions,
+                b => Assert.Equal("b", b.Value));
             Assert.Collection(result.Errors,
-                t => Assert.Equal(error, t));
+                c => Assert.Equal("c", c.Message));
         }
 
         [Fact]
-        public void Create_OnlyError_DataIsNull()
+        public void ResultAsReadOnly()
         {
             // arrange
-            QueryError error = new QueryError("foo");
+            var result = new QueryResult();
 
             // act
-            var result = new QueryResult(error);
+            IReadOnlyQueryResult readOnlyResult = result.AsReadOnly();
 
             // assert
-            Assert.Null(result.Data);
+            Assert.IsType<ReadOnlyQueryResult>(readOnlyResult);
+            Assert.NotNull(result.Data);
+            Assert.NotNull(result.Extensions);
+            Assert.NotNull(result.Errors);
         }
     }
 }

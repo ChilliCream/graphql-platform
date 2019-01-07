@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching
                 IExecutionResult result =
                     await queryBroker.RedirectQueryAsync(context);
 
-                if (result is IQueryExecutionResult qr)
+                if (result is IReadOnlyQueryResult qr)
                 {
                     // foreach (IError error in qr.Errors)
                     // {

@@ -59,7 +59,12 @@ namespace HotChocolate.Stitching
                 ? null
                 : result.Data.ToDictionary();
 
-            return new QueryResult(data);
+            var queryResult = new QueryResult();
+            foreach (KeyValuePair<string, object> value in data)
+            {
+                queryResult.Data[value.Key] = value.Value;
+            }
+            return queryResult;
         }
     }
 
