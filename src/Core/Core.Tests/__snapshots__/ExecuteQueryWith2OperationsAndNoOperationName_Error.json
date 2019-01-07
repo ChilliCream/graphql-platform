@@ -1,5 +1,6 @@
 {
-  "Data": null,
+  "Data": {},
+  "Extensions": {},
   "Errors": [
     {
       "message": "Only queries that contain one operation can be executed without specifying the opartion name."

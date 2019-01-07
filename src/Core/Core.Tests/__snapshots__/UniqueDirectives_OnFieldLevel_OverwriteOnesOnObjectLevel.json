@@ -3,5 +3,6 @@
     "bar": "foo",
     "baz": "bar"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

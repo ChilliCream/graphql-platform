@@ -191,7 +191,7 @@ namespace HotChocolate.AspNetCore
             HttpResponse response,
             IExecutionResult executionResult)
         {
-            if (executionResult is IQueryExecutionResult queryResult)
+            if (executionResult is IReadOnlyQueryResult queryResult)
             {
                 string json = queryResult.ToJson();
                 byte[] buffer = Encoding.UTF8.GetBytes(json);

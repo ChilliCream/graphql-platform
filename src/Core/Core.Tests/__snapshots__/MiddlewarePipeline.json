@@ -2,5 +2,6 @@
   "Data": {
     "sayHello": "Helloabcdefghi"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

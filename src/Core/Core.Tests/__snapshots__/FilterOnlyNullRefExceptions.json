@@ -3,6 +3,7 @@
     "foo": null,
     "bar": null
   },
+  "Extensions": {},
   "Errors": [
     {
       "message": "Unexpected Execution Error",
