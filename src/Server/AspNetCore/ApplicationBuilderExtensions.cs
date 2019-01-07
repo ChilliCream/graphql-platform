@@ -89,11 +89,15 @@ namespace HotChocolate.AspNetCore
             var executer = (IQueryExecuter)serviceProvider
                 .GetService(typeof(IQueryExecuter));
 
+            var serializer = (IQueryResultSerializer)serviceProvider
+                .GetService(typeof(IQueryResultSerializer))
+                ?? new JsonQueryResultSerializer();
+
             return applicationBuilder
-                .Use<PostQueryMiddleware>(executer, options)
-                .Use<GetQueryMiddleware>(executer, options)
+                .Use<PostQueryMiddleware>(executer, serializer, options)
+                .Use<GetQueryMiddleware>(executer, serializer, options)
                 //.Use<SubscriptionMiddleware>(executer, options)
-                .Use<SchemaMiddleware>(executer, options);
+                .Use<SchemaMiddleware>(executer, serializer, options);
         }
 #else
         public static IApplicationBuilder UseGraphQL(

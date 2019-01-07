@@ -11,7 +11,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class SubscriptionExecutionStrategy
+    internal sealed class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
         private IRequestTimeoutOptionsAccessor _options;
