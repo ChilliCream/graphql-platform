@@ -42,11 +42,13 @@ namespace HotChocolate.Execution
 
         public ICollection<string> Keys => _map.Keys;
 
-        IEnumerable<string> IReadOnlyDictionary<string, object>.Keys => Keys;
+        IEnumerable<string> IReadOnlyDictionary<string, object>.Keys =>
+            Keys;
 
         public ICollection<object> Values => _map.Values;
 
-        IEnumerable<object> IReadOnlyDictionary<string, object>.Values => Values;
+        IEnumerable<object> IReadOnlyDictionary<string, object>.Values =>
+            Values;
 
         public int Count => _order.Count;
 
@@ -54,36 +56,18 @@ namespace HotChocolate.Execution
 
         public void Add(string key, object value)
         {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException(
-                    "The dictionary is read-only.");
-            }
-
             _map.Add(key, value);
             _order.Add(new KeyValuePair<string, object>(key, value));
         }
 
         public void Add(KeyValuePair<string, object> item)
         {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException(
-                    "The dictionary is read-only.");
-            }
-
             _map.Add(item.Key, item.Value);
             _order.Add(item);
         }
 
         public void Clear()
         {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException(
-                    "The dictionary is read-only.");
-            }
-
             _map.Clear();
             _order.Clear();
         }
@@ -105,12 +89,6 @@ namespace HotChocolate.Execution
 
         public bool Remove(string key)
         {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException(
-                    "The dictionary is read-only.");
-            }
-
             bool success = _map.Remove(key);
             _order.RemoveAt(IndexOfKey(key));
             return success;
@@ -118,12 +96,6 @@ namespace HotChocolate.Execution
 
         public bool Remove(KeyValuePair<string, object> item)
         {
-            if (IsReadOnly)
-            {
-                throw new InvalidOperationException(
-                    "The dictionary is read-only.");
-            }
-
             int index = _order.IndexOf(item);
             if (index != -1)
             {

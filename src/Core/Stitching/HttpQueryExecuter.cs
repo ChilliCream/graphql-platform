@@ -60,10 +60,15 @@ namespace HotChocolate.Stitching
                 : result.Data.ToDictionary();
 
             var queryResult = new QueryResult();
-            foreach (KeyValuePair<string, object> value in data)
+
+            if (data != null)
             {
-                queryResult.Data[value.Key] = value.Value;
+                foreach (KeyValuePair<string, object> value in data)
+                {
+                    queryResult.Data[value.Key] = value.Value;
+                }
             }
+
             return queryResult;
         }
     }
