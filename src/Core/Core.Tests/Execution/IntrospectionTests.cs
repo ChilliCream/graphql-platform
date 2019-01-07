@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Xunit;
@@ -87,7 +87,11 @@ namespace HotChocolate.Execution
 
         private static Schema CreateSchema()
         {
-            return Schema.Create(c => c.RegisterType<Query>());
+            return Schema.Create(c =>
+            {
+                c.RegisterExtendedScalarTypes();
+                c.RegisterType<Query>();
+            });
         }
 
         private class Query

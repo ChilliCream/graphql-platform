@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         private readonly List<IDirective> _directives = new List<IDirective>();
         private readonly TypeSystemBase _source;
         private readonly DirectiveLocation _location;
-        private readonly IReadOnlyCollection<DirectiveDescription> _descriptions;
+        private readonly IReadOnlyCollection<DirectiveDescription> _descs;
 
         internal DirectiveCollection(
             TypeSystemBase source,
@@ -21,7 +21,7 @@ namespace HotChocolate.Types
             _source = source
                 ?? throw new ArgumentNullException(nameof(source));
             _location = location;
-            _descriptions = directiveDescriptions
+            _descs = directiveDescriptions
                 ?? throw new ArgumentNullException(
                     nameof(directiveDescriptions));
         }
@@ -35,13 +35,13 @@ namespace HotChocolate.Types
         {
             var processed = new HashSet<string>();
 
-            foreach (DirectiveDescription description in _descriptions)
+            foreach (DirectiveDescription description in _descs)
             {
-                CompleteDirecive(context, description, processed);
+                CompleteDirective(context, description, processed);
             }
         }
 
-        private void CompleteDirecive(
+        private void CompleteDirective(
             ITypeInitializationContext context,
             DirectiveDescription description,
             HashSet<string> processed)

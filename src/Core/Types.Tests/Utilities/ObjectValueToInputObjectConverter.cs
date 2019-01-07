@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -15,9 +15,10 @@ namespace HotChocolate.Utilities
             ISchema schema = Schema.Create(c =>
             {
                 c.RegisterType<InputObjectType<Foo>>();
+                c.RegisterType<DecimalType>();
             });
 
-            var type = schema.GetType<InputObjectType>("FooInput");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var baz = new ObjectValueNode(
                 new ObjectFieldNode("number", new StringValueNode("1.5")));
