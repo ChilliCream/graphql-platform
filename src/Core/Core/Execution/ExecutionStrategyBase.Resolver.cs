@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 
 namespace HotChocolate.Execution
 {

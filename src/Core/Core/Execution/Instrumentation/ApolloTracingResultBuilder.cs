@@ -9,14 +9,14 @@ namespace HotChocolate.Execution.Instrumentation
     {
         private const int _apolloTracingVersion = 1;
         private const long _ticksToNanosecondsMultiplicator = 100;
-        private readonly ConcurrentQueue<ResolverStatistics>
+        private readonly ConcurrentQueue<ApolloTracingResolverStatistics>
             _resolverResults =
-                new ConcurrentQueue<ResolverStatistics>();
+                new ConcurrentQueue<ApolloTracingResolverStatistics>();
         private TimeSpan _duration;
-        private OperationResult _parsingResult;
+        private ApolloTracingOperationResult _parsingResult;
         private DateTimeOffset _startTime;
         private long _startTimestamp;
-        private OperationResult _validationResult;
+        private ApolloTracingOperationResult _validationResult;
 
         public void SetRequestStartTime(
             DateTimeOffset startTime,
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void SetParsingResult(long startTimestamp, long endTimestamp)
         {
-            _parsingResult = new OperationResult
+            _parsingResult = new ApolloTracingOperationResult
             {
                 StartOffset = startTimestamp - _startTimestamp,
                 Duration = endTimestamp - startTimestamp
@@ -37,14 +37,15 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void SetValidationResult(long startTimestamp, long endTimestamp)
         {
-            _validationResult = new OperationResult
+            _validationResult = new ApolloTracingOperationResult
             {
                 StartOffset = startTimestamp - _startTimestamp,
                 Duration = endTimestamp - startTimestamp
             };
         }
 
-        public void AddResolverResult(ResolverStatistics resolverStatistics)
+        public void AddResolverResult(
+            ApolloTracingResolverStatistics resolverStatistics)
         {
             _resolverResults.Enqueue(resolverStatistics);
         }
@@ -56,14 +57,14 @@ namespace HotChocolate.Execution.Instrumentation
 
         public ApolloTracingResult Build()
         {
-            ExecutionResult executionResult = null;
+            ApolloTracingExecutionResult executionResult = null;
 
             if (_resolverResults.Count > 0)
             {
-                executionResult = new ExecutionResult
+                executionResult = new ApolloTracingExecutionResult
                 {
                     Resolvers = _resolverResults
-                        .Select(r => new ResolverResult
+                        .Select(r => new ApolloTracingResolverResult
                         {
                             Path = r.Path,
                             ParentType = r.ParentType,

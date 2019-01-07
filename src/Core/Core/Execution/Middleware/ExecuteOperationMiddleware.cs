@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Runtime;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -33,7 +30,6 @@ namespace HotChocolate.Execution
                 IExecutionStrategy strategy =
                     _strategyResolver.Resolve(
                         context.Operation.Type);
-
                 IExecutionContext executionContext =
                     CreateExecutionContext(context);
 

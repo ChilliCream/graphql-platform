@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ExecutionResult
+    internal class ApolloTracingExecutionResult
     {
-        public IReadOnlyCollection<ResolverResult> Resolvers
+        public IReadOnlyCollection<ApolloTracingResolverResult> Resolvers
         {
             get;
             set;

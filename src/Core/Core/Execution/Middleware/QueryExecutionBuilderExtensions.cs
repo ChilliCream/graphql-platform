@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
@@ -11,24 +12,6 @@ namespace HotChocolate.Execution
 {
     public static class ClassQueryExecutionBuilderExtensions
     {
-        public static IQueryExecutionBuilder UseApolloTracing(
-            this IQueryExecutionBuilder builder,
-            ITracingOptionsAccessor options)
-        {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            builder.Services
-                .AddSingleton(options)
-                .AddSingleton<
-                    IApolloTracingResultBuilder,
-                    ApolloTracingResultBuilder>();
-
-            return builder.Use<ApolloTracingMiddleware>();
-        }
-
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
         {
@@ -52,8 +35,7 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseApolloTracing(options)
-                .UseDiagnostics()
+                .UseInstrumentation(options)
                 .UseRequestTimeout(options)
                 .UseExceptionHandling()
                 .UseQueryParser()
@@ -63,10 +45,31 @@ namespace HotChocolate.Execution
                 .UseOperationExecuter();
         }
 
-        public static IQueryExecutionBuilder UseDiagnostics(
-            this IQueryExecutionBuilder builder)
+        public static IQueryExecutionBuilder UseInstrumentation(
+            this IQueryExecutionBuilder builder,
+            IInstrumentationOptionsAccessor options)
         {
-            return builder.Use<DiagnosticMiddleware>();
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            builder.Services
+                .AddSingleton(options)
+                .AddScoped<DiagnosticListenerInitializer>();
+
+            if (options.EnableTracing)
+            {
+                builder.Services
+                    .AddScoped<
+                        IApolloTracingResultBuilder,
+                        ApolloTracingResultBuilder>()
+                    .AddScoped<
+                        DiagnosticListener,
+                        ApolloTracingDiagnosticListener>();
+            }
+
+            return builder.Use<InstrumentationMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseExceptionHandling(

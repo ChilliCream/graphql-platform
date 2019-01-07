@@ -1,29 +1,27 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Instrumentation
 {
     internal static class ResolverDiagnosticEvents
     {
-        private const string _diagnosticListenerName = "HotChocolate.Execution";
-        private const string _resolverActivityName = "Resolver";
         private const string _exceptionEventName = "ResolverError";
 
         private static readonly DiagnosticSource _src =
-            new DiagnosticListener(_diagnosticListenerName);
+            new DiagnosticListener(Constants.DiagnosticListenerName);
 
         public static Activity BeginResolveField(
             IResolverContext resolverContext)
         {
             var payload = new
             {
-                Context = resolverContext
+                context = resolverContext
             };
 
-            if (_src.IsEnabled(_resolverActivityName, payload))
+            if (_src.IsEnabled(Constants.ResolverActivityName, payload))
             {
-                var activity = new Activity(_resolverActivityName);
+                var activity = new Activity(Constants.ResolverActivityName);
 
                 _src.StartActivity(activity, payload);
 
@@ -42,11 +40,11 @@ namespace HotChocolate.Execution
             {
                 var payload = new
                 {
-                    Context = resolverContext,
-                    Result = resolvedValue
+                    context = resolverContext,
+                    result = resolvedValue
                 };
 
-                if (_src.IsEnabled(_resolverActivityName, payload))
+                if (_src.IsEnabled(Constants.ResolverActivityName, payload))
                 {
                     _src.StopActivity(activity, payload);
                 }
@@ -59,8 +57,8 @@ namespace HotChocolate.Execution
         {
             var payload = new
             {
-                Context = resolverContext,
-                Exception = exception
+                context = resolverContext,
+                exception
             };
 
             if (_src.IsEnabled(_exceptionEventName, payload))

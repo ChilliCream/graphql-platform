@@ -1,10 +1,10 @@
 namespace HotChocolate.Execution.Configuration
 {
     /// <summary>
-    /// Represents a dedicated options accessor to read the tracing
+    /// Represents a dedicated options accessor to read the instrumentation
     /// configuration.
     /// </summary>
-    public interface ITracingOptionsAccessor
+    public interface IInstrumentationOptionsAccessor
     {
         /// <summary>
         /// Gets a value indicating whether tracing for performance measurement

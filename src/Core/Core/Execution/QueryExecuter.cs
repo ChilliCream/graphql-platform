@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -47,12 +48,15 @@ namespace HotChocolate.Execution
                 ? _applicationServices.Include(Schema.Services)
                 : _applicationServices.Include(request.Services);
 
-            var context = new QueryContext(
-                Schema,
-                services,
-                request.ToReadOnly());
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var context = new QueryContext(
+                    Schema,
+                    scope.ServiceProvider,
+                    request.ToReadOnly());
 
-            return ExecuteMiddlewareAsync(context);
+                return ExecuteMiddlewareAsync(context);
+            }
         }
 
         private async Task<IExecutionResult> ExecuteMiddlewareAsync(

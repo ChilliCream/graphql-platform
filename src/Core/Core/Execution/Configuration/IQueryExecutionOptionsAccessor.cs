@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Configuration
     /// execution engine itself.
     /// </summary>
     public interface IQueryExecutionOptionsAccessor
-        : ITracingOptionsAccessor
+        : IInstrumentationOptionsAccessor
         , IErrorHandlerOptionsAccessor
         , IQueryCacheSizeOptionsAccessor
         , IRequestTimeoutOptionsAccessor

@@ -1,20 +1,14 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 
-#if ASPNETCLASSIC
-using HotChocolate.AspNetClassic;
-#else
-using HotChocolate.AspNetCore;
-#endif
-
-public delegate IQueryExecuter BuildExecuter(
-    IServiceProvider services,
-    IQueryExecutionBuilder builder);
-
 namespace HotChocolate
 {
+    public delegate IQueryExecuter BuildExecuter(
+        IServiceProvider services,
+        IQueryExecutionBuilder builder);
+
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQL(

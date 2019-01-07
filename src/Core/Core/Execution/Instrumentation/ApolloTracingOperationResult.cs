@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class OperationResult
+    internal class ApolloTracingOperationResult
     {
         public long StartOffset { get; set; }
 

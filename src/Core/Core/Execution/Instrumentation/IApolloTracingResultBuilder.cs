@@ -12,7 +12,8 @@ namespace HotChocolate.Execution.Instrumentation
 
         void SetValidationResult(long startTimestamp, long endTimestamp);
 
-        void AddResolverResult(ResolverStatistics resolverStatistics);
+        void AddResolverResult(
+            ApolloTracingResolverStatistics resolverStatistics);
 
         void SetRequestDuration(TimeSpan duration);
 

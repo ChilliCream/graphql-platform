@@ -10,10 +10,10 @@ namespace HotChocolate.Execution.Instrumentation
 
         public long Duration { get; set; }
 
-        public OperationResult Parsing { get; set; }
+        public ApolloTracingOperationResult Parsing { get; set; }
 
-        public OperationResult Validation { get; set; }
+        public ApolloTracingOperationResult Validation { get; set; }
 
-        public ExecutionResult Execution { get; set; }
+        public ApolloTracingExecutionResult Execution { get; set; }
     }
 }
