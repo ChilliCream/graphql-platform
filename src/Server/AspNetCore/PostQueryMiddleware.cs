@@ -25,8 +25,9 @@ namespace HotChocolate.AspNetCore
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecuter queryExecuter,
+            IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
-                : base(next, queryExecuter, options)
+                : base(next, queryExecuter, resultSerializer, options)
         { }
 
         protected override bool CanHandleRequest(HttpContext context)

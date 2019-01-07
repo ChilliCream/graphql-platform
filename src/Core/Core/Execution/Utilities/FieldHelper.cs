@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(errors));
             }
 
-            _fieldCollector = fieldCollector;;
+            _fieldCollector = fieldCollector; ;
             _errors = errors;
             _directives = directives;
         }

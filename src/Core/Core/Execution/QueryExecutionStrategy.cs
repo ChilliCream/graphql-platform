@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    internal class QueryExecutionStrategy
+    internal sealed class QueryExecutionStrategy
         : ExecutionStrategyBase
     {
         public override Task<IExecutionResult> ExecuteAsync(

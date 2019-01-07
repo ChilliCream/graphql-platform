@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
             Assert.Equal(contextData, executionContext.ContextData);
             Assert.Equal(contextData, cloned.ContextData);
             Assert.False(object.ReferenceEquals(
-                executionContext.Response, cloned.Response));
+                executionContext.Result, cloned.Result));
             Assert.False(object.ReferenceEquals(
                 executionContext.ContextData, cloned.ContextData));
         }

@@ -6,7 +6,7 @@ using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Execution
 {
-    internal delegate Task<IQueryExecutionResult> ExecuteSubscriptionQuery(
+    internal delegate Task<IReadOnlyQueryResult> ExecuteSubscriptionQuery(
         IExecutionContext executionContext,
         CancellationToken cancellationToken);
 
@@ -35,14 +35,18 @@ namespace HotChocolate.Execution
 
         public IReadOnlyCollection<IError> Errors { get; }
 
+        public IReadOnlyDictionary<string, object> Extensions { get; } =
+            new OrderedDictionary();
+
         public bool IsCompleted => _isCompleted && _eventStream.IsCompleted;
 
-        public Task<IQueryExecutionResult> ReadAsync()
+
+        public Task<IReadOnlyQueryResult> ReadAsync()
         {
             return ReadAsync(CancellationToken.None);
         }
 
-        public async Task<IQueryExecutionResult> ReadAsync(
+        public async Task<IReadOnlyQueryResult> ReadAsync(
             CancellationToken cancellationToken)
         {
             if (IsCompleted)
@@ -59,7 +63,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task<IQueryExecutionResult> ExecuteQueryAsync(
+        private async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
             IEventMessage message,
             CancellationToken cancellationToken)
         {

@@ -36,10 +36,10 @@ namespace HotChocolate.Execution
         IVariableCollection Variables { get; }
 
         /// <summary>
-        /// Gets the query response.
+        /// Gets the query result.
         /// </summary>
         /// <value></value>
-        IQueryResponse Response { get; }
+        IQueryResult Result { get; }
 
         /// <summary>
         /// The context data dictionary can be used by middlewares and
@@ -64,6 +64,12 @@ namespace HotChocolate.Execution
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
+
+        /// <summary>
+        /// Adds an error thread-safe to the result object.
+        /// </summary>
+        /// <param name="error">The error that shall be added.</param>
+        void AddError(IError error);
 
         /// <summary>
         /// Creates a copy of this execution context

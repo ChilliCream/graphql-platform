@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
             if (context.ValidationResult.HasErrors)
             {
-                context.Result = new QueryResult(
+                context.Result = QueryResult.CreateError(
                     context.ValidationResult.Errors);
                 return Task.CompletedTask;
             }

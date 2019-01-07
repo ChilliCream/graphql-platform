@@ -10,7 +10,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class ResolverTask
     {
-        private readonly OrderedDictionary _result;
+        private readonly IExecutionContext _executionContext;
+        private readonly IDictionary<string, object> _result;
 
         public ResolverTask(
             IExecutionContext executionContext,
@@ -18,15 +19,15 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             Path path,
             IImmutableStack<object> source,
-            OrderedDictionary result)
+            IDictionary<string, object> result)
         {
+            _executionContext = executionContext;
             Source = source;
             ObjectType = objectType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
             Path = path;
             _result = result;
-            Response = executionContext.Response;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
@@ -46,8 +47,6 @@ namespace HotChocolate.Execution
         public IType FieldType { get; }
 
         public Path Path { get; }
-
-        private IQueryResponse Response { get; }
 
         public IResolverContext ResolverContext { get; }
 
@@ -84,7 +83,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            Response.Errors.Add(error);
+            _executionContext.AddError(error);
         }
 
         public IError CreateError(string message)

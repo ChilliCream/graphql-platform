@@ -1,5 +1,6 @@
 {
-  "Data": null,
+  "Data": {},
+  "Extensions": {},
   "Errors": [
     {
       "message": "The specified operation `c` does not exist."

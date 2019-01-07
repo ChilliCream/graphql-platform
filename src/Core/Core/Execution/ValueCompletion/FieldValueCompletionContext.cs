@@ -13,6 +13,7 @@ namespace HotChocolate.Execution
     {
         private readonly Action<object> _integrateResult;
         private readonly Action<ResolverTask> _enqueueResolverTask;
+        private readonly ResolverTask _resolverTask;
 
         public FieldValueCompletionContext(
             IExecutionContext executionContext,
@@ -32,6 +33,7 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(executionContext));
             ResolverContext = resolverContext
                 ?? throw new ArgumentNullException(nameof(resolverContext));
+            _resolverTask = resolverTask;
 
             Source = resolverContext.Source;
             Selection = resolverTask.FieldSelection;
@@ -49,6 +51,7 @@ namespace HotChocolate.Execution
         {
             _integrateResult = completionContext._integrateResult;
             _enqueueResolverTask = completionContext._enqueueResolverTask;
+            _resolverTask = completionContext._resolverTask;
 
             ExecutionContext = completionContext.ExecutionContext;
             ResolverContext = completionContext.ResolverContext;
@@ -126,7 +129,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            ExecutionContext.Response.Errors.Add(error);
+            _resolverTask.ReportError(error);
             _integrateResult(null);
         }
 

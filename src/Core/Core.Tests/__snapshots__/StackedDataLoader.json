@@ -4,18 +4,21 @@
       "a": "aaabacadae",
       "b": "babbbcbdbe"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   },
   {
     "Data": {
       "a": "aaabacadae"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   },
   {
     "Data": {
       "c": "cacbcccdce"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   }
 ]

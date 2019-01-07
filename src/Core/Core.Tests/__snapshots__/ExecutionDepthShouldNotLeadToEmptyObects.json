@@ -1,5 +1,6 @@
 {
-  "Data": null,
+  "Data": {},
+  "Extensions": {},
   "Errors": [
     {
       "message": "The query exceded the maximum allowed execution depth of 3.",
