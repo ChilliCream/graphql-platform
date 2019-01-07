@@ -28,11 +28,10 @@ namespace HotChocolate.Execution.Instrumentation
                 636824022698524527,
                 DateTimeKind.Utc);
             const long startTimestamp = 1113752384890500;
-            var rootPath = Path.New("root");
+            Path rootPath = Path.New("root").Append("field");
             var rosolverStatisticsA = new ApolloTracingResolverStatistics
             {
-                Path = rootPath.Append("field").Append(0).Append("value")
-                    .ToFieldPathArray(),
+                Path = rootPath.Append(0).Append("value").ToFieldPathArray(),
                 ParentType = "ParentTypeA",
                 FieldName = "FieldNameA",
                 ReturnType = "ReturnTypeA",
@@ -41,8 +40,7 @@ namespace HotChocolate.Execution.Instrumentation
             };
             var rosolverStatisticsB = new ApolloTracingResolverStatistics
             {
-                Path = rootPath.Append("field").Append(1).Append("value")
-                    .ToFieldPathArray(),
+                Path = rootPath.Append(1).Append("value").ToFieldPathArray(),
                 ParentType = "ParentTypeB",
                 FieldName = "FieldNameB",
                 ReturnType = "ReturnTypeB",

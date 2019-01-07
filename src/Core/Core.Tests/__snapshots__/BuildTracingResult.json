@@ -22,7 +22,7 @@
         ],
         "ParentType": "ParentTypeA",
         "FieldName": "FieldNameA",
-        "ReturnType": null,
+        "ReturnType": "ReturnTypeA",
         "StartOffset": 59999700,
         "Duration": 9920900
       },
@@ -35,7 +35,7 @@
         ],
         "ParentType": "ParentTypeB",
         "FieldName": "FieldNameB",
-        "ReturnType": null,
+        "ReturnType": "ReturnTypeB",
         "StartOffset": 79999700,
         "Duration": 19959800
       }

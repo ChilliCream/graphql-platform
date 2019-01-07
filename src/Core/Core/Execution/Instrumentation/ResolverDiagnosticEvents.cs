@@ -6,10 +6,8 @@ namespace HotChocolate.Execution.Instrumentation
 {
     internal static class ResolverDiagnosticEvents
     {
-        private const string _exceptionEventName = "ResolverError";
-
         private static readonly DiagnosticSource _src =
-            new DiagnosticListener(Constants.DiagnosticListenerName);
+            new DiagnosticListener(DiagnosticNames.Listener);
 
         public static Activity BeginResolveField(
             IResolverContext resolverContext)
@@ -19,9 +17,9 @@ namespace HotChocolate.Execution.Instrumentation
                 context = resolverContext
             };
 
-            if (_src.IsEnabled(Constants.ResolverActivityName, payload))
+            if (_src.IsEnabled(DiagnosticNames.Resolver, payload))
             {
-                var activity = new Activity(Constants.ResolverActivityName);
+                var activity = new Activity(DiagnosticNames.Resolver);
 
                 _src.StartActivity(activity, payload);
 
@@ -44,7 +42,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result = resolvedValue
                 };
 
-                if (_src.IsEnabled(Constants.ResolverActivityName, payload))
+                if (_src.IsEnabled(DiagnosticNames.Resolver, payload))
                 {
                     _src.StopActivity(activity, payload);
                 }
@@ -61,9 +59,9 @@ namespace HotChocolate.Execution.Instrumentation
                 exception
             };
 
-            if (_src.IsEnabled(_exceptionEventName, payload))
+            if (_src.IsEnabled(DiagnosticNames.ResolverError, payload))
             {
-                _src.Write(_exceptionEventName, payload);
+                _src.Write(DiagnosticNames.ResolverError, payload);
             }
         }
     }

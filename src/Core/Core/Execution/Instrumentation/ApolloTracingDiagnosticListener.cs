@@ -10,17 +10,21 @@ namespace HotChocolate.Execution.Instrumentation
         : DiagnosticListener
     {
         private const string _extensionKey = "tracing";
+        private const string _startTimestampKey = "startTimestamp";
         private readonly IApolloTracingResultBuilder _builder;
 
         public ApolloTracingDiagnosticListener(
             IApolloTracingResultBuilder builder)
-                : base(Constants.DiagnosticListenerName)
+                : base(DiagnosticNames.Listener)
         {
             _builder = builder ??
                 throw new ArgumentNullException(nameof(builder));
         }
 
-        [DiagnosticName(Constants.QueryActivityName + ".Start")]
+        [DiagnosticName(DiagnosticNames.Query)]
+        public void QueryExecute() { /* enables query activity */ }
+
+        [DiagnosticName(DiagnosticNames.StartQuery)]
         public void BeginQueryExecute()
         {
             _builder.SetRequestStartTime(
@@ -28,7 +32,7 @@ namespace HotChocolate.Execution.Instrumentation
                 Timestamp.GetNowInNanoseconds());
         }
 
-        [DiagnosticName(Constants.QueryActivityName + ".Stop")]
+        [DiagnosticName(DiagnosticNames.StopQuery)]
         public void BeginQueryExecute(IExecutionResult executionResult)
         {
             _builder.SetRequestDuration(Activity.Current.Duration);
@@ -39,27 +43,74 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        [DiagnosticName(Constants.ResolverActivityName + ".Start")]
-        public void BeginResolveField()
+        [DiagnosticName(DiagnosticNames.Parsing)]
+        public void QueryParsing() { /* enables parsing activity */ }
+
+        [DiagnosticName(DiagnosticNames.StartParsing)]
+        public void BeginQueryParsing()
         {
-            Activity.Current.AddTag(
-                "startTimestamp",
-                Timestamp.GetNowInNanoseconds().ToString());
+            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
         }
 
-        [DiagnosticName(Constants.ResolverActivityName + ".Stop")]
+        [DiagnosticName(DiagnosticNames.StopParsing)]
+        public void EndQueryParsing()
+        {
+            long stopTimestamp = Timestamp.GetNowInNanoseconds();
+            long startTimestamp = GetStartTimestamp();
+
+            _builder.SetParsingResult(startTimestamp, stopTimestamp);
+        }
+
+        [DiagnosticName(DiagnosticNames.Validation)]
+        public void QueryValidation() { /* enables validation activity */ }
+
+        [DiagnosticName(DiagnosticNames.StartValidation)]
+        public void BeginQueryValidation()
+        {
+            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+        }
+
+        [DiagnosticName(DiagnosticNames.StopValidation)]
+        public void EndQueryValidation()
+        {
+            long stopTimestamp = Timestamp.GetNowInNanoseconds();
+            long startTimestamp = GetStartTimestamp();
+
+            _builder.SetValidationResult(startTimestamp, stopTimestamp);
+        }
+
+        [DiagnosticName(DiagnosticNames.Resolver)]
+        public void ResolveFieldExecute() { /* enables resolver activity */ }
+
+        [DiagnosticName(DiagnosticNames.StartResolver)]
+        public void BeginResolveField()
+        {
+            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+        }
+
+        [DiagnosticName(DiagnosticNames.StopResolver)]
         public void EndResolveField(IResolverContext context)
         {
             long stopTimestamp = Timestamp.GetNowInNanoseconds();
-            long startTimestamp = Convert.ToInt64(Activity.Current.Tags
-                .First(t => t.Key == "startTimestamp"));
+            long startTimestamp = GetStartTimestamp();
 
-            _builder.AddResolverResult(new ApolloTracingResolverStatistics(
-                context)
-            {
-                StartTimestamp = startTimestamp,
-                EndTimestamp = stopTimestamp
-            });
+            _builder.AddResolverResult(
+                new ApolloTracingResolverStatistics(context)
+                {
+                    StartTimestamp = startTimestamp,
+                    EndTimestamp = stopTimestamp
+                });
+        }
+
+        private void SetStartTimestamp(long timestamp)
+        {
+            Activity.Current.AddTag(_startTimestampKey, timestamp.ToString());
+        }
+
+        private long GetStartTimestamp()
+        {
+            return Convert.ToInt64(Activity.Current.Tags
+                .First(t => t.Key == _startTimestampKey));
         }
     }
 }
