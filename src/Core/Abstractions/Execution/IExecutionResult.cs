@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
     public interface IExecutionResult
     {
         IReadOnlyCollection<IError> Errors { get; }
+
+        IReadOnlyDictionary<string, object> Extensions { get; }
     }
 }

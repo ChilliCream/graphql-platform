@@ -5,10 +5,9 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public class OrderedDictionary
-        : IOrderedDictionary
-        , IDictionary<string, object>
+        : IDictionary<string, object>
+        , IReadOnlyDictionary<string, object>
     {
-        private bool _isReadOnly;
         private readonly List<KeyValuePair<string, object>> _order =
             new List<KeyValuePair<string, object>>();
         private readonly Dictionary<string, object> _map =
@@ -51,7 +50,7 @@ namespace HotChocolate.Execution
 
         public int Count => _order.Count;
 
-        public bool IsReadOnly => _isReadOnly;
+        public bool IsReadOnly => false;
 
         public void Add(string key, object value)
         {
@@ -160,11 +159,6 @@ namespace HotChocolate.Execution
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _order.GetEnumerator();
-        }
-
-        public void MakeReadOnly()
-        {
-            _isReadOnly = true;
         }
     }
 }
