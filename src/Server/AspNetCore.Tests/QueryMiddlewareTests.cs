@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -87,7 +87,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -119,7 +119,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -140,7 +140,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -189,7 +189,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -228,7 +228,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -255,7 +255,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -284,7 +284,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -311,7 +311,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -336,7 +336,7 @@ namespace HotChocolate.AspNetCore
             string json = await message.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
