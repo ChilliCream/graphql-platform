@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
         {
             if (!IsContextValid(context))
             {
-                context.Result = new QueryResult(new QueryError(
+                context.Result = QueryResult.CreateError(new QueryError(
                    "The coerce variables middleware expectes the " +
                    "query document to be parsed and the operation " +
                    "to be resolved."));

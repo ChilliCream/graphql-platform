@@ -13,6 +13,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration,
             Func<IResolverContext, object> resolver)
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             return schemaConfiguration.BindResolver(
                 ctx => Task.FromResult(resolver(ctx)));
         }
@@ -21,6 +26,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration,
             Func<object> resolver)
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             if (resolver == null)
             {
                 throw new ArgumentNullException(nameof(resolver));
@@ -34,6 +44,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration,
             Func<Task<object>> resolver)
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             if (resolver == null)
             {
                 throw new ArgumentNullException(nameof(resolver));
@@ -46,6 +61,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration,
             Func<IResolverContext, CancellationToken, Task<object>> resolver)
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             if (resolver == null)
             {
                 throw new ArgumentNullException(nameof(resolver));
@@ -59,6 +79,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration)
             where T : class
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             return schemaConfiguration.BindType<T>(BindingBehavior.Implicit);
         }
 
@@ -66,6 +91,11 @@ namespace HotChocolate
             this ISchemaFirstConfiguration schemaConfiguration)
             where TResolver : class
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
+
             return schemaConfiguration.BindResolver<TResolver>(
                 BindingBehavior.Implicit);
         }
@@ -73,6 +103,10 @@ namespace HotChocolate
         public static ICodeFirstConfiguration RegisterExtendedScalarTypes(
             this ICodeFirstConfiguration schemaConfiguration)
         {
+            if (schemaConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(schemaConfiguration));
+            }
 
             schemaConfiguration.RegisterType(typeof(DecimalType));
             schemaConfiguration.RegisterType(typeof(LongType));

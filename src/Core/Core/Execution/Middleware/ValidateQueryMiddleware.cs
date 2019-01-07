@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
         {
             if (context.Document == null)
             {
-                context.Result = new QueryResult(new QueryError(
+                context.Result = QueryResult.CreateError(new QueryError(
                     "The validation middleware expectes the " +
                     "query document to be parsed."));
                 return Task.CompletedTask;

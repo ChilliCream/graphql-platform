@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
         {
             if (!IsContextValid(context))
             {
-                context.Result = new QueryResult(new QueryError(
+                context.Result = QueryResult.CreateError(new QueryError(
                     "The execute operation middleware expectes the " +
                     "query document to be parsed, the operation to " +
                     "be resolved and the variables to be coerced."));

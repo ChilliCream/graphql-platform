@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
         {
             if (!IsContextValid(context))
             {
-                context.Result = new QueryResult(new QueryError(
+                context.Result = QueryResult.CreateError(new QueryError(
                    "The parse querymiddleware expectes " +
                    "a valid query request."));
                 return Task.CompletedTask;
