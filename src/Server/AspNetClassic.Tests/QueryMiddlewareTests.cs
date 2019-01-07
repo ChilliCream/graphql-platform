@@ -42,7 +42,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -66,7 +66,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -97,7 +97,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -132,7 +132,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -156,7 +156,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -208,7 +208,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -250,7 +250,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -280,7 +280,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -312,7 +312,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -342,7 +342,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 
@@ -370,7 +370,7 @@ namespace HotChocolate.AspNetClassic
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
 
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             result.Snapshot();
         }
 

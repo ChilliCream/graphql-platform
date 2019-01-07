@@ -97,7 +97,7 @@ namespace HotChocolate.AspNetCore
                 .Use<PostQueryMiddleware>(executer, serializer, options)
                 .Use<GetQueryMiddleware>(executer, serializer, options)
                 //.Use<SubscriptionMiddleware>(executer, options)
-                .Use<SchemaMiddleware>(executer, serializer, options);
+                .Use<SchemaMiddleware>(executer, options);
         }
 #else
         public static IApplicationBuilder UseGraphQL(
