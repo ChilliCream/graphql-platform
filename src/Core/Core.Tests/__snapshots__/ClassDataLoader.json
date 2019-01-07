@@ -4,19 +4,22 @@
       "a": "a",
       "b": "b"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   },
   {
     "Data": {
       "a": "a"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   },
   {
     "Data": {
       "c": "c"
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   },
   {
     "Data": {
@@ -25,6 +28,7 @@
         "c"
       ]
     },
-    "Errors": null
+    "Extensions": {},
+    "Errors": []
   }
 ]
