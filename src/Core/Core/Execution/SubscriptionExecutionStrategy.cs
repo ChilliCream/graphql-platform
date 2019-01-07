@@ -11,7 +11,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class SubscriptionExecutionStrategy
+    internal sealed class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
         private IRequestTimeoutOptionsAccessor _options;
@@ -111,7 +111,7 @@ namespace HotChocolate.Execution
             return eventRegistry.SubscribeAsync(@event);
         }
 
-        private async Task<IQueryExecutionResult> ExecuteSubscriptionQueryAsync(
+        private async Task<IReadOnlyQueryResult> ExecuteSubscriptionQueryAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -126,10 +126,11 @@ namespace HotChocolate.Execution
                     .CreateLinkedTokenSource(requestTimeoutCts.Token,
                         cancellationToken))
                 {
-                    return await ExecuteQueryAsync(
+                    IQueryResult result = await ExecuteQueryAsync(
                         executionContext,
                         batchOperationHandler,
                         cancellationToken);
+                    return result.AsReadOnly();
                 }
             }
             finally

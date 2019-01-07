@@ -3,5 +3,6 @@
     "hello": "world",
     "state": "initial"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

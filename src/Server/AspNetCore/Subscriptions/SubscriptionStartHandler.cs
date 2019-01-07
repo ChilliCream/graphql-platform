@@ -41,7 +41,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 context.RegisterSubscription(
                     new Subscription(context, responseStream, message.Id));
             }
-            else if (result is IQueryExecutionResult queryResult)
+            else if (result is IReadOnlyQueryResult queryResult)
             {
                 await context.SendSubscriptionDataMessageAsync(
                     message.Id, queryResult, cancellationToken)

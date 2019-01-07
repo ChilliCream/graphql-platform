@@ -175,7 +175,7 @@ namespace HotChocolate.Execution
             => ReportError(QueryError.CreateFieldError(
                     errorMessage, Path, FieldSelection));
 
-        public void ReportError(IError error)
-            => _executionContext.Response.Errors.Add(error);
+        public void ReportError(IError error) =>
+            _resolverTask.ReportError(error);
     }
 }

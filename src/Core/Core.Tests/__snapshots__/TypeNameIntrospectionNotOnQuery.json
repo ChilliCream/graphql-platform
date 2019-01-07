@@ -4,5 +4,6 @@
       "__typename": "Foo"
     }
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

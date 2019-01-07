@@ -70,6 +70,11 @@ namespace HotChocolate.Execution
                 throw new InvalidOperationException();
             }
 
+            if (context.Result is IQueryResult queryResult)
+            {
+                return queryResult.AsReadOnly();
+            }
+
             return context.Result;
         }
     }

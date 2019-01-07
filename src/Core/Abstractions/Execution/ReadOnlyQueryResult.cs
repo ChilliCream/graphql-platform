@@ -1,0 +1,26 @@
+using System;
+using System.Collections.Generic;
+
+namespace HotChocolate.Execution
+{
+    public sealed class ReadOnlyQueryResult
+        : IReadOnlyQueryResult
+    {
+        private readonly IReadOnlyQueryResult _queryResult;
+
+        public ReadOnlyQueryResult(IReadOnlyQueryResult queryResult)
+        {
+            _queryResult = queryResult
+                ?? throw new ArgumentNullException(nameof(queryResult));
+        }
+
+        public IReadOnlyDictionary<string, object> Data =>
+            _queryResult.Data;
+
+        public IReadOnlyDictionary<string, object> Extensions =>
+            _queryResult.Extensions;
+
+        public IReadOnlyCollection<IError> Errors =>
+            _queryResult.Errors;
+    }
+}

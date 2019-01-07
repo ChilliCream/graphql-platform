@@ -3,11 +3,14 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public interface IQueryResult
+        : IReadOnlyQueryResult
     {
-        IDictionary<string, object> Data { get; }
+        new IDictionary<string, object> Data { get; }
 
-        IDictionary<string, object> Extensions { get; }
+        new IDictionary<string, object> Extensions { get; }
 
-        ICollection<IError> Errors { get; }
+        new ICollection<IError> Errors { get; }
+
+        IReadOnlyQueryResult AsReadOnly();
     }
 }

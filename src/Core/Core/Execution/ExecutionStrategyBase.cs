@@ -18,14 +18,14 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
 
-        protected async Task<IQueryExecutionResult> ExecuteQueryAsync(
+        protected async Task<IQueryResult> ExecuteQueryAsync(
             IExecutionContext executionContext,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
             IEnumerable<ResolverTask> rootResolverTasks =
                 CreateRootResolverTasks(executionContext,
-                    executionContext.Response.Data);
+                    executionContext.Result.Data);
 
             await ExecuteResolversAsync(
                 executionContext,
@@ -33,9 +33,7 @@ namespace HotChocolate.Execution
                 batchOperationHandler,
                 cancellationToken);
 
-            return new QueryResult(
-                executionContext.Response.Data,
-                executionContext.Response.Errors);
+            return executionContext.Result;
         }
 
         protected async Task ExecuteResolversAsync(
@@ -150,7 +148,7 @@ namespace HotChocolate.Execution
 
         protected IEnumerable<ResolverTask> CreateRootResolverTasks(
             IExecutionContext executionContext,
-            OrderedDictionary result)
+            IDictionary<string, object> result)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);

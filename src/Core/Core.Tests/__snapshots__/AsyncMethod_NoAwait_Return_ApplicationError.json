@@ -2,6 +2,7 @@
   "Data": {
     "error3": null
   },
+  "Extensions": {},
   "Errors": [
     {
       "message": "query error 3"

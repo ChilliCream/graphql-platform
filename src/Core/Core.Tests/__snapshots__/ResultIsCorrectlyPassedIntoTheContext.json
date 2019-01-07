@@ -2,5 +2,6 @@
   "Data": {
     "a": "HELLO"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

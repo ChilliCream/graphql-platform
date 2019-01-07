@@ -3,5 +3,6 @@
     "x": "hello world x",
     "xasync": "hello world xasync"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

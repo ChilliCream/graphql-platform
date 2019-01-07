@@ -22,7 +22,8 @@ namespace HotChocolate
 
             return serviceCollection
                 .AddSingleton(schema)
-                .AddSingleton(schema.MakeExecutable());
+                .AddSingleton(schema.MakeExecutable())
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -37,7 +38,8 @@ namespace HotChocolate
             return serviceCollection
                 .AddSingleton(schemaFactory)
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable());
+                    .MakeExecutable())
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -56,7 +58,8 @@ namespace HotChocolate
                     configure(c);
                 }))
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable());
+                    .MakeExecutable())
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -82,7 +85,8 @@ namespace HotChocolate
                         configure(c);
                     }))
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable());
+                    .MakeExecutable())
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -102,7 +106,8 @@ namespace HotChocolate
 
             return serviceCollection
                 .AddSingleton(schema)
-                .AddSingleton(schema.MakeExecutable(options));
+                .AddSingleton(schema.MakeExecutable(options))
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -123,7 +128,8 @@ namespace HotChocolate
             return serviceCollection
                 .AddSingleton(schemaFactory)
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options));
+                    .MakeExecutable(options))
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -148,7 +154,8 @@ namespace HotChocolate
                     configure(c);
                 }))
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options));
+                    .MakeExecutable(options))
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -180,7 +187,8 @@ namespace HotChocolate
                         configure(c);
                     }))
                 .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options));
+                    .MakeExecutable(options))
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -195,7 +203,8 @@ namespace HotChocolate
             return serviceCollection
                 .AddSingleton(executer)
                 .AddSingleton<ISchema>(s =>
-                    s.GetRequiredService<IQueryExecuter>().Schema);
+                    s.GetRequiredService<IQueryExecuter>().Schema)
+                .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -211,7 +220,15 @@ namespace HotChocolate
                 .AddSingleton<IQueryExecuter>(s =>
                     buildExecuter(s, QueryExecutionBuilder.New()))
                 .AddSingleton(s =>
-                    s.GetRequiredService<IQueryExecuter>().Schema);
+                    s.GetRequiredService<IQueryExecuter>().Schema)
+                .AddJsonSerializer();
+        }
+
+        private static IServiceCollection AddJsonSerializer(
+            this IServiceCollection serviceCollection)
+        {
+            return serviceCollection.AddSingleton<IQueryResultSerializer>(
+                new JsonQueryResultSerializer());
         }
     }
 }

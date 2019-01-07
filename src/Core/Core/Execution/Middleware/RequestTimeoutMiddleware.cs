@@ -41,18 +41,15 @@ namespace HotChocolate.Execution
             }
             catch (TaskCanceledException ex)
             {
-                if (requestTimeoutCts.IsCancellationRequested)
+                if (!requestTimeoutCts.IsCancellationRequested)
                 {
-                    context.Exception = ex;
-                    context.Result =
-
-                    new QueryResult(
-                        new QueryError("Execution timeout has been exceeded."));
+                    throw;
                 }
-                else
-                {
 
-                }
+                context.Exception = ex;
+                context.Result = QueryResult.CreateError(new QueryError(
+                    "Execution timeout has been exceeded."));
+                return;
             }
             finally
             {

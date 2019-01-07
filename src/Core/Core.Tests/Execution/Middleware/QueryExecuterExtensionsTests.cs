@@ -23,10 +23,10 @@ namespace HotChocolate.Execution
                 .New()
                 .Use(next => context =>
                 {
-                    var dict = new OrderedDictionary();
-                    dict["done"] = true;
+                    var queryResult = new QueryResult();
+                    queryResult.Data["done"] = true;
 
-                    context.Result = new QueryResult(dict);
+                    context.Result = queryResult;
 
                     return next(context);
                 })
@@ -98,10 +98,10 @@ namespace HotChocolate.Execution
 
             public Task InvokeAsync(IQueryContext context)
             {
-                var dict = new OrderedDictionary();
-                dict["done"] = true;
+                var result = new QueryResult();
+                result.Data["done"] = true;
 
-                context.Result = new QueryResult(dict);
+                context.Result = result;
 
                 return _next(context);
             }
