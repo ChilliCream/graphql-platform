@@ -5,6 +5,6 @@ namespace HotChocolate.Execution
 {
     public interface IQueryResultSerializer
     {
-        Task SerializeAsync(IQueryResultSerializer result, Stream stream);
+        Task SerializeAsync(IReadOnlyQueryResult result, Stream stream);
     }
 }

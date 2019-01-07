@@ -16,7 +16,6 @@
             _isScalar[(int)TokenKind.Float] = true;
         }
 
-
         public static bool IsDescription(this SyntaxToken token)
         {
             return _isString[(int)token.Kind];
