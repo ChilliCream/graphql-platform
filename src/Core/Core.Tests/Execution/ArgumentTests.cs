@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", list } });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -87,7 +87,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", list } });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -118,7 +118,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", value } });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution
                     new Dictionary<string, object> { { "x", obj } });
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 

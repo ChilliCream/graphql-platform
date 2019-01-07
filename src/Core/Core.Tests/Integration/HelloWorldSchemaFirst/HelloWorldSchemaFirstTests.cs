@@ -29,7 +29,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                 await schema.MakeExecutable().ExecuteAsync("{ hello }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                     "{ hello(a: \"foo\") }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                     "{ hello world }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -111,7 +111,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
                     "{ hello(a: \"foo_\") }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 

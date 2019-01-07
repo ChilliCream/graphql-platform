@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 

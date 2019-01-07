@@ -2,5 +2,6 @@
   "Data": {
     "__typename": "Query"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }
