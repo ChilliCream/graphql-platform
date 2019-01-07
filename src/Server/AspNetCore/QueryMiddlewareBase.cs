@@ -29,6 +29,7 @@ namespace HotChocolate.AspNetCore
 #endif
     {
         private readonly IQueryExecuter _queryExecuter;
+        private readonly IQueryResultSerializer _resultSerializer;
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -45,6 +46,7 @@ namespace HotChocolate.AspNetCore
         protected QueryMiddlewareBase(
             RequestDelegate next,
             IQueryExecuter queryExecuter,
+            IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
 #if ASPNETCLASSIC
                 : base(next)
@@ -55,6 +57,8 @@ namespace HotChocolate.AspNetCore
 #endif
             _queryExecuter = queryExecuter ??
                 throw new ArgumentNullException(nameof(queryExecuter));
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
                 throw new ArgumentNullException(nameof(options));
             Services = Executer.Schema.Services;
@@ -193,11 +197,9 @@ namespace HotChocolate.AspNetCore
         {
             if (executionResult is IReadOnlyQueryResult queryResult)
             {
-                string json = queryResult.ToJson();
-                byte[] buffer = Encoding.UTF8.GetBytes(json);
-
                 response.ContentType = ContentType.Json;
-                await response.Body.WriteAsync(buffer, 0, buffer.Length)
+                await _resultSerializer.SerializeAsync(
+                    queryResult, response.Body)
                     .ConfigureAwait(false);
             }
         }

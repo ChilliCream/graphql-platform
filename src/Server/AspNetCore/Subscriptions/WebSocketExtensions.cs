@@ -66,7 +66,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public static Task SendSubscriptionDataMessageAsync(
             this IWebSocketContext context,
             string id,
-            IQueryExecutionResult result,
+            IReadOnlyQueryResult result,
             CancellationToken cancellationToken)
         {
             return SendMessageAsync(
@@ -81,18 +81,23 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private static IReadOnlyDictionary<string, object> ToDictionary(
-            IQueryExecutionResult result)
+            IReadOnlyQueryResult result)
         {
             var internalResult = new Dictionary<string, object>();
 
-            if (result.Errors != null && result.Errors.Count > 0)
+            if ( result.Errors.Count > 0)
             {
                 internalResult["errors"] = result.Errors;
             }
 
-            if (result.Data != null && result.Data.Count > 0)
+            if (result.Data.Count > 0)
             {
                 internalResult["data"] = result.Data;
+            }
+
+            if (result.Extensions.Count > 0)
+            {
+                internalResult["extensions"] = result.Extensions;
             }
 
             return internalResult;
