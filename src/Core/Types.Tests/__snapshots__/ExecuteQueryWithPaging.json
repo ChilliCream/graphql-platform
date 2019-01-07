@@ -1,8 +1,7 @@
 {
   "Data": {
     "s": {
-      "edges": [
-        {
+      "edges": [{
           "cursor": "eyJfX3RvdGFsQ291bnQiOjcsIl9fcG9zaXRpb24iOjV9",
           "node": "f"
         },
@@ -16,5 +15,6 @@
       }
     }
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

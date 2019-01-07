@@ -3,5 +3,6 @@
     "a": "123",
     "b": "456"
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }
