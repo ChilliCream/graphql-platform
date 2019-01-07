@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -350,6 +350,7 @@ namespace HotChocolate.Execution
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
                     c.RegisterType<BarEnumType>();
+                    c.RegisterExtendedScalarTypes();
                     c.Options.StrictValidation = false;
                 });
         }

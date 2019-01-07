@@ -660,7 +660,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }
                 }");
 
-            IQueryExecutionResult eventResult;
+            IReadOnlyQueryResult eventResult;
             using (var cts = new CancellationTokenSource(2000))
             {
                 eventResult = await responseStream.ReadAsync();

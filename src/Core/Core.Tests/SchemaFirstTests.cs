@@ -26,7 +26,7 @@ namespace HotChocolate
                     "{ test testProp }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -60,7 +60,7 @@ namespace HotChocolate
                     "{ foo(bar: { baz: \"hello\"}) }");
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 

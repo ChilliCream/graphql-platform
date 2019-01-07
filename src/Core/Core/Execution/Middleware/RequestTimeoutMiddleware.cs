@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 }
 
                 context.Exception = ex;
-                context.Result = new QueryResult(new QueryError(
+                context.Result = QueryResult.CreateError(new QueryError(
                     "Execution timeout has been exceeded."));
                 return;
             }

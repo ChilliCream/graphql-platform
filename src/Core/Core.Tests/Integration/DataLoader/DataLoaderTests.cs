@@ -366,10 +366,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // assert
             Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors));
             results.Snapshot();
         }
 
@@ -426,10 +426,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // assert
             Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors));
             results.Snapshot();
         }
 
@@ -480,9 +480,9 @@ namespace HotChocolate.Integration.DataLoader
 
             // assert
             Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors));
             results.Snapshot();
         }
     }

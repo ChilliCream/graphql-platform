@@ -4,5 +4,6 @@
       "foo": "123"
     }
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

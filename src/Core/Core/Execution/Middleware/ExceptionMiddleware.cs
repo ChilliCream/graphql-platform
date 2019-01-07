@@ -27,13 +27,13 @@ namespace HotChocolate.Execution
             catch (QueryException ex)
             {
                 context.Exception = ex;
-                context.Result = new QueryResult(
+                context.Result = QueryResult.CreateError(
                     _errorHandler.Handle(ex.Errors));
             }
             catch (Exception ex)
             {
                 context.Exception = ex;
-                context.Result = new QueryResult(
+                context.Result = QueryResult.CreateError(
                     _errorHandler.Handle(ex, error => error));
             }
         }

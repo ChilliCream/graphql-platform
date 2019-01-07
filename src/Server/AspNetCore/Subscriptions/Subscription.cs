@@ -40,7 +40,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             while (!_responseStream.IsCompleted
                 && !_cts.IsCancellationRequested)
             {
-                IQueryExecutionResult result =
+                IReadOnlyQueryResult result =
                     await _responseStream.ReadAsync(_cts.Token);
 
                 if (result != null)

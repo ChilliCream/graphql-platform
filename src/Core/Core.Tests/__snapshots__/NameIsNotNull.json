@@ -2,6 +2,7 @@
   "Data": {
     "sayHello": null
   },
+  "Extensions": {},
   "Errors": [
     {
       "message": "Argument is not valid.",

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Xunit;
@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
@@ -81,13 +81,17 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executer.ExecuteAsync(query);
 
             // assert
-            Assert.Null(result.Errors);
+            Assert.Empty(result.Errors);
             result.Snapshot();
         }
 
         private static Schema CreateSchema()
         {
-            return Schema.Create(c => c.RegisterType<Query>());
+            return Schema.Create(c =>
+            {
+                c.RegisterExtendedScalarTypes();
+                c.RegisterType<Query>();
+            });
         }
 
         private class Query

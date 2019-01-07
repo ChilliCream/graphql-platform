@@ -4,5 +4,6 @@
       "name": "Foo"
     }
   },
-  "Errors": null
+  "Extensions": {},
+  "Errors": []
 }

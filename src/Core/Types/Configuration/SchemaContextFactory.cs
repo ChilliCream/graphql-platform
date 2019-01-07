@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Configuration
@@ -10,7 +10,6 @@ namespace HotChocolate.Configuration
             var schemaContext = new SchemaContext();
 
             RegisterSpecScalarTypes(schemaContext);
-            RegisterExtendedScalarTypes(schemaContext);
             RegisterIntrospectionTypes(schemaContext);
             RegisterDirectives(schemaContext);
 
@@ -30,23 +29,6 @@ namespace HotChocolate.Configuration
                 new TypeReference(typeof(IntType)));
             schemaContext.Types.RegisterType(
                 new TypeReference(typeof(FloatType)));
-        }
-
-        private static void RegisterExtendedScalarTypes(
-            ISchemaContext schemaContext)
-        {
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(DecimalType)));
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(LongType)));
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(DateTimeType)));
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(DateType)));
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(UuidType)));
-            schemaContext.Types.RegisterType(
-                new TypeReference(typeof(UrlType)));
         }
 
         private static void RegisterIntrospectionTypes(

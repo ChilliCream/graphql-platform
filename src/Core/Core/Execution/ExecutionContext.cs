@@ -9,6 +9,8 @@ namespace HotChocolate.Execution
     internal class ExecutionContext
         : IExecutionContext
     {
+        private readonly object _syncRoot = new object();
+
         public ExecutionContext(
             ISchema schema,
             IServiceProvider services,
@@ -34,13 +36,13 @@ namespace HotChocolate.Execution
 
             ErrorHandler = services.GetRequiredService<IErrorHandler>();
 
-            Response = new QueryResonse();
+            Result = new QueryResult();
 
             FieldHelper = CreateFieldHelper(
                 variables,
                 new FragmentCollection(schema, operation.Query),
                 directives,
-                Response.Errors);
+                Result.Errors);
 
             Activator = new Activator(services);
         }
@@ -57,7 +59,7 @@ namespace HotChocolate.Execution
 
         public DirectiveLookup Directives { get; }
 
-        public IQueryResponse Response { get; private set; }
+        public IQueryResult Result { get; private set; }
 
         public IDictionary<string, object> ContextData { get; private set; }
 
@@ -81,12 +83,25 @@ namespace HotChocolate.Execution
                 variables, errors);
         }
 
+        public void AddError(IError error)
+        {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
+            lock (_syncRoot)
+            {
+                Result.Errors.Add(error);
+            }
+        }
+
         public IExecutionContext Clone()
         {
             var cloned = (ExecutionContext)base.MemberwiseClone();
             cloned.ContextData = new ConcurrentDictionary<string, object>(
                 cloned.ContextData);
-            cloned.Response = new QueryResonse();
+            cloned.Result = new QueryResult();
             return cloned;
         }
     }

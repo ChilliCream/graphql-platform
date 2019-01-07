@@ -44,7 +44,7 @@ namespace HotChocolate.Subscriptions
             await executer.ExecuteAsync("mutation { foo }");
 
             // assert
-            IQueryExecutionResult result = await responseStream.ReadAsync();
+            IReadOnlyQueryResult result = await responseStream.ReadAsync();
             Assert.False(responseStream.IsCompleted);
             Assert.Equal("bar", result.Data["foo"]);
         }
