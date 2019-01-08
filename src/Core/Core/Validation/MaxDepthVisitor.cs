@@ -7,14 +7,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
-
     internal sealed class MaxDepthVisitor
         : QuerySyntaxWalker<MaxDepthVisitor.Context>
     {
         private readonly int _maxExecutionDepth;
-        private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
-            new Dictionary<string, FragmentDefinitionNode>();
-
 
         public MaxDepthVisitor(IValidateQueryOptionsAccessor options)
         {
@@ -40,9 +36,10 @@ namespace HotChocolate.Validation
             MaxDepthVisitor.Context context)
         {
             foreach (var fragment in node.Definitions
-                .OfType<FragmentDefinitionNode>())
+                .OfType<FragmentDefinitionNode>()
+                .Where(t => t.Name?.Value != null))
             {
-                _fragments[fragment.Name.Value] = fragment;
+                context.Fragments[fragment.Name.Value] = fragment;
             }
 
             foreach (var operation in node.Definitions
@@ -72,7 +69,7 @@ namespace HotChocolate.Validation
         {
             base.VisitFragmentSpread(node, context);
 
-            if (_fragments.TryGetValue(node.Name.Value,
+            if (context.Fragments.TryGetValue(node.Name.Value,
                 out FragmentDefinitionNode fragment))
             {
                 VisitFragmentDefinition(fragment, context);
@@ -98,21 +95,27 @@ namespace HotChocolate.Validation
                 _violatingFields = new List<FieldNode>();
                 FragmentPath = ImmutableHashSet<string>.Empty;
                 FieldPath = ImmutableList<FieldNode>.Empty;
+                Fragments = new Dictionary<string, FragmentDefinitionNode>();
             }
 
             private Context(
                 ImmutableHashSet<string> fragmentPath,
                 ImmutableList<FieldNode> fieldPath,
-                List<FieldNode> violatingFields)
+                List<FieldNode> violatingFields,
+                IDictionary<string, FragmentDefinitionNode> fragments)
             {
                 FragmentPath = fragmentPath;
                 FieldPath = fieldPath;
                 _violatingFields = violatingFields;
+                Fragments = fragments;
             }
 
             public ImmutableHashSet<string> FragmentPath { get; }
 
             public ImmutableList<FieldNode> FieldPath { get; }
+
+            public IDictionary<string, FragmentDefinitionNode> Fragments
+            { get; }
 
             public IReadOnlyCollection<FieldNode> ViolatingFields =>
                 _violatingFields;
@@ -122,7 +125,8 @@ namespace HotChocolate.Validation
                 return new Context(
                     FragmentPath.Add(fragment.Name.Value),
                     FieldPath,
-                    _violatingFields);
+                    _violatingFields,
+                    Fragments);
             }
 
             public Context AddField(FieldNode field)
@@ -130,7 +134,8 @@ namespace HotChocolate.Validation
                 return new Context(
                     FragmentPath,
                     FieldPath.Add(field),
-                    _violatingFields);
+                    _violatingFields,
+                    Fragments);
             }
 
             public void AddViolation(FieldNode field)
