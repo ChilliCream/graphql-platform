@@ -44,6 +44,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
+            return ExecuteInternalAsync(request, cancellationToken);
+        }
+
+        private async Task<IExecutionResult> ExecuteInternalAsync(
+            QueryRequest request,
+            CancellationToken cancellationToken)
+        {
             IServiceProvider services = (request.Services == null)
                 ? _applicationServices.Include(Schema.Services)
                 : _applicationServices.Include(request.Services);
@@ -55,14 +62,15 @@ namespace HotChocolate.Execution
                     scope.ServiceProvider,
                     request.ToReadOnly());
 
-                return ExecuteMiddlewareAsync(context);
+                return await ExecuteMiddlewareAsync(context)
+                    .ConfigureAwait(false);
             }
         }
 
         private async Task<IExecutionResult> ExecuteMiddlewareAsync(
             IQueryContext context)
         {
-            await _queryDelegate(context);
+            await _queryDelegate(context).ConfigureAwait(false);
 
             if (context.Result == null)
             {
