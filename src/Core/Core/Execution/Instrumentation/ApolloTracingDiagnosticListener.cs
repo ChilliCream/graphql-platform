@@ -110,7 +110,7 @@ namespace HotChocolate.Execution.Instrumentation
         private long GetStartTimestamp()
         {
             return Convert.ToInt64(Activity.Current.Tags
-                .First(t => t.Key == _startTimestampKey));
+                .First(t => t.Key == _startTimestampKey).Value);
         }
     }
 }

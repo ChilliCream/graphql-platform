@@ -44,26 +44,18 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return ExecuteInternalAsync(request, cancellationToken);
-        }
-
-        private async Task<IExecutionResult> ExecuteInternalAsync(
-            QueryRequest request,
-            CancellationToken cancellationToken)
-        {
-            IServiceProvider services = (request.Services == null)
-                ? _applicationServices.Include(Schema.Services)
-                : _applicationServices.Include(request.Services);
-
-            using (IServiceScope scope = services.CreateScope())
+            using (IServiceScope scope = _applicationServices.CreateScope())
             {
+                IServiceProvider services = (request.Services == null)
+                    ? scope.ServiceProvider.Include(Schema.Services)
+                    : scope.ServiceProvider.Include(request.Services);
+
                 var context = new QueryContext(
                     Schema,
-                    scope.ServiceProvider,
+                    services,
                     request.ToReadOnly());
 
-                return await ExecuteMiddlewareAsync(context)
-                    .ConfigureAwait(false);
+                return ExecuteMiddlewareAsync(context);
             }
         }
 

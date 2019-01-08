@@ -125,15 +125,7 @@ namespace HotChocolate.Execution
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                // complete resolver tasks
-                if (resolverTask.Task.IsCompleted)
-                {
-                    resolverTask.ResolverResult = resolverTask.Task.Result;
-                }
-                else
-                {
-                    resolverTask.ResolverResult = await resolverTask.Task;
-                }
+                resolverTask.ResolverResult = await resolverTask.Task;
 
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(
