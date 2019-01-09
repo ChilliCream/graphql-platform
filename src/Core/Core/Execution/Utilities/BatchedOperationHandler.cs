@@ -124,9 +124,12 @@ namespace HotChocolate.Execution
             {
                 task.GetAwaiter().OnCompleted(() =>
                 {
-                    if (_processSync.CurrentCount == 0)
+                    lock (_processSync)
                     {
-                        _processSync.Release();
+                        if (_processSync.CurrentCount == 0)
+                        {
+                            _processSync.Release();
+                        }
                     }
                 });
             }
