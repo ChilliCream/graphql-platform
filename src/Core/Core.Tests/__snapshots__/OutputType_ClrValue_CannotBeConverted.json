@@ -2,6 +2,7 @@
   "Data": {
     "stringToName": null
   },
+  "Extensions": {},
   "Errors": [
     {
       "message": "The internal resolver value could not be converted to a valid value of `Name`.",

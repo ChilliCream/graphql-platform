@@ -1,5 +1,6 @@
 {
-  "Data": null,
+  "Data": {},
+  "Extensions": {},
   "Errors": [
     {
       "message": "The specified argument value does not match the argument type.\nArgument: `name`\nValue: `  `",

@@ -50,42 +50,6 @@ namespace HotChocolate.Integration.DataLoader
         }
 
         [Fact]
-        public async Task FetchOnceDataLoaderWithFactory()
-        {
-            // arrange
-            IServiceProvider serviceProvider = new ServiceCollection()
-                .AddDataLoaderRegistry()
-                .BuildServiceProvider();
-
-            var schema = Schema.Create(
-                @"type Query { fetchItem: String }",
-                c =>
-                {
-                    c.BindResolver(async ctx =>
-                    {
-                        Func<Task<string>> dataLoader =
-                            ctx.DataLoader<string>(
-                                "fetchItems",
-                                services => () => Task.FromResult("fooBar"));
-                        return await dataLoader();
-                    }).To("Query", "fetchItem");
-                });
-
-            IQueryExecuter executer = schema.MakeExecutable();
-            IServiceScope scope = serviceProvider.CreateScope();
-
-            // act
-            IExecutionResult result = await executer.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
-
-            // assert
-            result.Snapshot();
-        }
-
-        [Fact]
         public async Task FetchSingleDataLoader()
         {
             // arrange
@@ -103,42 +67,6 @@ namespace HotChocolate.Integration.DataLoader
                             ctx.DataLoader<string, string>(
                                 "fetchItems",
                                 key => Task.FromResult(key));
-                        return await dataLoader.LoadAsync("fooBar");
-                    }).To("Query", "fetchItem");
-                });
-
-            IQueryExecuter executer = schema.MakeExecutable();
-            IServiceScope scope = serviceProvider.CreateScope();
-
-            // act
-            IExecutionResult result = await executer.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
-
-            // assert
-            result.Snapshot();
-        }
-
-        [Fact]
-        public async Task FetchSingleDataLoaderWithFactory()
-        {
-            // arrange
-            IServiceProvider serviceProvider = new ServiceCollection()
-                .AddDataLoaderRegistry()
-                .BuildServiceProvider();
-
-            var schema = Schema.Create(
-                @"type Query { fetchItem: String }",
-                c =>
-                {
-                    c.BindResolver(async ctx =>
-                    {
-                        IDataLoader<string, string> dataLoader =
-                            ctx.DataLoader<string, string>(
-                                "fetchItems",
-                                services => key => Task.FromResult(key));
                         return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
@@ -196,45 +124,6 @@ namespace HotChocolate.Integration.DataLoader
         }
 
         [Fact]
-        public async Task FetchDataLoaderWithFactory()
-        {
-            // arrange
-            IServiceProvider serviceProvider = new ServiceCollection()
-                .AddDataLoaderRegistry()
-                .BuildServiceProvider();
-
-            var schema = Schema.Create(
-                @"type Query { fetchItem: String }",
-                c =>
-                {
-                    c.BindResolver(async ctx =>
-                    {
-                        IDataLoader<string, string> dataLoader =
-                            ctx.DataLoader<string, string>(
-                                "fetchItems",
-                                services =>
-                                keys =>
-                                Task.FromResult<IReadOnlyDictionary<string, string>>(
-                                    keys.ToDictionary(t => t)));
-                        return await dataLoader.LoadAsync("fooBar");
-                    }).To("Query", "fetchItem");
-                });
-
-            IQueryExecuter executer = schema.MakeExecutable();
-            IServiceScope scope = serviceProvider.CreateScope();
-
-            // act
-            IExecutionResult result = await executer.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
-
-            // assert
-            result.Snapshot();
-        }
-
-        [Fact]
         public async Task FetchGroupDataLoader()
         {
             // arrange
@@ -251,44 +140,6 @@ namespace HotChocolate.Integration.DataLoader
                         IDataLoader<string, string[]> dataLoader =
                             ctx.DataLoader<string, string>(
                                 "fetchItems",
-                                keys =>
-                                Task.FromResult(keys.ToLookup(t => t)));
-                        return await dataLoader.LoadAsync("fooBar");
-                    }).To("Query", "fetchItem");
-                });
-
-            IQueryExecuter executer = schema.MakeExecutable();
-            IServiceScope scope = serviceProvider.CreateScope();
-
-            // act
-            IExecutionResult result = await executer.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
-
-            // assert
-            result.Snapshot();
-        }
-
-        [Fact]
-        public async Task FetchGroupDataLoaderWithFactory()
-        {
-            // arrange
-            IServiceProvider serviceProvider = new ServiceCollection()
-                .AddDataLoaderRegistry()
-                .BuildServiceProvider();
-
-            var schema = Schema.Create(
-                @"type Query { fetchItem: String }",
-                c =>
-                {
-                    c.BindResolver(async ctx =>
-                    {
-                        IDataLoader<string, string[]> dataLoader =
-                            ctx.DataLoader<string, string>(
-                                "fetchItems",
-                                services =>
                                 keys =>
                                 Task.FromResult(keys.ToLookup(t => t)));
                         return await dataLoader.LoadAsync("fooBar");

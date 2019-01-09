@@ -2,6 +2,7 @@
   "Data": {
     "stringToFoo": null
   },
+  "Extensions": {},
   "Errors": [
     {
       "message": "Cannot serialize foo value.",

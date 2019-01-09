@@ -9,7 +9,7 @@ namespace HotChocolate.Resolvers
 {
     public static class DataLoaderResolverContextExtensions
     {
-        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
+        private static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchFactory<TKey, TValue> factory)
@@ -59,7 +59,7 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static IDataLoader<TKey, TValue[]> DataLoader<TKey, TValue>(
+        private static IDataLoader<TKey, TValue[]> DataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchGroupedFactory<TKey, TValue> factory)
@@ -109,7 +109,7 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
+        private static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchSingleFactory<TKey, TValue> factory)
@@ -159,7 +159,7 @@ namespace HotChocolate.Resolvers
             return DataLoader(context, key, services => fetch);
         }
 
-        public static Func<Task<TValue>> DataLoader<TValue>(
+        private static Func<Task<TValue>> DataLoader<TValue>(
             this IResolverContext context,
             string key,
             FetchOnceFactory<TValue> factory)
