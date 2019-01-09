@@ -91,8 +91,11 @@ namespace HotChocolate.Execution
             IServiceScope serviceScope =
                 _applicationServices.CreateScope();
 
-            IServiceProvider services = serviceScope.ServiceProvider.Include(
-                requestServices ?? Schema.Services);
+            IServiceProvider services = requestServices ?? Schema.Services;
+
+            services = services == null
+                ? serviceScope.ServiceProvider
+                : serviceScope.ServiceProvider.Include(requestServices);
 
             return new RequestServiceScope(services, serviceScope);
         }

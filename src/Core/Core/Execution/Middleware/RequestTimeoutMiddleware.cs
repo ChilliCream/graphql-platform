@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
@@ -26,22 +27,30 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            var requestTimeoutCts = new CancellationTokenSource(
-                _options.ExecutionTimeout);
+            CancellationTokenSource requestTimeoutCts = null;
+            CancellationTokenSource combinedCts = null;
+
+            CancellationToken requestAborted = context.RequestAborted;
+
+            if (!Debugger.IsAttached)
+            {
+                requestTimeoutCts = new CancellationTokenSource(
+                    _options.ExecutionTimeout);
+
+                combinedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                   requestTimeoutCts.Token,
+                   context.RequestAborted);
+
+                context.RequestAborted = combinedCts.Token;
+            }
 
             try
             {
-                using (var combinedCts = CancellationTokenSource
-                    .CreateLinkedTokenSource(requestTimeoutCts.Token,
-                        context.RequestAborted))
-                {
-                    context.RequestAborted = combinedCts.Token;
-                    await _next(context);
-                }
+                await _next(context);
             }
             catch (TaskCanceledException ex)
             {
-                if (!requestTimeoutCts.IsCancellationRequested)
+                if (requestAborted.IsCancellationRequested)
                 {
                     throw;
                 }
@@ -49,10 +58,10 @@ namespace HotChocolate.Execution
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(new QueryError(
                     "Execution timeout has been exceeded."));
-                return;
             }
             finally
             {
+                combinedCts.Dispose();
                 requestTimeoutCts.Dispose();
             }
         }
