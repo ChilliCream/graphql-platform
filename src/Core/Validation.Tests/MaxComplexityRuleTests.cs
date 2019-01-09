@@ -51,6 +51,51 @@ namespace HotChocolate.Validation
             result.Snapshot("MaxComplexityReached_" + maxAllowedComplexity);
         }
 
+        [InlineData(17, false)]
+        [InlineData(16, false)]
+        [InlineData(15, true)]
+        [Theory]
+        public void MaxComplexityReachedWithCustomCalculateDelegate(
+            int maxAllowedComplexity,
+            bool hasErrors)
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    foo {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
+
+            ISchema schema = CreateSchema();
+
+            var rule = new MaxComplexityRule(new QueryExecutionOptions
+            {
+                MaxOperationComplexity = maxAllowedComplexity
+            }, (d, s, p, c) => c.Complexity * 2);
+
+            // act
+            QueryValidationResult result = rule.Validate(schema, query);
+
+            // assert
+            Assert.Equal(hasErrors, result.HasErrors);
+            result.Snapshot(
+                "MaxComplexityReachedWithCustomCalculateDelegate_" +
+                maxAllowedComplexity);
+        }
+
         private ISchema CreateSchema()
         {
             return Schema.Create(

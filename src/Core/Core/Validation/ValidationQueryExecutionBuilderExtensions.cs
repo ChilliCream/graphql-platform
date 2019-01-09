@@ -7,10 +7,40 @@ namespace HotChocolate.Validation
 {
     public static class ValidationQueryExecutionBuilderExtensions
     {
+        public static IQueryExecutionBuilder AddComplexityCalculation(
+            this IQueryExecutionBuilder builder,
+            ComplexityCalculation complexityCalculation)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (complexityCalculation == null)
+            {
+                throw new ArgumentNullException(nameof(complexityCalculation));
+            }
+
+            builder.Services.AddSingleton<ComplexityCalculation>(
+                complexityCalculation);
+
+            return builder;
+        }
+
         public static IQueryExecutionBuilder AddQueryValidation(
             this IQueryExecutionBuilder builder,
             IValidateQueryOptionsAccessor options)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             builder.Services.AddQueryValidation(options);
 
             return builder;
@@ -20,6 +50,11 @@ namespace HotChocolate.Validation
             this IServiceCollection services,
             IValidateQueryOptionsAccessor options)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             if (options == null)
             {
                 throw new ArgumentNullException(nameof(options));
@@ -33,6 +68,11 @@ namespace HotChocolate.Validation
         public static IQueryExecutionBuilder AddDefaultValidationRules(
             this IQueryExecutionBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             builder.Services.AddDefaultValidationRules();
 
             return builder;
@@ -42,6 +82,11 @@ namespace HotChocolate.Validation
             this IQueryExecutionBuilder builder)
             where T : class, IQueryValidationRule
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             builder.Services.AddSingleton<IQueryValidationRule, T>();
 
             return builder;
@@ -51,6 +96,16 @@ namespace HotChocolate.Validation
             this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IQueryValidationRule> factory)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             builder.Services.AddSingleton(factory);
 
             return builder;
@@ -59,6 +114,11 @@ namespace HotChocolate.Validation
         public static IServiceCollection AddDefaultValidationRules(
             this IServiceCollection services)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             return services
                 .AddSingleton<IQueryValidationRule, ExecutableDefinitionsRule>()
                 .AddSingleton<IQueryValidationRule, LoneAnonymousOperationRule>()
