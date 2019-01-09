@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            if (!IsContextIncomplete(context))
+            if (IsContextIncomplete(context))
             {
                 context.Result = QueryResult.CreateError(new QueryError(
                     "The execute operation middleware expects the " +
