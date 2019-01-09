@@ -44,51 +44,58 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IServiceScope serviceScope =
-                _applicationServices.CreateScope();
+            IRequestServiceScope serviceScope = CreateServiceScope(
+                request.Services);
 
-            IServiceProvider services = (request.Services == null)
-                ? serviceScope.ServiceProvider.Include(Schema.Services)
-                : serviceScope.ServiceProvider.Include(request.Services);
+            var context = new QueryContext(
+                Schema,
+                serviceScope,
+                request.ToReadOnly());
 
-            var requestServiceScope = new RequestServiceScope(
-                services, serviceScope);
-
-            try
-            {
-                var context = new QueryContext(
-                    Schema,
-                    requestServiceScope,
-                    request.ToReadOnly());
-
-                return ExecuteMiddlewareAsync(context);
-            }
-            finally
-            {
-                if (!requestServiceScope.IsLifetimeHandled)
-                {
-                    requestServiceScope.Dispose();
-                }
-            }
+            return ExecuteMiddlewareAsync(context);
         }
 
         private async Task<IExecutionResult> ExecuteMiddlewareAsync(
             IQueryContext context)
         {
-            await _queryDelegate(context).ConfigureAwait(false);
-
-            if (context.Result == null)
+            try
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
-            }
+                await _queryDelegate(context).ConfigureAwait(false);
 
-            if (context.Result is IQueryResult queryResult)
+                if (context.Result == null)
+                {
+                    // TODO : Resources
+                    throw new InvalidOperationException();
+                }
+
+                if (context.Result is IQueryResult queryResult)
+                {
+                    return queryResult.AsReadOnly();
+                }
+
+                return context.Result;
+
+            }
+            finally
             {
-                return queryResult.AsReadOnly();
+                if (!context.ServiceScope.IsLifetimeHandled)
+                {
+                    context.ServiceScope.Dispose();
+                }
             }
+        }
 
-            return context.Result;
+        private IRequestServiceScope CreateServiceScope(
+            IServiceProvider requestServices)
+        {
+            IServiceScope serviceScope =
+                _applicationServices.CreateScope();
+
+            IServiceProvider services = (requestServices == null)
+                ? serviceScope.ServiceProvider.Include(Schema.Services)
+                : serviceScope.ServiceProvider.Include(requestServices);
+
+            return new RequestServiceScope(services, serviceScope);
         }
     }
 }
