@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
 
         public ExecutionContext(
             ISchema schema,
-            IServiceProvider services,
+            IRequestServiceScope serviceScope,
             IOperation operation,
             IVariableCollection variables,
             DirectiveLookup directives,
@@ -22,8 +22,8 @@ namespace HotChocolate.Execution
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
-            Services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            ServiceScope = serviceScope
+                ?? throw new ArgumentNullException(nameof(serviceScope));
             Operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
             Variables = variables
@@ -34,7 +34,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(contextData));
             RequestAborted = requestAborted;
 
-            ErrorHandler = services.GetRequiredService<IErrorHandler>();
+            ErrorHandler = serviceScope.ServiceProvider
+                .GetRequiredService<IErrorHandler>();
 
             Result = new QueryResult();
 
@@ -44,12 +45,14 @@ namespace HotChocolate.Execution
                 directives,
                 Result.Errors);
 
-            Activator = new Activator(services);
+            Activator = new Activator(serviceScope.ServiceProvider);
         }
 
         public ISchema Schema { get; }
 
-        public IServiceProvider Services { get; }
+        public IRequestServiceScope ServiceScope { get; }
+
+        public IServiceProvider Services => ServiceScope.ServiceProvider;
 
         public IErrorHandler ErrorHandler { get; }
 

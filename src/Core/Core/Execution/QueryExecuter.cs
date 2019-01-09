@@ -44,18 +44,31 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            using (IServiceScope scope = _applicationServices.CreateScope())
-            {
-                IServiceProvider services = (request.Services == null)
-                    ? scope.ServiceProvider.Include(Schema.Services)
-                    : scope.ServiceProvider.Include(request.Services);
+            IServiceScope serviceScope =
+                _applicationServices.CreateScope();
 
+            IServiceProvider services = (request.Services == null)
+                ? serviceScope.ServiceProvider.Include(Schema.Services)
+                : serviceScope.ServiceProvider.Include(request.Services);
+
+            var requestServiceScope = new RequestServiceScope(
+                services, serviceScope);
+
+            try
+            {
                 var context = new QueryContext(
                     Schema,
-                    services,
+                    requestServiceScope,
                     request.ToReadOnly());
 
                 return ExecuteMiddlewareAsync(context);
+            }
+            finally
+            {
+                if (!requestServiceScope.IsLifetimeHandled)
+                {
+                    requestServiceScope.Dispose();
+                }
             }
         }
 

@@ -53,7 +53,8 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(schema, services, request)
+            var context = new QueryContext(
+                schema, services.CreateRequestServiceScope(), request)
             {
                 Document = query,
                 Operation = operation,

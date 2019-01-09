@@ -25,7 +25,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -51,7 +54,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ isDisposable }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -83,7 +89,10 @@ namespace HotChocolate.Execution
             }.ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -112,7 +121,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ isDisposable }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, services, request);
+                schema,
+                services.CreateRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -147,7 +159,10 @@ namespace HotChocolate.Execution
             }.ToReadOnly();
 
             var context = new QueryContext(
-                schema, services, request);
+                schema,
+                services.CreateRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -176,7 +191,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -204,7 +222,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ a } query a { a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -239,7 +260,10 @@ namespace HotChocolate.Execution
                 .ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(
@@ -275,7 +299,10 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
+
             context.Document = Parser.Default.Parse(request.Query);
 
             var middleware = new ResolveOperationMiddleware(

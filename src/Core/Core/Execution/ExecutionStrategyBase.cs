@@ -165,8 +165,9 @@ namespace HotChocolate.Execution
         protected static BatchOperationHandler CreateBatchOperationHandler(
             IExecutionContext executionContext)
         {
-            IEnumerable<IBatchOperation> batchOperations = executionContext
-                .Services.GetService<IEnumerable<IBatchOperation>>();
+            IEnumerable<IBatchOperation> batchOperations =
+                executionContext.Services
+                    .GetService<IEnumerable<IBatchOperation>>();
 
             if (batchOperations != null && batchOperations.Any())
             {

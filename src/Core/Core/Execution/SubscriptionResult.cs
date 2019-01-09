@@ -16,6 +16,7 @@ namespace HotChocolate.Execution
         private readonly IEventStream _eventStream;
         private readonly Func<IEventMessage, IExecutionContext> _contextFactory;
         private readonly ExecuteSubscriptionQuery _executeQuery;
+        private readonly IRequestServiceScope _serviceScope;
         private readonly CancellationTokenSource _cancellationTokenSource =
             new CancellationTokenSource();
         private bool _isCompleted;
@@ -23,7 +24,8 @@ namespace HotChocolate.Execution
         public SubscriptionResult(
             IEventStream eventStream,
             Func<IEventMessage, IExecutionContext> contextFactory,
-            ExecuteSubscriptionQuery executeQuery)
+            ExecuteSubscriptionQuery executeQuery,
+            IRequestServiceScope serviceScope)
         {
             _eventStream = eventStream
                 ?? throw new ArgumentNullException(nameof(eventStream));
@@ -31,6 +33,9 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(contextFactory));
             _executeQuery = executeQuery
                 ?? throw new ArgumentNullException(nameof(executeQuery));
+            _serviceScope = serviceScope
+                ?? throw new ArgumentNullException(nameof(serviceScope));
+            _serviceScope.HandleLifetime();
         }
 
         public IReadOnlyCollection<IError> Errors { get; }
@@ -39,7 +44,6 @@ namespace HotChocolate.Execution
             new OrderedDictionary();
 
         public bool IsCompleted => _isCompleted && _eventStream.IsCompleted;
-
 
         public Task<IReadOnlyQueryResult> ReadAsync()
         {
@@ -73,10 +77,22 @@ namespace HotChocolate.Execution
 
         public void Dispose()
         {
-            _isCompleted = true;
-            _cancellationTokenSource.Cancel();
-            _eventStream.Dispose();
-            _cancellationTokenSource.Dispose();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_isCompleted)
+            {
+                if (disposing)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _serviceScope.Dispose();
+                    _eventStream.Dispose();
+                    _cancellationTokenSource.Dispose();
+                }
+                _isCompleted = true;
+            }
         }
     }
 }

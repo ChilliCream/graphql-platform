@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             DirectiveLookup directives = GetOrCreateDirectiveLookup(context);
 
             return new ExecutionContext(
-                context.Schema, context.Services, context.Operation,
+                context.Schema, context.ServiceScope, context.Operation,
                 context.Variables, directives, context.ContextData,
                 context.RequestAborted);
         }
