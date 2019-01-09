@@ -49,7 +49,8 @@ namespace HotChocolate.Execution
             }
 
             SubscribeToTasks(tasks);
-            await InvokeBatchOperationsAsync(cancellationToken).ConfigureAwait(false);
+            await InvokeBatchOperationsAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (tasks.Any(IsInProgress))
             {
@@ -75,8 +76,10 @@ namespace HotChocolate.Execution
             {
                 while (tasks.Any(IsInProgress))
                 {
-                    await _processSync.WaitAsync(cancellationToken).ConfigureAwait(false);
-                    await InvokeBatchOperationsAsync(cancellationToken).ConfigureAwait(false);
+                    await _processSync.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await InvokeBatchOperationsAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
@@ -90,12 +93,13 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             foreach (IBatchOperation batchOperation in
-                await GetTouchedOperationsAsync(cancellationToken).ConfigureAwait(false))
+                await GetTouchedOperationsAsync(cancellationToken)
+                .ConfigureAwait(false))
             {
                 if (batchOperation.BufferSize > 0)
                 {
-                    await batchOperation.InvokeAsync(
-                        cancellationToken);
+                    await batchOperation.InvokeAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -103,7 +107,8 @@ namespace HotChocolate.Execution
         private async Task<HashSet<IBatchOperation>> GetTouchedOperationsAsync(
             CancellationToken cancellationToken)
         {
-            await _touchedSync.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _touchedSync.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             try
             {
