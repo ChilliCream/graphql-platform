@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -46,7 +46,8 @@ namespace HotChocolate.Execution
                 query, operationNode, schema.MutationType,
                 null);
 
-            var request = new QueryRequest("{ a }").ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
+                .ToReadOnly();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(

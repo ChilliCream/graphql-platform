@@ -102,12 +102,12 @@ namespace HotChocolate.Execution.Instrumentation
                 });
         }
 
-        private void SetStartTimestamp(long timestamp)
+        private static void SetStartTimestamp(long timestamp)
         {
             Activity.Current.AddTag(_startTimestampKey, timestamp.ToString());
         }
 
-        private long GetStartTimestamp()
+        private static long GetStartTimestamp()
         {
             return Convert.ToInt64(Activity.Current.Tags
                 .First(t => t.Key == _startTimestampKey).Value);

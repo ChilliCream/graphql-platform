@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask, errorHandler);
+                resolverTask, errorHandler).ConfigureAwait(false);
 
             if (result is IError || result is IEnumerable<IError>)
             {
@@ -48,12 +48,12 @@ namespace HotChocolate.Execution
                     && resolverTask.HasMiddleware)
                 {
                     result = await ExecuteDirectiveMiddlewareAsync(
-                        resolverTask);
+                        resolverTask).ConfigureAwait(false);
                 }
                 else
                 {
                     result = await ExecuteFieldMiddlewareAsync(
-                        resolverTask);
+                        resolverTask).ConfigureAwait(false);
                 }
 
                 if (result is IError error)
@@ -94,7 +94,7 @@ namespace HotChocolate.Execution
             }
 
             object result = await resolverTask.FieldSelection.Field.Resolver(
-                resolverTask.ResolverContext);
+                resolverTask.ResolverContext).ConfigureAwait(false);
 
             return resolverTask.CompleteResolverResult(result);
         }
@@ -103,7 +103,8 @@ namespace HotChocolate.Execution
             ResolverTask resolverTask)
         {
             return await resolverTask.ExecuteMiddleware.Invoke(
-                resolverTask.ResolverContext, ExecuteResolver);
+                resolverTask.ResolverContext, ExecuteResolver)
+                    .ConfigureAwait(false);
 
             Task<object> ExecuteResolver()
             {

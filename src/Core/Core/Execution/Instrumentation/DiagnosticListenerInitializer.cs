@@ -36,9 +36,9 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void OnCompleted() { }
+        public void OnCompleted() { /* not required */ }
 
-        public void OnError(Exception error) { }
+        public void OnError(Exception error) { /* not required */ }
 
         public void OnNext(DiagnosticListener value)
         {
