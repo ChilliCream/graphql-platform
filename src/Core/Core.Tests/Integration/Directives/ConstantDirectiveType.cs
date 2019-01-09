@@ -1,7 +1,4 @@
-﻿using ChilliCream.Testing;
-using HotChocolate.Execution;
-using HotChocolate.Types;
-using Xunit;
+﻿using HotChocolate.Types;
 
 namespace HotChocolate.Integration.Directives
 {

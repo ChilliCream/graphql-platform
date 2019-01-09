@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -19,7 +18,9 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ a }").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
@@ -43,7 +44,9 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{").ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request);
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,

@@ -4,12 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using GreenDonut;
-using HotChocolate.DataLoader;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using Xunit;
 
 namespace HotChocolate.Types

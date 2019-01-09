@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 
@@ -25,21 +27,26 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
         }
 
-        public Task InvokeAsync(IQueryContext context)
+        public async Task InvokeAsync(IQueryContext context)
         {
-            if (!IsContextValid(context))
+            Activity activity = ParsingDiagnosticEvents.BeginParsing(context);
+
+            if (IsContextIncomplete(context))
             {
                 context.Result = QueryResult.CreateError(new QueryError(
-                   "The parse querymiddleware expectes " +
+                   "The parse query middleware expects " +
                    "a valid query request."));
-                return Task.CompletedTask;
+            }
+            else
+            {
+                context.Document = _queryCache.GetOrCreate(
+                    context.Request.Query,
+                    () => ParseDocument(context.Request.Query));
+
+                await _next(context).ConfigureAwait(false);
             }
 
-            context.Document = _queryCache.GetOrCreate(
-                context.Request.Query,
-                () => ParseDocument(context.Request.Query));
-
-            return _next(context);
+            ParsingDiagnosticEvents.EndParsing(activity, context);
         }
 
         private DocumentNode ParseDocument(string queryText)
@@ -47,10 +54,10 @@ namespace HotChocolate.Execution
             return _parser.Parse(queryText);
         }
 
-        private bool IsContextValid(IQueryContext context)
+        private bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request != null
-                && context.Request.Query != null;
+            return context.Request == null
+                || context.Request.Query == null;
         }
     }
 }

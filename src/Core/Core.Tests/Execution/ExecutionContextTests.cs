@@ -27,6 +27,9 @@ namespace HotChocolate.Execution
             services.Setup(t => t.GetService(typeof(IErrorHandler)))
                 .Returns(errorHandler.Object);
 
+            IRequestServiceScope serviceScope =
+                services.Object.CreateRequestServiceScope();
+
             var operation = new Mock<IOperation>();
             operation.Setup(t => t.Query).Returns(query);
 
@@ -41,7 +44,7 @@ namespace HotChocolate.Execution
 
             // act
             var executionContext = new ExecutionContext(
-                schema, services.Object, operation.Object,
+                schema, serviceScope, operation.Object,
                 variables.Object, directives, contextData,
                 CancellationToken.None);
 
@@ -66,6 +69,9 @@ namespace HotChocolate.Execution
             services.Setup(t => t.GetService(typeof(IErrorHandler)))
                 .Returns(errorHandler.Object);
 
+            IRequestServiceScope serviceScope = services.Object
+                .CreateRequestServiceScope();
+
             var operation = new Mock<IOperation>();
             operation.Setup(t => t.Query).Returns(query);
 
@@ -80,7 +86,7 @@ namespace HotChocolate.Execution
 
             // act
             var executionContext = new ExecutionContext(
-                schema, services.Object, operation.Object,
+                schema, serviceScope, operation.Object,
                 variables.Object, directives, contextData,
                 CancellationToken.None);
             IExecutionContext cloned = executionContext.Clone();

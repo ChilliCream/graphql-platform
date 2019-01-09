@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Runtime;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -28,26 +25,27 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            if (!IsContextValid(context))
+            if (!IsContextIncomplete(context))
             {
                 context.Result = QueryResult.CreateError(new QueryError(
-                    "The execute operation middleware expectes the " +
+                    "The execute operation middleware expects the " +
                     "query document to be parsed, the operation to " +
                     "be resolved and the variables to be coerced."));
-                return;
+            }
+            else
+            {
+                IExecutionStrategy strategy = _strategyResolver
+                    .Resolve(context.Operation.Type);
+
+                IExecutionContext executionContext =
+                    CreateExecutionContext(context);
+
+                context.Result = await strategy.ExecuteAsync(
+                    executionContext, executionContext.RequestAborted)
+                    .ConfigureAwait(false);
             }
 
-            IExecutionStrategy strategy =
-                _strategyResolver.Resolve(
-                    context.Operation.Type);
-
-            IExecutionContext executionContext =
-                CreateExecutionContext(context);
-
-            context.Result = await strategy.ExecuteAsync(
-                executionContext, executionContext.RequestAborted);
-
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
         }
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
@@ -55,8 +53,12 @@ namespace HotChocolate.Execution
             DirectiveLookup directives = GetOrCreateDirectiveLookup(context);
 
             return new ExecutionContext(
-                context.Schema, context.Services, context.Operation,
-                context.Variables, directives, context.ContextData,
+                context.Schema,
+                context.ServiceScope,
+                context.Operation,
+                context.Variables,
+                directives,
+                context.ContextData,
                 context.RequestAborted);
         }
 
@@ -67,18 +69,20 @@ namespace HotChocolate.Execution
                 context.Request.Query,
                 () =>
                 {
-                    var directiveCollector =
-                        new DirectiveCollector(context.Schema);
+                    var directiveCollector = new DirectiveCollector(
+                        context.Schema);
+
                     directiveCollector.VisitDocument(context.Document);
+
                     return directiveCollector.CreateLookup();
                 });
         }
 
-        private bool IsContextValid(IQueryContext context)
+        private bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Document != null
-                && context.Operation != null
-                && context.Variables != null;
+            return context.Document == null
+                || context.Operation == null
+                || context.Variables == null;
         }
     }
 }

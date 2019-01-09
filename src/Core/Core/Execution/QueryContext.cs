@@ -10,19 +10,17 @@ namespace HotChocolate.Execution
     public class QueryContext
         : IQueryContext
     {
-        private readonly Dictionary<string, object> _custom =
-            new Dictionary<string, object>();
-
         public QueryContext(
             ISchema schema,
-            IServiceProvider services,
+            IRequestServiceScope serviceScope,
             IReadOnlyQueryRequest request)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
             Request = request
                 ?? throw new ArgumentNullException(nameof(request));
-            Services = services;
+            ServiceScope = serviceScope
+                ?? throw new ArgumentNullException(nameof(serviceScope));
 
 
             ContextData = request.Properties == null
@@ -32,7 +30,8 @@ namespace HotChocolate.Execution
 
         public ISchema Schema { get; }
         public IReadOnlyQueryRequest Request { get; }
-        public IServiceProvider Services { get; }
+        public IRequestServiceScope ServiceScope { get; }
+        public IServiceProvider Services => ServiceScope.ServiceProvider;
         public IDictionary<string, object> ContextData { get; }
         public DocumentNode Document { get; set; }
         public IOperation Operation { get; set; }
@@ -41,5 +40,6 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted { get; set; }
         public IExecutionResult Result { get; set; }
         public Exception Exception { get; set; }
+
     }
 }

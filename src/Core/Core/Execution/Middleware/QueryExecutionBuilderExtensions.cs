@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
@@ -33,7 +35,7 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseDiagnostics()
+                .UseInstrumentation(options)
                 .UseRequestTimeout(options)
                 .UseExceptionHandling()
                 .UseQueryParser()
@@ -43,10 +45,31 @@ namespace HotChocolate.Execution
                 .UseOperationExecuter();
         }
 
-        public static IQueryExecutionBuilder UseDiagnostics(
-            this IQueryExecutionBuilder builder)
+        public static IQueryExecutionBuilder UseInstrumentation(
+            this IQueryExecutionBuilder builder,
+            IInstrumentationOptionsAccessor options)
         {
-            return builder.Use<DiagnosticMiddleware>();
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            builder.Services
+                .AddSingleton(options)
+                .AddScoped<DiagnosticListenerInitializer>();
+
+            if (options.EnableTracing)
+            {
+                builder.Services
+                    .AddScoped<
+                        IApolloTracingResultBuilder,
+                        ApolloTracingResultBuilder>()
+                    .AddScoped<
+                        DiagnosticListener,
+                        ApolloTracingDiagnosticListener>();
+            }
+
+            return builder.Use<InstrumentationMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseExceptionHandling(
@@ -88,8 +111,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(options));
             }
 
-            builder.Services
-                .AddSingleton(options);
+            builder.Services.AddSingleton(options);
 
             return builder.Use<RequestTimeoutMiddleware>();
         }
@@ -127,6 +149,7 @@ namespace HotChocolate.Execution
             builder.Services.AddSingleton<
                 IExecutionStrategyResolver,
                 ExecutionStrategyResolver>();
+
             return builder;
         }
 
@@ -192,7 +215,6 @@ namespace HotChocolate.Execution
                 .RemoveService<Cache<DirectiveLookup>>()
                 .RemoveService<Cache<DocumentNode>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
-
             builder.Services
                 .AddSingleton(new Cache<DirectiveLookup>(size))
                 .AddSingleton(new Cache<DocumentNode>(size))
@@ -213,10 +235,9 @@ namespace HotChocolate.Execution
             builder
                 .RemoveService<IErrorHandler>()
                 .RemoveService<IErrorHandlerOptionsAccessor>();
-
             builder.Services
                 .AddSingleton<IErrorHandler, ErrorHandler>()
-                .AddSingleton<IErrorHandlerOptionsAccessor>(options);
+                .AddSingleton(options);
 
             return builder;
         }
@@ -232,6 +253,7 @@ namespace HotChocolate.Execution
 
             builder.Services.AddSingleton<IErrorFilter>(
                 new FuncErrorFilterWrapper(errorFilter));
+
             return builder;
         }
 
@@ -244,7 +266,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            builder.Services.AddSingleton<IErrorFilter>(factory);
+            builder.Services.AddSingleton(factory);
+
             return builder;
         }
 
@@ -253,6 +276,7 @@ namespace HotChocolate.Execution
             where T : class, IErrorFilter
         {
             builder.Services.AddSingleton<IErrorFilter, T>();
+
             return builder;
         }
 
