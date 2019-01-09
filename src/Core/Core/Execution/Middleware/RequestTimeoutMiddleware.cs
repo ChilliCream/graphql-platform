@@ -36,17 +36,15 @@ namespace HotChocolate.Execution
             {
                 requestTimeoutCts = new CancellationTokenSource(
                     _options.ExecutionTimeout);
-
                 combinedCts = CancellationTokenSource.CreateLinkedTokenSource(
                    requestTimeoutCts.Token,
                    context.RequestAborted);
-
                 context.RequestAborted = combinedCts.Token;
             }
 
             try
             {
-                await _next(context);
+                await _next(context).ConfigureAwait(false);
             }
             catch (TaskCanceledException ex)
             {
@@ -61,8 +59,8 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                combinedCts.Dispose();
-                requestTimeoutCts.Dispose();
+                combinedCts?.Dispose();
+                requestTimeoutCts?.Dispose();
             }
         }
     }

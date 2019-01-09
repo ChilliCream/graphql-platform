@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;

@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
-using HotChocolate.DataLoader;
 
 namespace HotChocolate.Execution
 {
@@ -31,7 +29,8 @@ namespace HotChocolate.Execution
                 executionContext,
                 rootResolverTasks,
                 batchOperationHandler,
-                cancellationToken);
+                cancellationToken)
+                    .ConfigureAwait(false);
 
             return executionContext.Result;
         }
@@ -50,7 +49,8 @@ namespace HotChocolate.Execution
             {
                 await ExecuteResolverBatchAsync(
                     executionContext, currentBatch, nextBatch,
-                    batchOperationHandler, cancellationToken);
+                    batchOperationHandler, cancellationToken)
+                        .ConfigureAwait(false);
 
                 swap = currentBatch;
                 currentBatch = nextBatch;
@@ -78,14 +78,16 @@ namespace HotChocolate.Execution
             await CompleteBatchOperationsAsync(
                 tasks,
                 batchOperationHandler,
-                cancellationToken);
+                cancellationToken)
+                    .ConfigureAwait(false);
 
             // await field resolver results
             await EndExecuteResolverBatchAsync(
                 executionContext,
                 currentBatch,
                 nextBatch.Add,
-                cancellationToken);
+                cancellationToken)
+                    .ConfigureAwait(false);
         }
 
         private IReadOnlyCollection<Task> BeginExecuteResolverBatch(
@@ -125,7 +127,8 @@ namespace HotChocolate.Execution
         {
             foreach (ResolverTask resolverTask in currentBatch)
             {
-                resolverTask.ResolverResult = await resolverTask.Task;
+                resolverTask.ResolverResult = await resolverTask.Task
+                    .ConfigureAwait(false);
 
                 // serialize and integrate result into final query result
                 var completionContext = new FieldValueCompletionContext(

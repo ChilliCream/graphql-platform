@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using HotChocolate.Configuration;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Types
 {
