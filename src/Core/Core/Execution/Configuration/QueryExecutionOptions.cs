@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Configuration
     {
         private const int _minMaxExecutionDepth = 1;
         private const int _minQueryCacheSize = 10;
-        private static readonly TimeSpan _min$ExecutionTimeout =
+        private static readonly TimeSpan _minExecutionTimeout =
             TimeSpan.FromMilliseconds(100);
 
         private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
