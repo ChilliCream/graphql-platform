@@ -55,7 +55,8 @@ namespace HotChocolate.Execution
                     cloned.ContextData[typeof(IEventMessage).FullName] = msg;
                     return cloned;
                 },
-                ExecuteSubscriptionQueryAsync);
+                ExecuteSubscriptionQueryAsync,
+                executionContext.ServiceScope);
         }
 
         private EventDescription CreateEvent(
