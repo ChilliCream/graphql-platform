@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching
                 Encoding.UTF8,
                 "application/json");
             HttpResponseMessage response = await _client
-                .PostAsync("", content).ConfigureAwait(false);
+                .PostAsync(new Uri(""), content).ConfigureAwait(false);
             string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
             ClientQueryResult result = JsonConvert

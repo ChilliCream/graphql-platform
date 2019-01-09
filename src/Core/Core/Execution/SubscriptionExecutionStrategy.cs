@@ -21,7 +21,6 @@ namespace HotChocolate.Execution
         {
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
-            ;
         }
 
         public override Task<IExecutionResult> ExecuteAsync(
