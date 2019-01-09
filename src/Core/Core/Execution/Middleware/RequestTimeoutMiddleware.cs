@@ -8,7 +8,6 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestTimeoutMiddleware
     {
-        private const int _debuggerTimeoutInMinutes = 30;
         private readonly QueryDelegate _next;
         private readonly IErrorHandler _errorHandler;
         private readonly IRequestTimeoutOptionsAccessor _options;
@@ -28,25 +27,30 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            TimeSpan timeout = Debugger.IsAttached
-                ? TimeSpan.FromMinutes(_debuggerTimeoutInMinutes)
-                : _options.ExecutionTimeout;
+            CancellationTokenSource requestTimeoutCts = null;
+            CancellationTokenSource combinedCts = null;
 
-            var requestTimeoutCts = new CancellationTokenSource(timeout);
+            CancellationToken requestAborted = context.RequestAborted;
+
+            if (!Debugger.IsAttached)
+            {
+                requestTimeoutCts = new CancellationTokenSource(
+                    _options.ExecutionTimeout);
+
+                combinedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                   requestTimeoutCts.Token,
+                   context.RequestAborted);
+
+                context.RequestAborted = combinedCts.Token;
+            }
 
             try
             {
-                using (var combinedCts = CancellationTokenSource
-                    .CreateLinkedTokenSource(requestTimeoutCts.Token,
-                        context.RequestAborted))
-                {
-                    context.RequestAborted = combinedCts.Token;
-                    await _next(context);
-                }
+                await _next(context);
             }
             catch (TaskCanceledException ex)
             {
-                if (!requestTimeoutCts.IsCancellationRequested)
+                if (requestAborted.IsCancellationRequested)
                 {
                     throw;
                 }
@@ -54,10 +58,10 @@ namespace HotChocolate.Execution
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(new QueryError(
                     "Execution timeout has been exceeded."));
-                return;
             }
             finally
             {
+                combinedCts.Dispose();
                 requestTimeoutCts.Dispose();
             }
         }
