@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;

@@ -1,5 +1,4 @@
 ﻿using System;
-using HotChocolate;
 using Xunit;
 
 namespace HotChocolate

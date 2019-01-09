@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -38,7 +35,8 @@ namespace HotChocolate.Execution
 
             using (var writer = new StreamWriter(stream, Encoding.UTF8))
             {
-                await writer.WriteAsync(JsonConvert.SerializeObject(formatted));
+                await writer.WriteAsync(JsonConvert.SerializeObject(formatted))
+                    .ConfigureAwait(false);
             }
         }
     }

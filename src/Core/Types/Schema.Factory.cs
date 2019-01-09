@@ -4,8 +4,6 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
 
 namespace HotChocolate

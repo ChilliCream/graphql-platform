@@ -1,5 +1,4 @@
-﻿using System.IO;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Benchmark.Tests.Language
 {

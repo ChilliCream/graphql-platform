@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -43,13 +44,12 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IServiceProvider services = (request.Services == null)
-                ? _applicationServices.Include(Schema.Services)
-                : _applicationServices.Include(request.Services);
+            IRequestServiceScope serviceScope = CreateServiceScope(
+                request.Services);
 
             var context = new QueryContext(
                 Schema,
-                services,
+                serviceScope,
                 request.ToReadOnly());
 
             return ExecuteMiddlewareAsync(context);
@@ -58,20 +58,41 @@ namespace HotChocolate.Execution
         private async Task<IExecutionResult> ExecuteMiddlewareAsync(
             IQueryContext context)
         {
-            await _queryDelegate(context);
-
-            if (context.Result == null)
+            try
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
-            }
+                await _queryDelegate(context).ConfigureAwait(false);
 
-            if (context.Result is IQueryResult queryResult)
+                if (context.Result == null)
+                {
+                    // TODO : Resources
+                    throw new InvalidOperationException();
+                }
+
+                if (context.Result is IQueryResult queryResult)
+                {
+                    return queryResult.AsReadOnly();
+                }
+
+                return context.Result;
+
+            }
+            finally
             {
-                return queryResult.AsReadOnly();
+                if (!context.ServiceScope.IsLifetimeHandled)
+                {
+                    context.ServiceScope.Dispose();
+                }
             }
+        }
 
-            return context.Result;
+        private IRequestServiceScope CreateServiceScope(
+            IServiceProvider requestServices)
+        {
+            IServiceScope serviceScope = _applicationServices.CreateScope();
+            IServiceProvider services = serviceScope.ServiceProvider
+                .Include(requestServices ?? Schema.Services);
+
+            return new RequestServiceScope(services, serviceScope);
         }
     }
 }

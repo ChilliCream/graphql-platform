@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ChilliCream.Testing;
-using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Utilities

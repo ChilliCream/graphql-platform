@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -13,7 +12,12 @@ namespace HotChocolate.Execution
         ISchema Schema { get; }
 
         /// <summary>
-        /// Gets the scoped execution services.
+        /// Gets the request service scope.
+        /// </summary>
+        IRequestServiceScope ServiceScope { get; }
+
+        /// <summary>
+        /// Gets the request scope services
         /// </summary>
         IServiceProvider Services { get; }
 

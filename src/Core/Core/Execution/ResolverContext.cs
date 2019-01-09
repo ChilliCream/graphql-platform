@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Utilities;
@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
                 return CoerceArgumentValue<T>(name, argumentValue);
             }
 
-            return default(T);
+            return default;
         }
 
         private T CoerceArgumentValue<T>(
@@ -127,7 +127,7 @@ namespace HotChocolate.Execution
                 return true;
             }
 
-            value = default(T);
+            value = default;
             return false;
         }
 
