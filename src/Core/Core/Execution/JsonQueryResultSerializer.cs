@@ -35,7 +35,8 @@ namespace HotChocolate.Execution
 
             using (var writer = new StreamWriter(stream, Encoding.UTF8))
             {
-                await writer.WriteAsync(JsonConvert.SerializeObject(formatted));
+                await writer.WriteAsync(JsonConvert.SerializeObject(formatted))
+                    .ConfigureAwait(false);
             }
         }
     }

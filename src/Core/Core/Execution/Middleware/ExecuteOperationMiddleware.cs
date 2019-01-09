@@ -27,17 +27,18 @@ namespace HotChocolate.Execution
         {
             if (IsContextValid(context))
             {
-                IExecutionStrategy strategy =
-                    _strategyResolver.Resolve(
-                        context.Operation.Type);
-                IExecutionContext executionContext =
-                    CreateExecutionContext(context);
+                IExecutionStrategy strategy = _strategyResolver
+                    .Resolve(context.Operation.Type);
+                IExecutionContext executionContext = CreateExecutionContext(
+                    context);
 
                 context.Result = await strategy.ExecuteAsync(
-                    executionContext, executionContext.RequestAborted);
+                    executionContext,
+                    executionContext.RequestAborted)
+                        .ConfigureAwait(false);
             }
 
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
         }
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
@@ -45,8 +46,12 @@ namespace HotChocolate.Execution
             DirectiveLookup directives = GetOrCreateDirectiveLookup(context);
 
             return new ExecutionContext(
-                context.Schema, context.ServiceScope, context.Operation,
-                context.Variables, directives, context.ContextData,
+                context.Schema,
+                context.ServiceScope,
+                context.Operation,
+                context.Variables,
+                directives,
+                context.ContextData,
                 context.RequestAborted);
         }
 
@@ -57,9 +62,11 @@ namespace HotChocolate.Execution
                 context.Request.Query,
                 () =>
                 {
-                    var directiveCollector =
-                        new DirectiveCollector(context.Schema);
+                    var directiveCollector =  new DirectiveCollector(
+                        context.Schema);
+
                     directiveCollector.VisitDocument(context.Document);
+
                     return directiveCollector.CreateLookup();
                 });
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -18,15 +18,13 @@ namespace HotChocolate.Stitching
 
         public HttpQueryExecuter(HttpClient client)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _client = client ??
+                throw new ArgumentNullException(nameof(client));
         }
 
         public ISchema Schema => throw new NotImplementedException();
 
-        public void Dispose()
-        {
-
-        }
+        public void Dispose() { }
 
         public async Task<IExecutionResult> ExecuteAsync(
             QueryRequest request,
@@ -38,9 +36,9 @@ namespace HotChocolate.Stitching
                 OperationName = request.OperationName,
                 Variables = request.VariableValues
             };
-
             var content = new StringContent(
-                JsonConvert.SerializeObject(remoteRquest,
+                JsonConvert.SerializeObject(
+                    remoteRquest,
                     new JsonSerializerSettings
                     {
                         ContractResolver =
@@ -48,16 +46,15 @@ namespace HotChocolate.Stitching
                     }),
                 Encoding.UTF8,
                 "application/json");
-
-            HttpResponseMessage response = await _client.PostAsync("", content);
-
-            string json = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
-
+            HttpResponseMessage response = await _client
+                .PostAsync("", content).ConfigureAwait(false);
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
             OrderedDictionary data = result.Data == null
                 ? null
                 : result.Data.ToDictionary();
-
             var queryResult = new QueryResult();
 
             if (data != null)

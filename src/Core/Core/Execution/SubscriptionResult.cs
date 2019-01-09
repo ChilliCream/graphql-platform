@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,8 +62,11 @@ namespace HotChocolate.Execution
             using (var ct = CancellationTokenSource.CreateLinkedTokenSource(
                 _cancellationTokenSource.Token, cancellationToken))
             {
-                IEventMessage message = await _eventStream.ReadAsync(ct.Token);
-                return await ExecuteQueryAsync(message, ct.Token);
+                IEventMessage message = await _eventStream.ReadAsync(ct.Token)
+                    .ConfigureAwait(false);
+
+                return await ExecuteQueryAsync(message, ct.Token)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -72,7 +75,9 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             IExecutionContext context = _contextFactory(message);
-            return await _executeQuery(context, cancellationToken);
+
+            return await _executeQuery(context, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public void Dispose()
@@ -91,6 +96,7 @@ namespace HotChocolate.Execution
                     _eventStream.Dispose();
                     _cancellationTokenSource.Dispose();
                 }
+
                 _isCompleted = true;
             }
         }

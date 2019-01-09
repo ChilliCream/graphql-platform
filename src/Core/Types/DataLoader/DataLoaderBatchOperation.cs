@@ -26,7 +26,8 @@ namespace HotChocolate.DataLoader
             {
                 if (dataLoader.BufferedRequests > 0)
                 {
-                    await dataLoader.DispatchAsync(cancellationToken);
+                    await dataLoader.DispatchAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
         }
