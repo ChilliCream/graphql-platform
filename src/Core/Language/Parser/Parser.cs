@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -40,11 +40,13 @@ namespace HotChocolate.Language
             }
 
             SyntaxToken start = _lexer.Read(source);
+
             if (start.Kind != TokenKind.StartOfFile)
             {
                 throw new InvalidOperationException(
                     "The first token must be a start of file token.");
             }
+
             return ParseDocument(source, start,
                 options ?? ParserOptions.Default);
         }
@@ -54,9 +56,8 @@ namespace HotChocolate.Language
             SyntaxToken start,
             ParserOptions options)
         {
-            List<IDefinitionNode> definitions = new List<IDefinitionNode>();
-            ParserContext context = new ParserContext(
-                source, start, options, ParseName);
+            var definitions = new List<IDefinitionNode>();
+            var context = new ParserContext(source, start, options, ParseName);
 
             context.MoveNext();
 

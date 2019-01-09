@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
@@ -24,7 +25,8 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema);
             var request = new QueryRequest("{ a }");
 
             // act
@@ -36,14 +38,34 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task ExecuteShortHandQueryWithTracing()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema, new QueryExecutionOptions
+                {
+                    EnableTracing = true
+                });
+            var request = new QueryRequest("{ a }");
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(request);
+
+            // assert
+            Assert.NotEmpty(result.Extensions);
+            Assert.True(result.Extensions.ContainsKey("tracing"));
+        }
+
+        [Fact]
         public async Task ExecuteWithMissingVariables_Error()
         {
             // arrange
             var variableValues =
                 new Dictionary<string, object>();
-
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            IQueryExecuter executer = QueryExecutionBuilder
+                .BuildDefault(schema);
             var request = new QueryRequest(
                 "query x($a: String!) { b(a: $a) }")
             {

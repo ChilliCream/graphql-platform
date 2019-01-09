@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -32,7 +30,8 @@ namespace HotChocolate.Execution
             try
             {
                 IEnumerable<ResolverTask> rootResolverTasks =
-                    CreateRootResolverTasks(executionContext,
+                    CreateRootResolverTasks(
+                        executionContext,
                         executionContext.Result.Data);
 
                 await ExecuteResolverBatchSeriallyAsync(
@@ -40,7 +39,7 @@ namespace HotChocolate.Execution
                     rootResolverTasks,
                     batchOperationHandler,
                     cancellationToken)
-                    .ConfigureAwait(false);
+                        .ConfigureAwait(false);
 
                 return executionContext.Result;
             }
@@ -66,18 +65,15 @@ namespace HotChocolate.Execution
                     nextBatch.Add,
                     batchOperationHandler,
                     cancellationToken)
-                    .ConfigureAwait(false);
-
+                        .ConfigureAwait(false);
                 // execute child fields with the default parallel flow logic
                 await ExecuteResolversAsync(
                     executionContext,
                     nextBatch,
                     batchOperationHandler,
                     cancellationToken)
-                    .ConfigureAwait(false);
-
+                        .ConfigureAwait(false);
                 nextBatch.Clear();
-
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }
@@ -93,25 +89,20 @@ namespace HotChocolate.Execution
                 resolverTask,
                 executionContext.ErrorHandler,
                 cancellationToken);
-
             await CompleteBatchOperationsAsync(
                 new[] { resolverTask.Task },
                 batchOperationHandler,
-                cancellationToken);
-
-            if (resolverTask.Task.IsCompleted)
-            {
-                resolverTask.ResolverResult = resolverTask.Task.Result;
-            }
-            else
-            {
-                resolverTask.ResolverResult = await resolverTask.Task;
-            }
+                cancellationToken)
+                    .ConfigureAwait(false);
+            resolverTask.ResolverResult = await resolverTask.Task
+                .ConfigureAwait(false);
 
             // serialize and integrate result into final query result
             var completionContext = new FieldValueCompletionContext(
-                executionContext, resolverTask.ResolverContext,
-                resolverTask, enqueueTask);
+                executionContext,
+                resolverTask.ResolverContext,
+                resolverTask,
+                enqueueTask);
 
             CompleteValue(completionContext);
         }

@@ -1,15 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Utilities;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -46,14 +43,16 @@ namespace HotChocolate.Execution
                 query, operationNode, schema.MutationType,
                 null);
 
-            var request = new QueryRequest("{ a }").ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
+                .ToReadOnly();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(schema, services, request)
+            var context = new QueryContext(
+                schema, services.CreateRequestServiceScope(), request)
             {
                 Document = query,
                 Operation = operation,

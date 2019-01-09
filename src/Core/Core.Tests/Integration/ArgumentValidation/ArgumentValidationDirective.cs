@@ -1,7 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Integration.ArgumentValidation
 {

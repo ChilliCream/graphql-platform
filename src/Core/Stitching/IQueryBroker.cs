@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 

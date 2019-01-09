@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 

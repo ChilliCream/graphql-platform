@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace HotChocolate.Language
+﻿namespace HotChocolate.Language
 {
     public class DummyQuerySyntaxWalker
         : QuerySyntaxWalker<object>

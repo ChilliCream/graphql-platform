@@ -2,7 +2,6 @@
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types

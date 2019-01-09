@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 
@@ -25,13 +27,17 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
         }
 
-        public Task InvokeAsync(IQueryContext context)
+        public async Task InvokeAsync(IQueryContext context)
         {
+            Activity activity = ParsingDiagnosticEvents.BeginParsing(context);
+
             context.Document = _queryCache.GetOrCreate(
                 context.Request.Query,
                 () => ParseDocument(context.Request.Query));
 
-            return _next(context);
+            await _next(context).ConfigureAwait(false);
+
+            ParsingDiagnosticEvents.EndParsing(activity, context);
         }
 
         private DocumentNode ParseDocument(string queryText)

@@ -1,7 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Columns;
-using BenchmarkDotNet.Attributes.Exporters;
-using BenchmarkDotNet.Attributes.Jobs;
+using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Benchmark.Tests.Language

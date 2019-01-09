@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate.Resolvers;
 using Xunit;
 
 namespace HotChocolate.Execution
