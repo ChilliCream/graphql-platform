@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
@@ -7,6 +8,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestTimeoutMiddleware
     {
+        private const int _debuggerTimeoutInMinutes = 30;
         private readonly QueryDelegate _next;
         private readonly IErrorHandler _errorHandler;
         private readonly IRequestTimeoutOptionsAccessor _options;
@@ -26,8 +28,11 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            var requestTimeoutCts = new CancellationTokenSource(
-                _options.ExecutionTimeout);
+            TimeSpan timeout = Debugger.IsAttached
+                ? TimeSpan.FromMinutes(_debuggerTimeoutInMinutes)
+                : _options.ExecutionTimeout;
+
+            var requestTimeoutCts = new CancellationTokenSource(timeout);
 
             try
             {
