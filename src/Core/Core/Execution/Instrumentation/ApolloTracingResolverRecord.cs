@@ -4,11 +4,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingResolverStatistics
+    internal class ApolloTracingResolverRecord
     {
-        internal ApolloTracingResolverStatistics() { }
+        internal ApolloTracingResolverRecord() { }
 
-        public ApolloTracingResolverStatistics(IResolverContext context)
+        public ApolloTracingResolverRecord(IResolverContext context)
         {
             Path = context.Path.ToFieldPathArray();
             ParentType = context.ObjectType.Name;

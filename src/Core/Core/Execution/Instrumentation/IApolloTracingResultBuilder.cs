@@ -13,10 +13,10 @@ namespace HotChocolate.Execution.Instrumentation
         void SetValidationResult(long startTimestamp, long endTimestamp);
 
         void AddResolverResult(
-            ApolloTracingResolverStatistics resolverStatistics);
+            ApolloTracingResolverRecord record);
 
         void SetRequestDuration(TimeSpan duration);
 
-        ApolloTracingResult Build();
+        OrderedDictionary Build();
     }
 }

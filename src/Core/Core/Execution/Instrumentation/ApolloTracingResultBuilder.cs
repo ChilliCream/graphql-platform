@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 
 namespace HotChocolate.Execution.Instrumentation
 {
@@ -9,14 +8,14 @@ namespace HotChocolate.Execution.Instrumentation
     {
         private const int _apolloTracingVersion = 1;
         private const long _ticksToNanosecondsMultiplicator = 100;
-        private readonly ConcurrentQueue<ApolloTracingResolverStatistics>
-            _resolverResults =
-                new ConcurrentQueue<ApolloTracingResolverStatistics>();
+        private readonly ConcurrentQueue<ApolloTracingResolverRecord>
+            _resolverRecords =
+                new ConcurrentQueue<ApolloTracingResolverRecord>();
         private TimeSpan _duration;
-        private ApolloTracingOperationResult _parsingResult;
+        private OrderedDictionary _parsingResult;
         private DateTimeOffset _startTime;
         private long _startTimestamp;
-        private ApolloTracingOperationResult _validationResult;
+        private OrderedDictionary _validationResult;
 
         public void SetRequestStartTime(
             DateTimeOffset startTime,
@@ -28,26 +27,38 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void SetParsingResult(long startTimestamp, long endTimestamp)
         {
-            _parsingResult = new ApolloTracingOperationResult
+            _parsingResult = new OrderedDictionary
             {
-                StartOffset = startTimestamp - _startTimestamp,
-                Duration = endTimestamp - startTimestamp
+                {
+                    ApolloTracingResultKeys.StartOffset,
+                    startTimestamp - _startTimestamp
+                },
+                {
+                    ApolloTracingResultKeys.Duration,
+                    endTimestamp - startTimestamp
+                }
             };
         }
 
         public void SetValidationResult(long startTimestamp, long endTimestamp)
         {
-            _validationResult = new ApolloTracingOperationResult
+            _validationResult = new OrderedDictionary
             {
-                StartOffset = startTimestamp - _startTimestamp,
-                Duration = endTimestamp - startTimestamp
+                {
+                    ApolloTracingResultKeys.StartOffset,
+                    startTimestamp - _startTimestamp
+                },
+                {
+                    ApolloTracingResultKeys.Duration,
+                    endTimestamp - startTimestamp
+                }
             };
         }
 
         public void AddResolverResult(
-            ApolloTracingResolverStatistics resolverStatistics)
+            ApolloTracingResolverRecord record)
         {
-            _resolverResults.Enqueue(resolverStatistics);
+            _resolverRecords.Enqueue(record);
         }
 
         public void SetRequestDuration(TimeSpan duration)
@@ -55,38 +66,88 @@ namespace HotChocolate.Execution.Instrumentation
             _duration = duration;
         }
 
-        public ApolloTracingResult Build()
+        public OrderedDictionary Build()
         {
-            ApolloTracingExecutionResult executionResult = null;
-
-            if (_resolverResults.Count > 0)
+            return new OrderedDictionary
             {
-                executionResult = new ApolloTracingExecutionResult
                 {
-                    Resolvers = _resolverResults
-                        .Select(r => new ApolloTracingResolverResult
+                    ApolloTracingResultKeys.Version,
+                    _apolloTracingVersion
+                },
+                {
+                    ApolloTracingResultKeys.StartTime,
+                    _startTime.ToRfc3339DateTimeString()
+                },
+                {
+                    ApolloTracingResultKeys.EndTime,
+                    _startTime.Add(_duration).ToRfc3339DateTimeString()
+                },
+                {
+                    ApolloTracingResultKeys.Duration,
+                    _duration.Ticks * _ticksToNanosecondsMultiplicator
+                },
+                {
+                    ApolloTracingResultKeys.Parsing,
+                    _parsingResult
+                },
+                {
+                    ApolloTracingResultKeys.Validation,
+                    _validationResult
+                },
+                {
+                    ApolloTracingResultKeys.Execution,
+                    new OrderedDictionary
+                    {
                         {
-                            Path = r.Path,
-                            ParentType = r.ParentType,
-                            FieldName = r.FieldName,
-                            ReturnType = r.ReturnType,
-                            StartOffset = r.StartTimestamp - _startTimestamp,
-                            Duration = r.EndTimestamp - r.StartTimestamp
-                        })
-                        .ToArray()
+                            ApolloTracingResultKeys.Resolvers,
+                            BuildResolverResults()
+                        }
+                    }
+                }
+            };
+        }
+
+        private OrderedDictionary[] BuildResolverResults()
+        {
+            ApolloTracingResolverRecord[] records =
+                _resolverRecords.ToArray();
+            var resolvers = new OrderedDictionary[records.Length];
+
+            for (var i = 0; i < records.Length; i++)
+            {
+                ApolloTracingResolverRecord record =
+                    records[i];
+
+                resolvers[i] = new OrderedDictionary
+                {
+                    {
+                        ApolloTracingResultKeys.Path,
+                        record.Path
+                    },
+                    {
+                        ApolloTracingResultKeys.ParentType,
+                        record.ParentType
+                    },
+                    {
+                        ApolloTracingResultKeys.FieldName,
+                        record.FieldName
+                    },
+                    {
+                        ApolloTracingResultKeys.ReturnType,
+                        record.ReturnType
+                    },
+                    {
+                        ApolloTracingResultKeys.StartOffset,
+                        record.StartTimestamp - _startTimestamp
+                    },
+                    {
+                        ApolloTracingResultKeys.Duration,
+                        record.EndTimestamp - record.StartTimestamp
+                    }
                 };
             }
 
-            return new ApolloTracingResult
-            {
-                Version = _apolloTracingVersion,
-                StartTime = _startTime.ToRfc3339DateTimeString(),
-                EndTime = _startTime.Add(_duration).ToRfc3339DateTimeString(),
-                Duration = _duration.Ticks * _ticksToNanosecondsMultiplicator,
-                Parsing = _parsingResult,
-                Validation = _validationResult,
-                Execution = executionResult
-            };
+            return resolvers;
         }
     }
 }

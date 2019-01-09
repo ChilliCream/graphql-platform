@@ -1,43 +1,43 @@
 {
-  "Version": 1,
-  "StartTime": "2019-01-06T20:11:09.8524527Z",
-  "EndTime": "2019-01-06T20:11:09.9744527Z",
-  "Duration": 122000000,
-  "Parsing": {
-    "StartOffset": 9999800,
-    "Duration": 7930400
+  "version": 1,
+  "startTime": "2019-01-06T20:11:09.8524527Z",
+  "endTime": "2019-01-06T20:11:09.9744527Z",
+  "duration": 122000000,
+  "parsing": {
+    "startOffset": 9999800,
+    "duration": 7930400
   },
-  "Validation": {
-    "StartOffset": 19999900,
-    "Duration": 30008400
+  "validation": {
+    "startOffset": 19999900,
+    "duration": 30008400
   },
-  "Execution": {
-    "Resolvers": [
+  "execution": {
+    "resolvers": [
       {
-        "Path": [
+        "path": [
           "root",
           "field",
           0,
           "value"
         ],
-        "ParentType": "ParentTypeA",
-        "FieldName": "FieldNameA",
-        "ReturnType": "ReturnTypeA",
-        "StartOffset": 59999700,
-        "Duration": 9920900
+        "parentType": "ParentTypeA",
+        "fieldName": "FieldNameA",
+        "returnType": "ReturnTypeA",
+        "startOffset": 59999700,
+        "duration": 9920900
       },
       {
-        "Path": [
+        "path": [
           "root",
           "field",
           1,
           "value"
         ],
-        "ParentType": "ParentTypeB",
-        "FieldName": "FieldNameB",
-        "ReturnType": "ReturnTypeB",
-        "StartOffset": 79999700,
-        "Duration": 19959800
+        "parentType": "ParentTypeB",
+        "fieldName": "FieldNameB",
+        "returnType": "ReturnTypeB",
+        "startOffset": 79999700,
+        "duration": 19959800
       }
     ]
   }

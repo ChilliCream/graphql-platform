@@ -95,7 +95,7 @@ namespace HotChocolate.Execution.Instrumentation
             long startTimestamp = GetStartTimestamp();
 
             _builder.AddResolverResult(
-                new ApolloTracingResolverStatistics(context)
+                new ApolloTracingResolverRecord(context)
                 {
                     StartTimestamp = startTimestamp,
                     EndTimestamp = stopTimestamp

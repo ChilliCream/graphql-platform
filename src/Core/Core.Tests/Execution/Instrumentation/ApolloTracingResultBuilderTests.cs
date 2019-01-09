@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Instrumentation
             var builder = new ApolloTracingResultBuilder();
 
             // act
-            ApolloTracingResult result = builder.Build();
+            OrderedDictionary result = builder.Build();
 
             // assert
             result.Snapshot();
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Instrumentation
                 DateTimeKind.Utc);
             const long startTimestamp = 1113752384890500;
             Path rootPath = Path.New("root").Append("field");
-            var rosolverStatisticsA = new ApolloTracingResolverStatistics
+            var rosolverStatisticsA = new ApolloTracingResolverRecord
             {
                 Path = rootPath.Append(0).Append("value").ToFieldPathArray(),
                 ParentType = "ParentTypeA",
@@ -38,7 +38,7 @@ namespace HotChocolate.Execution.Instrumentation
                 StartTimestamp = 1113752444890200,
                 EndTimestamp = 1113752454811100
             };
-            var rosolverStatisticsB = new ApolloTracingResolverStatistics
+            var rosolverStatisticsB = new ApolloTracingResolverRecord
             {
                 Path = rootPath.Append(1).Append("value").ToFieldPathArray(),
                 ParentType = "ParentTypeB",
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution.Instrumentation
             builder.SetRequestDuration(duration);
 
             // act
-            ApolloTracingResult result = builder.Build();
+            OrderedDictionary result = builder.Build();
 
             // assert
             result.Snapshot();
