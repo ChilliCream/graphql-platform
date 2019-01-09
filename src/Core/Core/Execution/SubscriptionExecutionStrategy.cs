@@ -19,11 +19,8 @@ namespace HotChocolate.Execution
         public SubscriptionExecutionStrategy(
             IRequestTimeoutOptionsAccessor options)
         {
-            if (options == null)
-            {
+            _options = options ??
                 throw new ArgumentNullException(nameof(options));
-            }
-            _options = options;
         }
 
         public override Task<IExecutionResult> ExecuteAsync(
@@ -45,17 +42,22 @@ namespace HotChocolate.Execution
             EventDescription eventDescription = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services, eventDescription);
+                executionContext.Services,
+                eventDescription)
+                    .ConfigureAwait(false);
 
             return new SubscriptionResult(
                 eventStream,
                 msg =>
                 {
                     IExecutionContext cloned = executionContext.Clone();
+
                     cloned.ContextData[typeof(IEventMessage).FullName] = msg;
+
                     return cloned;
                 },
-                ExecuteSubscriptionQueryAsync);
+                ExecuteSubscriptionQueryAsync,
+                executionContext.ServiceScope);
         }
 
         private EventDescription CreateEvent(
@@ -69,9 +71,8 @@ namespace HotChocolate.Execution
             if (selections.Count == 1)
             {
                 FieldSelection selection = selections.Single();
-                Dictionary<string, ArgumentValue> argumentValues =
-                    selection.CoerceArgumentValues(
-                        executionContext.Variables);
+                Dictionary<string, ArgumentValue> argumentValues = selection
+                    .CoerceArgumentValues(executionContext.Variables);
                 var arguments = new List<ArgumentNode>();
 
                 foreach (KeyValuePair<string, ArgumentValue> argumentValue in
@@ -98,8 +99,8 @@ namespace HotChocolate.Execution
             IServiceProvider services,
             EventDescription @event)
         {
-            IEventRegistry eventRegistry =
-                (IEventRegistry)services.GetService(typeof(IEventRegistry));
+            var eventRegistry = (IEventRegistry)services
+                .GetService(typeof(IEventRegistry));
 
             if (eventRegistry == null)
             {
@@ -123,13 +124,16 @@ namespace HotChocolate.Execution
             try
             {
                 using (var combinedCts = CancellationTokenSource
-                    .CreateLinkedTokenSource(requestTimeoutCts.Token,
+                    .CreateLinkedTokenSource(
+                        requestTimeoutCts.Token,
                         cancellationToken))
                 {
                     IQueryResult result = await ExecuteQueryAsync(
                         executionContext,
                         batchOperationHandler,
-                        cancellationToken);
+                        cancellationToken)
+                            .ConfigureAwait(false);
+
                     return result.AsReadOnly();
                 }
             }

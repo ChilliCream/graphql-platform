@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
-using HotChocolate.Stitching;
 using Xunit;
 
 namespace HotChocolate.Stitching

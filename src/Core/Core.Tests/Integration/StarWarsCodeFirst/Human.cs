@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Types;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst
 {

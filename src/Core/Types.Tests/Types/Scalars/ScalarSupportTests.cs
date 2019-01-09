@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace HotChocolate

@@ -1,6 +1,4 @@
-﻿using System;
-using HotChocolate.Execution;
-using Xunit;
+﻿using Xunit;
 
 namespace HotChocolate.Execution
 {

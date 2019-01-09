@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
@@ -29,28 +31,38 @@ namespace HotChocolate.Execution
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
         }
-
-        public Task InvokeAsync(IQueryContext context)
+         
+        public async Task InvokeAsync(IQueryContext context)
         {
+            Activity activity = ValidationDiagnosticEvents
+                .BeginValidation(context);
+
             if (context.Document == null)
             {
                 // TODO : Resources
-                throw new QueryException(
-                    "The validation pipeline expectes the " +
-                    "query document to be parsed.");
+                context.Result = QueryResult.CreateError(new QueryError(
+                    "The validation middleware expectes the " +
+                    "query document to be parsed."));
             }
-
-            context.ValidationResult = _validatorCache.GetOrCreate(
-                context.Request.Query,
-                () => Validate(context.Schema, context.Document));
-
-            if (context.ValidationResult.HasErrors)
+            else
             {
-                context.Result = QueryResult.CreateError(
-                    context.ValidationResult.Errors);
-                return Task.CompletedTask;
+                context.ValidationResult = _validatorCache.GetOrCreate(
+                    context.Request.Query,
+                    () => Validate(context.Schema, context.Document));
+
+                if (context.ValidationResult.HasErrors)
+                {
+                    context.Result = QueryResult.CreateError(
+                        context.ValidationResult.Errors);
+                    ValidationDiagnosticEvents.ValidationError(context);
+                }
+                else
+                {
+                    await _next(context).ConfigureAwait(false);
+                }
             }
-            return _next(context);
+
+            ValidationDiagnosticEvents.EndValidation(activity, context);
         }
 
         private QueryValidationResult Validate(

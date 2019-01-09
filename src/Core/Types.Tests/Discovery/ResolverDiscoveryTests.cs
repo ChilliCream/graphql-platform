@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using HotChocolate.Language;
+﻿using System.Linq;
 using HotChocolate.Types;
 using Xunit;
 

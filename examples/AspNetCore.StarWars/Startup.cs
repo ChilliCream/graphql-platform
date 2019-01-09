@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -45,7 +46,11 @@ namespace StarWars
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();
-            }));
+            }),
+            new QueryExecutionOptions
+            {
+                EnableTracing = true
+            });
 
             // Add Authorization Policy
             services.AddAuthorization(options =>

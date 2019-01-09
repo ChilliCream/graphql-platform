@@ -1,10 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using BenchmarkDotNet.Running;
 using HotChocolate.Benchmark.Tests.Execution;
 using HotChocolate.Benchmark.Tests.Language;
+using HotChocolate.Benchmark.Tests.Misc;
 
 namespace HotChocolate.Benchmark.Tests
 {
@@ -16,6 +13,7 @@ namespace HotChocolate.Benchmark.Tests
             BenchmarkRunner.Run<LexerBenchmarks>();
             BenchmarkRunner.Run<QueryExecuterWithCacheBenchmarks>();
             BenchmarkRunner.Run<QueryExecuterBenchmarks>();
+            BenchmarkRunner.Run<TimestampBenchmarks>();
         }
     }
 }

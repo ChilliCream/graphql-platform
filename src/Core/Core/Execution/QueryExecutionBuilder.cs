@@ -45,10 +45,12 @@ namespace HotChocolate.Execution
         private ServiceCollection CopyServiceCollection()
         {
             var copy = new ServiceCollection();
-            foreach (var descriptor in Services)
+
+            foreach (ServiceDescriptor descriptor in Services)
             {
                 ((IList<ServiceDescriptor>)copy).Add(descriptor);
             }
+
             return copy;
         }
 

@@ -1,6 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
-using Xunit;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {

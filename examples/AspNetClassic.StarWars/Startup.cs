@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Owin;
@@ -37,7 +38,11 @@ namespace StarWars
                 c.RegisterType<HumanType>();
                 c.RegisterType<DroidType>();
                 c.RegisterType<EpisodeType>();
-            }));
+            }),
+            new QueryExecutionOptions
+            {
+                EnableTracing = true
+            });
 
             // Add Authorization Policy
             //services.AddAuthorization(options =>

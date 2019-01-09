@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -26,7 +23,7 @@ namespace HotChocolate.Execution
             }.ToReadOnly();
 
             var context = new QueryContext(
-                schema, new EmptyServiceProvider(), request);
+                schema, MiddlewareTools.CreateEmptyRequestServiceScope(), request);
             context.Document = Parser.Default.Parse(request.Query);
             context.Operation = new Operation(
                 context.Document,

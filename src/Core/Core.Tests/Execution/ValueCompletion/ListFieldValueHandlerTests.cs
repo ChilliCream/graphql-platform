@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
