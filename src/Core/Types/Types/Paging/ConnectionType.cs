@@ -2,8 +2,11 @@
 {
     public class ConnectionType<T>
         : ObjectType<IConnection>
+        , IConnectionType
         where T : INamedOutputType, new()
     {
+        public IEdgeType EdgeType { get; private set; }
+
         protected override void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
@@ -29,6 +32,15 @@
 
             context.RegisterType(new TypeReference(typeof(T)));
             context.RegisterType(new TypeReference(typeof(EdgeType<T>)));
+        }
+
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
+        {
+            EdgeType = context.GetType<EdgeType<T>>(
+                new TypeReference(typeof(EdgeType<T>)));
+
+            base.OnCompleteType(context);
         }
     }
 }
