@@ -708,10 +708,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             }";
 
             IQueryExecuter executer = CreateSchema().MakeExecutable(
-                new QueryExecutionOptions
-                {
-                    MaxExecutionDepth = 3
-                });
+                new QueryExecutionOptions { MaxExecutionDepth = 3 });
 
             // act
             IExecutionResult result = executer.Execute(query);

@@ -38,23 +38,11 @@ namespace HotChocolate.Execution
             }
             else
             {
-                try
-                {
-                    context.Document = _queryCache.GetOrCreate(
-                        context.Request.Query,
-                        () => ParseDocument(context.Request.Query));
+                context.Document = _queryCache.GetOrCreate(
+                    context.Request.Query,
+                    () => ParseDocument(context.Request.Query));
 
-                    await _next(context).ConfigureAwait(false);
-                }
-                catch (SyntaxException ex)
-                {
-                    context.Result = QueryResult.CreateError(
-                        new QueryError
-                        (
-                            ex.Message,
-                            new[] { new Location(ex.Line, ex.Column) }
-                        ).WithCode("CANNOT_PARSE_QUERY"));
-                }
+                await _next(context).ConfigureAwait(false);
             }
 
             ParsingDiagnosticEvents.EndParsing(activity, context);

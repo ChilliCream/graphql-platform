@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -29,6 +30,16 @@ namespace HotChocolate.Execution
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(
                     _errorHandler.Handle(ex.Errors));
+            }
+            catch (SyntaxException ex)
+            {
+                QueryResult.CreateError(
+                    _errorHandler.Handle(ex, error => error
+                        .WithMessage(ex.Message)
+                        .WithLocations(new[]
+                        {
+                            new Location(ex.Line, ex.Column)
+                        })));
             }
             catch (Exception ex)
             {
