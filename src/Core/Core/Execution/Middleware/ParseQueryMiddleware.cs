@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
             return _parser.Parse(queryText);
         }
 
-        private bool IsContextIncomplete(IQueryContext context)
+        private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Request == null
                 || context.Request.Query == null;

@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
         }
 
 
-        private bool IsContextIncomplete(IQueryContext context)
+        private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Document == null
                 || context.Variables == null
