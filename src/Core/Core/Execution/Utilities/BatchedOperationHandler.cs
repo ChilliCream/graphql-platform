@@ -49,14 +49,15 @@ namespace HotChocolate.Execution
             }
 
             SubscribeToTasks(tasks);
-            await InvokeBatchOperationsAsync(cancellationToken);
+            await InvokeBatchOperationsAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             if (tasks.Any(IsInProgress))
             {
                 _completed = new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
                 StartCompleteTask(tasks, cancellationToken);
-                await _completed.Task;
+                await _completed.Task.ConfigureAwait(false);
             }
         }
 
@@ -75,8 +76,10 @@ namespace HotChocolate.Execution
             {
                 while (tasks.Any(IsInProgress))
                 {
-                    await _processSync.WaitAsync(cancellationToken);
-                    await InvokeBatchOperationsAsync(cancellationToken);
+                    await _processSync.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    await InvokeBatchOperationsAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
             finally
@@ -90,12 +93,13 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             foreach (IBatchOperation batchOperation in
-                await GetTouchedOperationsAsync(cancellationToken))
+                await GetTouchedOperationsAsync(cancellationToken)
+                .ConfigureAwait(false))
             {
                 if (batchOperation.BufferSize > 0)
                 {
-                    await batchOperation.InvokeAsync(
-                        cancellationToken);
+                    await batchOperation.InvokeAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -103,7 +107,8 @@ namespace HotChocolate.Execution
         private async Task<HashSet<IBatchOperation>> GetTouchedOperationsAsync(
             CancellationToken cancellationToken)
         {
-            await _touchedSync.WaitAsync(cancellationToken);
+            await _touchedSync.WaitAsync(cancellationToken)
+                .ConfigureAwait(false);
 
             try
             {
@@ -124,11 +129,19 @@ namespace HotChocolate.Execution
             {
                 task.GetAwaiter().OnCompleted(() =>
                 {
-                    if (_processSync.CurrentCount == 0)
-                    {
-                        _processSync.Release();
-                    }
+                    ReleaseProcessSyncIfNeeded();
                 });
+            }
+        }
+
+        private void ReleaseProcessSyncIfNeeded()
+        {
+            lock (_processSync)
+            {
+                if (_processSync.CurrentCount == 0)
+                {
+                    _processSync.Release();
+                }
             }
         }
 
@@ -146,10 +159,7 @@ namespace HotChocolate.Execution
             {
                 _touchedSync.Release();
 
-                if (_processSync.CurrentCount == 0)
-                {
-                    _processSync.Release();
-                }
+                ReleaseProcessSyncIfNeeded();
             }
         }
 
