@@ -7,7 +7,6 @@ using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
-    // diagnostics -> Exceptions -> Parse -> Validate -> ResolveOperation
     internal sealed class ParseQueryMiddleware
     {
         private readonly QueryDelegate _next;
@@ -39,11 +38,23 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Document = _queryCache.GetOrCreate(
-                    context.Request.Query,
-                    () => ParseDocument(context.Request.Query));
+                try
+                {
+                    context.Document = _queryCache.GetOrCreate(
+                        context.Request.Query,
+                        () => ParseDocument(context.Request.Query));
 
-                await _next(context).ConfigureAwait(false);
+                    await _next(context).ConfigureAwait(false);
+                }
+                catch (SyntaxException ex)
+                {
+                    context.Result = QueryResult.CreateError(
+                        new QueryError
+                        (
+                            ex.Message,
+                            new[] { new Location(ex.Line, ex.Column) }
+                        ).WithCode("CANNOT_PARSE_QUERY"));
+                }
             }
 
             ParsingDiagnosticEvents.EndParsing(activity, context);
