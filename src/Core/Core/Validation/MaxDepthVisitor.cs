@@ -50,17 +50,17 @@ namespace HotChocolate.Validation
         }
 
         protected override void VisitField(
-            FieldNode field,
+            FieldNode node,
             MaxDepthVisitor.Context context)
         {
-            MaxDepthVisitor.Context current = context.AddField(field);
+            MaxDepthVisitor.Context current = context.AddField(node);
 
             if (current.FieldPath.Count > _maxExecutionDepth)
             {
-                current.AddViolation(field);
+                current.AddViolation(node);
             }
 
-            base.VisitField(field, current);
+            base.VisitField(node, current);
         }
 
         protected override void VisitFragmentSpread(
