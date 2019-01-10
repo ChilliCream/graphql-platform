@@ -8,7 +8,6 @@ namespace HotChocolate.Validation
     internal sealed class MaxComplexityVisitor
         : QuerySyntaxWalker<MaxComplexityVisitorContext>
     {
-        List<string> list = new List<string>();
         protected override bool VisitFragmentDefinitions => false;
 
         public int Visit(
@@ -107,25 +106,23 @@ namespace HotChocolate.Validation
         }
 
         protected override void VisitField(
-            FieldNode field,
+            FieldNode node,
             MaxComplexityVisitorContext context)
         {
-            list.Add(field.Name.Value);
-
             MaxComplexityVisitorContext newContext = context;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(field.Name.Value,
+                && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField fieldDefinition))
             {
-                newContext = newContext.AddField(fieldDefinition, field);
+                newContext = newContext.AddField(fieldDefinition, node);
 
                 if (fieldDefinition.Type.NamedType() is IComplexOutputType ct)
                 {
                     newContext = newContext.SetTypeContext(ct);
                 }
 
-                base.VisitField(field, newContext);
+                base.VisitField(node, newContext);
             }
         }
 
