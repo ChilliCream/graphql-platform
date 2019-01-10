@@ -90,6 +90,8 @@ namespace HotChocolate.Execution.Configuration
             }
         }
 
+        public bool? UseComplexityMultipliers { get; set; }
+
         /// <summary>
         /// Gets or sets the maximum amount of queries that can be cached. The
         /// default value is <c>100</c>. The minimum allowed value is

@@ -1,5 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
@@ -17,7 +23,7 @@ namespace HotChocolate.Execution
             if (!IsContextValid(context))
             {
                 context.Result = QueryResult.CreateError(new QueryError(
-                   "The coerce variables middleware expectes the " +
+                   "The coerce variables middleware expects the " +
                    "query document to be parsed and the operation " +
                    "to be resolved."));
                 return Task.CompletedTask;
@@ -37,5 +43,5 @@ namespace HotChocolate.Execution
                 && context.Operation != null;
         }
     }
-}
 
+}

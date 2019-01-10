@@ -84,7 +84,7 @@ namespace HotChocolate.Validation
             var rule = new MaxComplexityRule(new QueryExecutionOptions
             {
                 MaxOperationComplexity = maxAllowedComplexity
-            }, (d, s, p, c) => c.Complexity * 2);
+            }, c => c.Cost.Complexity * 2);
 
             // act
             QueryValidationResult result = rule.Validate(schema, query);
@@ -94,6 +94,54 @@ namespace HotChocolate.Validation
             result.Snapshot(
                 "MaxComplexityReachedWithCustomCalculateDelegate_" +
                 maxAllowedComplexity);
+        }
+
+        // [InlineData(12, false)]
+        // [InlineData(11, false)]
+        [InlineData(10, true)]
+        [Theory]
+        public void MaxComplexityReachedWithUnions(
+            int maxAllowedComplexity,
+            bool hasErrors)
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                {
+                    bazOrBar {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on Bar {
+                            foo {
+                                field
+                            }
+                        }
+                    }
+                }
+            ");
+
+            ISchema schema = CreateSchema();
+
+            var rule = new MaxComplexityRule(new QueryExecutionOptions
+            {
+                MaxOperationComplexity = maxAllowedComplexity
+            }, null);
+
+            // act
+            QueryValidationResult result = rule.Validate(schema, query);
+
+            // assert
+            Assert.Equal(hasErrors, result.HasErrors);
+            result.Snapshot("MaxComplexityReached_" + maxAllowedComplexity);
         }
 
         private ISchema CreateSchema()

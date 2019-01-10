@@ -13,5 +13,7 @@ namespace HotChocolate.Execution.Configuration
         int? MaxExecutionDepth { get; }
 
         int? MaxOperationComplexity { get; }
+
+        bool? UseComplexityMultipliers { get; }
     }
 }

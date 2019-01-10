@@ -23,7 +23,7 @@ namespace HotChocolate.Validation
             ISchema schema,
             DocumentNode queryDocument)
         {
-            if (_options.MaxExecutionDepth.HasValue)
+            if (IsRuleEnabled())
             {
                 IReadOnlyCollection<FieldNode> violatingFields =
                     _visitor.Visit(queryDocument);
@@ -36,7 +36,10 @@ namespace HotChocolate.Validation
                             $"depth of {_options.MaxExecutionDepth.Value}.",
                             violatingFields));
             }
+
             return QueryValidationResult.OK;
         }
+
+        private bool IsRuleEnabled() => _options.MaxExecutionDepth.HasValue;
     }
 }

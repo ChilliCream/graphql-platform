@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         private readonly int _complexity;
 
         [NonSerialized]
-        private readonly IReadOnlyCollection<NameString> _multipliers;
+        private readonly IReadOnlyList<NameString> _multipliers;
 
         public CostDirective()
         {
@@ -98,7 +98,7 @@ namespace HotChocolate.Types
 
         public int Complexity => _complexity;
 
-        public IReadOnlyCollection<NameString> Multipliers => _multipliers;
+        public IReadOnlyList<NameString> Multipliers => _multipliers;
 
         public void GetObjectData(
             SerializationInfo info,

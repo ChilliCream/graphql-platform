@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,7 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     internal sealed class MaxComplexityVisitor
-        : QuerySyntaxWalker<MaxComplexityVisitor.Context>
+        : QuerySyntaxWalker<MaxComplexityVisitorContext>
     {
         protected override bool VisitFragmentDefinitions => false;
 
@@ -16,14 +14,71 @@ namespace HotChocolate.Validation
             ISchema schema,
             ComplexityCalculation calculateComplexity)
         {
-            var context = Context.New(schema, calculateComplexity);
+            if (node == null)
+            {
+                throw new System.ArgumentNullException(nameof(node));
+            }
+
+            if (schema == null)
+            {
+                throw new System.ArgumentNullException(nameof(schema));
+            }
+
+            if (calculateComplexity == null)
+            {
+                throw new System.ArgumentNullException(
+                    nameof(calculateComplexity));
+            }
+
+            var context = MaxComplexityVisitorContext
+                .New(schema, calculateComplexity);
             Visit(node, context);
+            return context.MaxComplexity;
+        }
+
+        public int Visit(
+            DocumentNode document,
+            OperationDefinitionNode operation,
+            MaxComplexityVisitorContext context)
+        {
+            if (document == null)
+            {
+                throw new System.ArgumentNullException(nameof(document));
+            }
+
+            if (operation == null)
+            {
+                throw new System.ArgumentNullException(nameof(operation));
+            }
+
+            if (context == null)
+            {
+                throw new System.ArgumentNullException(nameof(context));
+            }
+
+            foreach (var fragment in document.Definitions
+                .OfType<FragmentDefinitionNode>()
+                .Where(t => t.Name?.Value != null))
+            {
+                context.Fragments[fragment.Name.Value] = fragment;
+            }
+
+            if (TryGetOperationType(
+                   context.Schema,
+                   operation.Operation,
+                   out ObjectType objectType))
+            {
+                VisitOperationDefinition(
+                    operation,
+                    context.SetTypeContext(objectType));
+            }
+
             return context.MaxComplexity;
         }
 
         protected override void VisitDocument(
             DocumentNode node,
-            MaxComplexityVisitor.Context context)
+            MaxComplexityVisitorContext context)
         {
             foreach (var fragment in node.Definitions
                 .OfType<FragmentDefinitionNode>()
@@ -49,9 +104,9 @@ namespace HotChocolate.Validation
 
         protected override void VisitField(
             FieldNode field,
-            MaxComplexityVisitor.Context context)
+            MaxComplexityVisitorContext context)
         {
-            Context newContext = context;
+            MaxComplexityVisitorContext newContext = context;
 
             if (context.TypeContext is IComplexOutputType type
                 && type.Fields.TryGetField(field.Name.Value,
@@ -70,7 +125,7 @@ namespace HotChocolate.Validation
 
         protected override void VisitFragmentSpread(
             FragmentSpreadNode node,
-            MaxComplexityVisitor.Context context)
+            MaxComplexityVisitorContext context)
         {
             base.VisitFragmentSpread(node, context);
 
@@ -82,9 +137,10 @@ namespace HotChocolate.Validation
         }
 
         protected override void VisitFragmentDefinition(
-            FragmentDefinitionNode node, Context context)
+            FragmentDefinitionNode node,
+            MaxComplexityVisitorContext context)
         {
-            Context newContext = context;
+            MaxComplexityVisitorContext newContext = context;
 
             if (newContext.Schema.TryGetType(
                 node.TypeCondition.Name.Value,
@@ -97,9 +153,10 @@ namespace HotChocolate.Validation
         }
 
         protected override void VisitInlineFragment(
-            InlineFragmentNode node, Context context)
+            InlineFragmentNode node,
+            MaxComplexityVisitorContext context)
         {
-            Context newContext = context;
+            MaxComplexityVisitorContext newContext = context;
 
             if (newContext.Schema.TryGetType(
                 node.TypeCondition.Name.Value,
@@ -113,7 +170,7 @@ namespace HotChocolate.Validation
 
         protected override void VisitFieldDefinition(
             FieldDefinitionNode node,
-            MaxComplexityVisitor.Context context)
+            MaxComplexityVisitorContext context)
         {
             if (!context.FragmentPath.Contains(node.Name.Value))
             {
@@ -146,119 +203,6 @@ namespace HotChocolate.Validation
             }
 
             return objectType != null;
-        }
-
-        internal sealed class Context
-        {
-            private static readonly CostDirective _defaultCost =
-                new CostDirective();
-            private readonly Context _root;
-            private readonly ComplexityCalculation _calculateComplexity;
-            private readonly int _complexity;
-            private int _maxComplexity;
-
-            private Context(
-                ISchema schema,
-                ComplexityCalculation calculateComplexity)
-            {
-                _calculateComplexity = calculateComplexity;
-                Schema = schema;
-                FragmentPath = ImmutableHashSet<string>.Empty;
-                FieldPath = ImmutableList<IOutputField>.Empty;
-                Fragments = new Dictionary<string, FragmentDefinitionNode>();
-                _root = this;
-            }
-
-            private Context(
-                ImmutableHashSet<string> fragmentPath,
-                ImmutableList<IOutputField> fieldPath,
-                int complexity,
-                Context context)
-            {
-                FragmentPath = fragmentPath;
-                FieldPath = fieldPath;
-                Schema = context.Schema;
-                Fragments = context.Fragments;
-                TypeContext = context.TypeContext;
-                _complexity = complexity;
-                _calculateComplexity = context._calculateComplexity;
-                _root = context._root;
-            }
-
-            private Context(Context context)
-            {
-                Schema = context.Schema;
-                FragmentPath = context.FragmentPath;
-                FieldPath = context.FieldPath;
-                Fragments = context.Fragments;
-                TypeContext = context.TypeContext;
-                _complexity = context._complexity;
-                _calculateComplexity = context._calculateComplexity;
-                _root = context._root;
-            }
-
-            public ISchema Schema { get; }
-
-            public ImmutableHashSet<string> FragmentPath { get; }
-
-            public ImmutableList<IOutputField> FieldPath { get; }
-
-            public INamedOutputType TypeContext { get; private set; }
-
-            public IDictionary<string, FragmentDefinitionNode> Fragments
-            { get; }
-
-            public int Complexity => _complexity;
-
-            public int MaxComplexity => _root._maxComplexity;
-
-            public Context AddFragment(FragmentDefinitionNode fragment)
-            {
-                return new Context(
-                    FragmentPath.Add(fragment.Name.Value),
-                    FieldPath,
-                    _complexity,
-                    this);
-            }
-
-            public Context AddField(
-                IOutputField fieldDefinition,
-                FieldNode fieldSelection)
-            {
-                IDirective directive = fieldDefinition.Directives
-                    .FirstOrDefault(t => t.Type is CostDirectiveType);
-                int complexity;
-
-                CostDirective cost = directive == null
-                    ? _defaultCost
-                    : directive.ToObject<CostDirective>();
-
-                complexity = _complexity + _calculateComplexity(
-                    fieldDefinition, fieldSelection, FieldPath, cost);
-
-                if (complexity > _root._maxComplexity)
-                {
-                    _root._maxComplexity = complexity;
-                }
-
-                return new Context(
-                    FragmentPath,
-                    FieldPath.Add(fieldDefinition),
-                    complexity,
-                    this);
-            }
-
-            public Context SetTypeContext(INamedOutputType typeContext)
-            {
-                var newContext = new Context(this);
-                newContext.TypeContext = typeContext;
-                return newContext;
-            }
-
-            public static Context New(
-                ISchema schema,
-                ComplexityCalculation calculateComplexity) =>
-                    new Context(schema, calculateComplexity);
         }
     }
 }

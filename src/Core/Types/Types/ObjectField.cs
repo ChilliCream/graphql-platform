@@ -73,6 +73,12 @@ namespace HotChocolate.Types
         /// <value></value>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
 
+        /// <summary>
+        /// Gets the associated .net type member of this field.
+        /// This member can be <c>null</c>.
+        /// </summary>
+        public MemberInfo ClrMember => _member;
+
         protected override void OnRegisterDependencies(
             ITypeInitializationContext context)
         {
