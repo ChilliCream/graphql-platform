@@ -148,7 +148,10 @@ namespace HotChocolate.Validation
                 .AddSingleton<IQueryValidationRule, DirectivesAreDefinedRule>()
                 .AddSingleton<IQueryValidationRule, ValuesOfCorrectTypeRule>()
                 .AddSingleton<IQueryValidationRule, MaxDepthRule>()
-                .AddSingleton<IQueryValidationRule, MaxComplexityRule>();
+                .AddSingleton<IQueryValidationRule>(
+                    s => new MaxComplexityRule(
+                        s.GetRequiredService<IValidateQueryOptionsAccessor>(),
+                        s.GetService<ComplexityCalculation>()));
         }
     }
 }
