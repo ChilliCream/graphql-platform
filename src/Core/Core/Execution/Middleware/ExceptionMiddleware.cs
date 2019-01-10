@@ -33,7 +33,8 @@ namespace HotChocolate.Execution
             }
             catch (SyntaxException ex)
             {
-                QueryResult.CreateError(
+                context.Exception = ex;
+                context.Result = QueryResult.CreateError(
                     _errorHandler.Handle(ex, error => error
                         .WithMessage(ex.Message)
                         .WithLocations(new[]
