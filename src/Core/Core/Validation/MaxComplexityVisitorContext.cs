@@ -13,7 +13,7 @@ namespace HotChocolate.Validation
             new CostDirective();
         private readonly MaxComplexityVisitorContext _root;
         private readonly ComplexityCalculation _calculateComplexity;
-        private readonly int _complexity;
+        private int _complexity;
         private int _maxComplexity;
 
         protected MaxComplexityVisitorContext(
@@ -26,12 +26,12 @@ namespace HotChocolate.Validation
             FieldPath = ImmutableList<IOutputField>.Empty;
             Fragments = new Dictionary<string, FragmentDefinitionNode>();
             _root = this;
+            Scope = this;
         }
 
         protected MaxComplexityVisitorContext(
             ImmutableHashSet<string> fragmentPath,
             ImmutableList<IOutputField> fieldPath,
-            int complexity,
             MaxComplexityVisitorContext context)
         {
             FragmentPath = fragmentPath;
@@ -39,9 +39,9 @@ namespace HotChocolate.Validation
             Schema = context.Schema;
             Fragments = context.Fragments;
             TypeContext = context.TypeContext;
-            _complexity = complexity;
             _calculateComplexity = context._calculateComplexity;
             _root = context._root;
+            Scope = context.Scope;
         }
 
         protected MaxComplexityVisitorContext(
@@ -52,9 +52,9 @@ namespace HotChocolate.Validation
             FieldPath = context.FieldPath;
             Fragments = context.Fragments;
             TypeContext = context.TypeContext;
-            _complexity = context._complexity;
             _calculateComplexity = context._calculateComplexity;
             _root = context._root;
+            Scope = context.Scope;
         }
 
         public ISchema Schema { get; }
@@ -68,7 +68,13 @@ namespace HotChocolate.Validation
         public IDictionary<string, FragmentDefinitionNode> Fragments
         { get; }
 
-        public int Complexity { get; protected set; }
+        public MaxComplexityVisitorContext Scope { get; protected set; }
+
+        public int Complexity
+        {
+            get => Scope._complexity;
+            protected set => Scope._complexity = value;
+        }
 
         public int MaxComplexity
         {
@@ -91,7 +97,6 @@ namespace HotChocolate.Validation
             return new MaxComplexityVisitorContext(
                 FragmentPath.Add(fragment.Name.Value),
                 FieldPath,
-                _complexity,
                 this);
         }
 
@@ -101,26 +106,24 @@ namespace HotChocolate.Validation
         {
             IDirective directive = fieldDefinition.Directives
                 .FirstOrDefault(t => t.Type is CostDirectiveType);
-            int complexity;
 
             CostDirective cost = directive == null
                 ? DefaultCost
                 : directive.ToObject<CostDirective>();
 
-            complexity = _complexity + CalculateComplexity(
+            Complexity = Complexity + CalculateComplexity(
                 new ComplexityContext(
                     fieldDefinition, fieldSelection,
                     FieldPath, null, cost));
 
-            if (complexity > MaxComplexity)
+            if (Complexity > MaxComplexity)
             {
-                MaxComplexity = complexity;
+                MaxComplexity = Complexity;
             }
 
             return new MaxComplexityVisitorContext(
                 FragmentPath,
                 FieldPath.Add(fieldDefinition),
-                complexity,
                 this);
         }
 
@@ -129,6 +132,13 @@ namespace HotChocolate.Validation
         {
             var newContext = new MaxComplexityVisitorContext(this);
             newContext.TypeContext = typeContext;
+            return newContext;
+        }
+
+        public virtual MaxComplexityVisitorContext CreateScope()
+        {
+            var newContext = new MaxComplexityVisitorContext(this);
+            newContext.Scope = newContext;
             return newContext;
         }
 

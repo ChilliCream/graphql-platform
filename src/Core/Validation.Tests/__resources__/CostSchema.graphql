@@ -8,7 +8,7 @@ interface Foo {
   field: String
 }
 
-type Bar {
+type Bar implements Foo {
   field: String
   baz: Baz @cost(complexity: 5)
 }

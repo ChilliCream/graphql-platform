@@ -30,9 +30,8 @@ namespace HotChocolate.Validation
         protected MaxComplexityWithMultipliersVisitorContext(
             ImmutableHashSet<string> fragmentPath,
             ImmutableList<IOutputField> fieldPath,
-            int complexity,
             MaxComplexityWithMultipliersVisitorContext context)
-            : base(fragmentPath, fieldPath, complexity, context)
+            : base(fragmentPath, fieldPath, context)
         {
             _variables = context._variables;
         }
@@ -43,7 +42,6 @@ namespace HotChocolate.Validation
             return new MaxComplexityWithMultipliersVisitorContext(
                 FragmentPath.Add(fragment.Name.Value),
                 FieldPath,
-                Complexity,
                 this);
         }
 
@@ -72,7 +70,6 @@ namespace HotChocolate.Validation
             return new MaxComplexityWithMultipliersVisitorContext(
                 FragmentPath,
                 FieldPath.Add(fieldDefinition),
-                complexity,
                 this);
         }
 
@@ -82,6 +79,14 @@ namespace HotChocolate.Validation
             var newContext =
                 new MaxComplexityWithMultipliersVisitorContext(this);
             newContext.TypeContext = typeContext;
+            return newContext;
+        }
+
+        public override MaxComplexityVisitorContext CreateScope()
+        {
+            var newContext =
+                new MaxComplexityWithMultipliersVisitorContext(this);
+            newContext.Scope = newContext;
             return newContext;
         }
     }

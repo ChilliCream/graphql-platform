@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -7,6 +8,7 @@ namespace HotChocolate.Validation
     internal sealed class MaxComplexityVisitor
         : QuerySyntaxWalker<MaxComplexityVisitorContext>
     {
+        List<string> list = new List<string>();
         protected override bool VisitFragmentDefinitions => false;
 
         public int Visit(
@@ -97,7 +99,9 @@ namespace HotChocolate.Validation
                 {
                     VisitOperationDefinition(
                         operation,
-                        context.SetTypeContext(objectType));
+                        context
+                            .CreateScope()
+                            .SetTypeContext(objectType));
                 }
             }
         }
@@ -106,6 +110,8 @@ namespace HotChocolate.Validation
             FieldNode field,
             MaxComplexityVisitorContext context)
         {
+            list.Add(field.Name.Value);
+
             MaxComplexityVisitorContext newContext = context;
 
             if (context.TypeContext is IComplexOutputType type

@@ -8,9 +8,9 @@ namespace HotChocolate.Validation
 {
     public class MaxComplexityRuleTests
     {
+        [InlineData(10, false)]
         [InlineData(9, false)]
-        [InlineData(8, false)]
-        [InlineData(7, true)]
+        [InlineData(8, true)]
         [Theory]
         public void MaxComplexityReached(
             int maxAllowedComplexity,
@@ -51,9 +51,9 @@ namespace HotChocolate.Validation
             result.Snapshot("MaxComplexityReached_" + maxAllowedComplexity);
         }
 
-        [InlineData(17, false)]
-        [InlineData(16, false)]
-        [InlineData(15, true)]
+        [InlineData(19, false)]
+        [InlineData(18, false)]
+        [InlineData(17, true)]
         [Theory]
         public void MaxComplexityReachedWithCustomCalculateDelegate(
             int maxAllowedComplexity,
@@ -96,9 +96,9 @@ namespace HotChocolate.Validation
                 maxAllowedComplexity);
         }
 
-        // [InlineData(12, false)]
-        // [InlineData(11, false)]
-        [InlineData(10, true)]
+        [InlineData(17, false)]
+        [InlineData(16, false)]
+        [InlineData(15, true)]
         [Theory]
         public void MaxComplexityReachedWithUnions(
             int maxAllowedComplexity,
@@ -121,8 +121,10 @@ namespace HotChocolate.Validation
                             }
                         }
                         ... on Bar {
-                            foo {
-                                field
+                            baz {
+                                foo {
+                                    field
+                                }
                             }
                         }
                     }
@@ -141,7 +143,90 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Equal(hasErrors, result.HasErrors);
-            result.Snapshot("MaxComplexityReached_" + maxAllowedComplexity);
+            result.Snapshot("MaxComplexityReachedWithUnions" + maxAllowedComplexity);
+        }
+
+        [InlineData(24, false)]
+        [InlineData(23, false)]
+        [InlineData(22, true)]
+        [Theory]
+        public void MaxComplexityReachedTwoOperations(
+            int maxAllowedComplexity,
+            bool hasErrors)
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(@"
+                query a {
+                    bazOrBar {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on Bar {
+                            baz {
+                                foo {
+                                    field
+                                }
+                            }
+                        }
+                    }
+                }
+
+                query b {
+                    bazOrBar {
+                        ... on Foo {
+                            ... on Foo {
+                                field
+                                ... on Bar {
+                                    baz {
+                                        foo {
+                                            field
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on Bar {
+                            baz {
+                                foo {
+                                    field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ");
+
+            ISchema schema = CreateSchema();
+
+            var rule = new MaxComplexityRule(new QueryExecutionOptions
+            {
+                MaxOperationComplexity = maxAllowedComplexity
+            }, null);
+
+            // act
+            QueryValidationResult result = rule.Validate(schema, query);
+
+            // assert
+            Assert.Equal(hasErrors, result.HasErrors);
+            result.Snapshot(
+                "MaxComplexityReachedTwoOperations_" +
+                maxAllowedComplexity);
         }
 
         private ISchema CreateSchema()
