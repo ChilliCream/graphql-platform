@@ -33,12 +33,28 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (literal is FloatValueNode floatLiteral
+                && TryParseDouble(floatLiteral.Value, out _))
+            {
+                return true;
+            }
+
             // Input coercion rules specify that float values can be coerced
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
-            return literal is FloatValueNode
-                || literal is IntValueNode
-                || literal is NullValueNode;
+
+            if (literal is IntValueNode intLiteral
+                && TryParseDouble(intLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -48,27 +64,25 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is FloatValueNode floatLiteral)
+            if (literal is NullValueNode)
             {
-                return double.Parse(
-                    floatLiteral.Value,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
+                return null;
+            }
+
+            if (literal is FloatValueNode floatLiteral
+                && TryParseDouble(floatLiteral.Value, out double d))
+            {
+                return d;
             }
 
             // Input coercion rules specify that float values can be coerced
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
-            if (literal is IntValueNode node)
-            {
-                return double.Parse(node.Value,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture);
-            }
 
-            if (literal is NullValueNode)
+            if (literal is IntValueNode intLiteral
+                && TryParseDouble(intLiteral.Value, out d))
             {
-                return null;
+                return d;
             }
 
             throw new ScalarSerializationException(
@@ -127,11 +141,12 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private static double ParseDouble(string value) =>
-            double.Parse(
+        private static bool TryParseDouble(string value, out double d) =>
+            double.TryParse(
                 value,
                 NumberStyles.Float,
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture,
+                out d);
 
         private static string SerializeDouble(double value) =>
             value.ToString("E", CultureInfo.InvariantCulture);

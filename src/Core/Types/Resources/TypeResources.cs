@@ -90,6 +90,11 @@ namespace HotChocolate
                 "compliant date type.";
         }
 
+        public static string DecimalType_Description()
+        {
+            return "The built-in `Decimal` scalar type.";
+        }
+
         public static string FloatType_Description()
         {
             return "The `Float` scalar type represents signed " +
@@ -108,11 +113,32 @@ namespace HotChocolate
                 "will be accepted as an ID.";
         }
 
+        public static string ByteType_Description()
+        {
+            return "The `Byte` scalar type represents non-fractional " +
+                "whole numeric values. Byte can represent values " +
+                "between 0 and 255.";
+        }
+
+        public static string ShortType_Description()
+        {
+            return "The `Short` scalar type represents non-fractional signed " +
+                "whole 16-bit numeric values. Short can represent values " +
+                "between -(2^15) and 2^15 - 1.";
+        }
+
         public static string IntType_Description()
         {
             return "The `Int` scalar type represents non-fractional signed " +
                 "whole numeric values. Int can represent values between " +
                 "-(2^31) and 2^31 - 1.";
+        }
+
+        public static string LongType_Description()
+        {
+            return "The `Long` scalar type represents non-fractional signed " +
+                "whole 64-bit numeric values. Long can represent values " +
+                "between -(2^63) and 2^63 - 1.";
         }
 
         public static string StringType_Description()
@@ -128,6 +154,12 @@ namespace HotChocolate
             return "The name scalar represents a valid GraphQL name " +
                 "as specified in the spec and can be used to refer " +
                 "to fields or types.";
+        }
+
+        public static string MultiplierPathType_Description()
+        {
+            return "The multiplier path scalar represents a valid GraphQL " +
+                "multiplier path string.";
         }
 
         public static string Name_Cannot_BeEmpty()

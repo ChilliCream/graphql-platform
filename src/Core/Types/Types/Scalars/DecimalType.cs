@@ -12,6 +12,9 @@ namespace HotChocolate.Types
         {
         }
 
+        public override string Description =>
+            TypeResources.DecimalType_Description();
+
         public override Type ClrType => typeof(decimal);
 
         public override bool IsInstanceOfType(IValueNode literal)
@@ -21,8 +24,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            return literal is FloatValueNode floatLiteral
+                && TryParseDecimal(floatLiteral.Value, out _);
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -32,14 +40,15 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is StringValueNode stringLiteral)
-            {
-                return ParseDecimal(stringLiteral.Value);
-            }
-
             if (literal is NullValueNode)
             {
                 return null;
+            }
+
+            if (literal is FloatValueNode floatValue
+                && TryParseDecimal(floatValue.Value, out decimal d))
+            {
+                return d;
             }
 
             throw new ScalarSerializationException(
@@ -56,7 +65,7 @@ namespace HotChocolate.Types
 
             if (value is decimal d)
             {
-                return new StringValueNode(SerializeDecimal(d));
+                return new FloatValueNode(SerializeDecimal(d));
             }
 
             throw new ScalarSerializationException(
@@ -73,7 +82,7 @@ namespace HotChocolate.Types
 
             if (value is decimal d)
             {
-                return SerializeDecimal(d);
+                return d;
             }
 
             throw new ScalarSerializationException(
@@ -88,9 +97,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s)
+            if (serialized is decimal d)
             {
-                value = ParseDecimal(s);
+                value = d;
                 return true;
             }
 
@@ -98,11 +107,12 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private static decimal ParseDecimal(string value) =>
-           decimal.Parse(
-               value,
-               NumberStyles.Float,
-               CultureInfo.InvariantCulture);
+        private static bool TryParseDecimal(string value, out decimal d) =>
+            decimal.TryParse(
+                value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out d);
 
         private static string SerializeDecimal(decimal value) =>
             value.ToString("E", CultureInfo.InvariantCulture);

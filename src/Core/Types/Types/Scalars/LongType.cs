@@ -5,104 +5,24 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public sealed class LongType
-        : ScalarType
+        : NumericTypeBase<long>
     {
         public LongType()
             : base("Long")
         {
         }
 
-        public override Type ClrType => typeof(long);
+        public override string Description =>
+            TypeResources.LongType_Description();
 
-        public override bool IsInstanceOfType(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+        protected override bool TryParseValue(string s, out long value) =>
+            long.TryParse(
+                s,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out value);
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
-        }
-
-        public override object ParseLiteral(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is StringValueNode stringLiteral)
-            {
-                return long.Parse(
-                    stringLiteral.Value,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture);
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
-        }
-
-        public override IValueNode ParseValue(object value)
-        {
-            if (value is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (value is long l)
-            {
-                return new StringValueNode(
-                    l.ToString("D", CultureInfo.InvariantCulture));
-            }
-
-            throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
-        }
-
-        public override object Serialize(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (value is long l)
-            {
-                return l.ToString("D", CultureInfo.InvariantCulture);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
-        }
-
-        public override bool TryDeserialize(object serialized, out object value)
-        {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is string s)
-            {
-                value = long.Parse(
-                    s,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
+        protected override string SerializeValue(long value) =>
+            value.ToString("D", CultureInfo.InvariantCulture);
     }
 }

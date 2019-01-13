@@ -18,8 +18,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            return literal is StringValueNode stringLiteral
+                && TryParseLiteral(stringLiteral, out _);
         }
 
         public sealed override object ParseLiteral(IValueNode literal)

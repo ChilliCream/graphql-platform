@@ -1,28 +1,17 @@
 using System;
-using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public class IntTypeBase
+    public abstract class NumericTypeBase<T>
         : ScalarType
     {
-        private readonly int _min;
-        private readonly int _max;
-
-        protected IntTypeBase(NameString name)
-            : this(name, int.MinValue, int.MaxValue)
-        {
-        }
-
-        protected IntTypeBase(NameString name, int min, int max)
+        protected NumericTypeBase(NameString name)
             : base(name)
         {
-            _min = min;
-            _max = max;
         }
 
-        public override Type ClrType => typeof(int);
+        public override Type ClrType => typeof(T);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -36,12 +25,13 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return literal is IntValueNode intLiteral
-                && int.TryParse(
-                    intLiteral.Value,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out int i)
-                && i >= _min && i <= _max;
+            if (literal is IntValueNode intLiteral
+                && TryParseValue(intLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -51,39 +41,20 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is IntValueNode intLiteral
-                && int.TryParse(
-                    intLiteral.Value,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out int i)
-                && i >= _min && i <= _max)
-            {
-                return i;
-            }
-
             if (literal is NullValueNode)
             {
                 return null;
             }
 
+            if (literal is IntValueNode intLiteral
+                && TryParseValue(intLiteral.Value, out T value))
+            {
+                return value;
+            }
+
             throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()));
-        }
-
-        public override bool IsInstanceOfType(object value)
-        {
-            if (value is null)
-            {
-                return true;
-            }
-
-            if (value is int i && i >= _min && i <= _max)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         public override IValueNode ParseValue(object value)
@@ -93,9 +64,9 @@ namespace HotChocolate.Types
                 return NullValueNode.Default;
             }
 
-            if (value is int i && i >= _min && i <= _max)
+            if (value is T v)
             {
-                return new IntValueNode(i);
+                return new IntValueNode(SerializeValue(v));
             }
 
             throw new ScalarSerializationException(
@@ -110,9 +81,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is int i && i >= _min && i <= _max)
+            if (value is T v)
             {
-                return i;
+                return v;
             }
 
             throw new ScalarSerializationException(
@@ -127,14 +98,18 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is int i && i >= _min && i <= _max)
+            if (serialized is T v)
             {
-                value = i;
+                value = v;
                 return true;
             }
 
             value = null;
             return false;
         }
+
+        protected abstract bool TryParseValue(string s, out T value);
+
+        protected abstract string SerializeValue(T value);
     }
 }

@@ -1,28 +1,25 @@
 using System;
-using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
-    public class IntTypeBase
+    /// <summary>
+    /// The name scalar represents a valid GraphQL name as specified in the spec
+    /// and can be used to refer to fields or types.
+    /// </summary>
+    public sealed class MultiplierPathType
         : ScalarType
     {
-        private readonly int _min;
-        private readonly int _max;
-
-        protected IntTypeBase(NameString name)
-            : this(name, int.MinValue, int.MaxValue)
+        public MultiplierPathType()
+            : base("Name")
         {
         }
 
-        protected IntTypeBase(NameString name, int min, int max)
-            : base(name)
-        {
-            _min = min;
-            _max = max;
-        }
+        public override string Description =>
+            TypeResources.MultiplierPathType_Description();
 
-        public override Type ClrType => typeof(int);
+        public override Type ClrType => typeof(MultiplierPathString);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -36,12 +33,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return literal is IntValueNode intLiteral
-                && int.TryParse(
-                    intLiteral.Value,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out int i)
-                && i >= _min && i <= _max;
+            return literal is StringValueNode s
+                && MultiplierPathString.IsValidName(s.Value);
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -51,14 +44,15 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            if (literal is IntValueNode intLiteral
-                && int.TryParse(
-                    intLiteral.Value,
-                    NumberStyles.Integer,
-                    CultureInfo.InvariantCulture, out int i)
-                && i >= _min && i <= _max)
+            if (literal is StringValueNode stringLiteral)
             {
-                return i;
+                if (!MultiplierPathString.IsValidName(stringLiteral.Value))
+                {
+                    throw new ScalarSerializationException(
+                        AbstractionResources.Type_Name_IsNotValid(
+                            stringLiteral.Value));
+                }
+                return new MultiplierPathString(stringLiteral.Value);
             }
 
             if (literal is NullValueNode)
@@ -71,31 +65,16 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        public override bool IsInstanceOfType(object value)
-        {
-            if (value is null)
-            {
-                return true;
-            }
-
-            if (value is int i && i >= _min && i <= _max)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public override IValueNode ParseValue(object value)
         {
-            if (value is null)
+            if (value == null)
             {
-                return NullValueNode.Default;
+                return new NullValueNode(null);
             }
 
-            if (value is int i && i >= _min && i <= _max)
+            if (value is MultiplierPathString n)
             {
-                return new IntValueNode(i);
+                return new StringValueNode(null, n, false);
             }
 
             throw new ScalarSerializationException(
@@ -110,9 +89,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is int i && i >= _min && i <= _max)
+            if (value is MultiplierPathString n)
             {
-                return i;
+                return (string)n;
             }
 
             throw new ScalarSerializationException(
@@ -127,9 +106,15 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is int i && i >= _min && i <= _max)
+            if (serialized is string s)
             {
-                value = i;
+                value = new MultiplierPathString(s);
+                return true;
+            }
+
+            if (serialized is MultiplierPathString n)
+            {
+                value = n;
                 return true;
             }
 
