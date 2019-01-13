@@ -4,13 +4,14 @@ using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
-    public static class ClassQueryExecutionBuilderExtensions
+    public static class QueryExecutionBuilderExtensions
     {
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
@@ -148,6 +149,69 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use(ClassMiddlewareFactory.Create(factory));
+        }
+
+        public static IQueryExecutionBuilder UseField<TMiddleware>(
+            this IQueryExecutionBuilder builder)
+            where TMiddleware : class
+        {
+            return builder.UseField(
+                FieldClassMiddlewareFactory.Create<TMiddleware>());
+        }
+
+        public static IQueryExecutionBuilder UseField<TMiddleware>(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            return builder.UseField(
+                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
+        }
+
+        public static IQueryExecutionBuilder Map(
+            this IQueryExecutionBuilder builder,
+            FieldReference fieldReference,
+            FieldMiddleware middleware)
+        {
+            return builder.UseField(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                    (s, n) => new MapMiddleware(
+                        n, fieldReference, middleware(n))));
+        }
+
+
+        public static IQueryExecutionBuilder Map<TMiddleware>(
+            this IQueryExecutionBuilder builder,
+            FieldReference fieldReference)
+            where TMiddleware : class
+        {
+            return builder.UseField(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                    (s, n) =>
+                    {
+                        FieldMiddleware classMiddleware =
+                            FieldClassMiddlewareFactory.Create<TMiddleware>();
+                        return new MapMiddleware(
+                            n, fieldReference, classMiddleware(n));
+                    }));
+        }
+
+        public static IQueryExecutionBuilder Map<TMiddleware>(
+            this IQueryExecutionBuilder builder,
+            FieldReference fieldReference,
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            return builder.UseField(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                    (s, n) =>
+                    {
+                        FieldMiddleware classMiddleware =
+                            FieldClassMiddlewareFactory
+                                .Create<TMiddleware>(factory);
+                        return new MapMiddleware(
+                            n, fieldReference, classMiddleware(n));
+                    }));
         }
 
         public static IQueryExecutionBuilder AddExecutionStrategyResolver(

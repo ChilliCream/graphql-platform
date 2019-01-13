@@ -162,10 +162,10 @@ namespace HotChocolate.Types
             {
                 CompleteDefaultValue(context, Type);
 
-                if (context.Type is InputObjectType
+                if (context.Type is InputObjectType iot
                     && Property == null
                     && context.TryGetProperty(
-                        context.Type, Name,
+                        iot, Name,
                         out PropertyInfo property))
                 {
                     Property = property;
@@ -195,7 +195,9 @@ namespace HotChocolate.Types
             {
                 context.ReportError(new SchemaError(
                     "Could not parse the native value of input field " +
-                    $"`{context.Type.Name}.{Name}`.", context.Type, ex));
+                    $"`{context.Type.Name}.{Name}`.",
+                    context.Type as INamedType,
+                    ex));
             }
         }
 

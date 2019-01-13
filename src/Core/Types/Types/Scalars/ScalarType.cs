@@ -113,12 +113,7 @@ namespace HotChocolate.Types
         public abstract IValueNode ParseValue(object value);
 
         /// <summary>
-        /// Serializes the .net value representation to one of the
-        /// following types:
-        /// - <see cref="System.String" />
-        /// - <see cref="System.Boolean" />
-        /// - <see cref="System.Int32" />
-        /// - <see cref="System.Double" />
+        /// Serializes the .net value representation.
         /// </summary>
         /// <param name="value">
         /// The .net value representation.
@@ -134,11 +129,6 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
-        /// The <paramref name="serialized" /> can be one of the following types:
-        /// - <see cref="System.String" />
-        /// - <see cref="System.Boolean" />
-        /// - <see cref="System.Int32" />
-        /// - <see cref="System.Double" />
         /// </summary>
         /// <param name="serialized">
         /// The serialized value representation.
@@ -164,11 +154,6 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
-        /// The <paramref name="value" /> can be one of the following types:
-        /// - <see cref="System.String" />
-        /// - <see cref="System.Boolean" />
-        /// - <see cref="System.Int32" />
-        /// - <see cref="System.Double" />
         /// </summary>
         /// <param name="value">
         /// The serialized value representation.

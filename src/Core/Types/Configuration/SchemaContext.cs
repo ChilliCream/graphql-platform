@@ -80,13 +80,13 @@ namespace HotChocolate.Configuration
         private void CompleteDirectives(
             ICollection<SchemaError> errors)
         {
-            foreach (INeedsInitialization directive in
-                _directiveRegistry.GetDirectiveTypes()
-                    .Cast<INeedsInitialization>())
+            foreach (DirectiveType directive in
+                _directiveRegistry.GetDirectiveTypes())
             {
                 var initializationContext = new TypeInitializationContext(
-                    this, e => errors.Add(e));
-                directive.CompleteType(initializationContext);
+                    this, e => errors.Add(e), directive, false);
+                ((INeedsInitialization)directive)
+                    .CompleteType(initializationContext);
             }
         }
 

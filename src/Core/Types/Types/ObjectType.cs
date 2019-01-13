@@ -270,7 +270,7 @@ namespace HotChocolate.Types
         {
             if (_interfaceMap.Count > 0)
             {
-                foreach (IGrouping<string, InterfaceField> fieldGroup in
+                foreach (IGrouping<NameString, InterfaceField> fieldGroup in
                     _interfaceMap.Values
                         .SelectMany(t => t.Fields)
                         .GroupBy(t => t.Name))
@@ -282,7 +282,7 @@ namespace HotChocolate.Types
 
         private void ValidateField(
             ITypeInitializationContext context,
-            IGrouping<string, InterfaceField> interfaceField)
+            IGrouping<NameString, InterfaceField> interfaceField)
         {
             InterfaceField first = interfaceField.First();
             if (ValidateInterfaceFieldGroup(context, first, interfaceField))
@@ -294,7 +294,7 @@ namespace HotChocolate.Types
         private bool ValidateInterfaceFieldGroup(
             ITypeInitializationContext context,
             InterfaceField first,
-            IGrouping<string, InterfaceField> interfaceField)
+            IGrouping<NameString, InterfaceField> interfaceField)
         {
             if (interfaceField.Count() == 1)
             {

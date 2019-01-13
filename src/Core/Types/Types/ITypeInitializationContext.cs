@@ -8,7 +8,7 @@ namespace HotChocolate.Types
 {
     public interface ITypeInitializationContext
     {
-        INamedType Type { get; }
+        IHasName Type { get; }
 
         bool IsDirective { get; }
 

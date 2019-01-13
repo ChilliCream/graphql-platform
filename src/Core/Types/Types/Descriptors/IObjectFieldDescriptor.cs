@@ -126,7 +126,7 @@ namespace HotChocolate.Types
             where TMiddleware : class
         {
             return descriptor.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>());
+                FieldClassMiddlewareFactory.Create<TMiddleware>());
         }
 
         public static IObjectFieldDescriptor Use<TMiddleware>(
@@ -140,7 +140,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>(factory));
+                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
         }
     }
 }

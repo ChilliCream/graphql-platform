@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                 .Description(
                     "Defines field arguments that act as " +
                      "complexity multipliers.")
-                .Type<ListType<NonNullType<StringType>>>();
+                .Type<ListType<NonNullType<MultiplierPathType>>>();
         }
     }
 }

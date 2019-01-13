@@ -30,9 +30,9 @@ namespace HotChocolate.Configuration
             ISchemaContext schemaContext,
             string queryTypeName)
         {
+            RegisterDirectiveDependencies(schemaContext);
             RegisterAllTypes(schemaContext);
             RegisterTypeDependencies(schemaContext, queryTypeName);
-            RegisterDirectiveDependencies(schemaContext);
         }
 
         private void RegisterAllTypes(ISchemaContext context)
@@ -172,13 +172,14 @@ namespace HotChocolate.Configuration
 
         private void RegisterDirectiveDependencies(ISchemaContext schemaContext)
         {
-            foreach (INeedsInitialization directive in schemaContext.Directives
-                .GetDirectiveTypes().Cast<INeedsInitialization>())
+            foreach (DirectiveType directive in schemaContext.Directives
+                .GetDirectiveTypes())
             {
-                var initializationContext =
-                    new TypeInitializationContext(schemaContext,
-                        e => _errors.Add(e));
-                directive.RegisterDependencies(initializationContext);
+                var initializationContext = new TypeInitializationContext(
+                    schemaContext, e => _errors.Add(e), directive, false);
+
+                ((INeedsInitialization)directive)
+                    .RegisterDependencies(initializationContext);
             }
         }
     }

@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
-    public static class ClassMiddlewareFactory
+    public static class FieldClassMiddlewareFactory
     {
         internal static FieldMiddleware Create<TMiddleware>()
             where TMiddleware : class

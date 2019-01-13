@@ -21,7 +21,7 @@ namespace HotChocolate.Utilities
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var baz = new ObjectValueNode(
-                new ObjectFieldNode("number", new StringValueNode("1.5")));
+                new ObjectFieldNode("number", new FloatValueNode("1.5")));
 
             var bar = new ObjectValueNode(
                 new ObjectFieldNode("state", new EnumValueNode("ON")),
@@ -39,7 +39,7 @@ namespace HotChocolate.Utilities
             // assert
             var converter = new ObjectValueToInputObjectConverter(
                 TypeConversion.Default);
-            object converted = converter.Convert(foo, type);
+            var converted = converter.Convert(foo, type);
 
             // assert
             converted.Snapshot();

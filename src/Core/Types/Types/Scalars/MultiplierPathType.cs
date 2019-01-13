@@ -1,17 +1,25 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
-    public sealed class UuidType
+    /// <summary>
+    /// The name scalar represents a valid GraphQL name as specified in the spec
+    /// and can be used to refer to fields or types.
+    /// </summary>
+    public sealed class MultiplierPathType
         : ScalarType
     {
-        public UuidType()
-            : base("Uuid")
+        public MultiplierPathType()
+            : base("MultiplierPath")
         {
         }
 
-        public override Type ClrType => typeof(Guid);
+        public override string Description =>
+            TypeResources.MultiplierPathType_Description();
+
+        public override Type ClrType => typeof(MultiplierPathString);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -25,13 +33,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out _))
-            {
-                return true;
-            }
-
-            return false;
+            return literal is StringValueNode s
+                && MultiplierPathString.IsValidName(s.Value);
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -41,15 +44,20 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal is StringValueNode stringLiteral)
+            {
+                if (!MultiplierPathString.IsValidName(stringLiteral.Value))
+                {
+                    throw new ScalarSerializationException(
+                        AbstractionResources.Type_Name_IsNotValid(
+                            stringLiteral.Value));
+                }
+                return new MultiplierPathString(stringLiteral.Value);
+            }
+
             if (literal is NullValueNode)
             {
                 return null;
-            }
-
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out Guid guid))
-            {
-                return guid;
             }
 
             throw new ScalarSerializationException(
@@ -64,9 +72,9 @@ namespace HotChocolate.Types
                 return new NullValueNode(null);
             }
 
-            if (value is Guid guid)
+            if (value is MultiplierPathString n)
             {
-                return new StringValueNode(guid.ToString("N"));
+                return new StringValueNode(null, n, false);
             }
 
             throw new ScalarSerializationException(
@@ -81,9 +89,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is Guid guid)
+            if (value is MultiplierPathString n)
             {
-                return guid;
+                return (string)n;
             }
 
             throw new ScalarSerializationException(
@@ -98,15 +106,15 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s && Guid.TryParse(s, out Guid guid))
+            if (serialized is string s)
             {
-                value = guid;
+                value = new MultiplierPathString(s);
                 return true;
             }
 
-            if (serialized is Guid g)
+            if (serialized is MultiplierPathString n)
             {
-                value = g;
+                value = n;
                 return true;
             }
 

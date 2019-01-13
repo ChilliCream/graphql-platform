@@ -15,29 +15,20 @@ namespace HotChocolate.Types
         private readonly Action<SchemaError> _reportError;
 
         public TypeInitializationContext(ISchemaContext schemaContext,
-            Action<SchemaError> reportError, INamedType namedType,
+            Action<SchemaError> reportError, IHasName type,
             bool isQueryType)
         {
             _schemaContext = schemaContext
                 ?? throw new ArgumentNullException(nameof(schemaContext));
             _reportError = reportError
                 ?? throw new ArgumentNullException(nameof(reportError));
-            Type = namedType
-                ?? throw new ArgumentNullException(nameof(namedType));
+            Type = type
+                ?? throw new ArgumentNullException(nameof(type));
             IsQueryType = isQueryType;
+            IsDirective = type is DirectiveType;
         }
 
-        public TypeInitializationContext(ISchemaContext schemaContext,
-            Action<SchemaError> reportError)
-        {
-            _schemaContext = schemaContext
-                ?? throw new ArgumentNullException(nameof(schemaContext));
-            _reportError = reportError
-                ?? throw new ArgumentNullException(nameof(reportError));
-            IsDirective = true;
-        }
-
-        public INamedType Type { get; }
+        public IHasName Type { get; }
 
         public bool IsQueryType { get; }
 

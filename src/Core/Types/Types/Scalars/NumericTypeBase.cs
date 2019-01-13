@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public sealed class UuidType
+    public abstract class NumericTypeBase<T>
         : ScalarType
     {
-        public UuidType()
-            : base("Uuid")
+        protected NumericTypeBase(NameString name)
+            : base(name)
         {
         }
 
-        public override Type ClrType => typeof(Guid);
+        public override Type ClrType => typeof(T);
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -25,8 +25,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out _))
+            if (literal is IntValueNode intLiteral
+                && TryParseValue(intLiteral.Value, out _))
             {
                 return true;
             }
@@ -46,10 +46,10 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (literal is StringValueNode stringLiteral
-                && Guid.TryParse(stringLiteral.Value, out Guid guid))
+            if (literal is IntValueNode intLiteral
+                && TryParseValue(intLiteral.Value, out T value))
             {
-                return guid;
+                return value;
             }
 
             throw new ScalarSerializationException(
@@ -59,14 +59,14 @@ namespace HotChocolate.Types
 
         public override IValueNode ParseValue(object value)
         {
-            if (value == null)
+            if (value is null)
             {
-                return new NullValueNode(null);
+                return NullValueNode.Default;
             }
 
-            if (value is Guid guid)
+            if (value is T v)
             {
-                return new StringValueNode(guid.ToString("N"));
+                return new IntValueNode(SerializeValue(v));
             }
 
             throw new ScalarSerializationException(
@@ -81,9 +81,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (value is Guid guid)
+            if (value is T v)
             {
-                return guid;
+                return v;
             }
 
             throw new ScalarSerializationException(
@@ -98,20 +98,18 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s && Guid.TryParse(s, out Guid guid))
+            if (serialized is T v)
             {
-                value = guid;
-                return true;
-            }
-
-            if (serialized is Guid g)
-            {
-                value = g;
+                value = v;
                 return true;
             }
 
             value = null;
             return false;
         }
+
+        protected abstract bool TryParseValue(string s, out T value);
+
+        protected abstract string SerializeValue(T value);
     }
 }

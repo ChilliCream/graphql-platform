@@ -11,6 +11,8 @@ namespace HotChocolate
     public class ScalarSupportTests
     {
         [Theory]
+        [InlineData("Byte")]
+        [InlineData("Short")]
         [InlineData("Long")]
         [InlineData("DateTime")]
         [InlineData("Date")]
@@ -31,6 +33,8 @@ namespace HotChocolate
         }
 
         [Theory]
+        [InlineData("Byte")]
+        [InlineData("Short")]
         [InlineData("Long")]
         [InlineData("DateTime")]
         [InlineData("Date")]
@@ -54,6 +58,8 @@ namespace HotChocolate
         }
 
         [Theory]
+        [InlineData("Byte", typeof(byte), "Overridden byte")]
+        [InlineData("Short", typeof(short), "Overridden short")]
         [InlineData("Long", typeof(long), "Overridden long")]
         [InlineData("Decimal", typeof(decimal), "Overridden decimal")]
         [InlineData("DateTime", typeof(DateTimeOffset), "Overridden DateTime")]

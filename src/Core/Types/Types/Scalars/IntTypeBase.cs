@@ -22,9 +22,6 @@ namespace HotChocolate.Types
             _max = max;
         }
 
-        public override string Description =>
-            TypeResources.IntType_Description();
-
         public override Type ClrType => typeof(int);
 
         public override bool IsInstanceOfType(IValueNode literal)

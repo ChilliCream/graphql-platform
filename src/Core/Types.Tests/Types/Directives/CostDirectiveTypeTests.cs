@@ -268,7 +268,7 @@ namespace HotChocolate.Types
                 t =>
                 {
                     Assert.Equal("multipliers", t.Name);
-                    Assert.IsType<StringType>(
+                    Assert.IsType<MultiplierPathType>(
                         Assert.IsType<NonNullType>(
                             Assert.IsType<ListType>(t.Type).ElementType).Type);
                 });
