@@ -1008,6 +1008,16 @@
           "possibleTypes": null
         },
         {
+          "kind": "SCALAR",
+          "name": "MultiplierPath",
+          "description": "The multiplier path scalar represents a valid GraphQL multiplier path string.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
           "kind": "OBJECT",
           "name": "Foo",
           "description": null,
@@ -1027,16 +1037,6 @@
           ],
           "inputFields": null,
           "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Name",
-          "description": "The multiplier path scalar represents a valid GraphQL multiplier path string.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         }
@@ -1117,7 +1117,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "Name",
+                    "name": "MultiplierPath",
                     "ofType": null
                   }
                 }
