@@ -13,10 +13,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source)
         {
             source.AppendLine($"var resolver = ctx.{nameof(IResolverContext.Resolver)}<{resolverDescriptor.ResolverType.GetTypeName()}>();");
-            HandleExceptionsSync(source, s =>
-            {
-                s.Append($"return Task.FromResult<object>(resolver.{resolverDescriptor.Field.Member.Name});");
-            });
+            source.Append($"return Task.FromResult<object>(resolver.{resolverDescriptor.Field.Member.Name});");
         }
 
         protected override bool CanHandle(ResolverDescriptor descriptor)

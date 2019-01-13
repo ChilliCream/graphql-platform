@@ -55,18 +55,5 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             return descriptor.Arguments;
         }
-
-        protected override void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
-        {
-            source.AppendLine("try");
-            source.AppendLine("{");
-            code(source);
-            source.AppendLine();
-            source.AppendLine("}");
-            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
-            source.AppendLine("{");
-            source.AppendLine($"ctx.Result = ex.Errors;");
-            source.AppendLine("}");
-        }
     }
 }

@@ -15,18 +15,15 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.SourceType.GetTypeName()}>();");
 
-            HandleExceptions(source, s =>
+            source.Append($"return await source.{resolverDescriptor.Field.Member.Name}(");
+            if (resolverDescriptor.Arguments.Count > 0)
             {
-                s.Append($"return await source.{resolverDescriptor.Field.Member.Name}(");
-                if (resolverDescriptor.Arguments.Count > 0)
-                {
-                    string arguments = string.Join(", ",
-                        resolverDescriptor.Arguments
-                            .Select(t => t.VariableName));
-                    s.Append(arguments);
-                }
-                s.AppendLine(");");
-            });
+                string arguments = string.Join(", ",
+                    resolverDescriptor.Arguments
+                        .Select(t => t.VariableName));
+                source.Append(arguments);
+            }
+            source.AppendLine(");");
         }
 
         protected override bool CanHandle(SourceResolverDescriptor descriptor)
