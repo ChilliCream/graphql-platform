@@ -42,6 +42,7 @@ namespace HotChocolate.Execution
                 .UseValidation()
                 .UseOperationResolver()
                 .UseCoerceVariables()
+                .UseMaxComplexity()
                 .UseOperationExecuter();
         }
 
@@ -121,6 +122,13 @@ namespace HotChocolate.Execution
         {
             return builder.Use<ValidateQueryMiddleware>();
         }
+
+        public static IQueryExecutionBuilder UseMaxComplexity(
+            this IQueryExecutionBuilder builder)
+        {
+            return builder.Use<MaxComplexityMiddleware>();
+        }
+
 
         public static IQueryExecutionBuilder Use<TMiddleware>(
             this IQueryExecutionBuilder builder)

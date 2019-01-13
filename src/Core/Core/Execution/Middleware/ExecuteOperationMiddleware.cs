@@ -25,17 +25,24 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            if (IsContextValid(context))
+            if (IsContextIncomplete(context))
+            {
+                context.Result = QueryResult.CreateError(new QueryError(
+                    "The execute operation middleware expects the " +
+                    "query document to be parsed, the operation to " +
+                    "be resolved and the variables to be coerced."));
+            }
+            else
             {
                 IExecutionStrategy strategy = _strategyResolver
                     .Resolve(context.Operation.Type);
-                IExecutionContext executionContext = CreateExecutionContext(
-                    context);
+
+                IExecutionContext executionContext =
+                    CreateExecutionContext(context);
 
                 context.Result = await strategy.ExecuteAsync(
-                    executionContext,
-                    executionContext.RequestAborted)
-                        .ConfigureAwait(false);
+                    executionContext, executionContext.RequestAborted)
+                    .ConfigureAwait(false);
             }
 
             await _next(context).ConfigureAwait(false);
@@ -62,7 +69,7 @@ namespace HotChocolate.Execution
                 context.Request.Query,
                 () =>
                 {
-                    var directiveCollector =  new DirectiveCollector(
+                    var directiveCollector = new DirectiveCollector(
                         context.Schema);
 
                     directiveCollector.VisitDocument(context.Document);
@@ -71,11 +78,11 @@ namespace HotChocolate.Execution
                 });
         }
 
-        private bool IsContextValid(IQueryContext context)
+        private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Document != null
-                && context.Operation != null
-                && context.Variables != null;
+            return context.Document == null
+                || context.Operation == null
+                || context.Variables == null;
         }
     }
 }

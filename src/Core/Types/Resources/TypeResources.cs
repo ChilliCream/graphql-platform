@@ -123,6 +123,13 @@ namespace HotChocolate
                 "represent free-form human-readable text.";
         }
 
+        public static string NameType_Description()
+        {
+            return "The name scalar represents a valid GraphQL name " +
+                "as specified in the spec and can be used to refer " +
+                "to fields or types.";
+        }
+
         public static string Name_Cannot_BeEmpty()
         {
             return "The specified name cannot be empty.";
@@ -155,6 +162,13 @@ namespace HotChocolate
             return "The member expression must specify a property or method " +
                 "that is public and that belongs to the " +
                 $"type {fullTypeName}";
+        }
+
+        public static string Type_Name_IsNotValid(string typeName)
+        {
+            string name = typeName ?? "null";
+            return $"`{name}` is not a valid " +
+                "GraphQL type name.";
         }
     }
 }

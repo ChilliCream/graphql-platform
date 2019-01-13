@@ -25,6 +25,5 @@ namespace HotChocolate.Types
 
         protected override decimal GetMinValue => decimal.MinValue;
         protected override string GetAssertMinValue => "-7.922816E+028";
-
     }
 }

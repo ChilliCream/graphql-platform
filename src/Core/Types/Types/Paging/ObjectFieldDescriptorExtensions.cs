@@ -16,9 +16,9 @@
             this IObjectFieldDescriptor descriptor)
         {
             return descriptor
-                .Argument("first", a => a.Type<IntType>())
+                .Argument("first", a => a.Type<PaginationAmountType>())
                 .Argument("after", a => a.Type<StringType>())
-                .Argument("last", a => a.Type<IntType>())
+                .Argument("last", a => a.Type<PaginationAmountType>())
                 .Argument("before", a => a.Type<StringType>());
         }
     }

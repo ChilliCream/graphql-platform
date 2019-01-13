@@ -10,6 +10,7 @@ namespace HotChocolate.Types
     public class InputField
         : FieldBase<IInputType>
         , IInputField
+        , IHasClrType
     {
         private readonly object _nativeDefaultValue;
 
@@ -39,8 +40,9 @@ namespace HotChocolate.Types
 
         public IValueNode DefaultValue { get; private set; }
 
-        // TODO : make this private
-        public PropertyInfo Property { get; private set; }
+        private PropertyInfo Property { get; set; }
+
+        public Type ClrType => Property?.PropertyType ?? typeof(object);
 
         public void SetValue(object obj, object value)
         {

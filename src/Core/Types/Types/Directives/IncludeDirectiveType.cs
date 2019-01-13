@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Types
 {
-    public class IncludeDirectiveType
+    public sealed class IncludeDirectiveType
         : DirectiveType
     {
         internal IncludeDirectiveType()
@@ -10,6 +10,7 @@
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("include");
+
             descriptor.Description(
                 "Directs the executor to include this field or fragment " +
                 "only when the `if` argument is true.");

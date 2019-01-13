@@ -102,8 +102,8 @@ namespace HotChocolate.Validation
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
                 t => Assert.Equal(
-                    "The specified value type of argument `intArg` " +
-                    "does not match the argument type.",
+                    "The specified argument value does not match the " +
+                    "argument type.\nArgument: `intArg`\nValue: `123`",
                     t.Message));
         }
 

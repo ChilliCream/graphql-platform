@@ -16,6 +16,11 @@ namespace HotChocolate.Types
             throw new NotImplementedException();
         }
 
+        public bool IsInstanceOfType(object value)
+        {
+            throw new NotImplementedException();
+        }
+
         public object ParseLiteral(IValueNode literal)
         {
             throw new NotImplementedException();

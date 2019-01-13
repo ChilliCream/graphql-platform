@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -10,7 +11,8 @@ namespace HotChocolate.Execution
     {
         public static Dictionary<string, ArgumentValue> CoerceArgumentValues(
             this FieldSelection fieldSelection,
-            IVariableCollection variables)
+            IVariableCollection variables,
+            Path path)
         {
             Dictionary<string, ArgumentValue> coercedArgumentValues =
                 new Dictionary<string, ArgumentValue>();
@@ -22,36 +24,57 @@ namespace HotChocolate.Execution
 
             foreach (InputField argument in fieldSelection.Field.Arguments)
             {
-                string argumentName = argument.Name;
-                IInputType argumentType = argument.Type;
-                IValueNode defaultValue = argument.DefaultValue;
-                object argumentValue = CoerceArgumentValue(
-                    argumentName, argumentType, defaultValue,
-                    variables, argumentValues);
-
-                if (argumentType is NonNullType && argumentValue == null)
-                {
-                    throw new QueryException(new QueryError(
-                        $"The argument type of '{argumentName}' is a " +
-                        "non-null type."));
-                }
-
-                coercedArgumentValues[argumentName] = new ArgumentValue(
-                    argumentType, argumentValue);
+                coercedArgumentValues[argument.Name] = CreateArgumentValue(
+                    fieldSelection, argument, argumentValues,
+                    variables, path);
             }
 
             return coercedArgumentValues;
         }
 
+        private static ArgumentValue CreateArgumentValue(
+            FieldSelection fieldSelection,
+            InputField argument,
+            Dictionary<string, IValueNode> argumentValues,
+            IVariableCollection variables,
+            Path path)
+        {
+            object argumentValue = null;
+
+            try
+            {
+                argumentValue = CoerceArgumentValue(
+                    argument, variables, argumentValues);
+            }
+            catch (ScalarSerializationException ex)
+            {
+                throw new QueryException(QueryError.CreateArgumentError(
+                    ex.Message,
+                    path,
+                    fieldSelection.Nodes.First(),
+                    argument.Name));
+            }
+
+            if (argument.Type is NonNullType && argumentValue == null)
+            {
+                throw new QueryException(QueryError.CreateArgumentError(
+                    $"The argument type of '{argument.Name}' is a " +
+                    "non-null type.",
+                    path,
+                    fieldSelection.Nodes.First(),
+                    argument.Name));
+            }
+
+            return new ArgumentValue(argument.Type, argumentValue);
+        }
+
         private static object CoerceArgumentValue(
-            string argumentName,
-            IInputType argumentType,
-            IValueNode defaultValue,
+            InputField argument,
             IVariableCollection variables,
             Dictionary<string, IValueNode> argumentValues)
         {
-            if (argumentValues.TryGetValue(argumentName,
-                    out IValueNode literal))
+            if (argumentValues.TryGetValue(argument.Name,
+                out IValueNode literal))
             {
                 if (literal is VariableNode variable)
                 {
@@ -60,11 +83,11 @@ namespace HotChocolate.Execution
                     {
                         return value;
                     }
-                    return ParseLiteral(argumentType, defaultValue);
+                    return ParseLiteral(argument.Type, argument.DefaultValue);
                 }
-                return ParseLiteral(argumentType, literal);
+                return ParseLiteral(argument.Type, literal);
             }
-            return ParseLiteral(argumentType, defaultValue);
+            return ParseLiteral(argument.Type, argument.DefaultValue);
         }
 
         private static object ParseLiteral(

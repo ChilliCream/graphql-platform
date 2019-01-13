@@ -61,6 +61,26 @@ namespace HotChocolate.Types
         public abstract bool IsInstanceOfType(IValueNode literal);
 
         /// <summary>
+        /// Defines if the specified <paramref name="value" />
+        /// is a instance of this type.
+        /// </summary>
+        /// <param name="value">
+        /// A value representation of this type.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the value is a value of this type;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public virtual bool IsInstanceOfType(object value)
+        {
+            if(value is null)
+            {
+                return true;
+            }
+            return ClrType.IsInstanceOfType(value);
+        }
+
+        /// <summary>
         /// Parses the specified <paramref name="literal" />
         /// to the .net representation of this type.
         /// </summary>
@@ -71,7 +91,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentNullException">
         /// <paramref name="literal" /> is <c>null</c>.
         /// </exception>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ScalarSerializationException">
         /// The specified <paramref name="literal" /> cannot be parsed
         /// by this scalar.
         /// </exception>
@@ -86,6 +106,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns a GraphQL literal representing the .net value.
         /// </returns>
+        /// <exception cref="ScalarSerializationException">
+        /// The specified <paramref name="value" /> cannot be parsed
+        /// by this scalar.
+        /// </exception>
         public abstract IValueNode ParseValue(object value);
 
         /// <summary>
@@ -102,6 +126,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns the serialized value.
         /// </returns>
+        /// <exception cref="ScalarSerializationException">
+        /// The specified <paramref name="value" /> cannot be serialized
+        /// by this scalar.
+        /// </exception>
         public abstract object Serialize(object value);
 
         /// <summary>
@@ -118,6 +146,10 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns the .net value representation.
         /// </returns>
+        /// <exception cref="ScalarSerializationException">
+        /// The specified <paramref name="value" /> cannot be deserialized
+        /// by this scalar.
+        /// </exception>
         public virtual object Deserialize(object serialized)
         {
             if (TryDeserialize(serialized, out object v))
@@ -125,7 +157,7 @@ namespace HotChocolate.Types
                 return v;
             }
 
-            throw new ArgumentException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_Deserialize(Name));
         }
 

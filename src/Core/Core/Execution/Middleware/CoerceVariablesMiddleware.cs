@@ -1,5 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
@@ -14,13 +20,20 @@ namespace HotChocolate.Execution
 
         public Task InvokeAsync(IQueryContext context)
         {
-            if (IsContextValid(context))
+            if (!IsContextValid(context))
             {
-                var variableBuilder = new VariableValueBuilder(
-                    context.Schema, context.Operation.Definition);
-                context.Variables = variableBuilder.CreateValues(
-                    context.Request.VariableValues);
+                context.Result = QueryResult.CreateError(new QueryError(
+                   "The coerce variables middleware expects the " +
+                   "query document to be parsed and the operation " +
+                   "to be resolved."));
+                return Task.CompletedTask;
             }
+
+            var variableBuilder = new VariableValueBuilder(
+                context.Schema, context.Operation.Definition);
+            context.Variables = variableBuilder.CreateValues(
+                context.Request.VariableValues);
+
             return _next(context);
         }
 
@@ -30,5 +43,5 @@ namespace HotChocolate.Execution
                 && context.Operation != null;
         }
     }
-}
 
+}

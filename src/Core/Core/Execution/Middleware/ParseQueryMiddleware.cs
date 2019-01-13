@@ -7,7 +7,6 @@ using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
-    // diagnostics -> Exceptions -> Parse -> Validate -> ResolveOperation
     internal sealed class ParseQueryMiddleware
     {
         private readonly QueryDelegate _next;
@@ -31,11 +30,20 @@ namespace HotChocolate.Execution
         {
             Activity activity = ParsingDiagnosticEvents.BeginParsing(context);
 
-            context.Document = _queryCache.GetOrCreate(
-                context.Request.Query,
-                () => ParseDocument(context.Request.Query));
+            if (IsContextIncomplete(context))
+            {
+                context.Result = QueryResult.CreateError(new QueryError(
+                   "The parse query middleware expects " +
+                   "a valid query request."));
+            }
+            else
+            {
+                context.Document = _queryCache.GetOrCreate(
+                    context.Request.Query,
+                    () => ParseDocument(context.Request.Query));
 
-            await _next(context).ConfigureAwait(false);
+                await _next(context).ConfigureAwait(false);
+            }
 
             ParsingDiagnosticEvents.EndParsing(activity, context);
         }
@@ -43,6 +51,12 @@ namespace HotChocolate.Execution
         private DocumentNode ParseDocument(string queryText)
         {
             return _parser.Parse(queryText);
+        }
+
+        private static bool IsContextIncomplete(IQueryContext context)
+        {
+            return context.Request == null
+                || context.Request.Query == null;
         }
     }
 }

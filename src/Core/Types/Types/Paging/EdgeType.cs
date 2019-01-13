@@ -2,8 +2,11 @@
 {
     public class EdgeType<T>
         : ObjectType<IEdge>
+        , IEdgeType
         where T : INamedOutputType, new()
     {
+        public INamedOutputType EntityType { get; private set; }
+
         protected override void Configure(IObjectTypeDescriptor<IEdge> descriptor)
         {
             // TODO : Fix this with the new schema builder
@@ -27,6 +30,15 @@
             base.OnRegisterDependencies(context);
 
             context.RegisterType(new TypeReference(typeof(T)));
+        }
+
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
+        {
+            EntityType = context.GetType<T>(
+                new TypeReference(typeof(T)));
+
+            base.OnCompleteType(context);
         }
     }
 }

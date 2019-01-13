@@ -161,7 +161,7 @@ namespace HotChocolate.Execution
         private void CheckForInvalidValueType(Variable variable)
         {
             if (variable.Value != null
-                && !variable.Type.ClrType.IsInstanceOfType(variable.Value))
+                && !variable.Type.IsInstanceOfType(variable.Value))
             {
                 throw new QueryException(QueryError.CreateVariableError(
                     "The variable value is not of the correct type.",

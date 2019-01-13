@@ -11,5 +11,9 @@ namespace HotChocolate.Execution.Configuration
         /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
         /// </summary>
         int? MaxExecutionDepth { get; }
+
+        int? MaxOperationComplexity { get; }
+
+        bool? UseComplexityMultipliers { get; }
     }
 }

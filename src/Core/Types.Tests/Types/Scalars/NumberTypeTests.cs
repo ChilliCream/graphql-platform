@@ -69,7 +69,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null));
+            Assert.Throws<ArgumentNullException>(
+                () => type.IsInstanceOfType(null));
         }
 
         [Fact]
@@ -109,7 +110,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => type.Serialize(input));
+            Assert.Throws<ScalarSerializationException>(
+                () => type.Serialize(input));
         }
 
         [Fact]
@@ -150,7 +152,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => type.ParseLiteral(input));
+            Assert.Throws<ScalarSerializationException>(
+                () => type.ParseLiteral(input));
         }
 
         [Fact]
@@ -161,7 +164,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
+            Assert.Throws<ArgumentNullException>(
+                () => type.ParseLiteral(null));
         }
 
         [Fact]
@@ -203,7 +207,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => type.ParseValue(input));
+            Assert.Throws<ScalarSerializationException>(
+                () => type.ParseValue(input));
         }
 
         [Fact]

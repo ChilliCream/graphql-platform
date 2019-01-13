@@ -12,15 +12,13 @@ namespace HotChocolate.Execution
     internal sealed class ValidateQueryMiddleware
     {
         private readonly QueryDelegate _next;
-        private readonly IValidateQueryOptionsAccessor _options;
         private readonly IQueryValidator _validator;
         private readonly Cache<QueryValidationResult> _validatorCache;
 
         public ValidateQueryMiddleware(
             QueryDelegate next,
             IQueryValidator validator,
-            Cache<QueryValidationResult> validatorCache,
-            IValidateQueryOptionsAccessor options)
+            Cache<QueryValidationResult> validatorCache)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -28,10 +26,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(validator));
             _validatorCache = validatorCache ??
                 new Cache<QueryValidationResult>(Defaults.CacheSize);
-            _options = options ??
-                throw new ArgumentNullException(nameof(options));
         }
-         
+
         public async Task InvokeAsync(IQueryContext context)
         {
             Activity activity = ValidationDiagnosticEvents
@@ -41,7 +37,7 @@ namespace HotChocolate.Execution
             {
                 // TODO : Resources
                 context.Result = QueryResult.CreateError(new QueryError(
-                    "The validation middleware expectes the " +
+                    "The validation middleware expects the " +
                     "query document to be parsed."));
             }
             else
@@ -69,7 +65,6 @@ namespace HotChocolate.Execution
             ISchema schema,
             DocumentNode document)
         {
-            // TODO: pass options into Validate(..., _options);
             return _validator.Validate(schema, document);
         }
     }

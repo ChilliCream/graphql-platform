@@ -130,9 +130,10 @@ namespace HotChocolate.Validation
                     && !IsInstanceOfType(argumentField.Type, argument.Value))
                 {
                     Errors.Add(new ValidationError(
-                        "The specified value type of argument " +
-                        $"`{argument.Name.Value}` " +
-                        "does not match the argument type.",
+                        "The specified argument value " +
+                        "does not match the argument type.\n" +
+                        $"Argument: `{argument.Name.Value}`\n" +
+                        $"Value: `{argument.Value}`",
                         argument));
                 }
             }
