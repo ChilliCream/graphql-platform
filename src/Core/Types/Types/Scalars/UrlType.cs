@@ -20,8 +20,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (literal is StringValueNode stringLiteral
+                && TryParseUri(stringLiteral.Value, out _))
+            {
+                return false;
+            }
+
+            return false;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -31,15 +41,15 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
             if (literal is StringValueNode stringLiteral
                 && TryParseUri(stringLiteral.Value, out Uri uri))
             {
                 return uri;
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
             }
 
             throw new ScalarSerializationException(
@@ -56,7 +66,7 @@ namespace HotChocolate.Types
 
             if (value is Uri uri)
             {
-                return new StringValueNode(Serialize(uri));
+                return new StringValueNode(uri.AbsoluteUri);
             }
 
             throw new ScalarSerializationException(
@@ -73,16 +83,11 @@ namespace HotChocolate.Types
 
             if (value is Uri uri)
             {
-                return Serialize(uri);
+                return uri;
             }
 
             throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
-        }
-
-        private string Serialize(Uri value)
-        {
-            return value.AbsoluteUri;
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -96,6 +101,12 @@ namespace HotChocolate.Types
             if (serialized is string s && TryParseUri(s, out Uri uri))
             {
                 value = uri;
+                return true;
+            }
+
+            if (serialized is Uri u)
+            {
+                value = u;
                 return true;
             }
 

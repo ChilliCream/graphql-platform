@@ -20,8 +20,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            if (literal is StringValueNode stringLiteral
+                && Guid.TryParse(stringLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -31,15 +41,15 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal is NullValueNode)
+            {
+                return null;
+            }
+
             if (literal is StringValueNode stringLiteral
                 && Guid.TryParse(stringLiteral.Value, out Guid guid))
             {
                 return guid;
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
             }
 
             throw new ScalarSerializationException(
@@ -56,7 +66,7 @@ namespace HotChocolate.Types
 
             if (value is Guid guid)
             {
-                return new StringValueNode(Serialize(guid));
+                return new StringValueNode(guid.ToString("N"));
             }
 
             throw new ScalarSerializationException(
@@ -73,16 +83,11 @@ namespace HotChocolate.Types
 
             if (value is Guid guid)
             {
-                return Serialize(guid);
+                return guid;
             }
 
             throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
-        }
-
-        private string Serialize(Guid value)
-        {
-            return value.ToString("N");
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -96,6 +101,12 @@ namespace HotChocolate.Types
             if (serialized is string s && Guid.TryParse(s, out Guid guid))
             {
                 value = guid;
+                return true;
+            }
+
+            if (serialized is Guid g)
+            {
+                value = g;
                 return true;
             }
 
