@@ -4,10 +4,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class LongTypeTests
-        : NumberTypeTests<long, LongType, StringValueNode, long>
+        : NumberTypeTests<long, LongType, IntValueNode, long>
     {
-        protected override StringValueNode GetValueNode =>
-            new StringValueNode("1");
+        protected override IntValueNode GetValueNode =>
+            new IntValueNode("1");
 
         protected override IValueNode GetWrongValueNode =>
             new FloatValueNode("1.0f");
