@@ -85,7 +85,8 @@ namespace HotChocolate.Types
         /// The <see cref="StringComparison"/> type to use.
         /// </param>
         /// <returns>
-        /// <c>true</c> if both <see cref="MultiplierPathString"/> values are equal.
+        /// <c>true</c> if both <see cref="MultiplierPathString"/> values
+        /// are equal.
         /// </returns>
         public bool Equals(
             MultiplierPathString other,
@@ -169,7 +170,8 @@ namespace HotChocolate.Types
         /// <param name="left">The left parameter</param>
         /// <param name="right">The right parameter</param>
         /// <returns>
-        /// <c>true</c> if both <see cref="MultiplierPathString"/> values are not equal.
+        /// <c>true</c> if both <see cref="MultiplierPathString"/> values
+        /// are not equal.
         /// </returns>
         public static bool operator !=(
             MultiplierPathString left,
