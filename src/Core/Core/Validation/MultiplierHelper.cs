@@ -61,8 +61,8 @@ namespace HotChocolate.Validation
             string multiplierPath,
             out int value)
         {
-            Stack<string> path = new Stack<string>(multiplierPath.Split('.'));
-            string name = path.Pop();
+            Queue<string> path = new Queue<string>(multiplierPath.Split('.'));
+            string name = path.Dequeue();
 
             ArgumentNode argument = field.Arguments
                 .FirstOrDefault(t => t.Name.Value == name);
@@ -87,11 +87,11 @@ namespace HotChocolate.Validation
 
         private static IValueNode ResolveObjectField(
             ObjectValueNode obj,
-            Stack<string> path)
+            Queue<string> path)
         {
             if (path.Any())
             {
-                string name = path.Pop();
+                string name = path.Dequeue();
                 ObjectFieldNode fieldValue = obj.Fields
                     .FirstOrDefault(t => t.Name.Value == name);
                 return fieldValue.Value;

@@ -24,7 +24,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             Action a = () => new CostDirective(1, " ");
-            Action b = () => new CostDirective(1, (NameString[])null);
+            Action b = () => new CostDirective(1, (string[])null);
 
             // assert
             Assert.Throws<ArgumentException>(a);

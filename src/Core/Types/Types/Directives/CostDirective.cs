@@ -14,12 +14,12 @@ namespace HotChocolate.Types
         private readonly int _complexity;
 
         [NonSerialized]
-        private readonly IReadOnlyList<NameString> _multipliers;
+        private readonly IReadOnlyList<string> _multipliers;
 
         public CostDirective()
         {
             _complexity = 1;
-            _multipliers = Array.Empty<NameString>();
+            _multipliers = Array.Empty<string>();
         }
 
         public CostDirective(int complexity)
@@ -33,10 +33,10 @@ namespace HotChocolate.Types
             }
 
             _complexity = complexity;
-            _multipliers = Array.Empty<NameString>();
+            _multipliers = Array.Empty<string>();
         }
 
-        public CostDirective(int complexity, params NameString[] multipliers)
+        public CostDirective(int complexity, params string[] multipliers)
         {
             if (complexity <= 0)
             {
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
             }
 
             _complexity = complexity;
-            _multipliers = multipliers.Where(t => t.HasValue).ToArray();
+            _multipliers = multipliers.ToArray();
         }
 
         private CostDirective(
@@ -70,7 +70,6 @@ namespace HotChocolate.Types
                 _multipliers = ((string[])info
                     .GetValue(nameof(Multipliers), typeof(string[])))
                     .Where(s => !string.IsNullOrEmpty(s))
-                    .Select(s => new NameString(s))
                     .ToArray();
             }
             else
@@ -90,15 +89,14 @@ namespace HotChocolate.Types
                     ? lv.Items.OfType<StringValueNode>()
                         .Select(t => t.Value?.Trim())
                         .Where(s => !string.IsNullOrEmpty(s))
-                        .Select(s => new NameString(s))
                         .ToArray()
-                    : Array.Empty<NameString>();
+                    : Array.Empty<string>();
             }
         }
 
         public int Complexity => _complexity;
 
-        public IReadOnlyList<NameString> Multipliers => _multipliers;
+        public IReadOnlyList<string> Multipliers => _multipliers;
 
         public void GetObjectData(
             SerializationInfo info,
