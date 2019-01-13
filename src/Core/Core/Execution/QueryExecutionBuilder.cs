@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -12,6 +13,9 @@ namespace HotChocolate.Execution
     {
         private readonly List<QueryMiddleware> _middlewareComponents =
             new List<QueryMiddleware>();
+
+        private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
+            new List<FieldMiddleware>();
 
         public IServiceCollection Services { get; } = new ServiceCollection();
 
@@ -23,6 +27,17 @@ namespace HotChocolate.Execution
             }
 
             _middlewareComponents.Add(middleware);
+            return this;
+        }
+
+        public IQueryExecutionBuilder UseField(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _fieldMiddlewareComponents.Add(middleware);
             return this;
         }
 

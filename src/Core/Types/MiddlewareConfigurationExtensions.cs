@@ -11,7 +11,7 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>());
+                FieldClassMiddlewareFactory.Create<TMiddleware>());
         }
 
         public static IMiddlewareConfiguration Use<TMiddleware>(
@@ -20,7 +20,7 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                ClassMiddlewareFactory.Create<TMiddleware>(factory));
+                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
         }
 
         public static IMiddlewareConfiguration Map(
@@ -29,7 +29,7 @@ namespace HotChocolate
             FieldMiddleware middleware)
         {
             return configuration.Use(
-                ClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
                     (s, n) => new MapMiddleware(
                         n, fieldReference, middleware(n))));
         }
@@ -41,11 +41,11 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                ClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
-                            ClassMiddlewareFactory.Create<TMiddleware>();
+                            FieldClassMiddlewareFactory.Create<TMiddleware>();
                         return new MapMiddleware(
                             n, fieldReference, classMiddleware(n));
                     }));
@@ -58,11 +58,11 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                ClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create<MapMiddleware>(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
-                            ClassMiddlewareFactory.Create<TMiddleware>(factory);
+                            FieldClassMiddlewareFactory.Create<TMiddleware>(factory);
                         return new MapMiddleware(
                             n, fieldReference, classMiddleware(n));
                     }));
