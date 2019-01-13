@@ -163,5 +163,12 @@ namespace HotChocolate
                 "that is public and that belongs to the " +
                 $"type {fullTypeName}";
         }
+
+        public static string Type_Name_IsNotValid(string typeName)
+        {
+            string name = typeName ?? "null";
+            return $"`{name}` is not a valid " +
+                "GraphQL type name.";
+        }
     }
 }

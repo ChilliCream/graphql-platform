@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor Cost(
             this IObjectFieldDescriptor descriptor,
             int complexity,
-            string multiplier)
+            MultiplierPathString multiplier)
         {
             if (descriptor == null)
             {
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor Cost(
             this IObjectFieldDescriptor descriptor,
             int complexity,
-            params string[] multipliers)
+            params MultiplierPathString[] multipliers)
         {
             if (descriptor == null)
             {
