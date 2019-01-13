@@ -8,6 +8,22 @@ namespace HotChocolate.Execution
 {
     public class ErrorBehaviourTests
     {
+         [Fact]
+        public async Task SyntaxError()
+        {
+            // arrange
+            string query = "{ error1";
+            int i = 0;
+
+            // act
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
+            result.Snapshot();
+        }
+
         [Fact]
         public async Task AsyncMethod_NoAwait_Throw_ApplicationError()
         {
