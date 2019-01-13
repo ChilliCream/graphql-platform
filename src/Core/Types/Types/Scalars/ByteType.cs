@@ -6,7 +6,7 @@ namespace HotChocolate.Types
         : NumericTypeBase<byte>
     {
         public ByteType()
-            : base("Short")
+            : base("Byte")
         {
         }
 

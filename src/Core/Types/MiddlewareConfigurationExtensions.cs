@@ -62,7 +62,8 @@ namespace HotChocolate
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
-                            FieldClassMiddlewareFactory.Create<TMiddleware>(factory);
+                            FieldClassMiddlewareFactory
+                                .Create<TMiddleware>(factory);
                         return new MapMiddleware(
                             n, fieldReference, classMiddleware(n));
                     }));
