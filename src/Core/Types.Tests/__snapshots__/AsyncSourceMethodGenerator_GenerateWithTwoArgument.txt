@@ -4,14 +4,6 @@ var ct = ctx.RequestAborted;
 var v0_a = ctx.Argument<System.String>("a");
 var v1_b = ctx.Argument<System.Int32>("b");
 var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
-try
-{
 return await source.GetFooAsync(v0_a, v1_b);
-
-}
-catch(HotChocolate.Execution.QueryException ex)
-{
-return ex.Errors;
-}
 
 };

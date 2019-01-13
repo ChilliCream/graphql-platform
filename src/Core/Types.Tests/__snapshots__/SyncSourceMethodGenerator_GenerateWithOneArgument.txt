@@ -3,13 +3,5 @@ public static FieldResolverDelegate abc  = ctx => {
 var ct = ctx.RequestAborted;
 var v0_a = ctx.Argument<System.String>("a");
 var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
-try
-{
 return Task.FromResult<object>(source.GetFoo(v0_a));
-}
-catch(HotChocolate.Execution.QueryException ex)
-{
-return Task.FromResult<object>(ex.Errors);
-}
-
 };
