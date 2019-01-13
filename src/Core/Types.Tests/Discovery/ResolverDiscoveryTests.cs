@@ -21,11 +21,11 @@ namespace HotChocolate.Discovery
             var query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .OrderBy(t => t.Name),
-                f => Assert.Equal("a", f.Name),
-                f => Assert.Equal("c", f.Name),
-                f => Assert.Equal("d", f.Name),
-                f => Assert.Equal("f", f.Name));
+                .OrderBy(t => t.Name.ToString()),
+                f => Assert.Equal(new NameString("a"), f.Name),
+                f => Assert.Equal(new NameString("c"), f.Name),
+                f => Assert.Equal(new NameString("d"), f.Name),
+                f => Assert.Equal(new NameString("f"), f.Name));
         }
 
         [Fact]
@@ -43,11 +43,11 @@ namespace HotChocolate.Discovery
             var query = schema.GetType<ObjectType>("Mutation");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .OrderBy(t => t.Name),
-                f => Assert.Equal("b", f.Name),
-                f => Assert.Equal("c", f.Name),
-                f => Assert.Equal("e", f.Name),
-                f => Assert.Equal("f", f.Name));
+                .OrderBy(t => t.Name.ToString()),
+                f => Assert.Equal(new NameString("b"), f.Name),
+                f => Assert.Equal(new NameString("c"), f.Name),
+                f => Assert.Equal(new NameString("e"), f.Name),
+                f => Assert.Equal(new NameString("f"), f.Name));
         }
 
         [Fact]
@@ -66,12 +66,12 @@ namespace HotChocolate.Discovery
             var query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .OrderBy(t => t.Name),
-                f => Assert.Equal("a", f.Name),
-                f => Assert.Equal("c", f.Name),
-                f => Assert.Equal("d", f.Name),
-                f => Assert.Equal("f", f.Name),
-                f => Assert.Equal("g", f.Name));
+                .OrderBy(t => t.Name.ToString()),
+                f => Assert.Equal(new NameString("a"), f.Name),
+                f => Assert.Equal(new NameString("c"), f.Name),
+                f => Assert.Equal(new NameString("d"), f.Name),
+                f => Assert.Equal(new NameString("f"), f.Name),
+                f => Assert.Equal(new NameString("g"), f.Name));
         }
 
         [Fact]
@@ -90,12 +90,12 @@ namespace HotChocolate.Discovery
             var query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .OrderBy(t => t.Name),
-                f => Assert.Equal("a", f.Name),
-                f => Assert.Equal("c", f.Name),
-                f => Assert.Equal("d", f.Name),
-                f => Assert.Equal("f", f.Name),
-                f => Assert.Equal("h", f.Name));
+                .OrderBy(t => t.Name.ToString()),
+                f => Assert.Equal(new NameString("a"), f.Name),
+                f => Assert.Equal(new NameString("c"), f.Name),
+                f => Assert.Equal(new NameString("d"), f.Name),
+                f => Assert.Equal(new NameString("f"), f.Name),
+                f => Assert.Equal(new NameString("h"), f.Name));
         }
 
         [Fact]
@@ -114,12 +114,12 @@ namespace HotChocolate.Discovery
             var query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .OrderBy(t => t.Name),
-                f => Assert.Equal("a", f.Name),
-                f => Assert.Equal("c", f.Name),
-                f => Assert.Equal("d", f.Name),
-                f => Assert.Equal("f", f.Name),
-                f => Assert.Equal("i", f.Name));
+                .OrderBy(t => t.Name.ToString()),
+                f => Assert.Equal(new NameString("a"), f.Name),
+                f => Assert.Equal(new NameString("c"), f.Name),
+                f => Assert.Equal(new NameString("d"), f.Name),
+                f => Assert.Equal(new NameString("f"), f.Name),
+                f => Assert.Equal(new NameString("i"), f.Name));
         }
 
         public class QueryType

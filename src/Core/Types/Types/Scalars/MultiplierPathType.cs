@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         : ScalarType
     {
         public MultiplierPathType()
-            : base("Name")
+            : base("MultiplierPath")
         {
         }
 

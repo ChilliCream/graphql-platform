@@ -181,6 +181,11 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
+            if (typeReference == null)
+            {
+                return $"{typeName}.{fieldName}: Cannot resolve type.";
+            }
+
             string kind = typeReference.Context == TypeContext.Output
                 ? "output" : "input";
 

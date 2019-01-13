@@ -165,7 +165,7 @@ namespace HotChocolate.Types
             {
                 context.ReportError(new SchemaError(
                     $"The field `{context.Type.Name}.{Name}` " +
-                    "has no resolver.", context.Type));
+                    "has no resolver.", (INamedType)context.Type));
             }
 
             _middlewareComponents = null;

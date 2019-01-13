@@ -37,9 +37,10 @@ namespace HotChocolate.Types
             Directives = directives;
         }
 
-        public INamedType DeclaringType { get; private set; }
 
-        public string Name { get; }
+        public IHasName DeclaringType { get; private set; }
+
+        public NameString Name { get; }
 
         public string Description { get; }
 
@@ -52,9 +53,9 @@ namespace HotChocolate.Types
         protected override void OnRegisterDependencies(
             ITypeInitializationContext context)
         {
-            base.OnCompleteType(context);
+            base.OnRegisterDependencies(context);
 
-            if (!context.IsDirective && context.Type == null)
+            if (context.Type == null)
             {
                 throw new InvalidOperationException(
                     "It is not allowed to initialize a field without " +
@@ -63,7 +64,6 @@ namespace HotChocolate.Types
 
             if (TypeReference != null)
             {
-                string s = TypeReference.ToString();
                 context.RegisterType(TypeReference);
             }
         }
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
-            if (!context.IsDirective && context.Type == null)
+            if (context.Type == null)
             {
                 throw new InvalidOperationException(
                     "It is not allowed to initialize a field without " +
