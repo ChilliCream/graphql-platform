@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class LongTypeTests
-        : NumberTypeTests<long, LongType, StringValueNode, string>
+        : NumberTypeTests<long, LongType, StringValueNode, long>
     {
         protected override StringValueNode GetValueNode =>
             new StringValueNode("1");
@@ -17,8 +17,7 @@ namespace HotChocolate.Types
         protected override object GetWrongValue => 1.0d;
 
         protected override long GetAssertValue => 1L;
-        protected override string GetSerializedAssertValue =>
-            1L.ToString("D", CultureInfo.InvariantCulture);
+        protected override long GetSerializedAssertValue => 1L;
 
         protected override long GetMaxValue => long.MaxValue;
         protected override string GetAssertMaxValue => "9223372036854775807";

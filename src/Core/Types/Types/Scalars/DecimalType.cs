@@ -29,8 +29,19 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return literal is FloatValueNode floatLiteral
-                && TryParseDecimal(floatLiteral.Value, out _);
+            if (literal is FloatValueNode floatLiteral
+                && TryParseDecimal(floatLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            if (literal is IntValueNode intLiteral
+                && TryParseDecimal(intLiteral.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -45,8 +56,14 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (literal is FloatValueNode floatValue
-                && TryParseDecimal(floatValue.Value, out decimal d))
+            if (literal is FloatValueNode floatLiteral
+                && TryParseDecimal(floatLiteral.Value, out var d))
+            {
+                return d;
+            }
+
+            if (literal is IntValueNode intLiteral
+                && TryParseDecimal(intLiteral.Value, out d))
             {
                 return d;
             }

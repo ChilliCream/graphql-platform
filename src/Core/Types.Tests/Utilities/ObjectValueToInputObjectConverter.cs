@@ -39,7 +39,7 @@ namespace HotChocolate.Utilities
             // assert
             var converter = new ObjectValueToInputObjectConverter(
                 TypeConversion.Default);
-            object converted = converter.Convert(foo, type);
+            var converted = converter.Convert(foo, type);
 
             // assert
             converted.Snapshot();

@@ -23,11 +23,11 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_ValueNode()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             IValueNode input = GetValueNode;
 
             // act
-            bool result = type.IsInstanceOfType(input);
+            var result = type.IsInstanceOfType(input);
 
             // assert
             Assert.True(result);
@@ -37,11 +37,11 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_NullValueNode()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             NullValueNode input = NullValueNode.Default;
 
             // act
-            bool result = type.IsInstanceOfType(input);
+            var result = type.IsInstanceOfType(input);
 
             // assert
             Assert.True(result);
@@ -51,11 +51,11 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Wrong_ValueNode()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             IValueNode input = GetWrongValueNode;
 
             // act
-            bool result = type.IsInstanceOfType(input);
+            var result = type.IsInstanceOfType(input);
 
             // assert
             Assert.False(result);
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Null_Throws()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
 
             // act
             // assert
@@ -77,11 +77,11 @@ namespace HotChocolate.Types
         public void Serialize_Type()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             TNative input = GetValue;
 
             // act
-            object serializedValue = type.Serialize(input);
+            var serializedValue = type.Serialize(input);
 
             // assert
             Assert.IsType<TSerialized>(serializedValue);
@@ -92,10 +92,10 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
 
             // act
-            object serializedValue = type.Serialize(null);
+            var serializedValue = type.Serialize(null);
 
             // assert
             Assert.Null(serializedValue);
@@ -105,8 +105,8 @@ namespace HotChocolate.Types
         public void Serialize_Wrong_Type_Throws()
         {
             // arrange
-            TType type = new TType();
-            object input = GetWrongValue;
+            var type = new TType();
+            var input = GetWrongValue;
 
             // act
             // assert
@@ -118,11 +118,11 @@ namespace HotChocolate.Types
         public void ParseLiteral_ValueNode()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             IValueNode input = GetValueNode;
 
             // act
-            object output = type.ParseLiteral(input);
+            var output = type.ParseLiteral(input);
 
             // assert
             Assert.IsType<TNative>(output);
@@ -133,11 +133,11 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             NullValueNode input = NullValueNode.Default;
 
             // act
-            object output = type.ParseLiteral(input);
+            var output = type.ParseLiteral(input);
 
             // assert
             Assert.Null(output);
@@ -147,7 +147,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_Wrong_ValueNode_Throws()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             IValueNode input = GetWrongValueNode;
 
             // act
@@ -160,7 +160,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_Null_Throws()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
 
             // act
             // assert
@@ -172,11 +172,11 @@ namespace HotChocolate.Types
         public void ParseValue_Max()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             TNative input = GetMaxValue;
 
             // act
-            TValueNode literal =
+            var literal =
                 (TValueNode)type.ParseValue(input);
 
             // assert
@@ -187,11 +187,11 @@ namespace HotChocolate.Types
         public void ParseValue_Min()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             TNative input = GetMinValue;
 
             // act
-            TValueNode literal =
+            var literal =
                 (TValueNode)type.ParseValue(input);
 
             // assert
@@ -202,8 +202,8 @@ namespace HotChocolate.Types
         public void ParseValue_Wrong_Value_Throws()
         {
             // arrange
-            TType type = new TType();
-            object input = GetWrongValue;
+            var type = new TType();
+            var input = GetWrongValue;
 
             // act
             // assert
@@ -215,7 +215,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
             object input = null;
 
             // act
@@ -230,7 +230,7 @@ namespace HotChocolate.Types
         public void Ensure_TypeKind()
         {
             // arrange
-            TType type = new TType();
+            var type = new TType();
 
             // act
             TypeKind kind = type.Kind;
