@@ -905,7 +905,17 @@
         {
           "kind": "SCALAR",
           "name": "Decimal",
-          "description": null,
+          "description": "The built-in `Decimal` scalar type.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Short",
+          "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -915,7 +925,7 @@
         {
           "kind": "SCALAR",
           "name": "Long",
-          "description": null,
+          "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1019,6 +1029,16 @@
           "interfaces": [],
           "enumValues": null,
           "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Name",
+          "description": "The multiplier path scalar represents a valid GraphQL multiplier path string.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
         }
       ],
       "directives": [
@@ -1097,7 +1117,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "SCALAR",
-                    "name": "String",
+                    "name": "Name",
                     "ofType": null
                   }
                 }
