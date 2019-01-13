@@ -914,8 +914,18 @@
         },
         {
           "kind": "SCALAR",
-          "name": "Short",
+          "name": "Byte",
           "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Short",
+          "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
