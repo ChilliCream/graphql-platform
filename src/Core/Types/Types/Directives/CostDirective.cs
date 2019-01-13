@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             }
 
             _complexity = complexity;
-            _multipliers = multipliers.ToArray();
+            _multipliers = multipliers.Where(t => t.HasValue).ToArray();
         }
 
         private CostDirective(
