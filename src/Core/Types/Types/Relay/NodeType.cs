@@ -1,7 +1,6 @@
 ﻿namespace HotChocolate.Types.Relay
 {
     // TODO : Add description
-    // TODO : Consider moving this type to a different namespace
     public class NodeType
         : InterfaceType
     {

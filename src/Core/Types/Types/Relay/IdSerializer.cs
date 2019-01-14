@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
-    internal sealed class IdSerializer
+    public sealed class IdSerializer
     {
         private const byte _separator = (byte)'-';
         private const byte _string = (byte)'x';

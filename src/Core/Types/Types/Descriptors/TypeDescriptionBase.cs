@@ -12,5 +12,8 @@ namespace HotChocolate.Types
 
         public List<DirectiveDescription> Directives { get; set; } =
             new List<DirectiveDescription>();
+
+        public Dictionary<string, object> ContextData { get; } =
+            new Dictionary<string, object>();
     }
 }
