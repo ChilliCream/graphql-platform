@@ -20,8 +20,8 @@ namespace HotChocolate.Execution
         private bool _isResultResolved;
 
         public DirectiveContext(
-            IResolverContext resolverContext,
-            Func<Task<object>> resolver)
+            IMiddlewareContext middlewareContext,
+            IDirective directive)
         {
             _resolverContext = resolverContext
                 ?? throw new ArgumentNullException(nameof(resolverContext));
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(resolver));
         }
 
-        public IDirective Directive { get; set; }
+        public IDirective Directive { get; }
 
         public object Result
         {

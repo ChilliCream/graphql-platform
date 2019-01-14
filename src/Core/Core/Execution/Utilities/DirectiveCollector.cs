@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -135,4 +138,65 @@ namespace HotChocolate.Execution
             }
         }
     }
+
+    internal sealed class CollectDirectivesVisitor
+        : QuerySyntaxWalker<CollectDirectivesVisitor.Context>
+    {
+
+
+        internal sealed class Context
+        {
+            private readonly Dictionary<FieldSelection, List<IDirective>> _directives
+                = new Dictionary<FieldSelection, List<IDirective>>();
+
+            private Context()
+            {
+                FragmentPath = ImmutableHashSet<string>.Empty;
+                Fragments = new Dictionary<string, FragmentDefinitionNode>();
+            }
+
+            private Context(
+                ImmutableHashSet<string> fragmentPath,
+                IDictionary<string, FragmentDefinitionNode> fragments)
+            {
+                FragmentPath = fragmentPath;
+                Fragments = fragments;
+            }
+
+            public ImmutableHashSet<string> FragmentPath { get; }
+
+            public IDictionary<string, FragmentDefinitionNode> Fragments
+            { get; }
+
+            public Context AddDirectives(
+                FieldSelection fieldSelection,
+                IEnumerable<IDirective> directives)
+            {
+                if (fieldSelection == null)
+                {
+                    throw new ArgumentNullException(nameof(fieldSelection));
+                }
+
+                if (directives == null)
+                {
+                    throw new ArgumentNullException(nameof(directives));
+                }
+
+                _directives[fieldSelection] = directives.ToList();
+            }
+
+
+            public Context AddFragment(FragmentDefinitionNode fragment)
+            {
+                return new Context(
+                    FragmentPath.Add(fragment.Name.Value),
+                    _violatingFields,
+                    Fragments);
+            }
+
+            public static Context New() => new Context();
+        }
+    }
+
+
 }

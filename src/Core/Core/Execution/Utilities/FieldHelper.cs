@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
                 error => _errors.Add(error));
         }
 
-        public ExecuteMiddleware CreateMiddleware(
+        public FieldDelegate CreateMiddleware(
             ObjectType objectType, FieldNode fieldNode)
         {
             if (objectType == null)

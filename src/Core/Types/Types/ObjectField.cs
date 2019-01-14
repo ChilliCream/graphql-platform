@@ -57,9 +57,13 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
+        /// Gets the field resolver middleware.
+        /// </summary>
+        public FieldDelegate Middleware { get; private set; }
+
+        /// <summary>
         /// Gets the field resolver.
         /// </summary>
-        /// <value></value>
         public FieldResolverDelegate Resolver { get; private set; }
 
         /// <summary>
@@ -70,7 +74,6 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        /// <value></value>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
