@@ -47,15 +47,15 @@ namespace HotChocolate.Types.Relay
 
         private Connection<T> Create()
         {
-            IQueryable<T> edges = ApplyCursorToEdges(
-                _source, _pageDetails.Before, _pageDetails.After);
-
             if (!_pageDetails.TotalCount.HasValue)
             {
                 _pageDetails.TotalCount = _source.Count();
                 _properties[_totalCount] =
                     _pageDetails.TotalCount.Value;
             }
+
+            IQueryable<T> edges = ApplyCursorToEdges(
+                _source, _pageDetails.Before, _pageDetails.After);
 
             IReadOnlyCollection<QueryableEdge> selectedEdges =
                 GetSelectedEdges();
@@ -189,8 +189,8 @@ namespace HotChocolate.Types.Relay
             {
                 After = GetPositionFromCurser(afterProperties),
                 Before = GetPositionFromCurser(beforeProperties),
-                TotalCount = GetPositionFromCurser(afterProperties)
-                    ?? GetPositionFromCurser(beforeProperties),
+                TotalCount = GetTotalCountFromCursor(afterProperties)
+                    ?? GetTotalCountFromCursor(beforeProperties),
                 First = pagingDetails.First,
                 Last = pagingDetails.Last
             };

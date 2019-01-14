@@ -40,6 +40,9 @@ namespace HotChocolate.Types.Relay
                     Assert.Equal("b", t.Node);
                     Assert.Equal(1, GetPositionFromCursor(t.Cursor));
                 });
+
+            Assert.False(connection.PageInfo.HasPreviousPage);
+            Assert.True(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
@@ -72,6 +75,9 @@ namespace HotChocolate.Types.Relay
                     Assert.Equal("g", t.Node);
                     Assert.Equal(6, GetPositionFromCursor(t.Cursor));
                 });
+
+            Assert.True(connection.PageInfo.HasPreviousPage);
+            Assert.False(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
@@ -111,6 +117,9 @@ namespace HotChocolate.Types.Relay
                     Assert.Equal("c", t.Node);
                     Assert.Equal(2, GetPositionFromCursor(t.Cursor));
                 });
+
+            Assert.True(connection.PageInfo.HasPreviousPage);
+            Assert.True(connection.PageInfo.HasNextPage);
         }
 
         [Fact]
@@ -150,6 +159,9 @@ namespace HotChocolate.Types.Relay
                     Assert.Equal("d", t.Node);
                     Assert.Equal(3, GetPositionFromCursor(t.Cursor));
                 });
+
+            Assert.True(connection.PageInfo.HasPreviousPage, "HasPreviousPage");
+            Assert.True(connection.PageInfo.HasNextPage, "HasNextPage");
         }
 
         [Fact]
