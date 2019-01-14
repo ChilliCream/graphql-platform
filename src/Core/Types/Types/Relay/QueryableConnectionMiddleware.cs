@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay
 {
-    public delegate IConnectionResolver ConnectionResolverFactory<T>(
+    public delegate IConnectionResolver ConnectionResolverFactory<in T>(
             IQueryable<T> source,
             PagingDetails pagingDetails);
 
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Relay
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
 
             var pagingDetails = new PagingDetails
             {
@@ -59,8 +59,9 @@ namespace HotChocolate.Types.Relay
                 var connectionResolver = _createConnectionResolver(
                     source, pagingDetails);
 
-                context.Result = await connectionResolver.ResolveAsync(
-                    context.RequestAborted);
+                context.Result = await connectionResolver
+                    .ResolveAsync(context.RequestAborted)
+                    .ConfigureAwait(false);
             }
         }
 

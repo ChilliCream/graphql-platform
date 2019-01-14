@@ -9,6 +9,59 @@ namespace HotChocolate.Types.Relay
 {
     public class IdSerializerTests
     {
+        [Fact]
+        public void Serialize_TypeNameIsEmpty_ArgumentException()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            // act
+            Action a = () => serializer.Serialize("", 123);
+
+            // assert
+            Assert.Throws<ArgumentException>(a);
+        }
+
+        [Fact]
+        public void Serialize_IdIsNull_ArgumentNullException()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            // act
+            Action a = () => serializer.Serialize("Foo", null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void Deserialize_SerializedIsNull_ArgumentNullException()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            // act
+            Action a = () => serializer.Deserialize(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void IsPossibleBase64String_sIsNull_ArgumentNullException()
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            // act
+            Action a = () => IdSerializer.IsPossibleBase64String(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+
         [InlineData((short)123, "Foo-s{\0")]
         [InlineData(123, "Foo-i{\0\0\0")]
         [InlineData((long)123, "Foo-l{\0\0\0\0\0\0\0")]

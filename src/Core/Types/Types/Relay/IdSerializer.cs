@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Relay
 {
     public sealed class IdSerializer
     {
+        private const int _divisor = 4;
         private const byte _separator = (byte)'-';
         private const byte _string = (byte)'x';
         private const byte _guid = (byte)'g';
@@ -64,7 +65,7 @@ namespace HotChocolate.Types.Relay
                 throw new ArgumentNullException(nameof(s));
             }
 
-            if (s.Length % 4 != 0)
+            if (s.Length % _divisor != 0)
             {
                 return false;
             }
@@ -86,7 +87,7 @@ namespace HotChocolate.Types.Relay
                 }
             }
 
-            return equalsCount == 0 || equalsCount % 4 > 0;
+            return equalsCount == 0 || equalsCount % _divisor > 0;
         }
 
         private static bool IsBase64Char(in char c)
