@@ -85,6 +85,7 @@ namespace HotChocolate.Types.Relay
                     equalsCount++;
                 }
             }
+
             return equalsCount == 0 || equalsCount % 4 > 0;
         }
 
@@ -96,7 +97,7 @@ namespace HotChocolate.Types.Relay
                 || c == _forwardSlash;
         }
 
-        private string ToBase64String(
+        private static string ToBase64String(
             byte[] typeName,
             (byte type, byte[] value) id)
         {
@@ -110,7 +111,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        private (byte, byte[]) SerializeId(object result)
+        private static (byte, byte[]) SerializeId(object result)
         {
             switch (result)
             {
@@ -129,7 +130,7 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        private object DeserializeId(
+        private static object DeserializeId(
             in ReadOnlySpan<byte> type,
             in ReadOnlySpan<byte> value)
         {
@@ -159,7 +160,7 @@ namespace HotChocolate.Types.Relay
             return serialized;
         }
 
-        private int FindSeparator(in ReadOnlySpan<byte> serializedId)
+        private static int FindSeparator(in ReadOnlySpan<byte> serializedId)
         {
             for (int i = 0; i < serializedId.Length; i++)
             {

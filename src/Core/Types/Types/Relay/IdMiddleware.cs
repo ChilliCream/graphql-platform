@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Relay
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            await _next(context);
+            await _next(context).ConfigureAwait(false);
 
             if (context.Result != null
                 && context.Field.Type.NamedType() is IdType)
@@ -26,7 +26,5 @@ namespace HotChocolate.Types.Relay
                     context.Result);
             }
         }
-
-
     }
 }

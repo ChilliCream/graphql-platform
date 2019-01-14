@@ -7,7 +7,8 @@
     {
         public INamedOutputType EntityType { get; private set; }
 
-        protected override void Configure(IObjectTypeDescriptor<IEdge> descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor<IEdge> descriptor)
         {
             // TODO : Fix this with the new schema builder
             descriptor.Name($"{new T().Name}Edge");
