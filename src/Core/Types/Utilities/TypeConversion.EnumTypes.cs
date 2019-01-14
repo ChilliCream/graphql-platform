@@ -14,6 +14,13 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
+            if (from.IsEnum && to == typeof(string))
+            {
+                converter = source => source.ToString();
+                Register(from, to, converter);
+                return true;
+            }
+
             converter = null;
             return false;
         }
