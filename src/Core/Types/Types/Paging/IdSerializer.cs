@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Paging
 {
@@ -14,6 +15,8 @@ namespace HotChocolate.Types.Paging
         private const byte _int = (byte)'i';
         private const byte _long = (byte)'l';
         private const byte _default = (byte)'d';
+        private const char _forwardSlash = '/';
+        private const char _equals = '=';
 
         private static readonly Encoding _utf8 = Encoding.UTF8;
 
@@ -52,6 +55,45 @@ namespace HotChocolate.Types.Paging
                 raw.Slice(separatorIndex + 2));
 
             return new IdValue(typeName, value);
+        }
+
+        public static bool IsPossibleBase64String(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            if (s.Length % 4 != 0)
+            {
+                return false;
+            }
+
+            int equalsCount = 0;
+
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (IsBase64Char(s[i]))
+                {
+                    if (equalsCount > 0)
+                    {
+                        return false;
+                    }
+                }
+                else if (s[i] == _equals)
+                {
+                    equalsCount++;
+                }
+            }
+            return equalsCount == 0 || equalsCount % 4 > 0;
+        }
+
+        private static bool IsBase64Char(in char c)
+        {
+            return c.IsLetter()
+                || c.IsDigit()
+                || c.IsPlus()
+                || c == _forwardSlash;
         }
 
         private string ToBase64String(

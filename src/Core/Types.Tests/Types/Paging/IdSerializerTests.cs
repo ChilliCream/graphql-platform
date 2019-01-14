@@ -83,5 +83,25 @@ namespace HotChocolate.Types.Paging
             Assert.Equal("Foo", value.TypeName);
         }
 
+        [InlineData("Rm9vLXN7===", false)]
+        [InlineData("Rm9vLXN7====", false)]
+        [InlineData("====", false)]
+        [InlineData("=Rm9=vLXN7AA", false)]
+        [InlineData("Rm9=vLXN7AA=", false)]
+        [InlineData("Rm9vLXN7AA==", true)]
+        [InlineData("Rm9vLWc989TaMzDXRbdUHZrCOXT", false)]
+        [InlineData("Rm9vLWc989TaMzDXRbdUHZrCOXTZ", true)]
+        [Theory]
+        public void IsPossibleBase64String(string serialized, bool valid)
+        {
+            // arrange
+            var serializer = new IdSerializer();
+
+            // act
+            bool result = IdSerializer.IsPossibleBase64String(serialized);
+
+            // assert
+            Assert.Equal(valid, result);
+        }
     }
 }
