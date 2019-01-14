@@ -38,18 +38,31 @@ namespace HotChocolate.AspNetCore.Authorization
 #if !ASPNETCLASSIC
             IAuthorizationService authorizeService = context
                 .Service<IAuthorizationService>();
+            IAuthorizationPolicyProvider policyProvider = context
+                .Service<IAuthorizationPolicyProvider>();
 #endif
             ClaimsPrincipal principal = context
                 .CustomProperty<ClaimsPrincipal>(nameof(ClaimsPrincipal));
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
-            bool allowed = IsInRoles(principal, directive.Roles);
+            var allowed = IsInRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
-            if (allowed && !string.IsNullOrEmpty(directive.Policy))
+            if (allowed)
             {
-                AuthorizationResult result = await authorizeService
-                    .AuthorizeAsync(principal, directive.Policy);
+                AuthorizationPolicy policy =
+                    string.IsNullOrWhiteSpace(directive.Policy)
+                        ? await policyProvider.GetDefaultPolicyAsync()
+                        : await policyProvider.GetPolicyAsync(directive.Policy);
+
+                if (policy == null)
+                {
+                    context.Result = QueryErro
+                    return;
+                }
+
+                AuthorizationResult result =
+                    await authorizeService.AuthorizeAsync(principal, policy);
 
                 allowed = result.Succeeded;
             }
@@ -75,7 +88,7 @@ namespace HotChocolate.AspNetCore.Authorization
         {
             if (roles != null)
             {
-                foreach (string role in roles)
+                foreach (var role in roles)
                 {
                     if (!principal.IsInRole(role))
                     {

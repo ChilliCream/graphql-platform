@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using HotChocolate.Language;
 
 #if !ASPNETCLASSIC
 using System.Collections.ObjectModel;
@@ -13,7 +15,12 @@ namespace HotChocolate.AspNetCore.Authorization
 #endif
 {
     public class AuthorizeDirective
+        : ISerializable
     {
+        public AuthorizeDirective()
+        {
+        }
+
 #if ASPNETCLASSIC
         public AuthorizeDirective(IEnumerable<string> roles)
         {
@@ -21,9 +28,40 @@ namespace HotChocolate.AspNetCore.Authorization
             {
                 throw new ArgumentNullException(nameof(roles));
             }
-            
+
             Roles = roles.ToArray();
         }
+
+        public AuthorizeDirective(
+            SerializationInfo info,
+            StreamingContext context)
+        {
+            var node = info.GetValue(
+                nameof(DirectiveNode),
+                typeof(DirectiveNode))
+                as DirectiveNode;
+
+            if (node == null)
+            {
+                Roles = (string[])info.GetValue(
+                    nameof(Roles),
+                    typeof(string[]));
+            }
+            else
+            {
+                ArgumentNode rolesArgument = node.Arguments
+                    .FirstOrDefault(t => t.Name.Value == "roles");
+
+                Roles = (rolesArgument != null
+                    && rolesArgument.Value is ListValueNode lv)
+                    ? lv.Items.OfType<StringValueNode>()
+                        .Select(t => t.Value?.Trim())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToArray()
+                    : Array.Empty<string>();
+            }
+        }
+
 #else
         public AuthorizeDirective(string policy)
             : this(policy, null)
@@ -49,6 +87,44 @@ namespace HotChocolate.AspNetCore.Authorization
             Roles = readOnlyRoles;
         }
 
+        public AuthorizeDirective(
+            SerializationInfo info,
+            StreamingContext context)
+        {
+            var node = info.GetValue(
+                nameof(DirectiveNode),
+                typeof(DirectiveNode))
+                as DirectiveNode;
+
+            if (node == null)
+            {
+                Policy = info.GetString(nameof(Policy));
+                Roles = (string[])info.GetValue(
+                    nameof(Roles),
+                    typeof(string[]));
+            }
+            else
+            {
+                ArgumentNode policyArgument = node.Arguments
+                    .FirstOrDefault(t => t.Name.Value == "policy");
+                ArgumentNode rolesArgument = node.Arguments
+                    .FirstOrDefault(t => t.Name.Value == "roles");
+
+                Policy = (policyArgument != null
+                    && policyArgument.Value is StringValueNode sv)
+                    ? sv.Value
+                    : null;
+
+                Roles = (rolesArgument != null
+                    && rolesArgument.Value is ListValueNode lv)
+                    ? lv.Items.OfType<StringValueNode>()
+                        .Select(t => t.Value?.Trim())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToArray()
+                    : Array.Empty<string>();
+            }
+        }
+
         /// <summary>
         /// Gets or sets the policy name that determines access to the resource.
         /// </summary>
@@ -59,5 +135,16 @@ namespace HotChocolate.AspNetCore.Authorization
         /// Gets or sets of roles that are allowed to access the resource.
         /// </summary>
         public IReadOnlyCollection<string> Roles { get; }
+
+
+        public void GetObjectData(
+            SerializationInfo info,
+            StreamingContext context)
+        {
+#if !ASPNETCLASSIC
+            info.AddValue(nameof(Policy), Policy);
+#endif
+            info.AddValue(nameof(Roles), Roles?.ToArray());
+        }
     }
 }
