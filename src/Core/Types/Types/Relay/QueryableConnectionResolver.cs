@@ -54,14 +54,10 @@ namespace HotChocolate.Types.Relay
                     _pageDetails.TotalCount.Value;
             }
 
-            IQueryable<T> edges = ApplyCursorToEdges(
-                _source, _pageDetails.Before, _pageDetails.After);
-
             IReadOnlyCollection<QueryableEdge> selectedEdges =
                 GetSelectedEdges();
             QueryableEdge firstEdge = selectedEdges.FirstOrDefault();
             QueryableEdge lastEdge = selectedEdges.LastOrDefault();
-
 
             var pageInfo = new PageInfo(
                 lastEdge?.Index < (_pageDetails.TotalCount.Value - 1),
@@ -130,7 +126,7 @@ namespace HotChocolate.Types.Relay
         {
             if (first < 0)
             {
-                throw new ArgumentException();
+                throw new ArgumentOutOfRangeException(nameof(first));
             }
             return edges.Take(first);
         }
@@ -141,7 +137,7 @@ namespace HotChocolate.Types.Relay
         {
             if (last < 0)
             {
-                throw new ArgumentException();
+                throw new ArgumentOutOfRangeException(nameof(last));
             }
 
             IQueryable<T> temp = edges;
@@ -181,9 +177,9 @@ namespace HotChocolate.Types.Relay
             PagingDetails pagingDetails)
         {
             Dictionary<string, object> afterProperties =
-                DeserializeCursor(pagingDetails.After);
+                TryDeserializeCursor(pagingDetails.After);
             Dictionary<string, object> beforeProperties =
-                DeserializeCursor(pagingDetails.Before);
+                TryDeserializeCursor(pagingDetails.Before);
 
             return new QueryablePagingDetails
             {
@@ -218,7 +214,7 @@ namespace HotChocolate.Types.Relay
             return Convert.ToInt32(properties[_totalCount]);
         }
 
-        private static Dictionary<string, object> DeserializeCursor(
+        private static Dictionary<string, object> TryDeserializeCursor(
             string cursor)
         {
             if (cursor == null)

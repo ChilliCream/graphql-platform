@@ -3,7 +3,8 @@
     public class PageInfoType
         : ObjectType<IPageInfo>
     {
-        protected override void Configure(IObjectTypeDescriptor<IPageInfo> descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor<IPageInfo> descriptor)
         {
             descriptor.Name("PageInfo");
             descriptor.Description(
@@ -33,7 +34,7 @@
                 .Type<StringType>()
                 .Name("endCursor")
                 .Description(
-                    "When paginating forwards, the cursor to continue."); ;
+                    "When paginating forwards, the cursor to continue.");
         }
     }
 }
