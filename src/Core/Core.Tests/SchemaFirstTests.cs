@@ -91,6 +91,34 @@ namespace HotChocolate
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task EnumAsInputType()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                type Query {
+                    setEnumValue(value:FooEnum) : String
+                }
+
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }
+                ",
+
+                c => c.BindType<EnumQuery>().To("Query"));
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ setEnumValue(value:BAZ) }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
         public class Query
         {
             public string GetTest()
