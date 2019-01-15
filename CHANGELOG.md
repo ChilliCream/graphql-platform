@@ -18,8 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a new execution builder which allows to fully customize the execution pipeline.
 - Introduced exception filter [#317](https://github.com/ChilliCream/hotchocolate/issues/317).
 - Integrated `RequestTimeoutMiddleware` into default pipeline [#418](https://github.com/ChilliCream/hotchocolate/issues/418).
-- Added support for repeatable directive. (https://github.com/facebook/graphql/pull/472)
+- Added support for repeatable directive. [Spec](https://github.com/facebook/graphql/pull/472).
 - Apollo Tracing Support [#352](https://github.com/ChilliCream/hotchocolate/issues/352).
+- Query complexity validation rules [#80](https://github.com/ChilliCream/hotchocolate/issues/80)
+- Added support for relay global object identification specification [specification](http://facebook.github.io/relay/graphql/objectidentification.htm).
 
 ### Changed
 
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed how max query depth is validated and configured.
 - The DataLoader API is now offering a simpler interface.
 - Extended Scalar Types must now be explicitly registered during schema configuration. [#433](https://github.com/ChilliCream/hotchocolate/issues/433)
+- Authorization directive is now repeatable and can use the default authorization policy [#485](https://github.com/ChilliCream/hotchocolate/pull/485)
 
 ### Fixed
 
