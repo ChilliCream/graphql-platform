@@ -84,7 +84,12 @@ namespace HotChocolate.Validation
             if (operationType != null)
             {
                 ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
-                VisitSelectionSet(operation.SelectionSet, operationType, newPath);
+
+                VisitSelectionSet(
+                    operation.SelectionSet,
+                    operationType,
+                    newPath);
+
                 VisitDirectives(operation.Directives, newPath);
             }
             _visitedFragments.Clear();
@@ -110,7 +115,8 @@ namespace HotChocolate.Validation
                     }
                     else if (selection is InlineFragmentNode inlineFragment)
                     {
-                        VisitInlineFragmentInternal(inlineFragment, type, newpath);
+                        VisitInlineFragmentInternal(
+                            inlineFragment, type, newpath);
                     }
                 }
             }
@@ -255,7 +261,8 @@ namespace HotChocolate.Validation
             return _fragments.ContainsKey(fragmentName);
         }
 
-        protected bool IsFragmentVisited(FragmentDefinitionNode fragmentDefinition)
+        protected bool IsFragmentVisited(
+            FragmentDefinitionNode fragmentDefinition)
         {
             if (fragmentDefinition == null)
             {
@@ -265,7 +272,8 @@ namespace HotChocolate.Validation
             return _visitedFragments.Contains(fragmentDefinition);
         }
 
-        protected bool MarkFragmentVisited(FragmentDefinitionNode fragmentDefinition)
+        protected bool MarkFragmentVisited(
+            FragmentDefinitionNode fragmentDefinition)
         {
             if (fragmentDefinition == null)
             {
