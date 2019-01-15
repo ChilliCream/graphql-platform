@@ -81,9 +81,12 @@ namespace HotChocolate.Validation
             ImmutableStack<ISyntaxNode> path)
         {
             IType operationType = Schema.GetOperationType(operation.Operation);
-            ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
-            VisitSelectionSet(operation.SelectionSet, operationType, newPath);
-            VisitDirectives(operation.Directives, newPath);
+            if (operationType != null)
+            {
+                ImmutableStack<ISyntaxNode> newPath = path.Push(operation);
+                VisitSelectionSet(operation.SelectionSet, operationType, newPath);
+                VisitDirectives(operation.Directives, newPath);
+            }
             _visitedFragments.Clear();
         }
 
