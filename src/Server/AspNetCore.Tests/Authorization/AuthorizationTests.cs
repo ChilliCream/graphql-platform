@@ -359,6 +359,104 @@ namespace HotChocolate.AspNetCore.Authorization
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task PipedAuthorizeDirectives_Authorized()
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("a", policy =>
+                            policy.RequireAssertion(context =>
+                                context.User.HasClaim(c =>
+                                    c.Type == ClaimTypes.DateOfBirth)));
+
+                        options.AddPolicy("b", policy =>
+                            policy.RequireAssertion(context =>
+                                context.User.HasClaim(c =>
+                                    c.Type == ClaimTypes.Country)));
+                    });
+
+                    services.AddGraphQL(CreateExecuter());
+                },
+                context =>
+                {
+                    var identity = new ClaimsIdentity();
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.DateOfBirth,
+                        "2013-05-30"));
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.Country,
+                        "US"));
+                    context.User.AddIdentity(identity);
+                });
+
+            var request = "{ piped }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized()
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("a", policy =>
+                            policy.RequireAssertion(context =>
+                                context.User.HasClaim(c =>
+                                    c.Type == ClaimTypes.DateOfBirth)));
+
+                        options.AddPolicy("b", policy =>
+                            policy.RequireAssertion(context =>
+                                context.User.HasClaim(c =>
+                                    c.Type == ClaimTypes.Country)));
+                    });
+
+                    services.AddGraphQL(CreateExecuter());
+                },
+                context =>
+                {
+                    var identity = new ClaimsIdentity();
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.DateOfBirth,
+                        "2013-05-30"));
+                    context.User.AddIdentity(identity);
+                });
+
+            var request = "{ piped }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.NotNull(result.Errors);
+            result.Snapshot();
+        }
 
         private TestServer CreateTestServer(
             Action<IServiceCollection> configureServices,
