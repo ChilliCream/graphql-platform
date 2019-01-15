@@ -1,0 +1,15 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "message": "The field `foo` does not exist on the type `Mutation`.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 12
+        }
+      ]
+    }
+  ]
+}

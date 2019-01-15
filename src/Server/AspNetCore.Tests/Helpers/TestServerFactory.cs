@@ -33,7 +33,15 @@ namespace HotChocolate.AspNetCore
                 });
 
             var server = new TestServer(builder);
+            _instances.Add(server);
+            return server;
+        }
 
+        public TestServer Create(
+            Func<IWebHostBuilder, IWebHostBuilder> configure)
+        {
+            IWebHostBuilder builder = configure(new WebHostBuilder());
+            var server = new TestServer(builder);
             _instances.Add(server);
             return server;
         }
