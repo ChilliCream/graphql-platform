@@ -135,6 +135,14 @@ namespace HotChocolate.Types
                 return enumValue.Name;
             }
 
+            // schema first unbound enum type
+            if (value is string s && ClrType == typeof(string)
+                && _nameToValues.TryGetValue(
+                    s.ToUpperInvariant(), out enumValue))
+            {
+                return enumValue.Name;
+            }
+
             throw new ArgumentException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
