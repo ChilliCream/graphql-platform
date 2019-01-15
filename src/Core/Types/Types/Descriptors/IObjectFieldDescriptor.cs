@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -49,98 +47,5 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             string name,
             params ArgumentNode[] arguments);
-    }
-
-    public static class ObjectFieldDescriptorExtensions
-    {
-        public static IObjectFieldDescriptor Resolver(
-            this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, object> fieldResolver)
-        {
-            return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(fieldResolver(ctx)));
-        }
-
-        public static IObjectFieldDescriptor Resolver<TResult>(
-            this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, TResult> fieldResolver)
-        {
-            return descriptor
-                .Type<NativeType<TResult>>()
-                .Resolver(ctx => Task.FromResult<object>(fieldResolver(ctx)),
-                    typeof(NativeType<TResult>));
-        }
-
-        public static IObjectFieldDescriptor Resolver(
-            this IObjectFieldDescriptor descriptor,
-            Func<object> fieldResolver)
-        {
-            return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(fieldResolver()));
-        }
-
-        public static IObjectFieldDescriptor Resolver<TResult>(
-            this IObjectFieldDescriptor descriptor,
-            Func<TResult> fieldResolver)
-        {
-            return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(fieldResolver()),
-                typeof(NativeType<TResult>));
-        }
-
-        // ? Remove
-        public static IObjectFieldDescriptor Resolver(
-            this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, CancellationToken, object> fieldResolver)
-        {
-            return descriptor.Resolver(
-                ctx => fieldResolver(ctx, ctx.RequestAborted));
-        }
-
-        public static IObjectFieldDescriptor Resolver<TResult>(
-            this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, Task<TResult>> fieldResolver)
-        {
-            return descriptor.Resolver(
-                async ctx => await fieldResolver(ctx),
-                typeof(NativeType<TResult>));
-        }
-
-        public static IObjectFieldDescriptor Resolver(
-            this IObjectFieldDescriptor descriptor,
-            Func<Task<object>> fieldResolver)
-        {
-            return descriptor.Resolver(ctx => fieldResolver());
-        }
-
-        public static IObjectFieldDescriptor Resolver<TResult>(
-            this IObjectFieldDescriptor descriptor,
-            Func<Task<TResult>> fieldResolver)
-        {
-            return descriptor.Resolver(async ctx => await fieldResolver(),
-                typeof(NativeType<TResult>));
-        }
-
-        public static IObjectFieldDescriptor Use<TMiddleware>(
-            this IObjectFieldDescriptor descriptor)
-            where TMiddleware : class
-        {
-            return descriptor.Use(
-                FieldClassMiddlewareFactory.Create<TMiddleware>());
-        }
-
-        public static IObjectFieldDescriptor Use<TMiddleware>(
-            this IObjectFieldDescriptor descriptor,
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
-            where TMiddleware : class
-        {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            return descriptor.Use(
-                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
-        }
     }
 }
