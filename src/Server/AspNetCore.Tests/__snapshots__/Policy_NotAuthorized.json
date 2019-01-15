@@ -1,0 +1,19 @@
+{
+  "Data": {
+    "age": null
+  },
+  "Errors": [
+    {
+      "message": "The current user is not authorized to access this resource.",
+      "path": [
+        "age"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

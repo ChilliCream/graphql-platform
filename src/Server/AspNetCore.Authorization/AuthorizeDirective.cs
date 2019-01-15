@@ -19,6 +19,7 @@ namespace HotChocolate.AspNetCore.Authorization
     {
         public AuthorizeDirective()
         {
+            Roles = Array.Empty<string>();
         }
 
 #if ASPNETCLASSIC
@@ -77,14 +78,15 @@ namespace HotChocolate.AspNetCore.Authorization
                 roles?.ToList().AsReadOnly();
 
             if (string.IsNullOrEmpty(policy)
-                && (readOnlyRoles == null || readOnlyRoles.Any()))
+                && (readOnlyRoles == null || readOnlyRoles.Count > 0))
             {
                 throw new ArgumentException(
                     "Either policy or roles has to be set.");
             }
 
             Policy = policy;
-            Roles = readOnlyRoles;
+            Roles = (IReadOnlyCollection<string>)readOnlyRoles 
+                ?? Array.Empty<string>();
         }
 
         public AuthorizeDirective(

@@ -1,0 +1,19 @@
+{
+  "Data": {
+    "roles_ab": null
+  },
+  "Errors": [
+    {
+      "message": "The current user is not authorized to access this resource.",
+      "path": [
+        "roles_ab"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

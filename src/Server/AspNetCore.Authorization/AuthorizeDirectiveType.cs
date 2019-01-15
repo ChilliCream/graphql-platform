@@ -44,7 +44,7 @@ namespace HotChocolate.AspNetCore.Authorization
             var allowed = IsInRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
-            if(allowed)
+            if (allowed && NeedsPolicyValidation(directive))
             {
                 allowed = await AuthorizeWithPolicyAsync(
                     context, directive, principal)
@@ -55,7 +55,7 @@ namespace HotChocolate.AspNetCore.Authorization
             {
                 await next(context);
             }
-            else
+            else if (context.Result == null)
             {
                 context.Result = QueryError.CreateFieldError(
                     "The current user is not authorized to " +
@@ -84,6 +84,13 @@ namespace HotChocolate.AspNetCore.Authorization
         }
 #if !ASPNETCLASSIC
 
+        private static bool NeedsPolicyValidation(
+            AuthorizeDirective directive)
+        {
+            return directive.Roles.Count == 0
+                || !string.IsNullOrEmpty(directive.Policy);
+        }
+
         private static async Task<bool> AuthorizeWithPolicyAsync(
             IDirectiveContext context,
             AuthorizeDirective directive,
@@ -96,7 +103,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
             AuthorizationPolicy policy = null;
 
-            if (directive.Roles == null
+            if (directive.Roles.Count == 0
                 && string.IsNullOrWhiteSpace(directive.Policy))
             {
                 policy = await policyProvider.GetDefaultPolicyAsync();
