@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-
-#if !ASPNETCLASSIC
-using Microsoft.AspNetCore.Authorization;
-#endif
-
 #if ASPNETCLASSIC
+
 namespace HotChocolate.AspNetClassic.Authorization
 #else
+using Microsoft.AspNetCore.Authorization;
+
 namespace HotChocolate.AspNetCore.Authorization
 #endif
 {
@@ -27,6 +25,8 @@ namespace HotChocolate.AspNetCore.Authorization
             descriptor.Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition);
 
+            descriptor.Repeatable();
+
             descriptor.Middleware(
                 next => context => AuthorizeAsync(context, next));
         }
@@ -35,39 +35,22 @@ namespace HotChocolate.AspNetCore.Authorization
             IDirectiveContext context,
             DirectiveDelegate next)
         {
-#if !ASPNETCLASSIC
-            IAuthorizationService authorizeService = context
-                .Service<IAuthorizationService>();
-            IAuthorizationPolicyProvider policyProvider = context
-                .Service<IAuthorizationPolicyProvider>();
-#endif
-            ClaimsPrincipal principal = context
-                .CustomProperty<ClaimsPrincipal>(nameof(ClaimsPrincipal));
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
+
+            ClaimsPrincipal principal = context
+                .CustomProperty<ClaimsPrincipal>(nameof(ClaimsPrincipal));
+
             var allowed = IsInRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
-            if (allowed)
+            if(allowed)
             {
-                AuthorizationPolicy policy =
-                    string.IsNullOrWhiteSpace(directive.Policy)
-                        ? await policyProvider.GetDefaultPolicyAsync()
-                        : await policyProvider.GetPolicyAsync(directive.Policy);
-
-                if (policy == null)
-                {
-                    context.Result = QueryErro
-                    return;
-                }
-
-                AuthorizationResult result =
-                    await authorizeService.AuthorizeAsync(principal, policy);
-
-                allowed = result.Succeeded;
+                allowed = await AuthorizeWithPolicyAsync(
+                    context, directive, principal)
+                    .ConfigureAwait(false);
             }
 #endif
-
             if (allowed)
             {
                 await next(context);
@@ -99,5 +82,53 @@ namespace HotChocolate.AspNetCore.Authorization
 
             return true;
         }
+#if !ASPNETCLASSIC
+
+        private static async Task<bool> AuthorizeWithPolicyAsync(
+            IDirectiveContext context,
+            AuthorizeDirective directive,
+            ClaimsPrincipal principal)
+        {
+            IAuthorizationService authorizeService = context
+                .Service<IAuthorizationService>();
+            IAuthorizationPolicyProvider policyProvider = context
+                .Service<IAuthorizationPolicyProvider>();
+
+            AuthorizationPolicy policy = null;
+
+            if (directive.Roles == null
+                && string.IsNullOrWhiteSpace(directive.Policy))
+            {
+                policy = await policyProvider.GetDefaultPolicyAsync();
+                if (policy == null)
+                {
+                    context.Result = QueryError.CreateFieldError(
+                        "The default authorization policy does not exist.",
+                        context.FieldSelection);
+                }
+            }
+
+            else if (!string.IsNullOrWhiteSpace(directive.Policy))
+            {
+                policy = await policyProvider.GetPolicyAsync(directive.Policy);
+                if (policy == null)
+                {
+                    context.Result = QueryError.CreateFieldError(
+                        $"The `{directive.Policy}` authorization policy " +
+                        "does not exist.",
+                        context.FieldSelection);
+                }
+            }
+
+            if (context.Result == null && policy != null)
+            {
+                AuthorizationResult result =
+                await authorizeService.AuthorizeAsync(principal, policy);
+                return result.Succeeded;
+            }
+
+            return false;
+        }
+#endif
     }
 }
