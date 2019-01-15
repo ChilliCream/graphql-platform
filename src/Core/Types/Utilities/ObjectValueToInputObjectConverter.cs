@@ -73,7 +73,16 @@ namespace HotChocolate.Utilities
 
                 VisitValue(node.Value, valueContext);
 
-                inputField.SetValue(context.Object, valueContext.Object);
+                object value = (inputField.ClrType != null
+                    && !inputField.ClrType
+                        .IsInstanceOfType(valueContext.Object)
+                    && _converter.TryConvert(
+                        typeof(object), inputField.ClrType,
+                        valueContext.Object, out object obj))
+                    ? obj
+                    : valueContext.Object;
+
+                inputField.SetValue(context.Object, value);
             }
         }
 
