@@ -1,0 +1,16 @@
+{
+  "Data": {
+    "default": null
+  },
+  "Errors": [
+    {
+      "message": "The default authorization policy does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

@@ -47,7 +47,10 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateTestServer();
-            var request = new ClientQueryRequest { Query = "{ A:basic { B:a } }" };
+            var request = new ClientQueryRequest
+            {
+                Query = "{ A:basic { B:a } }"
+            };
 
             // act
             HttpResponseMessage message =
