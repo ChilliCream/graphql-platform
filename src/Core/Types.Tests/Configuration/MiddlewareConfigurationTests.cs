@@ -31,10 +31,10 @@ namespace Types.Tests.Configuration
                             return Task.CompletedTask;
                         }));
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a b }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
             result.Snapshot();
@@ -56,10 +56,10 @@ namespace Types.Tests.Configuration
                             return Task.CompletedTask;
                         }));
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a b }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
             result.Snapshot();
@@ -82,10 +82,10 @@ namespace Types.Tests.Configuration
                             return Task.CompletedTask;
                         }));
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a b }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
             result.Snapshot();

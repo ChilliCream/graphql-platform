@@ -6,13 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
-    internal class QueryExecuter
-        : IQueryExecuter
+    internal class QueryExecutor
+        : IQueryExecutor
     {
         private readonly IServiceProvider _applicationServices;
         private readonly QueryDelegate _queryDelegate;
 
-        public QueryExecuter(
+        public QueryExecutor(
             ISchema schema,
             IServiceProvider applicationServices,
             QueryDelegate queryDelegate)

@@ -26,7 +26,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public WebSocketContext(
             HttpContext httpContext,
             WebSocket webSocket,
-            IQueryExecuter queryExecuter,
+            IQueryExecutor queryExecutor,
             OnConnectWebSocketAsync onConnectAsync,
             OnCreateRequestAsync onCreateRequest)
         {
@@ -34,8 +34,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 ?? throw new ArgumentNullException(nameof(httpContext));
             WebSocket = webSocket
                 ?? throw new ArgumentNullException(nameof(webSocket));
-            QueryExecuter = queryExecuter
-                ?? throw new ArgumentNullException(nameof(queryExecuter));
+            QueryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
 
             _onConnectAsync = onConnectAsync;
             _onCreateRequest = onCreateRequest;
@@ -43,7 +43,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public HttpContext HttpContext { get; }
 
-        public IQueryExecuter QueryExecuter { get; }
+        public IQueryExecutor QueryExecutor { get; }
 
         public WebSocket WebSocket { get; }
 

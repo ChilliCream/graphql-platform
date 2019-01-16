@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// <c>true</c>, if the execution request is handling the
         /// lifetime of this scope; otherwise, <c>false</c> if the
-        /// scope shall be handled by the executer.
+        /// scope shall be handled by the executor.
         /// </summary>
         bool IsLifetimeHandled { get; }
 

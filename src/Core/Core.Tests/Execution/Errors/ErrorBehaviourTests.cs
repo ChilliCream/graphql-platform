@@ -240,10 +240,10 @@ namespace HotChocolate.Execution
             var schema = Schema.Create(
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             result.Snapshot();
@@ -258,10 +258,10 @@ namespace HotChocolate.Execution
             var schema = Schema.Create(
                 "type Mutation { bar: String }",
                 c => c.Use(next => context => Task.CompletedTask));
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             result.Snapshot();
@@ -271,14 +271,14 @@ namespace HotChocolate.Execution
             string query,
             Action errorHandled)
         {
-            IQueryExecuter queryExecuter = CreateSchema().MakeExecutable(
+            IQueryExecutor queryExecutor = CreateSchema().MakeExecutable(
                 b => b.UseDefaultPipeline().AddErrorFilter((error, ex) =>
                 {
                     errorHandled();
                     return error;
                 }));
 
-            return await queryExecuter.ExecuteAsync(query);
+            return await queryExecutor.ExecuteAsync(query);
         }
 
         private ISchema CreateSchema()

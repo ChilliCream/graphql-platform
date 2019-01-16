@@ -150,10 +150,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ISchema schema = Schema.Create(c => c.RegisterQueryType<BarType>());
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a b c}");
+            IExecutionResult result = await executor.ExecuteAsync("{ a b c}");
 
             // assert
             result.Snapshot();

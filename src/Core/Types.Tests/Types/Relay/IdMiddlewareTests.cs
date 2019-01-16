@@ -17,11 +17,11 @@ namespace HotChocolate.Types.Relay
                 t.UseGlobalObjectIdentifier();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result =
-                await executer.ExecuteAsync("{ id string }");
+                await executor.ExecuteAsync("{ id string }");
 
             // assert
             result.Snapshot();

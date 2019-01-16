@@ -8,16 +8,16 @@ namespace HotChocolate.Stitching
     public class StitchingContext
         : IStitchingContext
     {
-        private readonly IDictionary<string, IQueryExecuter> _queryExecuters;
+        private readonly IDictionary<string, IQueryExecutor> _queryExecutors;
 
         public StitchingContext(
-            IDictionary<string, IQueryExecuter> queryExecuters)
+            IDictionary<string, IQueryExecutor> queryExecutors)
         {
-            _queryExecuters = queryExecuters
-                ?? throw new ArgumentNullException(nameof(queryExecuters));
+            _queryExecutors = queryExecutors
+                ?? throw new ArgumentNullException(nameof(queryExecutors));
         }
 
-        public IQueryExecuter GetQueryExecuter(string schemaName)
+        public IQueryExecutor GetQueryExecutor(string schemaName)
         {
             if (string.IsNullOrEmpty(schemaName))
             {
@@ -26,11 +26,11 @@ namespace HotChocolate.Stitching
                     nameof(schemaName));
             }
 
-            if (_queryExecuters.TryGetValue(
+            if (_queryExecutors.TryGetValue(
                     schemaName,
-                    out IQueryExecuter executer))
+                    out IQueryExecutor executor))
             {
-                return executer;
+                return executor;
             }
 
             throw new ArgumentException(

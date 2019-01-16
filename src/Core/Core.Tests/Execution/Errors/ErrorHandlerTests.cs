@@ -24,13 +24,13 @@ namespace HotChocolate.Execution.Errors
                 IncludeExceptionDetails = false
             };
 
-            IQueryExecuter executer = schema.MakeExecutable(builder =>
+            IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
                     .AddErrorFilter((error, exception) =>
                         error.WithCode("Foo123")));
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ foo }");
+            IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
             result.Snapshot();
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution.Errors
                 ExecutionTimeout = TimeSpan.FromMinutes(10)
             };
 
-            IQueryExecuter executer = schema.MakeExecutable(builder =>
+            IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
                     .AddErrorFilter((error, exception) =>
                     {
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution.Errors
 
             // act
             IExecutionResult result =
-                await executer.ExecuteAsync("{ foo bar }");
+                await executor.ExecuteAsync("{ foo bar }");
 
             // assert
             result.Snapshot();
@@ -100,12 +100,12 @@ namespace HotChocolate.Execution.Errors
                 IncludeExceptionDetails = false
             };
 
-            IQueryExecuter executer = schema.MakeExecutable(builder =>
+            IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
                     .AddErrorFilter<DummyErrorFilter>());
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ foo }");
+            IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
             result.Snapshot();
@@ -127,12 +127,12 @@ namespace HotChocolate.Execution.Errors
                 IncludeExceptionDetails = false
             };
 
-            IQueryExecuter executer = schema.MakeExecutable(builder =>
+            IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
                     .AddErrorFilter(s => new DummyErrorFilter()));
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ foo }");
+            IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
             result.Snapshot();

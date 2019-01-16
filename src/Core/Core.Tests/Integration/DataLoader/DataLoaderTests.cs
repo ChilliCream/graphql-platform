@@ -35,11 +35,11 @@ namespace HotChocolate.Integration.DataLoader
                     }).To("Query", "fetchItem");
                 });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ fetchItem }")
                 {
                     Services = scope.ServiceProvider
@@ -71,11 +71,11 @@ namespace HotChocolate.Integration.DataLoader
                     }).To("Query", "fetchItem");
                 });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ fetchItem }")
                 {
                     Services = scope.ServiceProvider
@@ -109,11 +109,11 @@ namespace HotChocolate.Integration.DataLoader
                     }).To("Query", "fetchItem");
                 });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ fetchItem }")
                 {
                     Services = scope.ServiceProvider
@@ -146,11 +146,11 @@ namespace HotChocolate.Integration.DataLoader
                     }).To("Query", "fetchItem");
                 });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ fetchItem }")
                 {
                     Services = scope.ServiceProvider
@@ -174,13 +174,13 @@ namespace HotChocolate.Integration.DataLoader
                 c.Options.DeveloperMode = true;
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withDataLoader(key: ""a"")
                     b: withDataLoader(key: ""b"")
@@ -189,7 +189,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withDataLoader(key: ""a"")
                 }")
@@ -197,7 +197,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     c: withDataLoader(key: ""c"")
                 }")
@@ -205,7 +205,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 "{ loads }")
             {
                 Services = scope.ServiceProvider
@@ -234,13 +234,13 @@ namespace HotChocolate.Integration.DataLoader
                 c.Options.DeveloperMode = true;
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withDataLoader2(key: ""a"")
                     b: withDataLoader2(key: ""b"")
@@ -249,7 +249,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withDataLoader2(key: ""a"")
                 }")
@@ -257,7 +257,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     c: withDataLoader2(key: ""c"")
                 }")
@@ -265,7 +265,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 "{ loads loads2 }")
             {
                 Services = scope.ServiceProvider
@@ -294,13 +294,13 @@ namespace HotChocolate.Integration.DataLoader
                 c.Options.DeveloperMode = true;
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
 
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withStackedDataLoader(key: ""a"")
                     b: withStackedDataLoader(key: ""b"")
@@ -309,7 +309,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     a: withStackedDataLoader(key: ""a"")
                 }")
@@ -317,7 +317,7 @@ namespace HotChocolate.Integration.DataLoader
                 Services = scope.ServiceProvider
             }));
 
-            results.Add(await executer.ExecuteAsync(new QueryRequest(
+            results.Add(await executor.ExecuteAsync(new QueryRequest(
                 @"{
                     c: withStackedDataLoader(key: ""c"")
                 }")

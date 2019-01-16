@@ -26,7 +26,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public HttpContext HttpContext => throw new NotImplementedException();
 
-        public IQueryExecuter QueryExecuter { get; set; }
+        public IQueryExecutor QueryExecutor { get; set; }
 
         public WebSocketCloseStatus? CloseStatus { get; set; }
 

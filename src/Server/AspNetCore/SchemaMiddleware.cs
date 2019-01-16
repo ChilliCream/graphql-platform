@@ -24,11 +24,11 @@ namespace HotChocolate.AspNetCore
 #endif
     {
         private readonly PathString _path;
-        private readonly IQueryExecuter _queryExecuter;
+        private readonly IQueryExecutor _queryExecutor;
 
         public SchemaMiddleware(
            RequestDelegate next,
-           IQueryExecuter queryExecuter,
+           IQueryExecutor queryExecutor,
            QueryMiddlewareOptions options)
 #if ASPNETCLASSIC
                 : base(next)
@@ -42,8 +42,8 @@ namespace HotChocolate.AspNetCore
                 throw new ArgumentNullException(nameof(options));
             }
 
-            _queryExecuter = queryExecuter
-                ?? throw new ArgumentNullException(nameof(queryExecuter));
+            _queryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
             _path = options.Path.Add(new PathString("/schema"));
         }
 
@@ -69,7 +69,7 @@ namespace HotChocolate.AspNetCore
                    context.Response.Body))
                 {
                     SchemaSerializer.Serialize(
-                        _queryExecuter.Schema,
+                        _queryExecutor.Schema,
                         streamWriter);
 
                     await streamWriter.FlushAsync();

@@ -16,6 +16,6 @@ namespace HotChocolate.Execution
 
         IQueryExecutionBuilder UseField(FieldMiddleware middleware);
 
-        IQueryExecuter Build(ISchema schema);
+        IQueryExecutor Build(ISchema schema);
     }
 }

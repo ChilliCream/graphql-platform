@@ -107,7 +107,6 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("CoreTests")
     .Does(() =>
 {
     var buildSettings = new DotNetCoreBuildSettings
@@ -127,11 +126,16 @@ Task("Tests")
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
             .Append("/p:CoverletOutputFormat=opencover")
-            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/classic_{i++}\" --blame")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./src/Server/AspNetClassic.Tests", buildSettings);
-    DotNetCoreTest("./src/Server/AspNetClassic.Tests", testSettings);
+    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./src/Server", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        DotNetCoreTest(file.FullPath, testSettings);
+    }
 });
 
 Task("CoreTests")
@@ -158,17 +162,13 @@ Task("CoreTests")
     };
 
     DotNetCoreBuild("./src/Core", buildSettings);
-    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
 
-    DotNetCoreTest("./src/Core/Utilities.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Abstractions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Runtime.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Language.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Types.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Validation.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Core.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Subscriptions.Tests", testSettings);
-    DotNetCoreTest("./src/Core/Stitching.Tests", testSettings);
+    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    {
+        DotNetCoreTest(file.FullPath, testSettings);
+    }
+
+    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
     DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
 });
 
