@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apollo Tracing Support [#352](https://github.com/ChilliCream/hotchocolate/issues/352).
 - Query complexity validation rules [#80](https://github.com/ChilliCream/hotchocolate/issues/80)
 - Added support for relay global object identification specification [specification](http://facebook.github.io/relay/graphql/objectidentification.htm).
+- Added Source Code Link for NuGet support.
 
 ### Changed
 
