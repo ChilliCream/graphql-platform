@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -109,7 +110,6 @@ namespace HotChocolate.AspNetCore
                 catch (NotSupportedException)
                 {
                     context.Response.StatusCode = 400;
-
                     return;
                 }
             }
@@ -198,6 +198,8 @@ namespace HotChocolate.AspNetCore
             if (executionResult is IReadOnlyQueryResult queryResult)
             {
                 response.ContentType = ContentType.Json;
+                response.StatusCode = 200;
+
                 await _resultSerializer.SerializeAsync(
                     queryResult, response.Body)
                     .ConfigureAwait(false);
