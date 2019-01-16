@@ -29,7 +29,9 @@ namespace HotChocolate.AspNetCore
         : RequestDelegate
 #endif
     {
-        private readonly IQueryExecutor _queryExecutor;
+        private const int _badRequest = 400;
+        private const int _ok = 200;
+
         private readonly IQueryResultSerializer _resultSerializer;
 
         /// <summary>
@@ -39,8 +41,10 @@ namespace HotChocolate.AspNetCore
         /// <param name="next">
         /// An optional pointer to the next component.
         /// </param>
-        /// <param name="queryExecutorResolver">
+        /// <param name="queryExecutor">
         /// A required query executor resolver.
+        /// </param>
+        /// <param name="resultSerializer">
         /// </param>
         /// <param name="options">
         /// </param>
@@ -56,7 +60,7 @@ namespace HotChocolate.AspNetCore
 #if !ASPNETCLASSIC
             Next = next;
 #endif
-            _queryExecutor = queryExecutor ??
+            Executor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
@@ -68,13 +72,7 @@ namespace HotChocolate.AspNetCore
         /// <summary>
         /// Gets the GraphQL query executor resolver.
         /// </summary>
-        protected IQueryExecutor Executor
-        {
-            get
-            {
-                return _queryExecutor;
-            }
-        }
+        protected IQueryExecutor Executor { get; }
 
 #if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
@@ -109,8 +107,7 @@ namespace HotChocolate.AspNetCore
                 }
                 catch (NotSupportedException)
                 {
-                    context.Response.StatusCode = 400;
-                    return;
+                    context.Response.StatusCode = _badRequest;
                 }
             }
             else if (Next != null)
@@ -130,7 +127,7 @@ namespace HotChocolate.AspNetCore
         protected abstract bool CanHandleRequest(HttpContext context);
 
 #if ASPNETCLASSIC
-        protected T GetService<T>(HttpContext context)
+        protected static T GetService<T>(HttpContext context)
         {
             if (context.Environment.TryGetValue(
                 EnvironmentKeys.ServiceProvider,
@@ -151,13 +148,13 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         /// <param name="context">An OWIN context.</param>
         /// <returns>A new query request.</returns>
-        protected abstract Task<QueryRequest> CreateQueryRequest(
+        protected abstract Task<QueryRequest> CreateQueryRequestAsync(
             HttpContext context);
 
-        private async Task<QueryRequest> CreateQueryRequestInternal(
+        private async Task<QueryRequest> CreateQueryRequestInternalAsync(
             HttpContext context)
         {
-            QueryRequest request = await CreateQueryRequest(context)
+            QueryRequest request = await CreateQueryRequestAsync(context)
                 .ConfigureAwait(false);
             OnCreateRequestAsync onCreateRequest = Options.OnCreateRequest
                 ?? GetService<OnCreateRequestAsync>(context);
@@ -181,7 +178,7 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IQueryExecutor queryExecutor)
         {
-            QueryRequest request = await CreateQueryRequestInternal(context)
+            QueryRequest request = await CreateQueryRequestInternalAsync(context)
                 .ConfigureAwait(false);
             IExecutionResult result = await queryExecutor
                 .ExecuteAsync(request, context.GetCancellationToken())
@@ -198,7 +195,7 @@ namespace HotChocolate.AspNetCore
             if (executionResult is IReadOnlyQueryResult queryResult)
             {
                 response.ContentType = ContentType.Json;
-                response.StatusCode = 200;
+                response.StatusCode = _ok;
 
                 await _resultSerializer.SerializeAsync(
                     queryResult, response.Body)

@@ -45,7 +45,7 @@ namespace HotChocolate.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override Task<QueryRequest> CreateQueryRequest(
+        protected override Task<QueryRequest> CreateQueryRequestAsync(
             HttpContext context)
         {
             QueryRequestDto request = ReadRequest(context);
