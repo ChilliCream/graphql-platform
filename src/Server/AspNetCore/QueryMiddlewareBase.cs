@@ -139,7 +139,7 @@ namespace HotChocolate.AspNetCore
             return default;
         }
 #else
-        protected T GetService<T>(HttpContext context) =>
+        protected static T GetService<T>(HttpContext context) =>
             (T)context.RequestServices.GetService(typeof(T));
 #endif
 
@@ -178,8 +178,10 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IQueryExecutor queryExecutor)
         {
-            QueryRequest request = await CreateQueryRequestInternalAsync(context)
+            QueryRequest request =
+                await CreateQueryRequestInternalAsync(context)
                 .ConfigureAwait(false);
+
             IExecutionResult result = await queryExecutor
                 .ExecuteAsync(request, context.GetCancellationToken())
                 .ConfigureAwait(false);
