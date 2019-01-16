@@ -98,7 +98,7 @@ namespace HotChocolate
             Schema schema = Schema.Create(
                 @"
                 type Query {
-                    enumInInputObject(payload:FooEnum) : String
+                    setEnumValue(value:FooEnum) : String
                 }
 
                 enum FooEnum {
