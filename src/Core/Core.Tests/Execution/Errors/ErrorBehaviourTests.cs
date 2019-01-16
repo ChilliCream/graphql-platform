@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
 {
     public class ErrorBehaviourTests
     {
-         [Fact]
+        [Fact]
         public async Task SyntaxError()
         {
             // arrange
@@ -228,6 +228,42 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task RootTypeNotDefined()
+        {
+            // arrange
+            string query = "mutation { foo }";
+
+            var schema = Schema.Create(
+                "type Query { foo: String }",
+                c => c.Use(next => context => Task.CompletedTask));
+            IQueryExecuter executer = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(query);
+
+            // assert
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task RootFieldNotDefined()
+        {
+            // arrange
+            string query = "mutation { foo }";
+
+            var schema = Schema.Create(
+                "type Mutation { bar: String }",
+                c => c.Use(next => context => Task.CompletedTask));
+            IQueryExecuter executer = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executer.ExecuteAsync(query);
+
+            // assert
             result.Snapshot();
         }
 

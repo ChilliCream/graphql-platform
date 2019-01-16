@@ -63,6 +63,97 @@ namespace HotChocolate
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task EnumAsOutputType()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                type Query {
+                    enumValue: FooEnum
+                }
+
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }
+                ",
+
+                c => c.BindType<EnumQuery>().To("Query"));
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ enumValue }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task EnumAsInputType()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                type Query {
+                    setEnumValue(value:FooEnum) : String
+                }
+
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }
+                ",
+
+                c => c.BindType<EnumQuery>().To("Query"));
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ setEnumValue(value:BAZ) }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task InputObjectWithEnum()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                type Query {
+                    enumInInputObject(payload:Payload) : String
+                }
+
+                input Payload {
+                    value: FooEnum
+                }
+
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }
+                ",
+                c =>
+                {
+                    c.BindType<EnumQuery>().To("Query");
+                    c.BindType<Payload>();
+                });
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ enumInInputObject(payload: { value:BAZ } ) }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
         public class Query
         {
             public string GetTest()
@@ -84,6 +175,35 @@ namespace HotChocolate
         public class Bar
         {
             public string Baz { get; set; }
+        }
+
+        public class EnumQuery
+        {
+            public FooEnum GetEnumValue()
+            {
+                return FooEnum.Bar;
+            }
+
+            public string SetEnumValue(FooEnum value)
+            {
+                return value.ToString();
+            }
+
+            public string EnumInInputObject(Payload payload)
+            {
+                return payload.Value.ToString();
+            }
+        }
+
+        public class Payload
+        {
+            public FooEnum Value { get; set; }
+        }
+
+        public enum FooEnum
+        {
+            Bar,
+            Baz
         }
     }
 }

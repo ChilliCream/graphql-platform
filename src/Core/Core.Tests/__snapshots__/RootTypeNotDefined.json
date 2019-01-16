@@ -1,0 +1,9 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "message": "The specified root type `Mutation` does not exist."
+    }
+  ]
+}
