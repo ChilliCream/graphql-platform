@@ -11,12 +11,12 @@ using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Stitching
 {
-    public class HttpQueryExecuter
-        : IQueryExecuter
+    public class HttpQueryExecutor
+        : IQueryExecutor
     {
         private HttpClient _client;
 
-        public HttpQueryExecuter(HttpClient client)
+        public HttpQueryExecutor(HttpClient client)
         {
             _client = client ??
                 throw new ArgumentNullException(nameof(client));

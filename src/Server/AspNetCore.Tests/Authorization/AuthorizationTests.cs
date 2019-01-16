@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Authorization
                         options.DefaultPolicy = null;
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -76,7 +76,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -115,7 +115,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -154,7 +154,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -189,7 +189,7 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -220,7 +220,7 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -255,7 +255,7 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -293,7 +293,7 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -331,7 +331,7 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -379,7 +379,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.Country)));
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -430,7 +430,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.Country)));
                     });
 
-                    services.AddGraphQL(CreateExecuter());
+                    services.AddGraphQL(CreateExecutor());
                 },
                 context =>
                 {
@@ -482,7 +482,7 @@ namespace HotChocolate.AspNetCore.Authorization
         }
 
 
-        private static IQueryExecuter CreateExecuter()
+        private static IQueryExecutor CreateExecutor()
         {
             return Schema.Create(
                 @"

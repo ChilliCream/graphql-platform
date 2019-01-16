@@ -563,10 +563,10 @@ namespace HotChocolate.Types
 
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ desc }")
                 {
                     InitialValue = new Foo()

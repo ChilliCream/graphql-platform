@@ -28,7 +28,7 @@ namespace HotChocolate.AspNetCore
         : RequestDelegate
 #endif
     {
-        private readonly IQueryExecuter _queryExecuter;
+        private readonly IQueryExecutor _queryExecutor;
         private readonly IQueryResultSerializer _resultSerializer;
 
         /// <summary>
@@ -38,14 +38,14 @@ namespace HotChocolate.AspNetCore
         /// <param name="next">
         /// An optional pointer to the next component.
         /// </param>
-        /// <param name="queryExecuterResolver">
+        /// <param name="queryExecutorResolver">
         /// A required query executor resolver.
         /// </param>
         /// <param name="options">
         /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IQueryExecuter queryExecuter,
+            IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
 #if ASPNETCLASSIC
@@ -55,23 +55,23 @@ namespace HotChocolate.AspNetCore
 #if !ASPNETCLASSIC
             Next = next;
 #endif
-            _queryExecuter = queryExecuter ??
-                throw new ArgumentNullException(nameof(queryExecuter));
+            _queryExecutor = queryExecutor ??
+                throw new ArgumentNullException(nameof(queryExecutor));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
                 throw new ArgumentNullException(nameof(options));
-            Services = Executer.Schema.Services;
+            Services = Executor.Schema.Services;
         }
 
         /// <summary>
-        /// Gets the GraphQL query executer resolver.
+        /// Gets the GraphQL query executor resolver.
         /// </summary>
-        protected IQueryExecuter Executer
+        protected IQueryExecutor Executor
         {
             get
             {
-                return _queryExecuter;
+                return _queryExecutor;
             }
         }
 
@@ -103,7 +103,7 @@ namespace HotChocolate.AspNetCore
             {
                 try
                 {
-                    await HandleRequestAsync(context, Executer)
+                    await HandleRequestAsync(context, Executor)
                         .ConfigureAwait(false);
                 }
                 catch (NotSupportedException)
@@ -179,11 +179,11 @@ namespace HotChocolate.AspNetCore
 
         private async Task HandleRequestAsync(
             HttpContext context,
-            IQueryExecuter queryExecuter)
+            IQueryExecutor queryExecutor)
         {
             QueryRequest request = await CreateQueryRequestInternal(context)
                 .ConfigureAwait(false);
-            IExecutionResult result = await queryExecuter
+            IExecutionResult result = await queryExecutor
                 .ExecuteAsync(request, context.GetCancellationToken())
                 .ConfigureAwait(false);
 

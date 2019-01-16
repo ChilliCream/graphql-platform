@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Stitching
 {
-    public class HttpQueryExecuterTests
+    public class HttpQueryExecutorTests
     {
 
         [Fact(Skip = "The snapshot is changing to often ...")]
@@ -29,10 +29,10 @@ namespace HotChocolate.Stitching
             client.BaseAddress = new Uri(
                 "http://api.catalysis-hub.org/graphql");
 
-            var queryExecuter = new HttpQueryExecuter(client);
+            var queryExecutor = new HttpQueryExecutor(client);
 
             // act
-            IExecutionResult result = await queryExecuter.ExecuteAsync(
+            IExecutionResult result = await queryExecutor.ExecuteAsync(
                 new QueryRequest(queryText), CancellationToken.None);
 
             // assert

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public interface IQueryExecuter
+    public interface IQueryExecutor
         : IDisposable
     {
         ISchema Schema { get; }

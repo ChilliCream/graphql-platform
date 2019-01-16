@@ -49,7 +49,7 @@ namespace HotChocolate.Stitching
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .SelectionSet.Selections.OfType<FieldNode>().Last();
 
-            var schemas = new Dictionary<string, IQueryExecuter>();
+            var schemas = new Dictionary<string, IQueryExecutor>();
 
             schemas["a"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_a, c => c.Use(next => context =>
@@ -134,7 +134,7 @@ namespace HotChocolate.Stitching
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .SelectionSet.Selections.OfType<FieldNode>().Last();
 
-            var schemas = new Dictionary<string, IQueryExecuter>();
+            var schemas = new Dictionary<string, IQueryExecutor>();
 
             schemas["a"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_a, c => c.Use(next => context =>
@@ -163,11 +163,11 @@ namespace HotChocolate.Stitching
                 }));
 
             var schema = services.BuildServiceProvider().GetService<ISchema>();
-            IQueryExecuter executer = schema.MakeExecutable(
+            IQueryExecutor executor = schema.MakeExecutable(
                 t => t.UseDefaultPipeline().AddParser<AnnotationQueryParser>());
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             result.Snapshot();
@@ -226,7 +226,7 @@ namespace HotChocolate.Stitching
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .SelectionSet.Selections.OfType<FieldNode>().Last();
 
-            var schemas = new Dictionary<string, IQueryExecuter>();
+            var schemas = new Dictionary<string, IQueryExecutor>();
 
             schemas["a"] = QueryExecutionBuilder.BuildDefault(
                 Schema.Create(schema_a, c => c.Use(next => context =>
