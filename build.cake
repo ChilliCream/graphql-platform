@@ -132,7 +132,7 @@ Task("Tests")
     DotNetCoreBuild("./src/Core", buildSettings);
     DotNetCoreBuild("./src/Server", buildSettings);
 
-    foreach(var file in GetFiles("./**/*.Tests.csproj"))
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
         DotNetCoreTest(file.FullPath, testSettings);
     }
