@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+<PropertyGroup>
     <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
-    <AssemblyName>HotChocolate.Core</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
-    <PackageId>HotChocolate</PackageId>
-    <Description>The hot chocolate GraphQL type system and query engine.</Description>
+    <AssemblyName>HotChocolate.DataLoader</AssemblyName>
+    <RootNamespace>HotChocolate.DataLoader</RootNamespace>
+    <PackageId>HotChocolate.DataLoader</PackageId>
+    <Description></Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -24,14 +24,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.0" />
+    <PackageReference Include="GreenDonut" Version="2.0.0-preview.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
-    <ProjectReference Include="..\DataLoader\DataLoader.csproj" />
   </ItemGroup>
 
 </Project>
