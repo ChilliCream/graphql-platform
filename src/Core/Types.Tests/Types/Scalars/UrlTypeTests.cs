@@ -23,7 +23,7 @@ namespace HotChocolate.Types
             // arrange
             UrlType urlType = new UrlType();
             Uri expected = new Uri("http://domain.test/url");
-            StringValueNode literal = new StringValueNode(expected.AbsoluteUri);
+            var literal = new StringValueNode(expected.AbsoluteUri);
 
             // act
             Uri actual = (Uri)urlType
@@ -56,7 +56,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => type.ParseLiteral(input));
+            Assert.Throws<ScalarSerializationException>(
+                () => type.ParseLiteral(input));
         }
 
         [Fact]
@@ -110,13 +111,12 @@ namespace HotChocolate.Types
             // arrange
             UrlType urlType = new UrlType();
             Uri uri = new Uri("http://domain.test/url");
-            string expectedValue = uri.AbsoluteUri;
 
             // act
-            string serializedValue = (string)urlType.Serialize(uri);
+            object serializedValue = urlType.Serialize(uri);
 
             // assert
-            Assert.Equal(expectedValue, serializedValue);
+            Assert.Equal(uri, Assert.IsType<Uri>(serializedValue));
         }
     }
 }

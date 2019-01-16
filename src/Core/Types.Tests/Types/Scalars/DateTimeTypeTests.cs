@@ -62,7 +62,7 @@ namespace HotChocolate.Types
             Action a = () => dateTimeType.Serialize("foo");
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ScalarSerializationException>(a);
         }
 
         [Fact]
@@ -123,7 +123,8 @@ namespace HotChocolate.Types
         {
             // arrange
             DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
+            DateTime dateTime = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
 
             // act
             DateTime deserializedValue = ((DateTimeOffset)dateTimeType
@@ -139,7 +140,8 @@ namespace HotChocolate.Types
         {
             // arrange
             DateTimeType dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            DateTimeOffset dateTime = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
             DateTime deserializedValue = ((DateTimeOffset)dateTimeType

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class DateTests
+    public class DateTypeTests
     {
         [Fact]
         public void Serialize_Date()
@@ -62,7 +62,7 @@ namespace HotChocolate.Types
             Action a = () => dateType.Serialize("foo");
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ScalarSerializationException>(a);
         }
 
         [Fact]

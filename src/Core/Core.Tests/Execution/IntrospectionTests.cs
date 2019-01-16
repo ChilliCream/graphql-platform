@@ -12,10 +12,10 @@ namespace HotChocolate.Execution
         {
             // arrange
             string query = "{ __typename }";
-            IQueryExecuter executer = CreateSchema().MakeExecutable();
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             Assert.Empty(result.Errors);
@@ -27,10 +27,10 @@ namespace HotChocolate.Execution
         {
             // arrange
             string query = "{ b { __typename } }";
-            IQueryExecuter executer = CreateSchema().MakeExecutable();
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             Assert.Empty(result.Errors);
@@ -42,10 +42,10 @@ namespace HotChocolate.Execution
         {
             // arrange
             string query = "{ __type (type: \"Foo\") { name } }";
-            IQueryExecuter executer = CreateSchema().MakeExecutable();
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             Assert.Empty(result.Errors);
@@ -59,10 +59,10 @@ namespace HotChocolate.Execution
             string query =
                 "{ __type (type: \"Foo\") " +
                 "{ name fields { name type { name } } } }";
-            IQueryExecuter executer = CreateSchema().MakeExecutable();
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             Assert.Empty(result.Errors);
@@ -75,10 +75,10 @@ namespace HotChocolate.Execution
             // arrange
             string query =
                 FileResource.Open("IntrospectionQuery.graphql");
-            IQueryExecuter executer = CreateSchema().MakeExecutable();
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             Assert.Empty(result.Errors);

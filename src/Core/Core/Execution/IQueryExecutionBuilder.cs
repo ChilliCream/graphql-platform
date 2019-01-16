@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -13,6 +14,8 @@ namespace HotChocolate.Execution
 
         IQueryExecutionBuilder Use(QueryMiddleware middleware);
 
-        IQueryExecuter Build(ISchema schema);
+        IQueryExecutionBuilder UseField(FieldMiddleware middleware);
+
+        IQueryExecutor Build(ISchema schema);
     }
 }

@@ -94,6 +94,16 @@ namespace HotChocolate.Types
                 nameof(literal));
         }
 
+        public bool IsInstanceOfType(object value)
+        {
+            if (value is null)
+            {
+                return true;
+            }
+
+            return ClrType.IsInstanceOfType(value);
+        }
+
         public IValueNode ParseValue(object value)
         {
             if (value == null)
@@ -121,6 +131,14 @@ namespace HotChocolate.Types
 
             if (ClrType.IsInstanceOfType(value)
                 && _valueToValues.TryGetValue(value, out EnumValue enumValue))
+            {
+                return enumValue.Name;
+            }
+
+            // schema first unbound enum type
+            if (value is string s && ClrType == typeof(string)
+                && _nameToValues.TryGetValue(
+                    s.ToUpperInvariant(), out enumValue))
             {
                 return enumValue.Name;
             }

@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                     return Task.CompletedTask;
                 }));
 
-            IQueryExecuter executer = schema.MakeExecutable(
+            IQueryExecutor executor = schema.MakeExecutable(
                 b => b.UseDefaultPipeline()
                     .Use(next => context =>
                     {
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
                     }));
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest("{ foo }")
                 {
                     Properties = new Dictionary<string, object>

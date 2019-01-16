@@ -14,18 +14,18 @@ namespace HotChocolate.AspNetCore
 
         public SubscriptionMiddleware(
             RequestDelegate next,
-            IQueryExecuter queryExecuter,
+            IQueryExecutor queryExecutor,
             QueryMiddlewareOptions options)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
-            Executer = queryExecuter
-                ?? throw new ArgumentNullException(nameof(queryExecuter));
+            Executor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
             Options = options
                 ?? throw new ArgumentNullException(nameof(options));
         }
 
-        protected IQueryExecuter Executer { get; }
+        protected IQueryExecutor Executor { get; }
 
         protected QueryMiddlewareOptions Options { get; }
 
@@ -40,7 +40,7 @@ namespace HotChocolate.AspNetCore
                     ?? GetService<OnCreateRequestAsync>(context);
 
                 WebSocketSession session = await WebSocketSession
-                    .TryCreateAsync(context, Executer, onConnect, onRequest)
+                    .TryCreateAsync(context, Executor, onConnect, onRequest)
                     .ConfigureAwait(false);
 
                 if (session != null)

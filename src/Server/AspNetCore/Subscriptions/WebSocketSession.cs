@@ -115,7 +115,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public static async Task<WebSocketSession> TryCreateAsync(
             HttpContext httpContext,
-            IQueryExecuter queryExecuter,
+            IQueryExecutor queryExecutor,
             OnConnectWebSocketAsync onConnectAsync,
             OnCreateRequestAsync onCreateRequest)
         {
@@ -124,9 +124,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            if (queryExecuter == null)
+            if (queryExecutor == null)
             {
-                throw new ArgumentNullException(nameof(queryExecuter));
+                throw new ArgumentNullException(nameof(queryExecutor));
             }
 
             WebSocket socket = await httpContext.WebSockets
@@ -136,7 +136,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .Contains(socket.SubProtocol))
             {
                 var context = new WebSocketContext(
-                    httpContext, socket, queryExecuter,
+                    httpContext, socket, queryExecutor,
                     onConnectAsync, onCreateRequest);
 
                 return new WebSocketSession(context);

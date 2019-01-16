@@ -10,6 +10,7 @@ namespace HotChocolate.Types
     public class InputField
         : FieldBase<IInputType>
         , IInputField
+        , IHasClrType
     {
         private readonly object _nativeDefaultValue;
 
@@ -39,8 +40,9 @@ namespace HotChocolate.Types
 
         public IValueNode DefaultValue { get; private set; }
 
-        // TODO : make this private
-        public PropertyInfo Property { get; private set; }
+        private PropertyInfo Property { get; set; }
+
+        public Type ClrType => Property?.PropertyType ?? typeof(object);
 
         public void SetValue(object obj, object value)
         {
@@ -160,10 +162,10 @@ namespace HotChocolate.Types
             {
                 CompleteDefaultValue(context, Type);
 
-                if (context.Type is InputObjectType
+                if (context.Type is InputObjectType iot
                     && Property == null
                     && context.TryGetProperty(
-                        context.Type, Name,
+                        iot, Name,
                         out PropertyInfo property))
                 {
                     Property = property;
@@ -193,7 +195,9 @@ namespace HotChocolate.Types
             {
                 context.ReportError(new SchemaError(
                     "Could not parse the native value of input field " +
-                    $"`{context.Type.Name}.{Name}`.", context.Type, ex));
+                    $"`{context.Type.Name}.{Name}`.",
+                    context.Type as INamedType,
+                    ex));
             }
         }
 

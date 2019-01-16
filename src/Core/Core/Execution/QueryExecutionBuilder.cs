@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -12,6 +13,9 @@ namespace HotChocolate.Execution
     {
         private readonly List<QueryMiddleware> _middlewareComponents =
             new List<QueryMiddleware>();
+
+        private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
+            new List<FieldMiddleware>();
 
         public IServiceCollection Services { get; } = new ServiceCollection();
 
@@ -26,7 +30,18 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryExecuter Build(ISchema schema)
+        public IQueryExecutionBuilder UseField(FieldMiddleware middleware)
+        {
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            _fieldMiddlewareComponents.Add(middleware);
+            return this;
+        }
+
+        public IQueryExecutor Build(ISchema schema)
         {
             if (schema == null)
             {
@@ -39,7 +54,7 @@ namespace HotChocolate.Execution
 
             QueryDelegate middleware = Compile(_middlewareComponents);
 
-            return new QueryExecuter(schema, services, middleware);
+            return new QueryExecutor(schema, services, middleware);
         }
 
         private ServiceCollection CopyServiceCollection()
@@ -69,10 +84,10 @@ namespace HotChocolate.Execution
         public static IQueryExecutionBuilder New() =>
             new QueryExecutionBuilder();
 
-        public static IQueryExecuter BuildDefault(ISchema schema) =>
+        public static IQueryExecutor BuildDefault(ISchema schema) =>
             New().UseDefaultPipeline().Build(schema);
 
-        public static IQueryExecuter BuildDefault(ISchema schema,
+        public static IQueryExecutor BuildDefault(ISchema schema,
             IQueryExecutionOptionsAccessor options) =>
                 New().UseDefaultPipeline(options).Build(schema);
     }

@@ -75,6 +75,22 @@ namespace HotChocolate.Types
                 "The specified type is not an input type.");
         }
 
+        public bool IsInstanceOfType(object value)
+        {
+            if (_isInputType && Type is IInputType it)
+            {
+                if (value is null)
+                {
+                    return false;
+                }
+
+                return it.IsInstanceOfType(value);
+            }
+
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
         public IValueNode ParseValue(object value)
         {
             if (_isInputType)
@@ -108,6 +124,11 @@ namespace HotChocolate.Types
         public TypeKind Kind => throw new NotImplementedException();
 
         public bool IsInstanceOfType(IValueNode literal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInstanceOfType(object value)
         {
             throw new NotImplementedException();
         }

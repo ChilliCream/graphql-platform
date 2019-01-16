@@ -38,8 +38,8 @@ namespace HotChocolate.Execution
             RequestAborted = requestAborted;
 
             _converter = _executionContext.Services.GetTypeConversion();
-            _arguments = resolverTask.FieldSelection
-                .CoerceArgumentValues(executionContext.Variables);
+            _arguments = resolverTask.FieldSelection.CoerceArgumentValues(
+                executionContext.Variables, resolverTask.Path);
         }
 
         public ISchema Schema =>

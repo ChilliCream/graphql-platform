@@ -1,0 +1,8 @@
+{
+  "HasErrors": true,
+  "Errors": [
+    {
+      "message": "At least one operation of the query document had a complexity of 16. \nThe maximum allowed query complexity is 15."
+    }
+  ]
+}

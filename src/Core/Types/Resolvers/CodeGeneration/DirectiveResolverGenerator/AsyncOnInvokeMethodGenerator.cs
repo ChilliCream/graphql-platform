@@ -11,16 +11,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             DirectiveMiddlewareDescriptor descriptor,
             StringBuilder source)
         {
-            HandleExceptions(source, s =>
+
+            if (descriptor.HasResult)
             {
-                if (descriptor.HasResult)
-                {
-                    s.Append("ctx.Result = ");
-                }
-                s.Append($"await resolver.{descriptor.Method.Name}(");
-                GenerateArguments(descriptor, s);
-                s.AppendLine(");");
-            });
+                source.Append("ctx.Result = ");
+            }
+            source.Append($"await resolver.{descriptor.Method.Name}(");
+            GenerateArguments(descriptor, source);
+            source.AppendLine(");");
 
             source.AppendLine("await next.Invoke(ctx);");
         }

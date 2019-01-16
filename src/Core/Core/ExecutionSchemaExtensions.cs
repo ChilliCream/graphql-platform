@@ -8,20 +8,20 @@ namespace HotChocolate
 {
     public static class ExecutionSchemaExtensions
     {
-        public static IQueryExecuter MakeExecutable(
+        public static IQueryExecutor MakeExecutable(
             this ISchema schema)
         {
             return QueryExecutionBuilder.BuildDefault(schema);
         }
 
-        public static IQueryExecuter MakeExecutable(
+        public static IQueryExecutor MakeExecutable(
             this ISchema schema,
             IQueryExecutionOptionsAccessor options)
         {
             return QueryExecutionBuilder.BuildDefault(schema, options);
         }
 
-        public static IQueryExecuter MakeExecutable(
+        public static IQueryExecutor MakeExecutable(
             this ISchema schema,
             Func<IQueryExecutionBuilder, IQueryExecutionBuilder> configure)
         {

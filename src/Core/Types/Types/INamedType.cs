@@ -2,9 +2,8 @@
 {
     public interface INamedType
         : INullableType
+        , IHasName
+        , IHasDescription
     {
-        NameString Name { get; }
-
-        string Description { get; }
     }
 }

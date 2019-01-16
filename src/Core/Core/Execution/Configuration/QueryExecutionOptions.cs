@@ -18,6 +18,7 @@ namespace HotChocolate.Execution.Configuration
         private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
         private int? _maxExecutionDepth;
         private int _queryCacheSize = 100;
+        private int? _maxOperationComplexity;
 
         /// <summary>
         /// Gets or sets a value indicating whether tracing for performance
@@ -60,12 +61,36 @@ namespace HotChocolate.Execution.Configuration
             get => _maxExecutionDepth;
             set
             {
-                _maxExecutionDepth =
-                    (value.HasValue && value < _minMaxExecutionDepth)
-                        ? _minMaxExecutionDepth
-                        : value;
+                if (value.HasValue && value < _minMaxExecutionDepth)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(value),
+                        value,
+                        "MaxExecutionDepth mustn't be below one.");
+                }
+
+                _maxExecutionDepth = value;
             }
         }
+
+        public int? MaxOperationComplexity
+        {
+            get => _maxOperationComplexity;
+            set
+            {
+                if (value.HasValue && value < _maxOperationComplexity)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(value),
+                        value,
+                        "MaxOperationComplexity mustn't be below one.");
+                }
+
+                _maxOperationComplexity = value;
+            }
+        }
+
+        public bool? UseComplexityMultipliers { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum amount of queries that can be cached. The

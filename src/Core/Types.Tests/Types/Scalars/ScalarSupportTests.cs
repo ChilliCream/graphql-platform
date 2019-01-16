@@ -11,6 +11,8 @@ namespace HotChocolate
     public class ScalarSupportTests
     {
         [Theory]
+        [InlineData("Byte")]
+        [InlineData("Short")]
         [InlineData("Long")]
         [InlineData("DateTime")]
         [InlineData("Date")]
@@ -23,13 +25,16 @@ namespace HotChocolate
             var schema = Schema.Create(c => { });
 
             //act
-            INamedType typeFound = schema.Types.FirstOrDefault(a => a.Name == type);
+            INamedType typeFound = schema.Types
+                .FirstOrDefault(a => a.Name == type);
 
             //assert
             Assert.Null(typeFound);
         }
 
         [Theory]
+        [InlineData("Byte")]
+        [InlineData("Short")]
         [InlineData("Long")]
         [InlineData("DateTime")]
         [InlineData("Date")]
@@ -45,17 +50,21 @@ namespace HotChocolate
             });
 
             //act
-            INamedType typeFound = schema.Types.FirstOrDefault(a => a.Name == type);
+            INamedType typeFound = schema.Types
+                .FirstOrDefault(a => a.Name == type);
 
             //assert
             Assert.NotNull(typeFound);
         }
 
         [Theory]
+        [InlineData("Byte", typeof(byte), "Overridden byte")]
+        [InlineData("Short", typeof(short), "Overridden short")]
         [InlineData("Long", typeof(long), "Overridden long")]
         [InlineData("Decimal", typeof(decimal), "Overridden decimal")]
         [InlineData("DateTime", typeof(DateTimeOffset), "Overridden DateTime")]
-        public async void RegisterCustomExtendedScalarType(string name, Type type, string desc)
+        public async void RegisterCustomExtendedScalarType(
+            string name, Type type, string desc)
         {
             // arrange, register custom scalar type
             var customScalarType = new CustomScalarType(name, type, desc);
@@ -67,7 +76,14 @@ namespace HotChocolate
             // act, use introspection to retrieve registered type description
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
-                    "{ __type(type: \"" + name + "\") { name, kind, description } }");
+                    @"{
+                        __type(type: """ + name + @""")
+                        {
+                            name
+                            kind
+                            description
+                        }
+                    }");
 
             //assert
             result.Snapshot("RegisterCustomExtendedScalarType" + name);
@@ -79,7 +95,8 @@ namespace HotChocolate
         [InlineData("Int", typeof(int), "Overridden Int")]
         [InlineData("Boolean", typeof(bool), "Overridden Boolean")]
         [InlineData("ID", typeof(string), "Overridden ID")]
-        public async void ShouldNotAllowSwappingOfBaseScalarType(string name, Type type, string desc)
+        public async void ShouldNotAllowSwappingOfBaseScalarType(
+            string name, Type type, string desc)
         {
             // arrange, register custom base scalar type
             var customBaseScalarType = new CustomScalarType(name, type, desc);
@@ -91,7 +108,14 @@ namespace HotChocolate
             // act, use introspection to retrieve registered type description
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
-                    "{ __type(type: \"" + name + "\") { name, kind, description } }");
+                    @"{
+                        __type(type: """ + name + @""")
+                        {
+                            name
+                            kind
+                            description
+                        }
+                    }");
 
             //assert
             result.Snapshot("ShouldNotAllowSwappingOfBaseScalarType" + name);
@@ -132,7 +156,8 @@ namespace HotChocolate
             throw new NotImplementedException();
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(
+            object serialized, out object value)
         {
             throw new NotImplementedException();
         }

@@ -3,13 +3,5 @@ public static FieldResolverDelegate abc  = async ctx => {
 var ct = ctx.RequestAborted;
 var b = ctx.ObjectType;
 var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
-try
-{
 return await resolver.GetFooAsync(b);
-}
-catch(HotChocolate.Execution.QueryException ex)
-{
-return ex.Errors;
-}
-
 };

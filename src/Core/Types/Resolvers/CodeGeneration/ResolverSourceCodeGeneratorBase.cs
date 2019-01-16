@@ -90,18 +90,5 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected abstract void GenerateResolverInvocation(
             T resolverDescriptor,
             StringBuilder source);
-
-        protected virtual void HandleExceptions(StringBuilder source, Action<StringBuilder> code)
-        {
-            source.AppendLine("try");
-            source.AppendLine("{");
-            code(source);
-            source.AppendLine();
-            source.AppendLine("}");
-            source.AppendLine($"catch(HotChocolate.Execution.QueryException ex)");
-            source.AppendLine("{");
-            source.AppendLine($"return ex.Errors;");
-            source.AppendLine("}");
-        }
     }
 }

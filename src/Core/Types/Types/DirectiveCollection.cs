@@ -58,7 +58,7 @@ namespace HotChocolate.Types
                     context.ReportError(new SchemaError(
                         $"The specified directive `@{directiveType.Name}` " +
                         "is unique and cannot be added twice.",
-                        context.Type));
+                        context.Type as INamedType));
                 }
                 else if (directiveType.Locations.Contains(_location))
                 {
@@ -71,7 +71,7 @@ namespace HotChocolate.Types
                         $"The specified directive `@{directiveType.Name}` " +
                         "is not allowed on the current location " +
                         $"`{_location}`.",
-                        context.Type));
+                        context.Type as INamedType));
                 }
             }
         }

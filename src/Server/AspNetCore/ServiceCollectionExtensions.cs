@@ -5,7 +5,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate
 {
-    public delegate IQueryExecuter BuildExecuter(
+    public delegate IQueryExecutor BuildExecutor(
         IServiceProvider services,
         IQueryExecutionBuilder builder);
 
@@ -357,7 +357,7 @@ namespace HotChocolate
 
         public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
-            IQueryExecuter executer)
+            IQueryExecutor executor)
         {
             if (serviceCollection == null)
             {
@@ -366,19 +366,19 @@ namespace HotChocolate
 
             if (executer == null)
             {
-                throw new ArgumentNullException(nameof(executer));
+                throw new ArgumentNullException(nameof(executor));
             }
 
             return serviceCollection
-                .AddSingleton(executer)
+                .AddSingleton(executor)
                 .AddSingleton<ISchema>(s =>
-                    s.GetRequiredService<IQueryExecuter>().Schema)
+                    s.GetRequiredService<IQueryExecutor>().Schema)
                 .AddJsonSerializer();
         }
 
         public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
-            BuildExecuter buildExecuter)
+            BuildExecutor buildExecutor)
         {
             if (serviceCollection == null)
             {
@@ -387,14 +387,14 @@ namespace HotChocolate
 
             if (buildExecuter == null)
             {
-                throw new ArgumentNullException(nameof(buildExecuter));
+                throw new ArgumentNullException(nameof(buildExecutor));
             }
 
             return serviceCollection
-                .AddSingleton<IQueryExecuter>(s =>
-                    buildExecuter(s, QueryExecutionBuilder.New()))
+                .AddSingleton<IQueryExecutor>(s =>
+                    buildExecutor(s, QueryExecutionBuilder.New()))
                 .AddSingleton(s =>
-                    s.GetRequiredService<IQueryExecuter>().Schema)
+                    s.GetRequiredService<IQueryExecutor>().Schema)
                 .AddJsonSerializer();
         }
 

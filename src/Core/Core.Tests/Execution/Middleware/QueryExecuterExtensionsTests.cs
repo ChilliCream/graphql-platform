@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executer = QueryExecutionBuilder
+            var executor = QueryExecutionBuilder
                 .New()
                 .Use(next => context =>
                 {
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
                 .Build(schema);
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
             result.Snapshot();
@@ -50,13 +50,13 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executer = QueryExecutionBuilder
+            var executor = QueryExecutionBuilder
                 .New()
                 .Use<TestMiddleware>()
                 .Build(schema);
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
             result.Snapshot();
@@ -74,13 +74,13 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executer = QueryExecutionBuilder
+            var executor = QueryExecutionBuilder
                 .New()
                 .Use((services, next) => new TestMiddleware(next))
                 .Build(schema);
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync("{ a }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
             result.Snapshot();

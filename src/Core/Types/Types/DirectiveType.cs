@@ -8,6 +8,8 @@ namespace HotChocolate.Types
 {
     public class DirectiveType
         : TypeSystemBase
+        , IHasName
+        , IHasDescription
     {
         private IDirectiveMiddleware _middleware;
 

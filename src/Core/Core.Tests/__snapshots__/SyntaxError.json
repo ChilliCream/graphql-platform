@@ -1,0 +1,15 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "message": "The specified token is the last token in the token chain.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 9
+        }
+      ]
+    }
+  ]
+}

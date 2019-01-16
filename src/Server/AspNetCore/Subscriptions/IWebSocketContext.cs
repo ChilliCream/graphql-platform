@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         HttpContext HttpContext { get; }
 
-        IQueryExecuter QueryExecuter { get; }
+        IQueryExecutor QueryExecutor { get; }
 
         WebSocketCloseStatus? CloseStatus { get; }
 

@@ -29,7 +29,6 @@ namespace HotChocolate.Execution
         {
             CancellationTokenSource requestTimeoutCts = null;
             CancellationTokenSource combinedCts = null;
-
             CancellationToken requestAborted = context.RequestAborted;
 
             if (!Debugger.IsAttached)

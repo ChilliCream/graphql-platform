@@ -91,7 +91,7 @@ namespace HotChocolate.Types
             Action a = () => booleanType.Serialize("foo");
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ScalarSerializationException>(a);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
             Action a = () => booleanType.Serialize("foo");
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ScalarSerializationException>(a);
         }
     }
 }

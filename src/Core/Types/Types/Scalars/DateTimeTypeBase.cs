@@ -18,8 +18,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is StringValueNode
-                || literal is NullValueNode;
+            if (literal is NullValueNode)
+            {
+                return true;
+            }
+
+            return literal is StringValueNode stringLiteral
+                && TryParseLiteral(stringLiteral, out _);
         }
 
         public sealed override object ParseLiteral(IValueNode literal)
@@ -40,10 +45,9 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new ArgumentException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()),
-                nameof(literal));
+                    Name, literal.GetType()));
         }
 
         public sealed override IValueNode ParseValue(object value)
@@ -53,10 +57,9 @@ namespace HotChocolate.Types
                 return valueNode;
             }
 
-            throw new ArgumentException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()),
-                nameof(value));
+                    Name, value.GetType()));
         }
 
         protected bool TryParseValue(
@@ -91,7 +94,7 @@ namespace HotChocolate.Types
                 return serializedValue;
             }
 
-            throw new ArgumentException(
+            throw new ScalarSerializationException(
                 TypeResources.Scalar_Cannot_Serialize(Name));
         }
 

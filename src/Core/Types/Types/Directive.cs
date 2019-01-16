@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -125,7 +126,12 @@ namespace HotChocolate.Types
 
         private T CreateCustomDirective<T>()
         {
-            object obj = Activator.CreateInstance(typeof(T));
+            if (TryDeserialize(_parsedDirective, out T directive))
+            {
+                return directive;
+            }
+
+            directive = (T)Activator.CreateInstance(typeof(T));
 
             ILookup<string, PropertyInfo> properties =
                 typeof(T).GetProperties()
@@ -138,14 +144,17 @@ namespace HotChocolate.Types
 
                 if (property != null)
                 {
-                    SetProperty(argument, obj, property);
+                    SetProperty(argument, directive, property);
                 }
             }
 
-            return (T)obj;
+            return directive;
         }
 
-        private void SetProperty(InputField argument, object obj, PropertyInfo property)
+        private void SetProperty(
+            InputField argument,
+            object obj,
+            PropertyInfo property)
         {
             Dictionary<string, ArgumentNode> arguments = GetArguments();
             if (arguments.TryGetValue(argument.Name,
@@ -166,8 +175,41 @@ namespace HotChocolate.Types
             {
                 _arguments = ToNode().Arguments.ToDictionary(t => t.Name.Value);
             }
-
             return _arguments;
+        }
+
+        private bool TryDeserialize<T>(
+            DirectiveNode directiveNode,
+            out T directive)
+        {
+
+            ConstructorInfo constructor = typeof(T).GetTypeInfo()
+                .DeclaredConstructors.FirstOrDefault(t =>
+                {
+                    ParameterInfo[] parameters = t.GetParameters();
+                    return parameters.Length == 2
+                        && parameters[0].ParameterType ==
+                            typeof(SerializationInfo)
+                        && parameters[1].ParameterType ==
+                            typeof(StreamingContext);
+                });
+
+            if (constructor == null)
+            {
+                directive = default(T);
+                return false;
+            }
+
+            var info = new SerializationInfo(
+                typeof(T), new FormatterConverter());
+            info.AddValue(nameof(DirectiveNode), directiveNode);
+
+            var context = new StreamingContext(
+                StreamingContextStates.Other,
+                this);
+
+            directive = (T)constructor.Invoke(new object[] { info, context });
+            return true;
         }
 
         internal static Directive FromDescription(

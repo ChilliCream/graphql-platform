@@ -15,10 +15,10 @@ namespace HotChocolate.Types
             var expectedValue = guid.ToString("N");
 
             // act
-            var serializedValue = (string)uuidType.Serialize(guid);
+            var serializedValue = uuidType.Serialize(guid);
 
             // assert
-            Assert.Equal(expectedValue, serializedValue);
+            Assert.Equal(guid, Assert.IsType<Guid>(serializedValue));
         }
 
         [Fact]

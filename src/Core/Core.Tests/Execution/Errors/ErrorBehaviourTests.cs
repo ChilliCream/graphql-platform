@@ -9,6 +9,22 @@ namespace HotChocolate.Execution
     public class ErrorBehaviourTests
     {
         [Fact]
+        public async Task SyntaxError()
+        {
+            // arrange
+            string query = "{ error1";
+            int i = 0;
+
+            // act
+            IExecutionResult result = await ExecuteQuery(query, () => i++);
+
+            // assert
+            Assert.NotNull(result.Errors);
+            Assert.Equal(1, i);
+            result.Snapshot();
+        }
+
+        [Fact]
         public async Task AsyncMethod_NoAwait_Throw_ApplicationError()
         {
             // arrange
@@ -215,18 +231,54 @@ namespace HotChocolate.Execution
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task RootTypeNotDefined()
+        {
+            // arrange
+            string query = "mutation { foo }";
+
+            var schema = Schema.Create(
+                "type Query { foo: String }",
+                c => c.Use(next => context => Task.CompletedTask));
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task RootFieldNotDefined()
+        {
+            // arrange
+            string query = "mutation { foo }";
+
+            var schema = Schema.Create(
+                "type Mutation { bar: String }",
+                c => c.Use(next => context => Task.CompletedTask));
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.Snapshot();
+        }
+
         private async Task<IExecutionResult> ExecuteQuery(
             string query,
             Action errorHandled)
         {
-            IQueryExecuter queryExecuter = CreateSchema().MakeExecutable(
+            IQueryExecutor queryExecutor = CreateSchema().MakeExecutable(
                 b => b.UseDefaultPipeline().AddErrorFilter((error, ex) =>
                 {
                     errorHandled();
                     return error;
                 }));
 
-            return await queryExecuter.ExecuteAsync(query);
+            return await queryExecutor.ExecuteAsync(query);
         }
 
         private ISchema CreateSchema()

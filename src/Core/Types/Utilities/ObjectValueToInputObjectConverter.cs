@@ -69,11 +69,20 @@ namespace HotChocolate.Utilities
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
-                valueContext.ClrType = GetClrType(inputField, context.Object);
+                valueContext.ClrType = inputField.ClrType;
 
                 VisitValue(node.Value, valueContext);
 
-                inputField.SetValue(context.Object, valueContext.Object);
+                object value = (inputField.ClrType != null
+                    && !inputField.ClrType
+                        .IsInstanceOfType(valueContext.Object)
+                    && _converter.TryConvert(
+                        typeof(object), inputField.ClrType,
+                        valueContext.Object, out object obj))
+                    ? obj
+                    : valueContext.Object;
+
+                inputField.SetValue(context.Object, value);
             }
         }
 
@@ -132,21 +141,6 @@ namespace HotChocolate.Utilities
                     context.Object = context.InputType.ParseLiteral(node);
                     break;
             }
-        }
-
-        public Type GetClrType(InputField field, object obj)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            if (field.Property != null)
-            {
-                return field.Property.PropertyType;
-            }
-
-            return typeof(object);
         }
     }
 }
