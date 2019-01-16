@@ -33,11 +33,10 @@ namespace HotChocolate.Execution
                 formatted[_extensions] = result.Extensions;
             }
 
-            using (var writer = new StreamWriter(stream, Encoding.UTF8))
-            {
-                await writer.WriteAsync(JsonConvert.SerializeObject(formatted))
-                    .ConfigureAwait(false);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(formatted));
+            await stream.WriteAsync(buffer, 0, buffer.Length)
+                .ConfigureAwait(false);
         }
     }
 }
