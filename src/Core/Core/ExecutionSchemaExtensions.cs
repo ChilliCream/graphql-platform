@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -25,8 +25,9 @@ namespace HotChocolate
             this ISchema schema,
             Func<IQueryExecutionBuilder, IQueryExecutionBuilder> configure)
         {
-            IQueryExecutionBuilder builder =
-                configure(QueryExecutionBuilder.New());
+            IQueryExecutionBuilder builder = configure(
+                QueryExecutionBuilder.New());
+
             return builder.Build(schema);
         }
 

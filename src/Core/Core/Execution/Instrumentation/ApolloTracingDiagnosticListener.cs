@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         [DiagnosticName(DiagnosticNames.StopQuery)]
-        public void BeginQueryExecute(IExecutionResult result)
+        public void EndQueryExecute(IExecutionResult result)
         {
             _builder.SetRequestDuration(Activity.Current.Duration);
 
