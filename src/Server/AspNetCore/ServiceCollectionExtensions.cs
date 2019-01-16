@@ -364,7 +364,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            if (executer == null)
+            if (executor == null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -385,7 +385,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            if (buildExecuter == null)
+            if (buildExecutor == null)
             {
                 throw new ArgumentNullException(nameof(buildExecutor));
             }
