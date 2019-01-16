@@ -70,10 +70,10 @@ namespace HotChocolate
            this ISchema schema, QueryRequest request,
            CancellationToken cancellationToken = default)
         {
-            using (IQueryExecuter executer = QueryExecutionBuilder.New()
+            using (IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline().Build(schema))
             {
-                return await executer.ExecuteAsync(request, cancellationToken);
+                return await executor.ExecuteAsync(request, cancellationToken);
             }
         }
 

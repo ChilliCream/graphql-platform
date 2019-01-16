@@ -4,42 +4,42 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public static class QueryExecuterExtensions
+    public static class QueryExecutorExtensions
     {
         public static Task<IExecutionResult> ExecuteAsync(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             QueryRequest request)
         {
-            return executer.ExecuteAsync(
+            return executor.ExecuteAsync(
                 request,
                 CancellationToken.None);
         }
 
         public static Task<IExecutionResult> ExecuteAsync(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query)
         {
-            return executer.ExecuteAsync(
+            return executor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
 
         public static Task<IExecutionResult> ExecuteAsync(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query,
             CancellationToken cancellationToken)
         {
-            return executer.ExecuteAsync(
+            return executor.ExecuteAsync(
                 new QueryRequest(query),
                 cancellationToken);
         }
 
         public static Task<IExecutionResult> ExecuteAsync(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
-            return executer.ExecuteAsync(
+            return executor.ExecuteAsync(
                 new QueryRequest(query)
                 {
                     VariableValues = variableValues
@@ -48,12 +48,12 @@ namespace HotChocolate.Execution
         }
 
         public static Task<IExecutionResult> ExecuteAsync(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
-            return executer.ExecuteAsync(
+            return executor.ExecuteAsync(
                 new QueryRequest(query)
                 {
                     VariableValues = variableValues
@@ -62,29 +62,29 @@ namespace HotChocolate.Execution
         }
 
         public static IExecutionResult Execute(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             QueryRequest request)
         {
             return Task.Factory.StartNew(
-                () => ExecuteAsync(executer, request))
+                () => ExecuteAsync(executor, request))
                 .Unwrap()
                 .GetAwaiter()
                 .GetResult();
         }
 
         public static IExecutionResult Execute(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query)
         {
-            return executer.Execute(new QueryRequest(query));
+            return executor.Execute(new QueryRequest(query));
         }
 
         public static IExecutionResult Execute(
-            this IQueryExecuter executer,
+            this IQueryExecutor executor,
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
-            return executer.Execute(
+            return executor.Execute(
                 new QueryRequest(query)
                 {
                     VariableValues = variableValues

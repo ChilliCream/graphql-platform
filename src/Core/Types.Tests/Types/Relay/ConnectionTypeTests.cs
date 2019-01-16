@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Relay
             // arrange
             ISchema schema = Schema.Create(
                 c => c.RegisterQueryType<QueryType>());
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             string query = @"
             {
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Relay
             ";
 
             // act
-            IExecutionResult result = await executer
+            IExecutionResult result = await executor
                 .ExecuteAsync(new QueryRequest(query));
 
             // assert

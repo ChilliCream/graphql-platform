@@ -28,10 +28,10 @@ namespace HotChocolate.AspNetCore
 
         public GetQueryMiddleware(
             RequestDelegate next,
-            IQueryExecuter queryExecuter,
+            IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
-                : base(next, queryExecuter, resultSerializer, options)
+                : base(next, queryExecutor, resultSerializer, options)
         { }
 
         /// <inheritdoc />

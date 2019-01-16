@@ -4,6 +4,6 @@ namespace HotChocolate.Stitching
 {
     public interface IStitchingContext
     {
-        IQueryExecuter GetQueryExecuter(string schemaName);
+        IQueryExecutor GetQueryExecutor(string schemaName);
     }
 }

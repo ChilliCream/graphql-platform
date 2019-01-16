@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
                 .UseOperationResolver()
                 .UseCoerceVariables()
                 .UseMaxComplexity()
-                .UseOperationExecuter();
+                .UseOperationExecutor();
         }
 
         public static IQueryExecutionBuilder UseInstrumentation(
@@ -80,7 +80,7 @@ namespace HotChocolate.Execution
             return builder.Use<ExceptionMiddleware>();
         }
 
-        public static IQueryExecutionBuilder UseOperationExecuter(
+        public static IQueryExecutionBuilder UseOperationExecutor(
             this IQueryExecutionBuilder builder)
         {
             return builder.Use<ExecuteOperationMiddleware>();

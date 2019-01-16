@@ -20,10 +20,10 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 "{ stringToName(name: \"  \") }");
 
             // assert
@@ -39,10 +39,10 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 "{ stringToFoo(name: \"  \") }");
 
             // assert
@@ -58,10 +58,10 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 "{ nameToString(name: \"  \") }");
 
             // assert
@@ -77,10 +77,10 @@ namespace HotChocolate.Execution
                 t.RegisterQueryType<QueryType>();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(
+            IExecutionResult result = await executor.ExecuteAsync(
                 "query a($a: Foo) { fooToString(name: $a) }",
                 new Dictionary<string, object>
                 {
