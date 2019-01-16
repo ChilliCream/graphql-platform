@@ -50,9 +50,9 @@ namespace HotChocolate.Types.Relay
             if (!_pageDetails.TotalCount.HasValue)
             {
                 _pageDetails.TotalCount = _source.Count();
-                _properties[_totalCount] =
-                    _pageDetails.TotalCount.Value;
             }
+
+            _properties[_totalCount] = _pageDetails.TotalCount.Value;
 
             IReadOnlyCollection<QueryableEdge> selectedEdges =
                 GetSelectedEdges();
