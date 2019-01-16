@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore
                 StringComparison.Ordinal);
         }
 
-        protected override async Task<QueryRequest> CreateQueryRequest(
+        protected override async Task<QueryRequest> CreateQueryRequestAsync(
             HttpContext context)
         {
             QueryRequestDto request = await ReadRequestAsync(context)
