@@ -11,8 +11,8 @@ namespace HotChocolate.Benchmark.Tests
         {
             BenchmarkRunner.Run<ParserBenchmarks>();
             BenchmarkRunner.Run<LexerBenchmarks>();
-            BenchmarkRunner.Run<QueryExecuterWithCacheBenchmarks>();
-            BenchmarkRunner.Run<QueryExecuterBenchmarks>();
+            BenchmarkRunner.Run<QueryExecutorWithCacheBenchmarks>();
+            BenchmarkRunner.Run<QueryExecutorBenchmarks>();
             BenchmarkRunner.Run<TimestampBenchmarks>();
         }
     }

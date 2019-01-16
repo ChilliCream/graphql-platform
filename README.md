@@ -84,7 +84,7 @@ Moreover, we bound a resolver to the field that returns a fixed value _world_. A
 In order to serve up queries against our schema lets make it executable:
 
 ```csharp
-var executer = schema.MakeExecutable();
+var executor = schema.MakeExecutable();
 ```
 
 Now that the schema is setup and executable we can serve up a query against it.
@@ -100,7 +100,7 @@ Now that the schema is setup and executable we can serve up a query against it.
 // {
 //   data: { hello: "world" }
 // }
-Console.WriteLine(executer.Execute("{ hello }"));
+Console.WriteLine(executor.Execute("{ hello }"));
 ```
 
 This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
@@ -120,7 +120,7 @@ This runs a query fetching the one field defined. The graphql function will firs
 //     }
 //   ]
 // }
-Console.WriteLine(executer.Execute("{ foo }"));
+Console.WriteLine(executor.Execute("{ foo }"));
 ```
 
 In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP.net core middleware.

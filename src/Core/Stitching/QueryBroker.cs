@@ -26,12 +26,12 @@ namespace HotChocolate.Stitching
             string schemaName = directiveContext.FieldSelection.GetSchemaName();
             var stitchingCtx = directiveContext.Service<IStitchingContext>();
 
-            IQueryExecuter queryExecuter =
-                stitchingCtx.GetQueryExecuter(schemaName);
+            IQueryExecutor queryExecutor =
+                stitchingCtx.GetQueryExecutor(schemaName);
 
             QueryRequest queryRequest = CreateQuery(directiveContext);
 
-            return queryExecuter.ExecuteAsync(
+            return queryExecutor.ExecuteAsync(
                 queryRequest,
                 directiveContext.RequestAborted);
         }

@@ -10,15 +10,15 @@ namespace HotChocolate.Benchmark.Tests.Execution
 
     [CoreJob]
     [RPlotExporter, MemoryDiagnoser]
-    public class QueryExecuterBenchmarkBase
+    public class QueryExecutorBenchmarkBase
     {
         private readonly Schema _schema;
-        private readonly IQueryExecuter _queryExecuter;
+        private readonly IQueryExecutor _queryExecutor;
 
-        public QueryExecuterBenchmarkBase(int cacheSize)
+        public QueryExecutorBenchmarkBase(int cacheSize)
         {
             _schema = SchemaFactory.Create();
-            _queryExecuter = QueryExecutionBuilder.New()
+            _queryExecutor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline()
                 .AddQueryCache(cacheSize)
                 .Build(_schema);
@@ -38,7 +38,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -54,7 +54,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -70,7 +70,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -88,7 +88,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -114,7 +114,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -132,7 +132,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -156,7 +156,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "episode", new EnumValueNode("JEDI") }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -174,7 +174,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -198,7 +198,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "withFriends", new BooleanValueNode(false) }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -222,7 +222,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "withFriends", new BooleanValueNode(true) }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -246,7 +246,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "withFriends", new BooleanValueNode(false) }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -270,7 +270,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "withFriends", new BooleanValueNode(true) }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -295,7 +295,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                             new StringValueNode("This is a great movie!"))) }
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -321,7 +321,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "ep", new EnumValueNode("JEDI") },
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -347,7 +347,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 { "ep", new EnumValueNode("EMPIRE") },
             };
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query) { VariableValues = variables },
                 CancellationToken.None);
         }
@@ -374,7 +374,7 @@ namespace HotChocolate.Benchmark.Tests.Execution
                 }
             }";
 
-            return await _queryExecuter.ExecuteAsync(
+            return await _queryExecutor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
         }

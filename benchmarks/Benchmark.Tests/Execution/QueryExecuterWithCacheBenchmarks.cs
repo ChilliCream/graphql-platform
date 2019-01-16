@@ -1,9 +1,9 @@
 ﻿namespace HotChocolate.Benchmark.Tests.Execution
 {
-    public class QueryExecuterWithCacheBenchmarks
-        : QueryExecuterBenchmarkBase
+    public class QueryExecutorWithCacheBenchmarks
+        : QueryExecutorBenchmarkBase
     {
-        public QueryExecuterWithCacheBenchmarks()
+        public QueryExecutorWithCacheBenchmarks()
             : base(100)
         {
         }

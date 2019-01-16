@@ -34,14 +34,14 @@ namespace HotChocolate.Subscriptions
                 c.RegisterSubscriptionType<SubscriptionType>();
             });
 
-            IQueryExecuter executer = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             var responseStream =
-                await executer.ExecuteAsync("subscription { foo }")
+                await executor.ExecuteAsync("subscription { foo }")
                 as IResponseStream;
 
             // act
-            await executer.ExecuteAsync("mutation { foo }");
+            await executor.ExecuteAsync("mutation { foo }");
 
             // assert
             IReadOnlyQueryResult result = await responseStream.ReadAsync();
