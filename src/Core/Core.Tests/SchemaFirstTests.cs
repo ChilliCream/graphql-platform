@@ -119,6 +119,41 @@ namespace HotChocolate
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task InputObjectWithEnum()
+        {
+            // arrange
+            Schema schema = Schema.Create(
+                @"
+                type Query {
+                    enumInInputObject(payload:Payload) : String
+                }
+
+                input Payload {
+                    value: FooEnum
+                }
+
+                enum FooEnum {
+                    BAR
+                    BAZ
+                }
+                ",
+                c =>
+                {
+                    c.BindType<EnumQuery>().To("Query");
+                    c.BindType<Payload>();
+                });
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "{ enumInInputObject(payload: { value:BAZ } ) }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
         public class Query
         {
             public string GetTest()
@@ -153,6 +188,16 @@ namespace HotChocolate
             {
                 return value.ToString();
             }
+
+            public string EnumInInputObject(Payload payload)
+            {
+                return payload.Value.ToString();
+            }
+        }
+
+        public class Payload
+        {
+            public FooEnum Value { get; set; }
         }
 
         public enum FooEnum

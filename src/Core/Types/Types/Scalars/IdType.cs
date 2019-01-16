@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         : ScalarType
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="StringType"/> class.
+        /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType()
             : base("ID")
