@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryExecuter Build(ISchema schema)
+        public IQueryExecutor Build(ISchema schema)
         {
             if (schema == null)
             {
@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
 
             QueryDelegate middleware = Compile(_middlewareComponents);
 
-            return new QueryExecuter(schema, services, middleware);
+            return new QueryExecutor(schema, services, middleware);
         }
 
         private ServiceCollection CopyServiceCollection()
@@ -84,10 +84,10 @@ namespace HotChocolate.Execution
         public static IQueryExecutionBuilder New() =>
             new QueryExecutionBuilder();
 
-        public static IQueryExecuter BuildDefault(ISchema schema) =>
+        public static IQueryExecutor BuildDefault(ISchema schema) =>
             New().UseDefaultPipeline().Build(schema);
 
-        public static IQueryExecuter BuildDefault(ISchema schema,
+        public static IQueryExecutor BuildDefault(ISchema schema,
             IQueryExecutionOptionsAccessor options) =>
                 New().UseDefaultPipeline(options).Build(schema);
     }

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class QueryExecuterTests
+    public class QueryExecutorTests
     {
         [Fact]
         public void SchemaIsNull_ShouldThrow()
@@ -25,12 +25,12 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            IQueryExecuter executer = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema);
             var request = new QueryRequest("{ a }");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.Empty(result.Errors);
@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            IQueryExecuter executer = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema, new QueryExecutionOptions
                 {
                     EnableTracing = true
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ a }");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotEmpty(result.Extensions);
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution
             var variableValues =
                 new Dictionary<string, object>();
             Schema schema = CreateSchema();
-            IQueryExecuter executer = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema);
             var request = new QueryRequest(
                 "query x($a: String!) { b(a: $a) }")
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -91,7 +91,7 @@ namespace HotChocolate.Execution
                 };
 
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query x($a: String!) { b(a: $a) }")
             {
@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution
             };
 
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query x($a: String!) { b(a: $a) }")
             {
@@ -124,7 +124,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -142,7 +142,7 @@ namespace HotChocolate.Execution
                 };
 
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query x($a: String!) { b(a: $a) }")
             {
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.Empty(result.Errors);
@@ -162,12 +162,12 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query a { a } query b { a }");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -179,12 +179,12 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query a { a } query b { a }", "a");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.Empty(result.Errors);
@@ -196,12 +196,12 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest(
                 "query a { a } query b { a }", "c");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);
@@ -216,11 +216,11 @@ namespace HotChocolate.Execution
                 new Dictionary<string, IValueNode>();
 
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest("{ x xasync }");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.Empty(result.Errors);
@@ -235,11 +235,11 @@ namespace HotChocolate.Execution
                 new Dictionary<string, IValueNode>();
 
             Schema schema = CreateSchema();
-            var executer = QueryExecutionBuilder.BuildDefault(schema);
+            var executor = QueryExecutionBuilder.BuildDefault(schema);
             var request = new QueryRequest("{ y yasync }");
 
             // act
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.NotNull(result.Errors);

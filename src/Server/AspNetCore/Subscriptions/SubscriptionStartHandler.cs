@@ -32,7 +32,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .ConfigureAwait(false);
 
             IExecutionResult result =
-                await context.QueryExecuter.ExecuteAsync(
+                await context.QueryExecutor.ExecuteAsync(
                     request, cancellationToken)
                     .ConfigureAwait(false);
 
