@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Mathematics;

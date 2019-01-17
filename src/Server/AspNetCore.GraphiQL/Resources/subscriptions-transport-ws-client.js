@@ -1,4 +1,4 @@
-var SubscriptionsTransportWs =
+﻿var SubscriptionsTransportWs =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};

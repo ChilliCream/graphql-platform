@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Configuration
+﻿namespace HotChocolate.Execution.Configuration
 {
     /// <summary>
     /// Represents the entirety of options accessors which are used to provide
