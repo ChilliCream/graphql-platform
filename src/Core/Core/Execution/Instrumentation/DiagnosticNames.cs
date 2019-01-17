@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Instrumentation
+﻿namespace HotChocolate.Execution.Instrumentation
 {
     internal static class DiagnosticNames
     {

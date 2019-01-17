@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using HotChocolate.Benchmark.Tests.Execution;
 using HotChocolate.Benchmark.Tests.Language;
 using HotChocolate.Benchmark.Tests.Misc;

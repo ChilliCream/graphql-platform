@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 
 namespace HotChocolate.Benchmark.Tests.Language

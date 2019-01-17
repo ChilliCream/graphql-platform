@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
