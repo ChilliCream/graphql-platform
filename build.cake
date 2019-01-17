@@ -185,7 +185,7 @@ Task("SonarBegin")
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
-        Verbose = true,
+        Verbose = false,
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
