@@ -58,24 +58,14 @@ Task("Restore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var settings = new DotNetCoreRestoreSettings
-    {
-        Configuration = configuration
-    };
-
-    DotNetCoreRestore("./tools/Build.sln", settings);
+    DotNetCoreRestore("./tools/Build.sln");
 });
 
 Task("RestoreCore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var settings = new DotNetCoreRestoreSettings
-    {
-        Configuration = configuration
-    };
-
-    DotNetCoreRestore("./tools/Build.Core.sln", settings);
+    DotNetCoreRestore("./tools/Build.Core.sln");
 });
 
 Task("Build")
