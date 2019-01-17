@@ -88,6 +88,7 @@ Task("Publish")
 });
 
 Task("Tests")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
     int i = 0;
