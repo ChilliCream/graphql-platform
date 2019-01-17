@@ -28,13 +28,14 @@ namespace HotChocolate.Execution
                 formatted[_data] = result.Data;
             }
 
-            if (result.Data.Count > 0)
+            if (result.Extensions.Count > 0)
             {
                 formatted[_extensions] = result.Extensions;
             }
 
             byte[] buffer = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(formatted));
+
             await stream.WriteAsync(buffer, 0, buffer.Length)
                 .ConfigureAwait(false);
         }
