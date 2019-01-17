@@ -298,6 +298,8 @@ BenchmarkDotNet.Artifacts
 # Build related
 tools/**
 !tools/packages.config
+!tools/Build.sln
+!tools/Build.Core.sln
 
 testoutput/
 artifacts/

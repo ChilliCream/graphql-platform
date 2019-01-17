@@ -1,6 +1,5 @@
-#tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
-#addin "nuget:?package=Cake.Sonar"
-#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool"
+#addin "nuget:?package=Cake.Sonar&version=1.1.18"
+#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -56,63 +55,66 @@ Task("Clean")
 });
 
 Task("Restore")
-    .IsDependentOn("Clean")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:restore /p:configuration=" + configuration }))
-    {
-        process.WaitForExit();
-    }
+    DotNetCoreRestore("./tools/Build.sln");
+});
 
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:restore /p:configuration=" + configuration }))
-    {
-        process.WaitForExit();
-    }
+Task("RestoreCore")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    DotNetCoreRestore("./tools/Build.Core.sln");
 });
 
 Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=" + configuration }))
+    var settings = new DotNetCoreBuildSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration,
+        NoRestore = true
+    };
 
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=" + configuration }))
+    DotNetCoreBuild("./tools/Build.sln", settings);
+});
+
+Task("BuildCore")
+    .IsDependentOn("RestoreCore")
+    .Does(() =>
+{
+    var settings = new DotNetCoreBuildSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration,
+        NoRestore = true
+    };
+
+    DotNetCoreBuild("./tools/Build.Core.sln", settings);
 });
 
 Task("Publish")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+    var settings = new DotNetCorePublishSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration,
+        NoRestore = true,
+        NoBuild = true,
+    };
 
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
-    {
-        process.WaitForExit();
-    }
+    DotNetCorePublish("./tools/Build.sln", settings);
 });
 
 Task("Tests")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var buildSettings = new DotNetCoreBuildSettings
     {
-        Configuration = "Debug",
-        NoRestore = false,
+        Configuration = "Debug"
     };
 
     int i = 0;
@@ -124,13 +126,13 @@ Task("Tests")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => args
-            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./src/Core", buildSettings);
-    DotNetCoreBuild("./src/Server", buildSettings);
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -139,12 +141,12 @@ Task("Tests")
 });
 
 Task("CoreTests")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var buildSettings = new DotNetCoreBuildSettings
     {
-        Configuration = "Debug",
-        NoRestore = false,
+        Configuration = "Debug"
     };
 
     int i = 0;
@@ -156,20 +158,18 @@ Task("CoreTests")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => args
-            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
-    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
         DotNetCoreTest(file.FullPath, testSettings);
     }
-
-    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
-    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
 });
 
 Task("SonarBegin")
@@ -184,8 +184,8 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
-        Exclusions = "**/*.js,**/*.html,**/*.css,**/src/Core/Benchmark.Tests/**/*.*,**/src/Templates/**/*.*",
-        // Verbose = true,
+        Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
+        Verbose = false,
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;

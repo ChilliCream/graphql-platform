@@ -1,5 +1,3 @@
 ﻿{
-  "appDomain": "denied",
-  "parallelizeAssembly": true,
-  "maxParallelThreads": 2
+  "appDomain": "denied",   "maxParallelThreads": 2
 }
