@@ -7,8 +7,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Setup
+          command: dotnet tool install -g Cake.Tool
+      - run:
           name: Pull Request Build
-          command: ./build.sh -t CoreTests
+          command: dotnet cake -target=CoreTests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
