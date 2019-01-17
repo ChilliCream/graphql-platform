@@ -105,7 +105,7 @@ Task("Tests")
         NoBuild = true,
         ArgumentCustomization = args => args
             .Append("/p:CollectCoverage=true")
-            .Append("/p:Exclude=[*]xunit.*")
+            .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
@@ -137,6 +137,7 @@ Task("CoreTests")
         NoBuild = true,
         ArgumentCustomization = args => args
             .Append($"/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
