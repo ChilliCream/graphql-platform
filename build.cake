@@ -58,36 +58,68 @@ Task("Restore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "tools\\Build.sln /t:restore /p:configuration=" + configuration }))
+    var settings = new DotNetCoreRestoreSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration
+    };
+
+    DotNetCoreRestore("./tools/Build.sln", settings);
+});
+
+Task("RestoreCore")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var settings = new DotNetCoreRestoreSettings
+    {
+        Configuration = configuration
+    };
+
+    DotNetCoreRestore("./tools/Build.Core.sln", settings);
 });
 
 Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "tools\\Build.sln /t:build /p:configuration=" + configuration }))
+    var settings = new DotNetCoreBuildSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration,
+        NoRestore = true
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", settings);
+});
+
+Task("BuildCore")
+    .IsDependentOn("RestoreCore")
+    .Does(() =>
+{
+    var settings = new DotNetCoreBuildSettings
+    {
+        Configuration = configuration,
+        NoRestore = true
+    };
+
+    DotNetCoreBuild("./tools/Build.Core.sln", settings);
 });
 
 Task("Publish")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "tools\\Build.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+    var settings = new DotNetCorePublishSettings
     {
-        process.WaitForExit();
-    }
+        Configuration = configuration,
+        NoRestore = true,
+        NoBuild = true,
+    };
+
+    DotNetCorePublish("./tools/Build.sln", settings);
 });
 
 Task("Tests")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var buildSettings = new DotNetCoreBuildSettings
@@ -119,12 +151,12 @@ Task("Tests")
 });
 
 Task("CoreTests")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var buildSettings = new DotNetCoreBuildSettings
     {
-        Configuration = "Debug",
-        NoRestore = false,
+        Configuration = "Debug"
     };
 
     int i = 0;
@@ -136,21 +168,18 @@ Task("CoreTests")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => args
-            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CollectCoverage=true")
             .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./src/Core", buildSettings);
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
-    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
         DotNetCoreTest(file.FullPath, testSettings);
     }
-
-    DotNetCoreBuild("./src/Server/AspNetCore.Tests", buildSettings);
-    DotNetCoreTest("./src/Server/AspNetCore.Tests", testSettings);
 });
 
 Task("SonarBegin")
