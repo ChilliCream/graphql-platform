@@ -1,6 +1,5 @@
-#tool nuget:?package=NUnit.ConsoleRunner&version=3.4.0
-#addin "nuget:?package=Cake.Sonar"
-#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool"
+#addin "nuget:?package=Cake.Sonar&version=1.1.18"
+#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -35,10 +34,10 @@ Task("EnvironmentSetup")
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
-        // sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
-        // sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
-        // sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
-        // sonarBranchBase = "master";
+        //sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
+        //sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
+        //sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+        //sonarBranchBase = "master";
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -56,7 +55,6 @@ Task("Clean")
 });
 
 Task("Restore")
-    .IsDependentOn("Clean")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
@@ -107,14 +105,9 @@ Task("Publish")
 });
 
 Task("Tests")
+    .IsDependentOn("Restore")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug",
-        NoRestore = false,
-    };
-
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
@@ -124,13 +117,23 @@ Task("Tests")
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => args
-            .Append($"/p:CollectCoverage=true")
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[*]xunit.*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./src/Core", buildSettings);
-    DotNetCoreBuild("./src/Server", buildSettings);
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:build /p:configuration=Debug"}))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:build /p:configuration=Debug"}))
+    {
+        process.WaitForExit();
+    }
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -184,8 +187,8 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
-        Exclusions = "**/*.js,**/*.html,**/*.css,**/src/Core/Benchmark.Tests/**/*.*,**/src/Templates/**/*.*",
-        // Verbose = true,
+        Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
+        Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
