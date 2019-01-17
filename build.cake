@@ -110,7 +110,7 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreTest("./tools/Build.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
