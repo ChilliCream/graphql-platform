@@ -93,7 +93,7 @@ Task("Tests")
     var buildSettings = new DotNetCoreBuildSettings
     {
         Configuration = "Debug"
-    }
+    };
 
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
