@@ -88,9 +88,13 @@ Task("Publish")
 });
 
 Task("Tests")
-    .IsDependentOn("Restore")
     .Does(() =>
 {
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    }
+
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
@@ -106,11 +110,7 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "tools\\Build.sln /t:build /p:configuration=Debug"}))
-    {
-        process.WaitForExit();
-    }
+    DotNetCoreTest("./tools/Build.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
