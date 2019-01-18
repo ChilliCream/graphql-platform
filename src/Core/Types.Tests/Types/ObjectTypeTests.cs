@@ -64,10 +64,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void FieldMiddlewareIsIntegrated()
+        public async Task FieldMiddlewareIsIntegrated()
         {
             // arrange
-            var resolverContext = new Mock<IResolverContext>();
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
             var errors = new List<SchemaError>();
             var schemaContext = new SchemaContext();
             var stringType = new StringType();
@@ -97,10 +99,9 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
 
-            object resolverResult = fooType.Fields["bar"]
-                .Resolver(resolverContext.Object).Result;
+            await fooType.Fields["bar"].Middleware(resolverContext.Object);
 
-            Assert.Equal("BAZ", resolverResult);
+            Assert.Equal("BAZ", resolverContext.Object.Result);
         }
 
         [Fact]
