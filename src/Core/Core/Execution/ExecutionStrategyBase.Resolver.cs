@@ -88,6 +88,8 @@ namespace HotChocolate.Execution
         private static async Task<object> ExecuteFieldMiddlewareAsync(
             ResolverTask resolverTask)
         {
+            resolverTask.C resolverTask.FieldSelection
+
             if (resolverTask.FieldSelection.Field.Resolver == null)
             {
                 return null;
@@ -97,20 +99,6 @@ namespace HotChocolate.Execution
                 resolverTask.ResolverContext).ConfigureAwait(false);
 
             return resolverTask.CompleteResolverResult(result);
-        }
-
-        private static async Task<object> ExecuteDirectiveMiddlewareAsync(
-            ResolverTask resolverTask)
-        {
-            return await resolverTask.ExecuteMiddleware.Invoke(
-                resolverTask.ResolverContext, ExecuteResolver)
-                    .ConfigureAwait(false);
-
-            Task<object> ExecuteResolver()
-            {
-                return ExecuteFieldMiddlewareAsync(
-                    resolverTask);
-            }
         }
 
         protected static void CompleteValue(

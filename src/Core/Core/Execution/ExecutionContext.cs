@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope,
             IOperation operation,
             IVariableCollection variables,
-            DirectiveLookup directives,
+            DirectiveMiddlewareCompiler directives,
             IDictionary<string, object> contextData,
             CancellationToken requestAborted)
         {
@@ -60,8 +60,6 @@ namespace HotChocolate.Execution
 
         public IVariableCollection Variables { get; }
 
-        public DirectiveLookup Directives { get; }
-
         public IQueryResult Result { get; private set; }
 
         public IDictionary<string, object> ContextData { get; private set; }
@@ -75,7 +73,7 @@ namespace HotChocolate.Execution
         private static IFieldHelper CreateFieldHelper(
             IVariableCollection variables,
             FragmentCollection fragments,
-            DirectiveLookup directives,
+            DirectiveMiddlewareCompiler directives,
             ICollection<IError> errors)
         {
             var fieldCollector = new FieldCollector(

@@ -11,12 +11,6 @@ namespace HotChocolate.Execution
             ObjectType objectType,
             SelectionSetNode selectionSet);
 
-        FieldDelegate CreateDirectiveMiddleware(
-            ObjectType objectType,
-            FieldNode fieldNode);
-
-
-
-
+        FieldDelegate CreateMiddleware(FieldSelection fieldSelection);
     }
 }

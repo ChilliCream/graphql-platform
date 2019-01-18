@@ -10,12 +10,12 @@ namespace HotChocolate.Execution
         : IFieldHelper
     {
         private readonly FieldCollector _fieldCollector;
-        private readonly DirectiveLookup _directives;
+        private readonly DirectiveMiddlewareCompiler _directives;
         private readonly ICollection<IError> _errors;
 
         public FieldHelper(
             FieldCollector fieldCollector,
-            DirectiveLookup directives,
+            DirectiveMiddlewareCompiler directives,
             IVariableCollection variables,
             ICollection<IError> errors)
         {
@@ -58,19 +58,20 @@ namespace HotChocolate.Execution
         }
 
         public FieldDelegate CreateMiddleware(
-            ObjectType objectType, FieldNode fieldNode)
+            FieldSelection fieldSelection,
+            FieldDelegate fieldDelegate)
         {
-            if (objectType == null)
+            if (fieldSelection == null)
             {
-                throw new ArgumentNullException(nameof(objectType));
+                throw new ArgumentNullException(nameof(fieldSelection));
             }
 
-            if (fieldNode == null)
+            if (fieldDelegate == null)
             {
-                throw new ArgumentNullException(nameof(fieldNode));
+                throw new ArgumentNullException(nameof(fieldDelegate));
             }
 
-            return _directives.GetMiddleware(objectType, fieldNode);
+            return _directives.GetOrCreateMiddleware(fieldSelection);
         }
     }
 }

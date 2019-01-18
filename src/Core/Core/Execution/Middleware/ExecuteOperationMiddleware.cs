@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -8,18 +12,18 @@ namespace HotChocolate.Execution
     {
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
-        private readonly Cache<DirectiveLookup> _directiveCache;
+        private readonly Cache<ILookup<FieldSelection, IDirective>> _cache;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
             IExecutionStrategyResolver strategyResolver,
-            Cache<DirectiveLookup> directiveCache)
+            Cache<ILookup<FieldSelection, IDirective>> directiveCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _strategyResolver = strategyResolver
                 ?? throw new ArgumentNullException(nameof(strategyResolver));
-            _directiveCache = directiveCache
+            _cache = directiveCache
                 ?? throw new ArgumentNullException(nameof(directiveCache));
         }
 
@@ -65,16 +69,18 @@ namespace HotChocolate.Execution
         private DirectiveLookup GetOrCreateDirectiveLookup(
             IQueryContext context)
         {
-            return _directiveCache.GetOrCreate(
+            return _cache.GetOrCreate(
                 context.Request.Query,
                 () =>
                 {
-                    var directiveCollector = new DirectiveCollector(
-                        context.Schema);
+                    var directiveCollector = new CollectDirectivesVisitor();
+                    ILookup<FieldSelection, IDirective> directives =
+                        directiveCollector.CollectDirectives(context.Schema);
 
-                    directiveCollector.VisitDocument(context.Document);
+                    var middlewareCompiler = new DirectiveMiddlewareCompiler(
+                        directives);
 
-                    return directiveCollector.CreateLookup();
+                    return middlewareCompiler.G();
                 });
         }
 

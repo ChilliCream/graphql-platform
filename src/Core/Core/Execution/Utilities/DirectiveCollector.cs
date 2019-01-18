@@ -143,24 +143,30 @@ namespace HotChocolate.Execution
         : QuerySyntaxWalker<CollectDirectivesVisitor.Context>
     {
 
+        public ILookup<FieldSelection, IDirective> CollectDirectives(
+            ISchema schema)
+        {
+
+        }
+
 
         internal sealed class Context
         {
-            private readonly Dictionary<FieldSelection, List<IDirective>> _directives
-                = new Dictionary<FieldSelection, List<IDirective>>();
-
             private Context()
             {
                 FragmentPath = ImmutableHashSet<string>.Empty;
                 Fragments = new Dictionary<string, FragmentDefinitionNode>();
+                Directives = new Dictionary<FieldSelection, List<IDirective>>();
             }
 
             private Context(
                 ImmutableHashSet<string> fragmentPath,
-                IDictionary<string, FragmentDefinitionNode> fragments)
+                IDictionary<string, FragmentDefinitionNode> fragments,
+                IDictionary<FieldSelection, List<IDirective>> directives)
             {
                 FragmentPath = fragmentPath;
                 Fragments = fragments;
+                Directives = directives;
             }
 
             public ImmutableHashSet<string> FragmentPath { get; }
@@ -168,9 +174,12 @@ namespace HotChocolate.Execution
             public IDictionary<string, FragmentDefinitionNode> Fragments
             { get; }
 
+            public IDictionary<FieldSelection, List<IDirective>> Directives
+            { get; }
+
             public Context AddDirectives(
                 FieldSelection fieldSelection,
-                IEnumerable<IDirective> directives)
+                IEnumerable<DirectiveNode> directives)
             {
                 if (fieldSelection == null)
                 {
@@ -182,7 +191,7 @@ namespace HotChocolate.Execution
                     throw new ArgumentNullException(nameof(directives));
                 }
 
-                _directives[fieldSelection] = directives.ToList();
+                Directives[fieldSelection] = directives.ToList();
             }
 
 

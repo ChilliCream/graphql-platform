@@ -27,17 +27,11 @@ namespace HotChocolate.Execution
         }
 
         public FieldDelegate GetOrCreateMiddleware(
-            FieldSelection fieldSelection,
-            FieldDelegate fieldPipeline)
+            FieldSelection fieldSelection)
         {
             if (fieldSelection == null)
             {
                 throw new ArgumentNullException(nameof(fieldSelection));
-            }
-
-            if (fieldPipeline == null)
-            {
-                throw new ArgumentNullException(nameof(fieldPipeline));
             }
 
             if (!_middlewareCache.TryGetValue(

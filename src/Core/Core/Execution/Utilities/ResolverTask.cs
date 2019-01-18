@@ -32,9 +32,8 @@ namespace HotChocolate.Execution
                 executionContext, this,
                 executionContext.RequestAborted);
 
-            ExecuteMiddleware = executionContext.FieldHelper.CreateMiddleware(
-                objectType, fieldSelection.Selection);
-            HasMiddleware = ExecuteMiddleware != null;
+            FieldDelegate = executionContext.FieldHelper
+                .CreateMiddleware(fieldSelection);
         }
 
         public IImmutableStack<object> Source { get; }
@@ -53,9 +52,7 @@ namespace HotChocolate.Execution
 
         public object ResolverResult { get; set; }
 
-        public ExecuteMiddleware ExecuteMiddleware { get; }
-
-        public bool HasMiddleware { get; }
+        public FieldDelegate FieldDelegate { get; }
 
         public void IntegrateResult(object value)
         {
