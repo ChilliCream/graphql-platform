@@ -47,5 +47,20 @@ namespace HotChocolate.Utilities
             }
             stream.Append(JsonConstants.RightBrace);
         }
+
+        static public void WriteValue(IReadOnlyCollection<string> stack, Stream stream)
+        {
+            var count = 1;
+
+            stream.Append(JsonConstants.LeftBracket);
+            foreach (var elem in stack)
+            {
+                if (count > 1)
+                    stream.Append(JsonConstants.Comma);
+                ObjectToJsonBytes.WriteObjectToStream(elem, stream);
+                count++;
+            }
+            stream.Append(JsonConstants.RightBracket);
+        }
     }
 }
