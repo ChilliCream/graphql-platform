@@ -39,13 +39,15 @@ namespace HotChocolate.Execution
             Dictionary<ObjectField, FieldDelegate> cache)
         {
             foreach (ObjectType type in schema.Types
-                .OfType<ObjectType>()
-                .Where(t => !t.IsIntrospectionType()))
+                .OfType<ObjectType>())
             {
-                foreach (ObjectField field in type.Fields
-                    .Where(t => !t.IsIntrospectionField))
+                foreach (ObjectField field in type.Fields)
                 {
-                    cache.Add(field, fieldMiddleware.Invoke(field.Middleware));
+                    FieldDelegate fieldDelegate =
+                        field.IsIntrospectionField || type.IsIntrospectionType()
+                        ? field.Middleware
+                        : fieldMiddleware.Invoke(field.Middleware);
+                    cache.Add(field, fieldDelegate);
                 }
             }
         }

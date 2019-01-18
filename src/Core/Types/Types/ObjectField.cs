@@ -56,6 +56,8 @@ namespace HotChocolate.Types
             return descriptor.CreateDescription();
         }
 
+        public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
+
         /// <summary>
         /// Gets the field resolver middleware.
         /// </summary>
@@ -159,7 +161,9 @@ namespace HotChocolate.Types
             }
 
             Middleware = context.CreateMiddleware(
-                _middlewareComponents, Resolver);
+                _middlewareComponents, Resolver,
+                IsIntrospectionField
+                || DeclaringType.IsIntrospectionType());
 
             if (Resolver == null && Middleware == null)
             {

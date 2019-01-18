@@ -38,7 +38,8 @@ namespace HotChocolate.Types
 
         FieldDelegate CreateMiddleware(
             IEnumerable<FieldMiddleware> middlewareComponents,
-            FieldResolverDelegate fieldResolver);
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection);
 
         T GetType<T>(TypeReference typeReference) where T : IType;
 

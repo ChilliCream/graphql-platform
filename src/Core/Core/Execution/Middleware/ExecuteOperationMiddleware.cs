@@ -77,25 +77,12 @@ namespace HotChocolate.Execution
             return _cache.GetOrCreate(query,
                 () => new DirectiveMiddlewareCompiler(schema));
         }
-        
+
         private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Document == null
                 || context.Operation == null
                 || context.Variables == null;
-        }
-    }
-
-    internal sealed class EnableDirectivesMiddleware
-    {
-        private readonly QueryDelegate _next;
-        private readonly IExecutionStrategyResolver _strategyResolver;
-        private readonly Cache<DirectiveMiddlewareCompiler> _cache;
-
-        public EnableDirectivesMiddleware(
-            QueryDelegate next,
-            Cache<DirectiveMiddlewareCompiler> directiveCache)
-        {
         }
     }
 }

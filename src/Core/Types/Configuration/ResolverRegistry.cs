@@ -165,22 +165,19 @@ namespace HotChocolate.Configuration
 
         public FieldDelegate CreateMiddleware(
             IEnumerable<FieldMiddleware> middlewareComponents,
-            FieldResolverDelegate fieldResolver)
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection)
         {
             if (middlewareComponents == null)
             {
                 throw new ArgumentNullException(nameof(middlewareComponents));
             }
 
-            if (fieldResolver == null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
             FieldMiddleware[] components = middlewareComponents.ToArray();
 
-            if (_middlewareComponents.Count == 0
-                && components.Length == 0)
+            if (isIntrospection
+                || (_middlewareComponents.Count == 0
+                    && components.Length == 0))
             {
                 return CreateResolverMiddleware(fieldResolver);
             }

@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Relay
             // assert
             string unwrapped = Encoding.UTF8.GetString(
                 Convert.FromBase64String(serializedId));
-            Assert.True(unwrapped.StartsWith("Foo-g="));
+            Assert.StartsWith("Foo-g=", unwrapped);
         }
 
         [InlineData("Rm9vLXgxMjM0NTY=", "123456", typeof(string))]

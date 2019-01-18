@@ -237,11 +237,13 @@ namespace HotChocolate.Types
 
         public FieldDelegate CreateMiddleware(
             IEnumerable<FieldMiddleware> middlewareComponents,
-            FieldResolverDelegate fieldResolver)
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection)
         {
             return _schemaContext.Resolvers.CreateMiddleware(
                 middlewareComponents,
-                fieldResolver);
+                fieldResolver,
+                isIntrospection);
         }
 
         public IDirectiveMiddleware GetMiddleware(

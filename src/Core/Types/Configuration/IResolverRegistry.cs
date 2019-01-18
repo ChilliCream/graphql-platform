@@ -24,6 +24,7 @@ namespace HotChocolate.Configuration
 
         FieldDelegate CreateMiddleware(
             IEnumerable<FieldMiddleware> middlewareComponents,
-            FieldResolverDelegate fieldResolver);
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection);
     }
 }
