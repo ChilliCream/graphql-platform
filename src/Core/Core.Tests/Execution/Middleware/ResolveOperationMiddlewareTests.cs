@@ -114,7 +114,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public async Task RooValueIsRegisterdAsService()
+        public async Task RootValueIsRegisterdAsService()
         {
             // arrange
             var services = new DictionaryServiceProvider(
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution
             var context = new QueryContext
             (
                 schema,
-                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                MiddlewareTools.CreateRequestServiceScope(services),
                 request,
                 fs => fs.Field.Middleware
             );
@@ -171,7 +171,7 @@ namespace HotChocolate.Execution
             var context = new QueryContext
             (
                 schema,
-                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                MiddlewareTools.CreateRequestServiceScope(services),
                 request,
                 fs => fs.Field.Middleware
             );
