@@ -9,125 +9,88 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    // TODO : rework after error types have been relocated. ---> inherit MiddlewareContext
     internal sealed class DirectiveContext
         : IDirectiveContext
     {
-        private readonly IResolverContext _resolverContext;
-        private readonly Func<Task<object>> _resolver;
-        private object _result;
-        private object _resolvedResult;
-        private bool _isResultResolved;
+        private readonly IMiddlewareContext _middlewareContext;
 
         public DirectiveContext(
             IMiddlewareContext middlewareContext,
             IDirective directive)
         {
-            _resolverContext = resolverContext
-                ?? throw new ArgumentNullException(nameof(resolverContext));
-            _resolver = resolver
-                ?? throw new ArgumentNullException(nameof(resolver));
+            _middlewareContext = middlewareContext
+                ?? throw new ArgumentNullException(nameof(middlewareContext));
+            Directive = directive
+                ?? throw new ArgumentNullException(nameof(directive));
         }
 
         public IDirective Directive { get; }
 
         public object Result
         {
-            get
-            {
-                return _result;
-            }
-            set
-            {
-                IsResultModified = true;
-
-                if (_result is IResolverResult r)
-                {
-                    if (r.IsError)
-                    {
-                        _result = QueryError.CreateFieldError(
-                            r.ErrorMessage,
-                            Path,
-                            FieldSelection);
-                    }
-                    else
-                    {
-                        _result = r.Value;
-                    }
-                }
-                else
-                {
-                    _result = value;
-                }
-            }
+            get => _middlewareContext.Result;
+            set => _middlewareContext.Result = value;
         }
 
-        public bool IsResultModified { get; private set; }
+        public bool IsResultModified =>
+            _middlewareContext.IsResultModified;
 
-        public ISchema Schema => _resolverContext.Schema;
+        public ISchema Schema =>
+            _middlewareContext.Schema;
 
-        public ObjectType ObjectType => _resolverContext.ObjectType;
+        public ObjectType ObjectType =>
+            _middlewareContext.ObjectType;
 
-        public ObjectField Field => _resolverContext.Field;
+        public ObjectField Field =>
+            _middlewareContext.Field;
 
-        public DocumentNode QueryDocument => _resolverContext.QueryDocument;
+        public DocumentNode QueryDocument =>
+            _middlewareContext.QueryDocument;
 
-        public OperationDefinitionNode Operation => _resolverContext.Operation;
+        public OperationDefinitionNode Operation =>
+            _middlewareContext.Operation;
 
-        public FieldNode FieldSelection => _resolverContext.FieldSelection;
+        public FieldNode FieldSelection =>
+            _middlewareContext.FieldSelection;
 
-        public IImmutableStack<object> Source => _resolverContext.Source;
+        public IImmutableStack<object> Source =>
+            _middlewareContext.Source;
 
-        public Path Path => _resolverContext.Path;
+        public Path Path =>
+            _middlewareContext.Path;
 
-        public CancellationToken CancellationToken => RequestAborted;
+        public CancellationToken CancellationToken =>
+            RequestAborted;
 
         public CancellationToken RequestAborted =>
-            _resolverContext.RequestAborted;
+            _middlewareContext.RequestAborted;
 
         public IDictionary<string, object> ContextData =>
-            _resolverContext.ContextData;
+            _middlewareContext.ContextData;
 
         public T Argument<T>(NameString name) =>
-            _resolverContext.Argument<T>(name);
+            _middlewareContext.Argument<T>(name);
 
         public T CustomProperty<T>(string key) =>
-            _resolverContext.CustomProperty<T>(key);
-        public T Parent<T>() => _resolverContext.Parent<T>();
+            _middlewareContext.CustomProperty<T>(key);
+        public T Parent<T>() => _middlewareContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>
-            _resolverContext.ReportError(errorMessage);
+            _middlewareContext.ReportError(errorMessage);
 
         public void ReportError(IError error) =>
-            _resolverContext.ReportError(error);
+            _middlewareContext.ReportError(error);
 
-        public T Resolver<T>() => _resolverContext.Resolver<T>();
+        public T Resolver<T>() =>
+            _middlewareContext.Resolver<T>();
 
-        public T Service<T>() => _resolverContext.Service<T>();
+        public T Service<T>() =>
+            _middlewareContext.Service<T>();
 
         public object Service(Type service) =>
-            _resolverContext.Service(service);
+            _middlewareContext.Service(service);
 
-        public async Task<T> ResolveAsync<T>()
-        {
-            if (!_isResultResolved)
-            {
-                _resolvedResult = await _resolver();
-                _isResultResolved = true;
-            }
-
-            if (_resolvedResult is IError error)
-            {
-                throw new QueryException(error);
-            }
-            else if (_resolvedResult is IEnumerable<IError> errors)
-            {
-                throw new QueryException(errors);
-            }
-            else
-            {
-                return (T)_resolvedResult;
-            }
-        }
+        public Task<T> ResolveAsync<T>() =>
+            _middlewareContext.ResolveAsync<T>();
     }
 }

@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
         private IExecutionContext CreateExecutionContext(IQueryContext context)
         {
             DirectiveMiddlewareCompiler directives = GetOrCreateDirectiveLookup(
-                context.Request.Query, context.Document, context.Schema);
+                context.Request.Query, context.Schema);
 
             return new ExecutionContext(
                 context.Schema,
@@ -66,31 +66,18 @@ namespace HotChocolate.Execution
                 context.Operation,
                 context.Variables,
                 fs => directives.GetOrCreateMiddleware(fs,
-                    context.MiddlewareResolver.Invoke(fs)),
+                    () => context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
                 context.RequestAborted);
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
-            string query,
-            DocumentNode document,
-            ISchema schema)
+            string query, ISchema schema)
         {
             return _cache.GetOrCreate(query,
-                () => new DirectiveMiddlewareCompiler(
-                    CollectDirectivesVisitor
-                        .CollectDirectives(document, schema)));
+                () => new DirectiveMiddlewareCompiler(schema));
         }
-
-        private FieldDelegate ResolveMiddleware(
-            FieldSelection fieldSelection,
-            Func<FieldSelection, FieldDelegate> middlewareResolver,
-            DirectiveMiddlewareCompiler directives)
-        {
-            return directives.GetOrCreateMiddleware(fieldSelection,
-                middlewareResolver.Invoke(fieldSelection));
-        }
-
+        
         private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Document == null

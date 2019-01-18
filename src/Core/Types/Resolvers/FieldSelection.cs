@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
@@ -12,10 +14,10 @@ namespace HotChocolate.Resolvers
     /// <see cref="FieldNode"/> and actual <see cref="ObjectField"/>
     /// to which the <see cref="FieldNode"/> referrs to.
     /// </summary>
-    [DebuggerDisplay("{Field.Name}: {Field.Type}")]
-    public class FieldSelection
+    public sealed class FieldSelection
+        : IEquatable<FieldSelection>
     {
-        private readonly ImmutableList<FieldNode> _nodes;
+        private readonly ImmutableHashSet<FieldNode> _nodes;
 
         /// <summary>
         /// Initializes a new instance of the
@@ -44,7 +46,7 @@ namespace HotChocolate.Resolvers
             FieldNode selection,
             ObjectField field,
             string responseName,
-            ImmutableList<FieldNode> nodes)
+            ImmutableHashSet<FieldNode> nodes)
         {
             if (string.IsNullOrEmpty(responseName))
             {
@@ -119,6 +121,73 @@ namespace HotChocolate.Resolvers
             );
         }
 
+        public bool Equals(FieldSelection other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            return (other.ResponseName.EqualsOrdinal(ResponseName)
+                && ReferenceEquals(other.Field, Field)
+                && _nodes.SetEquals(other._nodes));
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(obj, this))
+            {
+                return true;
+            }
+
+            return Equals(obj as FieldSelection);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = (ResponseName?.GetHashCode() ?? 0) * 3;
+                hash = hash ^ (Field.DeclaringType.Name.GetHashCode() * 7);
+                hash = hash ^ (Field.Name.GetHashCode() * 7);
+                foreach (FieldNode field in _nodes)
+                {
+                    hash = hash ^ (field.GetHashCode() * 397);
+                }
+                return hash;
+            }
+        }
+
+        public override string ToString()
+        {
+            // this string representation is only for debugging purpose.
+            var sb = new StringBuilder();
+
+            sb.Append(Field.DeclaringType.Name);
+            sb.Append('.');
+            sb.Append(Field.Name);
+            sb.Append(':');
+            sb.Append(Field.Type.Visualize());
+
+            if (!Field.Name.Equals(ResponseName))
+            {
+                sb.Append(" AS ");
+                sb.Append(ResponseName);
+            }
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Creates a new field selection.
         /// </summary>
@@ -154,7 +223,7 @@ namespace HotChocolate.Resolvers
                 selection,
                 field,
                 responseName,
-                ImmutableList<FieldNode>.Empty.Add(selection)
+                ImmutableHashSet<FieldNode>.Empty.Add(selection)
             );
         }
 

@@ -11,24 +11,19 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveMiddlewareCompiler
     {
-        private ILookup<FieldNode, IDirective> _directives;
         private readonly ConcurrentDictionary<FieldSelection, FieldDelegate> _cache =
             new ConcurrentDictionary<FieldSelection, FieldDelegate>();
+        private readonly ISchema _schema;
 
-        public DirectiveMiddlewareCompiler(
-            ILookup<FieldNode, IDirective> directives)
+        public DirectiveMiddlewareCompiler(ISchema schema)
         {
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            _directives = directives;
+            _schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
         }
 
         public FieldDelegate GetOrCreateMiddleware(
             FieldSelection fieldSelection,
-            FieldDelegate fieldPipeline)
+            Func<FieldDelegate> fieldPipeline)
         {
             if (fieldSelection == null)
             {
@@ -38,18 +33,92 @@ namespace HotChocolate.Execution
             if (!_cache.TryGetValue(fieldSelection,
                 out FieldDelegate directivePipeline))
             {
-                IEnumerable<IDirective> directives =
-                    _directives[fieldSelection.Selection];
+                directivePipeline = fieldPipeline.Invoke();
+
+                IReadOnlyCollection<IDirective> directives =
+                    CollectDirectives(fieldSelection);
+
                 if (directives.Any())
                 {
                     directivePipeline = Compile(
-                        fieldSelection, fieldPipeline,
+                        fieldSelection, directivePipeline,
                         directives);
-                    _cache.TryAdd(fieldSelection, directivePipeline);
                 }
+
+                _cache.TryAdd(fieldSelection, directivePipeline);
             }
 
             return directivePipeline;
+        }
+
+        private IReadOnlyCollection<IDirective> CollectDirectives(
+            FieldSelection fieldSelection)
+        {
+            HashSet<string> processed = new HashSet<string>();
+            List<IDirective> directives = new List<IDirective>();
+
+            CollectTypeSystemDirectives(
+                processed, directives,
+                fieldSelection.Field);
+
+            CollectQueryDirectives(
+                processed, directives,
+                fieldSelection);
+
+            return directives.AsReadOnly();
+        }
+
+        private void CollectQueryDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
+            FieldSelection fieldSelection)
+        {
+            foreach (IDirective directive in
+                GetFieldSelectionDirectives(fieldSelection))
+            {
+                if (!directive.Type.IsRepeatable
+                    && !processed.Add(directive.Name))
+                {
+                    directives.Remove(
+                        directives.First(t => t.Type == directive.Type));
+                }
+                directives.Add(directive);
+            }
+        }
+
+        private IEnumerable<IDirective> GetFieldSelectionDirectives(
+            FieldSelection fieldSelection)
+        {
+            foreach (DirectiveNode directive in fieldSelection.Nodes
+                .SelectMany(t => t.Directives))
+            {
+                if (_schema.TryGetDirectiveType(directive.Name.Value,
+                    out DirectiveType directiveType))
+                {
+                    if (directiveType.IsExecutable)
+                    {
+                        yield return new Directive(
+                            directiveType, directive, fieldSelection);
+                    }
+                }
+            }
+        }
+
+        private static void CollectTypeSystemDirectives(
+            HashSet<string> processed,
+            List<IDirective> directives,
+            ObjectField field)
+        {
+            foreach (IDirective directive in field.ExecutableDirectives)
+            {
+                if (!directive.Type.IsRepeatable
+                    && !processed.Add(directive.Name))
+                {
+                    directives.Remove(
+                        directives.First(t => t.Type == directive.Type));
+                }
+                directives.Add(directive);
+            }
         }
 
         private FieldDelegate Compile(

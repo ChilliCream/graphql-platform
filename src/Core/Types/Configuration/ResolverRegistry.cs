@@ -207,7 +207,7 @@ namespace HotChocolate.Configuration
         {
             FieldDelegate next = first;
 
-            for (int i = components.Count; i >= 0; i--)
+            for (int i = components.Count - 1; i >= 0; i--)
             {
                 next = components[i].Invoke(next);
             }
