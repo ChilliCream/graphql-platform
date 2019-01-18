@@ -11,12 +11,12 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveMiddlewareCompiler
     {
-        private ILookup<FieldSelection, IDirective> _directives;
+        private ILookup<FieldNode, IDirective> _directives;
         private readonly ConcurrentDictionary<FieldSelection, FieldDelegate> _cache =
             new ConcurrentDictionary<FieldSelection, FieldDelegate>();
 
         public DirectiveMiddlewareCompiler(
-            ILookup<FieldSelection, IDirective> directives)
+            ILookup<FieldNode, IDirective> directives)
         {
             if (directives == null)
             {
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
                 out FieldDelegate directivePipeline))
             {
                 IEnumerable<IDirective> directives =
-                    _directives[fieldSelection];
+                    _directives[fieldSelection.Selection];
                 if (directives.Any())
                 {
                     directivePipeline = Compile(

@@ -144,14 +144,16 @@ namespace HotChocolate.Execution
     internal sealed class CollectDirectivesVisitor
         : QuerySyntaxWalker<CollectDirectivesVisitor.Context>
     {
+        private static CollectDirectivesVisitor _visitor =
+            new CollectDirectivesVisitor();
         protected override bool VisitFragmentDefinitions => false;
 
-        public ILookup<FieldNode, IDirective> CollectDirectives(
+        public static ILookup<FieldNode, IDirective> CollectDirectives(
             DocumentNode document,
             ISchema schema)
         {
             var context = Context.New(schema);
-            Visit(document, context);
+            _visitor.Visit(document, context);
             return context.Directives.ToLookup(t => t.Value, t => t.Key);
         }
 

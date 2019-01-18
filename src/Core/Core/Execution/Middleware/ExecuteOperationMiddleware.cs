@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
@@ -56,41 +57,38 @@ namespace HotChocolate.Execution
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
         {
-            DirectiveMiddlewareCompiler directives =
-                GetOrCreateDirectiveLookup(context);
+            DirectiveMiddlewareCompiler directives = GetOrCreateDirectiveLookup(
+                context.Request.Query, context.Document, context.Schema);
 
             return new ExecutionContext(
                 context.Schema,
                 context.ServiceScope,
                 context.Operation,
                 context.Variables,
-                f,
+                fs => directives.GetOrCreateMiddleware(fs,
+                    context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
                 context.RequestAborted);
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
-            IQueryContext context)
+            string query,
+            DocumentNode document,
+            ISchema schema)
         {
-            return _cache.GetOrCreate(context.Request.Query,
-                () =>
-                {
-                    var directiveCollector = new CollectDirectivesVisitor();
-                    ILookup<FieldSelection, IDirective> directives =
-                        directiveCollector.CollectDirectives(context.Schema);
-
-                    var middlewareCompiler = new DirectiveMiddlewareCompiler(
-                        directives);
-
-                    return middlewareCompiler;
-                });
+            return _cache.GetOrCreate(query,
+                () => new DirectiveMiddlewareCompiler(
+                    CollectDirectivesVisitor
+                        .CollectDirectives(document, schema)));
         }
 
         private FieldDelegate ResolveMiddleware(
+            FieldSelection fieldSelection,
             Func<FieldSelection, FieldDelegate> middlewareResolver,
             DirectiveMiddlewareCompiler directives)
         {
-
+            return directives.GetOrCreateMiddleware(fieldSelection,
+                middlewareResolver.Invoke(fieldSelection));
         }
 
         private static bool IsContextIncomplete(IQueryContext context)
