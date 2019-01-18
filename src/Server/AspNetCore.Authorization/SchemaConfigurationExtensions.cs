@@ -1,4 +1,4 @@
-#if ASPNETCLASSIC
+﻿#if ASPNETCLASSIC
 using HotChocolate.AspNetClassic.Authorization;
 #else
 using HotChocolate.AspNetCore.Authorization;

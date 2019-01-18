@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -21,10 +21,10 @@ namespace HotChocolate.AspNetCore
     public class GetQueryMiddleware
         : QueryMiddlewareBase
     {
-        private static readonly string _namedQueryIdentifier = "namedQuery";
-        private static readonly string _operationNameIdentifier = "operationName";
-        private static readonly string _queryIdentifier = "query";
-        private static readonly string _variablesIdentifier = "variables";
+        private const string _namedQueryIdentifier = "namedQuery";
+        private const string _operationNameIdentifier = "operationName";
+        private const string _queryIdentifier = "query";
+        private const string _variablesIdentifier = "variables";
 
         public GetQueryMiddleware(
             RequestDelegate next,
@@ -45,7 +45,7 @@ namespace HotChocolate.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override Task<QueryRequest> CreateQueryRequest(
+        protected override Task<QueryRequest> CreateQueryRequestAsync(
             HttpContext context)
         {
             QueryRequestDto request = ReadRequest(context);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Resolvers;
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         [DiagnosticName(DiagnosticNames.StopQuery)]
-        public void BeginQueryExecute(IExecutionResult result)
+        public void EndQueryExecute(IExecutionResult result)
         {
             _builder.SetRequestDuration(Activity.Current.Duration);
 

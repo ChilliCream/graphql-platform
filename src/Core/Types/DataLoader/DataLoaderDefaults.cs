@@ -1,4 +1,4 @@
-namespace HotChocolate.DataLoader
+﻿namespace HotChocolate.DataLoader
 {
     internal static class DataLoaderDefaults
     {

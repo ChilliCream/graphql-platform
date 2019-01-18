@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace HotChocolate.Execution
 {
@@ -6,32 +6,24 @@ namespace HotChocolate.Execution
         : IRequestServiceScope
     {
         private readonly IDisposable _scope;
-        private bool _isLifetimeHandled;
         private bool _disposed;
 
-        public RequestServiceScope(IServiceProvider services, IDisposable scope)
+        public RequestServiceScope(
+            IServiceProvider services,
+            IDisposable scope)
         {
-            if (services == null)
-            {
+            ServiceProvider = services ??
                 throw new ArgumentNullException(nameof(services));
-            }
-
-            if (scope == null)
-            {
-                throw new ArgumentNullException(nameof(scope));
-            }
-
-            ServiceProvider = services;
-            _scope = scope;
+            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public bool IsLifetimeHandled => _isLifetimeHandled;
+        public bool IsLifetimeHandled { get; private set; }
 
         public IServiceProvider ServiceProvider { get; }
 
         public void HandleLifetime()
         {
-            _isLifetimeHandled = true;
+            IsLifetimeHandled = true;
         }
 
         public void Dispose()

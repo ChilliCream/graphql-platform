@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Relay
+﻿namespace HotChocolate.Types.Relay
 {
     public interface IConnectionType
         : IComplexOutputType

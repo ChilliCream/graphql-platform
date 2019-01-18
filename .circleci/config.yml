@@ -3,12 +3,12 @@ jobs:
   pull-request:
     working_directory: /work
     docker:
-      - image: chillicream/dotnet-build:2.0
+      - image: chillicream/dotnet-build:3.0
     steps:
       - checkout
       - run:
           name: Pull Request Build
-          command: ./build.sh -t CoreTests
+          command: dotnet cake -target=CoreTests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:

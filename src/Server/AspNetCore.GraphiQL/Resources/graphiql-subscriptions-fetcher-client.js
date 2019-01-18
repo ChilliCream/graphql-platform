@@ -1,4 +1,4 @@
-var GraphiQLSubscriptionsFetcher =
+﻿var GraphiQLSubscriptionsFetcher =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};

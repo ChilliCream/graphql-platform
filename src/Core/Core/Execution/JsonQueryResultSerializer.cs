@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -28,16 +28,16 @@ namespace HotChocolate.Execution
                 formatted[_data] = result.Data;
             }
 
-            if (result.Data.Count > 0)
+            if (result.Extensions.Count > 0)
             {
                 formatted[_extensions] = result.Extensions;
             }
 
-            using (var writer = new StreamWriter(stream, Encoding.UTF8))
-            {
-                await writer.WriteAsync(JsonConvert.SerializeObject(formatted))
-                    .ConfigureAwait(false);
-            }
+            byte[] buffer = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(formatted));
+
+            await stream.WriteAsync(buffer, 0, buffer.Length)
+                .ConfigureAwait(false);
         }
     }
 }
