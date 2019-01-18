@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
@@ -44,17 +45,8 @@ namespace HotChocolate.Execution
 
             try
             {
-                if (!resolverTask.FieldSelection.Field.IsIntrospectionField
-                    && resolverTask.HasMiddleware)
-                {
-                    result = await ExecuteDirectiveMiddlewareAsync(
-                        resolverTask).ConfigureAwait(false);
-                }
-                else
-                {
-                    result = await ExecuteFieldMiddlewareAsync(
-                        resolverTask).ConfigureAwait(false);
-                }
+                result = await ExecuteFieldMiddlewareAsync(
+                    resolverTask).ConfigureAwait(false);
 
                 if (result is IError error)
                 {
@@ -88,17 +80,18 @@ namespace HotChocolate.Execution
         private static async Task<object> ExecuteFieldMiddlewareAsync(
             ResolverTask resolverTask)
         {
-            resolverTask.C resolverTask.FieldSelection
+            var middlewareContext = new MiddlewareContext
+            (
+                resolverTask.ResolverContext,
+                () => resolverTask.FieldSelection.Field
+                    .Resolver?.Invoke(resolverTask.ResolverContext)
+                        ?? Task.FromResult<object>(null),
+                result => resolverTask.CompleteResolverResult(result)
+            );
 
-            if (resolverTask.FieldSelection.Field.Resolver == null)
-            {
-                return null;
-            }
+            await resolverTask.FieldDelegate.Invoke(middlewareContext);
 
-            object result = await resolverTask.FieldSelection.Field.Resolver(
-                resolverTask.ResolverContext).ConfigureAwait(false);
-
-            return resolverTask.CompleteResolverResult(result);
+            return middlewareContext.Result;
         }
 
         protected static void CompleteValue(

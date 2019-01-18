@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
     internal class DirectiveMiddlewareCompiler
     {
         private ILookup<FieldSelection, IDirective> _directives;
-        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate> _middlewareCache =
+        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate> _cache =
             new ConcurrentDictionary<FieldSelection, FieldDelegate>();
 
         public DirectiveMiddlewareCompiler(
@@ -27,15 +27,15 @@ namespace HotChocolate.Execution
         }
 
         public FieldDelegate GetOrCreateMiddleware(
-            FieldSelection fieldSelection)
+            FieldSelection fieldSelection,
+            FieldDelegate fieldPipeline)
         {
             if (fieldSelection == null)
             {
                 throw new ArgumentNullException(nameof(fieldSelection));
             }
 
-            if (!_middlewareCache.TryGetValue(
-                fieldSelection,
+            if (!_cache.TryGetValue(fieldSelection,
                 out FieldDelegate directivePipeline))
             {
                 IEnumerable<IDirective> directives =
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                     directivePipeline = Compile(
                         fieldSelection, fieldPipeline,
                         directives);
-                    _middlewareCache.TryAdd(fieldSelection, directivePipeline);
+                    _cache.TryAdd(fieldSelection, directivePipeline);
                 }
             }
 

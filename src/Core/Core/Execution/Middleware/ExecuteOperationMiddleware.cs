@@ -12,12 +12,12 @@ namespace HotChocolate.Execution
     {
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
-        private readonly Cache<ILookup<FieldSelection, IDirective>> _cache;
+        private readonly Cache<DirectiveMiddlewareCompiler> _cache;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
             IExecutionStrategyResolver strategyResolver,
-            Cache<ILookup<FieldSelection, IDirective>> directiveCache)
+            Cache<DirectiveMiddlewareCompiler> directiveCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
@@ -54,7 +54,8 @@ namespace HotChocolate.Execution
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
         {
-            DirectiveLookup directives = GetOrCreateDirectiveLookup(context);
+            DirectiveMiddlewareCompiler directives =
+                GetOrCreateDirectiveLookup(context);
 
             return new ExecutionContext(
                 context.Schema,
@@ -66,11 +67,10 @@ namespace HotChocolate.Execution
                 context.RequestAborted);
         }
 
-        private DirectiveLookup GetOrCreateDirectiveLookup(
+        private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
             IQueryContext context)
         {
-            return _cache.GetOrCreate(
-                context.Request.Query,
+            return _cache.GetOrCreate(context.Request.Query,
                 () =>
                 {
                     var directiveCollector = new CollectDirectivesVisitor();
@@ -80,8 +80,13 @@ namespace HotChocolate.Execution
                     var middlewareCompiler = new DirectiveMiddlewareCompiler(
                         directives);
 
-                    return middlewareCompiler.G();
+                    return middlewareCompiler;
                 });
+        }
+
+        private FieldDelegate ResolveMiddleware(
+            DirectiveMiddlewareCompiler directiveMi) {
+
         }
 
         private static bool IsContextIncomplete(IQueryContext context)
@@ -89,6 +94,19 @@ namespace HotChocolate.Execution
             return context.Document == null
                 || context.Operation == null
                 || context.Variables == null;
+        }
+    }
+
+     internal sealed class EnableDirectivesMiddleware
+    {
+        private readonly QueryDelegate _next;
+        private readonly IExecutionStrategyResolver _strategyResolver;
+        private readonly Cache<DirectiveMiddlewareCompiler> _cache;
+
+        public EnableDirectivesMiddleware(
+            QueryDelegate next,
+            Cache<DirectiveMiddlewareCompiler> directiveCache)
+        {
         }
     }
 }
