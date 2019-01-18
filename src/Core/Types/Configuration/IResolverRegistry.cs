@@ -22,8 +22,8 @@ namespace HotChocolate.Configuration
 
         IDirectiveMiddleware GetMiddleware(string directiveName);
 
-        FieldResolverDelegate CreateMiddleware(
-            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
+        FieldDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> middlewareComponents,
             FieldResolverDelegate fieldResolver);
     }
 }

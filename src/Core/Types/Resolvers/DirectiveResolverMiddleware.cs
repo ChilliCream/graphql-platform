@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers
             Middleware = middleware;
         }
 
-        public string DirectiveName { get; }
+        public NameString DirectiveName { get; }
 
         public DirectiveMiddleware Middleware { get; }
     }

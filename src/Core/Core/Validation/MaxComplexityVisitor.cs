@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -17,17 +18,17 @@ namespace HotChocolate.Validation
         {
             if (node == null)
             {
-                throw new System.ArgumentNullException(nameof(node));
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (schema == null)
             {
-                throw new System.ArgumentNullException(nameof(schema));
+                throw new ArgumentNullException(nameof(schema));
             }
 
             if (calculateComplexity == null)
             {
-                throw new System.ArgumentNullException(
+                throw new ArgumentNullException(
                     nameof(calculateComplexity));
             }
 
@@ -64,9 +65,8 @@ namespace HotChocolate.Validation
                 context.Fragments[fragment.Name.Value] = fragment;
             }
 
-            if (TryGetOperationType(
+            if (operation.TryGetOperationType(
                    context.Schema,
-                   operation.Operation,
                    out ObjectType objectType))
             {
                 VisitOperationDefinition(
@@ -91,9 +91,8 @@ namespace HotChocolate.Validation
             foreach (var operation in node.Definitions
                 .OfType<OperationDefinitionNode>())
             {
-                if (TryGetOperationType(
+                if (operation.TryGetOperationType(
                     context.Schema,
-                    operation.Operation,
                     out ObjectType objectType))
                 {
                     VisitOperationDefinition(
@@ -169,43 +168,6 @@ namespace HotChocolate.Validation
             }
 
             base.VisitInlineFragment(node, newContext);
-        }
-
-        protected override void VisitFieldDefinition(
-            FieldDefinitionNode node,
-            MaxComplexityVisitorContext context)
-        {
-            if (!context.FragmentPath.Contains(node.Name.Value))
-            {
-                base.VisitFieldDefinition(node, context);
-            }
-        }
-
-        private static bool TryGetOperationType(
-            ISchema schema,
-            OperationType operation,
-            out ObjectType objectType)
-        {
-            switch (operation)
-            {
-                case OperationType.Query:
-                    objectType = schema.QueryType;
-                    break;
-
-                case OperationType.Mutation:
-                    objectType = schema.MutationType;
-                    break;
-
-                case Language.OperationType.Subscription:
-                    objectType = schema.SubscriptionType;
-                    break;
-
-                default:
-                    objectType = null;
-                    break;
-            }
-
-            return objectType != null;
         }
     }
 }

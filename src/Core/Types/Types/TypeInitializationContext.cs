@@ -235,13 +235,19 @@ namespace HotChocolate.Types
             return _schemaContext.Types.GetResolverTypes(typeName);
         }
 
-        public FieldResolverDelegate CreateFieldMiddleware(
-            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
+        public FieldDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> middlewareComponents,
             FieldResolverDelegate fieldResolver)
         {
             return _schemaContext.Resolvers.CreateMiddleware(
-                mappedMiddlewareComponents,
+                middlewareComponents,
                 fieldResolver);
+        }
+
+        public IDirectiveMiddleware GetMiddleware(
+            NameString directiveName)
+        {
+            return _schemaContext.Resolvers.GetMiddleware(directiveName);
         }
     }
 }
