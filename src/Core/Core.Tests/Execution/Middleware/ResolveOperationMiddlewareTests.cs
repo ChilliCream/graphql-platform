@@ -22,10 +22,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -51,10 +54,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ isDisposable }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -86,10 +92,13 @@ namespace HotChocolate.Execution
                 InitialValue = rootValue
             }.ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -118,10 +127,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ isDisposable }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
-                services.CreateRequestServiceScope(),
-                request);
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -156,10 +168,13 @@ namespace HotChocolate.Execution
                 InitialValue = rootValue
             }.ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
-                services.CreateRequestServiceScope(),
-                request);
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -188,10 +203,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -219,10 +237,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ a } query a { a }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -257,10 +278,13 @@ namespace HotChocolate.Execution
                 "query a { a } query b { a }", "c")
                 .ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 
@@ -296,10 +320,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("query a { a }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             context.Document = Parser.Default.Parse(request.Query);
 

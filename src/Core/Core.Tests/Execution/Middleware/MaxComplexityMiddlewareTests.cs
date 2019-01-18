@@ -57,8 +57,13 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(
-                schema, services.CreateRequestServiceScope(), request)
+            var context = new QueryContext
+            (
+                schema,
+                services.CreateRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            )
             {
                 Document = query,
                 Operation = operation,
@@ -131,8 +136,13 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(
-                schema, services.CreateRequestServiceScope(), request)
+            var context = new QueryContext
+            (
+                schema,
+                services.CreateRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            )
             {
                 Document = query,
                 Operation = operation,
@@ -212,8 +222,13 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(
-                schema, services.CreateRequestServiceScope(), request)
+            var context = new QueryContext
+            (
+                schema,
+                services.CreateRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            )
             {
                 Document = query,
                 Operation = operation,
@@ -290,17 +305,22 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-             var context = new QueryContext(
-                schema, services.CreateRequestServiceScope(), request)
+            var context = new QueryContext
+            (
+                schema,
+                services.CreateRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            )
             {
                 Document = query,
                 Operation = operation,
                 Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>
-                    {
+                   schema, operation.Definition)
+                   .CreateValues(new Dictionary<string, object>
+                   {
                         { "i", count }
-                    })
+                   })
             };
 
             var middleware = new MaxComplexityMiddleware(
