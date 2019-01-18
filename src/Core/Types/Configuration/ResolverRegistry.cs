@@ -179,6 +179,10 @@ namespace HotChocolate.Configuration
                 || (_middlewareComponents.Count == 0
                     && components.Length == 0))
             {
+                if (fieldResolver == null)
+                {
+                    return null;
+                }
                 return CreateResolverMiddleware(fieldResolver);
             }
 
