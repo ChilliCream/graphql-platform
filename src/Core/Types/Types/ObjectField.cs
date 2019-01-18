@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -167,9 +168,16 @@ namespace HotChocolate.Types
 
             if (Resolver == null && Middleware == null)
             {
-                context.ReportError(new SchemaError(
-                    $"The field `{context.Type.Name}.{Name}` " +
-                    "has no resolver.", (INamedType)context.Type));
+                if (_executableDirectives.Any())
+                {
+                    Middleware = ctx => Task.CompletedTask;
+                }
+                else
+                {
+                    context.ReportError(new SchemaError(
+                        $"The field `{context.Type.Name}.{Name}` " +
+                        "has no resolver.", (INamedType)context.Type));
+                }
             }
 
             _middlewareComponents = null;
