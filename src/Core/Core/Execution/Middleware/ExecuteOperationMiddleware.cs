@@ -38,6 +38,8 @@ namespace HotChocolate.Execution
             }
             else
             {
+
+
                 IExecutionStrategy strategy = _strategyResolver
                     .Resolve(context.Operation.Type);
 
@@ -62,7 +64,7 @@ namespace HotChocolate.Execution
                 context.ServiceScope,
                 context.Operation,
                 context.Variables,
-                directives,
+                f,
                 context.ContextData,
                 context.RequestAborted);
         }
@@ -85,7 +87,9 @@ namespace HotChocolate.Execution
         }
 
         private FieldDelegate ResolveMiddleware(
-            DirectiveMiddlewareCompiler directiveMi) {
+            Func<FieldSelection, FieldDelegate> middlewareResolver,
+            DirectiveMiddlewareCompiler directives)
+        {
 
         }
 
@@ -97,7 +101,7 @@ namespace HotChocolate.Execution
         }
     }
 
-     internal sealed class EnableDirectivesMiddleware
+    internal sealed class EnableDirectivesMiddleware
     {
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
