@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Relay
             // assert
             string unwrapped = Encoding.UTF8.GetString(
                 Convert.FromBase64String(serializedId));
-            Assert.True(unwrapped.StartsWith("Foo-g="));
+            Assert.StartsWith("Foo-g=", unwrapped);
         }
 
         [InlineData("Rm9vLXgxMjM0NTY=", "123456", typeof(string))]
@@ -123,7 +123,7 @@ namespace HotChocolate.Types.Relay
         public void DeserializeGuidValue()
         {
             // arrange
-            string serialized = "Rm9vLWc989TaMzDXRbdUHZrCOXTZ";
+            var serialized = "Rm9vLWc989TaMzDXRbdUHZrCOXTZ";
             var serializer = new IdSerializer();
 
             // act
