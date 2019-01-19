@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -19,7 +19,9 @@ namespace HotChocolate.Execution
                 null);
 
             // act
+#pragma warning disable CS0618 // Type or member is obsolete
             var error = new ArgumentError("a", "b", fieldSelection);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // assert
             Assert.Equal("a", error.Message);
@@ -41,7 +43,9 @@ namespace HotChocolate.Execution
                 null);
 
             // act
+#pragma warning disable CS0618 // Type or member is obsolete
             var error = new FieldError("a", fieldSelection);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // assert
             Assert.Equal("a", error.Message);
@@ -54,7 +58,9 @@ namespace HotChocolate.Execution
         {
             // arrange
             // act
+#pragma warning disable CS0618 // Type or member is obsolete
             var error = new VariableError("foo", "bar");
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // assert
             Assert.Equal("foo", error.Message);
