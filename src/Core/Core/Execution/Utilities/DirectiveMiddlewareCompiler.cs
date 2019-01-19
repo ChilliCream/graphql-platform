@@ -11,8 +11,8 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveMiddlewareCompiler
     {
-        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate> _cache =
-            new ConcurrentDictionary<FieldSelection, FieldDelegate>();
+        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate>
+            _cache = new ConcurrentDictionary<FieldSelection, FieldDelegate>();
         private readonly ISchema _schema;
 
         public DirectiveMiddlewareCompiler(ISchema schema)
