@@ -69,26 +69,24 @@ Task("RestoreCore")
 });
 
 Task("Build")
-    .IsDependentOn("Restore")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
-        NoRestore = true
     };
 
     DotNetCoreBuild("./tools/Build.sln", settings);
 });
 
 Task("BuildCore")
-    .IsDependentOn("RestoreCore")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
     var settings = new DotNetCoreBuildSettings
     {
         Configuration = configuration,
-        NoRestore = true
     };
 
     DotNetCoreBuild("./tools/Build.Core.sln", settings);
