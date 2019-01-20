@@ -9,10 +9,7 @@ namespace HotChocolate.Utilities
     {
         static internal void Append(this Stream stream, byte[] bytes)
         {
-            foreach (var b in bytes)
-            {
-                stream.Append(b);
-            }
+            stream.Write(bytes, 0, bytes.Length);
         }
 
         static internal void Append(this Stream stream, byte b)

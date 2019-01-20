@@ -34,12 +34,16 @@ namespace HotChocolate.Utilities
             {
                 stream.Append(JsonConstants.Dash);
             }
+            WriteIntegralType((ulong) Math.Abs(value), stream);
+        }
 
-            var array = NumberUtilities.numberToArray(Math.Abs(value));
-            foreach (long elem in array)
+        static public void WriteValue(uint value, Stream stream)
+        {
+            if (value < 0)
             {
-                stream.Append((byte)(elem + 48));
+                stream.Append(JsonConstants.Dash);
             }
+            WriteIntegralType(value, stream);
         }
 
         static public void WriteValue(long value, Stream stream)
@@ -48,33 +52,46 @@ namespace HotChocolate.Utilities
             {
                 stream.Append(JsonConstants.Dash);
             }
+            WriteIntegralType((ulong) Math.Abs(value), stream);
+        }
 
-            var array = NumberUtilities.numberToArray(Math.Abs(value));
-            foreach (long elem in array)
+        static public void WriteValue(ulong value, Stream stream)
+        {
+            if (value < 0)
             {
-                stream.Append((byte)(elem + 48));
+                stream.Append(JsonConstants.Dash);
             }
+            WriteIntegralType(value, stream);
         }
 
         static public void WriteValue(float value, Stream stream)
         {
-            var str = value.ToString(CultureInfo.InvariantCulture);
+            var str = value.ToString("R", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
         }
 
         static public void WriteValue(double value, Stream stream)
         {
-            var str = value.ToString(CultureInfo.InvariantCulture);
+            var str = value.ToString("R", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
         }
 
         static public void WriteValue(decimal value, Stream stream)
         {
-            var str = value.ToString(CultureInfo.InvariantCulture);
+            var str = value.ToString("R", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
+        }
+
+        static private void WriteIntegralType(ulong value, Stream stream)
+        {
+            var array = NumberUtilities.NumberToArray((ulong) value);
+            for (var i = 0; i < array.Length; i++)
+            {
+                stream.Append((byte)(array[i] + 48));
+            }
         }
     }
 }

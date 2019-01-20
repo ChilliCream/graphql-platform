@@ -4,41 +4,117 @@ namespace HotChocolate.Utilities
 {
     public static class NumberUtilities
     {
-        public static int setArrayLength(int n)
+        public static int GetDigitCount(int n)
         {
-            int length = 1;
-            for (int factor = 10; factor < n; factor = factor * 10)
+            if (n > 100000)
             {
-                length++;
+                if (n > 1000000000)
+                {
+                    return 10;
+                }
+                if (n > 100000000)
+                {
+                    return 9;
+                }
+                if (n > 10000000)
+                {
+                    return 8;
+                }
+                if (n > 1000000)
+                {
+                    return 7;
+                }
+                if (n > 100000)
+                {
+                    return 6;
+                }
             }
-            return length;
+            else
+            {
+                if (n > 10000)
+                {
+                    return 5;
+                }
+                if (n > 1000)
+                {
+                    return 4;
+                }
+                if (n > 100)
+                {
+                    return 3;
+                }
+                if (n > 10)
+                {
+                    return 2;
+                }
+                if (n > 0)
+                {
+                    return 1;
+                }
+            }
+
+            return 0;
         }
 
-        public static int setArrayLength(long n)
-        {
-            int length = 1;
-            for (long factor = 10; factor < n; factor = factor * 10)
+        public static int GetDigitCount(ulong n)
+        { 
+            if (n <= int.MaxValue)
             {
-                length++;
+                return GetDigitCount((int)n);
             }
-            return length;
+
+            if (n > int.MaxValue && n < 10000000000)
+            {
+                return 10;
+            }
+
+            // Max length for ulong is 20
+            if (n > 1000000000000000)
+            {
+                if (n > 1000000000000000000)
+                {
+                    return 19;
+                }
+                if (n > 100000000000000000)
+                {
+                    return 18;
+                }
+                if (n > 10000000000000000)
+                {
+                    return 17;
+                }
+                if (n > 1000000000000000)
+                {
+                    return 16;
+                }
+            }
+            else
+            {
+                if (n > 100000000000000)
+                {
+                    return 15;
+                }
+                if (n > 10000000000000)
+                {
+                    return 14;
+                }
+                if (n > 1000000000000)
+                {
+                    return 13;
+                }
+                if (n > 100000000000)
+                {
+                    return 12;
+                }
+            }
+
+            return 11;
         }
 
-        public static int[] numberToArray(int num)
+        public static int[] NumberToArray(ulong num)
         {
-            var result = new int[setArrayLength(num)];
-            for (int i = result.Length - 1; i >= 0; i--)
-            {
-                result[i] = num % 10;
-                num /= 10;
-            }
-            return result;
-        }
-
-        public static int[] numberToArray(long num)
-        {
-            var result = new int[setArrayLength(num)];
-            for (long i = result.Length - 1; i >= 0; i--)
+            var result = new int[GetDigitCount(num)];
+            for (var i = result.Length - 1; i >= 0; i--)
             {
                 result[i] = (int)(num % 10);
                 num /= 10;
