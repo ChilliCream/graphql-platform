@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -933,27 +934,27 @@ namespace HotChocolate.Validation
                 {
                     Assert.Equal(
                         "The query exceded the maximum allowed execution " +
-                        "depth of 1.", t.Message);
+                            "depth of 1.",
+                        t.Message);
                 });
         }
 
-        private IQueryValidator CreateValidator()
+        private static IQueryValidator CreateValidator()
         {
             return CreateValidator(new QueryExecutionOptions());
         }
 
-        private IQueryValidator CreateValidator(
-            IValidateQueryOptionsAccessor options)
+        private static IQueryValidator CreateValidator(
+            IQueryExecutionOptionsAccessor options)
         {
-            var services = new ServiceCollection();
+            IServiceCollection services = new ServiceCollection()
+                .AddOptions(options)
+                .AddQueryValidation()
+                .AddDefaultValidationRules();
 
-            services.AddQueryValidation(options);
-            services.AddDefaultValidationRules();
-
-            return services.BuildServiceProvider()
+            return services
+                .BuildServiceProvider()
                 .GetRequiredService<IQueryValidator>();
         }
     }
-
-
 }
