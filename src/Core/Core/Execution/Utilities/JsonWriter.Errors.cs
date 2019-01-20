@@ -12,18 +12,20 @@ namespace HotChocolate.Utilities
     {
         static public void WriteValue(IError value, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             PropertyInfo[] props = value.GetType().GetProperties();
             stream.Append(JsonConstants.LeftBrace);
             foreach (PropertyInfo prop in props)
             {
                 if (prop.GetCustomAttribute(typeof(JsonPropertyAttribute)) != null)
                 {
-                    if (count > 1)
+                    if (useDelimiter)
+                    {
                         stream.Append(JsonConstants.Comma);
+                    }
                     ObjectToJsonBytes.WriteKeyToStream(prop.Name.ToLowerInvariant(), stream);
                     ObjectToJsonBytes.WriteObjectToStream(prop.GetValue(value), stream);
-                    count++;
+                    useDelimiter = true;
                 }
             }
             stream.Append(JsonConstants.RightBrace);
@@ -31,18 +33,20 @@ namespace HotChocolate.Utilities
 
         static public void WriteValue(Location value, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             PropertyInfo[] props = value.GetType().GetProperties();
             stream.Append(JsonConstants.LeftBrace);
             foreach (PropertyInfo prop in props)
             {
                 if (prop.GetCustomAttribute(typeof(JsonPropertyAttribute)) != null)
                 {
-                    if (count > 1)
+                    if (useDelimiter)
+                    {
                         stream.Append(JsonConstants.Comma);
+                    }
                     ObjectToJsonBytes.WriteKeyToStream(prop.Name.ToLowerInvariant(), stream);
                     ObjectToJsonBytes.WriteObjectToStream(prop.GetValue(value), stream);
-                    count++;
+                    useDelimiter = true;
                 }
             }
             stream.Append(JsonConstants.RightBrace);
@@ -50,15 +54,17 @@ namespace HotChocolate.Utilities
 
         static public void WriteValue(IReadOnlyCollection<string> stack, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
 
             stream.Append(JsonConstants.LeftBracket);
             foreach (var elem in stack)
             {
-                if (count > 1)
+                if (useDelimiter)
+                {
                     stream.Append(JsonConstants.Comma);
+                }
                 ObjectToJsonBytes.WriteObjectToStream(elem, stream);
-                count++;
+                useDelimiter = true;
             }
             stream.Append(JsonConstants.RightBracket);
         }

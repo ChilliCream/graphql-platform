@@ -11,6 +11,7 @@ namespace HotChocolate.Utilities
         static public void WriteValue(string value, Stream stream)
         {
             stream.Append(JsonConstants.DoubleQuote);
+            value = value.ToJsonString();
             stream.Append(Encoding.UTF8.GetBytes(value));
             stream.Append(JsonConstants.DoubleQuote);
         }
@@ -18,15 +19,21 @@ namespace HotChocolate.Utilities
         static public void WriteValue(bool value, Stream stream)
         {
             if (value)
+            {
                 stream.Append(JsonConstants.True);
+            }
             else
+            {
                 stream.Append(JsonConstants.False);
+            }
         }
 
         static public void WriteValue(int value, Stream stream)
         {
             if (value < 0)
+            {
                 stream.Append(JsonConstants.Dash);
+            }
 
             var array = NumberUtilities.numberToArray(Math.Abs(value));
             foreach (long elem in array)
@@ -38,7 +45,9 @@ namespace HotChocolate.Utilities
         static public void WriteValue(long value, Stream stream)
         {
             if (value < 0)
+            {
                 stream.Append(JsonConstants.Dash);
+            }
 
             var array = NumberUtilities.numberToArray(Math.Abs(value));
             foreach (long elem in array)

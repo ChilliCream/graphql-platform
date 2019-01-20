@@ -28,14 +28,16 @@ namespace HotChocolate.Utilities
 
         static void WriteObject(IDictionary<string, object> dictionary, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             stream.Append(JsonConstants.LeftBrace);
             foreach (KeyValuePair<string, object> field in dictionary)
             {
-                if (count > 1)
+                if (useDelimiter)
+                {
                     stream.Append(JsonConstants.Comma);
+                }
                 WriteField(field, stream);
-                count++;
+                useDelimiter = true;
             }
             stream.Append(JsonConstants.RightBrace);
         }
@@ -48,28 +50,32 @@ namespace HotChocolate.Utilities
 
         static void WriteList(IList<object> list, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             stream.Append(JsonConstants.LeftBracket);
-            foreach (var elem in list)
-            { 
-                if (count > 1)
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (useDelimiter)
+                {
                     stream.Append(JsonConstants.Comma);
-                Write(elem, stream);
-                count++;
+                }
+                Write(list[i], stream);
+                useDelimiter = true;
             }
             stream.Append(JsonConstants.RightBracket);
         }
 
         static void WriteErrorList(IList<IError> list, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             stream.Append(JsonConstants.LeftBracket);
-            foreach (var elem in list)
+            for (int i = 0; i < list.Count; i++)
             {
-                if (count > 1)
+                if (useDelimiter)
+                {
                     stream.Append(JsonConstants.Comma);
-                Write(elem, stream);
-                count++;
+                }
+                Write(list[i], stream);
+                useDelimiter = true;
             }
             stream.Append(JsonConstants.RightBracket);
         }
@@ -77,9 +83,11 @@ namespace HotChocolate.Utilities
         static void WriteValue(object obj, Stream stream)
         {
             if (obj == null)
+            {
                 stream.Append(JsonConstants.Null);
+            }
             else
-            { 
+            {
                 Type type = obj.GetType();
                 MethodInfo method = typeof(JsonWriter)
                     .GetMethod("WriteValue", new Type[] { type, typeof(Stream) });
@@ -101,9 +109,9 @@ namespace HotChocolate.Utilities
             {
                 WriteErrorList(errorList, stream);
             }
-            else if (value is Array)
+            else if (value is Array array)
             {
-                WriteArray(value, stream);
+                WriteArray(array, stream);
             }
             else
             {
@@ -111,16 +119,18 @@ namespace HotChocolate.Utilities
             }
         }
 
-        static void WriteArray(object value, Stream stream)
+        static void WriteArray(Array array, Stream stream)
         {
-            var count = 1;
+            var useDelimiter = false;
             stream.Append(JsonConstants.LeftBracket);
-            foreach (var elem in value as Array)
+            for (int i = 0; i < (array as Array).Length; i++)
             {
-                if (count > 1)
+                if (useDelimiter)
+                {
                     stream.Append(JsonConstants.Comma);
-                Write(elem, stream);
-                count++;
+                }
+                Write(array.GetValue(i), stream);
+                useDelimiter = true;
             }
             stream.Append(JsonConstants.RightBracket);
         }
