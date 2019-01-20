@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
@@ -15,9 +15,10 @@ namespace HotChocolate.Stitching
 
             descriptor.Middleware(next => async context =>
             {
-                var queryBroker = context.Service<IQueryBroker>();
-                IExecutionResult result =
-                    await queryBroker.RedirectQueryAsync(context);
+                IQueryBroker queryBroker = context.Service<IQueryBroker>();
+                IExecutionResult result = await queryBroker
+                    .RedirectQueryAsync(context)
+                    .ConfigureAwait(false);
 
                 if (result is IReadOnlyQueryResult qr)
                 {
@@ -34,7 +35,7 @@ namespace HotChocolate.Stitching
                     context.Result = qr.Data[responseName];
                 }
 
-                await next(context);
+                await next(context).ConfigureAwait(false);
             });
         }
     }

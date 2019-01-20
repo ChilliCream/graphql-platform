@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -48,12 +48,12 @@ namespace HotChocolate.AspNetCore.Authorization
             {
                 allowed = await AuthorizeWithPolicyAsync(
                     context, directive, principal)
-                    .ConfigureAwait(false);
+                        .ConfigureAwait(false);
             }
 #endif
             if (allowed)
             {
-                await next(context);
+                await next(context).ConfigureAwait(false);
             }
             else if (context.Result == null)
             {
@@ -106,7 +106,10 @@ namespace HotChocolate.AspNetCore.Authorization
             if (directive.Roles.Count == 0
                 && string.IsNullOrWhiteSpace(directive.Policy))
             {
-                policy = await policyProvider.GetDefaultPolicyAsync();
+                policy = await policyProvider
+                    .GetDefaultPolicyAsync()
+                    .ConfigureAwait(false);
+
                 if (policy == null)
                 {
                     context.Result = QueryError.CreateFieldError(
@@ -117,7 +120,10 @@ namespace HotChocolate.AspNetCore.Authorization
 
             else if (!string.IsNullOrWhiteSpace(directive.Policy))
             {
-                policy = await policyProvider.GetPolicyAsync(directive.Policy);
+                policy = await policyProvider
+                    .GetPolicyAsync(directive.Policy)
+                    .ConfigureAwait(false);
+
                 if (policy == null)
                 {
                     context.Result = QueryError.CreateFieldError(
@@ -129,8 +135,10 @@ namespace HotChocolate.AspNetCore.Authorization
 
             if (context.Result == null && policy != null)
             {
-                AuthorizationResult result =
-                await authorizeService.AuthorizeAsync(principal, policy);
+                AuthorizationResult result = await authorizeService
+                    .AuthorizeAsync(principal, policy)
+                    .ConfigureAwait(false);
+
                 return result.Succeeded;
             }
 

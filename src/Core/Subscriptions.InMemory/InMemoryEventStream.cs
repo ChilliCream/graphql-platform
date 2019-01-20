@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,13 +43,16 @@ namespace HotChocolate.Subscriptions
         public async Task<IEventMessage> ReadAsync(
             CancellationToken cancellationToken)
         {
-            IEventMessage message = await _taskCompletionSource.Task;
-            await _semaphore.WaitAsync();
+            IEventMessage message = await _taskCompletionSource.Task
+                .ConfigureAwait(false);
+
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
-                _taskCompletionSource = new TaskCompletionSource<IEventMessage>(
-                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _taskCompletionSource =
+                    new TaskCompletionSource<IEventMessage>(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
             }
             finally
             {
@@ -63,6 +66,7 @@ namespace HotChocolate.Subscriptions
         {
             IsCompleted = true;
             Completed?.Invoke(this, EventArgs.Empty);
+
             return Task.CompletedTask;
         }
 

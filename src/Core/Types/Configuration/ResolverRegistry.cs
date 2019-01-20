@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Resolvers;
@@ -9,14 +9,17 @@ namespace HotChocolate.Configuration
     internal class ResolverRegistry
         : IResolverRegistry
     {
-        private readonly Dictionary<FieldReference, FieldResolverDelegate> _resolvers =
-            new Dictionary<FieldReference, FieldResolverDelegate>();
-        private readonly Dictionary<FieldReference, IFieldReference> _resolverBindings =
-            new Dictionary<FieldReference, IFieldReference>();
-        private readonly Dictionary<FieldReference, IFieldResolverDescriptor> _resolverDescriptors =
-            new Dictionary<FieldReference, IFieldResolverDescriptor>();
-        private readonly Dictionary<string, IDirectiveMiddleware> _middlewares =
-            new Dictionary<string, IDirectiveMiddleware>();
+        private readonly Dictionary<FieldReference, FieldResolverDelegate>
+            _resolvers =
+                new Dictionary<FieldReference, FieldResolverDelegate>();
+        private readonly Dictionary<FieldReference, IFieldReference>
+            _resolverBindings =
+                new Dictionary<FieldReference, IFieldReference>();
+        private readonly Dictionary<FieldReference, IFieldResolverDescriptor>
+            _resolverDescriptors =
+                new Dictionary<FieldReference, IFieldResolverDescriptor>();
+        private readonly Dictionary<string, IDirectiveMiddleware>
+            _middlewares = new Dictionary<string, IDirectiveMiddleware>();
 
         private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
             new List<FieldMiddleware>();
@@ -30,6 +33,7 @@ namespace HotChocolate.Configuration
 
             var fieldReference = new FieldReference(
                 resolverBinding.TypeName, resolverBinding.FieldName);
+
             _resolverBindings[fieldReference] = resolverBinding;
         }
 
@@ -71,7 +75,8 @@ namespace HotChocolate.Configuration
             NameString fieldName)
         {
             var fieldReference = new FieldReference(typeName, fieldName);
-            if (_resolvers.TryGetValue(fieldReference, out var resolver))
+            if (_resolvers.TryGetValue(fieldReference,
+                out FieldResolverDelegate resolver))
             {
                 return resolver;
             }
@@ -104,6 +109,7 @@ namespace HotChocolate.Configuration
         private void CompleteResolvers(IEnumerable<FieldResolver> resolvers)
         {
             var fieldResolvers = new List<FieldResolver>();
+
             fieldResolvers.AddRange(resolvers);
             fieldResolvers.AddRange(_resolverBindings.Values
                 .OfType<FieldResolver>());
@@ -143,7 +149,8 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private IEnumerable<DirectiveMiddlewareDescriptor> CreateMiddlewareDescriptors()
+        private IEnumerable<DirectiveMiddlewareDescriptor>
+            CreateMiddlewareDescriptors()
         {
             foreach (DirectiveMethodMiddleware methodMiddleware in
                 _middlewares.Values.OfType<DirectiveMethodMiddleware>())
@@ -188,7 +195,7 @@ namespace HotChocolate.Configuration
             {
                 if (!ctx.IsResultModified && first != null)
                 {
-                    ctx.Result = await first(ctx);
+                    ctx.Result = await first(ctx).ConfigureAwait(false);
                 }
             };
 
@@ -205,7 +212,9 @@ namespace HotChocolate.Configuration
             return async ctx =>
             {
                 var context = new MiddlewareContext(ctx, () => first(ctx));
-                await next(context);
+
+                await next(context).ConfigureAwait(false);
+
                 return context.Result;
             };
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
         {
             try
             {
-                await _next(context);
+                await _next(context).ConfigureAwait(false);
             }
             catch (QueryException ex)
             {

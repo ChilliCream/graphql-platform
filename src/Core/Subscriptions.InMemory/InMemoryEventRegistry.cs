@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +10,20 @@ namespace HotChocolate.Subscriptions
         , IEventSender
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        private readonly Dictionary<IEventDescription, List<InMemoryEventStream>> _streams =
-            new Dictionary<IEventDescription, List<InMemoryEventStream>>();
+        private readonly Dictionary<IEventDescription,
+            List<InMemoryEventStream>> _streams =
+                new Dictionary<IEventDescription, List<InMemoryEventStream>>();
 
         public async Task SendAsync(IEventMessage message)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out var subscribers))
+                if (_streams.TryGetValue(message.Event,
+                    out List<InMemoryEventStream> subscribers))
                 {
-                    foreach (var stream in subscribers)
+                    foreach (InMemoryEventStream stream in subscribers)
                     {
                         stream.Trigger(message);
                     }
@@ -47,12 +49,12 @@ namespace HotChocolate.Subscriptions
         private async Task<IEventStream> SubscribeInternalAsync(
             IEventDescription eventDescription)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
                 if (!_streams.TryGetValue(eventDescription,
-                    out var subscribers))
+                    out List<InMemoryEventStream> subscribers))
                 {
                     subscribers = new List<InMemoryEventStream>();
                     _streams[eventDescription] = subscribers;
@@ -60,8 +62,11 @@ namespace HotChocolate.Subscriptions
 
                 var eventMessage = new EventMessage(eventDescription);
                 var stream = new InMemoryEventStream();
-                stream.Completed += (s, e) => Unsubscribe(eventMessage, stream);
+
+                stream.Completed += (s, e) => Unsubscribe(eventMessage,
+                    stream);
                 subscribers.Add(stream);
+
                 return stream;
             }
             finally
@@ -78,7 +83,8 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out var subscribers))
+                if (_streams.TryGetValue(message.Event,
+                    out List<InMemoryEventStream> subscribers))
                 {
                     subscribers.Remove(stream);
                 }

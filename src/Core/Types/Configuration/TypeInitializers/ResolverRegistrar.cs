@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Resolvers;
@@ -18,7 +18,8 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolverBindings));
             }
 
-            _resolverBindings = new List<ResolverBindingInfo>(resolverBindings);
+            _resolverBindings = new List<ResolverBindingInfo>(
+                resolverBindings);
         }
 
         internal void RegisterResolvers(ISchemaContext schemaContext)
@@ -71,7 +72,8 @@ namespace HotChocolate.Configuration
 
                 ObjectTypeBinding typeBinding = null;
                 if (binding.ObjectType == null && typeRegistry
-                    .TryGetTypeBinding(binding.ObjectTypeName, out typeBinding))
+                    .TryGetTypeBinding(binding.ObjectTypeName,
+                        out typeBinding))
                 {
                     binding.ObjectType = typeBinding.Type;
                 }

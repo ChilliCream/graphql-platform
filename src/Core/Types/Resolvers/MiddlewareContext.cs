@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -113,7 +113,7 @@ namespace HotChocolate.Resolvers
         {
             if (!_isResultResolved)
             {
-                _resolvedResult = await _resolver();
+                _resolvedResult = await _resolver().ConfigureAwait(false);
                 _isResultResolved = true;
             }
 

@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
-            await context.CloseAsync();
+            await context.CloseAsync().ConfigureAwait(false);
         }
     }
 }

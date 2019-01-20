@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 #if ASPNETCLASSIC
@@ -75,7 +75,8 @@ namespace HotChocolate.AspNetCore.Playground
                     url: ""{queryUrl}"",
                     subscriptionUrl: ""{subscriptionUrl}"",
                 }}
-            ", context.GetCancellationToken());
+            ", context.GetCancellationToken())
+                .ConfigureAwait(false);
         }
 
         private static string BuildUrl(

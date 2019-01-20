@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +13,12 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static Task<IExecutionResult> ExecuteAsync(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(schema,
+            return ExecuteAsync(
+                schema,
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -26,10 +28,13 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static Task<IExecutionResult> ExecuteAsync(
-            this ISchema schema, string query, string operationName,
+            this ISchema schema,
+            string query,
+            string operationName,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(schema,
+            return ExecuteAsync(
+                schema,
                 new QueryRequest(query, operationName),
                 CancellationToken.None);
         }
@@ -39,11 +44,13 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static Task<IExecutionResult> ExecuteAsync(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(schema,
+            return ExecuteAsync(
+                schema,
                 new QueryRequest(query) { VariableValues = variableValues },
                 CancellationToken.None);
         }
@@ -53,12 +60,15 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static Task<IExecutionResult> ExecuteAsync(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             Action<QueryRequest> configure,
             CancellationToken cancellationToken = default)
         {
-            QueryRequest request = new QueryRequest(query);
+            var request = new QueryRequest(query);
+
             configure?.Invoke(request);
+
             return ExecuteAsync(schema, request, cancellationToken);
         }
 
@@ -67,13 +77,16 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static async Task<IExecutionResult> ExecuteAsync(
-           this ISchema schema, QueryRequest request,
+           this ISchema schema,
+           QueryRequest request,
            CancellationToken cancellationToken = default)
         {
             using (IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline().Build(schema))
             {
-                return await executor.ExecuteAsync(request, cancellationToken);
+                return await executor
+                    .ExecuteAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -82,10 +95,12 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static IExecutionResult Execute(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             CancellationToken cancellationToken = default)
         {
-            return Execute(schema,
+            return Execute(
+                schema,
                 new QueryRequest(query),
                 CancellationToken.None);
         }
@@ -95,10 +110,13 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static IExecutionResult Execute(
-            this ISchema schema, string query, string operationName,
+            this ISchema schema,
+            string query,
+            string operationName,
             CancellationToken cancellationToken = default)
         {
-            return Execute(schema,
+            return Execute(
+                schema,
                 new QueryRequest(query, operationName),
                 CancellationToken.None);
         }
@@ -108,11 +126,13 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static IExecutionResult Execute(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken = default)
         {
-            return Execute(schema,
+            return Execute(
+                schema,
                 new QueryRequest(query) { VariableValues = variableValues },
                 CancellationToken.None);
         }
@@ -122,12 +142,15 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static IExecutionResult Execute(
-            this ISchema schema, string query,
+            this ISchema schema,
+            string query,
             Action<QueryRequest> configure,
             CancellationToken cancellationToken = default)
         {
-            QueryRequest request = new QueryRequest(query);
+            var request = new QueryRequest(query);
+
             configure?.Invoke(request);
+
             return Execute(schema, request, cancellationToken);
         }
 
@@ -136,7 +159,8 @@ namespace HotChocolate
             "This method will be removed with version 1.0.0.",
             true)]
         public static IExecutionResult Execute(
-            this ISchema schema, QueryRequest request,
+            this ISchema schema,
+            QueryRequest request,
            CancellationToken cancellationToken = default)
         {
             return Task.Factory.StartNew(

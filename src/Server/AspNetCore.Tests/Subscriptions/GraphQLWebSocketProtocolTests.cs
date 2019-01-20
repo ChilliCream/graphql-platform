@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
@@ -31,10 +31,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             TestServer testServer = CreateTestServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
             WebSocket webSocket = await client
-                .ConnectAsync(SubscriptionUri, CancellationToken.None);
+                .ConnectAsync(SubscriptionUri, CancellationToken.None)
+                .ConfigureAwait(false);
 
             // act and assert
-            await ConnectAsync(webSocket);
+            await ConnectAsync(webSocket).ConfigureAwait(false);
         }
 
         [Fact(Skip = "TODO: FIX Stability Issues")]
@@ -44,9 +45,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             TestServer testServer = CreateTestServer();
             WebSocketClient client = CreateWebSocketClient(testServer);
             WebSocket webSocket = await client
-                .ConnectAsync(SubscriptionUri, CancellationToken.None);
+                .ConnectAsync(SubscriptionUri, CancellationToken.None)
+                .ConfigureAwait(false);
 
-            await ConnectAsync(webSocket);
+            await ConnectAsync(webSocket).ConfigureAwait(false);
 
             var query = new SubscriptionQuery
             {
@@ -60,10 +62,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await testServer.SendRequestAsync(new ClientQueryRequest
             {
                 Query = "mutation { sendFoo }"
-            });
+            }).ConfigureAwait(false);
 
-            GenericOperationMessage message =
-                await WaitForMessage(webSocket, MessageTypes.Subscription.Data);
+            GenericOperationMessage message = await WaitForMessage(webSocket,
+                MessageTypes.Subscription.Data).ConfigureAwait(false);
 
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Subscription.Data, message.Type);
@@ -78,8 +80,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             for (var i = 0; i < 10; i++)
             {
-                GenericOperationMessage message =
-                    await webSocket.ReceiveServerMessageAsync();
+                GenericOperationMessage message = await webSocket
+                    .ReceiveServerMessageAsync()
+                    .ConfigureAwait(false);
 
                 if (message?.Type == messageType)
                 {
@@ -106,6 +109,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 s =>
                 {
                     var eventRegistry = new InMemoryEventRegistry();
+
                     s.AddSingleton<IEventRegistry>(eventRegistry);
                     s.AddSingleton<IEventSender>(eventRegistry);
                 },
@@ -115,15 +119,20 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private async Task ConnectAsync(WebSocket webSocket)
         {
             // act
-            await webSocket.SendConnectionInitializeAsync();
+            await webSocket.SendConnectionInitializeAsync()
+                .ConfigureAwait(false);
 
             // assert
-            GenericOperationMessage message =
-                await webSocket.ReceiveServerMessageAsync();
+            GenericOperationMessage message = await webSocket
+                .ReceiveServerMessageAsync()
+                .ConfigureAwait(false);
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Connection.Accept, message.Type);
 
-            message = await webSocket.ReceiveServerMessageAsync();
+            message = await webSocket
+                .ReceiveServerMessageAsync()
+                .ConfigureAwait(false);
+
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Connection.KeepAlive, message.Type);
         }
@@ -144,7 +153,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             public async Task<string> SendFoo([Service]IEventSender sender)
             {
-                await sender.SendAsync(new EventMessage("foo"));
+                await sender
+                    .SendAsync(new EventMessage("foo"))
+                    .ConfigureAwait(false);
+
                 return "sendBar";
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -72,12 +72,12 @@ namespace HotChocolate.AspNetCore
                         _queryExecutor.Schema,
                         streamWriter);
 
-                    await streamWriter.FlushAsync();
+                    await streamWriter.FlushAsync().ConfigureAwait(false);
                 }
             }
             else
             {
-                await Next.Invoke(context);
+                await Next.Invoke(context).ConfigureAwait(false);
             }
         }
     }
