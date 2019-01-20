@@ -93,17 +93,32 @@ Task("BuildCore")
 });
 
 Task("Publish")
-    .IsDependentOn("Build")
+    .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var settings = new DotNetCorePublishSettings
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:restore /t:build /p:configuration=" + configuration }))
     {
-        Configuration = configuration,
-        NoRestore = true,
-        NoBuild = true,
-    };
+        process.WaitForExit();
+    }
 
-    DotNetCorePublish("./tools/Build.sln", settings);
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:restore /t:build /p:configuration=" + configuration }))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("msbuild",
+        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+    {
+        process.WaitForExit();
+    }
 });
 
 Task("Tests")
