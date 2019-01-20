@@ -71,6 +71,10 @@ namespace HotChocolate.Utilities
             // Max length for ulong is 20
             if (n > 1000000000000000)
             {
+                if (n > 10000000000000000000)
+                {
+                    return 20;
+                }
                 if (n > 1000000000000000000)
                 {
                     return 19;
