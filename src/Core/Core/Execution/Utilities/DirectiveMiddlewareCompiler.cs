@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
                     fieldSelection.Field.IsIntrospectionField
                     || fieldSelection.Field.DeclaringType.IsIntrospectionType();
 
-                IReadOnlyCollection<IDirective> directives =
+                IReadOnlyList<IDirective> directives =
                     CollectDirectives(fieldSelection);
 
                 if (!isIntrospectionField && directives.Any())
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
             return directivePipeline;
         }
 
-        private IReadOnlyCollection<IDirective> CollectDirectives(
+        private IReadOnlyList<IDirective> CollectDirectives(
             FieldSelection fieldSelection)
         {
             HashSet<string> processed = new HashSet<string>();
@@ -123,21 +123,21 @@ namespace HotChocolate.Execution
             }
         }
 
-        private FieldDelegate Compile(
+        private static FieldDelegate Compile(
             FieldDelegate fieldPipeline,
-            IEnumerable<IDirective> directives)
+            IReadOnlyList<IDirective> directives)
         {
             FieldDelegate next = fieldPipeline;
 
-            foreach (IDirective directive in directives.Reverse())
+            for(int i = directives.Count - 1; i >= 0; i--)
             {
-                next = BuildComponent(directive, next);
+                next = BuildComponent(directives[i], next);
             }
 
             return next;
         }
 
-        private FieldDelegate BuildComponent(
+        private static FieldDelegate BuildComponent(
             IDirective directive,
             FieldDelegate next)
         {
