@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
@@ -44,17 +45,8 @@ namespace HotChocolate.Execution
 
             try
             {
-                if (!resolverTask.FieldSelection.Field.IsIntrospectionField
-                    && resolverTask.HasMiddleware)
-                {
-                    result = await ExecuteDirectiveMiddlewareAsync(
-                        resolverTask).ConfigureAwait(false);
-                }
-                else
-                {
-                    result = await ExecuteFieldMiddlewareAsync(
-                        resolverTask).ConfigureAwait(false);
-                }
+                result = await ExecuteFieldMiddlewareAsync(
+                    resolverTask).ConfigureAwait(false);
 
                 if (result is IError error)
                 {
@@ -88,29 +80,19 @@ namespace HotChocolate.Execution
         private static async Task<object> ExecuteFieldMiddlewareAsync(
             ResolverTask resolverTask)
         {
-            if (resolverTask.FieldSelection.Field.Resolver == null)
-            {
-                return null;
-            }
+            var middlewareContext = new MiddlewareContext
+            (
+                resolverTask.ResolverContext,
+                () => resolverTask.FieldSelection.Field
+                    .Resolver?.Invoke(resolverTask.ResolverContext)
+                        ?? Task.FromResult<object>(null),
+                result => resolverTask.CompleteResolverResult(result)
+            );
 
-            object result = await resolverTask.FieldSelection.Field.Resolver(
-                resolverTask.ResolverContext).ConfigureAwait(false);
+            await resolverTask.FieldDelegate.Invoke(middlewareContext)
+                .ConfigureAwait(false);
 
-            return resolverTask.CompleteResolverResult(result);
-        }
-
-        private static async Task<object> ExecuteDirectiveMiddlewareAsync(
-            ResolverTask resolverTask)
-        {
-            return await resolverTask.ExecuteMiddleware.Invoke(
-                resolverTask.ResolverContext, ExecuteResolver)
-                    .ConfigureAwait(false);
-
-            Task<object> ExecuteResolver()
-            {
-                return ExecuteFieldMiddlewareAsync(
-                    resolverTask);
-            }
+            return middlewareContext.Result;
         }
 
         protected static void CompleteValue(

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -56,10 +57,16 @@ namespace HotChocolate.Types
             return descriptor.CreateDescription();
         }
 
+        public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
+
+        /// <summary>
+        /// Gets the field resolver middleware.
+        /// </summary>
+        public FieldDelegate Middleware { get; private set; }
+
         /// <summary>
         /// Gets the field resolver.
         /// </summary>
-        /// <value></value>
         public FieldResolverDelegate Resolver { get; private set; }
 
         /// <summary>
@@ -70,7 +77,6 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        /// <value></value>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
@@ -155,17 +161,23 @@ namespace HotChocolate.Types
                 Resolver = context.GetResolver(Name);
             }
 
-            // TODO : review if that is what we want. Sometimes a middleware can replace a resolver ... but not all middleware components are resolver replacements.
-            Resolver = context.CreateFieldMiddleware(
-                _middlewareComponents, Resolver);
+            Middleware = context.CreateMiddleware(
+                _middlewareComponents, Resolver,
+                IsIntrospectionField
+                || DeclaringType.IsIntrospectionType());
 
-            // TODO : All executable middlewars should have a middleware so could we rewrite this?
-            if (Resolver == null && _executableDirectives.All(
-                t => t.Middleware == null))
+            if (Resolver == null && Middleware == null)
             {
-                context.ReportError(new SchemaError(
-                    $"The field `{context.Type.Name}.{Name}` " +
-                    "has no resolver.", (INamedType)context.Type));
+                if (_executableDirectives.Any())
+                {
+                    Middleware = ctx => Task.CompletedTask;
+                }
+                else
+                {
+                    context.ReportError(new SchemaError(
+                        $"The field `{context.Type.Name}.{Name}` " +
+                        "has no resolver.", (INamedType)context.Type));
+                }
             }
 
             _middlewareComponents = null;

@@ -29,10 +29,13 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             var middleware = new RequestTimeoutMiddleware(
                 c => Task.Delay(1000, c.RequestAborted),

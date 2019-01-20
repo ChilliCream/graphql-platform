@@ -3,7 +3,7 @@
 namespace HotChocolate.Resolvers
 {
     public delegate DirectiveDelegate DirectiveMiddleware(
-        DirectiveDelegate next);
+        FieldDelegate next);
 
     // TODO : InvokeDirectiveDelegate
     public delegate Task DirectiveDelegate(

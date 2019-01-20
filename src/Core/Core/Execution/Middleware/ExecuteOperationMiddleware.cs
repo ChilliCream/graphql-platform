@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -8,18 +13,18 @@ namespace HotChocolate.Execution
     {
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
-        private readonly Cache<DirectiveLookup> _directiveCache;
+        private readonly Cache<DirectiveMiddlewareCompiler> _cache;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
             IExecutionStrategyResolver strategyResolver,
-            Cache<DirectiveLookup> directiveCache)
+            Cache<DirectiveMiddlewareCompiler> directiveCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _strategyResolver = strategyResolver
                 ?? throw new ArgumentNullException(nameof(strategyResolver));
-            _directiveCache = directiveCache
+            _cache = directiveCache
                 ?? throw new ArgumentNullException(nameof(directiveCache));
         }
 
@@ -34,6 +39,8 @@ namespace HotChocolate.Execution
             }
             else
             {
+
+
                 IExecutionStrategy strategy = _strategyResolver
                     .Resolve(context.Operation.Type);
 
@@ -50,32 +57,25 @@ namespace HotChocolate.Execution
 
         private IExecutionContext CreateExecutionContext(IQueryContext context)
         {
-            DirectiveLookup directives = GetOrCreateDirectiveLookup(context);
+            DirectiveMiddlewareCompiler directives = GetOrCreateDirectiveLookup(
+                context.Request.Query, context.Schema);
 
             return new ExecutionContext(
                 context.Schema,
                 context.ServiceScope,
                 context.Operation,
                 context.Variables,
-                directives,
+                fs => directives.GetOrCreateMiddleware(fs,
+                    () => context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
                 context.RequestAborted);
         }
 
-        private DirectiveLookup GetOrCreateDirectiveLookup(
-            IQueryContext context)
+        private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
+            string query, ISchema schema)
         {
-            return _directiveCache.GetOrCreate(
-                context.Request.Query,
-                () =>
-                {
-                    var directiveCollector = new DirectiveCollector(
-                        context.Schema);
-
-                    directiveCollector.VisitDocument(context.Document);
-
-                    return directiveCollector.CreateLookup();
-                });
+            return _cache.GetOrCreate(query,
+                () => new DirectiveMiddlewareCompiler(schema));
         }
 
         private static bool IsContextIncomplete(IQueryContext context)

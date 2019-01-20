@@ -52,9 +52,13 @@ namespace HotChocolate.Execution
                 .AddSingleton<ISchema>(schema)
                 .BuildServiceProvider();
 
-            QueryDelegate middleware = Compile(_middlewareComponents);
-
-            return new QueryExecutor(schema, services, middleware);
+            return new QueryExecutor
+            (
+                schema,
+                services,
+                Compile(_middlewareComponents),
+                Compile(_fieldMiddlewareComponents)
+            );
         }
 
         private ServiceCollection CopyServiceCollection()
@@ -69,16 +73,33 @@ namespace HotChocolate.Execution
             return copy;
         }
 
-        private QueryDelegate Compile(IEnumerable<QueryMiddleware> components)
+        private static QueryDelegate Compile(
+            IReadOnlyList<QueryMiddleware> components)
         {
-            QueryDelegate current = context => Task.CompletedTask;
+            QueryDelegate next = context => Task.CompletedTask;
 
-            foreach (QueryMiddleware component in components.Reverse())
+            for (int i = components.Count - 1; i >= 0; i--)
             {
-                current = component(current);
+                next = components[i].Invoke(next);
             }
 
-            return current;
+            return next;
+        }
+
+        private static FieldMiddleware Compile(
+            IReadOnlyList<FieldMiddleware> components)
+        {
+            return first =>
+            {
+                FieldDelegate next = first;
+
+                for (int i = components.Count - 1; i >= 0; i--)
+                {
+                    next = components[i].Invoke(next);
+                }
+
+                return next;
+            };
         }
 
         public static IQueryExecutionBuilder New() =>
