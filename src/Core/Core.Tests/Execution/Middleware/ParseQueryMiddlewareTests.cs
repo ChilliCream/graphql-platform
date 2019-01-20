@@ -17,10 +17,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{ a }").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
@@ -43,10 +46,13 @@ namespace HotChocolate.Execution
 
             var request = new QueryRequest("{").ToReadOnly();
 
-            var context = new QueryContext(
+            var context = new QueryContext
+            (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
-                request);
+                request,
+                fs => fs.Field.Middleware
+            );
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,

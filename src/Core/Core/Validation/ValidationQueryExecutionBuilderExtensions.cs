@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,40 +28,27 @@ namespace HotChocolate.Validation
         }
 
         public static IQueryExecutionBuilder AddQueryValidation(
-            this IQueryExecutionBuilder builder,
-            IValidateQueryOptionsAccessor options)
+            this IQueryExecutionBuilder builder)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            builder.Services.AddQueryValidation(options);
+            builder.Services.AddQueryValidation();
 
             return builder;
         }
 
         public static IServiceCollection AddQueryValidation(
-            this IServiceCollection services,
-            IValidateQueryOptionsAccessor options)
+            this IServiceCollection services)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             return services
-                .AddSingleton(options)
                 .AddSingleton<IQueryValidator, QueryValidator>();
         }
 

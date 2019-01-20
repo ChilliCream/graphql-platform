@@ -85,6 +85,60 @@ namespace HotChocolate.Execution
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task FieldMiddlewareDoesNotHaveAnEffectOnIntrospection()
+        {
+            // arrange
+            string query = "{ __typename a }";
+
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterExtendedScalarTypes();
+                c.RegisterType<Query>();
+                c.Use(next => async context =>
+                {
+                    await next.Invoke(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                });
+            });
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
+        {
+            // arrange
+            string query = "{ __typename @upper a }";
+
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterExtendedScalarTypes();
+                c.RegisterType<Query>();
+                c.RegisterDirective<UpperDirectiveType>();
+            });
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -117,6 +171,26 @@ namespace HotChocolate.Execution
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Resolver(() => "foo.a");
+            }
+        }
+
+        private sealed class UpperDirectiveType
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("upper");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Middleware(next => async context =>
+                {
+                    await next.Invoke(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                });
             }
         }
     }

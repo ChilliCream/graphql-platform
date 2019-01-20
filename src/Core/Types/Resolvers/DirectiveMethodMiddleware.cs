@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers
             Method = method ?? throw new ArgumentNullException(nameof(method));
         }
 
-        public string DirectiveName { get; }
+        public NameString DirectiveName { get; }
         public Type Type { get; }
         public MethodInfo Method { get; }
     }

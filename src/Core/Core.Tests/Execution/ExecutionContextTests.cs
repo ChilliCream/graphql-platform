@@ -35,8 +35,6 @@ namespace HotChocolate.Execution
 
             var variables = new Mock<IVariableCollection>();
 
-            var directives = new DirectiveLookup(new Dictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>>());
-
             var contextData = new Dictionary<string, object>
             {
                 { "abc", "123" }
@@ -45,7 +43,7 @@ namespace HotChocolate.Execution
             // act
             var executionContext = new ExecutionContext(
                 schema, serviceScope, operation.Object,
-                variables.Object, directives, contextData,
+                variables.Object, fs => null, contextData,
                 CancellationToken.None);
 
             // assert
@@ -77,8 +75,6 @@ namespace HotChocolate.Execution
 
             var variables = new Mock<IVariableCollection>();
 
-            var directives = new DirectiveLookup(new Dictionary<ObjectType, IDictionary<FieldNode, IReadOnlyCollection<IDirective>>>());
-
             var contextData = new Dictionary<string, object>
             {
                 { "abc", "123" }
@@ -87,7 +83,7 @@ namespace HotChocolate.Execution
             // act
             var executionContext = new ExecutionContext(
                 schema, serviceScope, operation.Object,
-                variables.Object, directives, contextData,
+                variables.Object, fs => null, contextData,
                 CancellationToken.None);
             IExecutionContext cloned = executionContext.Clone();
 

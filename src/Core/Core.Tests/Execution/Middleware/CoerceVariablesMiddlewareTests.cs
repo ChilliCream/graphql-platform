@@ -22,8 +22,14 @@ namespace HotChocolate.Execution
                 }
             }.ToReadOnly();
 
-            var context = new QueryContext(
-                schema, MiddlewareTools.CreateEmptyRequestServiceScope(), request);
+            var context = new QueryContext
+            (
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            );
+
             context.Document = Parser.Default.Parse(request.Query);
             context.Operation = new Operation(
                 context.Document,

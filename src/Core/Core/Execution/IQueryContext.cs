@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -14,6 +15,7 @@ namespace HotChocolate.Execution
         IServiceProvider Services { get; }
         IDictionary<string, object> ContextData { get; }
 
+
         DocumentNode Document { get; set; }
         IOperation Operation { get; set; }
         QueryValidationResult ValidationResult { get; set; }
@@ -21,5 +23,6 @@ namespace HotChocolate.Execution
         CancellationToken RequestAborted { get; set; }
         IExecutionResult Result { get; set; }
         Exception Exception { get; set; }
+        Func<FieldSelection, FieldDelegate> MiddlewareResolver { get; set; }
     }
 }

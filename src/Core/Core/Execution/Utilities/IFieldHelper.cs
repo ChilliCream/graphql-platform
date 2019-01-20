@@ -11,8 +11,6 @@ namespace HotChocolate.Execution
             ObjectType objectType,
             SelectionSetNode selectionSet);
 
-        ExecuteMiddleware CreateMiddleware(
-            ObjectType objectType,
-            FieldNode fieldNode);
+        FieldDelegate CreateMiddleware(FieldSelection fieldSelection);
     }
 }

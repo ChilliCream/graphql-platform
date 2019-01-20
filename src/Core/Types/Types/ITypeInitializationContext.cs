@@ -34,11 +34,12 @@ namespace HotChocolate.Types
 
         IEnumerable<Type> GetResolverTypes(NameString typeName);
 
-        IDirectiveMiddleware GetMiddleware(string directiveName);
+        IDirectiveMiddleware GetMiddleware(NameString directiveName);
 
-        FieldResolverDelegate CreateFieldMiddleware(
-            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
-            FieldResolverDelegate fieldResolver);
+        FieldDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> middlewareComponents,
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection);
 
         T GetType<T>(TypeReference typeReference) where T : IType;
 
