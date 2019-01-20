@@ -84,7 +84,8 @@ namespace HotChocolate.Execution
         {
             get
             {
-                if (_extensions.TryGetValue("code", out object o))
+                if (_extensions != null
+                    && _extensions.TryGetValue("code", out object o))
                 {
                     return o.ToString();
                 }
