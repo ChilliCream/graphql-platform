@@ -35,14 +35,10 @@ namespace HotChocolate.Execution
             {
                 directivePipeline = fieldPipeline.Invoke();
 
-                bool isIntrospectionField =
-                    fieldSelection.Field.IsIntrospectionField
-                    || fieldSelection.Field.DeclaringType.IsIntrospectionType();
-
                 IReadOnlyList<IDirective> directives =
                     CollectDirectives(fieldSelection);
 
-                if (!isIntrospectionField && directives.Any())
+                if (directives.Any())
                 {
                     directivePipeline = Compile(
                         directivePipeline,
