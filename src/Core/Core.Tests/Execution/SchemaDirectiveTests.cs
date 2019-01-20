@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public void ResultIsCorrectlyPassedIntoTheContext()
+        public void ExecDirectiveOrderIsSignificant()
         {
             // arrange
             ISchema schema = Schema.Create(
@@ -65,7 +65,8 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result =
-                schema.MakeExecutable().Execute("{ a @lower @upper }");
+                schema.MakeExecutable().Execute(
+                    "{ a @lower @upper b: a @upper @lower }");
 
             // assert
             result.Snapshot();

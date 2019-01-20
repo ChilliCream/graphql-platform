@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,11 +12,14 @@ namespace HotChocolate.Execution
     {
         private readonly IServiceProvider _applicationServices;
         private readonly QueryDelegate _queryDelegate;
+        private readonly FieldMiddlewareCompiler _fieldMiddlewareCompiler;
+        private bool _disposed;
 
         public QueryExecutor(
             ISchema schema,
             IServiceProvider applicationServices,
-            QueryDelegate queryDelegate)
+            QueryDelegate queryDelegate,
+            FieldMiddleware fieldMiddleware)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -23,17 +27,12 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(applicationServices));
             _queryDelegate = queryDelegate
                 ?? throw new ArgumentNullException(nameof(queryDelegate));
+
+            _fieldMiddlewareCompiler = new FieldMiddlewareCompiler(
+                schema, fieldMiddleware);
         }
 
         public ISchema Schema { get; }
-
-        public void Dispose()
-        {
-            if (_applicationServices is IDisposable d)
-            {
-                d.Dispose();
-            }
-        }
 
         public Task<IExecutionResult> ExecuteAsync(
             QueryRequest request,
@@ -50,7 +49,8 @@ namespace HotChocolate.Execution
             var context = new QueryContext(
                 Schema,
                 serviceScope,
-                request.ToReadOnly());
+                request.ToReadOnly(),
+                fs =>_fieldMiddlewareCompiler.GetMiddleware(fs.Field));
 
             return ExecuteMiddlewareAsync(context);
         }
@@ -93,6 +93,23 @@ namespace HotChocolate.Execution
                 .Include(requestServices ?? Schema.Services);
 
             return new RequestServiceScope(services, serviceScope);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing && _applicationServices is IDisposable d)
+                {
+                    d.Dispose();
+                }
+                _disposed = true;
+            }
         }
     }
 }

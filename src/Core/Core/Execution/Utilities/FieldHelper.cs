@@ -10,37 +10,25 @@ namespace HotChocolate.Execution
         : IFieldHelper
     {
         private readonly FieldCollector _fieldCollector;
-        private readonly DirectiveLookup _directives;
-        private readonly ICollection<IError> _errors;
+        private readonly Func<FieldSelection, FieldDelegate> _middlewareRes;
+        private readonly Action<IError> _reportError;
 
         public FieldHelper(
             FieldCollector fieldCollector,
-            DirectiveLookup directives,
-            IVariableCollection variables,
-            ICollection<IError> errors)
+            Func<FieldSelection, FieldDelegate> middlewareResolver,
+            Action<IError> reportError)
         {
-            if (directives == null)
-            {
-                throw new ArgumentNullException(nameof(directives));
-            }
-
-            if (variables == null)
-            {
-                throw new ArgumentNullException(nameof(variables));
-            }
-
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
-            _fieldCollector = fieldCollector; ;
-            _errors = errors;
-            _directives = directives;
+            _fieldCollector = fieldCollector
+                ?? throw new ArgumentNullException(nameof(fieldCollector));
+            _reportError = reportError
+                ?? throw new ArgumentNullException(nameof(reportError));
+            _middlewareRes = middlewareResolver
+                ?? throw new ArgumentNullException(nameof(middlewareResolver));
         }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
-            ObjectType objectType, SelectionSetNode selectionSet)
+            ObjectType objectType,
+            SelectionSetNode selectionSet)
         {
             if (objectType == null)
             {
@@ -53,24 +41,19 @@ namespace HotChocolate.Execution
             }
 
             return _fieldCollector.CollectFields(
-                objectType, selectionSet,
-                error => _errors.Add(error));
+                objectType, selectionSet, _reportError);
         }
 
-        public ExecuteMiddleware CreateMiddleware(
-            ObjectType objectType, FieldNode fieldNode)
+        // resolverTask.FieldSelection.Field.IsIntrospectionField
+        public FieldDelegate CreateMiddleware(
+            FieldSelection fieldSelection)
         {
-            if (objectType == null)
+            if (fieldSelection == null)
             {
-                throw new ArgumentNullException(nameof(objectType));
+                throw new ArgumentNullException(nameof(fieldSelection));
             }
 
-            if (fieldNode == null)
-            {
-                throw new ArgumentNullException(nameof(fieldNode));
-            }
-
-            return _directives.GetMiddleware(objectType, fieldNode);
+            return _middlewareRes.Invoke(fieldSelection);
         }
     }
 }

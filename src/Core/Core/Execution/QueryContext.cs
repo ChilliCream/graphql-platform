@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -10,10 +11,13 @@ namespace HotChocolate.Execution
     public class QueryContext
         : IQueryContext
     {
+        private Func<FieldSelection, FieldDelegate> _middlewareResolver;
+
         public QueryContext(
             ISchema schema,
             IRequestServiceScope serviceScope,
-            IReadOnlyQueryRequest request)
+            IReadOnlyQueryRequest request,
+            Func<FieldSelection, FieldDelegate> middlewareResolver)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -21,7 +25,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(request));
             ServiceScope = serviceScope
                 ?? throw new ArgumentNullException(nameof(serviceScope));
-
+            MiddlewareResolver = middlewareResolver
+                ?? throw new ArgumentNullException(nameof(middlewareResolver));
 
             ContextData = request.Properties == null
                 ? new ConcurrentDictionary<string, object>()
@@ -29,17 +34,42 @@ namespace HotChocolate.Execution
         }
 
         public ISchema Schema { get; }
+
         public IReadOnlyQueryRequest Request { get; }
+
         public IRequestServiceScope ServiceScope { get; }
+
         public IServiceProvider Services => ServiceScope.ServiceProvider;
+
         public IDictionary<string, object> ContextData { get; }
+
         public DocumentNode Document { get; set; }
+
         public IOperation Operation { get; set; }
+
         public QueryValidationResult ValidationResult { get; set; }
+
         public IVariableCollection Variables { get; set; }
+
         public CancellationToken RequestAborted { get; set; }
+
         public IExecutionResult Result { get; set; }
+
         public Exception Exception { get; set; }
 
+        public Func<FieldSelection, FieldDelegate> MiddlewareResolver
+        {
+            get => _middlewareResolver;
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(
+                        nameof(value),
+                        "The middleware resolver mustn't be null.");
+                }
+                _middlewareResolver = value;
+            }
+        }
     }
 }

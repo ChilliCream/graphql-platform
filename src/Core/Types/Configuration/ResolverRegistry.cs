@@ -21,7 +21,7 @@ namespace HotChocolate.Configuration
         private readonly Dictionary<string, IDirectiveMiddleware>
             _middlewares = new Dictionary<string, IDirectiveMiddleware>();
 
-        private readonly List<FieldMiddleware> _fieldMiddlewareComponents =
+        private readonly List<FieldMiddleware> _middlewareComponents =
             new List<FieldMiddleware>();
 
         public void RegisterResolver(IFieldReference resolverBinding)
@@ -167,55 +167,72 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            _fieldMiddlewareComponents.Add(middleware);
+            _middlewareComponents.Add(middleware);
         }
 
-        public FieldResolverDelegate CreateMiddleware(
-            IEnumerable<FieldMiddleware> mappedMiddlewareComponents,
-            FieldResolverDelegate fieldResolver)
+        public FieldDelegate CreateMiddleware(
+            IEnumerable<FieldMiddleware> middlewareComponents,
+            FieldResolverDelegate fieldResolver,
+            bool isIntrospection)
         {
-            if (_fieldMiddlewareComponents.Count == 0
-                && !mappedMiddlewareComponents.Any())
+            if (middlewareComponents == null)
             {
-                return fieldResolver;
+                throw new ArgumentNullException(nameof(middlewareComponents));
+            }
+
+            FieldMiddleware[] components = middlewareComponents.ToArray();
+
+            if (isIntrospection
+                || (_middlewareComponents.Count == 0
+                    && components.Length == 0))
+            {
+                if (fieldResolver == null)
+                {
+                    return null;
+                }
+                return CreateResolverMiddleware(fieldResolver);
             }
 
             return BuildMiddleware(
-                _fieldMiddlewareComponents,
-                mappedMiddlewareComponents,
+                _middlewareComponents,
+                components,
                 fieldResolver);
         }
 
-        private static FieldResolverDelegate BuildMiddleware(
-            IEnumerable<FieldMiddleware> components,
-            IEnumerable<FieldMiddleware> mappedComponents,
-            FieldResolverDelegate first)
+        private static FieldDelegate BuildMiddleware(
+            IReadOnlyList<FieldMiddleware> components,
+            IReadOnlyList<FieldMiddleware> mappedComponents,
+            FieldResolverDelegate fieldResolver)
         {
-            FieldDelegate next = async ctx =>
-            {
-                if (!ctx.IsResultModified && first != null)
-                {
-                    ctx.Result = await first(ctx).ConfigureAwait(false);
-                }
-            };
+            return IntegrateComponents(components,
+                IntegrateComponents(mappedComponents,
+                    CreateResolverMiddleware(fieldResolver)));
+        }
 
-            foreach (FieldMiddleware component in mappedComponents.Reverse())
+        private static FieldDelegate IntegrateComponents(
+            IReadOnlyList<FieldMiddleware> components,
+            FieldDelegate first)
+        {
+            FieldDelegate next = first;
+
+            for (int i = components.Count - 1; i >= 0; i--)
             {
-                next = component(next);
+                next = components[i].Invoke(next);
             }
 
-            foreach (FieldMiddleware component in components.Reverse())
-            {
-                next = component(next);
-            }
+            return next;
+        }
 
+        private static FieldDelegate CreateResolverMiddleware(
+            FieldResolverDelegate fieldResolver)
+        {
             return async ctx =>
             {
-                var context = new MiddlewareContext(ctx, () => first(ctx));
-
-                await next(context).ConfigureAwait(false);
-
-                return context.Result;
+                if (!ctx.IsResultModified && fieldResolver != null)
+                {
+                    ctx.Result = await fieldResolver.Invoke(ctx)
+                        .ConfigureAwait(false);
+                }
             };
         }
     }

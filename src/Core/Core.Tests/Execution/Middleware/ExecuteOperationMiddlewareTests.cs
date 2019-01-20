@@ -51,8 +51,13 @@ namespace HotChocolate.Execution
                     typeof(IErrorHandler),
                     ErrorHandler.Default));
 
-            var context = new QueryContext(
-                schema, services.CreateRequestServiceScope(), request)
+            var context = new QueryContext
+            (
+                schema,
+                services.CreateRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            )
             {
                 Document = query,
                 Operation = operation,
@@ -67,7 +72,7 @@ namespace HotChocolate.Execution
             var middleware = new ExecuteOperationMiddleware(
                 c => Task.CompletedTask,
                 strategyResolver,
-                new Cache<DirectiveLookup>(10));
+                new Cache<DirectiveMiddlewareCompiler>(10));
 
             // act
             await middleware.InvokeAsync(context);

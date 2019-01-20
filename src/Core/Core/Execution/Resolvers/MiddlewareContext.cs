@@ -13,18 +13,21 @@ namespace HotChocolate.Resolvers
     {
         private readonly IResolverContext _resolverContext;
         private readonly Func<Task<object>> _resolver;
+        private readonly Func<object, object> _completeResult;
         private object _result;
         private object _resolvedResult;
         private bool _isResultResolved;
 
         public MiddlewareContext(
             IResolverContext resolverContext,
-            Func<Task<object>> resolver)
+            Func<Task<object>> resolver,
+            Func<object, object> completeResult)
         {
             _resolverContext = resolverContext
                 ?? throw new ArgumentNullException(nameof(resolverContext));
             _resolver = resolver
                 ?? throw new ArgumentNullException(nameof(resolver));
+            _completeResult = completeResult;
         }
 
         public object Result
@@ -36,29 +39,7 @@ namespace HotChocolate.Resolvers
             set
             {
                 IsResultModified = true;
-
-                // TODO : rework after error types have been relocated.
-                /*
-                if (_result is IResolverResult r)
-                {
-                    if (r.IsError)
-                    {
-                        _result = QueryError.CreateFieldError(
-                            r.ErrorMessage,
-                            Path,
-                            FieldSelection);
-                    }
-                    else
-                    {
-                        _result = r.Value;
-                    }
-                }
-                else
-                {
-                    _result = value;
-                }
-                */
-                _result = value;
+                _result = _completeResult.Invoke(value);
             }
         }
 

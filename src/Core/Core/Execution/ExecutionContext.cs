@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -16,10 +17,15 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope,
             IOperation operation,
             IVariableCollection variables,
-            DirectiveLookup directives,
+            Func<FieldSelection, FieldDelegate> middlewareResolver,
             IDictionary<string, object> contextData,
             CancellationToken requestAborted)
         {
+            if (middlewareResolver == null)
+            {
+                throw new ArgumentNullException(nameof(middlewareResolver));
+            }
+
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
             ServiceScope = serviceScope
@@ -28,8 +34,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
             Variables = variables
                 ?? throw new ArgumentNullException(nameof(variables));
-            Directives = directives
-                ?? throw new ArgumentNullException(nameof(directives));
             ContextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
             RequestAborted = requestAborted;
@@ -39,11 +43,14 @@ namespace HotChocolate.Execution
 
             Result = new QueryResult();
 
-            FieldHelper = CreateFieldHelper(
-                variables,
-                new FragmentCollection(schema, operation.Query),
-                directives,
-                Result.Errors);
+            var fragments = new FragmentCollection(
+                schema, operation.Query);
+
+            var fieldCollector = new FieldCollector(
+                variables, fragments);
+
+            FieldHelper = new FieldHelper(
+                fieldCollector, middlewareResolver, AddError);
 
             Activator = new Activator(serviceScope.ServiceProvider);
         }
@@ -60,8 +67,6 @@ namespace HotChocolate.Execution
 
         public IVariableCollection Variables { get; }
 
-        public DirectiveLookup Directives { get; }
-
         public IQueryResult Result { get; private set; }
 
         public IDictionary<string, object> ContextData { get; private set; }
@@ -71,20 +76,6 @@ namespace HotChocolate.Execution
         public IFieldHelper FieldHelper { get; }
 
         public IActivator Activator { get; }
-
-        private static IFieldHelper CreateFieldHelper(
-            IVariableCollection variables,
-            FragmentCollection fragments,
-            DirectiveLookup directives,
-            ICollection<IError> errors)
-        {
-            var fieldCollector = new FieldCollector(
-                variables, fragments);
-
-            return new FieldHelper(
-                fieldCollector, directives,
-                variables, errors);
-        }
 
         public void AddError(IError error)
         {

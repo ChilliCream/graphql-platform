@@ -2,6 +2,6 @@
 {
     public interface IDirectiveMiddleware
     {
-        string DirectiveName { get; }
+        NameString DirectiveName { get; }
     }
 }

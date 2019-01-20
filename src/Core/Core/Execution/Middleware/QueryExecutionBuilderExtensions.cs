@@ -464,11 +464,11 @@ namespace HotChocolate.Execution
             }
 
             builder
-                .RemoveService<Cache<DirectiveLookup>>()
+                .RemoveService<Cache<DirectiveMiddlewareCompiler>>()
                 .RemoveService<Cache<DocumentNode>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
             builder.Services
-                .AddSingleton(new Cache<DirectiveLookup>(cacheSize))
+                .AddSingleton(new Cache<DirectiveMiddlewareCompiler>(cacheSize))
                 .AddSingleton(new Cache<DocumentNode>(cacheSize))
                 .AddSingleton(new Cache<OperationDefinitionNode>(cacheSize));
 

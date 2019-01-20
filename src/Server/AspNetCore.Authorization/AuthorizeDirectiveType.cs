@@ -33,7 +33,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private static async Task AuthorizeAsync(
             IDirectiveContext context,
-            DirectiveDelegate next)
+            FieldDelegate next)
         {
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
