@@ -223,7 +223,8 @@ namespace HotChocolate.Configuration
             {
                 if (!ctx.IsResultModified && fieldResolver != null)
                 {
-                    ctx.Result = await fieldResolver.Invoke(ctx);
+                    ctx.Result = await fieldResolver.Invoke(ctx)
+                        .ConfigureAwait(false);
                 }
             };
         }

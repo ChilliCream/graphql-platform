@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
             return copy;
         }
 
-        private QueryDelegate Compile(
+        private static QueryDelegate Compile(
             IReadOnlyList<QueryMiddleware> components)
         {
             QueryDelegate next = context => Task.CompletedTask;
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution
             return next;
         }
 
-        private FieldMiddleware Compile(
+        private static FieldMiddleware Compile(
             IReadOnlyList<FieldMiddleware> components)
         {
             return first =>

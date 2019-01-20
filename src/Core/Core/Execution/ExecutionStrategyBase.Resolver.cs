@@ -89,7 +89,8 @@ namespace HotChocolate.Execution
                 result => resolverTask.CompleteResolverResult(result)
             );
 
-            await resolverTask.FieldDelegate.Invoke(middlewareContext);
+            await resolverTask.FieldDelegate.Invoke(middlewareContext)
+                .ConfigureAwait(false);
 
             return middlewareContext.Result;
         }

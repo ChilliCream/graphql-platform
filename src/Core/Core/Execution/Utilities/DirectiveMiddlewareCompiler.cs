@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 if (!isIntrospectionField && directives.Any())
                 {
                     directivePipeline = Compile(
-                        fieldSelection, directivePipeline,
+                        directivePipeline,
                         directives);
                 }
 
@@ -97,13 +97,11 @@ namespace HotChocolate.Execution
                 .SelectMany(t => t.Directives))
             {
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
-                    out DirectiveType directiveType))
+                    out DirectiveType directiveType)
+                    && directiveType.IsExecutable)
                 {
-                    if (directiveType.IsExecutable)
-                    {
-                        yield return new Directive(
-                            directiveType, directive, fieldSelection);
-                    }
+                    yield return new Directive(
+                        directiveType, directive, fieldSelection);
                 }
             }
         }
@@ -126,7 +124,6 @@ namespace HotChocolate.Execution
         }
 
         private FieldDelegate Compile(
-            FieldSelection fieldSelection,
             FieldDelegate fieldPipeline,
             IEnumerable<IDirective> directives)
         {
@@ -158,7 +155,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        private bool HasErrors(object result)
+        private static bool HasErrors(object result)
         {
             if (result is IError error
                 || result is IEnumerable<IError> errors)
