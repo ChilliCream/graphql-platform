@@ -27,6 +27,21 @@ namespace HotChocolate.Execution
             OperationName = operationName;
         }
 
+        public QueryRequest(IReadOnlyQueryRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            Query = request.Query;
+            OperationName = request.OperationName;
+            VariableValues = request.VariableValues;
+            InitialValue = request.InitialValue;
+            Properties = request.Properties;
+            Services = request.Services;
+        }
+
         public string Query { get; }
 
         public string OperationName { get; set; }

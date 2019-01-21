@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
-    internal sealed class Directive
+    public sealed class Directive
         : IDirective
     {
         private object _customDirective;
@@ -244,6 +244,38 @@ namespace HotChocolate.Types
                     description.CustomDirective,
                     source);
             }
+        }
+
+        public static Directive FromAstNode(
+            ISchema schema,
+            ISyntaxNode source,
+            DirectiveNode directiveNode)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (directiveNode == null)
+            {
+                throw new ArgumentNullException(nameof(directiveNode));
+            }
+
+            if (schema.TryGetDirectiveType(
+                directiveNode.Name.Value,
+                out DirectiveType type))
+            {
+                return new Directive(type, directiveNode, source);
+            }
+
+            throw new InvalidOperationException(
+                "The specified directive is not registered " +
+                "with the given schema.");
         }
     }
 }

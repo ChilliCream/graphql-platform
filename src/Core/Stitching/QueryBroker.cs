@@ -167,6 +167,7 @@ namespace HotChocolate.Stitching
         private OperationType GetOperationType(
             IDirectiveContext directiveContext)
         {
+            /*
             var directive = directiveContext.Directive
                 .ToObject<DelegateDirective>();
 
@@ -176,6 +177,8 @@ namespace HotChocolate.Stitching
             }
 
             return type;
+             */
+            throw new NotImplementedException();
         }
 
         private Stack<SelectionPathComponent> GetSelectionPath(

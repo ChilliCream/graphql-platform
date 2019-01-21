@@ -49,7 +49,7 @@ namespace HotChocolate.Stitching
                 .Any(t => t.IsSchemaDirective(schemaName));
         }
 
-        private IReadOnlyCollection<DirectiveNode> RemoveStitchingDirectives(
+        private IReadOnlyList<DirectiveNode> RemoveStitchingDirectives(
             IEnumerable<DirectiveNode> directives)
         {
             return directives.Where(t => !t.IsStitchingDirective()).ToList();
