@@ -25,6 +25,7 @@ namespace HotChocolate.Stitching
 
             if (directive != null)
             {
+
                 // fetch data from remote schema
             }
 

@@ -35,14 +35,13 @@ namespace HotChocolate.Stitching
         }
 
         public async Task InvokeAsync(IQueryContext context)
-        { 
+        {
             var httpClientFactory =
                 context.Services.GetRequiredService<IHttpClientFactory>();
 
             context.Result = await FetchAsync(
                 context.Request,
                 httpClientFactory.CreateClient());
-
         }
 
         private async Task<QueryResult> FetchAsync(
