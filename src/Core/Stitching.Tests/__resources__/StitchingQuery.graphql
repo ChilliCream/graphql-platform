@@ -4,5 +4,14 @@
     consultant {
       name
     }
+    contracts {
+      id
+      ... on LifeInsuranceContract {
+        premium
+      }
+      ... on SomeOtherContract {
+        expiryDate
+      }
+    }
   }
 }

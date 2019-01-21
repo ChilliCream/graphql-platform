@@ -1,0 +1,15 @@
+type Query {
+  customer(id: ID!): Customer
+  consultant(id: ID!) Consultant
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  consultant: Consultant
+}
+
+type Consultant {
+  id: ID!
+  name: String!
+}
