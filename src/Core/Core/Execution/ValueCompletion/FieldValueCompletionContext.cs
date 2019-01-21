@@ -21,19 +21,16 @@ namespace HotChocolate.Execution
             ResolverTask resolverTask,
             Action<ResolverTask> enqueueTask)
         {
-            if (resolverTask == null)
-            {
-                throw new ArgumentNullException(nameof(resolverTask));
-            }
-
-            _integrateResult = resolverTask.IntegrateResult;
-            _enqueueResolverTask = enqueueTask
-                ?? throw new ArgumentNullException(nameof(enqueueTask));
             ExecutionContext = executionContext
                 ?? throw new ArgumentNullException(nameof(executionContext));
             ResolverContext = resolverContext
                 ?? throw new ArgumentNullException(nameof(resolverContext));
-            _resolverTask = resolverTask;
+            _resolverTask = resolverTask
+                ?? throw new ArgumentNullException(nameof(resolverTask));
+            _enqueueResolverTask = enqueueTask
+                ?? throw new ArgumentNullException(nameof(enqueueTask));
+
+            _integrateResult = resolverTask.IntegrateResult;
 
             Source = resolverContext.Source;
             Selection = resolverTask.FieldSelection;
@@ -73,6 +70,7 @@ namespace HotChocolate.Execution
         {
             _integrateResult = addElementToList;
             _enqueueResolverTask = completionContext._enqueueResolverTask;
+            _resolverTask = completionContext._resolverTask;
 
             ExecutionContext = completionContext.ExecutionContext;
             ResolverContext = completionContext.ResolverContext;

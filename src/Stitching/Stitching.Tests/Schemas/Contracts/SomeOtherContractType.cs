@@ -8,6 +8,8 @@ namespace HotChocolate.Stitching.Schemas.Contracts
         protected override void Configure(
             IObjectTypeDescriptor<SomeOtherContract> descriptor)
         {
+            descriptor.Interface<ContractType>();
+
             descriptor.Field(t => t.Id)
                 .Type<NonNullType<IdType>>();
 

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
     public static class ContractSchemaFactory
@@ -6,11 +8,28 @@ namespace HotChocolate.Stitching.Schemas.Contracts
         {
             return Schema.Create(c =>
             {
-                c.RegisterQueryType<QueryType>();
-                c.RegisterType<LifeInsuranceContractType>();
-                c.RegisterType<SomeOtherContractType>();
-                c.UseGlobalObjectIdentifier();
+                ConfigureSchema(c);
             });
+        }
+
+        public static void ConfigureSchema(ISchemaConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                throw new System.ArgumentNullException(nameof(configuration));
+            }
+
+            configuration.RegisterQueryType<QueryType>();
+            configuration.RegisterType<LifeInsuranceContractType>();
+            configuration.RegisterType<SomeOtherContractType>();
+
+            configuration.UseGlobalObjectIdentifier();
+        }
+
+        public static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<ContractStorage>();
+            services.AddSingleton<Query>();
         }
     }
 }

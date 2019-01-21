@@ -16,6 +16,16 @@ namespace HotChocolate.Execution
     {
         public static IQueryExecutionBuilder UseStitchingPipeline(
             this IQueryExecutionBuilder builder,
+            string schemaName)
+        {
+            return UseStitchingPipeline(
+                builder,
+                new QueryExecutionOptions(),
+                schemaName);
+        }
+
+        public static IQueryExecutionBuilder UseStitchingPipeline(
+            this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options,
             string schemaName)
         {
@@ -71,7 +81,8 @@ namespace HotChocolate.Execution
                     nameof(schemaName));
             }
 
-            return builder.Use<RemoteQueryMiddleware>();
+            return builder.Use((services, next) =>
+                new RemoteQueryMiddleware(next, schemaName));
         }
     }
 }
