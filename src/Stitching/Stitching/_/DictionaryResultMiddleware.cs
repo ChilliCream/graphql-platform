@@ -1,0 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
+
+namespace HotChocolate.Stitching
+{
+    public class DictionaryResultMiddleware
+    {
+        private readonly FieldDelegate _next;
+        private static readonly NameString _delegateName = "delegate";
+
+        public DictionaryResultMiddleware(FieldDelegate next)
+        {
+            _next = next ?? throw new ArgumentNullException(nameof(next));
+        }
+
+        public Task InvokeAsync(IMiddlewareContext context)
+        {
+            if (context.Result is null
+                && context.Parent<object>() is IDictionary<string, object> dict)
+            {
+                string responseName = context.FieldSelection.Alias == null
+                    ? context.FieldSelection.Name.Value
+                    : context.FieldSelection.Alias.Value;
+
+                if (dict.TryGetValue(responseName, out object obj))
+                {
+                    context.Result = obj;
+                }
+            }
+
+            return _next.Invoke(context);
+        }
+    }
+}

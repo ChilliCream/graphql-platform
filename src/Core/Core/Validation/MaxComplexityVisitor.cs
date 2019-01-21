@@ -144,11 +144,18 @@ namespace HotChocolate.Validation
         {
             MaxComplexityVisitorContext newContext = context;
 
+            if(context.FragmentPath.Contains(node.Name.Value))
+            {
+                return;
+            }
+
             if (newContext.Schema.TryGetType(
                 node.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
-                newContext = newContext.SetTypeContext(type);
+                newContext = newContext
+                    .AddFragment(node)
+                    .SetTypeContext(type);
             }
 
             base.VisitFragmentDefinition(node, newContext);

@@ -25,7 +25,7 @@ namespace HotChocolate.Stitching
             return ParseSelectionPath(source, start, ParserOptions.Default);
         }
 
-        // TODO : we have to fix this on another way without having to duplicate to much lexer code.
+        // TODO : we have to fix this another way without having to duplicate to much lexer code.
         private static ISource RemoveDots(ISource source)
         {
             var stringBuilder = new StringBuilder();
