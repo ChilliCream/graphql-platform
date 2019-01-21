@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Configuration;
 
 namespace HotChocolate

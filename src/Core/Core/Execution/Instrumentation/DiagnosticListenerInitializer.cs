@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void Start()
+        public void Initialize()
         {
             _subscriptions.Add(
                 DiagnosticListener.AllListeners.Subscribe(this));
