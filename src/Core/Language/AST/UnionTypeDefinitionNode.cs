@@ -10,8 +10,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<NamedTypeNode> types)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<NamedTypeNode> types)
             : base(location, name, directives, types)
         {
             Description = description;
@@ -44,7 +44,7 @@ namespace HotChocolate.Language
         }
 
         public UnionTypeDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new UnionTypeDefinitionNode(
                 Location, Name, Description,
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
         }
 
         public UnionTypeDefinitionNode WithTypes(
-            IReadOnlyCollection<NamedTypeNode> types)
+            IReadOnlyList<NamedTypeNode> types)
         {
             return new UnionTypeDefinitionNode(
                 Location, Name, Description,

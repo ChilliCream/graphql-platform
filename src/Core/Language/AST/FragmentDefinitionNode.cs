@@ -10,23 +10,23 @@ namespace HotChocolate.Language
         public FragmentDefinitionNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<VariableDefinitionNode> variableDefinitions,
+            IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             NamedTypeNode typeCondition,
-            IReadOnlyCollection<DirectiveNode> directives,
+            IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
             : base(location, name, directives)
         {
-            VariableDefinitions = variableDefinitions 
+            VariableDefinitions = variableDefinitions
                 ?? throw new ArgumentNullException(nameof(variableDefinitions));
-            TypeCondition = typeCondition 
+            TypeCondition = typeCondition
                 ?? throw new ArgumentNullException(nameof(typeCondition));
-            SelectionSet = selectionSet 
+            SelectionSet = selectionSet
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
         public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
 
-        public IReadOnlyCollection<VariableDefinitionNode> VariableDefinitions
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
         { get; }
 
         public NamedTypeNode TypeCondition { get; }
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
         }
 
         public FragmentDefinitionNode WithVariableDefinitions(
-            IReadOnlyCollection<VariableDefinitionNode> variableDefinitions)
+            IReadOnlyList<VariableDefinitionNode> variableDefinitions)
         {
             return new FragmentDefinitionNode(
                 Location, Name,
@@ -71,7 +71,7 @@ namespace HotChocolate.Language
         }
 
         public FragmentDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new FragmentDefinitionNode(
                 Location, Name,

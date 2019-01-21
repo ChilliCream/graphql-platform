@@ -11,8 +11,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             NameNode alias,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<ArgumentNode> arguments,
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<ArgumentNode> arguments,
             SelectionSetNode selectionSet)
             : base(location, name, directives)
         {
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
         public NameNode Alias { get; }
 
-        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        public IReadOnlyList<ArgumentNode> Arguments { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
@@ -50,14 +50,14 @@ namespace HotChocolate.Language
         }
 
         public FieldNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new FieldNode(Location, Name, Alias,
                 directives, Arguments, SelectionSet);
         }
 
         public FieldNode WithArguments(
-            IReadOnlyCollection<ArgumentNode> arguments)
+            IReadOnlyList<ArgumentNode> arguments)
         {
             return new FieldNode(Location, Name, Alias,
                 Directives, arguments, SelectionSet);

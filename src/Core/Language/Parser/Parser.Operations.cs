@@ -236,7 +236,7 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses a collection of arguments.
-        /// <see cref="IReadOnlyCollection{ArgumentNode}" />:
+        /// <see cref="IReadOnlyList{ArgumentNode}" />:
         /// ( Argument[isConstant]+ )
         /// </summary>
         /// <param name="context">The parser context.</param>

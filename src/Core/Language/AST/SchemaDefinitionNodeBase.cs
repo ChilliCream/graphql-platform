@@ -8,13 +8,13 @@ namespace HotChocolate.Language
     {
         protected SchemaDefinitionNodeBase(
             Location location,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
         {
             Location = location;
-            Directives = directives 
+            Directives = directives
                 ?? throw new ArgumentNullException(nameof(directives));
-            OperationTypes = operationTypes 
+            OperationTypes = operationTypes
                 ?? throw new ArgumentNullException(nameof(operationTypes));
         }
 
@@ -22,9 +22,9 @@ namespace HotChocolate.Language
 
         public Location Location { get; }
 
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyList<DirectiveNode> Directives { get; }
 
-        public IReadOnlyCollection<OperationTypeDefinitionNode> OperationTypes
+        public IReadOnlyList<OperationTypeDefinitionNode> OperationTypes
         { get; }
     }
 }

@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         public InterfaceTypeExtensionNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<FieldDefinitionNode> fields)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<FieldDefinitionNode> fields)
             : base(location, name, directives, fields)
         {
         }
@@ -31,14 +31,14 @@ namespace HotChocolate.Language
         }
 
         public InterfaceTypeExtensionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new InterfaceTypeExtensionNode(
                 Location, Name, directives, Fields);
         }
 
         public InterfaceTypeExtensionNode WithFields(
-            IReadOnlyCollection<FieldDefinitionNode> fields)
+            IReadOnlyList<FieldDefinitionNode> fields)
         {
             return new InterfaceTypeExtensionNode(
                 Location, Name, Directives, fields);

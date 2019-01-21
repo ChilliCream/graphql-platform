@@ -336,7 +336,7 @@ namespace HotChocolate.Language
         }
 
         private void WriteDirectives(
-            IReadOnlyCollection<DirectiveNode> directives,
+            IReadOnlyList<DirectiveNode> directives,
             DocumentWriter writer)
         {
             if (directives.Any())

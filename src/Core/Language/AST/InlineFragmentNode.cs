@@ -9,14 +9,14 @@ namespace HotChocolate.Language
         public InlineFragmentNode(
             Location location,
             NamedTypeNode typeCondition,
-            IReadOnlyCollection<DirectiveNode> directives,
+            IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
             Location = location;
             TypeCondition = typeCondition;
-            Directives = directives 
+            Directives = directives
                 ?? throw new ArgumentNullException(nameof(directives));
-            SelectionSet = selectionSet 
+            SelectionSet = selectionSet
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
         public NamedTypeNode TypeCondition { get; }
 
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyList<DirectiveNode> Directives { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Language
         }
 
         public InlineFragmentNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new InlineFragmentNode(
                 Location, TypeCondition,
