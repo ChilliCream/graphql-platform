@@ -12,7 +12,7 @@ namespace HotChocolate.Stitching
         private const string _extensions = "extensions";
         private const string _errors = "errors";
 
-        public static IReadOnlyQueryResult Deserialize(
+        public static QueryResult Deserialize(
             JObject serializedResult)
         {
             var result = new QueryResult();
