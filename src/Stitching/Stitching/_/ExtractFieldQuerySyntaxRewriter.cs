@@ -112,7 +112,10 @@ namespace HotChocolate.Stitching
             var selections = new List<ISelectionNode>(current.Selections);
 
             ISet<string> dependencies =
-                RemoveDelegationFields(node, context, selections);
+                _dependencyResolver.GetFieldDependencies(
+                    context.Document, current, context.TypeContext);
+
+            RemoveDelegationFields(node, context, selections);
             AddDependencies(selections, dependencies);
 
             if (!dependencies.Contains(_typeNameField))
@@ -125,13 +128,11 @@ namespace HotChocolate.Stitching
             return base.RewriteSelectionSet(current, context);
         }
 
-        private ISet<string> RemoveDelegationFields(
+        private void RemoveDelegationFields(
             SelectionSetNode node,
             Context context,
             ICollection<ISelectionNode> selections)
         {
-            HashSet<string> dependencies = new HashSet<string>();
-
             if (context.TypeContext is IComplexOutputType type)
             {
                 foreach (FieldNode selection in node.Selections
@@ -141,15 +142,10 @@ namespace HotChocolate.Stitching
                         out IOutputField field)
                         && field.Directives.Contains(DirectiveNames.Delegate))
                     {
-                        dependencies.UnionWith(
-                            _dependencyResolver.GetFieldDependencies(
-                                context.Document, selection, type));
                         selections.Remove(selection);
                     }
                 }
             }
-
-            return dependencies;
         }
 
         private void AddDependencies(
@@ -167,7 +163,7 @@ namespace HotChocolate.Stitching
             return new FieldNode
             (
                 null,
-                new NameNode(_typeNameField),
+                new NameNode(fieldName),
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),

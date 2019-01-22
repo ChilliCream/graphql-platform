@@ -47,6 +47,33 @@ namespace HotChocolate.Stitching
             return context.Dependencies;
         }
 
+        public ISet<string> GetFieldDependencies(
+            DocumentNode document,
+            SelectionSetNode selectionSet,
+            INamedOutputType declaringType)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (selectionSet == null)
+            {
+                throw new ArgumentNullException(nameof(selectionSet));
+            }
+
+            if (declaringType == null)
+            {
+                throw new ArgumentNullException(nameof(declaringType));
+            }
+
+            var context = Context.New(declaringType, GetFragments(document));
+
+            VisitSelectionSet(selectionSet, context);
+
+            return context.Dependencies;
+        }
+
         private IDictionary<string, FragmentDefinitionNode> GetFragments(
             DocumentNode document)
         {

@@ -16,7 +16,7 @@ namespace HotChocolate.Stitching
         private readonly List<FragmentDefinitionNode> _fragments =
             new List<FragmentDefinitionNode>();
         private OperationType _operation = OperationType.Query;
-        private Stack<SelectionPathComponent> _path;
+        private IReadOnlyCollection<SelectionPathComponent> _path;
         private FieldNode _requestField;
 
         public RemoteQueryBuilder SetOperation(
@@ -27,7 +27,7 @@ namespace HotChocolate.Stitching
         }
 
         public RemoteQueryBuilder SetSelectionPath(
-            Stack<SelectionPathComponent> selectionPath)
+            IReadOnlyCollection<SelectionPathComponent> selectionPath)
         {
             if (selectionPath == null)
             {
@@ -147,22 +147,24 @@ namespace HotChocolate.Stitching
 
         private DocumentNode CreateDelegationQuery(
             OperationType operation,
-            Stack<SelectionPathComponent> path,
+            IReadOnlyCollection<SelectionPathComponent> path,
             FieldNode requestedField,
             List<VariableDefinitionNode> variables)
         {
+            var stack = new Stack<SelectionPathComponent>(path);
+
             if (!path.Any())
             {
-                path.Push(new SelectionPathComponent(
+                stack.Push(new SelectionPathComponent(
                     requestedField.Name,
                     Array.Empty<ArgumentNode>()));
             }
 
-            FieldNode current = CreateRequestedField(path, requestedField);
+            FieldNode current = CreateRequestedField(stack, requestedField);
 
             while (path.Any())
             {
-                current = CreateSelection(current, path.Pop());
+                current = CreateSelection(current, stack.Pop());
             }
 
             var definitions = new List<IDefinitionNode>();

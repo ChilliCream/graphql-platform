@@ -39,24 +39,18 @@ namespace HotChocolate.Stitching
                 .SelectionSet.Selections
                 .OfType<FieldNode>().Single();
 
-            var queryBuilder = new RemoteQueryBuilder();
-            queryBuilder.SetOperation(OperationType.Query);
-            queryBuilder.SetSelectionPath(path);
-            queryBuilder.SetRequestField(field);
-            queryBuilder.AddVariable("fields_bar",
-                new NamedTypeNode(null, new NameNode("String")));
 
             // act
-            DocumentNode newQuery = queryBuilder.Build();
+            DocumentNode newQuery = RemoteQueryBuilder.New()
+                .SetOperation(OperationType.Query)
+                .SetSelectionPath(path)
+                .SetRequestField(field)
+                .AddVariable("fields_bar",
+                    new NamedTypeNode(null, new NameNode("String")))
+                .Build();
 
             // assert
-            var text = new StringBuilder();
-            var serializer = new QuerySyntaxSerializer(true);
-            serializer.Visit(
-                newQuery,
-                new DocumentWriter(new StringWriter(text)));
-
-            text.ToString().Snapshot();
+            QuerySyntaxSerializer.Serialize(newQuery).Snapshot();
         }
     }
 }

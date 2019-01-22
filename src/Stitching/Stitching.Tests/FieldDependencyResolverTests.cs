@@ -13,6 +13,7 @@ namespace HotChocolate.Stitching
         [Fact]
         public void GetFieldDependencies()
         {
+            // arrange
             ISchema schema = Schema.Create(
                 FileResource.Open("Stitching.graphql"),
                 c =>
@@ -31,6 +32,7 @@ namespace HotChocolate.Stitching
                 .SelectionSet.Selections
                 .OfType<FieldNode>().Single();
 
+            // act
             var fieldDependencyResolver = new FieldDependencyResolver(schema);
             ISet<string> dependencies = fieldDependencyResolver
                 .GetFieldDependencies(
@@ -38,6 +40,7 @@ namespace HotChocolate.Stitching
                     selection,
                     schema.GetType<ObjectType>("Customer"));
 
+            // assert
             dependencies.Snapshot();
         }
     }
