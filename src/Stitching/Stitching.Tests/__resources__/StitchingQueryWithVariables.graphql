@@ -1,0 +1,17 @@
+query customer_query($customerId: ID!) {
+  customer(id: $customerId) {
+    name
+    consultant {
+      name
+    }
+    contracts {
+      id
+      ... on LifeInsuranceContract {
+        premium
+      }
+      ... on SomeOtherContract {
+        expiryDate
+      }
+    }
+  }
+}

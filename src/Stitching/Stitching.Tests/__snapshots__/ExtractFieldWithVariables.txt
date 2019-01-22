@@ -1,5 +1,5 @@
-query fetch {
-  customer(id: "12345") {
+query fetch($customerId: ID!) {
+  customer(id: $customerId) {
     name
     consultant {
       name

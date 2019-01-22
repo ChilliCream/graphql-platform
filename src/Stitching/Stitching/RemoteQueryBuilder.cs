@@ -57,10 +57,9 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public RemoteQueryBuilder AddVariable(NameString name, ITypeNode type)
-        {
-            return AddVariable(name, type, null);
-        }
+        public RemoteQueryBuilder AddVariable(
+            NameString name, ITypeNode type) =>
+            AddVariable(name, type, null);
 
         public RemoteQueryBuilder AddVariable(
             NameString name,
@@ -123,7 +122,6 @@ namespace HotChocolate.Stitching
 
             return this;
         }
-
 
         public DocumentNode Build()
         {
@@ -188,14 +186,24 @@ namespace HotChocolate.Stitching
                 ? requestedField.Name.Value
                 : requestedField.Alias.Value;
 
-            string alias = component.Name.Value.EqualsOrdinal(responseName)
+            var alias = component.Name.Value.EqualsOrdinal(responseName)
                 ? null
-                : responseName;
+                : new NameNode(responseName);
 
-            return CreateSelection(
-                requestedField.SelectionSet,
-                component,
-                alias);
+            IReadOnlyList<ArgumentNode> arguments =
+                component.Arguments.Count == 0
+                ? requestedField.Arguments
+                : RewriteVariableNames(component.Arguments).ToList();
+
+            return new FieldNode
+            (
+                null,
+                component.Name,
+                alias,
+                Array.Empty<DirectiveNode>(),
+                arguments,
+                requestedField.SelectionSet
+            );
         }
 
         private FieldNode CreateSelection(
