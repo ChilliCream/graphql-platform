@@ -34,11 +34,6 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (variables == null)
-            {
-                throw new ArgumentNullException(nameof(variables));
-            }
-
             context.ContextData[_variables] = variables;
         }
     }

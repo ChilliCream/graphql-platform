@@ -27,6 +27,24 @@ namespace HotChocolate.Stitching
         private TestServerFactory TestServerFactory { get; set; }
 
         [Fact]
+
+        public async Task Bar()
+        {
+            var x = "query fetch {\n  customer(id: \"1\") {\n    name\n    consultant {\n      name\n      __typename\n    }\n    id\n    __typename\n  }\n}";
+            ISchema schema = CustomerSchemaFactory.Create();
+            var serviceCollection = new ServiceCollection();
+            CustomerSchemaFactory.ConfigureServices(serviceCollection);
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(
+                new QueryRequest(x)
+                {
+                    Services = serviceCollection.BuildServiceProvider()
+                });
+            result.Snapshot();
+        }
+
+        [Fact]
         public async Task Foo()
         {
             TestServer server_contracts = TestServerFactory.Create(
@@ -43,7 +61,7 @@ namespace HotChocolate.Stitching
             httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
                 .Returns(new Func<string, HttpClient>(n =>
                 {
-                    return n.Equals("contracts")
+                    return n.Equals("contract")
                         ? server_contracts.CreateClient()
                         : server_customers.CreateClient();
                 }));
@@ -64,10 +82,10 @@ namespace HotChocolate.Stitching
                 });
 
             var executors = new Dictionary<string, IQueryExecutor>();
-            executors["contracts"] = schema_contracts
-                .MakeExecutable(b => b.UseStitchingPipeline("contracts"));
-            executors["customers"] = schema_customers
-                .MakeExecutable(b => b.UseStitchingPipeline("customers"));
+            executors["contract"] = schema_contracts
+                .MakeExecutable(b => b.UseStitchingPipeline("contract"));
+            executors["customer"] = schema_customers
+                .MakeExecutable(b => b.UseStitchingPipeline("customer"));
 
             var services = new ServiceCollection();
             services.AddSingleton(httpClientFactory.Object);
@@ -89,7 +107,10 @@ namespace HotChocolate.Stitching
                 b.Use<CopyVariablesToResolverContext>().UseDefaultPipeline());
 
             IExecutionResult result = await executor.ExecuteAsync(
-                FileResource.Open("StitchingQuery.graphql"));
+                new QueryRequest(FileResource.Open("StitchingQuery.graphql"))
+                {
+                    Services = services.BuildServiceProvider()
+                });
 
             result.Snapshot();
         }

@@ -54,12 +54,9 @@ namespace HotChocolate.Stitching
                     .AddFragmentDefinitions(extractedField.Fragments)
                     .Build();
 
-                var queryText = new StringBuilder();
-                var writer = new DocumentWriter(new StringWriter(queryText));
-                var serializer = new QuerySyntaxSerializer();
-                serializer.Visit(query, writer);
+                string queryText = QuerySyntaxSerializer.Serialize(query);
 
-                var request = new QueryRequest(queryText.ToString());
+                var request = new QueryRequest(queryText);
                 request.VariableValues =
                     CreateVariables(context, path, extractedField);
                 request.Services = context.Service<IServiceProvider>();
@@ -93,6 +90,11 @@ namespace HotChocolate.Stitching
             IReadOnlyDictionary<string, object> data,
             int levels)
         {
+            if (data.Count == 0)
+            {
+                return null;
+            }
+
             if (levels > 1)
             {
                 IReadOnlyDictionary<string, object> current = data;
@@ -156,7 +158,7 @@ namespace HotChocolate.Stitching
                                 root[sv.ToVariableName()] =
                                     variables[sv.Name.Value];
                                 break;
-                            case "properties":
+                            case "fields":
                                 root[sv.ToVariableName()] = context
                                     .Parent<IReadOnlyDictionary<string, object>>()
                                         [sv.Name.Value];

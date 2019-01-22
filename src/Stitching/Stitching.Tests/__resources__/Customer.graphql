@@ -1,6 +1,6 @@
 type Query {
   customer(id: ID!): Customer
-  consultant(id: ID!) Consultant
+  consultant(id: ID!): Consultant
 }
 
 type Customer {

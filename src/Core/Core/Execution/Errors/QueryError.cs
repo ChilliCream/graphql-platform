@@ -341,8 +341,12 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
+            ImmutableDictionary<string, object> dict = _extensions == null
+                ? ImmutableDictionary<string, object>.Empty
+                : _extensions.ToImmutableDictionary();
+
             return new QueryError(Message, Path, Locations,
-                _extensions.SetItem(key, value));
+                dict.SetItem(key, value));
         }
 
         public IError RemoveExtension(string key)
@@ -352,8 +356,12 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
+            ImmutableDictionary<string, object> dict = _extensions == null
+                ? ImmutableDictionary<string, object>.Empty
+                : _extensions.ToImmutableDictionary();
+
             return new QueryError(Message, Path, Locations,
-                _extensions.Remove(key));
+                dict.Remove(key));
         }
 
         #endregion
