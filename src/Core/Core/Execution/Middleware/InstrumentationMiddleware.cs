@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
@@ -17,10 +17,9 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            DiagnosticListenerInitializer initializer = context.Services
-                .GetRequiredService<DiagnosticListenerInitializer>();
-
-            initializer.Start();
+            context.Services
+                .GetRequiredService<DiagnosticListenerInitializer>()
+                .Initialize();
 
             Activity activity = QueryDiagnosticEvents.BeginExecute(context);
 

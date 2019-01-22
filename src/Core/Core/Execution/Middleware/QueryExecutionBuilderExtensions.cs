@@ -349,6 +349,75 @@ namespace HotChocolate.Execution
             return AddParser<DefaultQueryParser>(builder);
         }
 
+        public static IQueryExecutionBuilder AddErrorHandler(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder
+                .RemoveService<IErrorHandler>();
+            builder.Services
+                .AddSingleton<IErrorHandler, ErrorHandler>();
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
+            Func<IError, Exception, IError> errorFilter)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (errorFilter == null)
+            {
+                throw new ArgumentNullException(nameof(errorFilter));
+            }
+
+            builder.Services.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter));
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, IErrorFilter> factory)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            builder.Services.AddSingleton(factory);
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter<T>(
+            this IQueryExecutionBuilder builder)
+            where T : class, IErrorFilter
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.Services.AddSingleton<IErrorFilter, T>();
+
+            return builder;
+        }
+
         public static IQueryExecutionBuilder AddOptions(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
@@ -475,71 +544,61 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddErrorHandler(
+        /// <summary>
+        /// Adds a scoped service of the type <see cref="DiagnosticListener"/>
+        /// with an implementation type specified in <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// A service type which derives from <see cref="DiagnosticListener"/>.
+        /// </typeparam>
+        /// <param name="builder">
+        /// The <see cref="IQueryExecutionBuilder"/> instance which holds the
+        /// <see cref="IServiceCollection"/> to add the service to.
+        /// </param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        public static IQueryExecutionBuilder AddScopedDiagnosticListener<T>(
             this IQueryExecutionBuilder builder)
+                where T : DiagnosticListener
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder
-                .RemoveService<IErrorHandler>();
-            builder.Services
-                .AddSingleton<IErrorHandler, ErrorHandler>();
+            builder.RemoveService<T>();
+            builder.Services.AddScoped<DiagnosticListener, T>();
 
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddErrorFilter(
-            this IQueryExecutionBuilder builder,
-            Func<IError, Exception, IError> errorFilter)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (errorFilter == null)
-            {
-                throw new ArgumentNullException(nameof(errorFilter));
-            }
-
-            builder.Services.AddSingleton<IErrorFilter>(
-                new FuncErrorFilterWrapper(errorFilter));
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddErrorFilter(
-            this IQueryExecutionBuilder builder,
-            Func<IServiceProvider, IErrorFilter> factory)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            builder.Services.AddSingleton(factory);
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddErrorFilter<T>(
+        /// <summary>
+        /// Adds a singleton service of the type
+        /// <see cref="DiagnosticListener"/> with an implementation type
+        /// specified in <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// A service type which derives from <see cref="DiagnosticListener"/>.
+        /// </typeparam>
+        /// <param name="builder">
+        /// The <see cref="IQueryExecutionBuilder"/> instance which holds the
+        /// <see cref="IServiceCollection"/> to add the service to.
+        /// </param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        public static IQueryExecutionBuilder AddSingletonDiagnosticListener<T>(
             this IQueryExecutionBuilder builder)
-            where T : class, IErrorFilter
+                where T : DiagnosticListener
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.Services.AddSingleton<IErrorFilter, T>();
+            builder.RemoveService<T>();
+            builder.Services.AddSingleton<DiagnosticListener, T>();
 
             return builder;
         }
