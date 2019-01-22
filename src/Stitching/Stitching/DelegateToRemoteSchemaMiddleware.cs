@@ -15,6 +15,8 @@ namespace HotChocolate.Stitching
 {
     public class DelegateToRemoteSchemaMiddleware
     {
+        private static readonly RootScopedVariableResolver _resolvers =
+            new RootScopedVariableResolver();
         private readonly FieldDelegate _next;
 
         public DelegateToRemoteSchemaMiddleware(FieldDelegate next)
@@ -39,51 +41,69 @@ namespace HotChocolate.Stitching
                     ? ImmutableStack<SelectionPathComponent>.Empty
                     : SelectionPathParser.Parse(delegateDirective.Path);
 
-                var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
-                    context.Schema);
+                QueryRequest request = CreateQuery(context, path);
 
-                ExtractedField extractedField = fieldRewriter.ExtractField(
-                    context.QueryDocument, context.Operation,
-                    context.FieldSelection, context.ObjectType);
+                IReadOnlyQueryResult result = await ExecuteQueryAsync(
+                    context, request, schemaDirective.Name)
+                    .ConfigureAwait(false);
 
-                DocumentNode query = RemoteQueryBuilder.New()
-                    .SetOperation(context.Operation.Operation)
-                    .SetSelectionPath(path)
-                    .SetRequestField(extractedField.Field)
-                    .AddVariables(extractedField.Variables)
-                    .AddFragmentDefinitions(extractedField.Fragments)
-                    .Build();
-
-                string queryText = QuerySyntaxSerializer.Serialize(query);
-
-                var request = new QueryRequest(queryText);
-                request.VariableValues =
-                    CreateVariables(context, path, extractedField);
-                request.Services = context.Service<IServiceProvider>();
-
-                IQueryExecutor remoteExecutor =
-                    context.Service<IStitchingContext>()
-                        .GetQueryExecutor(schemaDirective.Name);
-
-                IExecutionResult result =
-                    await remoteExecutor.ExecuteAsync(request)
-                        .ConfigureAwait(false);
-
-                if (result is IReadOnlyQueryResult queryResult)
-                {
-                    context.Result = ExtractData(
-                        queryResult.Data, path.Count());
-                    ReportErrors(context, queryResult.Errors);
-                }
-                else
-                {
-                    throw new QueryException(
-                        "Only query results are supported in the " +
-                        "delegation middleware.");
-                }
+                context.Result = ExtractData(result.Data, path.Count());
+                ReportErrors(context, result.Errors);
             }
 
             await _next.Invoke(context);
+        }
+
+        private static QueryRequest CreateQuery(
+            IMiddlewareContext context,
+            IImmutableStack<SelectionPathComponent> path)
+        {
+            var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
+                context.Schema);
+
+            ExtractedField extractedField = fieldRewriter.ExtractField(
+                    context.QueryDocument, context.Operation,
+                    context.FieldSelection, context.ObjectType);
+
+            IReadOnlyCollection<VariableValue> variableValues =
+                CreateVariableValues(context, path, extractedField);
+
+            DocumentNode query = RemoteQueryBuilder.New()
+                .SetOperation(context.Operation.Operation)
+                .SetSelectionPath(path)
+                .SetRequestField(extractedField.Field)
+                .AddVariables(CreateVariableDefs(variableValues))
+                .AddFragmentDefinitions(extractedField.Fragments)
+                .Build();
+
+            return new QueryRequest(QuerySyntaxSerializer.Serialize(query))
+            {
+                VariableValues = CreateVariables(variableValues),
+                Services = context.Service<IServiceProvider>()
+            };
+        }
+
+        private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
+            IMiddlewareContext context,
+            QueryRequest request,
+            string schemaName)
+        {
+            IQueryExecutor remoteExecutor =
+                context.Service<IStitchingContext>()
+                    .GetQueryExecutor(schemaName);
+
+            IExecutionResult result =
+                await remoteExecutor.ExecuteAsync(request)
+                    .ConfigureAwait(false);
+
+            if (result is IReadOnlyQueryResult queryResult)
+            {
+                return queryResult;
+            }
+
+            throw new QueryException(
+                "Only query results are supported in the " +
+                "delegation middleware.");
         }
 
         private IReadOnlyDictionary<string, object> ExtractData(
@@ -95,13 +115,14 @@ namespace HotChocolate.Stitching
                 return null;
             }
 
-            if (levels > 1)
-            {
-                IReadOnlyDictionary<string, object> current = data;
+            object obj = data.Count == 0 ? null : data.First().Value;
+            var current = obj as IReadOnlyDictionary<string, object>;
 
+            if (current != null && levels > 1)
+            {
                 for (int i = levels; i >= 1; i--)
                 {
-                    object obj = data.Count == 0 ? null : data.First().Value;
+                    obj = current.Count == 0 ? null : current.First().Value;
                     if (obj is IReadOnlyDictionary<string, object> next)
                     {
                         current = next;
@@ -111,11 +132,9 @@ namespace HotChocolate.Stitching
                         return null;
                     }
                 }
-
-                return current;
             }
 
-            return data;
+            return current;
         }
 
         private void ReportErrors(
@@ -130,54 +149,93 @@ namespace HotChocolate.Stitching
             }
         }
 
-        // TODO : refactor this one
-        private static IReadOnlyDictionary<string, object> CreateVariables(
+        private static IReadOnlyCollection<VariableValue> CreateVariableValues(
             IMiddlewareContext context,
             IEnumerable<SelectionPathComponent> components,
             ExtractedField extractedField)
         {
-            var root = new Dictionary<string, object>();
+            var values = new Dictionary<string, VariableValue>();
 
-            IReadOnlyDictionary<string, object> variables =
+            IReadOnlyDictionary<string, object> requestVariables =
                 context.GetVariables();
 
+            foreach (VariableValue value in ResolveScopedVariables(
+                context, components, requestVariables))
+            {
+                values[value.Name] = value;
+            }
+
+            foreach (VariableValue value in ResolveUsedRequestVariables(
+                context, extractedField, requestVariables))
+            {
+                values[value.Name] = value;
+            }
+
+            return values.Values;
+        }
+
+        private static IEnumerable<VariableValue> ResolveScopedVariables(
+            IMiddlewareContext context,
+            IEnumerable<SelectionPathComponent> components,
+            IReadOnlyDictionary<string, object> requestVariables)
+        {
             foreach (var component in components)
             {
                 foreach (ArgumentNode argument in component.Arguments)
                 {
                     if (argument.Value is ScopedVariableNode sv)
                     {
-                        switch (sv.Scope.Value)
-                        {
-                            case "arguments":
-                                root[sv.ToVariableName()] =
-                                    context.Argument<object>(
-                                        sv.Name.Value);
-                                break;
-                            case "variables":
-                                root[sv.ToVariableName()] =
-                                    variables[sv.Name.Value];
-                                break;
-                            case "fields":
-                                root[sv.ToVariableName()] = context
-                                    .Parent<IReadOnlyDictionary<string, object>>()
-                                        [sv.Name.Value];
-                                break;
-                            default:
-                                throw new NotSupportedException();
-                        }
+                        yield return _resolvers.Resolve(
+                            context, requestVariables, sv);
                     }
                 }
             }
+        }
 
+        private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
+            IMiddlewareContext context,
+            ExtractedField extractedField,
+            IReadOnlyDictionary<string, object> requestVariables)
+        {
             foreach (VariableDefinitionNode variable in
                 extractedField.Variables)
             {
-                root[variable.Variable.Name.Value] =
-                    variables[variable.Variable.Name.Value];
+                string name = variable.Variable.Name.Value;
+                requestVariables.TryGetValue(name, out object value);
+
+                yield return new VariableValue
+                (
+                    name,
+                    variable.Type,
+                    value,
+                    variable.DefaultValue
+                );
+            }
+        }
+
+        private static IReadOnlyDictionary<string, object> CreateVariables(
+            IReadOnlyCollection<VariableValue> variableValues)
+        {
+            return variableValues.ToDictionary(t => t.Name, t => t.Value);
+        }
+
+        private static IReadOnlyList<VariableDefinitionNode> CreateVariableDefs(
+            IReadOnlyCollection<VariableValue> variableValues)
+        {
+            var definitions = new List<VariableDefinitionNode>();
+
+            foreach (VariableValue variableValue in variableValues)
+            {
+                definitions.Add(new VariableDefinitionNode(
+                    null,
+                    new VariableNode(new NameNode(variableValue.Name)),
+                    variableValue.Type,
+                    variableValue.DefaultValue
+                ));
             }
 
-            return root;
+            return definitions;
         }
     }
+
 }

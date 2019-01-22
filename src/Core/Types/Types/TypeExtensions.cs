@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -266,6 +267,28 @@ namespace HotChocolate.Types
             }
 
             throw new NotSupportedException();
+        }
+
+        public static ITypeNode ToTypeNode(this IType type)
+        {
+            if (type is NonNullType nnt
+                && ToTypeNode(nnt.Type) is INullableTypeNode nntn)
+            {
+                return new NonNullTypeNode(null, nntn);
+            }
+
+            if (type is ListType lt)
+            {
+                return new ListTypeNode(null, ToTypeNode(lt.ElementType));
+            }
+
+            if (type is INamedType nt)
+            {
+                return new NamedTypeNode(null, new NameNode(nt.Name));
+            }
+
+            throw new NotSupportedException(
+                "The specified type kind is not supported.");
         }
     }
 }

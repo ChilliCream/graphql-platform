@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     {
         public NonNullTypeNode(
             Location location,
-            INullableType type)
+            INullableTypeNode type)
         {
             Location = location;
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -17,7 +17,7 @@ namespace HotChocolate.Language
 
         public Location Location { get; }
 
-        public INullableType Type { get; }
+        public INullableTypeNode Type { get; }
 
         public override string ToString()
         {
@@ -29,7 +29,7 @@ namespace HotChocolate.Language
             return new NonNullTypeNode(location, Type);
         }
 
-        public NonNullTypeNode WithType(INullableType type)
+        public NonNullTypeNode WithType(INullableTypeNode type)
         {
             return new NonNullTypeNode(Location, Type);
         }

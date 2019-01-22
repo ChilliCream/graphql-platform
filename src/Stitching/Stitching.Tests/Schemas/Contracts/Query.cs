@@ -36,8 +36,10 @@ namespace HotChocolate.Stitching.Schemas.Contracts
 
         public IEnumerable<IContract> GetContracts(string customerId)
         {
+            IdValue value = _idSerializer.Deserialize(customerId);
+
             return _contractStorage.Contracts
-                .Where(t => t.CustomerId.Equals(customerId));
+                .Where(t => t.CustomerId.Equals(value.Value));
         }
     }
 }

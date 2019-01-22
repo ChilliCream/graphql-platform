@@ -1,6 +1,6 @@
 type Query {
   contract(contractId: ID!): Contract
-  contracts(customerId: String!): [Contract!]
+  contracts(customerId: ID!): [Contract!]
 }
 
 interface Contract {

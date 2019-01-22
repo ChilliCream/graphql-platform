@@ -8,6 +8,7 @@ using HotChocolate.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -30,16 +31,20 @@ namespace HotChocolate.Stitching
 
         public async Task Bar()
         {
-            var x = "query fetch {\n  customer(id: \"1\") {\n    name\n    consultant {\n      name\n      __typename\n    }\n    id\n    __typename\n  }\n}";
-            ISchema schema = CustomerSchemaFactory.Create();
+            IdSerializer s = new IdSerializer();
+            string id = s.Serialize("Customer", "1");
+
+            var x = "query fetch {\n  contracts(customerId: $fields_id) {\n    id\n    ... on LifeInsuranceContract {\n      premium\n      __typename\n    }\n    ... on SomeOtherContract {\n      expiryDate\n      __typename\n    }\n    __typename\n  }\n}";
+            ISchema schema = ContractSchemaFactory.Create();
             var serviceCollection = new ServiceCollection();
-            CustomerSchemaFactory.ConfigureServices(serviceCollection);
+            ContractSchemaFactory.ConfigureServices(serviceCollection);
             IQueryExecutor executor = schema.MakeExecutable();
 
             IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest(x)
                 {
-                    Services = serviceCollection.BuildServiceProvider()
+                    Services = serviceCollection.BuildServiceProvider(),
+                    VariableValues = new Dictionary<string, object> { { "fields_id", "Q3VzdG9tZXIteDE=" }}
                 });
             result.Snapshot();
         }

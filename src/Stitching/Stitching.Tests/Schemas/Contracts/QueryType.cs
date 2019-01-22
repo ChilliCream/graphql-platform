@@ -13,7 +13,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<ContractType>();
 
             descriptor.Field(t => t.GetContracts(default))
-                .Argument("customerId", a => a.Type<NonNullType<StringType>>())
+                .Argument("customerId", a => a.Type<NonNullType<IdType>>())
                 .Type<ListType<NonNullType<ContractType>>>();
         }
     }
