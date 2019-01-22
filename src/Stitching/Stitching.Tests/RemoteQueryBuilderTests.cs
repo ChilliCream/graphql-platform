@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace HotChocolate.Stitching
         public void BuildRemoteQuery()
         {
             // arrange
-            Stack<SelectionPathComponent> path =
+            IImmutableStack<SelectionPathComponent> path =
                 SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
             DocumentNode initialQuery =

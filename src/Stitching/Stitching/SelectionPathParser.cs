@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -8,12 +9,12 @@ namespace HotChocolate.Stitching
 {
     internal static class SelectionPathParser
     {
-        public static Stack<SelectionPathComponent> Parse(string serializedPath)
+        public static IImmutableStack<SelectionPathComponent> Parse(string serializedPath)
         {
             return Parse(new Source(serializedPath));
         }
 
-        public static Stack<SelectionPathComponent> Parse(ISource source)
+        public static IImmutableStack<SelectionPathComponent> Parse(ISource source)
         {
             if (source == null)
             {
@@ -51,12 +52,12 @@ namespace HotChocolate.Stitching
             return new Source(stringBuilder.ToString());
         }
 
-        private static Stack<SelectionPathComponent> ParseSelectionPath(
+        private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
             ISource source,
             SyntaxToken start,
             ParserOptions options)
         {
-            var path = new Stack<SelectionPathComponent>();
+            var path = ImmutableStack<SelectionPathComponent>.Empty;
             ParserContext context = new ParserContext(
                 source, start, options, Parser.ParseName);
 
@@ -65,7 +66,7 @@ namespace HotChocolate.Stitching
             while (!context.IsEndOfFile())
             {
                 context.Skip(TokenKind.Pipe);
-                path.Push(ParseSelectionPathComponent(context));
+                path = path.Push(ParseSelectionPathComponent(context));
             }
 
             return path;

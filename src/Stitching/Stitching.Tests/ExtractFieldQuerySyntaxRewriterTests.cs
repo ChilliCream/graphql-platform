@@ -43,7 +43,6 @@ namespace HotChocolate.Stitching
             // assert
             DocumentNode document = RemoteQueryBuilder.New()
                 .SetRequestField(extractedField.Field)
-                .SetSelectionPath(new Stack<SelectionPathComponent>())
                 .AddFragmentDefinitions(extractedField.Fragments)
                 .AddVariables(extractedField.Variables)
                 .Build();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -16,7 +17,8 @@ namespace HotChocolate.Stitching
         private readonly List<FragmentDefinitionNode> _fragments =
             new List<FragmentDefinitionNode>();
         private OperationType _operation = OperationType.Query;
-        private IReadOnlyCollection<SelectionPathComponent> _path;
+        private IImmutableStack<SelectionPathComponent> _path =
+            ImmutableStack<SelectionPathComponent>.Empty;
         private FieldNode _requestField;
 
         public RemoteQueryBuilder SetOperation(
@@ -27,7 +29,7 @@ namespace HotChocolate.Stitching
         }
 
         public RemoteQueryBuilder SetSelectionPath(
-            IReadOnlyCollection<SelectionPathComponent> selectionPath)
+            IImmutableStack<SelectionPathComponent> selectionPath)
         {
             if (selectionPath == null)
             {
@@ -147,24 +149,23 @@ namespace HotChocolate.Stitching
 
         private DocumentNode CreateDelegationQuery(
             OperationType operation,
-            IReadOnlyCollection<SelectionPathComponent> path,
+            IImmutableStack<SelectionPathComponent> path,
             FieldNode requestedField,
             List<VariableDefinitionNode> variables)
         {
-            var stack = new Stack<SelectionPathComponent>(path);
-
             if (!path.Any())
             {
-                stack.Push(new SelectionPathComponent(
+                path = path.Push(new SelectionPathComponent(
                     requestedField.Name,
                     Array.Empty<ArgumentNode>()));
             }
 
-            FieldNode current = CreateRequestedField(stack, requestedField);
+            FieldNode current = CreateRequestedField(requestedField, ref path);
 
             while (path.Any())
             {
-                current = CreateSelection(current, stack.Pop());
+                path = path.Pop(out SelectionPathComponent component);
+                current = CreateSelection(current, component);
             }
 
             var definitions = new List<IDefinitionNode>();
@@ -178,10 +179,10 @@ namespace HotChocolate.Stitching
         }
 
         private FieldNode CreateRequestedField(
-            Stack<SelectionPathComponent> path,
-            FieldNode requestedField)
+            FieldNode requestedField,
+            ref IImmutableStack<SelectionPathComponent> path)
         {
-            SelectionPathComponent component = path.Pop();
+            path = path.Pop(out SelectionPathComponent component);
 
             string responseName = requestedField.Alias == null
                 ? requestedField.Name.Value
@@ -257,7 +258,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private Stack<SelectionPathComponent> GetSelectionPath(
+        private IImmutableStack<SelectionPathComponent> GetSelectionPath(
             IDirectiveContext directiveContext)
         {
             var directive = directiveContext.Directive
@@ -265,10 +266,10 @@ namespace HotChocolate.Stitching
 
             if (string.IsNullOrEmpty(directive.Path))
             {
-                return new Stack<SelectionPathComponent>();
+                return ImmutableStack<SelectionPathComponent>.Empty;
             }
 
-            return SelectionPathParser.Parse(new Source(directive.Path));
+            return SelectionPathParser.Parse(directive.Path);
         }
 
         public static RemoteQueryBuilder New() => new RemoteQueryBuilder();

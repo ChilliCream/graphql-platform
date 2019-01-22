@@ -114,8 +114,8 @@ namespace HotChocolate.Stitching
             DelegateDirective directive,
             ISet<string> dependencies)
         {
-            Stack<SelectionPathComponent> path = SelectionPathParser
-                .Parse(new Source(directive.Path));
+            IImmutableStack<SelectionPathComponent> path =
+                SelectionPathParser.Parse(directive.Path);
 
             foreach (SelectionPathComponent component in path)
             {

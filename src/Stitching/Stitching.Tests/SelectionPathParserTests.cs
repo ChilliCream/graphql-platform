@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using Xunit;
@@ -14,7 +15,7 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo.bar.baz");
 
             // act
-            Stack<SelectionPathComponent> path =
+            IImmutableStack<SelectionPathComponent> path =
                 SelectionPathParser.Parse(serializedPath);
 
             // assert
@@ -43,7 +44,7 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo(a: 1).bar.baz(b: \"s\")");
 
             // act
-            Stack<SelectionPathComponent> path =
+            IImmutableStack<SelectionPathComponent> path =
                 SelectionPathParser.Parse(serializedPath);
 
             // assert
@@ -82,7 +83,7 @@ namespace HotChocolate.Stitching
             var serializedPath = new Source("foo(a: $foo:bar).bar.baz");
 
             // act
-            Stack<SelectionPathComponent> path =
+            IImmutableStack<SelectionPathComponent> path =
                 SelectionPathParser.Parse(serializedPath);
 
             // assert

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,11 +34,10 @@ namespace HotChocolate.Stitching
 
             if (delegateDirective != null && schemaDirective != null)
             {
-                Stack<SelectionPathComponent> path =
+                IImmutableStack<SelectionPathComponent> path =
                     delegateDirective.Path is null
-                    ? new Stack<SelectionPathComponent>()
+                    ? ImmutableStack<SelectionPathComponent>.Empty
                     : SelectionPathParser.Parse(delegateDirective.Path);
-                int levels = path.Count;
 
                 var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
                     context.Schema);
@@ -74,7 +74,8 @@ namespace HotChocolate.Stitching
 
                 if (result is IReadOnlyQueryResult queryResult)
                 {
-                    context.Result = ExtractData(queryResult.Data, levels);
+                    context.Result = ExtractData(
+                        queryResult.Data, path.Count());
                     ReportErrors(context, queryResult.Errors);
                 }
                 else
@@ -127,6 +128,7 @@ namespace HotChocolate.Stitching
             }
         }
 
+        // TODO : refactor this one
         private static IReadOnlyDictionary<string, object> CreateVariables(
             IMiddlewareContext context,
             IEnumerable<SelectionPathComponent> components,
