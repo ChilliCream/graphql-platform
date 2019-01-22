@@ -49,5 +49,10 @@ namespace HotChocolate.Configuration
             _typeBindings.Add(bindingInfo);
             return new BindType<T>(bindingInfo);
         }
+
+        public void RegisterIsOfType(IsOfTypeFallback isOfType)
+        {
+            _typeRegistry.IsOfType = isOfType;
+        }
     }
 }

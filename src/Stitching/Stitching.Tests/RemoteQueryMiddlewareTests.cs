@@ -53,7 +53,7 @@ namespace HotChocolate.Stitching
                 });
 
             IQueryExecutor executor = schema.MakeExecutable(b =>
-                b.UseStitchingPipeline("foo"));
+                b.UseQueryDelegationPipeline("foo"));
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

@@ -11,7 +11,6 @@ namespace HotChocolate.Stitching
     public class ExtractFieldQuerySyntaxRewriter
         : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
     {
-        private static readonly NameString _typeNameField = "__typename";
         private readonly ISchema _schema;
         private readonly FieldDependencyResolver _dependencyResolver;
 
@@ -31,7 +30,7 @@ namespace HotChocolate.Stitching
         {
             if (document == null)
             {
-                throw new System.ArgumentNullException(nameof(document));
+                throw new ArgumentNullException(nameof(document));
             }
 
             if (operation == null)
@@ -41,12 +40,12 @@ namespace HotChocolate.Stitching
 
             if (field == null)
             {
-                throw new System.ArgumentNullException(nameof(field));
+                throw new ArgumentNullException(nameof(field));
             }
 
             if (declaringType == null)
             {
-                throw new System.ArgumentNullException(nameof(declaringType));
+                throw new ArgumentNullException(nameof(declaringType));
             }
 
             var context = Context.New(declaringType, document, operation);
@@ -118,9 +117,9 @@ namespace HotChocolate.Stitching
             RemoveDelegationFields(node, context, selections);
             AddDependencies(selections, dependencies);
 
-            if (!dependencies.Contains(_typeNameField))
+            if (!dependencies.Contains(WellKnownFieldNames.TypeName))
             {
-                selections.Add(CreateField(_typeNameField));
+                selections.Add(CreateField(WellKnownFieldNames.TypeName));
             }
 
             current = current.WithSelections(selections);

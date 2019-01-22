@@ -14,17 +14,17 @@ namespace HotChocolate.Execution
 {
     public static class StitchingQueryExecutionBuilderExtensions
     {
-        public static IQueryExecutionBuilder UseStitchingPipeline(
+        public static IQueryExecutionBuilder UseQueryDelegationPipeline(
             this IQueryExecutionBuilder builder,
             string schemaName)
         {
-            return UseStitchingPipeline(
+            return UseQueryDelegationPipeline(
                 builder,
                 new QueryExecutionOptions(),
                 schemaName);
         }
 
-        public static IQueryExecutionBuilder UseStitchingPipeline(
+        public static IQueryExecutionBuilder UseQueryDelegationPipeline(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options,
             string schemaName)
@@ -65,6 +65,33 @@ namespace HotChocolate.Execution
                 .UseRemoteQueryExecuter(schemaName);
         }
 
+        public static IQueryExecutionBuilder UseStitchingPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            return UseStitchingPipeline(
+                builder,
+                new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UseStitchingPipeline(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return builder
+                .UsePropagateVariables()
+                .UseDefaultPipeline(options);
+        }
+
         public static IQueryExecutionBuilder UseRemoteQueryExecuter(
             this IQueryExecutionBuilder builder,
             string schemaName)
@@ -83,6 +110,17 @@ namespace HotChocolate.Execution
 
             return builder.Use((services, next) =>
                 new RemoteQueryMiddleware(next, schemaName));
+        }
+
+        public static IQueryExecutionBuilder UsePropagateVariables(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Use<CopyVariablesToResolverContext>();
         }
     }
 }

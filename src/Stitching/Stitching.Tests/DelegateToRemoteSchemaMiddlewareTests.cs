@@ -30,6 +30,7 @@ namespace HotChocolate.Stitching
         [Fact]
         public async Task ExecuteStitchingQueryWithInterfaceFragment()
         {
+            // arrange
             TestServer server_contracts = TestServerFactory.Create(
                 ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
@@ -49,52 +50,39 @@ namespace HotChocolate.Stitching
                         : server_customers.CreateClient();
                 }));
 
-            ISchema schema_contracts = Schema.Create(
-                FileResource.Open("Contract.graphql"),
-                c =>
-                {
-                    c.RegisterType<DateTimeType>();
-                    c.Use(next => context => Task.CompletedTask);
-                });
-
-            ISchema schema_customers = Schema.Create(
-                FileResource.Open("Customer.graphql"),
-                c =>
-                {
-                    c.Use(next => context => Task.CompletedTask);
-                });
-
-            var executors = new Dictionary<string, IQueryExecutor>();
-            executors["contract"] = schema_contracts
-                .MakeExecutable(b => b.UseStitchingPipeline("contract"));
-            executors["customer"] = schema_customers
-                .MakeExecutable(b => b.UseStitchingPipeline("customer"));
+            IStitchingContext stitchingContext = StitchingContextBuilder.New()
+                .AddExecutor(b => b
+                    .SetSchemaName("contract")
+                    .SetSchema(FileResource.Open("Contract.graphql"))
+                    .AddScalarType<DateTimeType>())
+                .AddExecutor(b => b
+                    .SetSchemaName("customer")
+                    .SetSchema(FileResource.Open("Customer.graphql")))
+                .Build();
 
             var services = new ServiceCollection();
             services.AddSingleton(httpClientFactory.Object);
-            services.AddSingleton<IStitchingContext>(
-                new StitchingContext(executors));
+            services.AddSingleton(stitchingContext);
 
             ISchema schema = Schema.Create(
                 FileResource.Open("Stitching.graphql"),
                 c =>
                 {
                     c.RegisterType<DateTimeType>();
-                    c.RegisterDirective<DelegateDirectiveType>();
-                    c.RegisterDirective<SchemaDirectiveType>();
-                    c.Use<DelegateToRemoteSchemaMiddleware>();
-                    c.Use<DictionaryResultMiddleware>();
+                    c.UseSchemaStitching();
                 });
 
-            IQueryExecutor executor = schema.MakeExecutable(b =>
-                b.Use<CopyVariablesToResolverContext>().UseDefaultPipeline());
+            IQueryExecutor executor = schema.MakeExecutable(
+                b => b.UseStitchingPipeline());
 
+            // act
             IExecutionResult result = await executor.ExecuteAsync(
                 new QueryRequest(FileResource.Open("StitchingQuery.graphql"))
                 {
                     Services = services.BuildServiceProvider()
                 });
 
+            // assert
             result.Snapshot();
         }
     }
