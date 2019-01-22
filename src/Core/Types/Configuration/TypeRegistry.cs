@@ -25,7 +25,6 @@ namespace HotChocolate.Configuration
         private readonly Dictionary<NameString, List<Type>> _resolverTypeDict =
             new Dictionary<NameString, List<Type>>();
         private readonly ServiceFactory _serviceFactory;
-        private IsOfType _isOfType;
         private bool _sealed;
 
         public TypeRegistry(ServiceFactory serviceFactory)
