@@ -106,7 +106,7 @@ namespace HotChocolate.Stitching
                 "delegation middleware.");
         }
 
-        private IReadOnlyDictionary<string, object> ExtractData(
+        private object ExtractData(
             IReadOnlyDictionary<string, object> data,
             int levels)
         {
@@ -116,25 +116,21 @@ namespace HotChocolate.Stitching
             }
 
             object obj = data.Count == 0 ? null : data.First().Value;
-            var current = obj as IReadOnlyDictionary<string, object>;
 
-            if (current != null && levels > 1)
+            if (obj != null && levels > 1)
             {
                 for (int i = levels; i >= 1; i--)
                 {
+                    var current = obj as IReadOnlyDictionary<string, object>;
                     obj = current.Count == 0 ? null : current.First().Value;
-                    if (obj is IReadOnlyDictionary<string, object> next)
-                    {
-                        current = next;
-                    }
-                    else
+                    if (obj is null)
                     {
                         return null;
                     }
                 }
             }
 
-            return current;
+            return obj;
         }
 
         private void ReportErrors(

@@ -28,29 +28,7 @@ namespace HotChocolate.Stitching
         private TestServerFactory TestServerFactory { get; set; }
 
         [Fact]
-
-        public async Task Bar()
-        {
-            IdSerializer s = new IdSerializer();
-            string id = s.Serialize("Customer", "1");
-
-            var x = "query fetch {\n  contracts(customerId: $fields_id) {\n    id\n    ... on LifeInsuranceContract {\n      premium\n      __typename\n    }\n    ... on SomeOtherContract {\n      expiryDate\n      __typename\n    }\n    __typename\n  }\n}";
-            ISchema schema = ContractSchemaFactory.Create();
-            var serviceCollection = new ServiceCollection();
-            ContractSchemaFactory.ConfigureServices(serviceCollection);
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest(x)
-                {
-                    Services = serviceCollection.BuildServiceProvider(),
-                    VariableValues = new Dictionary<string, object> { { "fields_id", "Q3VzdG9tZXIteDE=" }}
-                });
-            result.Snapshot();
-        }
-
-        [Fact]
-        public async Task Foo()
+        public async Task ExecuteStitchingQueryWithInterfaceFragment()
         {
             TestServer server_contracts = TestServerFactory.Create(
                 ContractSchemaFactory.ConfigureSchema,

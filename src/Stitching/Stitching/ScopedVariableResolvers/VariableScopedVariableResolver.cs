@@ -33,7 +33,7 @@ namespace HotChocolate.Stitching
 
             return new VariableValue
             (
-                definition.Variable.Name.Value,
+                variable.ToVariableName(),
                 definition.Type,
                 value,
                 definition.DefaultValue

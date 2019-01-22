@@ -20,7 +20,7 @@ namespace HotChocolate.Stitching
 
                 return new VariableValue
                 (
-                    field.Name,
+                    variable.ToVariableName(),
                     field.Type.ToTypeNode(),
                     obj[field.Name],
                     null
