@@ -8,6 +8,11 @@ namespace HotChocolate.Stitching
 {
     internal static class SelectionPathParser
     {
+        public static Stack<SelectionPathComponent> Parse(string serializedPath)
+        {
+            return Parse(new Source(serializedPath));
+        }
+
         public static Stack<SelectionPathComponent> Parse(ISource source)
         {
             if (source == null)

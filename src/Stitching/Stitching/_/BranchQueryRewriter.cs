@@ -1,179 +1,304 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
     public class BranchQueryRewriter
-
     {
 
     }
 
-    public class RemoteQueryBuilder
+    public class ExtractFieldQuerySyntaxRewriter
+        : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
     {
-        private readonly List<FieldNode> _fields = new List<FieldNode>();
-        private OperationType _operation = OperationType.Query;
-        private Stack<SelectionPathComponent> _path;
+        private ISchema _schema;
 
+        protected override bool VisitFragmentDefinitions => false;
 
-        public RemoteQueryBuilder SetOperation(
-            OperationType operation)
+        public ExtractedField ExtractField(
+            DocumentNode document,
+            OperationDefinitionNode operation,
+            FieldNode field,
+            INamedOutputType declaringType)
         {
-            _operation = operation;
-            return this;
-        }
-
-        public RemoteQueryBuilder SetSelectionPath(
-            Stack<SelectionPathComponent> selectionPath)
-        {
-            if (selectionPath == null)
+            if (document == null)
             {
-                throw new ArgumentNullException(nameof(selectionPath));
+                throw new System.ArgumentNullException(nameof(document));
             }
-            _path = selectionPath;
-            return this;
-        }
 
-        public RemoteQueryBuilder AddField(
-            FieldNode field)
-        {
             if (field == null)
             {
-                throw new ArgumentNullException(nameof(field));
+                throw new System.ArgumentNullException(nameof(field));
             }
-            _fields.Add(field);
-            return this;
+
+            if (declaringType == null)
+            {
+                throw new System.ArgumentNullException(nameof(declaringType));
+            }
+
+            var context = Context.New(declaringType, document);
+
+            FieldNode rewrittenField = RewriteField(field, context);
+
+            return new ExtractedField(
+                rewrittenField,
+                context.Variables.Values.ToList(),
+                context.Fragments.Values.ToList());
         }
 
-        public DocumentNode Build()
+        protected override FieldNode RewriteField(
+            FieldNode node, Context context)
         {
-            if (_path == null || _fields.Count == 0)
+            FieldNode current = node;
+
+            if (context.TypeContext is IComplexOutputType type
+                && type.Fields.TryGetField(node.Name.Value,
+                    out IOutputField field))
             {
-                throw new InvalidOperationException();
-            }
-            return CreateDelegationQuery(_operation, _path, _fields);
-        }
-
-        private DocumentNode CreateDelegationQuery(
-           OperationType operation,
-           Stack<SelectionPathComponent> path,
-           List<FieldNode> selections)
-        {
-            FieldNode current = null;
-            var currentSelections = new SelectionSetNode(null, selections);
-
-            if (path.Any())
-            {
-                string responseName = current.Alias == null
-                    ? current.Name.Value
-                    : current.Alias.Value;
-
-                SelectionPathComponent component = path.Pop();
-
-                string alias = component.Name.Value.EqualsOrdinal(responseName)
-                    ? null
-                    : responseName;
-
-                current = CreateSelection(
-                    currentSelections,
-                    component,
-                    responseName);
-
-                while (path.Any())
+                if (node.Alias != null)
                 {
-                    current = CreateSelection(current, path.Pop());
+                    current = Rewrite(current, node.Alias, context,
+                        RewriteName, current.WithAlias);
+                }
+
+                current = Rewrite(current, node.Name, context,
+                    RewriteName, current.WithName);
+
+                current = Rewrite(current, node.Arguments, context,
+                    (p, c) => RewriteMany(p, c, RewriteArgument),
+                    current.WithArguments);
+
+                current = Rewrite(current, node.Directives, context,
+                    (p, c) => RewriteMany(p, c, RewriteDirective),
+                    current.WithDirectives);
+
+
+                if (node.SelectionSet != null
+                    && field.Type.NamedType() is INamedOutputType n)
+                {
+                    current = Rewrite
+                    (
+                        current,
+                        node.SelectionSet,
+                        context.SetTypeContext(n),
+                        RewriteSelectionSet,
+                        current.WithSelectionSet
+                    );
                 }
             }
 
-            return new DocumentNode(
-                null,
-                new List<IDefinitionNode>
+            return current;
+        }
+
+        protected override SelectionSetNode RewriteSelectionSet(
+            SelectionSetNode node,
+            Context context)
+        {
+            SelectionSetNode current = node;
+
+            var selections = new List<ISelectionNode>(current.Selections);
+
+            RemoveDelegationFields(node, context, selections);
+            AddTypeNameField(selections);
+
+            current = current.WithSelections(selections);
+
+            return base.RewriteSelectionSet(current, context);
+        }
+
+        private void RemoveDelegationFields(
+            SelectionSetNode node,
+            Context context,
+            ICollection<ISelectionNode> selections)
+        {
+            if (context.TypeContext is IComplexOutputType type)
+            {
+                foreach (FieldNode selection in node.Selections
+                    .OfType<FieldNode>())
                 {
-                    CreateOperation(operation, current)
-                });
+                    if (type.Fields.TryGetField(selection.Name.Value,
+                        out IOutputField field)
+                        && field.Directives.Contains(DirectiveNames.Delegate))
+                    {
+                        selections.Remove(selection);
+                    }
+                }
+            }
         }
 
-        private FieldNode CreateSelection(
-            FieldNode previous,
-            SelectionPathComponent next)
+        private void AddTypeNameField(ICollection<ISelectionNode> selections)
         {
-            var selectionSet = new SelectionSetNode(
-                null,
-                new List<ISelectionNode> { previous });
-
-            return CreateSelection(selectionSet, next, null);
-        }
-
-        private FieldNode CreateSelection(
-            SelectionSetNode selectionSet,
-            SelectionPathComponent next,
-            string alias)
-        {
-            var aliasNode = string.IsNullOrEmpty(alias)
-                ? null : new NameNode(alias);
-
-            return new FieldNode
+            selections.Add(new FieldNode
             (
                 null,
-                next.Name,
-                aliasNode,
+                new NameNode("__typename"),
+                null,
                 Array.Empty<DirectiveNode>(),
-                RewriteVariableNames(next.Arguments).ToList(),
-                selectionSet
-            );
+                Array.Empty<ArgumentNode>(),
+                null
+            ));
         }
 
-        private OperationDefinitionNode CreateOperation(
-            OperationType operation,
-            FieldNode field
-            )
+        protected override VariableNode RewriteVariable(
+            VariableNode node,
+            Context context)
         {
-            var selectionSet = new SelectionSetNode(
-                null,
-                new List<ISelectionNode> { field });
+            context.Operation.VariableDefinitions
 
-            return new OperationDefinitionNode(
-                null,
-                null,
-                operation,
-                new List<VariableDefinitionNode>(),
-                new List<DirectiveNode>(),
-                selectionSet);
+
+            return base.RewriteVariable(node, context);
         }
 
-        private IEnumerable<ArgumentNode> RewriteVariableNames(
-            IEnumerable<ArgumentNode> arguments)
+        protected override FragmentSpreadNode RewriteFragmentSpread(
+            FragmentSpreadNode node,
+            Context context)
         {
-            foreach (ArgumentNode argument in arguments)
+            string name = node.Name.Value;
+            if (!context.Fragments.TryGetValue(name,
+                out FragmentDefinitionNode fragment))
             {
-                if (argument.Value is ScopedVariableNode v)
-                {
-                    yield return argument.WithValue(v.ToVariableNode());
-                }
-                else
-                {
-                    yield return argument;
-                }
-            }
-        }
-
-        private Stack<SelectionPathComponent> GetSelectionPath(
-            IDirectiveContext directiveContext)
-        {
-            var directive = directiveContext.Directive
-                .ToObject<DelegateDirective>();
-
-            if (string.IsNullOrEmpty(directive.Path))
-            {
-                return new Stack<SelectionPathComponent>();
+                fragment = context.Document.Definitions
+                    .OfType<FragmentDefinitionNode>()
+                    .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(name));
+                fragment = RewriteFragmentDefinition(fragment, context);
+                context.Fragments[name] = fragment;
             }
 
-            return SelectionPathParser.Parse(new Source(directive.Path));
+            return base.RewriteFragmentSpread(node, context);
         }
+
+        protected override FragmentDefinitionNode RewriteFragmentDefinition(
+            FragmentDefinitionNode node,
+            Context context)
+        {
+            Context newContext = context;
+
+            if (newContext.FragmentPath.Contains(node.Name.Value))
+            {
+                return node;
+            }
+
+            if (_schema.TryGetType(
+                node.TypeCondition.Name.Value,
+                out IComplexOutputType type))
+            {
+                newContext = newContext
+                    .AddFragment(node.Name.Value)
+                    .SetTypeContext(type);
+            }
+
+            return base.RewriteFragmentDefinition(node, newContext);
+        }
+
+        protected override InlineFragmentNode RewriteInlineFragment(
+            InlineFragmentNode node,
+            Context context)
+        {
+            Context newContext = context;
+
+            if (_schema.TryGetType(
+                node.TypeCondition.Name.Value,
+                out IComplexOutputType type))
+            {
+                newContext = newContext.SetTypeContext(type);
+            }
+
+            return base.RewriteInlineFragment(node, newContext);
+        }
+
+        public class Context
+        {
+            private Context(
+                INamedOutputType typeContext,
+                DocumentNode document,
+                OperationDefinitionNode operation)
+            {
+                Variables = new Dictionary<string, VariableDefinitionNode>();
+                Document = document;
+                Operation = operation;
+                TypeContext = typeContext;
+                Fragments = new Dictionary<string, FragmentDefinitionNode>();
+                FragmentPath = ImmutableHashSet<string>.Empty;
+            }
+
+            private Context(Context context, INamedOutputType typeContext)
+            {
+                Variables = context.Variables;
+                Document = context.Document;
+                Operation = context.Operation;
+                TypeContext = typeContext;
+                Fragments = context.Fragments;
+                FragmentPath = context.FragmentPath;
+            }
+
+            private Context(
+                Context context,
+                ImmutableHashSet<string> fragmentPath)
+            {
+                Variables = context.Variables;
+                Document = context.Document;
+                Operation = context.Operation;
+                TypeContext = context.TypeContext;
+                Fragments = context.Fragments;
+                FragmentPath = fragmentPath;
+            }
+
+            public DocumentNode Document { get; }
+
+            public OperationDefinitionNode Operation { get; }
+
+            public IDictionary<string, VariableDefinitionNode> Variables
+            { get; }
+
+            public INamedOutputType TypeContext { get; protected set; }
+
+            public ImmutableHashSet<string> FragmentPath { get; }
+
+            public IDictionary<string, FragmentDefinitionNode> Fragments
+            { get; }
+
+            public Context SetTypeContext(INamedOutputType type)
+            {
+                return new Context(this, type);
+            }
+
+            public Context AddFragment(string fragmentName)
+            {
+                return new Context(this, FragmentPath.Add(fragmentName));
+            }
+
+            public static Context New(
+                INamedOutputType typeContext,
+                DocumentNode document)
+            {
+                return new Context(typeContext, document);
+            }
+        }
+    }
+
+    public class ExtractedField
+    {
+
+        public ExtractedField(
+            FieldNode field,
+            IReadOnlyList<VariableDefinitionNode> variables,
+            IReadOnlyList<FragmentDefinitionNode> fragments)
+        {
+            Field = field
+                ?? throw new ArgumentNullException(nameof(field));
+            Variables = variables
+                ?? throw new ArgumentNullException(nameof(variables));
+            Fragments = fragments
+                ?? throw new ArgumentNullException(nameof(fragments));
+        }
+
+        public FieldNode Field { get; }
+        public IReadOnlyList<VariableDefinitionNode> Variables { get; }
+        public IReadOnlyList<FragmentDefinitionNode> Fragments { get; }
     }
 }
