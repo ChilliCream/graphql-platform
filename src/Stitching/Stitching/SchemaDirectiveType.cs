@@ -8,8 +8,8 @@ namespace HotChocolate.Stitching
         protected override void Configure(
             IDirectiveTypeDescriptor<SchemaDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Schema);
-            descriptor.Location(Types.DirectiveLocation.FieldDefinition)
+            descriptor.Name(DirectiveNames.Schema)
+                .Location(Types.DirectiveLocation.FieldDefinition)
                 .Location(Types.DirectiveLocation.Field);
         }
     }
