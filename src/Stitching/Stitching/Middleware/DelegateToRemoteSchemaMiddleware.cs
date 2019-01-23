@@ -162,7 +162,7 @@ namespace HotChocolate.Stitching
             }
 
             foreach (VariableValue value in ResolveUsedRequestVariables(
-                context, extractedField, requestVariables))
+                extractedField, requestVariables))
             {
                 values[value.Name] = value;
             }
@@ -189,7 +189,6 @@ namespace HotChocolate.Stitching
         }
 
         private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
-            IMiddlewareContext context,
             ExtractedField extractedField,
             IReadOnlyDictionary<string, object> requestVariables)
         {
@@ -210,7 +209,7 @@ namespace HotChocolate.Stitching
         }
 
         private static IReadOnlyDictionary<string, object> CreateVariables(
-            IReadOnlyCollection<VariableValue> variableValues)
+            IEnumerable<VariableValue> variableValues)
         {
             return variableValues.ToDictionary(t => t.Name, t => t.Value);
         }
