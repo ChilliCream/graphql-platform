@@ -80,7 +80,7 @@ namespace HotChocolate.Execution
 
         static public void WriteValue(decimal value, Stream stream)
         {
-            var str = value.ToString("G13", CultureInfo.InvariantCulture);
+            var str = value.ToString("G29", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
         }
