@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
@@ -15,7 +16,8 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            var request = new QueryRequest("{ a }").ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
+                .ToReadOnly();
 
             var context = new QueryContext
             (
@@ -28,7 +30,8 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10));
+                new Cache<DocumentNode>(10),
+                new DiagnosticListener("Foo"));
 
             // act
             await middleware.InvokeAsync(context);
@@ -44,7 +47,8 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            var request = new QueryRequest("{").ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{")
+                .ToReadOnly();
 
             var context = new QueryContext
             (
@@ -57,7 +61,8 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10));
+                new Cache<DocumentNode>(10),
+                new DiagnosticListener("Foo"));
 
             // act
             Func<Task> invoke = () => middleware.InvokeAsync(context);

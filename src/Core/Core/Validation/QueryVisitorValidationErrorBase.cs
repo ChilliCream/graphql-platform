@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation

@@ -1,5 +1,4 @@
 ﻿using System;
-using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Types

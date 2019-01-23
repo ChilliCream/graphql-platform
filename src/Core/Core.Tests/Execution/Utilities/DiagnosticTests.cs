@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,16 +78,16 @@ namespace HotChocolate.Execution
 
             public bool QueryStop { get; private set; }
 
-            [DiagnosticName("Resolver")]
+            [DiagnosticName("HotChocolate.Execution.Resolver")]
             public virtual void OnResolvField() { }
 
-            [DiagnosticName("Resolver.Start")]
+            [DiagnosticName("HotChocolate.Execution.Resolver.Start")]
             public virtual void OnResolveFieldStart()
             {
                 ResolveFieldStart = true;
             }
 
-            [DiagnosticName("Resolver.Stop")]
+            [DiagnosticName("HotChocolate.Execution.Resolver.Stop")]
             public virtual void OnResolveFieldStop(IResolverContext context)
             {
                 ResolveFieldStop = true;
@@ -95,16 +95,16 @@ namespace HotChocolate.Execution
                 Duration = Activity.Current.Duration;
             }
 
-            [DiagnosticName("Query")]
+            [DiagnosticName("HotChocolate.Execution.Query")]
             public virtual void OnQuery() { }
 
-            [DiagnosticName("Query.Start")]
+            [DiagnosticName("HotChocolate.Execution.Query.Start")]
             public virtual void OnQueryStart()
             {
                 QueryStart = true;
             }
 
-            [DiagnosticName("Query.Stop")]
+            [DiagnosticName("HotChocolate.Execution.Query.Stop")]
             public virtual void OnQueryStop(IResolverContext context)
             {
                 QueryStop = true;
