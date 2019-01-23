@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {

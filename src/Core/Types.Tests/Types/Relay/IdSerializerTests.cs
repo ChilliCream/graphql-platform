@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using HotChocolate.Configuration;
 using Xunit;
 
 namespace HotChocolate.Types.Relay

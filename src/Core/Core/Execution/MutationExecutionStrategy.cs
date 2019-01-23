@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -85,9 +87,13 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
+            DiagnosticSource source = executionContext.Services
+                .GetRequiredService<DiagnosticSource>();
+
             resolverTask.Task = ExecuteResolverAsync(
                 resolverTask,
                 executionContext.ErrorHandler,
+                source,
                 cancellationToken);
             await CompleteBatchOperationsAsync(
                 new[] { resolverTask.Task },

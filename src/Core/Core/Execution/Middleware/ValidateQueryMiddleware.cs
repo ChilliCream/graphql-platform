@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
@@ -14,11 +13,13 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly IQueryValidator _validator;
         private readonly Cache<QueryValidationResult> _validatorCache;
+        private readonly DiagnosticSource _source;
 
         public ValidateQueryMiddleware(
             QueryDelegate next,
             IQueryValidator validator,
-            Cache<QueryValidationResult> validatorCache)
+            Cache<QueryValidationResult> validatorCache,
+            DiagnosticSource source)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -26,12 +27,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(validator));
             _validatorCache = validatorCache ??
                 new Cache<QueryValidationResult>(Defaults.CacheSize);
+            _source = source ??
+                throw new ArgumentNullException(nameof(source));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = ValidationDiagnosticEvents
-                .BeginValidation(context);
+            Activity activity = _source.BeginValidation(context);
 
             if (context.Document == null)
             {
@@ -50,7 +52,7 @@ namespace HotChocolate.Execution
                 {
                     context.Result = QueryResult.CreateError(
                         context.ValidationResult.Errors);
-                    ValidationDiagnosticEvents.ValidationError(context);
+                    _source.ValidationError(context);
                 }
                 else
                 {
@@ -58,7 +60,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            ValidationDiagnosticEvents.EndValidation(activity, context);
+            _source.EndValidation(activity, context);
         }
 
         private QueryValidationResult Validate(

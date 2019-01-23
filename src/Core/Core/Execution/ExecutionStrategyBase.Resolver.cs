@@ -16,20 +16,24 @@ namespace HotChocolate.Execution
         protected static async Task<object> ExecuteResolverAsync(
            ResolverTask resolverTask,
            IErrorHandler errorHandler,
+           DiagnosticSource source,
            CancellationToken cancellationToken)
         {
-            Activity activity = ResolverDiagnosticEvents.BeginResolveField(
+            Activity activity = source.BeginResolveField(
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask, errorHandler).ConfigureAwait(false);
+                resolverTask,
+                errorHandler,
+                source)
+                    .ConfigureAwait(false);
 
             if (result is IError || result is IEnumerable<IError>)
             {
                 activity?.AddTag("error", "true");
             }
 
-            ResolverDiagnosticEvents.EndResolveField(
+            source.EndResolveField(
                 activity,
                 resolverTask.ResolverContext,
                 result);
@@ -39,14 +43,15 @@ namespace HotChocolate.Execution
 
         private static async Task<object> ExecuteMiddlewareAsync(
             ResolverTask resolverTask,
-            IErrorHandler errorHandler)
+            IErrorHandler errorHandler,
+            DiagnosticSource source)
         {
             object result = null;
 
             try
             {
-                result = await ExecuteFieldMiddlewareAsync(
-                    resolverTask).ConfigureAwait(false);
+                result = await ExecuteFieldMiddlewareAsync(resolverTask)
+                    .ConfigureAwait(false);
 
                 if (result is IError error)
                 {
@@ -67,9 +72,7 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                ResolverDiagnosticEvents.ResolverError(
-                    resolverTask.ResolverContext,
-                    ex);
+                source.ResolverError(resolverTask.ResolverContext, ex);
 
                 return errorHandler.Handle(ex, error => error
                     .WithPath(resolverTask.Path)
