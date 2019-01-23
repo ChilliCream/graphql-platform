@@ -12,6 +12,11 @@ namespace HotChocolate
         public static ISchemaConfiguration UseNullResolver(
             this ISchemaConfiguration configuration)
         {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
             configuration.Use(next => context => Task.CompletedTask);
             return configuration;
         }
@@ -46,15 +51,14 @@ namespace HotChocolate
             }
             else if (objectType.ClrType == typeof(object))
             {
-                return IsOfTypeWithName(objectType, context, resolverResult);
+                return IsOfTypeWithName(objectType, resolverResult);
             }
 
-            return IsOfTypeWithClrType(objectType, context, resolverResult);
+            return IsOfTypeWithClrType(objectType, resolverResult);
         }
 
         private static bool IsOfTypeWithClrType(
-            ObjectType objectType,
-            IResolverContext context,
+            IHasClrType objectType,
             object result)
         {
             if (result == null)
@@ -65,8 +69,7 @@ namespace HotChocolate
         }
 
         private static bool IsOfTypeWithName(
-            ObjectType objectType,
-            IResolverContext context,
+            IHasName objectType,
             object result)
         {
             if (result == null)

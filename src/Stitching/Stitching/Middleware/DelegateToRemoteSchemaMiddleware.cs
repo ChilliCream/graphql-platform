@@ -51,7 +51,7 @@ namespace HotChocolate.Stitching
                 ReportErrors(context, result.Errors);
             }
 
-            await _next.Invoke(context);
+            await _next.Invoke(context).ConfigureAwait(false);
         }
 
         private static QueryRequest CreateQuery(
@@ -84,7 +84,7 @@ namespace HotChocolate.Stitching
         }
 
         private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
-            IMiddlewareContext context,
+            IResolverContext context,
             QueryRequest request,
             string schemaName)
         {
@@ -106,7 +106,7 @@ namespace HotChocolate.Stitching
                 "delegation middleware.");
         }
 
-        private object ExtractData(
+        private static object ExtractData(
             IReadOnlyDictionary<string, object> data,
             int levels)
         {
@@ -133,8 +133,8 @@ namespace HotChocolate.Stitching
             return obj;
         }
 
-        private void ReportErrors(
-            IMiddlewareContext context,
+        private static void ReportErrors(
+            IResolverContext context,
             IEnumerable<IError> errors)
         {
             IReadOnlyCollection<string> path = context.Path.ToCollection();

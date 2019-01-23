@@ -7,7 +7,7 @@ namespace HotChocolate.Stitching
 {
     public class StitchingContextBuilder
     {
-        private Dictionary<string, IQueryExecutor> _executors =
+        private readonly Dictionary<string, IQueryExecutor> _executors =
             new Dictionary<string, IQueryExecutor>();
 
 
@@ -65,6 +65,7 @@ namespace HotChocolate.Stitching
             return new StitchingContext(_executors);
         }
 
-        public static StitchingContextBuilder New() => new StitchingContextBuilder();
+        public static StitchingContextBuilder New() =>
+            new StitchingContextBuilder();
     }
 }

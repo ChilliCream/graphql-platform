@@ -6,7 +6,7 @@ namespace HotChocolate.Stitching
 {
     public class CopyVariablesToResolverContextMiddleware
     {
-        private QueryDelegate _next;
+        private readonly QueryDelegate _next;
 
         public CopyVariablesToResolverContextMiddleware(QueryDelegate next)
         {

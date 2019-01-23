@@ -131,7 +131,8 @@ namespace HotChocolate.Stitching
             }
 
             FieldNode requestField = _requestField;
-            if (_additionalFields.Count > 0 && requestField.SelectionSet != null)
+            if (_additionalFields.Count > 0
+                && requestField.SelectionSet != null)
             {
                 var selections = new List<ISelectionNode>(
                     requestField.SelectionSet.Selections);
@@ -140,16 +141,13 @@ namespace HotChocolate.Stitching
                     requestField.SelectionSet.WithSelections(selections));
             }
 
-            return CreateDelegationQuery(
-                _operation, _path,
-                requestField, _variables);
+            return CreateDelegationQuery(_operation, _path, requestField);
         }
 
         private DocumentNode CreateDelegationQuery(
             OperationType operation,
             IImmutableStack<SelectionPathComponent> path,
-            FieldNode requestedField,
-            List<VariableDefinitionNode> variables)
+            FieldNode requestedField)
         {
             if (!path.Any())
             {
@@ -176,7 +174,7 @@ namespace HotChocolate.Stitching
             return new DocumentNode(null, definitions);
         }
 
-        private FieldNode CreateRequestedField(
+        private static FieldNode CreateRequestedField(
             FieldNode requestedField,
             ref IImmutableStack<SelectionPathComponent> path)
         {
@@ -206,7 +204,7 @@ namespace HotChocolate.Stitching
             );
         }
 
-        private FieldNode CreateSelection(
+        private static FieldNode CreateSelection(
             FieldNode previous,
             SelectionPathComponent next)
         {
@@ -217,7 +215,7 @@ namespace HotChocolate.Stitching
             return CreateSelection(selectionSet, next, null);
         }
 
-        private FieldNode CreateSelection(
+        private static FieldNode CreateSelection(
             SelectionSetNode selectionSet,
             SelectionPathComponent next,
             string alias)
@@ -236,10 +234,10 @@ namespace HotChocolate.Stitching
             );
         }
 
-        private OperationDefinitionNode CreateOperation(
+        private static OperationDefinitionNode CreateOperation(
             OperationType operation,
-            List<FieldNode> fields,
-            List<VariableDefinitionNode> variables)
+            IReadOnlyList<FieldNode> fields,
+            IReadOnlyList<VariableDefinitionNode> variables)
         {
             return new OperationDefinitionNode(
                 null,
@@ -250,7 +248,7 @@ namespace HotChocolate.Stitching
                 new SelectionSetNode(null, fields));
         }
 
-        private IEnumerable<ArgumentNode> RewriteVariableNames(
+        private static IEnumerable<ArgumentNode> RewriteVariableNames(
             IEnumerable<ArgumentNode> arguments)
         {
             foreach (ArgumentNode argument in arguments)
@@ -264,20 +262,6 @@ namespace HotChocolate.Stitching
                     yield return argument;
                 }
             }
-        }
-
-        private IImmutableStack<SelectionPathComponent> GetSelectionPath(
-            IDirectiveContext directiveContext)
-        {
-            var directive = directiveContext.Directive
-                .ToObject<DelegateDirective>();
-
-            if (string.IsNullOrEmpty(directive.Path))
-            {
-                return ImmutableStack<SelectionPathComponent>.Empty;
-            }
-
-            return SelectionPathParser.Parse(directive.Path);
         }
 
         public static RemoteQueryBuilder New() => new RemoteQueryBuilder();
