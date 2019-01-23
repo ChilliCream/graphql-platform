@@ -36,19 +36,19 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             {
                 Id = "2",
                 CustomerId= "2",
-                ExpiryDate = new DateTime(2015, 5, 1)
+                ExpiryDate = new DateTime(2015, 5, 1, 0,0,0, DateTimeKind.Utc)
             },
             new SomeOtherContract
             {
                 Id = "3",
                 CustomerId= "3",
-                ExpiryDate = new DateTime(2017, 1, 30)
+                ExpiryDate = new DateTime(2017, 1, 30, 0,0,0, DateTimeKind.Utc)
             },
             new SomeOtherContract
             {
                 Id = "4",
                 CustomerId= "3",
-                ExpiryDate = new DateTime(2020, 1, 1)
+                ExpiryDate = new DateTime(2020, 1, 1, 0,0,0, DateTimeKind.Utc)
             }
         };
     }
