@@ -44,6 +44,8 @@ namespace HotChocolate.Stitching
                 context.Request,
                 httpClientFactory.CreateClient(_schemaName))
                 .ConfigureAwait(false);
+
+            await _next.Invoke(context).ConfigureAwait(false);
         }
 
         private async Task<QueryResult> FetchAsync(
