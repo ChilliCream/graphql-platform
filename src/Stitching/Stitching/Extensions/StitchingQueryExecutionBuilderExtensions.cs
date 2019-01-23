@@ -120,7 +120,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.Use<CopyVariablesToResolverContext>();
+            return builder.Use<CopyVariablesToResolverContextMiddleware>();
         }
     }
 }

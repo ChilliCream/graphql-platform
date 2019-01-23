@@ -4,11 +4,11 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching
 {
-    public class CopyVariablesToResolverContext
+    public class CopyVariablesToResolverContextMiddleware
     {
         private QueryDelegate _next;
 
-        public CopyVariablesToResolverContext(QueryDelegate next)
+        public CopyVariablesToResolverContextMiddleware(QueryDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
