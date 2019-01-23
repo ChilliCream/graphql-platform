@@ -48,7 +48,7 @@ namespace HotChocolate.Stitching
         }
 
         private static void DeserializeErrors(
-            QueryResult result,
+            IQueryResult result,
             JObject serializedResult)
         {
             if (serializedResult.Property(_errors)?.Value is JArray array)

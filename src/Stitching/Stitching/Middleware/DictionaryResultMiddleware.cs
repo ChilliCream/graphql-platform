@@ -9,7 +9,6 @@ namespace HotChocolate.Stitching
     public class DictionaryResultMiddleware
     {
         private readonly FieldDelegate _next;
-        private static readonly NameString _delegateName = "delegate";
 
         public DictionaryResultMiddleware(FieldDelegate next)
         {
@@ -25,18 +24,16 @@ namespace HotChocolate.Stitching
                     ? context.FieldSelection.Name.Value
                     : context.FieldSelection.Alias.Value;
 
-                if (dict.TryGetValue(responseName, out object obj))
+                if (dict.TryGetValue(responseName, out object obj)
+                    && context.Field.Type.IsLeafType()
+                    && context.Field.Type.NamedType() is ISerializableType t
+                    && t.TryDeserialize(obj, out object value))
                 {
-                    if (context.Field.Type.IsLeafType()
-                        && context.Field.Type.NamedType() is ISerializableType t
-                        && t.TryDeserialize(obj, out object value))
-                    {
-                        context.Result = value;
-                    }
-                    else
-                    {
-                        context.Result = obj;
-                    }
+                    context.Result = value;
+                }
+                else
+                {
+                    context.Result = obj;
                 }
             }
 

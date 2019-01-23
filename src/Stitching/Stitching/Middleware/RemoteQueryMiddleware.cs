@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching
                 DateParseHandling = DateParseHandling.DateTimeOffset
             };
 
-        private QueryDelegate _next;
+        private readonly QueryDelegate _next;
         private readonly string _schemaName;
 
         public RemoteQueryMiddleware(QueryDelegate next, string schemaName)
@@ -42,7 +42,8 @@ namespace HotChocolate.Stitching
 
             context.Result = await FetchAsync(
                 context.Request,
-                httpClientFactory.CreateClient(_schemaName));
+                httpClientFactory.CreateClient(_schemaName))
+                .ConfigureAwait(false);
         }
 
         private async Task<QueryResult> FetchAsync(
@@ -57,7 +58,7 @@ namespace HotChocolate.Stitching
                 "application/json");
 
             HttpResponseMessage response =
-                await httpClient.PostAsync(string.Empty, content)
+                await httpClient.PostAsync(default(Uri), content)
                     .ConfigureAwait(false);
 
             string result = await response.Content.ReadAsStringAsync()

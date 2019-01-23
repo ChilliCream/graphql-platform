@@ -9,12 +9,14 @@ namespace HotChocolate.Stitching
 {
     internal static class SelectionPathParser
     {
-        public static IImmutableStack<SelectionPathComponent> Parse(string serializedPath)
+        public static IImmutableStack<SelectionPathComponent> Parse(
+            string serializedPath)
         {
             return Parse(new Source(serializedPath));
         }
 
-        public static IImmutableStack<SelectionPathComponent> Parse(ISource source)
+        public static IImmutableStack<SelectionPathComponent> Parse(
+            ISource source)
         {
             if (source == null)
             {
@@ -31,7 +33,6 @@ namespace HotChocolate.Stitching
             return ParseSelectionPath(source, start, ParserOptions.Default);
         }
 
-        // TODO : we have to fix this another way without having to duplicate to much lexer code.
         private static ISource RemoveDots(ISource source)
         {
             var stringBuilder = new StringBuilder();
@@ -39,23 +40,17 @@ namespace HotChocolate.Stitching
             for (int i = 0; i < source.Text.Length; i++)
             {
                 char current = source.Text[i];
-                if (current.IsDot())
-                {
-                    stringBuilder.Append(' ');
-                }
-                else
-                {
-                    stringBuilder.Append(current);
-                }
+                stringBuilder.Append(current.IsDot() ? ' ' : current);
             }
 
             return new Source(stringBuilder.ToString());
         }
 
-        private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
-            ISource source,
-            SyntaxToken start,
-            ParserOptions options)
+        private static ImmutableStack<SelectionPathComponent>
+            ParseSelectionPath(
+                ISource source,
+                SyntaxToken start,
+                ParserOptions options)
         {
             var path = ImmutableStack<SelectionPathComponent>.Empty;
             ParserContext context = new ParserContext(
@@ -75,7 +70,6 @@ namespace HotChocolate.Stitching
         private static SelectionPathComponent ParseSelectionPathComponent(
             ParserContext context)
         {
-            SyntaxToken start = context.Current;
             NameNode name = Parser.ParseName(context);
             List<ArgumentNode> arguments = ParseArguments(context);
             return new SelectionPathComponent(name, arguments);

@@ -475,9 +475,9 @@ namespace HotChocolate.Language
             var rewrittenSet = new List<T>();
             var modified = false;
 
-            foreach (T item in items)
+            for (int i = 0; i < items.Count; i++)
             {
-                T rewritten = func(item, context);
+                T rewritten = func(items[i], context);
                 if (!modified && !originalSet.Contains(rewritten))
                 {
                     modified = true;

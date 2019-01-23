@@ -74,7 +74,7 @@ namespace HotChocolate.Stitching
             return context.Dependencies;
         }
 
-        private IDictionary<string, FragmentDefinitionNode> GetFragments(
+        private static IDictionary<string, FragmentDefinitionNode> GetFragments(
             DocumentNode document)
         {
             Dictionary<string, FragmentDefinitionNode> fragments =
@@ -110,7 +110,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private void CollectFieldNames(
+        private static void CollectFieldNames(
             DelegateDirective directive,
             ISet<string> dependencies)
         {

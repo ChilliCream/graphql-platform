@@ -67,23 +67,9 @@ namespace HotChocolate.Stitching
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
-                if (node.Alias != null)
-                {
-                    current = Rewrite(current, node.Alias, context,
-                        RewriteName, current.WithAlias);
-                }
-
-                current = Rewrite(current, node.Name, context,
-                    RewriteName, current.WithName);
-
                 current = Rewrite(current, node.Arguments, context,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
-
-                current = Rewrite(current, node.Directives, context,
-                    (p, c) => RewriteMany(p, c, RewriteDirective),
-                    current.WithDirectives);
-
 
                 if (node.SelectionSet != null
                     && field.Type.NamedType() is INamedOutputType n)
@@ -127,7 +113,7 @@ namespace HotChocolate.Stitching
             return base.RewriteSelectionSet(current, context);
         }
 
-        private void RemoveDelegationFields(
+        private static void RemoveDelegationFields(
             SelectionSetNode node,
             Context context,
             ICollection<ISelectionNode> selections)
@@ -147,7 +133,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private void AddDependencies(
+        private static void AddDependencies(
             ICollection<ISelectionNode> selections,
             IEnumerable<string> dependencies)
         {
@@ -157,7 +143,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private FieldNode CreateField(string fieldName)
+        private static FieldNode CreateField(string fieldName)
         {
             return new FieldNode
             (
