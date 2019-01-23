@@ -15,7 +15,8 @@ namespace HotChocolate.Stitching
         private readonly JsonSerializerSettings _jsonSettings =
             new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                DateParseHandling = DateParseHandling.DateTimeOffset
             };
 
         private QueryDelegate _next;
@@ -63,7 +64,7 @@ namespace HotChocolate.Stitching
                 .ConfigureAwait(false);
 
             return HttpResponseDeserializer.Deserialize(
-                JsonConvert.DeserializeObject<JObject>(result));
+                JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
         }
 
         private RemoteQueryRequest CreateRemoteRequest(

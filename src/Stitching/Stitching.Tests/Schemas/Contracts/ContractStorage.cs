@@ -30,7 +30,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             {
                 Id = "1",
                 CustomerId= "1",
-                ExpiryDate = new DateTime(2015, 5, 1, 0,0,0, DateTimeKind.Utc)
+                ExpiryDate = new DateTime(2015, 2, 1, 0,0,0, DateTimeKind.Utc)
             },
             new SomeOtherContract
             {

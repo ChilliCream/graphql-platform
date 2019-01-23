@@ -114,6 +114,9 @@ namespace HotChocolate.Stitching
                 case JTokenType.Float:
                     return value.Value<decimal>();
 
+                case JTokenType.Date:
+                    return value.Value<DateTimeOffset>();
+
                 default:
                     return value.Value<string>();
             }

@@ -5,7 +5,8 @@
       "consultant": {
         "name": "Jordan Belfort"
       },
-      "contracts": [{
+      "contracts": [
+        {
           "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx",
           "premium": 123456.11
         },
@@ -15,7 +16,7 @@
         },
         {
           "id": "U29tZU90aGVyQ29udHJhY3QteDE=",
-          "expiryDate": "2012-01-01T00:00:00.000Z"
+          "expiryDate": "2015-02-01T00:00:00.000Z"
         }
       ]
     }
