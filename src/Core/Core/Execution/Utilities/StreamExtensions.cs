@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     internal static class StreamExtensions
     {

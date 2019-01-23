@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using HotChocolate.Validation;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     internal static class JsonConstants
     {

@@ -1,10 +1,10 @@
 using System;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
-    public static class NumberUtilities
+    internal static class NumberUtilities
     {
-        public static int GetDigitCount(int n)
+        internal static int GetDigitCount(int n)
         {
             if (n > 100000)
             {
@@ -56,7 +56,7 @@ namespace HotChocolate.Utilities
             return 0;
         }
 
-        public static int GetDigitCount(ulong n)
+        internal static int GetDigitCount(ulong n)
         { 
             if (n <= int.MaxValue)
             {
@@ -115,7 +115,7 @@ namespace HotChocolate.Utilities
             return 11;
         }
 
-        public static int[] NumberToArray(ulong num)
+        internal static int[] NumberToArray(ulong num)
         {
             var result = new int[GetDigitCount(num)];
             for (var i = result.Length - 1; i >= 0; i--)

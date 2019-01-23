@@ -6,7 +6,7 @@ using System.Text;
 using HotChocolate.Validation;
 using Newtonsoft.Json;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     static public partial class JsonWriter
     {

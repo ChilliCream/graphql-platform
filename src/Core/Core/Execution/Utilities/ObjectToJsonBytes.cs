@@ -4,9 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     internal static class ObjectToJsonBytes
     {

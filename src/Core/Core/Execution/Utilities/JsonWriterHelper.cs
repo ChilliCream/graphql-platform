@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     internal static class JsonWriterHelper
     {
@@ -13,8 +13,8 @@ namespace HotChocolate.Utilities
             var stringBuilder = new StringBuilder(s);
 
             return stringBuilder
-                .Replace("\"", "\\\"")
                 .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
                 .Replace("/", "\\/")
                 .Replace("\b", "\\b")
                 .Replace("\f", "\\f")

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Execution
 {
     static public partial class JsonWriter
     {
@@ -73,14 +73,14 @@ namespace HotChocolate.Utilities
 
         static public void WriteValue(double value, Stream stream)
         {
-            var str = value.ToString("R", CultureInfo.InvariantCulture);
+            var str = value.ToString("G13", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
         }
 
         static public void WriteValue(decimal value, Stream stream)
         {
-            var str = value.ToString("R", CultureInfo.InvariantCulture);
+            var str = value.ToString("G13", CultureInfo.InvariantCulture);
             var strByteArray = Encoding.UTF8.GetBytes(str);
             stream.Append(strByteArray);
         }
