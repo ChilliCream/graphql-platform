@@ -49,7 +49,7 @@ namespace HotChocolate.Stitching
                 c =>
                 {
                     c.RegisterType<DateTimeType>();
-                    c.Use(next => context => Task.CompletedTask);
+                    c.UseNullResolver();
                 });
 
             IQueryExecutor executor = schema.MakeExecutable(b =>
@@ -57,7 +57,7 @@ namespace HotChocolate.Stitching
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest(@"{ contracts(customerId: ""1"") { id } }")
+                new QueryRequest(@"{ contracts(customerId: ""Q3VzdG9tZXIteDE="") { id } }")
                 {
                     Services = services.BuildServiceProvider()
                 });
