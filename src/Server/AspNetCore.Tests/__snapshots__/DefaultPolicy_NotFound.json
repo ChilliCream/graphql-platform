@@ -5,12 +5,14 @@
   "Errors": [
     {
       "message": "The default authorization policy does not exist.",
+      "path": null,
       "locations": [
         {
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "extensions": null
     }
   ]
 }
