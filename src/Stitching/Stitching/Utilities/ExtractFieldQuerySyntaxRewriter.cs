@@ -96,17 +96,13 @@ namespace HotChocolate.Stitching
 
             var selections = new List<ISelectionNode>(current.Selections);
 
-            ISet<string> dependencies =
+            ISet<FieldDependency> dependencies =
                 _dependencyResolver.GetFieldDependencies(
                     context.Document, current, context.TypeContext);
 
             RemoveDelegationFields(node, context, selections);
             AddDependencies(selections, dependencies);
-
-            if (!dependencies.Contains(WellKnownFieldNames.TypeName))
-            {
-                selections.Add(CreateField(WellKnownFieldNames.TypeName));
-            }
+            selections.Add(CreateField(WellKnownFieldNames.TypeName));
 
             current = current.WithSelections(selections);
 
@@ -135,11 +131,25 @@ namespace HotChocolate.Stitching
 
         private static void AddDependencies(
             ICollection<ISelectionNode> selections,
-            IEnumerable<string> dependencies)
+            IEnumerable<FieldDependency> dependencies)
         {
-            foreach (string fieldName in dependencies)
+            foreach (var typeGroup in dependencies.GroupBy(t => t.TypeName))
             {
-                selections.Add(CreateField(fieldName));
+                var fields = new List<FieldNode>();
+
+                foreach (NameString fieldName in typeGroup
+                    .Select(t => t.FieldName))
+                {
+                    fields.Add(CreateField(fieldName));
+                }
+
+                selections.Add(new InlineFragmentNode
+                (
+                    null,
+                    new NamedTypeNode(null, new NameNode(typeGroup.Key)),
+                    Array.Empty<DirectiveNode>(),
+                    new SelectionSetNode(null, fields)
+                ));
             }
         }
 

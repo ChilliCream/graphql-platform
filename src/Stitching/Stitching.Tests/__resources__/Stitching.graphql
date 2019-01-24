@@ -1,5 +1,8 @@
 type Query {
   customer(id: ID!): Customer @schema(name: "customer") @delegate
+  customerOrConsultant(id: ID!): CustomerOrConsultant
+    @schema(name: "customer")
+    @delegate
 }
 
 type Customer {
@@ -29,3 +32,5 @@ type SomeOtherContract implements Contract {
   id: ID!
   expiryDate: DateTime
 }
+
+union CustomerOrConsultant = Customer | Consultant

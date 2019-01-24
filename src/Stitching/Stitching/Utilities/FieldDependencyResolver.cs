@@ -20,7 +20,7 @@ namespace HotChocolate.Stitching
 
         protected override bool VisitFragmentDefinitions => false;
 
-        public ISet<string> GetFieldDependencies(
+        public ISet<FieldDependency> GetFieldDependencies(
             DocumentNode document,
             FieldNode field,
             INamedOutputType declaringType)
@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching
             return context.Dependencies;
         }
 
-        public ISet<string> GetFieldDependencies(
+        public ISet<FieldDependency> GetFieldDependencies(
             DocumentNode document,
             SelectionSetNode selectionSet,
             INamedOutputType declaringType)
@@ -105,6 +105,7 @@ namespace HotChocolate.Stitching
                 {
                     CollectFieldNames(
                         directive.ToObject<DelegateDirective>(),
+                        type,
                         context.Dependencies);
                 }
             }
@@ -112,7 +113,8 @@ namespace HotChocolate.Stitching
 
         private static void CollectFieldNames(
             DelegateDirective directive,
-            ISet<string> dependencies)
+            IComplexOutputType type,
+            ISet<FieldDependency> dependencies)
         {
             IImmutableStack<SelectionPathComponent> path =
                 SelectionPathParser.Parse(directive.Path);
@@ -125,7 +127,7 @@ namespace HotChocolate.Stitching
                     .Where(t => ScopeNames.Fields.Equals(t.Scope.Value))
                     .Select(t => t.Name.Value))
                 {
-                    dependencies.Add(fieldName);
+                    dependencies.Add(new FieldDependency(type.Name, fieldName));
                 }
             }
         }
@@ -188,7 +190,7 @@ namespace HotChocolate.Stitching
                 INamedOutputType typeContext,
                 IDictionary<string, FragmentDefinitionNode> fragments)
             {
-                Dependencies = new HashSet<string>();
+                Dependencies = new HashSet<FieldDependency>();
                 TypeContext = typeContext;
                 Fragments = fragments;
                 FragmentPath = ImmutableHashSet<string>.Empty;
@@ -212,7 +214,7 @@ namespace HotChocolate.Stitching
                 FragmentPath = fragmentPath;
             }
 
-            public ISet<string> Dependencies { get; }
+            public ISet<FieldDependency> Dependencies { get; }
 
             public INamedOutputType TypeContext { get; protected set; }
 

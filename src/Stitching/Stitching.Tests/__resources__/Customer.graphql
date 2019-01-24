@@ -1,6 +1,7 @@
 type Query {
   customer(id: ID!): Customer
   consultant(id: ID!): Consultant
+  customerOrConsultant(id: ID!): CustomerOrConsultant
 }
 
 type Customer {
@@ -13,3 +14,5 @@ type Consultant {
   id: ID!
   name: String!
 }
+
+union CustomerOrConsultant = Customer | Consultant

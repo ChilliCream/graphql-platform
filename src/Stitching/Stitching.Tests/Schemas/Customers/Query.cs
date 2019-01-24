@@ -28,5 +28,15 @@ namespace HotChocolate.Stitching.Schemas.Customers
             return _repository.Consultants
                 .FirstOrDefault(t => t.Id.Equals(value.Value));
         }
+
+        public ICustomerOrConsultant GetCustomerOrConsultant(string id)
+        {
+            IdValue value = _idSerializer.Deserialize(id);
+            if (value.TypeName == "Consultant")
+            {
+                return GetConsultant(id);
+            }
+            return GetCustomer(id);
+        }
     }
 }

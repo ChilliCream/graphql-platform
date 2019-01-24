@@ -1,0 +1,30 @@
+{
+  customer: customerOrConsultant(id: "Q3VzdG9tZXIteDE=") {
+    ...customer
+    ...consultant
+  }
+  consultant: customerOrConsultant(id: "#Q29uc3VsdGFudC14MQ==") {
+    ...customer
+    ...consultant
+  }
+}
+
+fragment customer on Customer {
+  name
+  consultant {
+    name
+  }
+  contracts {
+    id
+    ... on LifeInsuranceContract {
+      premium
+    }
+    ... on SomeOtherContract {
+      expiryDate
+    }
+  }
+}
+
+fragment consultant on Consultant {
+  name
+}

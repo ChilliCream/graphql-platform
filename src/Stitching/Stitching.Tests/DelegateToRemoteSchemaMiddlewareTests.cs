@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
@@ -28,7 +29,58 @@ namespace HotChocolate.Stitching
         private TestServerFactory TestServerFactory { get; set; }
 
         [Fact]
-        public async Task ExecuteStitchingQueryWithInterfaceFragment()
+        public Task ExecuteStitchingQueryWithInlineFragment()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryWithInlineFragment.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        [Fact]
+        public Task ExecuteStitchingQueryWithFragmentDefinition()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryWithFragmentDefs.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        [Fact]
+        public Task ExecuteStitchingQueryWithVariables()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryWithVariables.graphql"))
+            {
+                VariableValues = new Dictionary<string, object>
+                {
+                    {"customerId", "Q3VzdG9tZXIteDE="}
+                }
+            };
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        [Fact]
+        public Task ExecuteStitchingQueryWithUnion()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryWithUnion.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        private async Task ExecuteStitchedQuery(
+            QueryRequest request,
+            [CallerMemberName]string snapshotName = null)
         {
             // arrange
             TestServer server_contracts = TestServerFactory.Create(
@@ -75,15 +127,13 @@ namespace HotChocolate.Stitching
             IQueryExecutor executor = schema.MakeExecutable(
                 b => b.UseStitchingPipeline());
 
+            request.Services = services.BuildServiceProvider();
+
             // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest(FileResource.Open("StitchingQuery.graphql"))
-                {
-                    Services = services.BuildServiceProvider()
-                });
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.Snapshot();
+            result.Snapshot(snapshotName);
         }
     }
 }

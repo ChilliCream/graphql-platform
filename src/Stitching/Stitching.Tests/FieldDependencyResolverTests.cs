@@ -34,7 +34,7 @@ namespace HotChocolate.Stitching
 
             // act
             var fieldDependencyResolver = new FieldDependencyResolver(schema);
-            ISet<string> dependencies = fieldDependencyResolver
+            ISet<FieldDependency> dependencies = fieldDependencyResolver
                 .GetFieldDependencies(
                     query,
                     selection,
