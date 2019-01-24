@@ -3,6 +3,9 @@ type Query {
   customerOrConsultant(id: ID!): CustomerOrConsultant
     @schema(name: "customer")
     @delegate
+  contracts(id: ID!): [Contract!]
+    @schema(name: "contract")
+    @delegate(path: "contracts(customerId:$arguments:id)")
 }
 
 type Customer {

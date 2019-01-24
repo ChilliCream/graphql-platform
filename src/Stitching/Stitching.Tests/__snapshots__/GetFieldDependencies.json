@@ -1,3 +1,6 @@
 [
-  "id"
+  {
+    "TypeName": "Customer",
+    "FieldName": "id"
+  }
 ]

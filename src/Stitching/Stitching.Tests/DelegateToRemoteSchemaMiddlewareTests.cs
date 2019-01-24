@@ -78,6 +78,17 @@ namespace HotChocolate.Stitching
             return ExecuteStitchedQuery(request);
         }
 
+        [Fact]
+        public Task ExecuteStitchingQueryWithArguments()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryWithArguments.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
         private async Task ExecuteStitchedQuery(
             QueryRequest request,
             [CallerMemberName]string snapshotName = null)
