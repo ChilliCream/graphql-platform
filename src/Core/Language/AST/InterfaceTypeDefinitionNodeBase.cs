@@ -9,13 +9,13 @@ namespace HotChocolate.Language
         protected InterfaceTypeDefinitionNodeBase(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<FieldDefinitionNode> fields)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<FieldDefinitionNode> fields)
             : base(location, name, directives)
         {
             Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
-        public IReadOnlyCollection<FieldDefinitionNode> Fields { get; }
+        public IReadOnlyList<FieldDefinitionNode> Fields { get; }
     }
 }

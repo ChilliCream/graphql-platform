@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class ObjectValueNode
-        : IValueNode<IReadOnlyCollection<ObjectFieldNode>>
+        : IValueNode<IReadOnlyList<ObjectFieldNode>>
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
@@ -35,8 +35,8 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
-        IReadOnlyCollection<ObjectFieldNode>
-            IValueNode<IReadOnlyCollection<ObjectFieldNode>>.Value => Fields;
+        IReadOnlyList<ObjectFieldNode>
+            IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
 
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>

@@ -9,13 +9,13 @@ namespace HotChocolate.Language
         protected UnionTypeDefinitionNodeBase(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<NamedTypeNode> types)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<NamedTypeNode> types)
             : base(location, name, directives)
         {
             Types = types ?? throw new ArgumentNullException(nameof(types));
         }
 
-        public IReadOnlyCollection<NamedTypeNode> Types { get; }
+        public IReadOnlyList<NamedTypeNode> Types { get; }
     }
 }

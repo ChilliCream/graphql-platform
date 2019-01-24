@@ -4,6 +4,6 @@ namespace HotChocolate.Language
 {
     public interface IHasDirectives
     {
-        IReadOnlyCollection<DirectiveNode> Directives { get; }
+        IReadOnlyList<DirectiveNode> Directives { get; }
     }
 }

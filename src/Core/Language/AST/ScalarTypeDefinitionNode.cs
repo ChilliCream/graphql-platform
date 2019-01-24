@@ -10,7 +10,7 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
             Description = description;
@@ -43,7 +43,7 @@ namespace HotChocolate.Language
         }
 
         public ScalarTypeDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new ScalarTypeDefinitionNode(
                 Location, Name, Description,

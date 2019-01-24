@@ -107,7 +107,6 @@ namespace HotChocolate.Types
             CompleteAbstractTypeResolver(context);
         }
 
-
         private void CompleteAbstractTypeResolver(
             ITypeInitializationContext context)
         {

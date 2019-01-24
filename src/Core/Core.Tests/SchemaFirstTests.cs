@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Xunit;
@@ -11,7 +11,7 @@ namespace HotChocolate
         public async Task BindObjectTypeImplicit()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 @"
                 type Query {
                     test: String
@@ -33,7 +33,7 @@ namespace HotChocolate
         public async Task BindInputTypeImplicit()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 @"
                 schema {
                     query: FooQuery
@@ -67,7 +67,7 @@ namespace HotChocolate
         public async Task EnumAsOutputType()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 @"
                 type Query {
                     enumValue: FooEnum
@@ -95,7 +95,7 @@ namespace HotChocolate
         public async Task EnumAsInputType()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 @"
                 type Query {
                     setEnumValue(value:FooEnum) : String
@@ -123,7 +123,7 @@ namespace HotChocolate
         public async Task InputObjectWithEnum()
         {
             // arrange
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 @"
                 type Query {
                     enumInInputObject(payload:Payload) : String

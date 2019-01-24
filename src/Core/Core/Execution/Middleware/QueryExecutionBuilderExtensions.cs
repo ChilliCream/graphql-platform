@@ -13,6 +13,9 @@ namespace HotChocolate.Execution
 {
     public static class QueryExecutionBuilderExtensions
     {
+        private static readonly DiagnosticListener _listener =
+            new DiagnosticListener(DiagnosticNames.Listener);
+
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
         {
@@ -77,19 +80,18 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-
+            
+            builder
+                .RemoveService<DiagnosticListener>()
+                .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddScoped<DiagnosticListenerInitializer>();
+                .AddSingleton(_listener)
+                .AddSingleton<DiagnosticSource>(_listener);
 
             if (enableTracing)
             {
-                builder.Services
-                    .AddScoped<
-                        IApolloTracingResultBuilder,
-                        ApolloTracingResultBuilder>()
-                    .AddScoped<
-                        DiagnosticListener,
-                        ApolloTracingDiagnosticListener>();
+                builder.AddDiagnosticListener(
+                    new ApolloTracingDiagnosticListener());
             }
 
             return builder.Use<InstrumentationMiddleware>();
@@ -349,6 +351,75 @@ namespace HotChocolate.Execution
             return AddParser<DefaultQueryParser>(builder);
         }
 
+        public static IQueryExecutionBuilder AddErrorHandler(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder
+                .RemoveService<IErrorHandler>();
+            builder.Services
+                .AddSingleton<IErrorHandler, ErrorHandler>();
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
+            Func<IError, Exception, IError> errorFilter)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (errorFilter == null)
+            {
+                throw new ArgumentNullException(nameof(errorFilter));
+            }
+
+            builder.Services.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter));
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter(
+            this IQueryExecutionBuilder builder,
+            Func<IServiceProvider, IErrorFilter> factory)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            builder.Services.AddSingleton(factory);
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddErrorFilter<T>(
+            this IQueryExecutionBuilder builder)
+            where T : class, IErrorFilter
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.Services.AddSingleton<IErrorFilter, T>();
+
+            return builder;
+        }
+
         public static IQueryExecutionBuilder AddOptions(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
@@ -475,71 +546,21 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddErrorHandler(
-            this IQueryExecutionBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder
-                .RemoveService<IErrorHandler>();
-            builder.Services
-                .AddSingleton<IErrorHandler, ErrorHandler>();
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddErrorFilter(
+        public static IQueryExecutionBuilder AddDiagnosticListener(
             this IQueryExecutionBuilder builder,
-            Func<IError, Exception, IError> errorFilter)
+            object listener)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (errorFilter == null)
+            if (listener == null)
             {
-                throw new ArgumentNullException(nameof(errorFilter));
+                throw new ArgumentNullException(nameof(listener));
             }
 
-            builder.Services.AddSingleton<IErrorFilter>(
-                new FuncErrorFilterWrapper(errorFilter));
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddErrorFilter(
-            this IQueryExecutionBuilder builder,
-            Func<IServiceProvider, IErrorFilter> factory)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            builder.Services.AddSingleton(factory);
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddErrorFilter<T>(
-            this IQueryExecutionBuilder builder)
-            where T : class, IErrorFilter
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.Services.AddSingleton<IErrorFilter, T>();
+            _listener.SubscribeWithAdapter(listener);
 
             return builder;
         }

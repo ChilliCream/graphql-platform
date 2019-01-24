@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
     public interface IQueryContext
     {
         ISchema Schema { get; }
-        IReadOnlyQueryRequest Request { get; }
+        IReadOnlyQueryRequest Request { get; set; }
         IRequestServiceScope ServiceScope { get; }
         IServiceProvider Services { get; }
         IDictionary<string, object> ContextData { get; }

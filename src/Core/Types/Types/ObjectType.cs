@@ -190,7 +190,7 @@ namespace HotChocolate.Types
             base.OnCompleteType(context);
 
             CompleteClrType(context);
-            CompleteIsOfType();
+            CompleteIsOfType(context);
             CompleteInterfaces(context);
             CompleteFields(context);
 
@@ -212,11 +212,16 @@ namespace HotChocolate.Types
             }
         }
 
-        private void CompleteIsOfType()
+        private void CompleteIsOfType(ITypeInitializationContext context)
         {
             if (_isOfType == null)
             {
-                if (ClrType == typeof(object))
+                if (context.IsOfType != null)
+                {
+                    IsOfTypeFallback isOfType = context.IsOfType;
+                    _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
+                }
+                else if (ClrType == typeof(object))
                 {
                     _isOfType = IsOfTypeWithName;
                 }

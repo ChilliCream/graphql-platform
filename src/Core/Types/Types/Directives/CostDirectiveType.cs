@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public sealed class CostDirectiveType
         : DirectiveType<CostDirective>

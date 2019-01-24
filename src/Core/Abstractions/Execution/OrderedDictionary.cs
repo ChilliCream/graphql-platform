@@ -21,12 +21,6 @@ namespace HotChocolate.Execution
             }
             set
             {
-                if (IsReadOnly)
-                {
-                    throw new InvalidOperationException(
-                        "The dictionary is read-only.");
-                }
-
                 if (_map.ContainsKey(key))
                 {
                     _map[key] = value;

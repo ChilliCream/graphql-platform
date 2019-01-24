@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Types
 {
@@ -12,6 +13,7 @@ namespace HotChocolate.Types
         private readonly TypeSystemBase _source;
         private readonly DirectiveLocation _location;
         private readonly IReadOnlyCollection<DirectiveDescription> _descs;
+        private ILookup<NameString, IDirective> _lookup;
 
         internal DirectiveCollection(
             TypeSystemBase source,
@@ -28,6 +30,8 @@ namespace HotChocolate.Types
 
         public int Count => _directives.Count;
 
+        public IEnumerable<IDirective> this[NameString key] => _lookup[key];
+
         #region Initialization
 
         protected override void OnCompleteType(
@@ -39,6 +43,8 @@ namespace HotChocolate.Types
             {
                 CompleteDirective(context, description, processed);
             }
+
+            _lookup = _directives.ToLookup(t => t.Name);
         }
 
         private void CompleteDirective(
@@ -48,7 +54,9 @@ namespace HotChocolate.Types
         {
             DirectiveReference reference =
                 DirectiveReference.FromDescription(description);
-            DirectiveType directiveType = context.GetDirectiveType(reference);
+
+            DirectiveType directiveType =
+                context.GetDirectiveType(reference);
 
             if (directiveType != null)
             {
@@ -77,6 +85,8 @@ namespace HotChocolate.Types
         }
 
         #endregion
+
+        public bool Contains(NameString key) => _lookup.Contains(key);
 
         public IEnumerator<IDirective> GetEnumerator()
         {

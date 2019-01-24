@@ -3,7 +3,7 @@
 namespace HotChocolate.Language
 {
     public sealed class NamedTypeNode
-        : INullableType
+        : INullableTypeNode
     {
         public NamedTypeNode(
             Location location,

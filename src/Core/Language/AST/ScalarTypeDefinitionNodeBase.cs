@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         protected ScalarTypeDefinitionNodeBase(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         { }
     }

@@ -8,8 +8,8 @@ namespace HotChocolate.Language
     {
         public SchemaDefinitionNode(
             Location location,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
             : base(location, directives, operationTypes)
         {
         }
@@ -23,14 +23,14 @@ namespace HotChocolate.Language
         }
 
         public SchemaDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new SchemaDefinitionNode(
                 Location, directives, OperationTypes);
         }
 
         public SchemaDefinitionNode WithOperationTypes(
-            IReadOnlyCollection<OperationTypeDefinitionNode> operationTypes)
+            IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
         {
             return new SchemaDefinitionNode(
                 Location, Directives, operationTypes);

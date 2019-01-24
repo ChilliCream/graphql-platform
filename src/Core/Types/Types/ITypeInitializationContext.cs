@@ -16,6 +16,8 @@ namespace HotChocolate.Types
 
         IServiceProvider Services { get; }
 
+        IsOfTypeFallback IsOfType { get; }
+
         void RegisterType(
             INamedType namedType,
             ITypeBinding typeBinding = null);

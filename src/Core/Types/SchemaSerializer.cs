@@ -337,7 +337,8 @@ namespace HotChocolate
             if (type is NonNullType nt)
             {
                 return new NonNullTypeNode(null,
-                    (Language.INullableType)SerializeType(nt.Type, referenced));
+                    (Language.INullableTypeNode)SerializeType(
+                        nt.Type, referenced));
             }
 
             if (type is ListType lt)

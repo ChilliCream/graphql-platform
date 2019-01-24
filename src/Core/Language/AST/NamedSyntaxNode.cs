@@ -10,12 +10,12 @@ namespace HotChocolate.Language
         protected NamedSyntaxNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             Location = location;
-            Name = name 
+            Name = name
                 ?? throw new ArgumentNullException(nameof(name));
-            Directives = directives 
+            Directives = directives
                 ?? throw new ArgumentNullException(nameof(directives));
         }
 
@@ -25,6 +25,6 @@ namespace HotChocolate.Language
 
         public NameNode Name { get; }
 
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyList<DirectiveNode> Directives { get; }
     }
 }

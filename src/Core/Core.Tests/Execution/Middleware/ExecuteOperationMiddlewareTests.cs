@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -40,16 +41,22 @@ namespace HotChocolate.Execution
                 .FirstOrDefault();
 
             var operation = new Operation(
-                query, operationNode, schema.MutationType,
-                null);
+                query, operationNode, schema.MutationType, null);
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
 
+            var listener = new DiagnosticListener("HotChocolate.Execution");
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(IErrorHandler),
-                    ErrorHandler.Default));
+                    ErrorHandler.Default),
+                new KeyValuePair<Type, object>(
+                    typeof(DiagnosticListener),
+                    listener),
+                new KeyValuePair<Type, object>(
+                    typeof(DiagnosticSource),
+                    listener));
 
             var context = new QueryContext
             (

@@ -9,22 +9,32 @@ namespace HotChocolate.Execution
         {
             if (string.IsNullOrEmpty(query))
             {
-                throw new ArgumentException("message", nameof(query));
+                throw new ArgumentException(
+                    "The query cannot be null or empty.",
+                    nameof(query));
             }
             Query = query;
         }
 
         public QueryRequest(string query, string operationName)
+            : this(query)
         {
-            if (string.IsNullOrEmpty(query))
+            OperationName = operationName;
+        }
+
+        public QueryRequest(IReadOnlyQueryRequest request)
+        {
+            if (request == null)
             {
-                throw new ArgumentException(
-                    "The query cannot be null or empty.",
-                    nameof(query));
+                throw new ArgumentNullException(nameof(request));
             }
 
-            Query = query;
-            OperationName = operationName;
+            Query = request.Query;
+            OperationName = request.OperationName;
+            VariableValues = request.VariableValues;
+            InitialValue = request.InitialValue;
+            Properties = request.Properties;
+            Services = request.Services;
         }
 
         public string Query { get; }

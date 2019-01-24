@@ -7,6 +7,8 @@ namespace HotChocolate.Configuration
 {
     internal interface ITypeRegistry
     {
+        IsOfTypeFallback IsOfType { get; set; }
+
         void RegisterType(INamedType namedType);
 
         void RegisterType(INamedType namedType, ITypeBinding typeBinding);

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Runtime;
 using HotChocolate.Utilities;
 using Moq;
 using Xunit;

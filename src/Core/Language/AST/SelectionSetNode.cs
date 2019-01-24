@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     {
         public SelectionSetNode(
             Location location,
-            IReadOnlyCollection<ISelectionNode> selections)
+            IReadOnlyList<ISelectionNode> selections)
         {
             Location = location;
             Selections = selections
@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
         public Location Location { get; }
 
-        public IReadOnlyCollection<ISelectionNode> Selections { get; }
+        public IReadOnlyList<ISelectionNode> Selections { get; }
 
         public SelectionSetNode WithLocation(Location location)
         {
@@ -28,7 +28,7 @@ namespace HotChocolate.Language
         }
 
         public SelectionSetNode WithSelections(
-            IReadOnlyCollection<ISelectionNode> selections)
+            IReadOnlyList<ISelectionNode> selections)
         {
             return new SelectionSetNode(
                 Location, selections);

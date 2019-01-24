@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 
 namespace HotChocolate.Execution.Instrumentation
 {
     internal class ApolloTracingResultBuilder
-        : IApolloTracingResultBuilder
     {
         private const int _apolloTracingVersion = 1;
         private const long _ticksToNanosecondsMultiplicator = 100;

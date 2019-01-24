@@ -1,4 +1,5 @@
 ﻿using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Types;
 using StarWars.Models;
 
