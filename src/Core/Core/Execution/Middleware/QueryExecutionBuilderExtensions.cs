@@ -13,6 +13,9 @@ namespace HotChocolate.Execution
 {
     public static class QueryExecutionBuilderExtensions
     {
+        private static readonly DiagnosticListener _listener =
+            new DiagnosticListener(DiagnosticNames.Listener);
+
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
         {
@@ -77,19 +80,18 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-
+            
+            builder
+                .RemoveService<DiagnosticListener>()
+                .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddScoped<DiagnosticListenerInitializer>();
+                .AddSingleton(_listener)
+                .AddSingleton<DiagnosticSource>(_listener);
 
             if (enableTracing)
             {
-                builder.Services
-                    .AddScoped<
-                        IApolloTracingResultBuilder,
-                        ApolloTracingResultBuilder>()
-                    .AddScoped<
-                        DiagnosticListener,
-                        ApolloTracingDiagnosticListener>();
+                builder.AddDiagnosticListener(
+                    new ApolloTracingDiagnosticListener());
             }
 
             return builder.Use<InstrumentationMiddleware>();
@@ -544,61 +546,21 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        /// <summary>
-        /// Adds a scoped service of the type <see cref="DiagnosticListener"/>
-        /// with an implementation type specified in <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">
-        /// A service type which derives from <see cref="DiagnosticListener"/>.
-        /// </typeparam>
-        /// <param name="builder">
-        /// The <see cref="IQueryExecutionBuilder"/> instance which holds the
-        /// <see cref="IServiceCollection"/> to add the service to.
-        /// </param>
-        /// <returns>
-        /// A reference to this instance after the operation has completed.
-        /// </returns>
-        public static IQueryExecutionBuilder AddScopedDiagnosticListener<T>(
-            this IQueryExecutionBuilder builder)
-                where T : DiagnosticListener
+        public static IQueryExecutionBuilder AddDiagnosticListener(
+            this IQueryExecutionBuilder builder,
+            object listener)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.RemoveService<T>();
-            builder.Services.AddScoped<DiagnosticListener, T>();
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds a singleton service of the type
-        /// <see cref="DiagnosticListener"/> with an implementation type
-        /// specified in <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">
-        /// A service type which derives from <see cref="DiagnosticListener"/>.
-        /// </typeparam>
-        /// <param name="builder">
-        /// The <see cref="IQueryExecutionBuilder"/> instance which holds the
-        /// <see cref="IServiceCollection"/> to add the service to.
-        /// </param>
-        /// <returns>
-        /// A reference to this instance after the operation has completed.
-        /// </returns>
-        public static IQueryExecutionBuilder AddSingletonDiagnosticListener<T>(
-            this IQueryExecutionBuilder builder)
-                where T : DiagnosticListener
-        {
-            if (builder == null)
+            if (listener == null)
             {
-                throw new ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(nameof(listener));
             }
 
-            builder.RemoveService<T>();
-            builder.Services.AddSingleton<DiagnosticListener, T>();
+            _listener.SubscribeWithAdapter(listener);
 
             return builder;
         }

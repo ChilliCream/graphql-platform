@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
