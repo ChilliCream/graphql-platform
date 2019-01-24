@@ -14,8 +14,6 @@ namespace HotChocolate.Stitching
         private readonly List<ScalarType> _scalarTypeInstances =
             new List<ScalarType>();
 
-        public string SchemaName => _schemaName;
-
         public RemoteExecutorBuilder SetSchemaName(string schemaName)
         {
             if (string.IsNullOrEmpty(schemaName))
@@ -78,18 +76,18 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IQueryExecutor Build()
+        public IRemoteExecutorAccessor Build()
         {
             if (string.IsNullOrEmpty(_schemaName))
             {
                 throw new InvalidOperationException(
-                    "Cannot build a remote executer without a schema name.");
+                    "Cannot build a remote executor without a schema name.");
             }
 
             if (string.IsNullOrEmpty(_schema))
             {
                 throw new InvalidOperationException(
-                    "Cannot build a remote executer without a schema.");
+                    "Cannot build a remote executor without a schema.");
             }
 
             ISchema schema = Schema.Create(
@@ -101,7 +99,7 @@ namespace HotChocolate.Stitching
                         c.RegisterType(type);
                     }
 
-                    foreach(ScalarType instance in _scalarTypeInstances)
+                    foreach (ScalarType instance in _scalarTypeInstances)
                     {
                         c.RegisterType(instance);
                     }
@@ -109,8 +107,10 @@ namespace HotChocolate.Stitching
                     c.UseNullResolver();
                 });
 
-            return schema.MakeExecutable(b =>
-                b.UseQueryDelegationPipeline(_schemaName));
+            return new RemoteExecutorAccessor(
+                _schemaName,
+                schema.MakeExecutable(b =>
+                    b.UseQueryDelegationPipeline(_schemaName)));
         }
 
         public static RemoteExecutorBuilder New() =>

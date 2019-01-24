@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching
@@ -9,6 +10,18 @@ namespace HotChocolate.Stitching
         : IStitchingContext
     {
         private readonly IDictionary<string, IQueryExecutor> _queryExecutors;
+
+        public StitchingContext(IEnumerable<IRemoteExecutorAccessor> executors)
+        {
+            if (executors == null)
+            {
+                throw new ArgumentNullException(nameof(executors));
+            }
+
+            _queryExecutors = executors.ToDictionary(
+                t => t.SchemaName,
+                t => t.Executor);
+        }
 
         public StitchingContext(
             IDictionary<string, IQueryExecutor> queryExecutors)

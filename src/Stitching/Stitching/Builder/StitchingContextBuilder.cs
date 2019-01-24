@@ -50,7 +50,8 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            _executors.Add(builder.SchemaName, builder.Build());
+            IRemoteExecutorAccessor accessor = builder.Build();
+            _executors.Add(accessor.SchemaName, accessor.Executor);
             return this;
         }
 
@@ -59,7 +60,7 @@ namespace HotChocolate.Stitching
             if (_executors.Count == 0)
             {
                 throw new InvalidOperationException(
-                    "Register query executers first.");
+                    "Register query executors first.");
             }
 
             return new StitchingContext(_executors);

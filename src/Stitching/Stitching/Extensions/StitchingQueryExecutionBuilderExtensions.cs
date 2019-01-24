@@ -62,7 +62,7 @@ namespace HotChocolate.Execution
                 .UseOperationResolver()
                 .UseCoerceVariables()
                 .UseMaxComplexity()
-                .UseRemoteQueryExecuter(schemaName);
+                .UseRemoteQueryExecutor(schemaName);
         }
 
         public static IQueryExecutionBuilder UseStitchingPipeline(
@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
                 .UseDefaultPipeline(options);
         }
 
-        public static IQueryExecutionBuilder UseRemoteQueryExecuter(
+        public static IQueryExecutionBuilder UseRemoteQueryExecutor(
             this IQueryExecutionBuilder builder,
             string schemaName)
         {
