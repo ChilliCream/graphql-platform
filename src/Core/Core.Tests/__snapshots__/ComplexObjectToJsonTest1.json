@@ -1,0 +1,1 @@
+{"data":{"name":"Car","age":5,"price":3.1445,"quantity":123123123,"cars":{"type":"Mazda","year":1992,"engineTypes":["rotary","combustion","plastic"],"factoryLocations":[{"location":"tokyo"},{"location":"los angeles"}],"drivers":[{"name":"Bob"},{"name":"Joseph"}]}}}
