@@ -243,7 +243,7 @@ Task("Sonar")
 
 Task("Release")
     .IsDependentOn("Sonar")
-    .IsDependentOn("Publish");
+    .IsDependentOn("Publish")
     .IsDependentOn("PublishTemplates");
 
 //////////////////////////////////////////////////////////////////////
