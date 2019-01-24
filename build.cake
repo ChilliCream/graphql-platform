@@ -115,6 +115,13 @@ Task("Publish")
     }
 });
 
+Task("PublishTemplates")
+    .IsDependentOn("EnvironmentSetup")
+{
+    NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec");
+    NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec");
+}
+
 Task("Tests")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
@@ -235,6 +242,7 @@ Task("Sonar")
 Task("Release")
     .IsDependentOn("Sonar")
     .IsDependentOn("Publish");
+    .IsDependentOn("PublishTemplates");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
