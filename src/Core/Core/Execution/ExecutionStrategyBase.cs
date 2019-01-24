@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
-using System.Diagnostics;
 
 namespace HotChocolate.Execution
 {
@@ -69,14 +68,10 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            DiagnosticSource source = executionContext.Services
-                .GetRequiredService<DiagnosticSource>();
-
             // start field resolvers
             IReadOnlyCollection<Task> tasks = BeginExecuteResolverBatch(
                 currentBatch,
                 executionContext.ErrorHandler,
-                source,
                 cancellationToken);
 
             // execute batch data loaders
@@ -98,7 +93,6 @@ namespace HotChocolate.Execution
         private IReadOnlyCollection<Task> BeginExecuteResolverBatch(
             IEnumerable<ResolverTask> currentBatch,
             IErrorHandler errorHandler,
-            DiagnosticSource source,
             CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
@@ -108,7 +102,6 @@ namespace HotChocolate.Execution
                 resolverTask.Task = ExecuteResolverAsync(
                     resolverTask,
                     errorHandler,
-                    source,
                     cancellationToken);
                 tasks.Add(resolverTask.Task);
                 cancellationToken.ThrowIfCancellationRequested();

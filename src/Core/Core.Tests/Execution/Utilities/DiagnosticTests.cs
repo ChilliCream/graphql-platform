@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DiagnosticAdapter;
@@ -16,8 +17,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             var listener = new TestDiagnosticListener();
-            using (DiagnosticListener.AllListeners.Subscribe(
-                new DiagnosticObserver(listener)))
+            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
             {
                 ISchema schema = CreateSchema();
 
@@ -39,8 +39,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             var listener = new TestDiagnosticListener();
-            using (DiagnosticListener.AllListeners.Subscribe(
-                new DiagnosticObserver(listener)))
+            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
             {
                 ISchema schema = CreateSchema();
 
@@ -108,36 +107,6 @@ namespace HotChocolate.Execution
             public virtual void OnQueryStop(IResolverContext context)
             {
                 QueryStop = true;
-            }
-        }
-
-        private class DiagnosticObserver
-            : IObserver<DiagnosticListener>
-        {
-            private readonly TestDiagnosticListener _listener;
-
-            public DiagnosticObserver(TestDiagnosticListener listener)
-            {
-                _listener = listener;
-            }
-
-            public void OnCompleted()
-            {
-            }
-
-            public void OnError(Exception error)
-            {
-            }
-
-            public void OnNext(DiagnosticListener value)
-            {
-                if (value.Name == "HotChocolate.Execution")
-                {
-                    value.SubscribeWithAdapter(_listener, s =>
-                    {
-                        return true;
-                    });
-                }
             }
         }
     }
