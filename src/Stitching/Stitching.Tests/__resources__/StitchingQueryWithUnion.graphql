@@ -3,7 +3,7 @@
     ...customer
     ...consultant
   }
-  consultant: customerOrConsultant(id: "#Q29uc3VsdGFudC14MQ==") {
+  consultant: customerOrConsultant(id: "Q29uc3VsdGFudC14MQ==") {
     ...customer
     ...consultant
   }

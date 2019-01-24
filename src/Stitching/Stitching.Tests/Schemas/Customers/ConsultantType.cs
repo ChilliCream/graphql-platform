@@ -9,6 +9,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
             IObjectTypeDescriptor<Consultant> descriptor)
         {
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+            descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         }
     }
 }
