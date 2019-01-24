@@ -40,6 +40,7 @@ namespace HotChocolate.Server
             // app.UseWebSockets();
             app.UseGraphQL();
             app.UseGraphiQL();
+            app.UsePlayground();
         }
     }
 }
