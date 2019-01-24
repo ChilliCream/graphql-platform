@@ -113,31 +113,28 @@ namespace HotChocolate.Stitching
                         : server_customers.CreateClient();
                 }));
 
-            var services = new ServiceCollection();
+            var serviceCollection = new ServiceCollection();
 
-            services.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddSingleton(httpClientFactory.Object);
 
-            services.AddRemoteQueryExecutor(b => b
+            serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("contract")
                 .SetSchema(FileResource.Open("Contract.graphql"))
                 .AddScalarType<DateTimeType>());
 
-            services.AddRemoteQueryExecutor(b => b
+            serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("customer")
                 .SetSchema(FileResource.Open("Customer.graphql")));
 
-            ISchema schema = Schema.Create(
+            serviceCollection.AddStitchedSchema(
                 FileResource.Open("Stitching.graphql"),
-                c =>
-                {
-                    c.RegisterType<DateTimeType>();
-                    c.UseSchemaStitching();
-                });
+                c => c.RegisterType<DateTimeType>());
 
-            IQueryExecutor executor = schema.MakeExecutable(
-                b => b.UseStitchingPipeline());
+            IServiceProvider services =
+                request.Services =
+                serviceCollection.BuildServiceProvider();
 
-            request.Services = services.BuildServiceProvider();
+            var executor = services.GetRequiredService<IQueryExecutor>();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);

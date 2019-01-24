@@ -93,5 +93,44 @@ namespace HotChocolate
                 s => new StitchingContext(
                     s.GetServices<IRemoteExecutorAccessor>()));
         }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            string schema)
+        {
+            return AddStitchedSchema(services, schema, c => { });
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            string schema,
+            Action<ISchemaConfiguration> configure)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (string.IsNullOrEmpty(schema))
+            {
+                throw new ArgumentException(
+                    "The schema mustn't be null or empty.",
+                    nameof(schema));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return services.AddSingleton(Schema.Create(
+                schema,
+                c =>
+                {
+                    configure(c);
+                    c.UseSchemaStitching();
+                })
+                .MakeExecutable(b => b.UseStitchingPipeline()));
+        }
     }
 }
