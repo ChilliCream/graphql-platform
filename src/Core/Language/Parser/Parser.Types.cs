@@ -32,7 +32,7 @@
 
             if (context.Skip(TokenKind.Bang))
             {
-                if (type is INullableType nt)
+                if (type is INullableTypeNode nt)
                 {
                     return new NonNullTypeNode
                     (

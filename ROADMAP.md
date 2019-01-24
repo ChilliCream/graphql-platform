@@ -90,6 +90,10 @@ We are currently working on the following features that are proposed for the nex
 - [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 0.8.0)
 - [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466) (in development - 0.8.0)
 
+## Experimental Features
+
+- [ ] [Flat chain syntax](https://github.com/facebook/graphql/issues/174)
+
 ## Additional Scalar Types
 
 - [x] DateTime
@@ -103,7 +107,7 @@ We are currently working on the following features that are proposed for the nex
 
 ## Additional Directives
 
-- [ ] Schema Stitching (in development - 0.8.0)
+- [x] Schema Stitching
 - [ ] HTTP Directives (in development - 0.8.0)
 - [x] Custom Schema Directives
 - [x] Custom Query Directives
@@ -117,6 +121,7 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] Schema-First approach
 - [x] Code-First approach
+- [ ] Schema Builder (in development - 0.8.0)
 
 ## Supported Frameworks
 
@@ -125,15 +130,13 @@ We are currently working on the following features that are proposed for the nex
   - [x] Get
   - [x] Post
   - [ ] _WebSockets_ (in development - 0.8.0)
-  - [ ] Schema Builder (in development - 0.8.0)
   - [x] .net Framework 4.7
-  - [x] .net Framework 4.6
+  - [x] .net Framework 4.6.1
 
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
   - [x] WebSockets
-  - [ ] Schema Builder (in development - 0.8.0)
 
 ## GraphQL Compatibility Acceptance Tests
 

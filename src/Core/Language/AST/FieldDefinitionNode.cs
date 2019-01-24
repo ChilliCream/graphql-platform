@@ -10,9 +10,9 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
-            IReadOnlyCollection<InputValueDefinitionNode> arguments,
+            IReadOnlyList<InputValueDefinitionNode> arguments,
             ITypeNode type,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
             Description = description;
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
         public StringValueNode Description { get; }
 
-        public IReadOnlyCollection<InputValueDefinitionNode> Arguments { get; }
+        public IReadOnlyList<InputValueDefinitionNode> Arguments { get; }
 
         public ITypeNode Type { get; }
 
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
         }
 
         public FieldDefinitionNode WithArguments(
-            IReadOnlyCollection<InputValueDefinitionNode> arguments)
+            IReadOnlyList<InputValueDefinitionNode> arguments)
         {
             return new FieldDefinitionNode(
                 Location, Name, Description,
@@ -67,7 +67,7 @@ namespace HotChocolate.Language
         }
 
         public FieldDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new FieldDefinitionNode(
                 Location, Name, Description,

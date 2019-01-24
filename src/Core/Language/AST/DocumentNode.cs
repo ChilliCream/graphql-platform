@@ -8,10 +8,10 @@ namespace HotChocolate.Language
     {
         public DocumentNode(
             Location location,
-            IReadOnlyCollection<IDefinitionNode> definitions)
+            IReadOnlyList<IDefinitionNode> definitions)
         {
             Location = location;
-            Definitions = definitions 
+            Definitions = definitions
                 ?? throw new ArgumentNullException(nameof(definitions));
         }
 
@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
         public Location Location { get; }
 
-        public IReadOnlyCollection<IDefinitionNode> Definitions { get; }
+        public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
         public DocumentNode WithLocation(Location location)
         {
@@ -27,7 +27,7 @@ namespace HotChocolate.Language
         }
 
         public DocumentNode WithDefinitions(
-            IReadOnlyCollection<IDefinitionNode> definitions)
+            IReadOnlyList<IDefinitionNode> definitions)
         {
             return new DocumentNode(Location, definitions);
         }

@@ -138,28 +138,28 @@ namespace HotChocolate
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override object Serialize(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override bool TryDeserialize(
             object serialized, out object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

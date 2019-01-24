@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Query complexity validation rules [#80](https://github.com/ChilliCream/hotchocolate/issues/80)
 - Added support for relay global object identification specification [specification](http://facebook.github.io/relay/graphql/objectidentification.htm).
 - Added Source Code Link for NuGet support.
-- Added support for a executer scoped field middleware [#482](https://github.com/ChilliCream/hotchocolate/issues/482).
+- Added support for a executor scoped field middleware [#482](https://github.com/ChilliCream/hotchocolate/issues/482).
+- Added schema stitching capabilities [#341](https://github.com/ChilliCream/hotchocolate/issues/341).
 
 ### Changed
 

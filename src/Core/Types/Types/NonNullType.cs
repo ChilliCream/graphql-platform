@@ -119,28 +119,28 @@ namespace HotChocolate.Types
         {
         }
 
-        public Type ClrType => throw new NotImplementedException();
+        public Type ClrType => throw new NotSupportedException();
 
-        public TypeKind Kind => throw new NotImplementedException();
+        public TypeKind Kind => throw new NotSupportedException();
 
         public bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public bool IsInstanceOfType(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

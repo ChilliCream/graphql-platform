@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public List<GenericOperationMessage> Outgoing { get; } =
             new List<GenericOperationMessage>();
 
-        public HttpContext HttpContext => throw new NotImplementedException();
+        public HttpContext HttpContext => throw new NotSupportedException();
 
         public IQueryExecutor QueryExecutor { get; set; }
 

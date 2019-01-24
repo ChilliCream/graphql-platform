@@ -36,6 +36,8 @@ namespace HotChocolate.Types
 
         public IServiceProvider Services => _schemaContext.Services;
 
+        public IsOfTypeFallback IsOfType => _schemaContext.Types.IsOfType;
+
         public IReadOnlyCollection<ObjectType> GetPossibleTypes(
             INamedType abstractType)
         {

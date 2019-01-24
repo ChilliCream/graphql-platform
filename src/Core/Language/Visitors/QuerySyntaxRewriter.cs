@@ -46,7 +46,7 @@ namespace HotChocolate.Language
             DocumentNode node,
             TContext context)
         {
-            IReadOnlyCollection<IDefinitionNode> rewrittenDefinitions =
+            IReadOnlyList<IDefinitionNode> rewrittenDefinitions =
                 RewriteMany(node.Definitions, context, RewriteDefinition);
 
             return ReferenceEquals(node.Definitions, rewrittenDefinitions)
@@ -466,8 +466,8 @@ namespace HotChocolate.Language
             return rewrite(rewritten);
         }
 
-        protected static IReadOnlyCollection<T> RewriteMany<T>(
-           IReadOnlyCollection<T> items,
+        protected static IReadOnlyList<T> RewriteMany<T>(
+           IReadOnlyList<T> items,
            TContext context,
            Func<T, TContext, T> func)
         {
@@ -475,9 +475,9 @@ namespace HotChocolate.Language
             var rewrittenSet = new List<T>();
             var modified = false;
 
-            foreach (T item in items)
+            for (int i = 0; i < items.Count; i++)
             {
-                T rewritten = func(item, context);
+                T rewritten = func(items[i], context);
                 if (!modified && !originalSet.Contains(rewritten))
                 {
                     modified = true;

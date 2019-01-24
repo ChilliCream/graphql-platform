@@ -7,34 +7,34 @@ namespace HotChocolate.Resolvers
     {
         public Task<string> GetFooAsync()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<string> GetFooAsync(string a)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<string> GetFooAsync(string a, int b)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo(string a)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo(string a, int b)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public string Bar => throw new NotImplementedException();
+        public string Bar => throw new NotSupportedException();
     }
 }

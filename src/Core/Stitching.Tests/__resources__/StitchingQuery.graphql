@@ -1,8 +1,0 @@
-{
-  customer(id: "12345") {
-    name
-    consultant {
-      name
-    }
-  }
-}

@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         public InputObjectTypeExtensionNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<InputValueDefinitionNode> fields)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<InputValueDefinitionNode> fields)
             : base(location, name, directives, fields)
         {
         }
@@ -31,14 +31,14 @@ namespace HotChocolate.Language
         }
 
         public InputObjectTypeExtensionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new InputObjectTypeExtensionNode(
                 Location, Name, directives, Fields);
         }
 
         public InputObjectTypeExtensionNode WithFields(
-            IReadOnlyCollection<InputValueDefinitionNode> fields)
+            IReadOnlyList<InputValueDefinitionNode> fields)
         {
             return new InputObjectTypeExtensionNode(
                 Location, Name, Directives, fields);

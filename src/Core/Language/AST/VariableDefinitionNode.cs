@@ -12,9 +12,9 @@ namespace HotChocolate.Language
             IValueNode defaultValue)
         {
             Location = location;
-            Variable = variable 
+            Variable = variable
                 ?? throw new ArgumentNullException(nameof(variable));
-            Type = type 
+            Type = type
                 ?? throw new ArgumentNullException(nameof(type));
             DefaultValue = defaultValue;
         }

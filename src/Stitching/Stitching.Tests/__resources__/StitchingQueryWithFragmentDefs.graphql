@@ -1,0 +1,21 @@
+{
+  customer(id: "Q3VzdG9tZXIteDE=") {
+    name
+    consultant {
+      name
+    }
+    contracts {
+      id
+      ...a
+      ...b
+    }
+  }
+}
+
+fragment a on LifeInsuranceContract {
+  premium
+}
+
+fragment b on SomeOtherContract {
+  expiryDate
+}

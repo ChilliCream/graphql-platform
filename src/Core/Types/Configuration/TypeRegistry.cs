@@ -33,6 +33,8 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 
+        public IsOfTypeFallback IsOfType { get; set; }
+
         public void CompleteRegistartion()
         {
             if (!_sealed)

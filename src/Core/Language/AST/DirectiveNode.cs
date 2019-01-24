@@ -14,14 +14,14 @@ namespace HotChocolate.Language
 
         public DirectiveNode(
             string name,
-            IReadOnlyCollection<ArgumentNode> arguments)
+            IReadOnlyList<ArgumentNode> arguments)
             : this(new NameNode(name), arguments)
         {
         }
 
         public DirectiveNode(
             NameNode name,
-            IReadOnlyCollection<ArgumentNode> arguments)
+            IReadOnlyList<ArgumentNode> arguments)
             : this(null, name, arguments)
         {
         }
@@ -29,12 +29,12 @@ namespace HotChocolate.Language
         public DirectiveNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<ArgumentNode> arguments)
+            IReadOnlyList<ArgumentNode> arguments)
         {
             Location = location;
-            Name = name 
+            Name = name
                 ?? throw new System.ArgumentNullException(nameof(name));
-            Arguments = arguments 
+            Arguments = arguments
                 ?? throw new System.ArgumentNullException(nameof(arguments));
         }
 
@@ -44,7 +44,7 @@ namespace HotChocolate.Language
 
         public NameNode Name { get; }
 
-        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        public IReadOnlyList<ArgumentNode> Arguments { get; }
 
         public DirectiveNode WithLocation(Location location)
         {
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
         }
 
         public DirectiveNode WithArguments(
-            IReadOnlyCollection<ArgumentNode> arguments)
+            IReadOnlyList<ArgumentNode> arguments)
         {
             return new DirectiveNode(Location, Name, arguments);
         }

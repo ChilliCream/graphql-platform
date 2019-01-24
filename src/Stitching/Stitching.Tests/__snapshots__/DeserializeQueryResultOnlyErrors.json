@@ -1,0 +1,31 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "message": "foo",
+      "path": [
+        "root",
+        "child"
+      ],
+      "locations": [
+        {
+          "line": 15,
+          "column": 16
+        }
+      ],
+      "extensions": {
+        "bar": "baz"
+      }
+    },
+    {
+      "message": "qux",
+      "extensions": {
+        "bar": "baz"
+      }
+    },
+    {
+      "message": "quux"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -301,6 +303,19 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 VisitSelectionSet(node.SelectionSet, writer);
             }
+        }
+
+        public static string Serialize(ISyntaxNode node)
+        {
+            var text = new StringBuilder();
+            Serialize(node, new StringWriter(text));
+            return text.ToString();
+        }
+
+        public static void Serialize(ISyntaxNode node, TextWriter writer)
+        {
+            var serializer = new QuerySyntaxSerializer(true);
+            serializer.Visit(node, new DocumentWriter(writer));
         }
     }
 }
