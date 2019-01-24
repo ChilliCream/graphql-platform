@@ -6,6 +6,5 @@
         string MutationTypeName { get; }
         string SubscriptionTypeName { get; }
         bool StrictValidation { get; }
-        bool DeveloperMode { get; }
     }
 }

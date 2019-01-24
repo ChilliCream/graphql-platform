@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -9,10 +10,26 @@ namespace HotChocolate.Stitching
         : IScopedVariableResolver
     {
         public VariableValue Resolve(
-            IMiddlewareContext context,
-            IReadOnlyDictionary<string, object> variables,
+            IResolverContext context,
             ScopedVariableNode variable)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (variable == null)
+            {
+                throw new ArgumentNullException(nameof(variable));
+            }
+
+            if (!ScopeNames.Fields.Equals(variable.Scope.Value))
+            {
+                throw new ArgumentException(
+                    "This resolver can only handle field scopes.",
+                    nameof(variable));
+            }
+
             if (context.ObjectType.Fields.TryGetField(variable.Name.Value,
                 out ObjectField field))
             {

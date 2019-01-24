@@ -6,8 +6,7 @@ namespace HotChocolate.Stitching
     internal interface IScopedVariableResolver
     {
         VariableValue Resolve(
-            IMiddlewareContext context,
-            IReadOnlyDictionary<string, object> variables,
+            IResolverContext context,
             ScopedVariableNode variable);
     }
 }

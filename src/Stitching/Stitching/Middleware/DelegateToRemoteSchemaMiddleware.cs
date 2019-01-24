@@ -156,7 +156,7 @@ namespace HotChocolate.Stitching
                 context.GetVariables();
 
             foreach (VariableValue value in ResolveScopedVariables(
-                context, components, requestVariables))
+                context, components))
             {
                 values[value.Name] = value;
             }
@@ -172,8 +172,7 @@ namespace HotChocolate.Stitching
 
         private static IEnumerable<VariableValue> ResolveScopedVariables(
             IMiddlewareContext context,
-            IEnumerable<SelectionPathComponent> components,
-            IReadOnlyDictionary<string, object> requestVariables)
+            IEnumerable<SelectionPathComponent> components)
         {
             foreach (var component in components)
             {
@@ -181,8 +180,7 @@ namespace HotChocolate.Stitching
                 {
                     if (argument.Value is ScopedVariableNode sv)
                     {
-                        yield return _resolvers.Resolve(
-                            context, requestVariables, sv);
+                        yield return _resolvers.Resolve(context, sv);
                     }
                 }
             }

@@ -8,33 +8,24 @@ namespace HotChocolate.Stitching
     internal class RootScopedVariableResolver
         : IScopedVariableResolver
     {
-        private const string _argumentScope = "arguments";
-        private const string _fieldScope = "fields";
-        private const string _variableScope = "variables";
-
         public RootScopedVariableResolver()
         {
-            Resolvers[_argumentScope] = new ArgumentScopedVariableResolver();
-            Resolvers[_fieldScope] = new FieldScopedVariableResolver();
-            Resolvers[_variableScope] = new VariableScopedVariableResolver();
+            Resolvers[ScopeNames.Arguments] =
+                new ArgumentScopedVariableResolver();
+            Resolvers[ScopeNames.Fields] =
+                new FieldScopedVariableResolver();
         }
 
         private Dictionary<string, IScopedVariableResolver> Resolvers { get; } =
             new Dictionary<string, IScopedVariableResolver>();
 
         public VariableValue Resolve(
-            IMiddlewareContext context,
-            IReadOnlyDictionary<string, object> variables,
+            IResolverContext context,
             ScopedVariableNode variable)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
-            }
-
-            if (variables == null)
-            {
-                throw new ArgumentNullException(nameof(variables));
             }
 
             if (variable == null)
@@ -45,15 +36,15 @@ namespace HotChocolate.Stitching
             if (Resolvers.TryGetValue(variable.Scope.Value,
                 out IScopedVariableResolver resolver))
             {
-                return resolver.Resolve(context, variables, variable);
+                return resolver.Resolve(context, variable);
             }
 
-             throw new QueryException(QueryError.CreateFieldError(
-                $"The specified scope `{variable.Scope.Value}` " +
-                "is not supported.",
-                context.Path,
-                context.FieldSelection)
-                .WithCode(ErrorCodes.ScopeNotDefined));
+            throw new QueryException(QueryError.CreateFieldError(
+               $"The specified scope `{variable.Scope.Value}` " +
+               "is not supported.",
+               context.Path,
+               context.FieldSelection)
+               .WithCode(ErrorCodes.ScopeNotDefined));
         }
     }
 }

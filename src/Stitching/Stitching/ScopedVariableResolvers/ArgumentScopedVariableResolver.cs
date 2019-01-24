@@ -13,10 +13,26 @@ namespace HotChocolate.Stitching
         : IScopedVariableResolver
     {
         public VariableValue Resolve(
-            IMiddlewareContext context,
-            IReadOnlyDictionary<string, object> variables,
+            IResolverContext context,
             ScopedVariableNode variable)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (variable == null)
+            {
+                throw new ArgumentNullException(nameof(variable));
+            }
+
+            if (!ScopeNames.Arguments.Equals(variable.Scope.Value))
+            {
+                throw new ArgumentException(
+                    "This resolver can only handle argument scopes.",
+                    nameof(variable));
+            }
+
             InputField argument = context.Field.Arguments.FirstOrDefault(t =>
                 t.Name.Value.EqualsOrdinal(variable.Name.Value));
 
