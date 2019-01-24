@@ -15,5 +15,7 @@ namespace HotChocolate.Configuration
 
         IBindType<T> BindType<T>(BindingBehavior bindingBehavior)
             where T : class;
+
+        void RegisterIsOfType(IsOfTypeFallback isOfType);
     }
 }

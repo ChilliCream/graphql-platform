@@ -219,7 +219,7 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses field definitions of an interface type or object type
-        /// <see cref="IReadOnlyCollection{FieldDefinitionNode}" />:
+        /// <see cref="IReadOnlyList{FieldDefinitionNode}" />:
         /// { FieldDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>

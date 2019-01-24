@@ -61,6 +61,44 @@ namespace HotChocolate.Execution
             }
         }
 
+        private QueryError(IDictionary<string, object> dict)
+        {
+            if (dict == null)
+            {
+                throw new ArgumentNullException(nameof(dict));
+            }
+
+            Message = (string)dict["message"];
+
+            if (dict.TryGetValue("extensions", out object obj)
+                && obj is IDictionary<string, object> extensions)
+            {
+                _extensions = ImmutableDictionary<string, object>
+                    .Empty.AddRange(extensions);
+            }
+
+            if (dict.TryGetValue("path", out obj)
+                && obj is IList<object> path)
+            {
+                Path = path.OfType<string>().ToArray();
+            }
+
+            if (dict.TryGetValue("locations", out obj)
+                && obj is IList<object> locations)
+            {
+                var locs = new List<Location>();
+                foreach (var loc in locations
+                    .OfType<IDictionary<string, object>>())
+                {
+                    locs.Add(new Location(
+                        Convert.ToInt32(loc["line"]),
+                        Convert.ToInt32(loc["column"])));
+                }
+                Locations = locs.AsReadOnly();
+            }
+        }
+
+
         [JsonProperty("message", Order = 0)]
         public string Message { get; }
 
@@ -229,6 +267,12 @@ namespace HotChocolate.Execution
                 new ErrorProperty(nameof(variableName), variableName));
         }
 
+        public static QueryError FromDictionary(
+            IDictionary<string, object> dict)
+        {
+            return new QueryError(dict);
+        }
+
         protected internal static Location[] ConvertLocation(
             Language.Location tokenLocation)
         {
@@ -297,8 +341,12 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
+            ImmutableDictionary<string, object> dict = _extensions == null
+                ? ImmutableDictionary<string, object>.Empty
+                : _extensions.ToImmutableDictionary();
+
             return new QueryError(Message, Path, Locations,
-                _extensions.SetItem(key, value));
+                dict.SetItem(key, value));
         }
 
         public IError RemoveExtension(string key)
@@ -308,8 +356,12 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
+            ImmutableDictionary<string, object> dict = _extensions == null
+                ? ImmutableDictionary<string, object>.Empty
+                : _extensions.ToImmutableDictionary();
+
             return new QueryError(Message, Path, Locations,
-                _extensions.Remove(key));
+                dict.Remove(key));
         }
 
         #endregion

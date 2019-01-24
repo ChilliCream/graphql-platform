@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         public EnumTypeExtensionNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<EnumValueDefinitionNode> values)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<EnumValueDefinitionNode> values)
             : base(location, name, directives, values)
         {
         }
@@ -32,7 +32,7 @@ namespace HotChocolate.Language
         }
 
         public EnumTypeExtensionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new EnumTypeExtensionNode(
                 Location, Name,
@@ -40,7 +40,7 @@ namespace HotChocolate.Language
         }
 
         public EnumTypeExtensionNode WithValues(
-            IReadOnlyCollection<EnumValueDefinitionNode> values)
+            IReadOnlyList<EnumValueDefinitionNode> values)
         {
             return new EnumTypeExtensionNode(
                 Location, Name,

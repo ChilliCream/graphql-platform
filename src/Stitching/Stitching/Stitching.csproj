@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
+    <AssemblyName>HotChocolate.Stitching</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching</RootNamespace>
+    <PackageId>HotChocolate.Stitching</PackageId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

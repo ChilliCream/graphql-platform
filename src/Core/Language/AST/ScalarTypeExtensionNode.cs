@@ -9,7 +9,7 @@ namespace HotChocolate.Language
         public ScalarTypeExtensionNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
         }
@@ -29,7 +29,7 @@ namespace HotChocolate.Language
         }
 
         public ScalarTypeExtensionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new ScalarTypeExtensionNode(
                 Location, Name, directives);

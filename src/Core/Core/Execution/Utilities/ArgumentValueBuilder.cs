@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -24,19 +25,22 @@ namespace HotChocolate.Execution
             foreach (InputField argument in fieldSelection.Field.Arguments)
             {
                 coercedArgumentValues[argument.Name] = CreateArgumentValue(
-                    fieldSelection, argument, argumentValues,
-                    variables, path);
+                    argument, argumentValues, variables,
+                    message => QueryError.CreateArgumentError(
+                        message,
+                        path,
+                        fieldSelection.Nodes.First(),
+                        argument.Name));
             }
 
             return coercedArgumentValues;
         }
 
         private static ArgumentValue CreateArgumentValue(
-            FieldSelection fieldSelection,
             InputField argument,
             Dictionary<string, IValueNode> argumentValues,
             IVariableCollection variables,
-            Path path)
+            Func<string, IError> createError)
         {
             object argumentValue = null;
 
@@ -47,21 +51,14 @@ namespace HotChocolate.Execution
             }
             catch (ScalarSerializationException ex)
             {
-                throw new QueryException(QueryError.CreateArgumentError(
-                    ex.Message,
-                    path,
-                    fieldSelection.Nodes.First(),
-                    argument.Name));
+                throw new QueryException(createError(ex.Message));
             }
 
             if (argument.Type is NonNullType && argumentValue == null)
             {
-                throw new QueryException(QueryError.CreateArgumentError(
-                    $"The argument type of '{argument.Name}' is a " +
-                    "non-null type.",
-                    path,
-                    fieldSelection.Nodes.First(),
-                    argument.Name));
+                throw new QueryException(createError(
+                    $"The argument type of '{argument.Name}' " +
+                    "is a non-null type."));
             }
 
             return new ArgumentValue(argument.Type, argumentValue);

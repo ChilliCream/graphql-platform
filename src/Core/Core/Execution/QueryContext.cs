@@ -12,6 +12,7 @@ namespace HotChocolate.Execution
         : IQueryContext
     {
         private Func<FieldSelection, FieldDelegate> _middlewareResolver;
+        private IReadOnlyQueryRequest _request;
 
         public QueryContext(
             ISchema schema,
@@ -35,7 +36,20 @@ namespace HotChocolate.Execution
 
         public ISchema Schema { get; }
 
-        public IReadOnlyQueryRequest Request { get; }
+        public IReadOnlyQueryRequest Request
+        {
+            get => _request;
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(
+                        nameof(value),
+                        "The request mustn't be null.");
+                }
+                _request = value;
+            }
+        }
 
         public IRequestServiceScope ServiceScope { get; }
 

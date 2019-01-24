@@ -9,7 +9,7 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             StringValueNode description,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
             Description = description;
@@ -39,7 +39,7 @@ namespace HotChocolate.Language
         }
 
         public EnumValueDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new EnumValueDefinitionNode(
                 Location, Name, Description, directives);

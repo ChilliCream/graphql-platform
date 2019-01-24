@@ -9,13 +9,13 @@ namespace HotChocolate.Language
         protected EnumTypeDefinitionNodeBase(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives,
-            IReadOnlyCollection<EnumValueDefinitionNode> values)
+            IReadOnlyList<DirectiveNode> directives,
+            IReadOnlyList<EnumValueDefinitionNode> values)
             : base(location, name, directives)
         {
             Values = values ?? throw new ArgumentNullException(nameof(values));
         }
 
-        public IReadOnlyCollection<EnumValueDefinitionNode> Values { get; }
+        public IReadOnlyList<EnumValueDefinitionNode> Values { get; }
     }
 }

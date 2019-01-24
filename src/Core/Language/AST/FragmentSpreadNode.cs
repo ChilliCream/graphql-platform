@@ -9,7 +9,7 @@ namespace HotChocolate.Language
         public FragmentSpreadNode(
             Location location,
             NameNode name,
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         { }
 
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
         }
 
         public FragmentSpreadNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new FragmentSpreadNode(Location, Name, directives);
         }

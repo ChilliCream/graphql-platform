@@ -97,25 +97,19 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:restore /t:build /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.sln /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:restore /t:build /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.sln /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Core /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
-    {
-        process.WaitForExit();
-    }
-
-    using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "src/Server /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+        new ProcessSettings{ Arguments = "./tools/Build.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }

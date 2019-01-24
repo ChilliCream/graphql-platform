@@ -11,8 +11,8 @@ namespace HotChocolate.Language
             Location location,
             NameNode name,
             OperationType operation,
-            IReadOnlyCollection<VariableDefinitionNode> variableDefinitions,
-            IReadOnlyCollection<DirectiveNode> directives,
+            IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+            IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
             Location = location;
@@ -34,10 +34,10 @@ namespace HotChocolate.Language
 
         public OperationType Operation { get; }
 
-        public IReadOnlyCollection<VariableDefinitionNode> VariableDefinitions
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
         { get; }
 
-        public IReadOnlyCollection<DirectiveNode> Directives { get; }
+        public IReadOnlyList<DirectiveNode> Directives { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Language
         }
 
         public OperationDefinitionNode WithVariableDefinitions(
-            IReadOnlyCollection<VariableDefinitionNode> variableDefinitions)
+            IReadOnlyList<VariableDefinitionNode> variableDefinitions)
         {
             return new OperationDefinitionNode(
                 Location, Name, Operation,
@@ -75,7 +75,7 @@ namespace HotChocolate.Language
         }
 
         public OperationDefinitionNode WithDirectives(
-            IReadOnlyCollection<DirectiveNode> directives)
+            IReadOnlyList<DirectiveNode> directives)
         {
             return new OperationDefinitionNode(
                 Location, Name, Operation,

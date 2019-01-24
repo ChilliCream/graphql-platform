@@ -30,12 +30,12 @@ namespace HotChocolate
         public bool IsIndexer { get; }
         public int Depth { get; }
 
-        internal Path Append(int index)
+        public Path Append(int index)
         {
             return new Path(Parent, Name, index);
         }
 
-        internal Path Append(NameString name)
+        public Path Append(NameString name)
         {
             return new Path(this, name);
         }
@@ -108,7 +108,7 @@ namespace HotChocolate
             return stack;
         }
 
-        internal static Path New(NameString name)
+        public static Path New(NameString name)
         {
             return new Path(null, name);
         }

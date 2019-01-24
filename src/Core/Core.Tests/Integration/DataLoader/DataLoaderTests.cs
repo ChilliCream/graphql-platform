@@ -168,11 +168,7 @@ namespace HotChocolate.Integration.DataLoader
                 .AddDataLoaderRegistry()
                 .BuildServiceProvider();
 
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<Query>();
-                c.Options.DeveloperMode = true;
-            });
+            var schema = Schema.Create(c => c.RegisterQueryType<Query>());
 
             IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
@@ -228,11 +224,7 @@ namespace HotChocolate.Integration.DataLoader
                 .AddDataLoaderRegistry()
                 .BuildServiceProvider();
 
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<Query>();
-                c.Options.DeveloperMode = true;
-            });
+            var schema = Schema.Create(c => c.RegisterQueryType<Query>());
 
             IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
@@ -288,11 +280,7 @@ namespace HotChocolate.Integration.DataLoader
                 .AddDataLoaderRegistry()
                 .BuildServiceProvider();
 
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<Query>();
-                c.Options.DeveloperMode = true;
-            });
+            var schema = Schema.Create(c => c.RegisterQueryType<Query>());
 
             IQueryExecutor executor = schema.MakeExecutable();
             IServiceScope scope = serviceProvider.CreateScope();
