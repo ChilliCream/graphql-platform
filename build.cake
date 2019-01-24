@@ -118,6 +118,8 @@ Task("Publish")
 Task("PublishTemplates")
     .IsDependentOn("EnvironmentSetup")
 {
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.6.11", packageVersion)
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.6.11", packageVersion)
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec");
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec");
 }
