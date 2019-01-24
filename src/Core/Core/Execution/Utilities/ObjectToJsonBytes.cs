@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -47,23 +48,7 @@ namespace HotChocolate.Execution
             Write(field.Value, stream);
         }
 
-        static void WriteList(IList<object> list, Stream stream)
-        {
-            var useDelimiter = false;
-            stream.Append(JsonConstants.LeftBracket);
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (useDelimiter)
-                {
-                    stream.Append(JsonConstants.Comma);
-                }
-                Write(list[i], stream);
-                useDelimiter = true;
-            }
-            stream.Append(JsonConstants.RightBracket);
-        }
-
-        static void WriteErrorList(IList<IError> list, Stream stream)
+        static void WriteList(IList list, Stream stream)
         {
             var useDelimiter = false;
             stream.Append(JsonConstants.LeftBracket);
@@ -100,13 +85,9 @@ namespace HotChocolate.Execution
             {
                 WriteObject(dictionary, stream);
             }
-            else if (value is IList<object> list)
+            else if (value is IList list)
             {
                 WriteList(list, stream);
-            }
-            else if (value is IList<IError> errorList)
-            {
-                WriteErrorList(errorList, stream);
             }
             else if (value is Array array)
             {
