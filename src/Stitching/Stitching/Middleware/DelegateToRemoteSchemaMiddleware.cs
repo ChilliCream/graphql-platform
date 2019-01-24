@@ -171,7 +171,7 @@ namespace HotChocolate.Stitching
         }
 
         private static IEnumerable<VariableValue> ResolveScopedVariables(
-            IMiddlewareContext context,
+            IResolverContext context,
             IEnumerable<SelectionPathComponent> components)
         {
             foreach (var component in components)
