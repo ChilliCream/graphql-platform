@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate;
-using HotChocolate.Subscriptions;
-using HotChocolate.Types;
+﻿using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Server
@@ -29,11 +22,8 @@ namespace HotChocolate.Server
             // Add GraphQL Services
             services.AddGraphQL(sp => Schema.Create(c =>
             {
-                c.RegisterServiceProvider(sp);
-
                 // enable for authorization support
                 // c.RegisterAuthorizeDirectiveType();
-
                 c.RegisterQueryType<Query>();
             }));
         }
