@@ -1,8 +1,4 @@
-﻿using System;
-using System.Globalization;
-using HotChocolate.Language;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     /// <summary>
     /// The Int scalar type represents a signed 32‐bit numeric non‐fractional

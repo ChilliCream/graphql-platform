@@ -2,26 +2,26 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
     internal sealed class InstrumentationMiddleware
     {
         private readonly QueryDelegate _next;
+        private readonly DiagnosticSource _source;
 
-        public InstrumentationMiddleware(QueryDelegate next)
+        public InstrumentationMiddleware(
+            QueryDelegate next,
+            DiagnosticSource source)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _source = source ??
+                throw new ArgumentNullException(nameof(source));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            context.Services
-                .GetRequiredService<DiagnosticListenerInitializer>()
-                .Initialize();
-
-            Activity activity = QueryDiagnosticEvents.BeginExecute(context);
+            Activity activity = _source.BeginExecute(context);
 
             try
             {
@@ -29,12 +29,12 @@ namespace HotChocolate.Execution
 
                 if (context.Exception != null)
                 {
-                    QueryDiagnosticEvents.QueryError(context);
+                    _source.QueryError(context);
                 }
             }
             finally
             {
-                QueryDiagnosticEvents.EndExecute(activity, context);
+                _source.EndExecute(activity, context);
             }
         }
     }
