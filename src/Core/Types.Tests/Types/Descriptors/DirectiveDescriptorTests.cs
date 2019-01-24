@@ -237,7 +237,7 @@ namespace HotChocolate.Types
         {
             public string FieldA { get; }
             public string FieldB { get; }
-            public string Foo() => throw new NotImplementedException();
+            public string Foo() => throw new NotSupportedException();
         }
     }
 }

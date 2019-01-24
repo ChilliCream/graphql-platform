@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using HotChocolate;
-using HotChocolate.AspNetCore.GraphiQL;
-using HotChocolate.AspNetCore.Playground;
+using HotChocolate.AspNetCore;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using StarWars.Data;
 using StarWars.Types;
@@ -80,15 +74,13 @@ namespace StarWars
             Note: comment app.UseGraphQL("/graphql"); and uncomment this
             section in order to simulare a user that has a country claim and
             passes the configured authorization rule.
-
-            app.UseGraphQL(new GraphQLMiddlewareOptions
+            app.UseGraphQL(new QueryMiddlewareOptions
             {
-                Path = "/graphql",
-                OnCreateRequest = (c, r, p, ct) =>
+                OnCreateRequest = (ctx, request, props, ct) =>
                 {
                     var identity = new ClaimsIdentity();
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                    c.User.AddIdentity(identity);
+                    ctx.User.AddIdentity(identity);
                     return Task.CompletedTask;
                 }
             });

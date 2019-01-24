@@ -113,32 +113,28 @@ namespace HotChocolate.Stitching
                         : server_customers.CreateClient();
                 }));
 
-            IStitchingContext stitchingContext = StitchingContextBuilder.New()
-                .AddExecutor(b => b
-                    .SetSchemaName("contract")
-                    .SetSchema(FileResource.Open("Contract.graphql"))
-                    .AddScalarType<DateTimeType>())
-                .AddExecutor(b => b
-                    .SetSchemaName("customer")
-                    .SetSchema(FileResource.Open("Customer.graphql")))
-                .Build();
+            var serviceCollection = new ServiceCollection();
 
-            var services = new ServiceCollection();
-            services.AddSingleton(httpClientFactory.Object);
-            services.AddSingleton(stitchingContext);
+            serviceCollection.AddSingleton(httpClientFactory.Object);
 
-            ISchema schema = Schema.Create(
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("contract")
+                .SetSchema(FileResource.Open("Contract.graphql"))
+                .AddScalarType<DateTimeType>());
+
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("customer")
+                .SetSchema(FileResource.Open("Customer.graphql")));
+
+            serviceCollection.AddStitchedSchema(
                 FileResource.Open("Stitching.graphql"),
-                c =>
-                {
-                    c.RegisterType<DateTimeType>();
-                    c.UseSchemaStitching();
-                });
+                c => c.RegisterType<DateTimeType>());
 
-            IQueryExecutor executor = schema.MakeExecutable(
-                b => b.UseStitchingPipeline());
+            IServiceProvider services =
+                request.Services =
+                serviceCollection.BuildServiceProvider();
 
-            request.Services = services.BuildServiceProvider();
+            var executor = services.GetRequiredService<IQueryExecutor>();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);

@@ -1,5 +1,8 @@
 #addin "nuget:?package=Cake.Sonar&version=1.1.18"
+#addin "nuget:?package=Cake.FileHelpers&version=3.1.0"
+#addin "nuget:?package=Cake.NuGet&version=0.30.0"
 #tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
+
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -113,6 +116,21 @@ Task("Publish")
     {
         process.WaitForExit();
     }
+});
+
+Task("PublishTemplates")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var nuGetPackSettings   = new NuGetPackSettings
+    {
+        Version = packageVersion
+    };
+
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.7.0-preview.34", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.7.0-preview.34", packageVersion);
+    NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
+    NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
 
 Task("Tests")
@@ -234,7 +252,8 @@ Task("Sonar")
 
 Task("Release")
     .IsDependentOn("Sonar")
-    .IsDependentOn("Publish");
+    .IsDependentOn("Publish")
+    .IsDependentOn("PublishTemplates");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
