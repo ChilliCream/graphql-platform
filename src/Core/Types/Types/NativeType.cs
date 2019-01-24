@@ -7,28 +7,28 @@ namespace HotChocolate.Types
         : IOutputType
         , IInputType
     {
-        public TypeKind Kind => throw new NotImplementedException();
+        public TypeKind Kind => throw new NotSupportedException();
 
-        Type IHasClrType.ClrType => throw new NotImplementedException();
+        Type IHasClrType.ClrType => throw new NotSupportedException();
 
         public bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public bool IsInstanceOfType(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public object ParseLiteral(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

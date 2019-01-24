@@ -7,44 +7,44 @@ namespace HotChocolate.Resolvers
     {
         public Task<string> GetFooAsync()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<string> GetFooAsync(GeneratorTestDummy a)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<string> GetFooAsync(GeneratorTestDummy a, string b)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<string> GetFooAsync(GeneratorTestDummy a, string b, int c)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo(GeneratorTestDummy a)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo(GeneratorTestDummy a, string b)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public string GetFoo(GeneratorTestDummy a, string b, int c)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public string Bar => throw new NotImplementedException();
+        public string Bar => throw new NotSupportedException();
     }
 }
