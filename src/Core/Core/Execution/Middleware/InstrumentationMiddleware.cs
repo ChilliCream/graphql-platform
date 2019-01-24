@@ -8,20 +8,15 @@ namespace HotChocolate.Execution
     internal sealed class InstrumentationMiddleware
     {
         private readonly QueryDelegate _next;
-        private readonly DiagnosticSource _source;
 
-        public InstrumentationMiddleware(
-            QueryDelegate next,
-            DiagnosticSource source)
+        public InstrumentationMiddleware(QueryDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _source = source ??
-                throw new ArgumentNullException(nameof(source));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _source.BeginExecute(context);
+            Activity activity = DiagnosticEvents.BeginQuery(context);
 
             try
             {
@@ -29,12 +24,12 @@ namespace HotChocolate.Execution
 
                 if (context.Exception != null)
                 {
-                    _source.QueryError(context);
+                    DiagnosticEvents.QueryError(context);
                 }
             }
             finally
             {
-                _source.EndExecute(activity, context);
+                DiagnosticEvents.EndQuery(activity, context);
             }
         }
     }

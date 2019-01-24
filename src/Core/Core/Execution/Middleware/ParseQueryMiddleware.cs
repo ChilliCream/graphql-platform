@@ -12,13 +12,11 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly IQueryParser _parser;
         private readonly Cache<DocumentNode> _queryCache;
-        private readonly DiagnosticSource _source;
 
         public ParseQueryMiddleware(
             QueryDelegate next,
             IQueryParser parser,
-            Cache<DocumentNode> queryCache,
-            DiagnosticSource source)
+            Cache<DocumentNode> queryCache)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
@@ -26,13 +24,11 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(parser));
             _queryCache = queryCache
                 ?? throw new ArgumentNullException(nameof(queryCache));
-            _source = source
-                ?? throw new ArgumentNullException(nameof(source));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _source.BeginParsing(context);
+            Activity activity = DiagnosticEvents.BeginParsing(context);
 
             if (IsContextIncomplete(context))
             {
@@ -49,7 +45,7 @@ namespace HotChocolate.Execution
                 await _next(context).ConfigureAwait(false);
             }
 
-            _source.EndParsing(activity, context);
+            DiagnosticEvents.EndParsing(activity, context);
         }
 
         private DocumentNode ParseDocument(string queryText)

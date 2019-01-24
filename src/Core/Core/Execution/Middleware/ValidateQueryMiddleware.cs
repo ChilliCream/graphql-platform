@@ -13,13 +13,11 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly IQueryValidator _validator;
         private readonly Cache<QueryValidationResult> _validatorCache;
-        private readonly DiagnosticSource _source;
 
         public ValidateQueryMiddleware(
             QueryDelegate next,
             IQueryValidator validator,
-            Cache<QueryValidationResult> validatorCache,
-            DiagnosticSource source)
+            Cache<QueryValidationResult> validatorCache)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -27,13 +25,11 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(validator));
             _validatorCache = validatorCache ??
                 new Cache<QueryValidationResult>(Defaults.CacheSize);
-            _source = source ??
-                throw new ArgumentNullException(nameof(source));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _source.BeginValidation(context);
+            Activity activity = DiagnosticEvents.BeginValidation(context);
 
             if (context.Document == null)
             {
@@ -52,7 +48,7 @@ namespace HotChocolate.Execution
                 {
                     context.Result = QueryResult.CreateError(
                         context.ValidationResult.Errors);
-                    _source.ValidationError(context);
+                    DiagnosticEvents.ValidationError(context);
                 }
                 else
                 {
@@ -60,7 +56,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            _source.EndValidation(activity, context);
+            DiagnosticEvents.EndValidation(activity, context);
         }
 
         private QueryValidationResult Validate(

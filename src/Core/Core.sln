@@ -1,42 +1,45 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language", "Language\Language.csproj", "{9F71DFC0-FBB3-4582-B31C-BAF5ED1A056B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language", "Language\Language.csproj", "{9F71DFC0-FBB3-4582-B31C-BAF5ED1A056B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language.Tests", "Language.Tests\Language.Tests.csproj", "{98B9C4D2-BBD8-4059-A3AE-18D2A1016F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language.Tests", "Language.Tests\Language.Tests.csproj", "{98B9C4D2-BBD8-4059-A3AE-18D2A1016F6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{BC3897A8-B14C-40EC-883F-16C2AE3DA024}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{BC3897A8-B14C-40EC-883F-16C2AE3DA024}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests", "Core.Tests\Core.Tests.csproj", "{AAB2CD73-2B67-4E2E-8C32-E045462800B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "Core.Tests\Core.Tests.csproj", "{AAB2CD73-2B67-4E2E-8C32-E045462800B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions", "Abstractions\Abstractions.csproj", "{D1423445-24A7-4713-A20A-B9B50D6A82E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "Abstractions\Abstractions.csproj", "{D1423445-24A7-4713-A20A-B9B50D6A82E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types", "Types\Types.csproj", "{81E468D7-1478-40C8-8781-2B621DA950B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types", "Types\Types.csproj", "{81E468D7-1478-40C8-8781-2B621DA950B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime", "Runtime\Runtime.csproj", "{762CF153-5ADA-4C7D-894D-A4506641B58A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime", "Runtime\Runtime.csproj", "{762CF153-5ADA-4C7D-894D-A4506641B58A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime.Tests", "Runtime.Tests\Runtime.Tests.csproj", "{010897C2-FC89-4237-82FA-74338C50DA6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime.Tests", "Runtime.Tests\Runtime.Tests.csproj", "{010897C2-FC89-4237-82FA-74338C50DA6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Tests", "Types.Tests\Types.Tests.csproj", "{22B903A2-A639-4C94-8C64-9C3955C6899E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Tests", "Types.Tests\Types.Tests.csproj", "{22B903A2-A639-4C94-8C64-9C3955C6899E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Tests", "Validation.Tests\Validation.Tests.csproj", "{84735377-5C0F-4BDA-AFA4-DF5688003C3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Tests", "Validation.Tests\Validation.Tests.csproj", "{84735377-5C0F-4BDA-AFA4-DF5688003C3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions", "Subscriptions\Subscriptions.csproj", "{B8D61F9C-2C28-4351-BC09-CF58EBC9879A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions", "Subscriptions\Subscriptions.csproj", "{B8D61F9C-2C28-4351-BC09-CF58EBC9879A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Tests", "Subscriptions.Tests\Subscriptions.Tests.csproj", "{B33E1BE7-769A-40D1-92CE-43FB6E750118}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Tests", "Subscriptions.Tests\Subscriptions.Tests.csproj", "{B33E1BE7-769A-40D1-92CE-43FB6E750118}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.InMemory", "Subscriptions.InMemory\Subscriptions.InMemory.csproj", "{9BFC0152-8C8F-48D4-B9D3-7D165A3A308B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.InMemory", "Subscriptions.InMemory\Subscriptions.InMemory.csproj", "{9BFC0152-8C8F-48D4-B9D3-7D165A3A308B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Utilities.csproj", "{18573805-1C04-4DCE-B874-CEA23BF5D760}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities", "Utilities\Utilities.csproj", "{18573805-1C04-4DCE-B874-CEA23BF5D760}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.Tests", "Utilities.Tests\Utilities.Tests.csproj", "{400759E2-8EEF-43FF-AF16-36297BB7829D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Tests", "Utilities.Tests\Utilities.Tests.csproj", "{400759E2-8EEF-43FF-AF16-36297BB7829D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions.Tests", "Abstractions.Tests\Abstractions.Tests.csproj", "{72CD40F9-962C-4427-8508-5D1A7692FAF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions.Tests", "Abstractions.Tests\Abstractions.Tests.csproj", "{72CD40F9-962C-4427-8508-5D1A7692FAF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching", "Stitching\Stitching.csproj", "{F1462F4C-7E8C-42F8-BECA-07F2B0DD3D89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stitching", "Stitching\Stitching.csproj", "{F1462F4C-7E8C-42F8-BECA-07F2B0DD3D89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching.Tests", "Stitching.Tests\Stitching.Tests.csproj", "{9A887038-74FB-462F-BD2F-435E23726F34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stitching.Tests", "Stitching.Tests\Stitching.Tests.csproj", "{9A887038-74FB-462F-BD2F-435E23726F34}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.Tests", "Core.Diagnostics.Tests\Core.Diagnostics.Tests.csproj", "{5C24855F-625F-40E8-8396-0C50A0CCDFBF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -264,6 +267,18 @@ Global
 		{9A887038-74FB-462F-BD2F-435E23726F34}.Release|x64.Build.0 = Release|Any CPU
 		{9A887038-74FB-462F-BD2F-435E23726F34}.Release|x86.ActiveCfg = Release|Any CPU
 		{9A887038-74FB-462F-BD2F-435E23726F34}.Release|x86.Build.0 = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|x64.Build.0 = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Debug|x86.Build.0 = Debug|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|x64.ActiveCfg = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|x64.Build.0 = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|x86.ActiveCfg = Release|Any CPU
+		{5C24855F-625F-40E8-8396-0C50A0CCDFBF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

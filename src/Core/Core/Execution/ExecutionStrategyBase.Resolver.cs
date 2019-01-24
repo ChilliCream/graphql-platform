@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -16,16 +16,14 @@ namespace HotChocolate.Execution
         protected static async Task<object> ExecuteResolverAsync(
            ResolverTask resolverTask,
            IErrorHandler errorHandler,
-           DiagnosticSource source,
            CancellationToken cancellationToken)
         {
-            Activity activity = source.BeginResolveField(
+            Activity activity = DiagnosticEvents.BeginResolveField(
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
                 resolverTask,
-                errorHandler,
-                source)
+                errorHandler)
                     .ConfigureAwait(false);
 
             if (result is IError || result is IEnumerable<IError>)
@@ -33,7 +31,7 @@ namespace HotChocolate.Execution
                 activity?.AddTag("error", "true");
             }
 
-            source.EndResolveField(
+            DiagnosticEvents.EndResolveField(
                 activity,
                 resolverTask.ResolverContext,
                 result);
@@ -43,8 +41,7 @@ namespace HotChocolate.Execution
 
         private static async Task<object> ExecuteMiddlewareAsync(
             ResolverTask resolverTask,
-            IErrorHandler errorHandler,
-            DiagnosticSource source)
+            IErrorHandler errorHandler)
         {
             object result = null;
 
@@ -72,7 +69,8 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                source.ResolverError(resolverTask.ResolverContext, ex);
+                DiagnosticEvents.ResolverError(resolverTask.ResolverContext,
+                    ex);
 
                 return errorHandler.Handle(ex, error => error
                     .WithPath(resolverTask.Path)
