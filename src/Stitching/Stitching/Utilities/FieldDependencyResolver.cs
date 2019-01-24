@@ -113,7 +113,7 @@ namespace HotChocolate.Stitching
 
         private static void CollectFieldNames(
             DelegateDirective directive,
-            IComplexOutputType type,
+            IHasName type,
             ISet<FieldDependency> dependencies)
         {
             IImmutableStack<SelectionPathComponent> path =

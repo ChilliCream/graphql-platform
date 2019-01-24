@@ -65,8 +65,8 @@ namespace HotChocolate.Execution
 
         private FieldValueCompletionContext(
             FieldValueCompletionContext completionContext,
-            Path elementPath, IType elementType,
-            object element, Action<object> addElementToList)
+            Element element,
+            Action<object> addElementToList)
         {
             _integrateResult = addElementToList;
             _enqueueResolverTask = completionContext._enqueueResolverTask;
@@ -80,9 +80,9 @@ namespace HotChocolate.Execution
             IsNullable = completionContext.IsNullable;
             Converter = completionContext.Converter;
 
-            Path = elementPath;
-            Type = elementType;
-            Value = element;
+            Path = element.Path;
+            Type = element.Type;
+            Value = element.Value;
         }
 
         public IExecutionContext ExecutionContext { get; }
@@ -209,7 +209,23 @@ namespace HotChocolate.Execution
             }
 
             return new FieldValueCompletionContext(
-                this, elementPath, elementType, element, addElementToList);
+                this,
+                new Element(elementPath, elementType, element),
+                addElementToList);
+        }
+
+        private readonly struct Element
+        {
+            public Element(Path path, IType type, object value)
+            {
+                Path = path ?? throw new ArgumentNullException(nameof(path));
+                Type = type ?? throw new ArgumentNullException(nameof(type));
+                Value = value;
+            }
+
+            public Path Path { get; }
+            public IType Type { get; }
+            public object Value { get; }
         }
     }
 }
