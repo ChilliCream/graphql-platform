@@ -119,7 +119,7 @@ namespace HotChocolate.Stitching
 
             if (obj != null && levels > 1)
             {
-                for (int i = levels; i >= 1; i--)
+                for (int i = levels - 1; i >= 1; i--)
                 {
                     var current = obj as IReadOnlyDictionary<string, object>;
                     obj = current.Count == 0 ? null : current.First().Value;
