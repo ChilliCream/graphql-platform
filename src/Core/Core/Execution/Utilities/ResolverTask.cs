@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -18,7 +18,8 @@ namespace HotChocolate.Execution
             FieldSelection fieldSelection,
             Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result)
+            IDictionary<string, object> result,
+            IImmutableDictionary<string, object> scopedContextData)
         {
             _executionContext = executionContext;
             Source = source;
@@ -27,6 +28,7 @@ namespace HotChocolate.Execution
             FieldType = fieldSelection.Field.Type;
             Path = path;
             _result = result;
+            ScopedContextData = scopedContextData;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
@@ -53,6 +55,12 @@ namespace HotChocolate.Execution
         public object ResolverResult { get; set; }
 
         public FieldDelegate FieldDelegate { get; }
+        
+        public IImmutableDictionary<string, object> ScopedContextData
+        {
+            get;
+            set;
+        }
 
         public void IntegrateResult(object value)
         {

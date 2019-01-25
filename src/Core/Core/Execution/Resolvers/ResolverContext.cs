@@ -71,6 +71,12 @@ namespace HotChocolate.Execution
         public IDictionary<string, object> ContextData =>
             _executionContext.ContextData;
 
+        public IImmutableDictionary<string, object> ScopedContextData
+        {
+            get => _resolverTask.ScopedContextData;
+            set => _resolverTask.ScopedContextData = value;
+        }
+
         public T Argument<T>(NameString name)
         {
             if (string.IsNullOrEmpty(name))

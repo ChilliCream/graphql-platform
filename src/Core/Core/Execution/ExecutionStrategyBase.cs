@@ -163,7 +163,9 @@ namespace HotChocolate.Execution
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),
                     source,
-                    result);
+                    result,
+                    ImmutableDictionary<string, object>.Empty
+                    );
             }
         }
 
