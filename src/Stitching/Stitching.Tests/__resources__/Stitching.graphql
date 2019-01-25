@@ -6,6 +6,12 @@ type Query {
   contracts(id: ID!): [Contract!]
     @schema(name: "contract")
     @delegate(path: "contracts(customerId:$arguments:id)")
+  consultantName: String!
+    @schema(name: "customer")
+    @delegate(path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant.name")
+  consultant: Consultant
+    @schema(name: "customer")
+    @delegate(path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant")
 }
 
 type Customer {
@@ -15,6 +21,9 @@ type Customer {
   contracts: [Contract!]
     @schema(name: "contract")
     @delegate(path: "contracts(customerId:$fields:id)")
+  contractIds: [ID!]
+    @schema(name: "contract")
+    @delegate(path: "contracts(customerId:$fields:id).id")
 }
 
 type Consultant {
