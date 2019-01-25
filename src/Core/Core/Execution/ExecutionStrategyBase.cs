@@ -164,8 +164,8 @@ namespace HotChocolate.Execution
                     Path.New(fieldSelection.ResponseName),
                     source,
                     result,
-                    ImmutableDictionary.CreateBuilder<string, object>()
-                        .ToImmutable());
+                    ImmutableDictionary<string, object>.Empty
+                    );
             }
         }
 
