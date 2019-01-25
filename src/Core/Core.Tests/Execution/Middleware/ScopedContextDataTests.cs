@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ nested { a { foo } b { foo } } }"));
+                new QueryRequest("{ root { a { foo } b { foo } } }"));
 
             // assert
             result.Snapshot();
