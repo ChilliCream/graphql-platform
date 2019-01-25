@@ -11,23 +11,40 @@ namespace HotChocolate.Execution
         public async Task ScopedContextDataIsPassedAllongCorrectly()
         {
             // arrange
-            bool allDataIsPassedAlong = false;
-
             ISchema schema = Schema.Create(
-                "type Query { nested: Nested }  type Nested { foo: String }",
+                @"
+                type Query {
+                    root: Level1
+                }
+
+                type Level1 {
+                    a: Level2
+                    b: Level2
+                }
+
+                type Level2
+                {
+                    foo: String
+                }
+                ",
                 c => c.Use(next => context =>
                 {
-                if (context.ScopedContextData.ContainsKey("field"))
-                {
-                    allDataIsPassedAlong = true;
-                    context.Result = "123";
-                } 
-                else
-                {
-                    context.ScopedContextData = context.ScopedContextData.Add("field", "abc");
-                    context.Result = new { foo = "123"};
-                }
-                    
+                    if (context.ScopedContextData
+                        .TryGetValue("field", out object o)
+                        && o is string s)
+                    {
+                        s += "/" + context.Field.Name;
+                    }
+                    else
+                    {
+                        s = "./" + context.Field.Name;
+                    }
+
+                    context.ScopedContextData = context.ScopedContextData
+                        .SetItem("field", s);
+
+                    context.Result = s;
+
                     return Task.CompletedTask;
                 }));
 
@@ -37,10 +54,10 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ nested { foo } }"));
+                new QueryRequest("{ nested { a { foo } b { foo } } }"));
 
             // assert
-            Assert.True(allDataIsPassedAlong);
+            result.Snapshot();
         }
     }
 }
