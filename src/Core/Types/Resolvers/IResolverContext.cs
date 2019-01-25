@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -60,10 +60,11 @@ namespace HotChocolate.Resolvers
         /// resolvers to store and retrieve data during execution.
         /// </summary>
         IDictionary<string, object> ContextData { get; }
-        
+
         /// <summary>
-        /// The scoped variables dictionary can be used to provide variables
-        /// down the hierarchy of a tree
+        /// The scoped context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution scoped to the
+        /// hierarchy 
         /// </summary>
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
 
