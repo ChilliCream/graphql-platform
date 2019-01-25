@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using HotChocolate.Utilities;
@@ -46,17 +47,16 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
 
-            var listener = new DiagnosticListener("HotChocolate.Execution");
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(IErrorHandler),
                     ErrorHandler.Default),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticListener),
-                    listener),
+                    DiagnosticEvents.Listener),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticSource),
-                    listener));
+                    DiagnosticEvents.Listener));
 
             var context = new QueryContext
             (

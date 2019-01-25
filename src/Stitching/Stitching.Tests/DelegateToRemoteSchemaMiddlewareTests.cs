@@ -89,6 +89,39 @@ namespace HotChocolate.Stitching
             return ExecuteStitchedQuery(request);
         }
 
+        [Fact(Skip = "Not yet supported!")]
+        public Task ExecuteStitchingQueryDeepArrayPath()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryDeepArrayPath.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        [Fact]
+        public Task ExecuteStitchingQueryDeepObjectPath()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryDeepObjectPath.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
+        [Fact]
+        public Task ExecuteStitchingQueryDeepScalarPath()
+        {
+            // arrange
+            var request = new QueryRequest(FileResource.Open(
+                "StitchingQueryDeepScalarPath.graphql"));
+
+            // act and assert
+            return ExecuteStitchedQuery(request);
+        }
+
         private async Task ExecuteStitchedQuery(
             QueryRequest request,
             [CallerMemberName]string snapshotName = null)

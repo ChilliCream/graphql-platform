@@ -13,9 +13,6 @@ namespace HotChocolate.Execution
 {
     public static class QueryExecutionBuilderExtensions
     {
-        private static readonly DiagnosticListener _listener =
-            new DiagnosticListener(DiagnosticNames.Listener);
-
         public static IQueryExecutionBuilder UseDefaultPipeline(
             this IQueryExecutionBuilder builder)
         {
@@ -85,8 +82,9 @@ namespace HotChocolate.Execution
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddSingleton(_listener)
-                .AddSingleton<DiagnosticSource>(_listener);
+                .AddSingleton(DiagnosticEvents.Listener)
+                .AddSingleton<DiagnosticSource>(
+                    DiagnosticEvents.Listener);
 
             if (enableTracing)
             {
@@ -351,6 +349,80 @@ namespace HotChocolate.Execution
             return AddParser<DefaultQueryParser>(builder);
         }
 
+        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
+            this IQueryExecutionBuilder builder,
+            TListener listener)
+                where TListener : class
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (listener == null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
+
+            DiagnosticEvents.Listener.SubscribeWithAdapter(listener);
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
+            this IQueryExecutionBuilder builder,
+            TListener listener,
+            Func<string, bool> isEnabled)
+                where TListener : class
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (listener == null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
+
+            if (isEnabled == null)
+            {
+                throw new ArgumentNullException(nameof(isEnabled));
+            }
+
+            DiagnosticEvents.Listener
+                .SubscribeWithAdapter(listener, isEnabled);
+
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
+            this IQueryExecutionBuilder builder,
+            TListener listener,
+            Func<string, object, object, bool> isEnabled)
+                where TListener : class
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (listener == null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
+
+            if (isEnabled == null)
+            {
+                throw new ArgumentNullException(nameof(isEnabled));
+            }
+
+            DiagnosticEvents.Listener
+                .SubscribeWithAdapter(listener, isEnabled);
+
+            return builder;
+        }
+
         public static IQueryExecutionBuilder AddErrorHandler(
             this IQueryExecutionBuilder builder)
         {
@@ -542,25 +614,6 @@ namespace HotChocolate.Execution
                 .AddSingleton(new Cache<DirectiveMiddlewareCompiler>(cacheSize))
                 .AddSingleton(new Cache<DocumentNode>(cacheSize))
                 .AddSingleton(new Cache<OperationDefinitionNode>(cacheSize));
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddDiagnosticListener(
-            this IQueryExecutionBuilder builder,
-            object listener)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (listener == null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
-
-            _listener.SubscribeWithAdapter(listener);
 
             return builder;
         }

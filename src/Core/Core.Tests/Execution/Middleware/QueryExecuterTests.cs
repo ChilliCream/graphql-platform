@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
@@ -35,27 +34,6 @@ namespace HotChocolate.Execution
             // assert
             Assert.Empty(result.Errors);
             result.Snapshot();
-        }
-
-        [Fact(Skip = "Causing issues due to DiagnosticListeners static " +
-                     "implementation")]
-        public async Task ExecuteShortHandQueryWithTracing()
-        {
-            // arrange
-            Schema schema = CreateSchema();
-            IQueryExecutor executor = QueryExecutionBuilder
-                .BuildDefault(schema, new QueryExecutionOptions
-                {
-                    EnableTracing = true
-                });
-            var request = new QueryRequest("{ a }");
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            Assert.NotEmpty(result.Extensions);
-            Assert.True(result.Extensions.ContainsKey("tracing"));
         }
 
         [Fact]
@@ -246,7 +224,6 @@ namespace HotChocolate.Execution
             Assert.NotNull(result.Errors);
             result.Snapshot();
         }
-
 
         private Schema CreateSchema()
         {
