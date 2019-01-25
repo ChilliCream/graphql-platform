@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -56,7 +56,11 @@ namespace HotChocolate.Execution
 
         public FieldDelegate FieldDelegate { get; }
         
-        public IImmutableDictionary<string, object> ScopedContextData { get;  set; }
+        public IImmutableDictionary<string, object> ScopedContextData
+        {
+            get;
+            set;
+        }
 
         public void IntegrateResult(object value)
         {
