@@ -19,13 +19,18 @@ namespace HotChocolate.Execution
             {
                 if (prop.GetCustomAttribute(typeof(JsonPropertyAttribute)) != null)
                 {
-                    if (useDelimiter)
+                    object propValue = prop.GetValue(value);
+
+                    if (propValue != null)
                     {
-                        stream.Append(JsonConstants.Comma);
+                        if (useDelimiter)
+                        {
+                            stream.Append(JsonConstants.Comma);
+                        }
+                        ObjectToJsonBytes.WriteKeyToStream(prop.Name.ToLowerInvariant(), stream);
+                        ObjectToJsonBytes.WriteObjectToStream(propValue, stream);
+                        useDelimiter = true;
                     }
-                    ObjectToJsonBytes.WriteKeyToStream(prop.Name.ToLowerInvariant(), stream);
-                    ObjectToJsonBytes.WriteObjectToStream(prop.GetValue(value), stream);
-                    useDelimiter = true;
                 }
             }
             stream.Append(JsonConstants.RightBrace);
