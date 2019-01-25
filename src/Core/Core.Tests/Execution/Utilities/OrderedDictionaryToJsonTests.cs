@@ -66,5 +66,43 @@ namespace HotChocolate.Execution
             // assert
             jsonResult.Snapshot();
         }
+
+        [Fact]
+        static public void BasicErrorObjectToJsonTest()
+        {
+            // arrange 
+            OrderedDictionary queryResult = OrderedDictionaryTestData.BasicErrorQueryResult;
+
+            // act
+            string jsonResult;
+            using (var memStream = new MemoryStream())
+            {
+                ObjectToJsonBytes.WriteObjectToStream(queryResult, memStream);
+
+                jsonResult = Encoding.UTF8.GetString(memStream.ToArray());
+            }
+
+            // assert
+            jsonResult.Snapshot();
+        }
+
+        [Fact]
+        static public void ComplexErrorObjectToJsonTest()
+        {
+            // arrange 
+            OrderedDictionary queryResult = OrderedDictionaryTestData.ComplexErrorQueryResult;
+
+            // act
+            string jsonResult;
+            using (var memStream = new MemoryStream())
+            {
+                ObjectToJsonBytes.WriteObjectToStream(queryResult, memStream);
+
+                jsonResult = Encoding.UTF8.GetString(memStream.ToArray());
+            }
+
+            // assert
+            jsonResult.Snapshot();
+        }
     }
 }

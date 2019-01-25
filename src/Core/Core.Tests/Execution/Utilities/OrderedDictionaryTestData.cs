@@ -8,12 +8,66 @@ namespace HotChocolate.Execution
     internal class OrderedDictionaryTestData
     {
 
-        public static OrderedDictionary ErrorQueryResult
+        public static OrderedDictionary BasicErrorQueryResult
         {
             get
             {
                 var queryResult = new OrderedDictionary();
+                var errors = new List<QueryError>
+                {
+                    new QueryError("This is an error on the query."),
+                    new QueryError("This is another error on the query.", Path.New("Example"))
+                };
 
+                queryResult["errors"] = errors;
+                return queryResult;
+            }
+        }
+
+        public static OrderedDictionary ComplexErrorQueryResult
+        {
+            get
+            {
+                var queryResult = new OrderedDictionary();
+                var errors = new List<QueryError>
+                {
+                    new QueryError(
+                        message: "Name for character with ID 1002 could not be fetched.",
+                        locations: new List<Location>
+                        {
+                            new Location(6, 7)
+                        },
+                        path: Path.New("hero").Append("heroFriends").Append(1).Append("name")
+                    )
+                };
+                var data = new OrderedDictionary
+                {
+                    ["hero"] = new OrderedDictionary
+                    {
+                        ["name"] = "R2-D2",
+                        ["heroFriends"] = new List<OrderedDictionary>
+                        {
+                            new OrderedDictionary
+                            {
+                                ["id"] = "1000",
+                                ["name"] = "Luke Skywalker"
+                            },
+                            new OrderedDictionary
+                            {
+                                ["id"] = "1002",
+                                ["name"] = null
+                            },
+                            new OrderedDictionary
+                            {
+                                ["id"] = "1003",
+                                ["name"] = "Leia Organa"
+                            }
+                        }
+                    }
+                };
+                
+                queryResult["errors"] = errors;
+                queryResult["data"] = data;
                 return queryResult;
             }
         }
