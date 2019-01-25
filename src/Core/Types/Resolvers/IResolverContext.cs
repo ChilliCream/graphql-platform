@@ -60,6 +60,12 @@ namespace HotChocolate.Resolvers
         /// resolvers to store and retrieve data during execution.
         /// </summary>
         IDictionary<string, object> ContextData { get; }
+        
+        /// <summary>
+        /// The scoped variables dictionary can be used to provide variables
+        /// down the hierarchy of a tree
+        /// </summary>
+        IImmutableDictionary<string, object> ScopedContextData { get; set; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted

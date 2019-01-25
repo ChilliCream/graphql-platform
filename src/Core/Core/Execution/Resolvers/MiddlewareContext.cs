@@ -69,6 +69,12 @@ namespace HotChocolate.Resolvers
         public IDictionary<string, object> ContextData =>
             _resolverContext.ContextData;
 
+        public IImmutableDictionary<string, object> ScopedContextData
+        {
+            get => _resolverContext.ScopedContextData;
+            set => _resolverContext.ScopedContextData = value;
+        }
+
         public T Argument<T>(NameString name) =>
             _resolverContext.Argument<T>(name);
 
