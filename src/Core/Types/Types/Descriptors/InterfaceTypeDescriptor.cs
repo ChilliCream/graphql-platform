@@ -188,7 +188,7 @@ namespace HotChocolate.Types
 
         private void AddImplicitFields(
             IDictionary<string, InterfaceFieldDescription> fields,
-            ISet<MemberInfo> handledMembers)
+            ICollection<MemberInfo> handledMembers)
         {
             foreach (KeyValuePair<MemberInfo, string> member in
                 GetAllMembers(handledMembers))
