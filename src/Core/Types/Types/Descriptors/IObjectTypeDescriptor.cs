@@ -122,24 +122,27 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the field binding behavior.
         ///
-        /// The default binding behaviour is set to <see cref="BindingBehavior.Implicit"/>.
+        /// The default binding behaviour is set to
+        /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="bindingBehavior">
         /// The binding behavior.
         ///
         /// Implicit:
-        /// The object type descriptor will try to infer the object type fields from the
-        /// specified .net object type representation (<typeparamref name="T"/>).
+        /// The object type descriptor will try to infer the object type
+        /// fields from the specified .net object type representation
+        /// (<typeparamref name="T"/>).
         ///
         /// Explicit:
-        /// All field have to specified explicitly via
-        /// <see cref="IObjectTypeDescriptor{T}.Field{TValue}(Expression{Func{T, TValue}})"/>
-        /// or <see cref="IObjectTypeDescriptor.Field(string)"/>.
+        /// All field have to be specified explicitly via
+        /// <see cref="Field(Expression{Func{T, object}})"/>
+        /// or <see cref="Field(string)"/>.
         /// </param>
         IObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
 
         /// <summary>
-        /// Specifies an interface that is implemented by the <see cref="ObjectType"/>.
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
         new IObjectTypeDescriptor<T> Interface<TInterface>()

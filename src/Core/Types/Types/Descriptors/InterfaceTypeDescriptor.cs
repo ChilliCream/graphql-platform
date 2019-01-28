@@ -40,11 +40,34 @@ namespace HotChocolate.Types
 
         protected virtual void CompleteFields()
         {
+            var fields = new Dictionary<string, InterfaceFieldDescription>();
+            var handledMembers = new HashSet<MemberInfo>();
+
             foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
             {
-                InterfaceDescription.Fields.Add(
-                    fieldDescriptor.CreateDescription());
+                InterfaceFieldDescription fieldDescription = fieldDescriptor
+                    .CreateDescription();
+
+                if (!fieldDescription.Ignored)
+                {
+                    fields[fieldDescription.Name] = fieldDescription;
+                }
+
+                if (fieldDescription.ClrMember != null)
+                {
+                    handledMembers.Add(fieldDescription.ClrMember);
+                }
             }
+
+            OnCompleteFields(fields, handledMembers);
+
+            InterfaceDescription.Fields.AddRange(fields.Values);
+        }
+
+        protected virtual void OnCompleteFields(
+            IDictionary<string, InterfaceFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
+        {
         }
 
         protected void SyntaxNode(InterfaceTypeDefinitionNode syntaxNode)
@@ -151,6 +174,52 @@ namespace HotChocolate.Types
         {
         }
 
+        protected override void OnCompleteFields(
+            IDictionary<string, InterfaceFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
+        {
+            if (InterfaceDescription.FieldBindingBehavior ==
+                BindingBehavior.Implicit)
+            {
+                AddImplicitFields(fields, handledMembers);
+            }
+        }
+
+        private void AddImplicitFields(
+            IDictionary<string, InterfaceFieldDescription> fields,
+            ISet<MemberInfo> handledMembers)
+        {
+            foreach (KeyValuePair<MemberInfo, string> member in
+                GetAllMembers(handledMembers))
+            {
+                if (!fields.ContainsKey(member.Value))
+                {
+                    var fieldDescriptor = new InterfaceFieldDescriptor(
+                        member.Key);
+
+                    fields[member.Value] = fieldDescriptor
+                        .CreateDescription();
+                }
+            }
+        }
+
+        private Dictionary<MemberInfo, string> GetAllMembers(
+            ISet<MemberInfo> handledMembers)
+        {
+            var members = new Dictionary<MemberInfo, string>();
+
+            foreach (KeyValuePair<string, MemberInfo> member in
+                ReflectionUtils.GetMembers(InterfaceDescription.ClrType))
+            {
+                if (!handledMembers.Contains(member.Value))
+                {
+                    members[member.Value] = member.Key;
+                }
+            }
+
+            return members;
+        }
+
         protected InterfaceFieldDescriptor Field<TSource>(
             Expression<Func<TSource, object>> propertyOrMethod)
         {
@@ -192,6 +261,13 @@ namespace HotChocolate.Types
             string description)
         {
             Description(description);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.BindFields(
+            BindingBehavior bindingBehavior)
+        {
+            InterfaceDescription.BindingBehavior = bindingBehavior;
             return this;
         }
 

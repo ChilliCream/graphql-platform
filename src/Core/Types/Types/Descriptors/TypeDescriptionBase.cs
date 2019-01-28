@@ -10,6 +10,9 @@ namespace HotChocolate.Types
 
         public string Description { get; set; }
 
+        public BindingBehavior BindingBehavior { get; set; } =
+            BindingBehavior.Implicit;
+
         public List<DirectiveDescription> Directives { get; set; } =
             new List<DirectiveDescription>();
 

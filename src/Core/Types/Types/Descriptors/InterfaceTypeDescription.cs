@@ -9,6 +9,8 @@ namespace HotChocolate.Types
     {
         public Type ClrType { get; set; }
 
+        public BindingBehavior FieldBindingBehavior { get; set; }
+
         public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
 
         public ResolveAbstractType ResolveAbstractType { get; set; }
