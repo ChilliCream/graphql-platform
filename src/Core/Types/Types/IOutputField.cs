@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Types
+﻿using System.Collections.Generic;
+
+namespace HotChocolate.Types
 {
     public interface IOutputField
        : IField
@@ -14,5 +16,7 @@
         IFieldCollection<IInputField> Arguments { get; }
 
         IDirectiveCollection Directives { get; }
+
+        new IComplexOutputType DeclaringType { get; }
     }
 }

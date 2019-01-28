@@ -37,7 +37,6 @@ namespace HotChocolate.Types
             Directives = directives;
         }
 
-
         public IHasName DeclaringType { get; private set; }
 
         public NameString Name { get; }

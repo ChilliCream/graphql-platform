@@ -577,14 +577,42 @@ namespace HotChocolate.Types
             result.Snapshot();
         }
 
+        [Fact]
+        public void InferInterfaceImplementation()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(new InterfaceType<IFoo>());
+
+            // act
+            var fooType = new ObjectType<Foo>();
+            INeedsInitialization init = fooType;
+
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            // assert
+            Assert.Empty(errors);
+            Assert.NotNull(fooType.Fields.First().Resolver);
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
         }
 
         public class Foo
+            : IFoo
         {
             public string Description { get; } = "hello";
+        }
+
+        public interface IFoo
+        {
+            string Description { get; }
         }
 
         public class FooResolver

@@ -110,10 +110,10 @@ namespace HotChocolate.Types
                 fields.Add(field);
 
                 if (fieldDescription.ResolverType == null
-                    && fieldDescription.Member != null)
+                    && fieldDescription.ClrMember != null)
                 {
                     fieldBindings.Add(new FieldBinding(
-                        field.Name, fieldDescription.Member, field));
+                        field.Name, fieldDescription.ClrMember, field));
                 }
             }
         }
@@ -259,11 +259,27 @@ namespace HotChocolate.Types
         private void CompleteInterfaces(
             ITypeInitializationContext context)
         {
-            if (_interfaces != null)
+            if (ClrType != typeof(object))
             {
-                foreach (InterfaceType interfaceType in _interfaces
-                    .Select(t => context.GetType<InterfaceType>(t))
-                    .Where(t => t != null))
+                Type[] possibleInterfaceTypes = ClrType.GetInterfaces();
+                for (int i = 0; i < possibleInterfaceTypes.Length; i++)
+                {
+                    InterfaceType type = context.GetType<InterfaceType>(
+                        new TypeReference(
+                            possibleInterfaceTypes[i],
+                            TypeContext.Output));
+                    if (type != null)
+                    {
+                        _interfaceMap[type.Name] = type;
+                    }
+                }
+            }
+
+            foreach (InterfaceType interfaceType in _interfaces
+                .Select(t => context.GetType<InterfaceType>(t))
+                .Where(t => t != null))
+            {
+                if (!_interfaceMap.ContainsKey(interfaceType.Name))
                 {
                     _interfaceMap[interfaceType.Name] = interfaceType;
                 }
