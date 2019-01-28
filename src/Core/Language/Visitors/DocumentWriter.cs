@@ -8,11 +8,20 @@ namespace HotChocolate.Language
     public class DocumentWriter
         : TextWriter
     {
-        private TextWriter _writer;
+        private readonly TextWriter _writer;
 
         public DocumentWriter(TextWriter writer)
         {
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+        }
+
+        public DocumentWriter(StringBuilder stringBuilder)
+        {
+            if (stringBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(stringBuilder));
+            }
+            _writer = new StringWriter(stringBuilder);
         }
 
         public int Indentation { get; private set; }
