@@ -12,7 +12,7 @@ namespace HotChocolate.Types
 
         public Type ResolverType { get; set; }
 
-        public MemberInfo Member { get; set; }
+        public MemberInfo ClrMember { get; set; }
 
         public FieldResolverDelegate Resolver { get; set; }
 

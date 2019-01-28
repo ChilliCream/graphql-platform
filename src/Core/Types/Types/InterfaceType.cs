@@ -9,6 +9,7 @@ namespace HotChocolate.Types
     public class InterfaceType
         : NamedTypeBase
         , IComplexOutputType
+        , IHasClrType
     {
         private ResolveAbstractType _resolveAbstractType;
 
@@ -29,6 +30,8 @@ namespace HotChocolate.Types
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
+
+        public Type ClrType { get; protected set; }
 
         public ObjectType ResolveType(
             IResolverContext context,
@@ -105,6 +108,8 @@ namespace HotChocolate.Types
             }
 
             CompleteAbstractTypeResolver(context);
+            CompleteClrType(context);
+            ValidateFieldsRequirement(context);
         }
 
         private void CompleteAbstractTypeResolver(
@@ -133,6 +138,65 @@ namespace HotChocolate.Types
                     return null; // todo: should we throw instead?
                 };
             }
+        }
+
+        private void CompleteClrType(
+            ITypeInitializationContext context)
+        {
+            if (ClrType == null
+                && context.TryGetNativeType(this, out Type clrType))
+            {
+                ClrType = clrType;
+            }
+
+            if (ClrType == null)
+            {
+                ClrType = typeof(object);
+            }
+        }
+
+        private void ValidateFieldsRequirement(
+            ITypeInitializationContext context)
+        {
+            if (Fields.Count == 0)
+            {
+                context.ReportError(new SchemaError(
+                    $"Interface `{Name}` has no fields declared.",
+                    this));
+            }
+        }
+
+        #endregion
+    }
+
+    public class InterfaceType<T>
+        : InterfaceType
+    {
+        public InterfaceType()
+        {
+            ClrType = typeof(T);
+        }
+
+        public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure)
+            : base(d => configure((IInterfaceTypeDescriptor<T>)d))
+        {
+            ClrType = typeof(T);
+        }
+
+        #region Configuration
+
+        internal sealed override InterfaceTypeDescriptor CreateDescriptor() =>
+            new InterfaceTypeDescriptor<T>();
+
+        protected sealed override void Configure(
+            IInterfaceTypeDescriptor descriptor)
+        {
+            Configure((IInterfaceTypeDescriptor<T>)descriptor);
+        }
+
+        protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor)
+        {
+
         }
 
         #endregion
