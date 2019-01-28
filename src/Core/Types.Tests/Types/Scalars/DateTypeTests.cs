@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Threading;
 using HotChocolate.Language;
 using Xunit;
 
@@ -84,8 +86,33 @@ namespace HotChocolate.Types
         {
             // arrange
             DateType dateType = new DateType();
-            StringValueNode literal = new StringValueNode("2018-06-11");
-            DateTime expectedDateTime = new DateTime(2018, 6, 11);
+            StringValueNode literal = new StringValueNode("2018-06-29");
+            DateTime expectedDateTime = new DateTime(2018, 6, 29);
+
+            // act
+            DateTime dateTime = (DateTime)dateType
+                .ParseLiteral(literal);
+
+            // assert
+            Assert.Equal(expectedDateTime, dateTime);
+        }
+
+        [InlineData("en-US")]
+        [InlineData("en-AU")]
+        [InlineData("en-GB")]
+        [InlineData("de-CH")]
+        [InlineData("de-de")]
+        [Theory]
+        public void ParseLiteral_StringValueNode_DifferentCulture(
+           string cultureName)
+        {
+            // arrange
+            Thread.CurrentThread.CurrentCulture =
+                CultureInfo.GetCultureInfo(cultureName);
+
+            DateType dateType = new DateType();
+            StringValueNode literal = new StringValueNode("2018-06-29");
+            DateTime expectedDateTime = new DateTime(2018, 6, 29);
 
             // act
             DateTime dateTime = (DateTime)dateType
