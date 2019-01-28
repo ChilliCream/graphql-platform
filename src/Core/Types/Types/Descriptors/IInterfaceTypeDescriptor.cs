@@ -117,9 +117,5 @@ namespace HotChocolate.Types
         new IInterfaceTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        new IInterfaceTypeDescriptor<T> Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 }

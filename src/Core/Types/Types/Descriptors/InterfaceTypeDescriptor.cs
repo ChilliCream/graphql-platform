@@ -298,14 +298,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            InterfaceDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 }
