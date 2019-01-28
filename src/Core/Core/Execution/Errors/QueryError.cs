@@ -150,6 +150,8 @@ namespace HotChocolate.Execution
             }
         }
 
+        public Exception Exception { get; internal set; }
+
         #region Factories
 
         public static QueryError CreateFieldError(
@@ -362,6 +364,14 @@ namespace HotChocolate.Execution
 
             return new QueryError(Message, Path, Locations,
                 dict.Remove(key));
+        }
+
+        public IError WithException(Exception exception)
+        {
+            return new QueryError(Message, Path, Locations, _extensions)
+            {
+                Exception = exception
+            };
         }
 
         #endregion

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate
 {
@@ -31,6 +32,11 @@ namespace HotChocolate
         /// This property is optional and can be null.
         /// </summary>
         IReadOnlyCollection<Location> Locations { get; }
+
+        /// <summary>
+        /// Gets the exception associated with this error.
+        /// </summary>
+        Exception Exception { get; }
 
         /// <summary>
         /// Gets non-spec error properties.
@@ -93,6 +99,19 @@ namespace HotChocolate
         /// but with the specified <paramref name="locations" />.
         /// </returns>
         IError WithLocations(IReadOnlyCollection<Location> locations);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="exception" />.
+        /// </summary>
+        /// <param name="exception">
+        /// The .net exception that caused this error.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="exception" />.
+        /// </returns>
+        IError WithException(Exception exception);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
