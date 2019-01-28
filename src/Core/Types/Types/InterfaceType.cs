@@ -109,6 +109,7 @@ namespace HotChocolate.Types
 
             CompleteAbstractTypeResolver(context);
             CompleteClrType(context);
+            ValidateFieldsRequirement(context);
         }
 
         private void CompleteAbstractTypeResolver(
@@ -154,6 +155,17 @@ namespace HotChocolate.Types
             }
         }
 
+        private void ValidateFieldsRequirement(
+            ITypeInitializationContext context)
+        {
+            if (Fields.Count == 0)
+            {
+                context.ReportError(new SchemaError(
+                    $"Interface `{Name}` has no fields declared.",
+                    this));
+            }
+        }
+
         #endregion
     }
 
@@ -165,8 +177,8 @@ namespace HotChocolate.Types
             ClrType = typeof(T);
         }
 
-        public InterfaceType(Action<IObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IObjectTypeDescriptor<T>)d))
+        public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure)
+            : base(d => configure((IInterfaceTypeDescriptor<T>)d))
         {
             ClrType = typeof(T);
         }

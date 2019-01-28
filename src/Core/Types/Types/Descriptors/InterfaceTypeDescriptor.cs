@@ -24,6 +24,7 @@ namespace HotChocolate.Types
 
             InterfaceDescription.Name = clrType.GetGraphQLName();
             InterfaceDescription.Description = clrType.GetGraphQLDescription();
+            InterfaceDescription.ClrType = clrType;
         }
 
         protected List<InterfaceFieldDescriptor> Fields { get; } =
@@ -267,7 +268,7 @@ namespace HotChocolate.Types
         IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.BindFields(
             BindingBehavior bindingBehavior)
         {
-            InterfaceDescription.BindingBehavior = bindingBehavior;
+            InterfaceDescription.FieldBindingBehavior = bindingBehavior;
             return this;
         }
 
