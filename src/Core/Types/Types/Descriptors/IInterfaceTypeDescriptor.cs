@@ -1,14 +1,37 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using System.Linq.Expressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     public interface IInterfaceTypeDescriptor
         : IFluent
     {
-        IInterfaceTypeDescriptor SyntaxNode(InterfaceTypeDefinitionNode syntaxNode);
+        // <summary>
+        /// Associates the specified <paramref name="syntaxNode"/>
+        /// with the <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="syntaxNode">
+        /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
+        /// </param>
+        IInterfaceTypeDescriptor SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode);
 
+        /// <summary>
+        /// Defines the name of the <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="name">The object type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="name"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
         IInterfaceTypeDescriptor Name(NameString name);
 
+        /// <summary>
+        /// Adds explanatory text to the <see cref="ObjectType"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="description">The object type description.</param>
         IInterfaceTypeDescriptor Description(string description);
 
         IInterfaceTypeDescriptor ResolveAbstractType(
@@ -34,7 +57,8 @@ namespace HotChocolate.Types
     public interface IInterfaceTypeDescriptor<T>
         : IInterfaceTypeDescriptor
     {
-        new IInterfaceTypeDescriptor<T> SyntaxNode(InterfaceTypeDefinitionNode syntaxNode);
+        new IInterfaceTypeDescriptor<T> SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode);
 
         new IInterfaceTypeDescriptor<T> Name(NameString name);
 
@@ -43,7 +67,8 @@ namespace HotChocolate.Types
         new IInterfaceTypeDescriptor<T> ResolveAbstractType(
             ResolveAbstractType resolveAbstractType);
 
-        new IInterfaceTypeDescriptor<T> Field(NameString name);
+        IInterfaceFieldDescriptor Field(
+            Expression<Func<T, object>> propertyOrMethod);
 
         new IInterfaceTypeDescriptor<T> Directive<T>(T directive)
             where T : class;

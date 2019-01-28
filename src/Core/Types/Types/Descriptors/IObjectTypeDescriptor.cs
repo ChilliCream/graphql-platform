@@ -21,7 +21,8 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="name">The object type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// <paramref name="name"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
         /// </exception>
         IObjectTypeDescriptor Name(NameString name);
 
@@ -33,16 +34,20 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Description(string description);
 
         /// <summary>
-        /// Specifies an interface that is implemented by the <see cref="ObjectType"/>.
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
         IObjectTypeDescriptor Interface<T>()
             where T : InterfaceType;
 
         /// <summary>
-        /// Specifies an interface that is implemented by the <see cref="ObjectType"/>.
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
         /// </summary>
-        /// <param name="type">A syntax node representing an interface type.</param>
+        /// <param name="type">
+        /// A syntax node representing an interface type.
+        /// </param>
         IObjectTypeDescriptor Interface(NamedTypeNode type);
 
         /// <summary>
@@ -166,7 +171,8 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod);
 
-        new IObjectTypeDescriptor<T> Directive<TDirective>(TDirective directive)
+        new IObjectTypeDescriptor<T> Directive<TDirective>(
+            TDirective directive)
             where TDirective : class;
 
         new IObjectTypeDescriptor<T> Directive<TDirective>()
