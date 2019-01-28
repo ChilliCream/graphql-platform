@@ -9,6 +9,7 @@ namespace HotChocolate.Types
 {
     public class ObjectField
         : ObjectFieldBase
+        , IObjectField
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();
