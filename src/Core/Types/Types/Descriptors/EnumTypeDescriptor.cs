@@ -167,14 +167,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            EnumDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 
@@ -236,14 +228,6 @@ namespace HotChocolate.Types
 
         IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            EnumDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             EnumDescription.Directives.AddDirective(name, arguments);

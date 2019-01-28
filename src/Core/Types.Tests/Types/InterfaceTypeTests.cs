@@ -1,71 +1,136 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class InputObjectTypeTests
+    public class InterfaceTypeTests
     {
         [Fact]
-        public void Initialize_IgnoreProperty_PropertyIsNotInSchemaType()
+        public void InferFieldsFromClrInterface()
         {
             // arrange
             var errors = new List<SchemaError>();
             var schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(new BooleanType());
+            schemaContext.Types.RegisterType(new StringType());
+            schemaContext.Types.RegisterType(new IntType());
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Field(f => f.Id).Ignore());
-            INeedsInitialization init = fooType;
+            var fooType = new InterfaceType<IFoo>();
+            schemaContext.Types.RegisterType(fooType);
 
-            // assert
+            INeedsInitialization init = fooType;
             var initializationContext = new TypeInitializationContext(
                 schemaContext, a => errors.Add(a), fooType, false);
             init.RegisterDependencies(initializationContext);
+
             schemaContext.CompleteTypes();
 
+            // assert
             Assert.Empty(errors);
-            Assert.Collection(fooType.Fields,
-                t => Assert.Equal("name", t.Name));
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t =>
+                {
+                    Assert.Equal("bar", t.Name);
+                    Assert.IsType<BooleanType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("baz", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                },
+                t =>
+                {
+                    Assert.Equal("qux", t.Name);
+                    Assert.IsType<IntType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.Collection(t.Arguments,
+                        a => Assert.Equal("a", a.Name));
+                });
         }
 
         [Fact]
-        public void ParseLiteral()
+        public void IgnoreFieldsFromClrInterface()
         {
             // arrange
-            Schema schema = Create();
-            InputObjectType object1Type =
-                schema.GetType<InputObjectType>("Object1");
-            ObjectValueNode literal = CreateObjectLiteral();
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(new BooleanType());
+            schemaContext.Types.RegisterType(new StringType());
+            schemaContext.Types.RegisterType(new IntType());
 
             // act
-            object obj = object1Type.ParseLiteral(literal);
+            var fooType = new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar));
+            schemaContext.Types.RegisterType(fooType);
+
+            INeedsInitialization init = fooType;
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+
+            schemaContext.CompleteTypes();
 
             // assert
-            Assert.IsType<SerializationInputObject1>(obj);
-            obj.Snapshot();
+            Assert.Empty(errors);
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t =>
+                {
+                    Assert.Equal("baz", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                },
+                t =>
+                {
+                    Assert.Equal("qux", t.Name);
+                    Assert.IsType<IntType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                    Assert.Collection(t.Arguments,
+                        a => Assert.Equal("a", a.Name));
+                });
         }
 
         [Fact]
-        public void EnsureInputObjectTypeKindIsCorret()
+        public void ExplicitInterfaceFieldDeclaration()
         {
             // arrange
-            Schema schema = Create();
-            InputObjectType object1Type =
-                schema.GetType<InputObjectType>("Object1");
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            schemaContext.Types.RegisterType(new BooleanType());
+            schemaContext.Types.RegisterType(new StringType());
+            schemaContext.Types.RegisterType(new IntType());
 
             // act
-            TypeKind kind = object1Type.Kind;
+            var fooType = new InterfaceType<IFoo>(t =>
+                t.BindFields(BindingBehavior.Explicit)
+                    .Field(p => p.Bar));
+            schemaContext.Types.RegisterType(fooType);
+
+            INeedsInitialization init = fooType;
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+
+            schemaContext.CompleteTypes();
 
             // assert
-            Assert.Equal(TypeKind.InputObject, kind);
+            Assert.Empty(errors);
+            Assert.Collection(
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                t =>
+                {
+                    Assert.Equal("bar", t.Name);
+                    Assert.IsType<BooleanType>(
+                        Assert.IsType<NonNullType>(t.Type).Type);
+                });
         }
 
         [Fact]
-        public void GenericInputObject_AddDirectives_NameArgs()
+        public void GenericInterfaceType_AddDirectives_NameArgs()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -73,8 +138,8 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Directive("foo").Field(f => f.Id).Directive("foo"));
+            var fooType = new InterfaceType<IFoo>(
+                d => d.Directive("foo").Field(f => f.Bar).Directive("foo"));
 
             // assert
             schemaContext.Types.RegisterType(fooType);
@@ -86,11 +151,11 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
-        public void GenericInputObject_AddDirectives_NameArgs2()
+        public void GenericInterfaceType_AddDirectives_NameArgs2()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -98,9 +163,9 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
+            var fooType = new InterfaceType<IFoo>(
                 d => d.Directive(new NameString("foo"))
-                    .Field(f => f.Id)
+                    .Field(f => f.Bar)
                     .Directive(new NameString("foo")));
 
             // assert
@@ -113,11 +178,11 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
-        public void GenericInputObject_AddDirectives_DirectiveNode()
+        public void GenericInterfaceType_AddDirectives_DirectiveNode()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -125,9 +190,9 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
+            var fooType = new InterfaceType<IFoo>(
                 d => d.Directive(new DirectiveNode("foo"))
-                    .Field(f => f.Id)
+                    .Field(f => f.Bar)
                     .Directive(new DirectiveNode("foo")));
 
             // assert
@@ -140,11 +205,11 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
-        public void GenericInputObject_AddDirectives_DirectiveClassInstance()
+        public void GenericInterfaceType_AddDirectives_DirectiveClassInstance()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -152,9 +217,9 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
+            var fooType = new InterfaceType<IFoo>(
                 d => d.Directive(new FooDirective())
-                    .Field(f => f.Id)
+                    .Field(f => f.Bar)
                     .Directive(new FooDirective()));
 
             // assert
@@ -167,11 +232,11 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
-        public void GenericInputObject_AddDirectives_DirectiveType()
+        public void GenericInterfaceType_AddDirectives_DirectiveType()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -179,9 +244,9 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
+            var fooType = new InterfaceType<IFoo>(
                 d => d.Directive<FooDirective>()
-                    .Field(f => f.Id)
+                    .Field(f => f.Bar)
                     .Directive<FooDirective>());
 
             // assert
@@ -194,11 +259,11 @@ namespace HotChocolate.Types
 
             Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
-        public void InputObject_AddDirectives_NameArgs()
+        public void InterfaceType_AddDirectives_NameArgs()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -206,7 +271,7 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType(
+            var fooType = new InterfaceType(
                 d => d.Directive("foo")
                     .Field("id")
                     .Type<StringType>()
@@ -226,7 +291,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InputObject_AddDirectives_NameArgs2()
+        public void InterfaceType_AddDirectives_NameArgs2()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -234,7 +299,7 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType<SimpleInput>(
+            var fooType = new InterfaceType<SimpleInput>(
                 d => d.Directive(new NameString("foo"))
                     .Field("id")
                     .Type<StringType>()
@@ -254,7 +319,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InputObject_AddDirectives_DirectiveNode()
+        public void InterfaceType_AddDirectives_DirectiveNode()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -262,7 +327,7 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType(
+            var fooType = new InterfaceType(
                 d => d.Directive(new DirectiveNode("foo"))
                     .Field("id")
                     .Type<StringType>()
@@ -282,7 +347,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InputObject_AddDirectives_DirectiveClassInstance()
+        public void InterfaceType_AddDirectives_DirectiveClassInstance()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -290,7 +355,7 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType(
+            var fooType = new InterfaceType(
                 d => d.Directive(new FooDirective())
                     .Field("id")
                     .Type<StringType>()
@@ -310,7 +375,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InputObject_AddDirectives_DirectiveType()
+        public void InterfaceType_AddDirectives_DirectiveType()
         {
             // arrange
             var errors = new List<SchemaError>();
@@ -318,7 +383,7 @@ namespace HotChocolate.Types
             schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
 
             // act
-            var fooType = new InputObjectType(
+            var fooType = new InterfaceType(
                 d => d.Directive<FooDirective>()
                     .Field("id")
                     .Type<StringType>()
@@ -337,76 +402,25 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
 
-        private static ObjectValueNode CreateObjectLiteral()
+        public interface IFoo
         {
-            return new ObjectValueNode(new List<ObjectFieldNode>
-            {
-                new ObjectFieldNode("foo",
-                    new ObjectValueNode(new List<ObjectFieldNode>())),
-                new ObjectFieldNode("bar",
-                    new StringValueNode("123"))
-            });
+            bool Bar { get; }
+            string Baz();
+            int Qux(string a);
         }
 
-        public Schema Create()
-        {
-            return Schema.Create(c =>
-            {
-                c.Options.StrictValidation = false;
-
-                c.RegisterType(
-                    new InputObjectType<SerializationInputObject1>(d =>
-                    {
-                        d.Name("Object1");
-                        d.Field(t => t.Foo)
-                            .Type<InputObjectType<SerializationInputObject2>>();
-                        d.Field(t => t.Bar).Type<StringType>();
-                    }));
-
-                c.RegisterType(new InputObjectType<SerializationInputObject2>(
-                    d =>
-                    {
-                        d.Name("Object2");
-                        d.Field(t => t.FooList)
-                            .Type<NonNullType<ListType<InputObjectType<
-                                SerializationInputObject1>>>>();
-                    }));
-            });
-        }
-    }
-
-    public class SimpleInput
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class SerializationInputObject1
-    {
-        public SerializationInputObject2 Foo { get; set; }
-        public string Bar { get; set; } = "Bar";
-    }
-
-    public class SerializationInputObject2
-    {
-        public List<SerializationInputObject1> FooList { get; set; } =
-            new List<SerializationInputObject1>
-        {
-            new SerializationInputObject1()
-        };
-    }
-
-    public class FooDirectiveType
+        public class FooDirectiveType
         : DirectiveType<FooDirective>
-    {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<FooDirective> descriptor)
         {
-            descriptor.Name("foo");
-            descriptor.Location(DirectiveLocation.InputObject)
-                .Location(DirectiveLocation.InputFieldDefinition);
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("foo");
+                descriptor.Location(DirectiveLocation.Interface)
+                    .Location(DirectiveLocation.FieldDefinition);
+            }
         }
-    }
 
-    public class FooDirective { }
+        public class FooDirective { }
+    }
 }

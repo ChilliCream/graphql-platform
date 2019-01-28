@@ -43,9 +43,5 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        IObjectFieldDescriptor Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 }

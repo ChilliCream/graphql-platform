@@ -19,6 +19,9 @@ namespace HotChocolate.Types
             DeprecationReason = fieldDescription.DeprecationReason;
         }
 
+        public new IComplexOutputType DeclaringType =>
+            (IComplexOutputType)base.DeclaringType;
+
         public FieldDefinitionNode SyntaxNode { get; }
 
         public FieldCollection<InputField> Arguments { get; }

@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -8,9 +12,23 @@ namespace HotChocolate.Types
         , IInterfaceFieldDescriptor
         , IDescriptionFactory<InterfaceFieldDescription>
     {
+        private bool _argumentsInitialized;
+
         public InterfaceFieldDescriptor(NameString name)
             : base(new InterfaceFieldDescription { Name = name })
         {
+        }
+
+        public InterfaceFieldDescriptor(MemberInfo member)
+            : base(new InterfaceFieldDescription())
+        {
+            FieldDescription.ClrMember = member
+                ?? throw new ArgumentNullException(nameof(member));
+
+            FieldDescription.Name = member.GetGraphQLName();
+            FieldDescription.Description = member.GetGraphQLDescription();
+            FieldDescription.TypeReference = member.GetOutputType();
+            FieldDescription.AcquireNonNullStatus(member);
         }
 
         public InterfaceFieldDescriptor()
@@ -23,7 +41,19 @@ namespace HotChocolate.Types
 
         public new InterfaceFieldDescription CreateDescription()
         {
+            CompleteArguments();
             return FieldDescription;
+        }
+
+        private void CompleteArguments()
+        {
+            if (!_argumentsInitialized)
+            {
+                FieldDescriptorUtilities.DiscoverArguments(
+                    FieldDescription.Arguments,
+                    FieldDescription.ClrMember);
+                _argumentsInitialized = true;
+            }
         }
 
         #region IInterfaceFieldDescriptor
@@ -68,6 +98,12 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Ignore()
+        {
+            FieldDescription.Ignored = true;
+            return this;
+        }
+
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(
             NameString name, Action<IArgumentDescriptor> argument)
         {
@@ -90,14 +126,6 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            FieldDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             FieldDescription.Directives.AddDirective(name, arguments);

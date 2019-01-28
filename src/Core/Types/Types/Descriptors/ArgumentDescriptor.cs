@@ -44,36 +44,36 @@ namespace HotChocolate.Types
             return InputDescription;
         }
 
-        protected void SyntaxNode(InputValueDefinitionNode syntaxNode)
+        public void SyntaxNode(InputValueDefinitionNode syntaxNode)
         {
             InputDescription.SyntaxNode = syntaxNode;
 
         }
-        protected void Description(string description)
+        public void Description(string description)
         {
             InputDescription.Description = description;
         }
 
-        protected void Type<TInputType>()
+        public void Type<TInputType>()
         {
             InputDescription.TypeReference = InputDescription.TypeReference
                 .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
         }
 
-        protected void Type(ITypeNode type)
+        public void Type(ITypeNode type)
         {
             InputDescription.TypeReference = InputDescription.TypeReference
                 .GetMoreSpecific(type);
         }
 
-        protected void DefaultValue(IValueNode defaultValue)
+        public void DefaultValue(IValueNode defaultValue)
         {
             InputDescription.DefaultValue =
                 defaultValue ?? NullValueNode.Default;
             InputDescription.NativeDefaultValue = null;
         }
 
-        protected void DefaultValue(object defaultValue)
+        public void DefaultValue(object defaultValue)
         {
             if (defaultValue == null)
             {
@@ -147,14 +147,6 @@ namespace HotChocolate.Types
 
         IArgumentDescriptor IArgumentDescriptor.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            InputDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IArgumentDescriptor IArgumentDescriptor.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             InputDescription.Directives.AddDirective(name, arguments);

@@ -19,6 +19,8 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Type(ITypeNode type);
 
+        IInterfaceFieldDescriptor Ignore();
+
         IInterfaceFieldDescriptor Argument(
             NameString name,
             Action<IArgumentDescriptor> argument);
@@ -31,10 +33,6 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
-        IInterfaceFieldDescriptor Directive(
-            string name,
             params ArgumentNode[] arguments);
     }
 }
