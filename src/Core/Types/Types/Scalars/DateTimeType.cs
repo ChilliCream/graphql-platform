@@ -21,20 +21,28 @@ namespace HotChocolate.Types
         {
             if (value.Kind == DateTimeKind.Utc)
             {
-                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+                return value.ToString(
+                    "yyyy-MM-ddTHH\\:mm\\:ss.fffZ",
+                    CultureInfo.InvariantCulture);
             }
 
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
+            return value.ToString(
+                "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz",
+                CultureInfo.InvariantCulture);
         }
 
         protected override string Serialize(DateTimeOffset value)
         {
             if (value.Offset == TimeSpan.Zero)
             {
-                return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffZ");
+                return value.ToString(
+                    "yyyy-MM-ddTHH\\:mm\\:ss.fffZ",
+                    CultureInfo.InvariantCulture);
             }
 
-            return value.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffzzz");
+            return value.ToString(
+                "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz",
+                CultureInfo.InvariantCulture);
         }
 
         protected override bool TryParseLiteral(
