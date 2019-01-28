@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Threading;
 using HotChocolate.Language;
 using Xunit;
 
@@ -71,9 +73,37 @@ namespace HotChocolate.Types
             // arrange
             DateTimeType dateTimeType = new DateTimeType();
             StringValueNode literal = new StringValueNode(
-                "2018-06-11T08:46:14+04:00");
+                "2018-06-29T08:46:14+04:00");
             DateTimeOffset expectedDateTime = new DateTimeOffset(
-                new DateTime(2018, 6, 11, 8, 46, 14),
+                new DateTime(2018, 6, 29, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+
+            // act
+            DateTimeOffset dateTime = (DateTimeOffset)dateTimeType
+                .ParseLiteral(literal);
+
+            // assert
+            Assert.Equal(expectedDateTime, dateTime);
+        }
+
+        [InlineData("en-US")]
+        [InlineData("en-AU")]
+        [InlineData("en-GB")]
+        [InlineData("de-CH")]
+        [InlineData("de-de")]
+        [Theory]
+        public void ParseLiteral_StringValueNode_DifferentCulture(
+            string cultureName)
+        {
+            // arrange
+            Thread.CurrentThread.CurrentCulture =
+                CultureInfo.GetCultureInfo(cultureName);
+
+            DateTimeType dateTimeType = new DateTimeType();
+            StringValueNode literal = new StringValueNode(
+                "2018-06-29T08:46:14+04:00");
+            DateTimeOffset expectedDateTime = new DateTimeOffset(
+                new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
