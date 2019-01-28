@@ -106,6 +106,35 @@ namespace HotChocolate.Types
             return Field(name);
         }
 
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive<T>(
+            T directive)
+        {
+            ObjectDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive<T>()
+        {
+            ObjectDescription.Directives.AddDirective(new T());
+            return this;
+        }
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
         #endregion
     }
 
@@ -230,6 +259,36 @@ namespace HotChocolate.Types
             Expression<Func<T, TValue>> property)
         {
             return Field(property);
+        }
+
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
+            .Directive<TDirective>(TDirective directive)
+        {
+            ObjectDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
+            .Directive<TDirective>()
+        {
+            ObjectDescription.Directives.AddDirective(new TDirective());
+            return this;
+        }
+
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            ObjectDescription.Directives.AddDirective(name, arguments);
+            return this;
         }
 
         #endregion

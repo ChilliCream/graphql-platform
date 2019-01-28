@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -63,6 +64,31 @@ namespace HotChocolate.Types
             Assert.Equal(TypeKind.InputObject, kind);
         }
 
+        [Fact]
+        public void Initialize_AddDirectives_DirectivesAreAvailable()
+        {
+            // arrange
+            var errors = new List<SchemaError>();
+            var schemaContext = new SchemaContext();
+            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
+
+            // act
+            var fooType = new InputObjectType<SimpleInput>(
+                d => d.Directive("foo").Field(f => f.Id).Directive("foo"));
+
+            // assert
+            schemaContext.Types.RegisterType(fooType);
+            INeedsInitialization init = fooType;
+            var initializationContext = new TypeInitializationContext(
+                schemaContext, a => errors.Add(a), fooType, false);
+            init.RegisterDependencies(initializationContext);
+            schemaContext.CompleteTypes();
+
+            Assert.Empty(errors);
+            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+        }
+
         private static ObjectValueNode CreateObjectLiteral()
         {
             return new ObjectValueNode(new List<ObjectFieldNode>
@@ -120,5 +146,16 @@ namespace HotChocolate.Types
         {
             new SerializationInputObject1()
         };
+    }
+
+    public class FooDirectiveType
+        : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("foo");
+            descriptor.Location(DirectiveLocation.InputObject)
+                .Location(DirectiveLocation.InputFieldDefinition);
+        }
     }
 }
