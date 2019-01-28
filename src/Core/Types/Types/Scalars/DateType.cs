@@ -33,10 +33,10 @@ namespace HotChocolate.Types
             if (DateTime.TryParse(
                 literal.Value,
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal,
+                DateTimeStyles.AssumeLocal,
                 out DateTime dateTime))
             {
-                obj = dateTime;
+                obj = dateTime.Date;
                 return true;
             }
 
