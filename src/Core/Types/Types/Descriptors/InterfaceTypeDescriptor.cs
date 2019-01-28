@@ -11,6 +11,21 @@ namespace HotChocolate.Types
         : IInterfaceTypeDescriptor
         , IDescriptionFactory<InterfaceTypeDescription>
     {
+        public InterfaceTypeDescriptor()
+        {
+        }
+
+        public InterfaceTypeDescriptor(Type clrType)
+        {
+            if (clrType == null)
+            {
+                throw new ArgumentNullException(nameof(clrType));
+            }
+
+            InterfaceDescription.Name = clrType.GetGraphQLName();
+            InterfaceDescription.Description = clrType.GetGraphQLDescription();
+        }
+
         protected List<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
@@ -131,6 +146,11 @@ namespace HotChocolate.Types
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
     {
+        public InterfaceTypeDescriptor()
+            : base(typeof(T))
+        {
+        }
+
         protected InterfaceFieldDescriptor Field<TSource>(
             Expression<Func<TSource, object>> propertyOrMethod)
         {

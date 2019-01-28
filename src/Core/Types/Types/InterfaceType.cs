@@ -31,7 +31,7 @@ namespace HotChocolate.Types
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
-        public Type ClrType { get; private set; }
+        public Type ClrType { get; protected set; }
 
         public ObjectType ResolveType(
             IResolverContext context,
@@ -152,6 +152,39 @@ namespace HotChocolate.Types
             {
                 ClrType = typeof(object);
             }
+        }
+
+        #endregion
+    }
+
+    public class InterfaceType<T>
+        : InterfaceType
+    {
+        public InterfaceType()
+        {
+            ClrType = typeof(T);
+        }
+
+        public InterfaceType(Action<IObjectTypeDescriptor<T>> configure)
+            : base(d => configure((IObjectTypeDescriptor<T>)d))
+        {
+            ClrType = typeof(T);
+        }
+
+        #region Configuration
+
+        internal sealed override InterfaceTypeDescriptor CreateDescriptor() =>
+            new InterfaceTypeDescriptor<T>();
+
+        protected sealed override void Configure(
+            IInterfaceTypeDescriptor descriptor)
+        {
+            Configure((IInterfaceTypeDescriptor<T>)descriptor);
+        }
+
+        protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor)
+        {
+
         }
 
         #endregion
