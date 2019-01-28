@@ -9,6 +9,7 @@ namespace HotChocolate.Types
     public class InterfaceType
         : NamedTypeBase
         , IComplexOutputType
+        , IHasClrType
     {
         private ResolveAbstractType _resolveAbstractType;
 
@@ -29,6 +30,8 @@ namespace HotChocolate.Types
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
+
+        public Type ClrType { get; private set; }
 
         public ObjectType ResolveType(
             IResolverContext context,
@@ -105,6 +108,7 @@ namespace HotChocolate.Types
             }
 
             CompleteAbstractTypeResolver(context);
+            CompleteClrType(context);
         }
 
         private void CompleteAbstractTypeResolver(
@@ -132,6 +136,21 @@ namespace HotChocolate.Types
 
                     return null; // todo: should we throw instead?
                 };
+            }
+        }
+
+        private void CompleteClrType(
+            ITypeInitializationContext context)
+        {
+            if (ClrType == null
+                && context.TryGetNativeType(this, out Type clrType))
+            {
+                ClrType = clrType;
+            }
+
+            if (ClrType == null)
+            {
+                ClrType = typeof(object);
             }
         }
 

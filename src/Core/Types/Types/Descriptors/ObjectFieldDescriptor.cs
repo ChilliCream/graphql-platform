@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
             : base(new ObjectFieldDescription())
         {
-            FieldDescription.Member = member
+            FieldDescription.ClrMember = member
                 ?? throw new ArgumentNullException(nameof(member));
 
             FieldDescription.SourceType = sourceType;
@@ -99,8 +99,8 @@ namespace HotChocolate.Types
                 descriptions[descriptor.Name] = descriptor;
             }
 
-            if (FieldDescription.Member != null
-                && FieldDescription.Member is MethodInfo m)
+            if (FieldDescription.ClrMember != null
+                && FieldDescription.ClrMember is MethodInfo m)
             {
                 foreach (ParameterInfo parameter in m.GetParameters())
                 {
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
         private bool IsArgumentType(ParameterInfo parameter)
         {
             return (ArgumentHelper
-                .LookupKind(parameter, FieldDescription.Member.ReflectedType) ==
+                .LookupKind(parameter, FieldDescription.ClrMember.ReflectedType) ==
                     ArgumentKind.Argument);
         }
 

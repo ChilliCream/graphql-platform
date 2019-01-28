@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the name of the <see cref="InterfaceType"/>.
         /// </summary>
-        /// <param name="name">The object type name.</param>
+        /// <param name="name">The interface type name.</param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="name"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
@@ -28,10 +28,10 @@ namespace HotChocolate.Types
         IInterfaceTypeDescriptor Name(NameString name);
 
         /// <summary>
-        /// Adds explanatory text to the <see cref="ObjectType"/>
+        /// Adds explanatory text to the <see cref="InterfaceType"/>
         /// that can be accessd via introspection.
         /// </summary>
-        /// <param name="description">The object type description.</param>
+        /// <param name="description">The interface type description.</param>
         IInterfaceTypeDescriptor Description(string description);
 
         IInterfaceTypeDescriptor ResolveAbstractType(
@@ -57,11 +57,31 @@ namespace HotChocolate.Types
     public interface IInterfaceTypeDescriptor<T>
         : IInterfaceTypeDescriptor
     {
+        // <summary>
+        /// Associates the specified <paramref name="syntaxNode"/>
+        /// with the <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="syntaxNode">
+        /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
+        /// </param>
         new IInterfaceTypeDescriptor<T> SyntaxNode(
             InterfaceTypeDefinitionNode syntaxNode);
 
+        /// <summary>
+        /// Defines the name of the <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="name">The interface type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="name"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
         new IInterfaceTypeDescriptor<T> Name(NameString name);
 
+        /// <summary>
+        /// Adds explanatory text to the <see cref="InterfaceType"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="description">The interface type description.</param>
         new IInterfaceTypeDescriptor<T> Description(string description);
 
         new IInterfaceTypeDescriptor<T> ResolveAbstractType(
@@ -70,11 +90,12 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod);
 
-        new IInterfaceTypeDescriptor<T> Directive<T>(T directive)
-            where T : class;
+        new IInterfaceTypeDescriptor<T> Directive<TDirective>(
+            TDirective directive)
+            where TDirective : class;
 
-        new IInterfaceTypeDescriptor<T> Directive<T>()
-            where T : class, new();
+        new IInterfaceTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
 
         new IInterfaceTypeDescriptor<T> Directive(
             NameString name,

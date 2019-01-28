@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -58,7 +61,7 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(resolveAbstractType));
         }
 
-        #region IObjectTypeDescriptor<T>
+        #region IInterfaceTypeDescriptor
 
         IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
             InterfaceTypeDefinitionNode syntaxNode)
@@ -114,6 +117,97 @@ namespace HotChocolate.Types
         }
 
         IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive(
+            string name,
+            params ArgumentNode[] arguments)
+        {
+            InterfaceDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        #endregion
+    }
+
+    internal class InterfaceTypeDescriptor<T>
+        : InterfaceTypeDescriptor
+        , IInterfaceTypeDescriptor<T>
+    {
+        protected InterfaceFieldDescriptor Field<TSource>(
+            Expression<Func<TSource, object>> propertyOrMethod)
+        {
+            if (propertyOrMethod == null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            MemberInfo member = propertyOrMethod.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
+            {
+                var fieldDescriptor = new InterfaceFieldDescriptor(member);
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            throw new ArgumentException(
+                "A field of an entity can only be a property or a method.",
+                nameof(member));
+        }
+
+        #region IInterfaceTypeDescriptor<T>
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.SyntaxNode(
+            InterfaceTypeDefinitionNode syntaxNode)
+        {
+            SyntaxNode(syntaxNode);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Name(
+            NameString name)
+        {
+            Name(name);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Description(
+            string description)
+        {
+            Description(description);
+            return this;
+        }
+
+        IInterfaceFieldDescriptor IInterfaceTypeDescriptor<T>.Field(
+            Expression<Func<T, object>> propertyOrMethod)
+        {
+            return Field(propertyOrMethod);
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.ResolveAbstractType(ResolveAbstractType resolveAbstractType)
+        {
+            throw new NotImplementedException();
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive<TD>(
+            TD directive)
+        {
+            InterfaceDescription.Directives.AddDirective(directive);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive<TD>()
+        {
+            InterfaceDescription.Directives.AddDirective(new TD());
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            InterfaceDescription.Directives.AddDirective(name, arguments);
+            return this;
+        }
+
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
             string name,
             params ArgumentNode[] arguments)
         {

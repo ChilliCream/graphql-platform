@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -11,6 +13,18 @@ namespace HotChocolate.Types
         public InterfaceFieldDescriptor(NameString name)
             : base(new InterfaceFieldDescription { Name = name })
         {
+        }
+
+        public InterfaceFieldDescriptor(MemberInfo member)
+            : base(new InterfaceFieldDescription())
+        {
+            FieldDescription.ClrMember = member
+                ?? throw new ArgumentNullException(nameof(member));
+
+            FieldDescription.Name = member.GetGraphQLName();
+            FieldDescription.Description = member.GetGraphQLDescription();
+            FieldDescription.TypeReference = member.GetOutputType();
+            FieldDescription.AcquireNonNullStatus(member);
         }
 
         public InterfaceFieldDescriptor()

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -6,6 +7,8 @@ namespace HotChocolate.Types
     internal class InterfaceTypeDescription
         : TypeDescriptionBase
     {
+        public Type ClrType { get; set; }
+
         public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
 
         public ResolveAbstractType ResolveAbstractType { get; set; }

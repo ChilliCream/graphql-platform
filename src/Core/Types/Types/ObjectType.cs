@@ -110,10 +110,10 @@ namespace HotChocolate.Types
                 fields.Add(field);
 
                 if (fieldDescription.ResolverType == null
-                    && fieldDescription.Member != null)
+                    && fieldDescription.ClrMember != null)
                 {
                     fieldBindings.Add(new FieldBinding(
-                        field.Name, fieldDescription.Member, field));
+                        field.Name, fieldDescription.ClrMember, field));
                 }
             }
         }
