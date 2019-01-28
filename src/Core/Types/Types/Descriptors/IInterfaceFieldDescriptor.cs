@@ -19,6 +19,8 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Type(ITypeNode type);
 
+        IInterfaceFieldDescriptor Ignore();
+
         IInterfaceFieldDescriptor Argument(
             NameString name,
             Action<IArgumentDescriptor> argument);
