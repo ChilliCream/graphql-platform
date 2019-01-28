@@ -8,13 +8,12 @@ using HotChocolate.Validation;
 namespace HotChocolate.Execution
 {
     public interface IQueryContext
+        : IHasContextData
     {
         ISchema Schema { get; }
         IReadOnlyQueryRequest Request { get; set; }
         IRequestServiceScope ServiceScope { get; }
         IServiceProvider Services { get; }
-        IDictionary<string, object> ContextData { get; }
-
 
         DocumentNode Document { get; set; }
         IOperation Operation { get; set; }
