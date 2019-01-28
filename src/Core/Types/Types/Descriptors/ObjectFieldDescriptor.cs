@@ -126,9 +126,9 @@ namespace HotChocolate.Types
 
         private bool IsArgumentType(ParameterInfo parameter)
         {
-            return (ArgumentHelper
-                .LookupKind(parameter, FieldDescription.ClrMember.ReflectedType) ==
-                    ArgumentKind.Argument);
+            Type type = FieldDescription.ClrMember.ReflectedType;
+            return ArgumentHelper.LookupKind(parameter, type) ==
+                ArgumentKind.Argument;
         }
 
         #region IObjectFieldDescriptor

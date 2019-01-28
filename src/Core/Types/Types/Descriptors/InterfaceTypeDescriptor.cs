@@ -239,7 +239,7 @@ namespace HotChocolate.Types
 
             throw new ArgumentException(
                 "A field of an entity can only be a property or a method.",
-                nameof(member));
+                nameof(propertyOrMethod));
         }
 
         #region IInterfaceTypeDescriptor<T>
