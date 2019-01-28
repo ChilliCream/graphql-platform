@@ -205,7 +205,7 @@ namespace HotChocolate.Types
         }
 
         private Dictionary<MemberInfo, string> GetAllMembers(
-            ISet<MemberInfo> handledMembers)
+            ICollection<MemberInfo> handledMembers)
         {
             var members = new Dictionary<MemberInfo, string>();
 

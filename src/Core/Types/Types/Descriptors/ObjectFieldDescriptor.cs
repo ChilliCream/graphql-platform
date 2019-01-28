@@ -91,46 +91,6 @@ namespace HotChocolate.Types
             }
         }
 
-        private IEnumerable<ArgumentDescription> CreateArguments()
-        {
-            var descriptions = new Dictionary<string, ArgumentDescription>();
-
-            foreach (ArgumentDescription descriptor in
-                FieldDescription.Arguments)
-            {
-                descriptions[descriptor.Name] = descriptor;
-            }
-
-            if (FieldDescription.ClrMember != null
-                && FieldDescription.ClrMember is MethodInfo m)
-            {
-                foreach (ParameterInfo parameter in m.GetParameters())
-                {
-                    string argumentName = parameter.GetGraphQLName();
-                    if (!descriptions.ContainsKey(argumentName)
-                        && IsArgumentType(parameter))
-                    {
-                        var argumentDescriptor =
-                            new ArgumentDescriptor(argumentName,
-                                parameter.ParameterType);
-                        ((IArgumentDescriptor)argumentDescriptor)
-                            .Description(parameter.GetGraphQLDescription());
-                        descriptions[argumentName] = argumentDescriptor
-                            .CreateDescription();
-                    }
-                }
-            }
-
-            return descriptions.Values;
-        }
-
-        private bool IsArgumentType(ParameterInfo parameter)
-        {
-            Type type = FieldDescription.ClrMember.ReflectedType;
-            return ArgumentHelper.LookupKind(parameter, type) ==
-                ArgumentKind.Argument;
-        }
-
         #region IObjectFieldDescriptor
 
         IObjectFieldDescriptor IObjectFieldDescriptor.SyntaxNode(
