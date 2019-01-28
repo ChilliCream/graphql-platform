@@ -25,10 +25,6 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        IInputObjectTypeDescriptor Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 
     public interface IInputObjectTypeDescriptor<T>
@@ -56,10 +52,6 @@ namespace HotChocolate.Types
 
         new IInputObjectTypeDescriptor<T> Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
-        new IInputObjectTypeDescriptor<T> Directive(
-            string name,
             params ArgumentNode[] arguments);
     }
 }

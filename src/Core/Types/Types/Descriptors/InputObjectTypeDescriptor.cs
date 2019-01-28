@@ -127,14 +127,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            ObjectDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 
@@ -277,14 +269,6 @@ namespace HotChocolate.Types
 
         IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            ObjectDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);

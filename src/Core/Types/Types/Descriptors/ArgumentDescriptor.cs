@@ -153,14 +153,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            InputDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 }

@@ -32,9 +32,5 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        IInterfaceFieldDescriptor Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 }

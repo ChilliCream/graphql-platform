@@ -119,14 +119,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            UnionDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 }

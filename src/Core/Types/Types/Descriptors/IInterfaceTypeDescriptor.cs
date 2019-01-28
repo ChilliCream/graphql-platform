@@ -25,9 +25,5 @@ namespace HotChocolate.Types
         IInterfaceTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        IInterfaceTypeDescriptor Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 }
