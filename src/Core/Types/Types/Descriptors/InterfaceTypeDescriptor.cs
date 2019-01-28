@@ -201,9 +201,11 @@ namespace HotChocolate.Types
             return Field(propertyOrMethod);
         }
 
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.ResolveAbstractType(ResolveAbstractType resolveAbstractType)
+        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>
+            .ResolveAbstractType(ResolveAbstractType resolveAbstractType)
         {
-            throw new NotImplementedException();
+            ResolveAbstractType(resolveAbstractType);
+            return this;
         }
 
         IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive<TD>(
