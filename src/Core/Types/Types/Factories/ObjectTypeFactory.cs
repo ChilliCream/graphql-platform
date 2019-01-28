@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Factories
             });
         }
 
-        private void DeclareInterfaces(
+        private static void DeclareInterfaces(
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<NamedTypeNode> interfaceReferences)
         {
@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Factories
             }
         }
 
-        private void DeclareFields(
+        private static void DeclareFields(
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Factories
             }
         }
 
-        private void DeclareFieldArguments(
+        private static void DeclareFieldArguments(
             IObjectFieldDescriptor fieldDescriptor,
             FieldDefinitionNode fieldDefinition)
         {
