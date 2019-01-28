@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Source Code Link for NuGet support.
 - Added support for a executor scoped field middleware [#482](https://github.com/ChilliCream/hotchocolate/issues/482).
 - Added schema stitching capabilities [#341](https://github.com/ChilliCream/hotchocolate/issues/341).
+- Added generic interface type [#546](https://github.com/ChilliCream/hotchocolate/issues/546).
+- Added directives support for input objects [#548](https://github.com/ChilliCream/hotchocolate/issues/548).
 
 ### Changed
 
@@ -39,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Field merging of node fields did not work properly.
+- DateTime is now parsed independent of the current culture [#547](https://github.com/ChilliCream/hotchocolate/pull/547).
 
 ### Deprecated
 
