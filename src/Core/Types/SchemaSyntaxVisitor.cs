@@ -20,6 +20,8 @@ namespace HotChocolate
             new InputObjectTypeFactory();
         private readonly EnumTypeFactory _enumTypeFactory =
             new EnumTypeFactory();
+        private readonly DirectiveTypeFactory _directiveTypeFactory =
+            new DirectiveTypeFactory();
 
         public string QueryTypeName { get; private set; }
         public string MutationTypeName { get; private set; }
@@ -68,6 +70,14 @@ namespace HotChocolate
             object context)
         {
             _typeRegistry.RegisterType(_enumTypeFactory.Create(node));
+        }
+
+        protected override void VisitDirectiveDefinition(
+            DirectiveDefinitionNode node,
+            object context)
+        {
+            _directiveRegistry.RegisterDirectiveType(
+                _directiveTypeFactory.Create(node));
         }
 
         protected override void VisitSchemaDefinition(

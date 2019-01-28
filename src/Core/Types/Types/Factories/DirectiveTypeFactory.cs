@@ -50,9 +50,10 @@ namespace HotChocolate.Types.Factories
         {
             foreach (NameNode location in node.Locations)
             {
-                if (Enum.TryParse(location.Value, out DirectiveLocation l))
+                if (Enum.TryParse(location.Value, true,
+                    out DirectiveLocation parsedLocation))
                 {
-                    typeDescriptor.Location(l);
+                    typeDescriptor.Location(parsedLocation);
                 }
             }
         }
