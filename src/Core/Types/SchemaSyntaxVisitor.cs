@@ -9,24 +9,30 @@ namespace HotChocolate
         : SchemaSyntaxWalker<object>
     {
         private readonly ITypeRegistry _typeRegistry;
-        private readonly ObjectTypeFactory _objectTypeFactory = new ObjectTypeFactory();
-        private readonly InterfaceTypeFactory _interfaceTypeFactory = new InterfaceTypeFactory();
-        private readonly UnionTypeFactory _unionTypeFactory = new UnionTypeFactory();
-        private readonly InputObjectTypeFactory _inputObjectTypeFactory = new InputObjectTypeFactory();
-        private readonly EnumTypeFactory _enumTypeFactory = new EnumTypeFactory();
+        private readonly IDirectiveRegistry _directiveRegistry;
+        private readonly ObjectTypeFactory _objectTypeFactory =
+            new ObjectTypeFactory();
+        private readonly InterfaceTypeFactory _interfaceTypeFactory =
+            new InterfaceTypeFactory();
+        private readonly UnionTypeFactory _unionTypeFactory =
+            new UnionTypeFactory();
+        private readonly InputObjectTypeFactory _inputObjectTypeFactory =
+            new InputObjectTypeFactory();
+        private readonly EnumTypeFactory _enumTypeFactory =
+            new EnumTypeFactory();
 
         public string QueryTypeName { get; private set; }
         public string MutationTypeName { get; private set; }
         public string SubscriptionTypeName { get; private set; }
 
-        public SchemaSyntaxVisitor(ITypeRegistry typeRegistry)
+        public SchemaSyntaxVisitor(
+            ITypeRegistry typeRegistry,
+            IDirectiveRegistry directiveRegistry)
         {
-            if (typeRegistry == null)
-            {
-                throw new ArgumentNullException(nameof(typeRegistry));
-            }
-
-            _typeRegistry = typeRegistry;
+            _typeRegistry = typeRegistry
+                ?? throw new ArgumentNullException(nameof(typeRegistry));
+            _directiveRegistry = directiveRegistry
+                ?? throw new ArgumentNullException(nameof(directiveRegistry));
         }
 
         protected override void VisitObjectTypeDefinition(

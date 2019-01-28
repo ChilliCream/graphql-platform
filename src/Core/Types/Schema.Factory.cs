@@ -44,7 +44,10 @@ namespace HotChocolate
             SchemaContext context = SchemaContextFactory.Create();
 
             // deserialize schema objects
-            var visitor = new SchemaSyntaxVisitor(context.Types);
+            var visitor = new SchemaSyntaxVisitor(
+                context.Types,
+                context.Directives);
+
             visitor.Visit(schemaDocument, null);
 
             return CreateSchema(context, c =>

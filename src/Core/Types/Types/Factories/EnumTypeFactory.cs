@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Factories
             });
         }
 
-        private void DeclareValues(
+        private static void DeclareValues(
             IEnumTypeDescriptor typeDescriptor,
             IReadOnlyCollection<EnumValueDefinitionNode> values)
         {
