@@ -15,6 +15,16 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor Description(string description);
 
         IInputFieldDescriptor Field(NameString name);
+
+        IInputObjectTypeDescriptor Directive<T>(T directive)
+            where T : class;
+
+        IInputObjectTypeDescriptor Directive<T>()
+            where T : class, new();
+
+        IInputObjectTypeDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
     }
 
     public interface IInputObjectTypeDescriptor<T>
@@ -32,5 +42,16 @@ namespace HotChocolate.Types
 
         IInputFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> property);
+
+        new IInputObjectTypeDescriptor<T> Directive<TDirective>(
+            TDirective directive)
+            where TDirective : class;
+
+        new IInputObjectTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
+
+        new IInputObjectTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
     }
 }

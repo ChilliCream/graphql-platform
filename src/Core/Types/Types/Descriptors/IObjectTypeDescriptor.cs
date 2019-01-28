@@ -94,10 +94,6 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        IObjectTypeDescriptor Directive(
-            string name,
-            params ArgumentNode[] arguments);
     }
 
     public interface IObjectTypeDescriptor<T>
@@ -183,10 +179,6 @@ namespace HotChocolate.Types
 
         new IObjectTypeDescriptor<T> Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
-        new IObjectTypeDescriptor<T> Directive(
-            string name,
             params ArgumentNode[] arguments);
     }
 

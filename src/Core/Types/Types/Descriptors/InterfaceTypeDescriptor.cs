@@ -155,14 +155,6 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive(
-            string name,
-            params ArgumentNode[] arguments)
-        {
-            InterfaceDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
         #endregion
     }
 
@@ -300,14 +292,6 @@ namespace HotChocolate.Types
 
         IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            InterfaceDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             InterfaceDescription.Directives.AddDirective(name, arguments);
