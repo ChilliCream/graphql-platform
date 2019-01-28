@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -18,18 +19,22 @@ namespace HotChocolate.Types
 
         protected override string Serialize(DateTime value)
         {
-            return value.ToString("yyyy-MM-dd");
+            return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
         protected override string Serialize(DateTimeOffset value)
         {
-            return value.ToString("yyyy-MM-dd");
+            return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
 
         protected override bool TryParseLiteral(
             StringValueNode literal, out object obj)
         {
-            if (DateTime.TryParse(literal.Value, out DateTime dateTime))
+            if (DateTime.TryParse(
+                literal.Value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out DateTime dateTime))
             {
                 obj = dateTime;
                 return true;
