@@ -24,6 +24,6 @@ namespace HotChocolate
         /// Returns the error passed in to this filter or a rewritten error.
         /// It is not allowed to return null.
         /// </returns>
-        IError OnError(IError error, Exception exception);
+        IError OnError(IError error);
     }
 }

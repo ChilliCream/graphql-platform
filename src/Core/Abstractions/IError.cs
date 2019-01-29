@@ -155,23 +155,4 @@ namespace HotChocolate
         /// </exception>
         IError RemoveExtension(string key);
     }
-
-    public interface IErrorBuilder
-    {
-        IErrorBuilder SetMessage(string message);
-
-        IErrorBuilder SetCode(string message);
-
-        IErrorBuilder SetPath(IReadOnlyCollection<string> path);
-
-        IErrorBuilder SetPath(Path path);
-
-        IErrorBuilder SetException(Exception exception);
-
-        IErrorBuilder SetExtension(string key, object value);
-
-        IErrorBuilder AddLocation(Location location);
-
-        IErrorBuilder Build();
-    }
 }
