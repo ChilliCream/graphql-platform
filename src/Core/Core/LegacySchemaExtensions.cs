@@ -73,7 +73,8 @@ namespace HotChocolate
             using (IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline().Build(schema))
             {
-                return await executor.ExecuteAsync(request, cancellationToken);
+                return await executor.ExecuteAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 

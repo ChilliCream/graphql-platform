@@ -8,19 +8,19 @@ namespace HotChocolate.Resolvers.CodeGeneration
         protected override bool IsAsync => true;
 
         protected override void GenerateResolverInvocation(
-            DirectiveMiddlewareDescriptor descriptor,
+            DirectiveMiddlewareDescriptor resolverDescriptor,
             StringBuilder source)
         {
 
-            if (descriptor.HasResult)
+            if (resolverDescriptor.HasResult)
             {
                 source.Append("ctx.Result = ");
             }
-            source.Append($"await resolver.{descriptor.Method.Name}(");
-            GenerateArguments(descriptor, source);
-            source.AppendLine(");");
+            source.Append($"await resolver.{resolverDescriptor.Method.Name}(");
+            GenerateArguments(resolverDescriptor, source);
+            source.AppendLine(").ConfigureAwait(false);");
 
-            source.AppendLine("await next.Invoke(ctx);");
+            source.AppendLine("await next.Invoke(ctx).ConfigureAwait(false);");
         }
 
         protected override bool CanHandle(
