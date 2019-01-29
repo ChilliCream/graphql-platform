@@ -36,15 +36,13 @@ namespace HotChocolate.Execution
         }
 
         private async Task<IExecutionResult> ExecuteInternalAsync(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
+            IExecutionContext executionContext)
         {
             EventDescription eventDescription = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services,
-                eventDescription)
-                    .ConfigureAwait(false);
+                executionContext.Services, eventDescription)
+                .ConfigureAwait(false);
 
             return new SubscriptionResult(
                 eventStream,
