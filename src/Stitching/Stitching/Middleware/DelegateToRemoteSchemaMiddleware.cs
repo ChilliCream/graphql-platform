@@ -137,7 +137,7 @@ namespace HotChocolate.Stitching
             IResolverContext context,
             IEnumerable<IError> errors)
         {
-            IReadOnlyCollection<string> path = context.Path.ToCollection();
+            IReadOnlyCollection<object> path = context.Path.ToCollection();
 
             foreach (IError error in errors)
             {
