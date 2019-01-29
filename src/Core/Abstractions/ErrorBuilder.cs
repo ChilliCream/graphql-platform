@@ -44,6 +44,26 @@ namespace HotChocolate
             return this;
         }
 
+        public IErrorBuilder AddLocation(int line, int column)
+        {
+            if (line < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(line), line,
+                    "line is a 1-base index and cannot be less than one.");
+            }
+
+            if (column < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(column), column,
+                    "column is a 1-base index and cannot be less than one.");
+            }
+
+            _error.Locations = _error.Locations.Add(new Location(line, column));
+            return this;
+        }
+
         public IErrorBuilder SetException(Exception exception)
         {
             _error.Exception = exception;

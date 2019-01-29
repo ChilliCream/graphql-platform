@@ -15,6 +15,8 @@ namespace HotChocolate
 
         IErrorBuilder AddLocation(Location location);
 
+        IErrorBuilder AddLocation(int line, int column);
+
         IErrorBuilder SetException(Exception exception);
 
         IErrorBuilder SetExtension(string key, object value);

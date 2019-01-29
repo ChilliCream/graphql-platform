@@ -11,6 +11,23 @@ namespace HotChocolate
 
     public static class ErrorHandlerExtensions
     {
+        public static IError Handle(
+            this IErrorHandler errorHandler,
+            Exception exception)
+        {
+            if (errorHandler == null)
+            {
+                throw new ArgumentNullException(nameof(errorHandler));
+            }
+
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            return errorHandler.Handle(exception, b => { });
+        }
+
         public static IEnumerable<IError> Handle(
             this IErrorHandler errorHandler,
             IEnumerable<IError> errors)
