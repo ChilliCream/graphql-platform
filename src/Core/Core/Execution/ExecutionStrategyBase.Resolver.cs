@@ -28,7 +28,8 @@ namespace HotChocolate.Execution
 
             if (result is IError || result is IEnumerable<IError>)
             {
-                activity?.AddTag("error", "true");
+                QueryExecutionDiagnostics.ResolverError(resolverTask.ResolverContext,
+                   ex);
             }
 
             QueryExecutionDiagnostics.EndResolveField(
@@ -69,9 +70,6 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                QueryExecutionDiagnostics.ResolverError(resolverTask.ResolverContext,
-                    ex);
-
                 return errorHandler.Handle(ex, builder => builder
                     .SetPath(resolverTask.Path)
                     .AddLocation(resolverTask.FieldSelection.Selection));
