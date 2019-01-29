@@ -28,6 +28,7 @@ namespace HotChocolate.Execution
 
             if (result is IEnumerable<IError> errors)
             {
+<<<<<<< HEAD
                 resolverTask.Diagnostics.ResolverError(
                     resolverTask.ResolverContext, errors);
             }
@@ -35,6 +36,10 @@ namespace HotChocolate.Execution
             {
                 resolverTask.Diagnostics.ResolverError(
                     resolverTask.ResolverContext, error);
+=======
+                QueryExecutionDiagnostics.ResolverError(resolverTask.ResolverContext,
+                   ex);
+>>>>>>> da54c3630bcc54b11bc15b4046fa9570025287cb
             }
 
             resolverTask.Diagnostics.EndResolveField(
