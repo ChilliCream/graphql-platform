@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private string CreateKey(string operationName, string queryText)
+        private static string CreateKey(string operationName, string queryText)
         {
             if (string.IsNullOrEmpty(operationName))
             {
@@ -101,7 +101,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private ObjectType ResolveRootType(
+        private static ObjectType ResolveRootType(
             IQueryContext context,
             OperationType operationType)
         {

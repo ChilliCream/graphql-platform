@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
                 Schema,
                 serviceScope,
                 request.ToReadOnly(),
-                fs =>_fieldMiddlewareCompiler.GetMiddleware(fs.Field));
+                fs => _fieldMiddlewareCompiler.GetMiddleware(fs.Field));
 
             return ExecuteMiddlewareAsync(context);
         }
@@ -98,6 +98,7 @@ namespace HotChocolate.Execution
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
