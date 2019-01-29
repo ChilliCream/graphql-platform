@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    public sealed class DiagnosticEvents
+    public sealed class QueryExecutionDiagnostics
     {
         internal readonly DiagnosticListener Listener =
             new DiagnosticListener(DiagnosticNames.Listener);
@@ -13,9 +13,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var payload = new
             {
-                schema = context.Schema,
-                request = context.Request,
-                query = context.Document
+                context
             };
 
             if (Listener.IsEnabled(DiagnosticNames.Parsing, payload))
@@ -34,9 +32,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var payload = new
             {
-                schema = context.Schema,
-                request = context.Request,
-                query = context.Document
+                context
             };
 
             if (Listener.IsEnabled(DiagnosticNames.Query, payload))
@@ -52,11 +48,11 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         public Activity BeginResolveField(
-            IResolverContext resolverContext)
+            IResolverContext context)
         {
             var payload = new
             {
-                context = resolverContext
+                context
             };
 
             if (Listener.IsEnabled(DiagnosticNames.Resolver, payload))
@@ -75,9 +71,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var payload = new
             {
-                schema = context.Schema,
-                request = context.Request,
-                query = context.Document
+                context
             };
 
             if (Listener.IsEnabled(DiagnosticNames.Validation, payload))
@@ -98,9 +92,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 var payload = new
                 {
-                    schema = context.Schema,
-                    request = context.Request,
-                    query = context.Document
+                    context
                 };
 
                 if (Listener.IsEnabled(DiagnosticNames.Parsing, payload))
@@ -116,9 +108,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 var payload = new
                 {
-                    schema = context.Schema,
-                    request = context.Request,
-                    query = context.Document,
+                    context,
                     result = context.Result
                 };
 
@@ -131,15 +121,15 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void EndResolveField(
             Activity activity,
-            IResolverContext resolverContext,
-            object resolvedValue)
+            IResolverContext context,
+            object result)
         {
             if (activity != null)
             {
                 var payload = new
                 {
-                    context = resolverContext,
-                    result = resolvedValue
+                    context,
+                    result
                 };
 
                 if (Listener.IsEnabled(DiagnosticNames.Resolver, payload))
@@ -157,9 +147,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 var payload = new
                 {
-                    schema = context.Schema,
-                    request = context.Request,
-                    query = context.Document,
+                    context,
                     result = context.ValidationResult
                 };
 
@@ -174,9 +162,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var payload = new
             {
-                schema = context.Schema,
-                request = context.Request,
-                query = context.Document,
+                context,
                 exception = context.Exception
             };
 
@@ -187,12 +173,12 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         public void ResolverError(
-            IResolverContext resolverContext,
+            IResolverContext context,
             Exception exception)
         {
             var payload = new
             {
-                context = resolverContext,
+                context,
                 exception
             };
 
@@ -206,9 +192,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var payload = new
             {
-                schema = context.Schema,
-                request = context.Request,
-                query = context.Document,
+                context,
                 errors = context.ValidationResult.Errors
             };
 

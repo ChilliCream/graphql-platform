@@ -8,11 +8,11 @@ namespace HotChocolate.Execution
     internal sealed class InstrumentationMiddleware
     {
         private readonly QueryDelegate _next;
-        private readonly DiagnosticEvents _diagnosticEvents;
+        private readonly QueryExecutionDiagnostics _diagnosticEvents;
 
         public InstrumentationMiddleware(
             QueryDelegate next,
-            DiagnosticEvents diagnosticEvents)
+            QueryExecutionDiagnostics diagnosticEvents)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents

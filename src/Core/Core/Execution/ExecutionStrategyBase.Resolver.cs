@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
            IErrorHandler errorHandler,
            CancellationToken cancellationToken)
         {
-            Activity activity = DiagnosticEvents.BeginResolveField(
+            Activity activity = QueryExecutionDiagnostics.BeginResolveField(
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
                 activity?.AddTag("error", "true");
             }
 
-            DiagnosticEvents.EndResolveField(
+            QueryExecutionDiagnostics.EndResolveField(
                 activity,
                 resolverTask.ResolverContext,
                 result);
@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                DiagnosticEvents.ResolverError(resolverTask.ResolverContext,
+                QueryExecutionDiagnostics.ResolverError(resolverTask.ResolverContext,
                     ex);
 
                 return errorHandler.Handle(ex, builder => builder

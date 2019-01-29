@@ -82,9 +82,9 @@ namespace HotChocolate.Execution
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddSingleton(DiagnosticEvents.Listener)
+                .AddSingleton(QueryExecutionDiagnostics.Listener)
                 .AddSingleton<DiagnosticSource>(
-                    DiagnosticEvents.Listener);
+                    QueryExecutionDiagnostics.Listener);
 
             if (enableTracing)
             {
@@ -364,7 +364,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(listener));
             }
 
-            DiagnosticEvents.Listener.SubscribeWithAdapter(listener);
+            QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener);
 
             return builder;
         }
@@ -390,7 +390,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(isEnabled));
             }
 
-            DiagnosticEvents.Listener
+            QueryExecutionDiagnostics.Listener
                 .SubscribeWithAdapter(listener, isEnabled);
 
             return builder;
@@ -417,7 +417,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(isEnabled));
             }
 
-            DiagnosticEvents.Listener
+            QueryExecutionDiagnostics.Listener
                 .SubscribeWithAdapter(listener, isEnabled);
 
             return builder;

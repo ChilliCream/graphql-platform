@@ -53,10 +53,10 @@ namespace HotChocolate.Execution
                     ErrorHandler.Default),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticListener),
-                    DiagnosticEvents.Listener),
+                    QueryExecutionDiagnostics.Listener),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticSource),
-                    DiagnosticEvents.Listener));
+                    QueryExecutionDiagnostics.Listener));
 
             var context = new QueryContext
             (

@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             var listener = new TestDiagnosticListener();
-            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
+            using (QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener))
             {
                 ISchema schema = CreateSchema();
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             var listener = new TestDiagnosticListener();
-            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
+            using (QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener))
             {
                 ISchema schema = CreateSchema();
 

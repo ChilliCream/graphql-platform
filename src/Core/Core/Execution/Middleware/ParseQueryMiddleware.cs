@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = DiagnosticEvents.BeginParsing(context);
+            Activity activity = QueryExecutionDiagnostics.BeginParsing(context);
 
             if (IsContextIncomplete(context))
             {
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 await _next(context).ConfigureAwait(false);
             }
 
-            DiagnosticEvents.EndParsing(activity, context);
+            QueryExecutionDiagnostics.EndParsing(activity, context);
         }
 
         private DocumentNode ParseDocument(string queryText)
