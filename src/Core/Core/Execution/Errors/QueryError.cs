@@ -152,8 +152,6 @@ namespace HotChocolate.Execution
 
         public Exception Exception { get; internal set; }
 
-        public ErrorSeverity Severity => throw new NotImplementedException();
-
         #region Factories
 
         public static QueryError CreateFieldError(
