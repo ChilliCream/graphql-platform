@@ -104,8 +104,7 @@ namespace HotChocolate
             {
                 if (current.IsIndexer)
                 {
-                    stack.Push(current.Index.ToString(
-                        CultureInfo.InvariantCulture));
+                    stack.Push(current.Index);
                 }
                 stack.Push(current.Name);
                 current = current.Parent;
