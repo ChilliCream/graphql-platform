@@ -55,6 +55,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void InferSchemaInterfaceTypeFromClrInterface()
+        {
+            // arrange && act
+            Schema schema = Schema.Create(c =>
+            {
+                c.RegisterType<IFoo>();
+                c.RegisterType<FooImpl>();
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("FooImpl");
+            Assert.Collection(type.Interfaces.Values,
+                t => Assert.Equal("IFoo", t.Name));
+        }
+
+        [Fact]
         public void IgnoreFieldsFromClrInterface()
         {
             // arrange
@@ -407,6 +423,22 @@ namespace HotChocolate.Types
             bool Bar { get; }
             string Baz();
             int Qux(string a);
+        }
+
+        public class FooImpl
+            : IFoo
+        {
+            public bool Bar => throw new System.NotImplementedException();
+
+            public string Baz()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public int Qux(string a)
+            {
+                throw new System.NotImplementedException();
+            }
         }
 
         public class FooDirectiveType
