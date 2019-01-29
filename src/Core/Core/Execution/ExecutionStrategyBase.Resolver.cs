@@ -22,9 +22,8 @@ namespace HotChocolate.Execution
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask,
-                errorHandler)
-                    .ConfigureAwait(false);
+                resolverTask, errorHandler)
+                .ConfigureAwait(false);
 
             if (result is IEnumerable<IError> errors)
             {
