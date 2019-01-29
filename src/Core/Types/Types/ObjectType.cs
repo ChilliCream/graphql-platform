@@ -13,8 +13,8 @@ namespace HotChocolate.Types
         , IComplexOutputType
         , IHasClrType
     {
-        private readonly Dictionary<string, InterfaceType> _interfaceMap =
-            new Dictionary<string, InterfaceType>();
+        private readonly Dictionary<NameString, InterfaceType> _interfaceMap =
+            new Dictionary<NameString, InterfaceType>();
         private ObjectTypeDescription _description;
         private IsOfType _isOfType;
         private List<TypeReference> _interfaces;
@@ -36,7 +36,7 @@ namespace HotChocolate.Types
 
         public Type ClrType { get; protected set; }
 
-        public IReadOnlyDictionary<string, InterfaceType> Interfaces =>
+        public IReadOnlyDictionary<NameString, InterfaceType> Interfaces =>
             _interfaceMap;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
