@@ -44,6 +44,9 @@ namespace HotChocolate
         /// </summary>
         IReadOnlyDictionary<string, object> Extensions { get; }
 
+        // TODO : documentation and WithMethod
+        ErrorSeverity Severity { get; }
+
         /// <summary>
         /// Creates a new error that contains all properties of this error
         /// but with the specified <paramref name="message" />.
@@ -155,4 +158,31 @@ namespace HotChocolate
         /// </exception>
         IError RemoveExtension(string key);
     }
+
+    public interface IErrorBuilder
+    {
+        IErrorBuilder SetMessage(string message);
+
+        IErrorBuilder SetCode(string message);
+
+        IErrorBuilder SetSeverity(ErrorSeverity severity);
+
+        IErrorBuilder SetPath(IReadOnlyCollection<string> path);
+
+        IErrorBuilder SetPath(Path path);
+
+        IErrorBuilder SetException(Exception exception);
+
+        IErrorBuilder SetExtension(string key, object value);
+
+        IErrorBuilder AddLocation(Location location);
+
+        IErrorBuilder Build();
+    }
+
+    public enum ErrorSeverity
+    {
+        // TODO : check what values  we want to have here
+    }
+
 }
