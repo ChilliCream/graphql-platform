@@ -4,12 +4,12 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal static class DiagnosticEvents
+    public sealed class DiagnosticEvents
     {
-        internal static readonly DiagnosticListener Listener =
+        internal readonly DiagnosticListener Listener =
             new DiagnosticListener(DiagnosticNames.Listener);
 
-        public static Activity BeginParsing(IQueryContext context)
+        public Activity BeginParsing(IQueryContext context)
         {
             var payload = new
             {
@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public static Activity BeginQuery(IQueryContext context)
+        public Activity BeginQuery(IQueryContext context)
         {
             var payload = new
             {
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public static Activity BeginResolveField(
+        public Activity BeginResolveField(
             IResolverContext resolverContext)
         {
             var payload = new
@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public static Activity BeginValidation(IQueryContext context)
+        public Activity BeginValidation(IQueryContext context)
         {
             var payload = new
             {
@@ -92,7 +92,7 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public static void EndParsing(Activity activity, IQueryContext context)
+        public void EndParsing(Activity activity, IQueryContext context)
         {
             if (activity != null)
             {
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void EndQuery(Activity activity, IQueryContext context)
+        public void EndQuery(Activity activity, IQueryContext context)
         {
             if (activity != null)
             {
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void EndResolveField(
+        public void EndResolveField(
             Activity activity,
             IResolverContext resolverContext,
             object resolvedValue)
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void EndValidation(
+        public void EndValidation(
             Activity activity,
             IQueryContext context)
         {
@@ -170,7 +170,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void QueryError(IQueryContext context)
+        public void QueryError(IQueryContext context)
         {
             var payload = new
             {
@@ -186,7 +186,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void ResolverError(
+        public void ResolverError(
             IResolverContext resolverContext,
             Exception exception)
         {
@@ -202,7 +202,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public static void ValidationError(IQueryContext context)
+        public void ValidationError(IQueryContext context)
         {
             var payload = new
             {
