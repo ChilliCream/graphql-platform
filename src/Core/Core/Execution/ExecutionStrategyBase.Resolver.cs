@@ -72,9 +72,9 @@ namespace HotChocolate.Execution
                 DiagnosticEvents.ResolverError(resolverTask.ResolverContext,
                     ex);
 
-                return errorHandler.Handle(ex, error => error
-                    .WithPath(resolverTask.Path)
-                    .WithSyntaxNodes(resolverTask.FieldSelection.Selection));
+                return errorHandler.Handle(ex, builder => builder
+                    .SetPath(resolverTask.Path)
+                    .AddLocation(resolverTask.FieldSelection.Selection));
             }
         }
 
