@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace HotChocolate
 {
@@ -102,6 +103,11 @@ namespace HotChocolate
             while (current != null)
             {
                 stack.Push(current.Name);
+                if (current.IsIndexer)
+                {
+                    stack.Push(current.Index.ToString(
+                        CultureInfo.InvariantCulture));
+                }
                 current = current.Parent;
             }
 
