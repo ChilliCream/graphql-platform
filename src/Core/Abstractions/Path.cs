@@ -95,19 +95,19 @@ namespace HotChocolate
             }
         }
 
-        public IReadOnlyCollection<string> ToCollection()
+        public IReadOnlyCollection<object> ToCollection()
         {
-            var stack = new Stack<string>();
+            var stack = new Stack<object>();
             Path current = this;
 
             while (current != null)
             {
-                stack.Push(current.Name);
                 if (current.IsIndexer)
                 {
                     stack.Push(current.Index.ToString(
                         CultureInfo.InvariantCulture));
                 }
+                stack.Push(current.Name);
                 current = current.Parent;
             }
 
