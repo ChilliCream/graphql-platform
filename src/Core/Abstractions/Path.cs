@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace HotChocolate
 {
@@ -94,13 +95,17 @@ namespace HotChocolate
             }
         }
 
-        public IReadOnlyCollection<string> ToCollection()
+        public IReadOnlyCollection<object> ToCollection()
         {
-            var stack = new Stack<string>();
+            var stack = new Stack<object>();
             Path current = this;
 
             while (current != null)
             {
+                if (current.IsIndexer)
+                {
+                    stack.Push(current.Index);
+                }
                 stack.Push(current.Name);
                 current = current.Parent;
             }
