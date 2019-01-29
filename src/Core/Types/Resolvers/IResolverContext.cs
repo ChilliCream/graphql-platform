@@ -12,6 +12,7 @@ namespace HotChocolate.Resolvers
     /// field that is being resolved.
     /// </summary>
     public interface IResolverContext
+        : IHasContextData
     {
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.
@@ -56,15 +57,9 @@ namespace HotChocolate.Resolvers
         Path Path { get; }
 
         /// <summary>
-        /// The context data dictionary can be used by middlewares and
-        /// resolvers to store and retrieve data during execution.
-        /// </summary>
-        IDictionary<string, object> ContextData { get; }
-
-        /// <summary>
         /// The scoped context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution scoped to the
-        /// hierarchy 
+        /// hierarchy
         /// </summary>
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
 

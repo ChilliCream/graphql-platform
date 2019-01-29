@@ -72,12 +72,12 @@ namespace HotChocolate.AspNetCore
                         _queryExecutor.Schema,
                         streamWriter);
 
-                    await streamWriter.FlushAsync();
+                    await streamWriter.FlushAsync().ConfigureAwait(false);
                 }
             }
             else
             {
-                await Next.Invoke(context);
+                await Next.Invoke(context).ConfigureAwait(false);
             }
         }
     }

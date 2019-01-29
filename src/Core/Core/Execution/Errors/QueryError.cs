@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
         }
 
         internal QueryError(string message,
-            IReadOnlyCollection<string> path,
+            IReadOnlyCollection<object> path,
             IReadOnlyCollection<Location> locations,
             ImmutableDictionary<string, object> extensions)
         {
@@ -105,7 +105,7 @@ namespace HotChocolate.Execution
         [JsonProperty("path",
             Order = 2,
             NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyCollection<string> Path { get; }
+        public IReadOnlyCollection<object> Path { get; }
 
         [JsonProperty("locations",
            Order = 3,

@@ -39,7 +39,6 @@ namespace HotChocolate.Execution
 
             var middleware = new RequestTimeoutMiddleware(
                 c => Task.Delay(1000, c.RequestAborted),
-                ErrorHandler.Default,
                 options.Object);
 
             // act

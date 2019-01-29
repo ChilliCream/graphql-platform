@@ -10,8 +10,8 @@ namespace HotChocolate.Types
         : NamedTypeBase
         , INamedOutputType
     {
-        private readonly Dictionary<string, ObjectType> _typeMap =
-            new Dictionary<string, ObjectType>();
+        private readonly Dictionary<NameString, ObjectType> _typeMap =
+            new Dictionary<NameString, ObjectType>();
         private List<TypeReference> _types;
         private ResolveAbstractType _resolveAbstractType;
 
@@ -29,9 +29,10 @@ namespace HotChocolate.Types
 
         public UnionTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public IReadOnlyDictionary<string, ObjectType> Types => _typeMap;
+        public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
-        public ObjectType ResolveType(IResolverContext context, object resolverResult)
+        public ObjectType ResolveType(
+            IResolverContext context, object resolverResult)
             => _resolveAbstractType(context, resolverResult);
 
         #region Configuration
@@ -41,6 +42,9 @@ namespace HotChocolate.Types
         #endregion
 
         #region Initialization
+
+        internal virtual UnionTypeDescriptor CreateDescriptor() =>
+            new UnionTypeDescriptor(GetType());
 
         private void Initialize(Action<IUnionTypeDescriptor> configure)
         {
@@ -63,7 +67,8 @@ namespace HotChocolate.Types
                     description.Directives));
         }
 
-        protected override void OnRegisterDependencies(ITypeInitializationContext context)
+        protected override void OnRegisterDependencies(
+            ITypeInitializationContext context)
         {
             base.OnRegisterDependencies(context);
 
@@ -73,7 +78,8 @@ namespace HotChocolate.Types
             }
         }
 
-        protected override void OnCompleteType(ITypeInitializationContext context)
+        protected override void OnCompleteType(
+            ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
@@ -86,9 +92,7 @@ namespace HotChocolate.Types
         {
             if (_types != null)
             {
-                foreach (ObjectType memberType in _types
-                    .Select(t => context.GetType<ObjectType>(t))
-                    .Where(t => t != null))
+                foreach (ObjectType memberType in CreateUnionTypeSet(context))
                 {
                     _typeMap[memberType.Name] = memberType;
                 }
@@ -100,6 +104,14 @@ namespace HotChocolate.Types
                     "A Union type must define one or more unique member types.",
                     this));
             }
+        }
+
+        protected virtual ISet<ObjectType> CreateUnionTypeSet(
+            ITypeInitializationContext context)
+        {
+            return new HashSet<ObjectType>(_types
+                .Select(t => context.GetType<ObjectType>(t))
+                .Where(t => t != null));
         }
 
         private void CompleteResolveAbstractType()
@@ -123,5 +135,40 @@ namespace HotChocolate.Types
         }
 
         #endregion
+    }
+
+    public class UnionType<T>
+        : UnionType
+    {
+        public UnionType()
+        {
+        }
+
+        public UnionType(Action<IUnionTypeDescriptor> configure)
+            : base(configure)
+        {
+        }
+
+        internal override UnionTypeDescriptor CreateDescriptor() =>
+            new UnionTypeDescriptor(typeof(T));
+
+        protected override ISet<ObjectType> CreateUnionTypeSet(
+            ITypeInitializationContext context)
+        {
+            ISet<ObjectType> typeSet = base.CreateUnionTypeSet(context);
+
+            Type markerType = typeof(T);
+
+            foreach (IType type in context.GetTypes())
+            {
+                if (type is ObjectType objectType
+                    && markerType.IsAssignableFrom(objectType.ClrType))
+                {
+                    typeSet.Add(objectType);
+                }
+            }
+
+            return typeSet;
+        }
     }
 }

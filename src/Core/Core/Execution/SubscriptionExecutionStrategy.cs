@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
                 executionContext.ServiceScope);
         }
 
-        private EventDescription CreateEvent(
+        private static EventDescription CreateEvent(
             IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
@@ -97,7 +97,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private Task<IEventStream> SubscribeAsync(
+        private static Task<IEventStream> SubscribeAsync(
             IServiceProvider services,
             EventDescription @event)
         {

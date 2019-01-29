@@ -253,5 +253,10 @@ namespace HotChocolate.Types
         {
             return _schemaContext.Resolvers.GetMiddleware(directiveName);
         }
+
+        public IEnumerable<IType> GetTypes()
+        {
+            return _schemaContext.Types.GetTypes();
+        }
     }
 }

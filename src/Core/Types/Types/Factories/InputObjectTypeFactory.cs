@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Factories
             });
         }
 
-        private void DeclareFields(
+        private static void DeclareFields(
             IInputObjectTypeDescriptor typeDescriptor,
             InputObjectTypeDefinitionNode node)
         {

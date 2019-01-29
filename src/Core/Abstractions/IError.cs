@@ -25,7 +25,7 @@ namespace HotChocolate
         /// Gets the path to the object that caused the error.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyCollection<string> Path { get; }
+        IReadOnlyCollection<object> Path { get; }
 
         /// <summary>
         /// Gets the source text positions to which this error refers to.
