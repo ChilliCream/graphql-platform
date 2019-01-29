@@ -40,11 +40,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
             try
             {
                 StartKeepConnectionAlive();
-                await ReceiveMessagesAsync(cancellationToken);
+                await ReceiveMessagesAsync(cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {
-                 await _context.CloseAsync();
+                 await _context.CloseAsync().ConfigureAwait(false);
             }
         }
 
@@ -63,11 +64,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     if (message == null)
                     {
                         await _context.SendConnectionKeepAliveMessageAsync(
-                            combined.Token);
+                            combined.Token).ConfigureAwait(false);
                     }
                     else
                     {
-                        await HandleMessage(message, combined.Token);
+                        await HandleMessage(message, combined.Token)
+                            .ConfigureAwait(false);
                     }
                 }
             }
@@ -102,8 +104,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             while (!_context.CloseStatus.HasValue
                 || !_cts.IsCancellationRequested)
             {
-                await Task.Delay(_keepAliveTimeout, _cts.Token);
-                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token);
+                await Task.Delay(_keepAliveTimeout, _cts.Token)
+                    .ConfigureAwait(false);
+                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -130,7 +134,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
 
             WebSocket socket = await httpContext.WebSockets
-                .AcceptWebSocketAsync(_protocol);
+                .AcceptWebSocketAsync(_protocol)
+                .ConfigureAwait(false);
 
             if (httpContext.WebSockets.WebSocketRequestedProtocols
                 .Contains(socket.SubProtocol))
@@ -146,7 +151,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 await socket.CloseAsync(
                     WebSocketCloseStatus.ProtocolError,
                     "Expected graphql-ws protocol.",
-                    CancellationToken.None);
+                    CancellationToken.None)
+                    .ConfigureAwait(false);
                 socket.Dispose();
             }
 

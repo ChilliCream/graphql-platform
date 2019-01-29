@@ -41,19 +41,20 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 && !_cts.IsCancellationRequested)
             {
                 IReadOnlyQueryResult result =
-                    await _responseStream.ReadAsync(_cts.Token);
+                    await _responseStream.ReadAsync(_cts.Token)
+                        .ConfigureAwait(false);
 
                 if (result != null)
                 {
                     await _context.SendSubscriptionDataMessageAsync(
-                        Id, result, _cts.Token);
+                        Id, result, _cts.Token).ConfigureAwait(false);
                 }
             }
 
             if (_responseStream.IsCompleted && !_cts.IsCancellationRequested)
             {
                 await _context.SendSubscriptionCompleteMessageAsync(
-                    Id, _cts.Token);
+                    Id, _cts.Token).ConfigureAwait(false);
 
                 Completed?.Invoke(this, EventArgs.Empty);
             }
