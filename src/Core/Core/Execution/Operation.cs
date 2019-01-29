@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
             DocumentNode query, OperationDefinitionNode definition,
             ObjectType rootType, object rootValue)
         {
-            Query = query
+            Document = query
                 ?? throw new ArgumentNullException(nameof(query));
             Definition = definition
                 ?? throw new ArgumentNullException(nameof(definition));
@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
             RootValue = rootValue;
         }
 
-        public DocumentNode Query { get; }
+        public DocumentNode Document { get; }
 
         public OperationDefinitionNode Definition { get; }
 

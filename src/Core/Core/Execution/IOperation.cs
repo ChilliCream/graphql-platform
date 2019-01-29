@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         /// operation-<see cref="Definition" />.
         /// </summary>
         /// <value></value>
-        DocumentNode Query { get; }
+        DocumentNode Document { get; }
 
         /// <summary>
         /// Gets the syntax node representing the operation definition.

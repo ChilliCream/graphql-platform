@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
                 services.Object.CreateRequestServiceScope();
 
             var operation = new Mock<IOperation>();
-            operation.Setup(t => t.Query).Returns(query);
+            operation.Setup(t => t.Document).Returns(query);
 
             var variables = new Mock<IVariableCollection>();
 
@@ -70,7 +70,7 @@ namespace HotChocolate.Execution
                 .CreateRequestServiceScope();
 
             var operation = new Mock<IOperation>();
-            operation.Setup(t => t.Query).Returns(query);
+            operation.Setup(t => t.Document).Returns(query);
 
             var variables = new Mock<IVariableCollection>();
 

@@ -51,7 +51,9 @@ namespace HotChocolate.Resolvers
 
         public ObjectField Field => _resolverContext.Field;
 
-        public DocumentNode QueryDocument => _resolverContext.QueryDocument;
+        public DocumentNode Document => _resolverContext.Document;
+
+        public DocumentNode QueryDocument => Document;
 
         public OperationDefinitionNode Operation => _resolverContext.Operation;
 

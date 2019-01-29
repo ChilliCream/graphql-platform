@@ -32,7 +32,15 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the query that is being executed.
         /// </summary>
+        [Obsolete(
+            "Use Document. " +
+            "This property will be removed with version 1.0.0.")]
         DocumentNode QueryDocument { get; }
+
+        /// <summary>
+        /// Gets the parsed query document that is being executed.
+        /// </summary>
+        DocumentNode Document { get; }
 
         /// <summary>
         /// Gets the operation from the query that is being executed.

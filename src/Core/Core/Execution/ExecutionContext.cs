@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
             Result = new QueryResult();
 
             var fragments = new FragmentCollection(
-                schema, operation.Query);
+                schema, operation.Document);
 
             var fieldCollector = new FieldCollector(
                 variables, fragments);
