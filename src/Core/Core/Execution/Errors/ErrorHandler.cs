@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
 
             foreach (IErrorFilter filter in _filters)
             {
-                current = filter.OnError(current, null);
+                current = filter.OnError(current);
 
                 if (current == null)
                 {
@@ -58,37 +58,30 @@ namespace HotChocolate.Execution
             return current;
         }
 
-        public IEnumerable<IError> Handle(IEnumerable<IError> errors)
-        {
-            if (errors == null)
-            {
-                throw new ArgumentNullException(nameof(errors));
-            }
-
-            return HandleEnumerator(errors);
-        }
-
-        private IEnumerable<IError> HandleEnumerator(IEnumerable<IError> errors)
-        {
-            foreach (IError error in errors)
-            {
-                yield return Handle(error);
-            }
-        }
-
-        public IError Handle(Exception exception,
-            Func<IError, IError> configure)
+        public IError Handle(
+            Exception exception,
+            Action<IErrorBuilder> configure)
         {
             if (exception == null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            IError current = configure(CreateErrorFromException(exception));
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+
+
+            IErrorBuilder builder = CreateErrorFromException(exception);
+            configure(builder);
+
+            IError current = builder.Build();
 
             foreach (IErrorFilter filter in _filters)
             {
-                current = filter.OnError(current, exception);
+                current = filter.OnError(current);
 
                 if (current == null)
                 {
@@ -100,18 +93,19 @@ namespace HotChocolate.Execution
             return current;
         }
 
-        private IError CreateErrorFromException(Exception exception)
+        private IErrorBuilder CreateErrorFromException(Exception exception)
         {
+            IErrorBuilder builder = ErrorBuilder.New()
+                .SetMessage("Unexpected Execution Error");
+
             if (_includeExceptionDetails)
             {
-                return new QueryError("Unexpected Execution Error",
-                    new ErrorProperty("message", exception.Message),
-                    new ErrorProperty("stackTrace", exception.StackTrace));
+                builder.SetException(exception)
+                    .SetExtension("message", exception.Message)
+                    .SetExtension("stackTrace", exception.StackTrace);
             }
-            else
-            {
-                return new QueryError("Unexpected Execution Error");
-            }
+
+            return builder;
         }
 
         public static ErrorHandler Default { get; } =
