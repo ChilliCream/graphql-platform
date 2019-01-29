@@ -57,7 +57,7 @@ namespace HotChocolate.AspNetCore.Playground
         public override async Task Invoke(HttpContext context)
 #else
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
@@ -75,7 +75,9 @@ namespace HotChocolate.AspNetCore.Playground
                     url: ""{queryUrl}"",
                     subscriptionUrl: ""{subscriptionUrl}"",
                 }}
-            ", context.GetCancellationToken());
+            ",
+            context.GetCancellationToken())
+            .ConfigureAwait(false);
         }
 
         private static string BuildUrl(

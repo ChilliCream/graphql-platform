@@ -41,7 +41,7 @@ namespace HotChocolate.DataLoader
             {
                 try
                 {
-                    TValue value = await _fetch(keys[i]);
+                    TValue value = await _fetch(keys[i]).ConfigureAwait(false);
                     items[i] = value;
                 }
                 catch (Exception ex)

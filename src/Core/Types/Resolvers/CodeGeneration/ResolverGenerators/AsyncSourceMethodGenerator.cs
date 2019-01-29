@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                         .Select(t => t.VariableName));
                 source.Append(arguments);
             }
-            source.AppendLine(");");
+            source.AppendLine(").ConfigureAwait(false);");
         }
 
         protected override bool CanHandle(SourceResolverDescriptor descriptor)
