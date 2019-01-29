@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace HotChocolate.Execution.Configuration
@@ -19,13 +19,6 @@ namespace HotChocolate.Execution.Configuration
         private int? _maxExecutionDepth;
         private int _queryCacheSize = 100;
         private int? _maxOperationComplexity;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether tracing for performance
-        /// measurement of query requests is enabled. The default value is
-        /// <see langword="false"/>.
-        /// </summary>
-        public bool EnableTracing { get; set; }
 
         /// <summary>
         /// Gets or sets maximum allowed execution time of a query. The default
@@ -90,8 +83,6 @@ namespace HotChocolate.Execution.Configuration
             }
         }
 
-        public bool? UseComplexityMultipliers { get; set; }
-
         /// <summary>
         /// Gets or sets the maximum amount of queries that can be cached. The
         /// default value is <c>100</c>. The minimum allowed value is
@@ -107,5 +98,14 @@ namespace HotChocolate.Execution.Configuration
                     : value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether tracing for performance
+        /// measurement of query requests is enabled. The default value is
+        /// <see cref="TracingPreference.Never"/>.
+        /// </summary>
+        public TracingPreference TracingPreference { get; set; }
+
+        public bool? UseComplexityMultipliers { get; set; }
     }
 }

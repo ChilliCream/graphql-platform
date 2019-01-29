@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = QueryExecutionDiagnostics.BeginValidation(context);
+            Activity activity = context.Diagnostics.BeginValidation(context);
 
             if (context.Document == null)
             {
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
                 {
                     context.Result = QueryResult.CreateError(
                         context.ValidationResult.Errors);
-                    QueryExecutionDiagnostics.ValidationError(context);
+                    context.Diagnostics.ValidationError(context);
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            QueryExecutionDiagnostics.EndValidation(activity, context);
+            context.Diagnostics.EndValidation(activity, context);
         }
 
         private QueryValidationResult Validate(

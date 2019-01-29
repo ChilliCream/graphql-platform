@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -22,7 +23,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (_source.IsEnabled(DiagnosticNames.Parsing, payload))
+            if (_source.IsEnabled(DiagnosticNames.Parsing, payload, context))
             {
                 var activity = new Activity(DiagnosticNames.Parsing);
 
@@ -41,7 +42,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (_source.IsEnabled(DiagnosticNames.Query, payload))
+            if (_source.IsEnabled(DiagnosticNames.Query, payload, context))
             {
                 var activity = new Activity(DiagnosticNames.Query);
 
@@ -61,7 +62,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (_source.IsEnabled(DiagnosticNames.Resolver, payload))
+            if (_source.IsEnabled(DiagnosticNames.Resolver, payload, context))
             {
                 var activity = new Activity(DiagnosticNames.Resolver);
 
@@ -80,7 +81,8 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (_source.IsEnabled(DiagnosticNames.Validation, payload))
+            if (_source.IsEnabled(DiagnosticNames.Validation, payload,
+                context))
             {
                 var activity = new Activity(DiagnosticNames.Validation);
 
@@ -101,7 +103,8 @@ namespace HotChocolate.Execution.Instrumentation
                     context
                 };
 
-                if (_source.IsEnabled(DiagnosticNames.Parsing, payload))
+                if (_source.IsEnabled(DiagnosticNames.Parsing, payload,
+                    context))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -118,7 +121,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result = context.Result
                 };
 
-                if (_source.IsEnabled(DiagnosticNames.Query, payload))
+                if (_source.IsEnabled(DiagnosticNames.Query, payload, context))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -138,7 +141,8 @@ namespace HotChocolate.Execution.Instrumentation
                     result
                 };
 
-                if (_source.IsEnabled(DiagnosticNames.Resolver, payload))
+                if (_source.IsEnabled(DiagnosticNames.Resolver, payload,
+                    context))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -157,7 +161,8 @@ namespace HotChocolate.Execution.Instrumentation
                     result = context.ValidationResult
                 };
 
-                if (_source.IsEnabled(DiagnosticNames.Validation, payload))
+                if (_source.IsEnabled(DiagnosticNames.Validation, payload,
+                    context))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -172,7 +177,8 @@ namespace HotChocolate.Execution.Instrumentation
                 exception = context.Exception
             };
 
-            if (_source.IsEnabled(DiagnosticNames.QueryError, payload))
+            if (_source.IsEnabled(DiagnosticNames.QueryError, payload,
+                context))
             {
                 _source.Write(DiagnosticNames.QueryError, payload);
             }
@@ -195,7 +201,8 @@ namespace HotChocolate.Execution.Instrumentation
                 errors
             };
 
-            if (_source.IsEnabled(DiagnosticNames.ResolverError, payload))
+            if (_source.IsEnabled(DiagnosticNames.ResolverError, payload,
+                context))
             {
                 _source.Write(DiagnosticNames.ResolverError, payload);
             }
@@ -209,7 +216,8 @@ namespace HotChocolate.Execution.Instrumentation
                 errors = context.ValidationResult.Errors
             };
 
-            if (_source.IsEnabled(DiagnosticNames.ValidationError, payload))
+            if (_source.IsEnabled(DiagnosticNames.ValidationError, payload,
+                context))
             {
                 _source.Write(DiagnosticNames.ValidationError, payload);
             }

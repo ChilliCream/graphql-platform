@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseInstrumentation(options.EnableTracing)
+                .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
                 .UseExceptionHandling()
                 .UseQueryParser()
@@ -71,7 +71,7 @@ namespace HotChocolate.Execution
 
         public static IQueryExecutionBuilder UseInstrumentation(
             this IQueryExecutionBuilder builder,
-            bool enableTracing)
+            TracingPreference tracingPreference)
         {
             if (builder == null)
             {
@@ -89,10 +89,26 @@ namespace HotChocolate.Execution
                 .AddSingleton(sp => new QueryExecutionDiagnostics(
                     sp.GetRequiredService<DiagnosticSource>()));
 
-            if (enableTracing)
+            if (tracingPreference != TracingPreference.Never)
             {
                 builder.AddDiagnosticListener(
-                    new ApolloTracingDiagnosticListener());
+                    new ApolloTracingDiagnosticListener(),
+                    (name, payload, context) =>
+                    {
+                        if (tracingPreference == TracingPreference.Always)
+                        {
+                            return true;
+                        }
+
+                        if (tracingPreference == TracingPreference.OnDemand &&
+                            context is IHasContextData data &&
+                            data.ContextData.ContainsKey("tracing")) // todo: find a better key name and put it into a const
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    });
             }
 
             return builder.Use<InstrumentationMiddleware>();
