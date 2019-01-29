@@ -43,8 +43,10 @@ namespace HotChocolate.Subscriptions
         public async Task<IEventMessage> ReadAsync(
             CancellationToken cancellationToken)
         {
-            IEventMessage message = await _taskCompletionSource.Task;
-            await _semaphore.WaitAsync();
+            IEventMessage message = await _taskCompletionSource.Task
+                .ConfigureAwait(false);
+
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {

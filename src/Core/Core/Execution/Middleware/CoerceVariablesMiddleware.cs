@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
             return _next(context);
         }
 
-        private bool IsContextValid(IQueryContext context)
+        private static bool IsContextValid(IQueryContext context)
         {
             return context.Document != null
                 && context.Operation != null;

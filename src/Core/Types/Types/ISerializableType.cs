@@ -12,7 +12,7 @@
         /// <summary>
         /// Deserializes a serialized instance of this type.
         /// </summary>
-        object Deserialize(object value);
+        object Deserialize(object serialized);
 
         /// <summary>
         /// Tries to deserialize a serialized instance of this type.

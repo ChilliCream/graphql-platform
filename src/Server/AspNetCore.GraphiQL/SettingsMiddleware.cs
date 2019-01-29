@@ -74,7 +74,9 @@ namespace HotChocolate.AspNetCore.GraphiQL
                     url: ""{queryUrl}"",
                     subscriptionUrl: ""{subscriptionUrl}"",
                 }}
-            ", context.GetCancellationToken());
+            ",
+            context.GetCancellationToken())
+            .ConfigureAwait(false);
         }
 
         private static string BuildUrl(

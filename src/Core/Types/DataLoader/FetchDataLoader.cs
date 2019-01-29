@@ -28,7 +28,9 @@ namespace HotChocolate.DataLoader
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
-            IReadOnlyDictionary<TKey, TValue> result = await _fetch(keys);
+            IReadOnlyDictionary<TKey, TValue> result =
+                await _fetch(keys).ConfigureAwait(false);
+
             var items = new Result<TValue>[keys.Count];
 
             for (int i = 0; i < keys.Count; i++)

@@ -8,8 +8,10 @@
             descriptor.Name("resolve");
             descriptor.Middleware(next => async context =>
             {
-                context.Result = await context.ResolveAsync<object>();
-                await next.Invoke(context);
+                context.Result = await context.ResolveAsync<object>()
+                    .ConfigureAwait(false);
+
+                await next.Invoke(context).ConfigureAwait(false);
             });
 
             descriptor.Location(DirectiveLocation.Schema)

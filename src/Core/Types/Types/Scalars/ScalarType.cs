@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         /// </returns>
         public virtual bool IsInstanceOfType(object value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return true;
             }
