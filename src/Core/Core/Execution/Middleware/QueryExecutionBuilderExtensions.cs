@@ -78,13 +78,16 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            var listener = new DiagnosticListener(DiagnosticNames.Listener);
+
             builder
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddSingleton(QueryExecutionDiagnostics.Listener)
-                .AddSingleton<DiagnosticSource>(
-                    QueryExecutionDiagnostics.Listener);
+                .AddSingleton(listener)
+                .AddSingleton<DiagnosticSource>(listener)
+                .AddSingleton(sp => new QueryExecutionDiagnostics(
+                    sp.GetRequiredService<DiagnosticSource>()));
 
             if (enableTracing)
             {
