@@ -24,22 +24,24 @@ namespace HotChocolate.AspNetCore.Subscriptions
             CancellationToken cancellationToken)
         {
             ConnectionStatus connectionStatus =
-                await context.OpenAsync(message.Payload.ToDictionary());
+                await context.OpenAsync(message.Payload.ToDictionary())
+                    .ConfigureAwait(false);
 
             if (connectionStatus.Accepted)
             {
                 await context.SendConnectionAcceptMessageAsync(
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 await context.SendConnectionKeepAliveMessageAsync(
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 await context.SendConnectionErrorMessageAsync(
-                    connectionStatus.Response, cancellationToken);
+                    connectionStatus.Response, cancellationToken)
+                    .ConfigureAwait(false);
 
-                await context.CloseAsync();
+                await context.CloseAsync().ConfigureAwait(false);
             }
         }
     }

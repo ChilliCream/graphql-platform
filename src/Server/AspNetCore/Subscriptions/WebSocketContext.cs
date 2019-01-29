@@ -49,7 +49,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public WebSocketCloseStatus? CloseStatus => WebSocket.CloseStatus;
 
-        public IDictionary<string, object> RequestProperties { get; private set; }
+        public IDictionary<string, object> RequestProperties
+        { get; private set; }
 
         public void RegisterSubscription(ISubscription subscription)
         {
@@ -100,7 +101,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 await _onCreateRequest(
                     HttpContext, request, properties,
-                    HttpContext.RequestAborted);
+                    HttpContext.RequestAborted)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -119,7 +121,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                 await WebSocket.SendAsync(
                     segment, WebSocketMessageType.Text,
-                    isEOF, cancellationToken);
+                    isEOF, cancellationToken)
+                    .ConfigureAwait(false);
             } while (read == _maxMessageSize);
         }
 
@@ -134,11 +137,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 result = await WebSocket.ReceiveAsync(
                     new ArraySegment<byte>(buffer),
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 await messageStream.WriteAsync(
                     buffer, 0, result.Count,
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
             }
             while (!result.EndOfMessage);
         }
@@ -157,7 +162,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return await _onConnectAsync(
                 HttpContext,
                 RequestProperties,
-                HttpContext.RequestAborted);
+                HttpContext.RequestAborted)
+                .ConfigureAwait(false);
         }
 
         public async Task CloseAsync()
@@ -171,7 +177,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await WebSocket.CloseAsync(
                 WebSocketCloseStatus.Empty,
                 "closed",
-                CancellationToken.None);
+                CancellationToken.None)
+                .ConfigureAwait(false);
 
             Dispose();
         }
