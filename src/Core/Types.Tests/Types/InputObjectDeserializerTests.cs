@@ -427,7 +427,5 @@ namespace HotChocolate.Types
         {
             public int Bar1 { get; set; }
         }
-
-
     }
 }

@@ -410,7 +410,7 @@ namespace HotChocolate.Types
         }
 
         public class FooDirectiveType
-        : DirectiveType<FooDirective>
+            : DirectiveType<FooDirective>
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
