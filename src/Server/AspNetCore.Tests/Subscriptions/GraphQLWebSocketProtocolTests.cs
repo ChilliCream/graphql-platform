@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await ConnectAsync(webSocket);
         }
 
-        [Fact(Skip = "TODO: FIX Stability Issues")]
+        [Fact]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange

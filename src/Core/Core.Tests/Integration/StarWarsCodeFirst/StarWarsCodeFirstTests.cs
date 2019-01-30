@@ -614,7 +614,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             result.Snapshot();
         }
 
-        [Fact(Skip = "waiting for greendonut")]
+        [Fact]
         public void Execute_ListWithNullValues_ResultContainsNullElement()
         {
             // arrange
@@ -669,7 +669,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             eventResult.Snapshot();
         }
 
-        [Fact(Skip = "This test is not stable.")]
+        [Fact]
         public void ExecutionDepthShouldNotLeadToEmptyObects()
         {
             // arrange

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -618,6 +619,28 @@ namespace HotChocolate.Types
                 result.Type.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
+        }
+
+        [Fact]
+        public void IgnoreField_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange & act
+            Action a = () => ObjectTypeDescriptorExtensions
+                .Ignore<Foo>(null, t => t.Description);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void IgnoreField_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange & act
+            Action a = () => ObjectTypeDescriptorExtensions
+                .Ignore<Foo>(new ObjectTypeDescriptor<Foo>(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
         }
 
         public class GenericFoo<T>
