@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,24 +20,27 @@ namespace HotChocolate.Execution
             IVariableCollection variables,
             Func<FieldSelection, FieldDelegate> middlewareResolver,
             IDictionary<string, object> contextData,
-            CancellationToken requestAborted)
+            CancellationToken requestAborted,
+            QueryExecutionDiagnostics diagnostics)
         {
             if (middlewareResolver == null)
             {
                 throw new ArgumentNullException(nameof(middlewareResolver));
             }
 
-            Schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
-            ServiceScope = serviceScope
-                ?? throw new ArgumentNullException(nameof(serviceScope));
-            Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
-            Variables = variables
-                ?? throw new ArgumentNullException(nameof(variables));
-            ContextData = contextData
-                ?? throw new ArgumentNullException(nameof(contextData));
+            Schema = schema ??
+                throw new ArgumentNullException(nameof(schema));
+            ServiceScope = serviceScope ??
+                throw new ArgumentNullException(nameof(serviceScope));
+            Operation = operation ??
+                throw new ArgumentNullException(nameof(operation));
+            Variables = variables ??
+                throw new ArgumentNullException(nameof(variables));
+            ContextData = contextData ??
+                throw new ArgumentNullException(nameof(contextData));
             RequestAborted = requestAborted;
+            Diagnostics = diagnostics ??
+                throw new ArgumentNullException(nameof(diagnostics));
 
             ErrorHandler = serviceScope.ServiceProvider
                 .GetRequiredService<IErrorHandler>();
@@ -77,6 +81,8 @@ namespace HotChocolate.Execution
 
         public IActivator Activator { get; }
 
+        public QueryExecutionDiagnostics Diagnostics { get; }
+
         public void AddError(IError error)
         {
             if (error == null)
@@ -92,10 +98,12 @@ namespace HotChocolate.Execution
 
         public IExecutionContext Clone()
         {
-            var cloned = (ExecutionContext)base.MemberwiseClone();
+            var cloned = (ExecutionContext)MemberwiseClone();
+
             cloned.ContextData = new ConcurrentDictionary<string, object>(
                 cloned.ContextData);
             cloned.Result = new QueryResult();
+
             return cloned;
         }
     }
