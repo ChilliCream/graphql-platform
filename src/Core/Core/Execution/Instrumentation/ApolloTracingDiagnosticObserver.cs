@@ -2,17 +2,26 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DiagnosticAdapter;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingDiagnosticListener
+    internal class ApolloTracingDiagnosticObserver
+        : IDiagnosticObserver
     {
         private static readonly AsyncLocal<ApolloTracingResultBuilder>
             _builder = new AsyncLocal<ApolloTracingResultBuilder>();
         private const string _extensionKey = "tracing";
         private const string _startTimestampKey = "startTimestamp";
+        private readonly TracingPreference _tracingPreference;
+
+        public ApolloTracingDiagnosticObserver(
+            TracingPreference tracingPreference)
+        {
+            _tracingPreference = tracingPreference;
+        }
 
         private static ApolloTracingResultBuilder Builder
         {
@@ -21,6 +30,14 @@ namespace HotChocolate.Execution.Instrumentation
                 return _builder.Value ??
                     (_builder.Value = new ApolloTracingResultBuilder());
             }
+        }
+
+        public bool IsEnabled(string name, object payload, object context)
+        {
+            return (_tracingPreference == TracingPreference.Always ||
+                (_tracingPreference == TracingPreference.OnDemand &&
+                    context is IHasContextData data &&
+                    data.ContextData.ContainsKey("tracing"))); // todo: find a better key name and put it into a const
         }
 
         [DiagnosticName(DiagnosticNames.Query)]

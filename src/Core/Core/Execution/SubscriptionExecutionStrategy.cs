@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
 
             IEventStream eventStream = await SubscribeAsync(
                 executionContext.Services, eventDescription)
-                .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
             return new SubscriptionResult(
                 eventStream,

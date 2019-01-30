@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -10,10 +9,24 @@ namespace HotChocolate.Execution.Instrumentation
     {
         private readonly DiagnosticSource _source;
 
-        internal QueryExecutionDiagnostics(DiagnosticSource source)
+        internal QueryExecutionDiagnostics(
+            DiagnosticListener observable,
+            IEnumerable<IDiagnosticObserver> observers)
         {
-            _source = source ??
-                throw new ArgumentNullException(nameof(source));
+            _source = observable ??
+                throw new ArgumentNullException(nameof(observable));
+
+            Subscribe(observable, observers);
+        }
+
+        private static void Subscribe(
+            DiagnosticListener observable,
+            IEnumerable<IDiagnosticObserver> observers)
+        {
+            foreach (IDiagnosticObserver observer in observers)
+            {
+                observable.SubscribeWithAdapter(observer, observer.IsEnabled);
+            }
         }
 
         public Activity BeginParsing(IQueryContext context)

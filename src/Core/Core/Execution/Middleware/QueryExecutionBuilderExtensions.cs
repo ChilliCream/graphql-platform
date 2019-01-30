@@ -87,28 +87,14 @@ namespace HotChocolate.Execution
                 .AddSingleton(listener)
                 .AddSingleton<DiagnosticSource>(listener)
                 .AddSingleton(sp => new QueryExecutionDiagnostics(
-                    sp.GetRequiredService<DiagnosticSource>()));
+                    sp.GetRequiredService<DiagnosticListener>(),
+                    sp.GetServices<IDiagnosticObserver>()));
 
             if (tracingPreference != TracingPreference.Never)
             {
-                builder.AddDiagnosticListener(
-                    new ApolloTracingDiagnosticListener(),
-                    (name, payload, context) =>
-                    {
-                        if (tracingPreference == TracingPreference.Always)
-                        {
-                            return true;
-                        }
-
-                        if (tracingPreference == TracingPreference.OnDemand &&
-                            context is IHasContextData data &&
-                            data.ContextData.ContainsKey("tracing")) // todo: find a better key name and put it into a const
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    });
+                builder.AddDiagnosticObserver(
+                        new ApolloTracingDiagnosticObserver(
+                            tracingPreference));
             }
 
             return builder.Use<InstrumentationMiddleware>();
@@ -368,76 +354,36 @@ namespace HotChocolate.Execution
             return AddParser<DefaultQueryParser>(builder);
         }
 
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
-            this IQueryExecutionBuilder builder,
-            TListener listener)
-                where TListener : class
+        public static IQueryExecutionBuilder AddDiagnosticObserver<TListener>(
+            this IQueryExecutionBuilder builder)
+                where TListener : class, IDiagnosticObserver
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (listener == null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
-
-            QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener);
+            builder.Services.AddSingleton<IDiagnosticObserver, TListener>();
 
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
+        public static IQueryExecutionBuilder AddDiagnosticObserver<TObserver>(
             this IQueryExecutionBuilder builder,
-            TListener listener,
-            Func<string, bool> isEnabled)
-                where TListener : class
+            TObserver observer)
+                where TObserver : class, IDiagnosticObserver
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (listener == null)
+            if (observer == null)
             {
-                throw new ArgumentNullException(nameof(listener));
+                throw new ArgumentNullException(nameof(observer));
             }
 
-            if (isEnabled == null)
-            {
-                throw new ArgumentNullException(nameof(isEnabled));
-            }
-
-            QueryExecutionDiagnostics.Listener
-                .SubscribeWithAdapter(listener, isEnabled);
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
-            this IQueryExecutionBuilder builder,
-            TListener listener,
-            Func<string, object, object, bool> isEnabled)
-                where TListener : class
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (listener == null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
-
-            if (isEnabled == null)
-            {
-                throw new ArgumentNullException(nameof(isEnabled));
-            }
-
-            QueryExecutionDiagnostics.Listener
-                .SubscribeWithAdapter(listener, isEnabled);
+            builder.Services.AddSingleton<IDiagnosticObserver>(observer);
 
             return builder;
         }
