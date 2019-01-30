@@ -23,6 +23,8 @@ namespace HotChocolate.Types.Relay
             descriptor.Name(name + "Edge");
             descriptor.Description("An edge in a connection.");
 
+            descriptor.BindFields(BindingBehavior.Explicit);
+
             descriptor.Field(t => t.Cursor)
                 .Name("cursor")
                 .Description("A cursor for use in pagination.")

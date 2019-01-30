@@ -48,6 +48,25 @@ namespace HotChocolate.Utilities
             return false;
         }
 
+        public bool TryExtractClrType(Type type, out Type clrType)
+        {
+            if (TryCreate(type, out TypeInfo typeInfo))
+            {
+                ConstructorInfo constructor = typeInfo.ClrType.GetTypeInfo()
+                    .DeclaredConstructors
+                    .FirstOrDefault(c => !c.GetParameters().Any());
+
+                if (constructor?.Invoke(Array.Empty<object>()) is IHasClrType t)
+                {
+                    clrType = t.ClrType;
+                    return true;
+                }
+            }
+
+            clrType = default;
+            return false;
+        }
+
         private static List<Type> DecomposeType(Type type)
         {
             List<Type> components = new List<Type>();

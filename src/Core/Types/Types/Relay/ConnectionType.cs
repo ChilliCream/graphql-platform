@@ -9,21 +9,24 @@ namespace HotChocolate.Types.Relay
         , IConnectionType
         where T : IOutputType, new()
     {
-        private readonly Action<IObjectTypeDescriptor<IConnection>> _configure;
-
         public ConnectionType()
+            : base(descriptor => Configure(descriptor))
         {
         }
 
         public ConnectionType(
             Action<IObjectTypeDescriptor<IConnection>> configure)
+            : base(descriptor =>
+            {
+                Configure(descriptor);
+                configure?.Invoke(descriptor);
+            })
         {
-            _configure = configure;
         }
 
         public IEdgeType EdgeType { get; private set; }
 
-        protected override void Configure(
+        protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
             if (!NamedTypeInfoFactory.Default.TryExtractName(
@@ -36,6 +39,8 @@ namespace HotChocolate.Types.Relay
             descriptor.Name(name + "Connection");
             descriptor.Description("A connection to a list of items.");
 
+            descriptor.BindFields(BindingBehavior.Explicit);
+
             descriptor.Field(t => t.PageInfo)
                 .Name("pageInfo")
                 .Description("Information to aid in pagination.")
@@ -45,8 +50,6 @@ namespace HotChocolate.Types.Relay
                 .Name("edges")
                 .Description("A list of edges.")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
-
-            _configure?.Invoke(descriptor);
         }
 
         protected override void OnRegisterDependencies(
@@ -69,10 +72,12 @@ namespace HotChocolate.Types.Relay
 
         public static ConnectionType<T> CreateWithTotalCount()
         {
-            return new ConnectionType<T>(c => c
-                .Field("totalCount")
-                .Type<NonNullType<IntType>>()
-                .Resolver(ctx => GetTotalCount(ctx)));
+            return new ConnectionType<T>(c =>
+            {
+                c.Field("totalCount")
+                    .Type<NonNullType<IntType>>()
+                    .Resolver(ctx => GetTotalCount(ctx));
+            });
         }
 
         private static IResolverResult<long> GetTotalCount(
