@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await ConnectAsync(webSocket);
         }
 
-        [Fact]
+        [Fact(Skip = "Rewrite this test")]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange
