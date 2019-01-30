@@ -406,7 +406,7 @@ namespace HotChocolate.Execution
 
         public static IQueryExecutionBuilder AddErrorFilter(
             this IQueryExecutionBuilder builder,
-            Func<IError, Exception, IError> errorFilter)
+            Func<IError, IError> errorFilter)
         {
             if (builder == null)
             {

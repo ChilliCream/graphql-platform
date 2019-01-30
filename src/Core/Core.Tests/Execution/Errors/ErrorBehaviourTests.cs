@@ -272,7 +272,7 @@ namespace HotChocolate.Execution
             Action errorHandled)
         {
             IQueryExecutor queryExecutor = CreateSchema().MakeExecutable(
-                b => b.UseDefaultPipeline().AddErrorFilter((error, ex) =>
+                b => b.UseDefaultPipeline().AddErrorFilter(error =>
                 {
                     errorHandled();
                     return error;

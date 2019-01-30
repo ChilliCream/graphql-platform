@@ -15,7 +15,7 @@ namespace HotChocolate
             IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema, new QueryExecutionOptions
                 {
-                    EnableTracing = true
+                    TracingPreference = TracingPreference.Always
                 });
             var request = new QueryRequest("{ a }");
 
