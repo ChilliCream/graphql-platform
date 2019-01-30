@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            return ExecuteInternalAsync(executionContext, cancellationToken);
+            return ExecuteInternalAsync(executionContext);
         }
 
         private async Task<IExecutionResult> ExecuteInternalAsync(
