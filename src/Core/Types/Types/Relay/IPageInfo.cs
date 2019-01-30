@@ -9,5 +9,7 @@
         string StartCursor { get; }
 
         string EndCursor { get; }
+
+        long? TotalCount { get; }
     }
 }

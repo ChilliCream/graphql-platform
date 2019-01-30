@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Relay
         public void CreateConnection_PageInfoAndEdges_PassedCorrectly()
         {
             // arrange
-            var pageInfo = new PageInfo(true, true, "a", "b");
+            var pageInfo = new PageInfo(true, true, "a", "b", null);
             var edges = new List<Edge<string>>();
 
             // act
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Relay
         public void CreateConnection_EdgesNull_ArgumentNullException()
         {
             // arrange
-            var pageInfo = new PageInfo(true, true, "a", "b");
+            var pageInfo = new PageInfo(true, true, "a", "b", null);
 
             // act
             Action a = () => new Connection<string>(pageInfo, null);

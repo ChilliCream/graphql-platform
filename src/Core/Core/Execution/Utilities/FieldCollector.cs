@@ -141,7 +141,7 @@ namespace HotChocolate.Execution
         }
 
 
-        private bool ShouldBeIncluded(ISelectionNode selection)
+        private bool ShouldBeIncluded(Language.IHasDirectives selection)
         {
             if (selection.Directives.Skip(_variables))
             {
@@ -150,7 +150,9 @@ namespace HotChocolate.Execution
             return selection.Directives.Include(_variables);
         }
 
-        private static bool DoesTypeApply(IType typeCondition, ObjectType current)
+        private static bool DoesTypeApply(
+            IType typeCondition,
+            ObjectType current)
         {
             if (typeCondition is ObjectType ot)
             {

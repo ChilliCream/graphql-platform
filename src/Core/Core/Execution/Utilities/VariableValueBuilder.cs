@@ -135,7 +135,7 @@ namespace HotChocolate.Execution
             return value;
         }
 
-        private object EnsureClrTypeIsCorrect(IInputType type, object value)
+        private object EnsureClrTypeIsCorrect(IHasClrType type, object value)
         {
             if (type.ClrType != typeof(object)
                 && value.GetType() != type.ClrType

@@ -43,8 +43,20 @@ namespace HotChocolate.Types
         }
 
         public void Type<TObjectType>()
+            where TObjectType : ObjectType
         {
             UnionDescription.Types.Add(typeof(TObjectType).GetOutputType());
+        }
+
+        public void Type<TObjectType>(TObjectType type)
+            where TObjectType : ObjectType
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            UnionDescription.Types.Add(new TypeReference(type));
         }
 
         public void Type(NamedTypeNode objectType)
@@ -83,6 +95,13 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>()
         {
             Type<TObjectType>();
+            return this;
+        }
+
+        IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>(
+            TObjectType type)
+        {
+            Type<TObjectType>(type);
             return this;
         }
 

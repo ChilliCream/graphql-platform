@@ -137,7 +137,7 @@ namespace HotChocolate.Types
         }
 
         private void AddExectableDirectives(
-            HashSet<string> processed,
+            ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
             foreach (IDirective directive in

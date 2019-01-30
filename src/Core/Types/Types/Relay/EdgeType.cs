@@ -1,18 +1,29 @@
-﻿namespace HotChocolate.Types.Relay
+﻿using System;
+using HotChocolate.Utilities;
+
+namespace HotChocolate.Types.Relay
 {
     public class EdgeType<T>
         : ObjectType<IEdge>
         , IEdgeType
-        where T : INamedOutputType, new()
+        where T : IOutputType, new()
     {
-        public INamedOutputType EntityType { get; private set; }
+        public IOutputType EntityType { get; private set; }
 
         protected override void Configure(
             IObjectTypeDescriptor<IEdge> descriptor)
         {
-            // TODO : Fix this with the new schema builder
-            descriptor.Name($"{new T().Name}Edge");
+            if (!NamedTypeInfoFactory.Default.TryExtractName(
+                typeof(T), out NameString name))
+            {
+                throw new InvalidOperationException(
+                    $"Unable to extract a name from {typeof(T).FullName}.");
+            }
+
+            descriptor.Name(name + "Edge");
             descriptor.Description("An edge in a connection.");
+
+            descriptor.BindFields(BindingBehavior.Explicit);
 
             descriptor.Field(t => t.Cursor)
                 .Name("cursor")

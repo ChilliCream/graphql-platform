@@ -31,13 +31,19 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (!_sealed
-                && typeReference.IsClrTypeReference()
-                && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
+            if (!_sealed)
             {
-                RegisterType(
-                    typeReference.ClrType,
-                    typeReference.Context);
+                if (typeReference.IsSchemaTypeReference())
+                {
+                    TryUpdateNamedType(typeReference.SchemaType.NamedType());
+                }
+                else if (typeReference.IsClrTypeReference()
+                    && !BaseTypes.IsNonGenericBaseType(typeReference.ClrType))
+                {
+                    RegisterType(
+                        typeReference.ClrType,
+                        typeReference.Context);
+                }
             }
         }
 

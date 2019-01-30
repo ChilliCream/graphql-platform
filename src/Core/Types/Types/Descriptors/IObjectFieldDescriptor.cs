@@ -18,6 +18,9 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
+        IObjectFieldDescriptor Type<TOutputType>(TOutputType type)
+            where TOutputType : class, IOutputType;
+
         IObjectFieldDescriptor Type(ITypeNode type);
 
         IObjectFieldDescriptor Argument(NameString name,
