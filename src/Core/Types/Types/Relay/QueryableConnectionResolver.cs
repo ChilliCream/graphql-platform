@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Relay
         }
 
         private static int? GetPositionFromCurser(
-            Dictionary<string, object> properties)
+            IDictionary<string, object> properties)
         {
             if (properties == null)
             {
@@ -205,7 +205,7 @@ namespace HotChocolate.Types.Relay
         }
 
         private static int? GetTotalCountFromCursor(
-            Dictionary<string, object> properties)
+            IDictionary<string, object> properties)
         {
             if (properties == null)
             {
