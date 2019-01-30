@@ -10,7 +10,6 @@ namespace HotChocolate.Stitching
         private readonly Dictionary<string, IQueryExecutor> _executors =
             new Dictionary<string, IQueryExecutor>();
 
-
         public StitchingContextBuilder AddExecutor(
             string schemaName,
             IQueryExecutor executor)

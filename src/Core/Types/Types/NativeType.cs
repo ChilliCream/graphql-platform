@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     {
         public TypeKind Kind => throw new NotSupportedException();
 
-        Type IHasClrType.ClrType => throw new NotSupportedException();
+        public Type ClrType => throw new NotSupportedException();
 
         public bool IsInstanceOfType(IValueNode literal)
         {

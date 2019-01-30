@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -597,6 +598,49 @@ namespace HotChocolate.Types
             // assert
             Assert.Empty(errors);
             Assert.NotNull(fooType.Fields.First().Resolver);
+        }
+
+        [Fact]
+        public void IgnoreFieldWithShortcut()
+        {
+            // arrange & act
+            TypeResult<ObjectType<Foo>> result =
+                TestUtils.CreateType(c =>
+                    new ObjectType<Foo>(
+                    d =>
+                    {
+                        d.Ignore(t => t.Description);
+                        d.Field("foo").Type<StringType>().Resolver("abc");
+                    }));
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.Collection(
+                result.Type.Fields.Where(t => !t.IsIntrospectionField),
+                t => Assert.Equal("foo", t.Name));
+
+        }
+
+        [Fact]
+        public void IgnoreField_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange & act
+            Action a = () => ObjectTypeDescriptorExtensions
+                .Ignore<Foo>(null, t => t.Description);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void IgnoreField_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange & act
+            Action a = () => ObjectTypeDescriptorExtensions
+                .Ignore<Foo>(new ObjectTypeDescriptor<Foo>(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
         }
 
         public class GenericFoo<T>
