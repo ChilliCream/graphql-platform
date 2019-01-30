@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Source Code Link for NuGet support.
 - Added support for a executor scoped field middleware [#482](https://github.com/ChilliCream/hotchocolate/issues/482).
 - Added schema stitching capabilities [#341](https://github.com/ChilliCream/hotchocolate/issues/341).
+- Added generic interface type [#546](https://github.com/ChilliCream/hotchocolate/issues/546).
+- Added directives support for input objects [#548](https://github.com/ChilliCream/hotchocolate/issues/548).
+- Added optional totalCount field to the connection type [#558](https://github.com/ChilliCream/hotchocolate/issues/558).
+- Added support for dynamic generated schema types [#558](https://github.com/ChilliCream/hotchocolate/issues/558).
+- Added generic union type [#552](https://github.com/ChilliCream/hotchocolate/issues/552).
+- Added options to AddStitchedSchema [#556](https://github.com/ChilliCream/hotchocolate/issues/556).
 
 ### Changed
 
@@ -35,10 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The DataLoader API is now offering a simpler interface.
 - Extended Scalar Types must now be explicitly registered during schema configuration. [#433](https://github.com/ChilliCream/hotchocolate/issues/433)
 - Authorization directive is now repeatable and can use the default authorization policy [#485](https://github.com/ChilliCream/hotchocolate/pull/485)
+- UsePaging can now be used without specifying the clr type [#558](https://github.com/ChilliCream/hotchocolate/issues/558).
+- The edge node type can now be any output type including list [#558](https://github.com/ChilliCream/hotchocolate/issues/558).
 
 ### Fixed
 
 - Field merging of node fields did not work properly.
+- DateTime is now parsed independent of the current culture [#547](https://github.com/ChilliCream/hotchocolate/pull/547).
 
 ### Deprecated
 

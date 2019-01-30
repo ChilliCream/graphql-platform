@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Types
 {
-    public class InputObjectTypeDescriptorDescriptors
+    public class InputObjectTypeDescriptorTests
     {
         [Fact]
         public void Field_Ignore_PropertyIsExcluded()

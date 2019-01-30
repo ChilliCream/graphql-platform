@@ -39,7 +39,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             StringBuilder source);
 
         protected void GenerateArguments(
-            DirectiveMiddlewareDescriptor resolverDescriptor,
+            IDirectiveMiddlewareDescriptor resolverDescriptor,
             StringBuilder source)
         {
             if (resolverDescriptor.Arguments.Count > 0)

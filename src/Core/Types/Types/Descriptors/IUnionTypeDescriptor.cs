@@ -14,6 +14,9 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType;
 
+        IUnionTypeDescriptor Type<TObjectType>(TObjectType type)
+            where TObjectType : ObjectType;
+
         IUnionTypeDescriptor Type(NamedTypeNode objectType);
 
         IUnionTypeDescriptor ResolveAbstractType(
@@ -27,10 +30,6 @@ namespace HotChocolate.Types
 
         IUnionTypeDescriptor Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
-        IUnionTypeDescriptor Directive(
-            string name,
             params ArgumentNode[] arguments);
     }
 }

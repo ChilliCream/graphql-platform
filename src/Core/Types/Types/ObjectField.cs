@@ -9,6 +9,7 @@ namespace HotChocolate.Types
 {
     public class ObjectField
         : ObjectFieldBase
+        , IObjectField
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();
@@ -35,7 +36,7 @@ namespace HotChocolate.Types
         {
             _sourceType = fieldDescription.SourceType ?? typeof(object);
             _resolverType = fieldDescription.ResolverType;
-            _member = fieldDescription.Member;
+            _member = fieldDescription.ClrMember;
             _middlewareComponents = fieldDescription.MiddlewareComponents;
 
             Resolver = fieldDescription.Resolver;
@@ -136,7 +137,7 @@ namespace HotChocolate.Types
         }
 
         private void AddExectableDirectives(
-            HashSet<string> processed,
+            ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
             foreach (IDirective directive in

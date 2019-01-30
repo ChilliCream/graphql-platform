@@ -17,7 +17,12 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
+        IInterfaceFieldDescriptor Type<TOutputType>(TOutputType type)
+            where TOutputType : class, IOutputType;
+
         IInterfaceFieldDescriptor Type(ITypeNode type);
+
+        IInterfaceFieldDescriptor Ignore();
 
         IInterfaceFieldDescriptor Argument(
             NameString name,
@@ -31,10 +36,6 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Directive(
             NameString name,
-            params ArgumentNode[] arguments);
-
-        IInterfaceFieldDescriptor Directive(
-            string name,
             params ArgumentNode[] arguments);
     }
 }

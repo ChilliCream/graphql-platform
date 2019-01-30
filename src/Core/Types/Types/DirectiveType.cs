@@ -125,6 +125,7 @@ namespace HotChocolate.Types
 
     public class DirectiveType<TDirective>
         : DirectiveType
+        where TDirective : class
     {
         protected DirectiveType()
         {

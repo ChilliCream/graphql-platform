@@ -2,6 +2,7 @@
 {
     public enum TypeContext
     {
+        None,
         Output,
         Input
     }

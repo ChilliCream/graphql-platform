@@ -228,6 +228,56 @@ namespace HotChocolate.Types
             Assert.Equal("String", type.Fields["b"].Type.TypeName());
         }
 
+        [Fact]
+        public void CreateDirectiveType()
+        {
+            // arrange
+            string schemaSdl = "directive @foo(a:String) on QUERY";
+
+            // act
+            Schema schema = Schema.Create(
+                schemaSdl,
+                c => c.Options.StrictValidation = false);
+
+            // assert
+            DirectiveType type = schema.GetDirectiveType("foo");
+            Assert.Equal("foo", type.Name);
+            Assert.False(type.IsRepeatable);
+            Assert.Collection(type.Locations,
+                t => Assert.Equal(DirectiveLocation.Query, t));
+            Assert.Collection(type.Arguments,
+                t =>
+                {
+                    Assert.Equal("a", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                });
+        }
+
+        [Fact]
+        public void CreateRepeatableDirectiveType()
+        {
+            // arrange
+            string schemaSdl = "directive @foo(a:String) repeatable on QUERY";
+
+            // act
+            Schema schema = Schema.Create(
+                schemaSdl,
+                c => c.Options.StrictValidation = false);
+
+            // assert
+            DirectiveType type = schema.GetDirectiveType("foo");
+            Assert.Equal("foo", type.Name);
+            Assert.True(type.IsRepeatable);
+            Assert.Collection(type.Locations,
+                t => Assert.Equal(DirectiveLocation.Query, t));
+            Assert.Collection(type.Arguments,
+                t =>
+                {
+                    Assert.Equal("a", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                });
+        }
+
         private void CompleteType(
             INamedType namedType,
             Action<SchemaContext> configure = null)

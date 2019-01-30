@@ -43,6 +43,8 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             bool isIntrospection);
 
+        IEnumerable<IType> GetTypes();
+
         T GetType<T>(TypeReference typeReference) where T : IType;
 
         DirectiveType GetDirectiveType(DirectiveReference directiveReference);

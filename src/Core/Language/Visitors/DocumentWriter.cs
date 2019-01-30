@@ -8,11 +8,22 @@ namespace HotChocolate.Language
     public class DocumentWriter
         : TextWriter
     {
-        private TextWriter _writer;
+        private const int _indent = 2;
+        private const char _space = ' ';
+        private readonly TextWriter _writer;
 
         public DocumentWriter(TextWriter writer)
         {
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+        }
+
+        public DocumentWriter(StringBuilder stringBuilder)
+        {
+            if (stringBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(stringBuilder));
+            }
+            _writer = new StringWriter(stringBuilder);
         }
 
         public int Indentation { get; private set; }
@@ -41,27 +52,27 @@ namespace HotChocolate.Language
 
         public void WriteSpace()
         {
-            Write(' ');
+            Write(_space);
         }
 
         public void WriteIndentation()
         {
             if (Indentation > 0)
             {
-                Write(new string(' ', Indentation * 2));
+                Write(new string(_space, Indentation * _indent));
             }
         }
 
         public Task WriteSpaceAsync()
         {
-            return WriteAsync(' ');
+            return WriteAsync(_space);
         }
 
         public Task WriteIndentationAsync()
         {
             if (Indentation > 0)
             {
-                return WriteAsync(new string(' ', Indentation * 2));
+                return WriteAsync(new string(_space, Indentation * _indent));
             }
             return Task.CompletedTask;
         }

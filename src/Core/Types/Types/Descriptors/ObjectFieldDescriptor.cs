@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
             : base(new ObjectFieldDescription())
         {
-            FieldDescription.Member = member
+            FieldDescription.ClrMember = member
                 ?? throw new ArgumentNullException(nameof(member));
 
             FieldDescription.SourceType = sourceType;
@@ -84,49 +84,11 @@ namespace HotChocolate.Types
         {
             if (!_argumentsInitialized)
             {
-                FieldDescription.Arguments = CreateArguments().ToList();
+                FieldDescriptorUtilities.DiscoverArguments(
+                    FieldDescription.Arguments,
+                    FieldDescription.ClrMember);
                 _argumentsInitialized = true;
             }
-        }
-
-        private IEnumerable<ArgumentDescription> CreateArguments()
-        {
-            var descriptions = new Dictionary<string, ArgumentDescription>();
-
-            foreach (ArgumentDescription descriptor in
-                FieldDescription.Arguments)
-            {
-                descriptions[descriptor.Name] = descriptor;
-            }
-
-            if (FieldDescription.Member != null
-                && FieldDescription.Member is MethodInfo m)
-            {
-                foreach (ParameterInfo parameter in m.GetParameters())
-                {
-                    string argumentName = parameter.GetGraphQLName();
-                    if (!descriptions.ContainsKey(argumentName)
-                        && IsArgumentType(parameter))
-                    {
-                        var argumentDescriptor =
-                            new ArgumentDescriptor(argumentName,
-                                parameter.ParameterType);
-                        ((IArgumentDescriptor)argumentDescriptor)
-                            .Description(parameter.GetGraphQLDescription());
-                        descriptions[argumentName] = argumentDescriptor
-                            .CreateDescription();
-                    }
-                }
-            }
-
-            return descriptions.Values;
-        }
-
-        private bool IsArgumentType(ParameterInfo parameter)
-        {
-            return (ArgumentHelper
-                .LookupKind(parameter, FieldDescription.Member.ReflectedType) ==
-                    ArgumentKind.Argument);
         }
 
         #region IObjectFieldDescriptor
@@ -161,6 +123,13 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>()
         {
             Type<TOutputType>();
+            return this;
+        }
+
+        IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>(
+            TOutputType type)
+        {
+            Type<TOutputType>(type);
             return this;
         }
 
@@ -220,14 +189,6 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            FieldDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             FieldDescription.Directives.AddDirective(name, arguments);

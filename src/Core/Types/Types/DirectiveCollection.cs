@@ -50,7 +50,7 @@ namespace HotChocolate.Types
         private void CompleteDirective(
             ITypeInitializationContext context,
             DirectiveDescription description,
-            HashSet<string> processed)
+            ISet<string> processed)
         {
             DirectiveReference reference =
                 DirectiveReference.FromDescription(description);

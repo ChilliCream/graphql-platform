@@ -57,9 +57,9 @@ namespace HotChocolate.Types
                     fields[fieldDescription.Name] = fieldDescription;
                 }
 
-                if (fieldDescription.Member != null)
+                if (fieldDescription.ClrMember != null)
                 {
-                    handledMembers.Add(fieldDescription.Member);
+                    handledMembers.Add(fieldDescription.ClrMember);
                 }
             }
 
@@ -100,6 +100,17 @@ namespace HotChocolate.Types
 
             ObjectDescription.Interfaces.Add(
                 typeof(TInterface).GetOutputType());
+        }
+
+        protected void Interface<TInterface>(TInterface type)
+            where TInterface : InterfaceType
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ObjectDescription.Interfaces.Add(new TypeReference(type));
         }
 
         protected void Interface(NamedTypeNode type)
@@ -149,7 +160,7 @@ namespace HotChocolate.Types
             if (member is PropertyInfo || member is MethodInfo)
             {
                 ObjectFieldDescriptor fieldDescriptor =
-                    CreateResolverDescriptor(
+                    CreateFieldDescriptor(
                         ObjectDescription.ClrType,
                         typeof(TResolver), member);
                 Fields.Add(fieldDescriptor);
@@ -219,7 +230,7 @@ namespace HotChocolate.Types
                 if (IsResolverRelevant(sourceType, member.Value))
                 {
                     ObjectFieldDescription description =
-                        CreateResolverDescriptor(
+                        CreateFieldDescriptor(
                             sourceType, resolverType, member.Value)
                         .CreateDescription();
 
@@ -231,7 +242,7 @@ namespace HotChocolate.Types
             }
         }
 
-        protected static ObjectFieldDescriptor CreateResolverDescriptor(
+        protected static ObjectFieldDescriptor CreateFieldDescriptor(
             Type sourceType, Type resolverType, MemberInfo member)
         {
             var fieldDescriptor = new ObjectFieldDescriptor(
@@ -294,6 +305,13 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface<TInterface>(
+            TInterface type)
+        {
+            Interface<TInterface>();
+            return this;
+        }
+
         IObjectTypeDescriptor IObjectTypeDescriptor.Interface(
             NamedTypeNode type)
         {
@@ -338,14 +356,6 @@ namespace HotChocolate.Types
 
         IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            ObjectDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);
@@ -441,9 +451,17 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Interface<TInterface>()
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
+            .Interface<TInterface>()
         {
             Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
+            .Interface<TInterface>(TInterface type)
+        {
+            Interface<TInterface>(type);
             return this;
         }
 
@@ -473,7 +491,8 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive<TDirective>()
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
+            .Directive<TDirective>()
         {
             ObjectDescription.Directives.AddDirective(new TDirective());
             return this;
@@ -481,14 +500,6 @@ namespace HotChocolate.Types
 
         IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
             NameString name,
-            params ArgumentNode[] arguments)
-        {
-            ObjectDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
-            string name,
             params ArgumentNode[] arguments)
         {
             ObjectDescription.Directives.AddDirective(name, arguments);

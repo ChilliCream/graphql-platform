@@ -15,7 +15,7 @@ namespace HotChocolate.Subscriptions
 
         public async Task SendAsync(IEventMessage message)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -47,7 +47,7 @@ namespace HotChocolate.Subscriptions
         private async Task<IEventStream> SubscribeInternalAsync(
             IEventDescription eventDescription)
         {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {

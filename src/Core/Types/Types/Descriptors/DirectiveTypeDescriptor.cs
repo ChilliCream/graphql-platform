@@ -257,8 +257,8 @@ namespace HotChocolate.Types
         }
 
         private void AddExplicitArguments(
-            Dictionary<string, DirectiveArgumentDescription> descriptors,
-            List<PropertyInfo> handledProperties)
+            IDictionary<string, DirectiveArgumentDescription> descriptors,
+            ICollection<PropertyInfo> handledProperties)
         {
             foreach (DirectiveArgumentDescription argumentDescription in
                 DirectiveDescription.Arguments)
@@ -276,8 +276,8 @@ namespace HotChocolate.Types
         }
 
         private void AddImplicitArguments(
-            Dictionary<string, DirectiveArgumentDescription> descriptors,
-            Dictionary<PropertyInfo, string> properties)
+            IDictionary<string, DirectiveArgumentDescription> descriptors,
+            IDictionary<PropertyInfo, string> properties)
         {
             foreach (KeyValuePair<PropertyInfo, string> property in properties)
             {
@@ -297,7 +297,7 @@ namespace HotChocolate.Types
         }
 
         private Dictionary<PropertyInfo, string> GetPossibleImplicitArguments(
-            List<PropertyInfo> handledProperties)
+            ICollection<PropertyInfo> handledProperties)
         {
             Dictionary<PropertyInfo, string> properties = GetProperties(
                 DirectiveDescription.ClrType);

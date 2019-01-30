@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(builder));
             }
-            
+
             builder
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();

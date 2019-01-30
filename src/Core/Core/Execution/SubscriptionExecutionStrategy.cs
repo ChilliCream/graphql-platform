@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
     internal sealed class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
-        private IRequestTimeoutOptionsAccessor _options;
+        private readonly IRequestTimeoutOptionsAccessor _options;
 
         public SubscriptionExecutionStrategy(
             IRequestTimeoutOptionsAccessor options)
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
                 executionContext.ServiceScope);
         }
 
-        private EventDescription CreateEvent(
+        private static EventDescription CreateEvent(
             IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
@@ -97,9 +97,9 @@ namespace HotChocolate.Execution
             }
         }
 
-        private Task<IEventStream> SubscribeAsync(
+        private static Task<IEventStream> SubscribeAsync(
             IServiceProvider services,
-            EventDescription @event)
+            IEventDescription @event)
         {
             var eventRegistry = (IEventRegistry)services
                 .GetService(typeof(IEventRegistry));

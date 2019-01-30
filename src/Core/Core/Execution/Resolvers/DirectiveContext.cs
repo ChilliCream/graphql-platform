@@ -68,6 +68,12 @@ namespace HotChocolate.Execution
         public IDictionary<string, object> ContextData =>
             _middlewareContext.ContextData;
 
+        public IImmutableDictionary<string, object> ScopedContextData
+        {
+            get => _middlewareContext.ScopedContextData;
+            set => _middlewareContext.ScopedContextData = value;
+        }
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 

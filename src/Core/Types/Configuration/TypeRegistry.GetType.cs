@@ -51,6 +51,13 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
+            if (typeReference.IsSchemaTypeReference())
+            {
+                return TryGetType(
+                    typeReference.SchemaType.NamedType().Name,
+                    out type);
+            }
+
             if (typeReference.IsClrTypeReference())
             {
                 return TryGetTypeFromClrType(

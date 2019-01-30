@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken);
 
-        protected async Task<IQueryResult> ExecuteQueryAsync(
+        protected static async Task<IQueryResult> ExecuteQueryAsync(
             IExecutionContext executionContext,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
             return executionContext.Result;
         }
 
-        protected async Task ExecuteResolversAsync(
+        protected static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
             IEnumerable<ResolverTask> initialBatch,
             BatchOperationHandler batchOperationHandler,
@@ -61,10 +61,10 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task ExecuteResolverBatchAsync(
+        private static async Task ExecuteResolverBatchAsync(
             IExecutionContext executionContext,
             IReadOnlyCollection<ResolverTask> currentBatch,
-            List<ResolverTask> nextBatch,
+            ICollection<ResolverTask> nextBatch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
@@ -90,7 +90,7 @@ namespace HotChocolate.Execution
                     .ConfigureAwait(false);
         }
 
-        private IReadOnlyCollection<Task> BeginExecuteResolverBatch(
+        private static IReadOnlyCollection<Task> BeginExecuteResolverBatch(
             IEnumerable<ResolverTask> currentBatch,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
             return tasks;
         }
 
-        protected Task CompleteBatchOperationsAsync(
+        protected static Task CompleteBatchOperationsAsync(
             IReadOnlyCollection<Task> tasks,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution
                     tasks, cancellationToken);
         }
 
-        private async Task EndExecuteResolverBatchAsync(
+        private static async Task EndExecuteResolverBatchAsync(
             IExecutionContext executionContext,
             IEnumerable<ResolverTask> currentBatch,
             Action<ResolverTask> enqueueTask,
@@ -143,7 +143,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        protected IEnumerable<ResolverTask> CreateRootResolverTasks(
+        protected static IEnumerable<ResolverTask> CreateRootResolverTasks(
             IExecutionContext executionContext,
             IDictionary<string, object> result)
         {
@@ -163,7 +163,9 @@ namespace HotChocolate.Execution
                     fieldSelection,
                     Path.New(fieldSelection.ResponseName),
                     source,
-                    result);
+                    result,
+                    ImmutableDictionary<string, object>.Empty
+                    );
             }
         }
 

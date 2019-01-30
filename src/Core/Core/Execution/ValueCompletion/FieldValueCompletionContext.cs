@@ -173,7 +173,9 @@ namespace HotChocolate.Execution
                 _enqueueResolverTask(new ResolverTask(
                     ExecutionContext, objectType, field,
                     Path.Append(field.ResponseName),
-                    Source.Push(Value), objectResult));
+                    Source.Push(Value), objectResult,
+                    _resolverTask.ScopedContextData)
+                    );
             }
         }
 

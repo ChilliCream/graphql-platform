@@ -92,7 +92,13 @@ namespace HotChocolate.Configuration
             foreach (TypeReference unresolvedType in
                 typeRegistry.GetUnresolvedTypes())
             {
-                if (IsObjectType(unresolvedType))
+                if (IsInterfaceType(unresolvedType))
+                {
+                    typeRegistry.RegisterType(
+                        new TypeReference(typeof(InterfaceType<>)
+                            .MakeGenericType(unresolvedType.ClrType)));
+                }
+                else if (IsObjectType(unresolvedType))
                 {
                     typeRegistry.RegisterType(
                         new TypeReference(typeof(ObjectType<>)
@@ -116,6 +122,12 @@ namespace HotChocolate.Configuration
         private static bool IsObjectType(TypeReference unresolvedType)
         {
             return IsComplexType(unresolvedType)
+                && unresolvedType.Context == TypeContext.Output;
+        }
+
+        private static bool IsInterfaceType(TypeReference unresolvedType)
+        {
+            return unresolvedType.ClrType.IsInterface
                 && unresolvedType.Context == TypeContext.Output;
         }
 

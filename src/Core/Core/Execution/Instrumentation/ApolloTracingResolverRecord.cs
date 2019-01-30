@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public ApolloTracingResolverRecord(IResolverContext context)
         {
-            Path = context.Path.ToFieldPathArray();
+            Path = context.Path.ToCollection();
             ParentType = context.ObjectType.Name;
             FieldName = context.Field.Name;
             ReturnType = context.Field.Type.TypeName();

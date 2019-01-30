@@ -13,7 +13,8 @@
       ],
       "pageInfo": {
         "hasNextPage": false
-      }
+      },
+      "totalCount": 7
     }
   },
   "Extensions": {},

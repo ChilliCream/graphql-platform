@@ -163,9 +163,9 @@ namespace HotChocolate.Execution
             }
         }
 
-        private bool IsInProgress(Task task) => !IsFinished(task);
+        private static bool IsInProgress(Task task) => !IsFinished(task);
 
-        private bool IsFinished(Task task)
+        private static bool IsFinished(Task task)
         {
             return task.IsCanceled || task.IsCompleted || task.IsFaulted;
         }

@@ -1,0 +1,14 @@
+{
+  "Data": {
+    "root": {
+      "a": {
+        "foo": "./root/a/foo"
+      },
+      "b": {
+        "foo": "./root/b/foo"
+      }
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}
