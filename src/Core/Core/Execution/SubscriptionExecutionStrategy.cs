@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
     internal sealed class SubscriptionExecutionStrategy
         : ExecutionStrategyBase
     {
-        private IRequestTimeoutOptionsAccessor _options;
+        private readonly IRequestTimeoutOptionsAccessor _options;
 
         public SubscriptionExecutionStrategy(
             IRequestTimeoutOptionsAccessor options)
