@@ -4,11 +4,11 @@
     {
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
             this IObjectFieldDescriptor descriptor)
-            where TSchemaType : INamedOutputType, new()
+            where TSchemaType : IOutputType, new()
         {
             return descriptor
                 .AddPagingArguments()
-                .Type<ConnectionType<TSchemaType>>()
+                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
                 .Use<QueryableConnectionMiddleware<TClrType>>();
         }
 

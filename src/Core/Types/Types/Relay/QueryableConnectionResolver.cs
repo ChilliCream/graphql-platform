@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Relay
         {
             if (!_pageDetails.TotalCount.HasValue)
             {
-                _pageDetails.TotalCount = _source.Count();
+                _pageDetails.TotalCount = _source.LongCount();
             }
 
             _properties[_totalCount] = _pageDetails.TotalCount.Value;
@@ -63,7 +63,8 @@ namespace HotChocolate.Types.Relay
                 lastEdge?.Index < (_pageDetails.TotalCount.Value - 1),
                 firstEdge?.Index > 0,
                 selectedEdges.FirstOrDefault()?.Cursor,
-                selectedEdges.LastOrDefault()?.Cursor);
+                selectedEdges.LastOrDefault()?.Cursor,
+                _pageDetails.TotalCount);
 
             return new Connection<T>(pageInfo, selectedEdges);
         }
@@ -230,7 +231,7 @@ namespace HotChocolate.Types.Relay
 
         protected class QueryablePagingDetails
         {
-            public int? TotalCount { get; set; }
+            public long? TotalCount { get; set; }
             public int? Before { get; set; }
             public int? After { get; set; }
             public int? First { get; set; }

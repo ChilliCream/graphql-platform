@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
@@ -25,6 +26,25 @@ namespace HotChocolate.Utilities
             }
 
             typeInfo = default;
+            return false;
+        }
+
+        public bool TryExtractName(Type type, out NameString name)
+        {
+            if (TryCreate(type, out TypeInfo typeInfo))
+            {
+                ConstructorInfo constructor = typeInfo.ClrType.GetTypeInfo()
+                    .DeclaredConstructors
+                    .FirstOrDefault(t => !t.GetParameters().Any());
+
+                if (constructor?.Invoke(Array.Empty<object>()) is IHasName nt)
+                {
+                    name = nt.Name;
+                    return true;
+                }
+            }
+
+            name = default;
             return false;
         }
 
@@ -188,5 +208,8 @@ namespace HotChocolate.Utilities
                 && (typeof(ListType<>) == type.GetGenericTypeDefinition()
                 || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
         }
+
+        public static NamedTypeInfoFactory Default { get; } =
+            new NamedTypeInfoFactory();
     }
 }

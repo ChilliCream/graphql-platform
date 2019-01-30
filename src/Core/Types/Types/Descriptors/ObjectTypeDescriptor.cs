@@ -102,6 +102,16 @@ namespace HotChocolate.Types
                 typeof(TInterface).GetOutputType());
         }
 
+        protected void Interface<TInterface>(InterfaceType type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ObjectDescription.Interfaces.Add(new TypeReference(type));
+        }
+
         protected void Interface(NamedTypeNode type)
         {
             if (type == null)
@@ -294,6 +304,13 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IObjectTypeDescriptor IObjectTypeDescriptor.Interface<TInterface>(
+            TInterface type)
+        {
+            Interface<TInterface>();
+            return this;
+        }
+
         IObjectTypeDescriptor IObjectTypeDescriptor.Interface(
             NamedTypeNode type)
         {
@@ -437,6 +454,13 @@ namespace HotChocolate.Types
             .Interface<TInterface>()
         {
             Interface<TInterface>();
+            return this;
+        }
+
+        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
+            .Interface<TInterface>(TInterface type)
+        {
+            Interface<TInterface>(type);
             return this;
         }
 

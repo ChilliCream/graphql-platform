@@ -73,4 +73,40 @@ namespace HotChocolate
             return new ResolverResult<TValue>(value);
         }
     }
+
+    /// <summary>
+    /// This is a helper class in order to have a simpler api to
+    /// create a resolver result.
+    /// </summary>
+    public static class ResolverResult
+    {
+        /// <summary>
+        /// Creates a field error resolver result.
+        /// </summary>
+        /// <param name="errorMessage">
+        /// The error message.
+        /// </param>
+        /// <returns>
+        /// Returns a field error resolver result.
+        /// </returns>
+        public static ResolverResult<TValue> CreateError<TValue>(
+            string errorMessage)
+        {
+            return ResolverResult<TValue>.CreateError(errorMessage);
+        }
+
+        /// <summary>
+        /// Creates a value resolver result.
+        /// </summary>
+        /// <param name="value">
+        /// The reolver result value.
+        /// </param>
+        /// <returns>
+        /// Returns a value resolver result.
+        /// </returns>
+        public static ResolverResult<TValue> CreateValue<TValue>(TValue value)
+        {
+            return ResolverResult<TValue>.CreateValue(value);
+        }
+    }
 }

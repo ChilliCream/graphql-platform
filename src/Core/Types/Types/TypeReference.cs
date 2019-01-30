@@ -25,9 +25,18 @@ namespace HotChocolate.Types
             Context = context;
         }
 
+        public TypeReference(IType schemaType)
+        {
+            SchemaType = schemaType
+                ?? throw new ArgumentNullException(nameof(schemaType));
+            Context = TypeContext.None;
+        }
+
         public TypeContext Context { get; }
 
         public Type ClrType { get; }
+
+        public IType SchemaType { get; }
 
         public ITypeNode Type { get; }
 
@@ -87,9 +96,21 @@ namespace HotChocolate.Types
             return typeReference.ClrType != null;
         }
 
+        public static bool IsSchemaTypeReference(
+            this TypeReference typeReference)
+        {
+            return typeReference.SchemaType != null;
+        }
+
         public static bool IsTypeMoreSpecific(
             this TypeReference typeReference, Type type)
         {
+            if (typeReference != null
+                && typeReference.IsSchemaTypeReference())
+            {
+                return false;
+            }
+
             if (typeReference == null
                 || BaseTypes.IsSchemaType(type))
             {
@@ -108,6 +129,12 @@ namespace HotChocolate.Types
         public static bool IsTypeMoreSpecific(
            this TypeReference typeReference, ITypeNode typeNode)
         {
+            if (typeReference != null
+                && typeReference.IsSchemaTypeReference())
+            {
+                return false;
+            }
+
             return typeNode != null
                 && (typeReference == null
                     || !typeReference.IsClrTypeReference());
