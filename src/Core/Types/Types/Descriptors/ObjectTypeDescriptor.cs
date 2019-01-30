@@ -102,7 +102,8 @@ namespace HotChocolate.Types
                 typeof(TInterface).GetOutputType());
         }
 
-        protected void Interface<TInterface>(InterfaceType type)
+        protected void Interface<TInterface>(TInterface type)
+            where TInterface : InterfaceType
         {
             if (type == null)
             {
