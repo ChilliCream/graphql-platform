@@ -599,6 +599,27 @@ namespace HotChocolate.Types
             Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
+        [Fact]
+        public void IgnoreFieldWithShortcut()
+        {
+            // arrange & act
+            TypeResult<ObjectType<Foo>> result =
+                TestUtils.CreateType(c =>
+                    new ObjectType<Foo>(
+                    d =>
+                    {
+                        d.Ignore(t => t.Description);
+                        d.Field("foo").Type<StringType>().Resolver("abc");
+                    }));
+
+            // assert
+            Assert.Empty(result.Errors);
+            Assert.Collection(
+                result.Type.Fields.Where(t => !t.IsIntrospectionField),
+                t => Assert.Equal("foo", t.Name));
+
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
