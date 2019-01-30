@@ -6,6 +6,7 @@
     <AssemblyName>HotChocolate.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <PackageId>HotChocolate.Abstractions</PackageId>
+    <Description>Contains common abstractions used between the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

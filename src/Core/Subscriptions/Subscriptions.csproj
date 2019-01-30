@@ -6,7 +6,7 @@
     <AssemblyName>HotChocolate.Subscriptions</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <PackageId>HotChocolate.Subscriptions</PackageId>
-    <Description>The hot chocolate GraphQL subscriptions abstractions.</Description>
+    <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
