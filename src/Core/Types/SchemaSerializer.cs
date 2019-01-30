@@ -357,7 +357,7 @@ namespace HotChocolate
 
         private static NamedTypeNode SerializeNamedType(
             INamedType namedType,
-            HashSet<string> referenced)
+            ISet<string> referenced)
         {
             referenced.Add(namedType.Name);
             return new NamedTypeNode(null, new NameNode(namedType.Name));

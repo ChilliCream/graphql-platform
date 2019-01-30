@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
 
         private static Task<IEventStream> SubscribeAsync(
             IServiceProvider services,
-            EventDescription @event)
+            IEventDescription @event)
         {
             var eventRegistry = (IEventRegistry)services
                 .GetService(typeof(IEventRegistry));

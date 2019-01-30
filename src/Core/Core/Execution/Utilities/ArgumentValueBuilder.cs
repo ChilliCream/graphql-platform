@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
 
         private static ArgumentValue CreateArgumentValue(
             InputField argument,
-            Dictionary<string, IValueNode> argumentValues,
+            IDictionary<string, IValueNode> argumentValues,
             IVariableCollection variables,
             Func<string, IError> createError)
         {
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
         private static object CoerceArgumentValue(
             InputField argument,
             IVariableCollection variables,
-            Dictionary<string, IValueNode> argumentValues)
+            IDictionary<string, IValueNode> argumentValues)
         {
             if (argumentValues.TryGetValue(argument.Name,
                 out IValueNode literal))

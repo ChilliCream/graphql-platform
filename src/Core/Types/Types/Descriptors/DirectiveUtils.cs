@@ -8,7 +8,7 @@ namespace HotChocolate.Types
     internal static class DirectiveUtils
     {
         public static void AddDirective<T>(
-            this IList<DirectiveDescription> directives,
+            this ICollection<DirectiveDescription> directives,
             T directive)
             where T : class
         {
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
         }
 
         public static void AddDirective(
-            this IList<DirectiveDescription> directives,
+            this ICollection<DirectiveDescription> directives,
             NameString name,
             IEnumerable<ArgumentNode> arguments)
         {

@@ -64,7 +64,7 @@ namespace HotChocolate.Execution
         private static async Task ExecuteResolverBatchAsync(
             IExecutionContext executionContext,
             IReadOnlyCollection<ResolverTask> currentBatch,
-            List<ResolverTask> nextBatch,
+            ICollection<ResolverTask> nextBatch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
