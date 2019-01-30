@@ -9,6 +9,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -719,43 +720,26 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
         private static Schema CreateSchema()
         {
-            var repository = new CharacterRepository();
-            var eventRegistry = new InMemoryEventRegistry();
-            var registry = new DataLoaderRegistry(new EmptyServiceProvider());
+            var eventManager = new InMemoryEventRegistry();
 
-            var services = new Dictionary<Type, object>
-            {
-                [typeof(CharacterRepository)] = repository,
-                [typeof(Query)] = new Query(repository),
-                [typeof(Mutation)] = new Mutation(),
-                [typeof(Subscription)] = new Subscription(),
-                [typeof(IEventSender)] = eventRegistry,
-                [typeof(IEventRegistry)] = eventRegistry,
-                [typeof(IDataLoaderRegistry)] = registry
-            };
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<CharacterRepository>();
+            serviceCollection.AddSingleton<IEventSender>(eventManager);
+            serviceCollection.AddSingleton<IEventRegistry>(eventManager);
+            serviceCollection.AddDataLoaderRegistry();
+            serviceCollection.AddSingleton<Query>();
+            serviceCollection.AddSingleton<Mutation>();
+            serviceCollection.AddSingleton<Subscription>();
 
-            var serviceResolver = new Func<Type, object>(
-                t =>
-                {
-                    if (services.TryGetValue(t, out var s))
-                    {
-                        return s;
-                    }
-                    return null;
-                });
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
 
-            var serviceProvider = new Mock<IServiceProvider>(
-                MockBehavior.Strict);
-
-            serviceProvider.Setup(t => t.GetService(It.IsAny<Type>()))
-                    .Returns(serviceResolver);
-
-            registry.Register(typeof(HumanDataLoader).FullName,
-                s => new HumanDataLoader(repository));
+            services.GetRequiredService<IDataLoaderRegistry>()
+                .Register<HumanDataLoader>();
 
             return Schema.Create(c =>
             {
-                c.RegisterServiceProvider(serviceProvider.Object);
+                c.RegisterServiceProvider(services);
 
                 c.RegisterQueryType<QueryType>();
                 c.RegisterMutationType<MutationType>();
