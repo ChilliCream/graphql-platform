@@ -63,8 +63,6 @@ namespace HotChocolate.Execution
 
         public QueryValidationResult ValidationResult { get; set; }
 
-        public IVariableCollection Variables { get; set; }
-
         public CancellationToken RequestAborted { get; set; }
 
         public IExecutionResult Result { get; set; }

@@ -41,8 +41,12 @@ namespace HotChocolate.Execution
                 disposeRootValue = true;
             }
 
+            var variableBuilder = new VariableValueBuilder(
+                context.Schema, context.Operation.Definition);
+
             context.Operation = new Operation(
                 context.Document, node,
+                variableBuilder.CreateValues(context.Request.VariableValues),
                 rootType, rootValue);
 
             try

@@ -34,8 +34,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(new QueryError(
                     "The execute operation middleware expects the " +
-                    "query document to be parsed, the operation to " +
-                    "be resolved and the variables to be coerced."));
+                    "query document to be parsed and the operation to " +
+                    "be resolved."));
             }
             else
             {
@@ -60,16 +60,22 @@ namespace HotChocolate.Execution
                     context.Request.Query,
                     context.Schema);
 
-            return new ExecutionContext(
-                context.Schema,
+            var requestContext = new RequestContext
+            (
                 context.ServiceScope,
-                context.Operation,
-                context.Variables,
                 fs => directives.GetOrCreateMiddleware(fs,
                     () => context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
-                context.RequestAborted,
-                _diagnostics);
+                _diagnostics
+            );
+
+            return new ExecutionContext
+            (
+                context.Schema,
+                context.Operation,
+                requestContext,
+                context.RequestAborted
+            );
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
@@ -82,8 +88,7 @@ namespace HotChocolate.Execution
         private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Document == null ||
-                context.Operation == null ||
-                context.Variables == null;
+                context.Operation == null;
         }
     }
 }

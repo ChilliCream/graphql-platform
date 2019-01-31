@@ -34,14 +34,16 @@ namespace HotChocolate.Execution
                 {
                     context.Result = QueryResult.CreateError(new QueryError(
                         "The max complexity middleware expects the " +
-                        "query document to be parsed, the operation " +
-                        "to be resolved and  the variables to be coerced."));
+                        "query document to be parsed and the operation " +
+                        "to be resolved."));
                     return Task.CompletedTask;
                 }
                 else
                 {
                     var visitorContext = MaxComplexityVisitorContext.New(
-                        context.Schema, context.Variables, _calculation);
+                        context.Schema,
+                        context.Operation.Variables,
+                        _calculation);
 
                     int complexity = _visitor.Visit(
                         context.Document,
@@ -110,7 +112,6 @@ namespace HotChocolate.Execution
         private static bool IsContextIncomplete(IQueryContext context)
         {
             return context.Document == null
-                || context.Variables == null
                 || context.Operation == null;
         }
     }
