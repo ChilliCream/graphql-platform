@@ -76,6 +76,7 @@ namespace HotChocolate.Types.Relay
                     {
                         hasNextPage
                     }
+                    totalCount
                 }
             }
             ";
@@ -98,7 +99,7 @@ namespace HotChocolate.Types.Relay
             {
                 descriptor.Name("Query");
                 descriptor.Field("s")
-                    .UsePaging<StringType, string>()
+                    .UsePaging<StringType>()
                     .Resolver(ctx => _source);
             }
         }

@@ -100,8 +100,8 @@ namespace HotChocolate.Types
 
         private void CreateFieldsAndBindings(
             IEnumerable<ObjectFieldDescription> fieldDescriptions,
-            List<FieldBinding> fieldBindings,
-            List<ObjectField> fields)
+            ICollection<FieldBinding> fieldBindings,
+            ICollection<ObjectField> fields)
         {
             foreach (ObjectFieldDescription fieldDescription in
                 fieldDescriptions)

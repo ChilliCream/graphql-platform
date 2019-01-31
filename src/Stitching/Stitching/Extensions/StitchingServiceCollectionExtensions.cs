@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -101,10 +102,29 @@ namespace HotChocolate
             return AddStitchedSchema(services, schema, c => { });
         }
 
+
         public static IServiceCollection AddStitchedSchema(
             this IServiceCollection services,
             string schema,
             Action<ISchemaConfiguration> configure)
+        {
+            return AddStitchedSchema(services, schema, configure,
+                new QueryExecutionOptions());
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            string schema,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return AddStitchedSchema(services, schema, c => { }, options);
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            string schema,
+            Action<ISchemaConfiguration> configure,
+            IQueryExecutionOptionsAccessor options)
         {
             if (services == null)
             {

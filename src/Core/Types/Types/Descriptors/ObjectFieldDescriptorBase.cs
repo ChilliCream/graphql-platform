@@ -35,12 +35,24 @@ namespace HotChocolate.Types
             FieldDescription.Description = description;
         }
 
-        protected void Type<TOutputType>() where TOutputType : IOutputType
+        protected void Type<TOutputType>()
+            where TOutputType : IOutputType
         {
             FieldDescription.TypeReference = FieldDescription
                 .TypeReference.GetMoreSpecific(
                     typeof(TOutputType),
                     TypeContext.Output);
+        }
+
+        protected void Type<TOutputType>(TOutputType type)
+            where TOutputType : class, IOutputType
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            FieldDescription.TypeReference = new TypeReference(type);
         }
 
         protected void Type(ITypeNode type)

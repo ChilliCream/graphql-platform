@@ -126,6 +126,13 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>(
+            TOutputType type)
+        {
+            Type<TOutputType>(type);
+            return this;
+        }
+
         IObjectFieldDescriptor IObjectFieldDescriptor.Type(ITypeNode type)
         {
             Type(type);

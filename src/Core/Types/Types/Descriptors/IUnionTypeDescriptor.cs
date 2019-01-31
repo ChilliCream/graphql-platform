@@ -14,6 +14,9 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType;
 
+        IUnionTypeDescriptor Type<TObjectType>(TObjectType type)
+            where TObjectType : ObjectType;
+
         IUnionTypeDescriptor Type(NamedTypeNode objectType);
 
         IUnionTypeDescriptor ResolveAbstractType(

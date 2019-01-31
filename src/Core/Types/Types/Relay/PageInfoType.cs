@@ -10,6 +10,8 @@
             descriptor.Description(
                 "Information about pagination in a connection.");
 
+            descriptor.BindFields(BindingBehavior.Explicit);
+
             descriptor.Field(t => t.HasNextPage)
                 .Type<NonNullType<BooleanType>>()
                 .Name("hasNextPage")
