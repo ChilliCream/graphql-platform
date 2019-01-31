@@ -175,5 +175,64 @@ namespace HotChocolate.Stitching
             // assert
             result.Snapshot(snapshotName);
         }
+
+        [Fact]
+        public async Task WithLocal(
+            QueryRequest request,
+            [CallerMemberName]string snapshotName = null)
+        {
+            // arrange
+            TestServer server_contracts = TestServerFactory.Create(
+                ContractSchemaFactory.ConfigureSchema,
+                ContractSchemaFactory.ConfigureServices,
+                new QueryMiddlewareOptions());
+
+            TestServer server_customers = TestServerFactory.Create(
+                CustomerSchemaFactory.ConfigureSchema,
+                CustomerSchemaFactory.ConfigureServices,
+                new QueryMiddlewareOptions());
+
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
+                .Returns(new Func<string, HttpClient>(n =>
+                {
+                    return n.Equals("contract")
+                        ? server_contracts.CreateClient()
+                        : server_customers.CreateClient();
+                }));
+
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddSingleton(httpClientFactory.Object);
+
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("contract")
+                .SetSchema(FileResource.Open("Contract.graphql"))
+                .AddScalarType<DateTimeType>());
+
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("customer")
+                .SetSchema(FileResource.Open("Customer.graphql")));
+
+            serviceCollection.AddStitchedSchema(
+                FileResource.Open("StitchingWithLocalField.graphql"),
+                c =>
+                {
+
+                    c.RegisterType<DateTimeType>();
+                });
+
+            IServiceProvider services =
+                request.Services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.Snapshot(snapshotName);
+        }
     }
 }

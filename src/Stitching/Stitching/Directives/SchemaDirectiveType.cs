@@ -9,8 +9,7 @@ namespace HotChocolate.Stitching
             IDirectiveTypeDescriptor<SchemaDirective> descriptor)
         {
             descriptor.Name(DirectiveNames.Schema)
-                .Location(Types.DirectiveLocation.FieldDefinition)
-                .Location(Types.DirectiveLocation.Field);
+                .Location(Types.DirectiveLocation.FieldDefinition);
         }
     }
 }
