@@ -15,6 +15,9 @@ namespace HotChocolate.Types
         new IDirectiveArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType;
 
+        new IDirectiveArgumentDescriptor Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType;
+
         new IDirectiveArgumentDescriptor Type(ITypeNode type);
 
         new IDirectiveArgumentDescriptor DefaultValue(IValueNode defaultValue);
