@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -17,23 +18,24 @@ namespace HotChocolate.Execution
         {
             // arrange
             var observer = new TestDiagnosticObserver();
-            var observable = new DiagnosticListener("Foo");
+            ISchema schema = CreateSchema();
 
-            using (observable.SubscribeWithAdapter(observer))
-            {
-                ISchema schema = CreateSchema();
+            // act
+            await schema.MakeExecutable(b => b
+                .UseDefaultPipeline(new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                })
+                .AddDiagnosticObserver(observer))
+                    .ExecuteAsync("{ foo }");
 
-                // act
-                await schema.MakeExecutable().ExecuteAsync("{ foo }");
-
-                // assert
-                Assert.True(observer.ResolveFieldStart);
-                Assert.True(observer.ResolveFieldStop);
-                Assert.Equal("foo", observer.FieldSelection.Name.Value);
-                Assert.InRange(observer.Duration,
-                    TimeSpan.FromMilliseconds(50),
-                    TimeSpan.FromMilliseconds(2000));
-            }
+            // assert
+            Assert.True(observer.ResolveFieldStart);
+            Assert.True(observer.ResolveFieldStop);
+            Assert.Equal("foo", observer.FieldSelection.Name.Value);
+            Assert.InRange(observer.Duration,
+                TimeSpan.FromMilliseconds(50),
+                TimeSpan.FromMilliseconds(2000));
         }
 
         [Fact]
@@ -41,19 +43,20 @@ namespace HotChocolate.Execution
         {
             // arrange
             var observer = new TestDiagnosticObserver();
-            var observable = new DiagnosticListener("Foo");
+            ISchema schema = CreateSchema();
 
-            using (observable.SubscribeWithAdapter(observer))
-            {
-                ISchema schema = CreateSchema();
+            // act
+            await schema.MakeExecutable(b => b
+                .UseDefaultPipeline(new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                })
+                .AddDiagnosticObserver(observer))
+                    .ExecuteAsync("{ foo }");
 
-                // act
-                await schema.MakeExecutable().ExecuteAsync("{ foo }");
-
-                // assert
-                Assert.True(observer.QueryStart);
-                Assert.True(observer.QueryStop);
-            }
+            // assert
+            Assert.True(observer.QueryStart);
+            Assert.True(observer.QueryStop);
         }
 
         private ISchema CreateSchema()
