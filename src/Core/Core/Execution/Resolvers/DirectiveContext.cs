@@ -99,5 +99,9 @@ namespace HotChocolate.Execution
 
         public Task<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _middlewareContext.CollectFields(typeContext);
     }
 }

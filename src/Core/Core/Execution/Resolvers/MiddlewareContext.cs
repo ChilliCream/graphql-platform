@@ -108,5 +108,9 @@ namespace HotChocolate.Resolvers
 
             return (T)_resolvedResult;
         }
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _resolverContext.CollectFields(typeContext);
     }
 }

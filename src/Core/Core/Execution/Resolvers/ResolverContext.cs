@@ -185,5 +185,10 @@ namespace HotChocolate.Execution
 
         public void ReportError(IError error) =>
             _resolverTask.ReportError(error);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _executionContext.FieldHelper.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }
