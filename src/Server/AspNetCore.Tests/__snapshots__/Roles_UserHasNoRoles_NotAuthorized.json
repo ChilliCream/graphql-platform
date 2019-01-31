@@ -5,14 +5,14 @@
   "Errors": [
     {
       "message": "The current user is not authorized to access this resource.",
-      "path": [
-        "roles"
-      ],
       "locations": [
         {
           "line": 1,
           "column": 3
         }
+      ],
+      "path": [
+        "roles"
       ]
     }
   ]
