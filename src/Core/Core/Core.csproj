@@ -6,7 +6,7 @@
     <AssemblyName>HotChocolate.Core</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <PackageId>HotChocolate</PackageId>
-    <Description>The hot chocolate GraphQL type system and query engine.</Description>
+    <Description>Contains the Hot Chocolate GraphQL query execution engine and query validation.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Playground</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Playground</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Playground</PackageId>
-    <Description>Provides a GraphQL Playground middleware for ASP.net classic.</Description>
+    <Description>Contains a GraphQL Playground for ASP.net classic that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

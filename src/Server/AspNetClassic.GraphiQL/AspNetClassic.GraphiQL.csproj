@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.GraphiQL</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.GraphiQL</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.GraphiQL</PackageId>
-    <Description>Provides a GraphiQL middleware for ASP.net classic.</Description>
+    <Description>Contains a GraphiQL middleware for ASP.net classic that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.Playground</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Playground</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Playground</PackageId>
-    <Description>Provides a GraphQL Playground middleware for ASP.net core.</Description>
+    <Description>Contains a GraphQL Playground for ASP.net core that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
