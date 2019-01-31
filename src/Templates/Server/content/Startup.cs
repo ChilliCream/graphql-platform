@@ -1,7 +1,8 @@
-﻿using HotChocolate.AspNetCore;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore;
+using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Server
 {
@@ -15,9 +16,10 @@ namespace HotChocolate.Server
             // services.AddSingleton<Query>();
 
             // enable InMemory messaging services for subscription support.
-            // var inMemoryEventRegistry = new InMemoryEventRegistry();
-            // services.AddSingleton<IEventRegistry>(inMemoryEventRegistry);
-            // services.AddSingleton<IEventSender>(inMemoryEventRegistry);
+            // services.AddInMemorySubscriptionProvider();
+
+            // this enables you to use DataLoader in your resolvers.
+            services.AddDataLoaderRegistry();
 
             // Add GraphQL Services
             services.AddGraphQL(sp => Schema.Create(c =>
@@ -36,10 +38,11 @@ namespace HotChocolate.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            // enable this if you want tu support subscription
+            // enable this if you want tu support subscription.
             // app.UseWebSockets();
             app.UseGraphQL();
-            app.UseGraphiQL();
+            // enable this if you want to use graphiql instead of playground.
+            // app.UseGraphiQL();
             app.UsePlayground();
         }
     }
