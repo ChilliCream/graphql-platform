@@ -47,16 +47,18 @@ namespace HotChocolate.Execution
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
 
+            var observable = new DiagnosticListener("Foo");
+
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(IErrorHandler),
                     ErrorHandler.Default),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticListener),
-                    QueryExecutionDiagnostics.Listener),
+                    observable),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticSource),
-                    QueryExecutionDiagnostics.Listener));
+                    observable));
 
             var context = new QueryContext
             (
@@ -76,10 +78,16 @@ namespace HotChocolate.Execution
             var options = new QueryExecutionOptions();
             var strategyResolver = new ExecutionStrategyResolver(options);
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             var middleware = new ExecuteOperationMiddleware(
                 c => Task.CompletedTask,
                 strategyResolver,
-                new Cache<DirectiveMiddlewareCompiler>(10));
+                new Cache<DirectiveMiddlewareCompiler>(10),
+                diagnostics);
 
             // act
             await middleware.InvokeAsync(context);

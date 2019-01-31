@@ -16,8 +16,10 @@ namespace HotChocolate.Execution
         public async Task ResolverEvents()
         {
             // arrange
-            var listener = new TestDiagnosticListener();
-            using (QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener))
+            var observer = new TestDiagnosticObserver();
+            var observable = new DiagnosticListener("Foo");
+
+            using (observable.SubscribeWithAdapter(observer))
             {
                 ISchema schema = CreateSchema();
 
@@ -25,10 +27,10 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync("{ foo }");
 
                 // assert
-                Assert.True(listener.ResolveFieldStart);
-                Assert.True(listener.ResolveFieldStop);
-                Assert.Equal("foo", listener.FieldSelection.Name.Value);
-                Assert.InRange(listener.Duration,
+                Assert.True(observer.ResolveFieldStart);
+                Assert.True(observer.ResolveFieldStop);
+                Assert.Equal("foo", observer.FieldSelection.Name.Value);
+                Assert.InRange(observer.Duration,
                     TimeSpan.FromMilliseconds(50),
                     TimeSpan.FromMilliseconds(2000));
             }
@@ -38,8 +40,10 @@ namespace HotChocolate.Execution
         public async Task QueryEvents()
         {
             // arrange
-            var listener = new TestDiagnosticListener();
-            using (QueryExecutionDiagnostics.Listener.SubscribeWithAdapter(listener))
+            var observer = new TestDiagnosticObserver();
+            var observable = new DiagnosticListener("Foo");
+
+            using (observable.SubscribeWithAdapter(observer))
             {
                 ISchema schema = CreateSchema();
 
@@ -47,8 +51,8 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync("{ foo }");
 
                 // assert
-                Assert.True(listener.QueryStart);
-                Assert.True(listener.QueryStop);
+                Assert.True(observer.QueryStart);
+                Assert.True(observer.QueryStop);
             }
         }
 
@@ -63,7 +67,8 @@ namespace HotChocolate.Execution
                 }).To("Query", "foo"));
         }
 
-        private class TestDiagnosticListener
+        private class TestDiagnosticObserver
+            : IDiagnosticObserver
         {
             public bool ResolveFieldStart { get; private set; }
 

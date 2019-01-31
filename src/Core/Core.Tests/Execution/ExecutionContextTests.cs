@@ -1,7 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+<<<<<<< HEAD
+=======
+using HotChocolate.Execution.Configuration;
+>>>>>>> 659d4e56eb9c4c6418386cb889a2c6c75a81be84
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Moq;
@@ -19,7 +24,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            var query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Parser.Default.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
@@ -40,14 +45,19 @@ namespace HotChocolate.Execution
                 { "abc", "123" }
             };
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             // act
             var executionContext = new ExecutionContext(
                 schema, serviceScope, operation.Object,
                 variables.Object, fs => null, contextData,
-                CancellationToken.None);
+                CancellationToken.None, diagnostics);
 
             // assert
-            Assert.True(object.ReferenceEquals(
+            Assert.True(ReferenceEquals(
                 contextData, executionContext.ContextData));
         }
 
@@ -59,7 +69,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            var query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Parser.Default.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
@@ -80,11 +90,16 @@ namespace HotChocolate.Execution
                 { "abc", "123" }
             };
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             // act
             var executionContext = new ExecutionContext(
                 schema, serviceScope, operation.Object,
                 variables.Object, fs => null, contextData,
-                CancellationToken.None);
+                CancellationToken.None, diagnostics);
             IExecutionContext cloned = executionContext.Clone();
 
             // assert
