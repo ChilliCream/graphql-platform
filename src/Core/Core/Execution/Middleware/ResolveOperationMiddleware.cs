@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
             }
 
             var variableBuilder = new VariableValueBuilder(
-                context.Schema, context.Operation.Definition);
+                context.Schema, node);
 
             context.Operation = new Operation(
                 context.Document, node,
