@@ -23,10 +23,7 @@ namespace HotChocolate.Execution.Instrumentation
             Subscribe(observable, observers);
         }
 
-        private bool IsEnabled(
-            string name,
-            object payload,
-            IHasContextData context)
+        private bool IsEnabled(string name, object payload, object context)
         {
             return _source.IsEnabled(name, payload) &&
                 (_tracingPreference == TracingPreference.Always ||

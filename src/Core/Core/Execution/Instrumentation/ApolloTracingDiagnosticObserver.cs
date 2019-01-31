@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DiagnosticAdapter;
 
@@ -15,13 +14,6 @@ namespace HotChocolate.Execution.Instrumentation
             _builder = new AsyncLocal<ApolloTracingResultBuilder>();
         private const string _extensionKey = "tracing";
         private const string _startTimestampKey = "startTimestamp";
-        private readonly TracingPreference _tracingPreference;
-
-        public ApolloTracingDiagnosticObserver(
-            TracingPreference tracingPreference)
-        {
-            _tracingPreference = tracingPreference;
-        }
 
         private static ApolloTracingResultBuilder Builder
         {

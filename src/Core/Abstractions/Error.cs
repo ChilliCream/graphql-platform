@@ -10,10 +10,13 @@ namespace HotChocolate
         private const string _code = "code";
         private IImmutableDictionary<string, object> _extensions =
             ImmutableDictionary<string, object>.Empty;
-        private IImmutableList<Location> _locations =
-            ImmutableList<Location>.Empty;
 
         private string _message;
+
+        public Error()
+        {
+            Locations = ImmutableList<Location>.Empty;
+        }
 
         public string Message
         {
@@ -34,23 +37,19 @@ namespace HotChocolate
         {
             get
             {
-                if (_extensions.TryGetValue(_code, out object code)
-                    && code is string s)
+                if (_extensions.TryGetValue(_code, out object code) &&
+                    code is string s)
                 {
                     return s;
                 }
+
                 return null;
             }
             internal set
             {
-                if (value == null)
-                {
-                    _extensions = _extensions.Remove(_code);
-                }
-                else
-                {
-                    _extensions = _extensions.SetItem(_code, value);
-                }
+                _extensions = (value == null)
+                    ? _extensions.Remove(_code)
+                    : _extensions.SetItem(_code, value);
             }
         }
 
@@ -59,11 +58,7 @@ namespace HotChocolate
         IReadOnlyCollection<Location> IError.Locations =>
             Locations.Count == 0 ? null : Locations;
 
-        public IImmutableList<Location> Locations
-        {
-            get => _locations;
-            set => _locations = value;
-        }
+        public IImmutableList<Location> Locations { get; set; }
 
         public Exception Exception { get; set; }
 

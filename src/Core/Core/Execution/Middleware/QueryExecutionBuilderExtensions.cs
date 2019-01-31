@@ -92,9 +92,8 @@ namespace HotChocolate.Execution
 
             if (tracingPreference != TracingPreference.Never)
             {
-                builder.AddDiagnosticObserver(
-                        new ApolloTracingDiagnosticObserver(
-                            tracingPreference));
+                builder
+                    .AddDiagnosticObserver<ApolloTracingDiagnosticObserver>();
             }
 
             return builder.Use<InstrumentationMiddleware>();

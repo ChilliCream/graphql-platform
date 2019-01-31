@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
                 .ConfigureAwait(false);
         }
 
-        private ICollection<object> SerializeErrors(
+        private static ICollection<object> SerializeErrors(
             IReadOnlyCollection<IError> errors)
         {
             var formattedErrors = new List<object>();
