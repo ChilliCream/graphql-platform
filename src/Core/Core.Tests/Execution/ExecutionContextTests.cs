@@ -32,8 +32,11 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope =
                 services.Object.CreateRequestServiceScope();
 
+            var variables = new Mock<IVariableCollection>();
+
             var operation = new Mock<IOperation>();
             operation.Setup(t => t.Document).Returns(query);
+            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
@@ -42,6 +45,7 @@ namespace HotChocolate.Execution
 
             var requestContext = new Mock<IRequestContext>();
             requestContext.Setup(t => t.ContextData).Returns(contextData);
+            requestContext.Setup(t => t.ServiceScope).Returns(serviceScope);
 
             // act
             var executionContext = new ExecutionContext(
@@ -74,10 +78,11 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope = services.Object
                 .CreateRequestServiceScope();
 
+            var variables = new Mock<IVariableCollection>();
+
             var operation = new Mock<IOperation>();
             operation.Setup(t => t.Document).Returns(query);
-
-            var variables = new Mock<IVariableCollection>();
+            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
