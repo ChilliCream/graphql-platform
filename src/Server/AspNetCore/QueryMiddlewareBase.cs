@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Claims;
@@ -162,6 +162,11 @@ namespace HotChocolate.AspNetCore
             {
                 { nameof(ClaimsPrincipal), context.GetUser() }
             };
+
+            if (context.IsTracingEnabled())
+            {
+                requestProperties.Add(ContextDataKeys.EnableTracing, true);
+            }
 
             request.Properties = requestProperties;
 

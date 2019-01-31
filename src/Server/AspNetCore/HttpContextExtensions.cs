@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 using System.Threading;
 
@@ -8,6 +9,7 @@ using Microsoft.Owin;
 using HttpContext = Microsoft.Owin.IOwinContext;
 #else
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 #endif
 
 #if ASPNETCLASSIC
@@ -67,6 +69,21 @@ namespace HotChocolate.AspNetCore
             return context.Request.User;
 #else
             return context.User;
+#endif
+        }
+
+        public static bool IsTracingEnabled(this HttpContext context)
+        {
+#if ASPNETCLASSIC
+            return context.Request.Headers
+                .TryGetValue(HttpHeaderKeys.Tracing,
+                    out string[] values) &&
+                        values.Any(v => v == HttpHeaderValues.TracingEnabled);
+#else
+            return context.Request.Headers
+                .TryGetValue(HttpHeaderKeys.Tracing,
+                    out StringValues values) &&
+                        values.Any(v => v == HttpHeaderValues.TracingEnabled);
 #endif
         }
 

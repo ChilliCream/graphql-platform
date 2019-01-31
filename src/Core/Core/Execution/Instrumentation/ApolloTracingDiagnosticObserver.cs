@@ -32,14 +32,6 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public bool IsEnabled(string name, object payload, object context)
-        {
-            return (_tracingPreference == TracingPreference.Always ||
-                (_tracingPreference == TracingPreference.OnDemand &&
-                    context is IHasContextData data &&
-                    data.ContextData.ContainsKey("tracing"))); // todo: find a better key name and put it into a const
-        }
-
         [DiagnosticName(DiagnosticNames.Query)]
         public void QueryExecute() { /* enables query activity */ }
 

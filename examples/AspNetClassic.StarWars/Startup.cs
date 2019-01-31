@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
 using HotChocolate.Execution.Configuration;
@@ -41,7 +41,7 @@ namespace StarWars
             }),
             new QueryExecutionOptions
             {
-                EnableTracing = true
+                TracingPreference = TracingPreference.Always
             });
 
             // Add Authorization Policy
