@@ -41,8 +41,17 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.MutationType, null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>()),
+                     schema.MutationType,
+                     null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
@@ -69,10 +78,7 @@ namespace HotChocolate.Execution
             )
             {
                 Document = query,
-                Operation = operation,
-                Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>())
+                Operation = operation
             };
 
             var options = new QueryExecutionOptions();

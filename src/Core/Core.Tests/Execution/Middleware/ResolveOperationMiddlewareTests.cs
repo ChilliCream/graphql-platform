@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -338,6 +339,49 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(context.Operation.RootType);
+        }
+
+        [Fact]
+        public async Task ParseQueryMiddleware_ValidQuery_DocumentIsSet()
+        {
+            // arrange
+            Schema schema = Schema.Create(@"
+                type Query { a(b:String): String }
+                ", c =>
+            {
+                c.BindResolver(() => "hello world")
+                    .To("Query", "a");
+            });
+
+            var request = new QueryRequest("query foo($a: String) { a }")
+            {
+                VariableValues = new Dictionary<string, object>
+                {
+                    { "a", "abc" }
+                }
+            }.ToReadOnly();
+
+            var context = new QueryContext
+            (
+                schema,
+                MiddlewareTools.CreateEmptyRequestServiceScope(),
+                request,
+                fs => fs.Field.Middleware
+            );
+
+            context.Document = Parser.Default.Parse(request.Query);
+
+            var middleware = new ResolveOperationMiddleware(
+                c => Task.CompletedTask, null);
+
+            // act
+            await middleware.InvokeAsync(context);
+
+            // assert
+            Assert.NotNull(context.Operation.Variables);
+            Assert.Equal(
+                "abc",
+                context.Operation.Variables.GetVariable<string>("a"));
         }
 
         public class DisposableQuery

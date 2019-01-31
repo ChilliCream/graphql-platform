@@ -41,12 +41,6 @@ namespace HotChocolate.Execution
         IOperation Operation { get; set; }
 
         /// <summary>
-        /// Gets or sets the coerced variable collection.
-        /// </summary>
-        /// <returns></returns>
-        IVariableCollection Variables { get; set; }
-
-        /// <summary>
         /// Gets or sets the query validation results.
         /// </summary>
         /// <returns></returns>

@@ -53,7 +53,6 @@ namespace HotChocolate.Execution
                 .UseQueryParser()
                 .UseValidation()
                 .UseOperationResolver()
-                .UseCoerceVariables()
                 .UseMaxComplexity()
                 .UseOperationExecutor();
         }
@@ -121,17 +120,6 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use<ResolveOperationMiddleware>();
-        }
-
-        public static IQueryExecutionBuilder UseCoerceVariables(
-            this IQueryExecutionBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            return builder.Use<CoerceVariablesMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseQueryParser(

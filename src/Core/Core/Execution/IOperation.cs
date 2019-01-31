@@ -37,5 +37,11 @@ namespace HotChocolate.Execution
         /// Gets the operation type (Query, Mutation, Subscription).
         /// </summary>
         OperationType Type { get; }
+
+        /// <summary>
+        /// Gets the variable values for this operation.
+        /// </summary>
+        /// <value></value>
+        IVariableCollection Variables { get; }
     }
 }

@@ -8,13 +8,18 @@ namespace HotChocolate.Execution
         : IOperation
     {
         public Operation(
-            DocumentNode query, OperationDefinitionNode definition,
-            ObjectType rootType, object rootValue)
+            DocumentNode query,
+            OperationDefinitionNode definition,
+            IVariableCollection variables,
+            ObjectType rootType,
+            object rootValue)
         {
             Document = query
                 ?? throw new ArgumentNullException(nameof(query));
             Definition = definition
                 ?? throw new ArgumentNullException(nameof(definition));
+            Variables = variables
+                ?? throw new ArgumentNullException(nameof(variables));
             RootType = rootType
                 ?? throw new ArgumentNullException(nameof(rootType));
             RootValue = rootValue;
@@ -31,5 +36,7 @@ namespace HotChocolate.Execution
         public string Name => Definition.Name?.Value;
 
         public OperationType Type => Definition.Operation;
+
+        public IVariableCollection Variables { get; }
     }
 }
