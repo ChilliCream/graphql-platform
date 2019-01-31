@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using Xunit;
@@ -26,10 +29,16 @@ namespace HotChocolate.Execution
                 fs => fs.Field.Middleware
             );
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10));
+                new Cache<DocumentNode>(10),
+                diagnostics);
 
             // act
             await middleware.InvokeAsync(context);
@@ -56,10 +65,16 @@ namespace HotChocolate.Execution
                 fs => fs.Field.Middleware
             );
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10));
+                new Cache<DocumentNode>(10),
+                diagnostics);
 
             // act
             Func<Task> invoke = () => middleware.InvokeAsync(context);

@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "The query exceded the maximum allowed execution depth of 3.",
       "locations": [
         {

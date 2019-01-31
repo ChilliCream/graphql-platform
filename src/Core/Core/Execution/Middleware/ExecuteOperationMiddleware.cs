@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
@@ -9,18 +10,22 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
         private readonly Cache<DirectiveMiddlewareCompiler> _cache;
+        private readonly QueryExecutionDiagnostics _diagnostics;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
             IExecutionStrategyResolver strategyResolver,
-            Cache<DirectiveMiddlewareCompiler> directiveCache)
+            Cache<DirectiveMiddlewareCompiler> directiveCache,
+            QueryExecutionDiagnostics diagnostics)
         {
-            _next = next
-                ?? throw new ArgumentNullException(nameof(next));
-            _strategyResolver = strategyResolver
-                ?? throw new ArgumentNullException(nameof(strategyResolver));
-            _cache = directiveCache
-                ?? throw new ArgumentNullException(nameof(directiveCache));
+            _next = next ??
+                throw new ArgumentNullException(nameof(next));
+            _strategyResolver = strategyResolver ??
+                throw new ArgumentNullException(nameof(strategyResolver));
+            _cache = directiveCache ??
+                throw new ArgumentNullException(nameof(directiveCache));
+            _diagnostics = diagnostics ??
+                throw new ArgumentNullException(nameof(diagnostics));
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -29,8 +34,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(new QueryError(
                     "The execute operation middleware expects the " +
-                    "query document to be parsed, the operation to " +
-                    "be resolved and the variables to be coerced."));
+                    "query document to be parsed and the operation to " +
+                    "be resolved."));
             }
             else
             {
@@ -47,20 +52,30 @@ namespace HotChocolate.Execution
             await _next(context).ConfigureAwait(false);
         }
 
-        private IExecutionContext CreateExecutionContext(IQueryContext context)
+        private IExecutionContext CreateExecutionContext(
+            IQueryContext context)
         {
-            DirectiveMiddlewareCompiler directives = GetOrCreateDirectiveLookup(
-                context.Request.Query, context.Schema);
+            DirectiveMiddlewareCompiler directives =
+                GetOrCreateDirectiveLookup(
+                    context.Request.Query,
+                    context.Schema);
 
-            return new ExecutionContext(
-                context.Schema,
+            var requestContext = new RequestContext
+            (
                 context.ServiceScope,
-                context.Operation,
-                context.Variables,
                 fs => directives.GetOrCreateMiddleware(fs,
                     () => context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
-                context.RequestAborted);
+                _diagnostics
+            );
+
+            return new ExecutionContext
+            (
+                context.Schema,
+                context.Operation,
+                requestContext,
+                context.RequestAborted
+            );
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
@@ -72,9 +87,8 @@ namespace HotChocolate.Execution
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Document == null
-                || context.Operation == null
-                || context.Variables == null;
+            return context.Document == null ||
+                context.Operation == null;
         }
     }
 }

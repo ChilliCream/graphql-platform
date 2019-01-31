@@ -51,7 +51,9 @@ namespace HotChocolate.Resolvers
 
         public ObjectField Field => _resolverContext.Field;
 
-        public DocumentNode QueryDocument => _resolverContext.QueryDocument;
+        public DocumentNode Document => _resolverContext.Document;
+
+        public DocumentNode QueryDocument => Document;
 
         public OperationDefinitionNode Operation => _resolverContext.Operation;
 
@@ -106,5 +108,9 @@ namespace HotChocolate.Resolvers
 
             return (T)_resolvedResult;
         }
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _resolverContext.CollectFields(typeContext);
     }
 }

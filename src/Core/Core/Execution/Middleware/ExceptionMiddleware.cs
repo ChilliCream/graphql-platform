@@ -35,18 +35,15 @@ namespace HotChocolate.Execution
             {
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(
-                    _errorHandler.Handle(ex, error => error
-                        .WithMessage(ex.Message)
-                        .WithLocations(new[]
-                        {
-                            new Location(ex.Line, ex.Column)
-                        })));
+                    _errorHandler.Handle(ex, builder => builder
+                        .SetMessage(ex.Message)
+                        .AddLocation(ex.Line, ex.Column)));
             }
             catch (Exception ex)
             {
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(
-                    _errorHandler.Handle(ex, error => error));
+                    _errorHandler.Handle(ex));
             }
         }
     }

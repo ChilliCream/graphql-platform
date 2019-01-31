@@ -124,7 +124,8 @@ Task("PublishTemplates")
 {
     var nuGetPackSettings   = new NuGetPackSettings
     {
-        Version = packageVersion
+        Version = packageVersion,
+        OutputDirectory = "src/Templates"
     };
 
     ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.7.0-preview.34", packageVersion);

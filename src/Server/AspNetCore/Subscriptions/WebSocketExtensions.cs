@@ -127,7 +127,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 await context.SendMessageAsync(
                     messageStream,
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -145,7 +146,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 await context.ReceiveMessageAsync(
                     messageStream,
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 string json = Encoding.UTF8.GetString(messageStream.ToArray());
                 if (string.IsNullOrEmpty(json?.Trim()))

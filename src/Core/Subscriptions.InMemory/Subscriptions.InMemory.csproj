@@ -6,7 +6,7 @@
     <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <PackageId>HotChocolate.Subscriptions.InMemory</PackageId>
-    <Description>This package provides a in-memory subscription provider.</Description>
+    <Description>Contains an in-memory implementation for a Hot Chocolate GraphQL subscription provider.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 
 namespace HotChocolate.Execution
 {
@@ -68,6 +69,11 @@ namespace HotChocolate.Execution
         /// Gets the activator helper class.
         /// </summary>
         IActivator Activator { get; }
+
+        /// <summary>
+        /// Gets the diagnostics writer for query execution.
+        /// </summary>
+        QueryExecutionDiagnostics Diagnostics { get; }
 
         /// <summary>
         /// Adds an error thread-safe to the result object.

@@ -5,17 +5,19 @@
   "Extensions": {},
   "Errors": [
     {
-      "message": "Unexpected Execution Error",
-      "path": [
+      "Message": "Unexpected Execution Error",
+      "Code": "Foo123",
+      "Path": [
         "foo"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 3
         }
       ],
-      "extensions": {
+      "Exception": null,
+      "Extensions": {
         "code": "Foo123"
       }
     }

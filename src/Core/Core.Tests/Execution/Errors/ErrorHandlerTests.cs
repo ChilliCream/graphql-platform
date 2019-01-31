@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Errors
 
             IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
-                    .AddErrorFilter((error, exception) =>
+                    .AddErrorFilter(error =>
                         error.WithCode("Foo123")));
 
             // act
@@ -67,9 +67,9 @@ namespace HotChocolate.Execution.Errors
 
             IQueryExecutor executor = schema.MakeExecutable(builder =>
                 builder.UseDefaultPipeline(options)
-                    .AddErrorFilter((error, exception) =>
+                    .AddErrorFilter(error =>
                     {
-                        if (exception is NullReferenceException)
+                        if (error.Exception is NullReferenceException)
                         {
                             return error.WithCode("NullRef");
                         }
@@ -141,7 +141,7 @@ namespace HotChocolate.Execution.Errors
         public class DummyErrorFilter
             : IErrorFilter
         {
-            public IError OnError(IError error, Exception exception)
+            public IError OnError(IError error)
             {
                 return error.WithCode("Foo123");
             }

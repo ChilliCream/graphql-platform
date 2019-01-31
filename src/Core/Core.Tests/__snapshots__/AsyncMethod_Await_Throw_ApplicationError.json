@@ -5,6 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "query error 4"
     }
   ]

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -60,6 +61,14 @@ namespace HotChocolate.Execution
         {
             get;
             set;
+        }
+
+        public QueryExecutionDiagnostics Diagnostics
+        {
+            get
+            {
+                return _executionContext.Diagnostics;
+            }
         }
 
         public void IntegrateResult(object value)

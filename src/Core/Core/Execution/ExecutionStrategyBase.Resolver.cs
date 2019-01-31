@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
@@ -18,20 +17,25 @@ namespace HotChocolate.Execution
            IErrorHandler errorHandler,
            CancellationToken cancellationToken)
         {
-            Activity activity = DiagnosticEvents.BeginResolveField(
+            Activity activity = resolverTask.Diagnostics.BeginResolveField(
                 resolverTask.ResolverContext);
 
             object result = await ExecuteMiddlewareAsync(
-                resolverTask,
-                errorHandler)
-                    .ConfigureAwait(false);
+                resolverTask, errorHandler)
+                .ConfigureAwait(false);
 
-            if (result is IError || result is IEnumerable<IError>)
+            if (result is IEnumerable<IError> errors)
             {
-                activity?.AddTag("error", "true");
+                resolverTask.Diagnostics.ResolverError(
+                    resolverTask.ResolverContext, errors);
+            }
+            else if (result is IError error)
+            {
+                resolverTask.Diagnostics.ResolverError(
+                    resolverTask.ResolverContext, error);
             }
 
-            DiagnosticEvents.EndResolveField(
+            resolverTask.Diagnostics.EndResolveField(
                 activity,
                 resolverTask.ResolverContext,
                 result);
@@ -69,12 +73,9 @@ namespace HotChocolate.Execution
             }
             catch (Exception ex)
             {
-                DiagnosticEvents.ResolverError(resolverTask.ResolverContext,
-                    ex);
-
-                return errorHandler.Handle(ex, error => error
-                    .WithPath(resolverTask.Path)
-                    .WithSyntaxNodes(resolverTask.FieldSelection.Selection));
+                return errorHandler.Handle(ex, builder => builder
+                    .SetPath(resolverTask.Path)
+                    .AddLocation(resolverTask.FieldSelection.Selection));
             }
         }
 

@@ -44,9 +44,17 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.QueryType,
-                null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>()),
+                schema.QueryType,
+                null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
@@ -66,9 +74,6 @@ namespace HotChocolate.Execution
             {
                 Document = query,
                 Operation = operation,
-                Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>())
             };
 
             var middleware = new MaxComplexityMiddleware(
@@ -123,9 +128,20 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.QueryType,
-                null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>
+                    {
+                        { "i", count }
+                    }),
+                schema.QueryType,
+                null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
@@ -144,13 +160,7 @@ namespace HotChocolate.Execution
             )
             {
                 Document = query,
-                Operation = operation,
-                Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>
-                    {
-                        { "i", count }
-                    })
+                Operation = operation
             };
 
             var middleware = new MaxComplexityMiddleware(
@@ -209,9 +219,17 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.QueryType,
-                null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>()),
+                schema.QueryType,
+                null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
@@ -230,10 +248,7 @@ namespace HotChocolate.Execution
             )
             {
                 Document = query,
-                Operation = operation,
-                Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>())
+                Operation = operation
             };
 
             var middleware = new MaxComplexityMiddleware(
@@ -292,9 +307,20 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.QueryType,
-                null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>
+                    {
+                        { "i", count }
+                    }),
+                schema.QueryType,
+                null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
@@ -313,13 +339,7 @@ namespace HotChocolate.Execution
             )
             {
                 Document = query,
-                Operation = operation,
-                Variables = new VariableValueBuilder(
-                   schema, operation.Definition)
-                   .CreateValues(new Dictionary<string, object>
-                   {
-                        { "i", count }
-                   })
+                Operation = operation
             };
 
             var middleware = new MaxComplexityMiddleware(

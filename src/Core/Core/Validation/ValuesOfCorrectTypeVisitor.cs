@@ -62,7 +62,7 @@ namespace HotChocolate.Validation
             {
                 foreach (ArgumentNode argument in field.Arguments)
                 {
-                    VisitArgument(f.Arguments, argument, path);
+                    VisitArgument(f.Arguments, argument);
                 }
             }
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Validation
             {
                 foreach (ArgumentNode argument in directive.Arguments)
                 {
-                    VisitArgument(d.Arguments, argument, path);
+                    VisitArgument(d.Arguments, argument);
                 }
             }
 
@@ -120,8 +120,7 @@ namespace HotChocolate.Validation
 
         private void VisitArgument(
             IFieldCollection<IInputField> argumentFields,
-            ArgumentNode argument,
-            ImmutableStack<ISyntaxNode> path)
+            ArgumentNode argument)
         {
             if (argumentFields.TryGetField(argument.Name.Value,
                 out IInputField argumentField))

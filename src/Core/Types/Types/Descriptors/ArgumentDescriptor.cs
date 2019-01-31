@@ -60,6 +60,17 @@ namespace HotChocolate.Types
                 .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
         }
 
+        public void Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType
+        {
+            if (inputType == null)
+            {
+                throw new ArgumentNullException(nameof(inputType));
+            }
+
+            InputDescription.TypeReference = new TypeReference(inputType);
+        }
+
         public void Type(ITypeNode type)
         {
             InputDescription.TypeReference = InputDescription.TypeReference
@@ -108,6 +119,13 @@ namespace HotChocolate.Types
         IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
         {
             Type<TInputType>();
+            return this;
+        }
+
+        IArgumentDescriptor IArgumentDescriptor.Type<TInputType>(
+            TInputType inputType)
+        {
+            Type(inputType);
             return this;
         }
 

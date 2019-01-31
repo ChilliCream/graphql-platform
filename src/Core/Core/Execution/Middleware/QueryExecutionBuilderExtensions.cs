@@ -47,13 +47,12 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseInstrumentation(options.EnableTracing)
+                .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
                 .UseExceptionHandling()
                 .UseQueryParser()
                 .UseValidation()
                 .UseOperationResolver()
-                .UseCoerceVariables()
                 .UseMaxComplexity()
                 .UseOperationExecutor();
         }
@@ -71,25 +70,30 @@ namespace HotChocolate.Execution
 
         public static IQueryExecutionBuilder UseInstrumentation(
             this IQueryExecutionBuilder builder,
-            bool enableTracing)
+            TracingPreference tracingPreference)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            var listener = new DiagnosticListener(DiagnosticNames.Listener);
+
             builder
                 .RemoveService<DiagnosticListener>()
                 .RemoveService<DiagnosticSource>();
             builder.Services
-                .AddSingleton(DiagnosticEvents.Listener)
-                .AddSingleton<DiagnosticSource>(
-                    DiagnosticEvents.Listener);
+                .AddSingleton(listener)
+                .AddSingleton<DiagnosticSource>(listener)
+                .AddSingleton(sp => new QueryExecutionDiagnostics(
+                    sp.GetRequiredService<DiagnosticListener>(),
+                    sp.GetServices<IDiagnosticObserver>(),
+                    tracingPreference));
 
-            if (enableTracing)
+            if (tracingPreference != TracingPreference.Never)
             {
-                builder.AddDiagnosticListener(
-                    new ApolloTracingDiagnosticListener());
+                builder
+                    .AddDiagnosticObserver<ApolloTracingDiagnosticObserver>();
             }
 
             return builder.Use<InstrumentationMiddleware>();
@@ -115,17 +119,6 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use<ResolveOperationMiddleware>();
-        }
-
-        public static IQueryExecutionBuilder UseCoerceVariables(
-            this IQueryExecutionBuilder builder)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            return builder.Use<CoerceVariablesMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseQueryParser(
@@ -349,76 +342,36 @@ namespace HotChocolate.Execution
             return AddParser<DefaultQueryParser>(builder);
         }
 
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
-            this IQueryExecutionBuilder builder,
-            TListener listener)
-                where TListener : class
+        public static IQueryExecutionBuilder AddDiagnosticObserver<TListener>(
+            this IQueryExecutionBuilder builder)
+                where TListener : class, IDiagnosticObserver
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (listener == null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
-
-            DiagnosticEvents.Listener.SubscribeWithAdapter(listener);
+            builder.Services.AddSingleton<IDiagnosticObserver, TListener>();
 
             return builder;
         }
 
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
+        public static IQueryExecutionBuilder AddDiagnosticObserver<TObserver>(
             this IQueryExecutionBuilder builder,
-            TListener listener,
-            Func<string, bool> isEnabled)
-                where TListener : class
+            TObserver observer)
+                where TObserver : class, IDiagnosticObserver
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (listener == null)
+            if (observer == null)
             {
-                throw new ArgumentNullException(nameof(listener));
+                throw new ArgumentNullException(nameof(observer));
             }
 
-            if (isEnabled == null)
-            {
-                throw new ArgumentNullException(nameof(isEnabled));
-            }
-
-            DiagnosticEvents.Listener
-                .SubscribeWithAdapter(listener, isEnabled);
-
-            return builder;
-        }
-
-        public static IQueryExecutionBuilder AddDiagnosticListener<TListener>(
-            this IQueryExecutionBuilder builder,
-            TListener listener,
-            Func<string, object, object, bool> isEnabled)
-                where TListener : class
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (listener == null)
-            {
-                throw new ArgumentNullException(nameof(listener));
-            }
-
-            if (isEnabled == null)
-            {
-                throw new ArgumentNullException(nameof(isEnabled));
-            }
-
-            DiagnosticEvents.Listener
-                .SubscribeWithAdapter(listener, isEnabled);
+            builder.Services.AddSingleton<IDiagnosticObserver>(observer);
 
             return builder;
         }
@@ -441,7 +394,7 @@ namespace HotChocolate.Execution
 
         public static IQueryExecutionBuilder AddErrorFilter(
             this IQueryExecutionBuilder builder,
-            Func<IError, Exception, IError> errorFilter)
+            Func<IError, IError> errorFilter)
         {
             if (builder == null)
             {

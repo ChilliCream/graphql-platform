@@ -7,7 +7,7 @@
 
         protected override string Generate(ArgumentDescriptor descriptor)
         {
-            return $"ctx.{nameof(IResolverContext.QueryDocument)}";
+            return $"ctx.{nameof(IResolverContext.Document)}";
         }
     }
 }

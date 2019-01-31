@@ -15,15 +15,10 @@ namespace HotChocolate
         /// <param name="error">
         /// The error that occured. This argument cannot be null.
         /// </param>
-        /// <param name="exception">
-        /// The exception that caused this error.
-        /// This parameter might be null when for example
-        /// a validation error occured.
-        /// </param>
         /// <returns>
         /// Returns the error passed in to this filter or a rewritten error.
         /// It is not allowed to return null.
         /// </returns>
-        IError OnError(IError error, Exception exception);
+        IError OnError(IError error);
     }
 }

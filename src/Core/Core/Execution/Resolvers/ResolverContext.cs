@@ -51,8 +51,10 @@ namespace HotChocolate.Execution
         public ObjectField Field =>
             _resolverTask.FieldSelection.Field;
 
-        public DocumentNode QueryDocument =>
-            _executionContext.Operation.Query;
+        public DocumentNode Document =>
+            _executionContext.Operation.Document;
+
+        public DocumentNode QueryDocument => Document;
 
         public OperationDefinitionNode Operation =>
             _executionContext.Operation.Definition;
@@ -183,5 +185,10 @@ namespace HotChocolate.Execution
 
         public void ReportError(IError error) =>
             _resolverTask.ReportError(error);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _executionContext.FieldHelper.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }

@@ -5,6 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "Cannot serialize foo value.",
       "path": [
         "stringToFoo"

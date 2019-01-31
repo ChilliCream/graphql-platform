@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "The specified root type `Mutation` does not exist."
     }
   ]

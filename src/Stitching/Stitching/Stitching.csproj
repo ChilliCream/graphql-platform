@@ -6,6 +6,7 @@
     <AssemblyName>HotChocolate.Stitching</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
     <PackageId>HotChocolate.Stitching</PackageId>
+    <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

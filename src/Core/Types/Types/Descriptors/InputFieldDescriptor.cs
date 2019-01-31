@@ -69,6 +69,13 @@ namespace HotChocolate.Types
             return this;
         }
 
+        IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>(
+            TInputType inputType)
+        {
+            Type(inputType);
+            return this;
+        }
+
         IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
         {
             Type(type);

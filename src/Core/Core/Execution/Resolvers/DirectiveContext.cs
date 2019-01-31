@@ -44,8 +44,9 @@ namespace HotChocolate.Execution
         public ObjectField Field =>
             _middlewareContext.Field;
 
-        public DocumentNode QueryDocument =>
-            _middlewareContext.QueryDocument;
+        public DocumentNode Document => _middlewareContext.Document;
+
+        public DocumentNode QueryDocument => Document;
 
         public OperationDefinitionNode Operation =>
             _middlewareContext.Operation;
@@ -98,5 +99,9 @@ namespace HotChocolate.Execution
 
         public Task<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _middlewareContext.CollectFields(typeContext);
     }
 }

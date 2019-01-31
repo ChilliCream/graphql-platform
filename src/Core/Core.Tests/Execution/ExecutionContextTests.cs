@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Moq;
 using Xunit;
@@ -18,7 +21,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            var query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Parser.Default.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
@@ -29,24 +32,30 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope =
                 services.Object.CreateRequestServiceScope();
 
-            var operation = new Mock<IOperation>();
-            operation.Setup(t => t.Query).Returns(query);
-
             var variables = new Mock<IVariableCollection>();
+
+            var operation = new Mock<IOperation>();
+            operation.Setup(t => t.Document).Returns(query);
+            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
                 { "abc", "123" }
             };
 
+            var requestContext = new Mock<IRequestContext>();
+            requestContext.Setup(t => t.ContextData).Returns(contextData);
+            requestContext.Setup(t => t.ServiceScope).Returns(serviceScope);
+
             // act
             var executionContext = new ExecutionContext(
-                schema, serviceScope, operation.Object,
-                variables.Object, fs => null, contextData,
+                schema,
+                operation.Object,
+                requestContext.Object,
                 CancellationToken.None);
 
             // assert
-            Assert.True(object.ReferenceEquals(
+            Assert.True(ReferenceEquals(
                 contextData, executionContext.ContextData));
         }
 
@@ -58,7 +67,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            var query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Parser.Default.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
@@ -69,21 +78,33 @@ namespace HotChocolate.Execution
             IRequestServiceScope serviceScope = services.Object
                 .CreateRequestServiceScope();
 
-            var operation = new Mock<IOperation>();
-            operation.Setup(t => t.Query).Returns(query);
-
             var variables = new Mock<IVariableCollection>();
+
+            var operation = new Mock<IOperation>();
+            operation.Setup(t => t.Document).Returns(query);
+            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
                 { "abc", "123" }
             };
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
+            var requestContext = new RequestContext(
+                serviceScope,
+                fs => null,
+                contextData,
+                diagnostics);
+
             // act
             var executionContext = new ExecutionContext(
-                schema, serviceScope, operation.Object,
-                variables.Object, fs => null, contextData,
+                schema, operation.Object, requestContext,
                 CancellationToken.None);
+
             IExecutionContext cloned = executionContext.Clone();
 
             // assert

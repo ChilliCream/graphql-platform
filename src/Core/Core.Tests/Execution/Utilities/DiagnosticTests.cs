@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -16,40 +17,46 @@ namespace HotChocolate.Execution
         public async Task ResolverEvents()
         {
             // arrange
-            var listener = new TestDiagnosticListener();
-            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
-            {
-                ISchema schema = CreateSchema();
+            var observer = new TestDiagnosticObserver();
+            ISchema schema = CreateSchema();
 
-                // act
-                await schema.MakeExecutable().ExecuteAsync("{ foo }");
+            // act
+            await schema.MakeExecutable(b => b
+                .UseDefaultPipeline(new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                })
+                .AddDiagnosticObserver(observer))
+                    .ExecuteAsync("{ foo }");
 
-                // assert
-                Assert.True(listener.ResolveFieldStart);
-                Assert.True(listener.ResolveFieldStop);
-                Assert.Equal("foo", listener.FieldSelection.Name.Value);
-                Assert.InRange(listener.Duration,
-                    TimeSpan.FromMilliseconds(50),
-                    TimeSpan.FromMilliseconds(2000));
-            }
+            // assert
+            Assert.True(observer.ResolveFieldStart);
+            Assert.True(observer.ResolveFieldStop);
+            Assert.Equal("foo", observer.FieldSelection.Name.Value);
+            Assert.InRange(observer.Duration,
+                TimeSpan.FromMilliseconds(50),
+                TimeSpan.FromMilliseconds(2000));
         }
 
         [Fact]
         public async Task QueryEvents()
         {
             // arrange
-            var listener = new TestDiagnosticListener();
-            using (DiagnosticEvents.Listener.SubscribeWithAdapter(listener))
-            {
-                ISchema schema = CreateSchema();
+            var observer = new TestDiagnosticObserver();
+            ISchema schema = CreateSchema();
 
-                // act
-                await schema.MakeExecutable().ExecuteAsync("{ foo }");
+            // act
+            await schema.MakeExecutable(b => b
+                .UseDefaultPipeline(new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                })
+                .AddDiagnosticObserver(observer))
+                    .ExecuteAsync("{ foo }");
 
-                // assert
-                Assert.True(listener.QueryStart);
-                Assert.True(listener.QueryStop);
-            }
+            // assert
+            Assert.True(observer.QueryStart);
+            Assert.True(observer.QueryStop);
         }
 
         private ISchema CreateSchema()
@@ -63,7 +70,8 @@ namespace HotChocolate.Execution
                 }).To("Query", "foo"));
         }
 
-        private class TestDiagnosticListener
+        private class TestDiagnosticObserver
+            : IDiagnosticObserver
         {
             public bool ResolveFieldStart { get; private set; }
 
@@ -104,7 +112,7 @@ namespace HotChocolate.Execution
             }
 
             [DiagnosticName("HotChocolate.Execution.Query.Stop")]
-            public virtual void OnQueryStop(IResolverContext context)
+            public virtual void OnQueryStop()
             {
                 QueryStop = true;
             }

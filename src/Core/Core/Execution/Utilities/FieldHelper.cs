@@ -44,7 +44,6 @@ namespace HotChocolate.Execution
                 objectType, selectionSet, _reportError);
         }
 
-        // resolverTask.FieldSelection.Field.IsIntrospectionField
         public FieldDelegate CreateMiddleware(
             FieldSelection fieldSelection)
         {

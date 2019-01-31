@@ -54,13 +54,12 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseInstrumentation(options.EnableTracing)
+                .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
                 .UseExceptionHandling()
                 .UseQueryParser()
                 .UseValidation()
                 .UseOperationResolver()
-                .UseCoerceVariables()
                 .UseMaxComplexity()
                 .UseRemoteQueryExecutor(schemaName);
         }

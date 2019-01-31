@@ -18,7 +18,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             GenericOperationMessage message,
             CancellationToken cancellationToken)
         {
-            await context.CloseAsync();
+            await context.CloseAsync().ConfigureAwait(false);
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using HotChocolate.Resolvers;
+using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -11,71 +11,69 @@ namespace HotChocolate.Execution
         : IExecutionContext
     {
         private readonly object _syncRoot = new object();
+        private readonly IRequestContext _requestContext;
 
         public ExecutionContext(
             ISchema schema,
-            IRequestServiceScope serviceScope,
             IOperation operation,
-            IVariableCollection variables,
-            Func<FieldSelection, FieldDelegate> middlewareResolver,
-            IDictionary<string, object> contextData,
+            IRequestContext requestContext,
             CancellationToken requestAborted)
         {
-            if (middlewareResolver == null)
-            {
-                throw new ArgumentNullException(nameof(middlewareResolver));
-            }
+            Schema = schema ??
+                throw new ArgumentNullException(nameof(schema));
+            Operation = operation ??
+                throw new ArgumentNullException(nameof(operation));
+            _requestContext = requestContext
+                ?? throw new ArgumentNullException(nameof(requestContext));
 
-            Schema = schema
-                ?? throw new ArgumentNullException(nameof(schema));
-            ServiceScope = serviceScope
-                ?? throw new ArgumentNullException(nameof(serviceScope));
-            Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
-            Variables = variables
-                ?? throw new ArgumentNullException(nameof(variables));
-            ContextData = contextData
-                ?? throw new ArgumentNullException(nameof(contextData));
             RequestAborted = requestAborted;
 
-            ErrorHandler = serviceScope.ServiceProvider
+            ErrorHandler = requestContext.ServiceScope.ServiceProvider
                 .GetRequiredService<IErrorHandler>();
 
             Result = new QueryResult();
 
             var fragments = new FragmentCollection(
-                schema, operation.Query);
+                schema, operation.Document);
 
             var fieldCollector = new FieldCollector(
-                variables, fragments);
+                operation.Variables, fragments);
 
             FieldHelper = new FieldHelper(
-                fieldCollector, middlewareResolver, AddError);
+                fieldCollector, requestContext.ResolveMiddleware,
+                AddError);
 
-            Activator = new Activator(serviceScope.ServiceProvider);
+            Activator = new Activator(
+                requestContext.ServiceScope.ServiceProvider);
         }
 
         public ISchema Schema { get; }
 
-        public IRequestServiceScope ServiceScope { get; }
+        public IRequestServiceScope ServiceScope =>
+            _requestContext.ServiceScope;
 
-        public IServiceProvider Services => ServiceScope.ServiceProvider;
+        public IServiceProvider Services =>
+            ServiceScope.ServiceProvider;
 
         public IErrorHandler ErrorHandler { get; }
 
         public IOperation Operation { get; }
 
-        public IVariableCollection Variables { get; }
+        public IVariableCollection Variables => Operation.Variables;
 
         public IQueryResult Result { get; private set; }
 
-        public IDictionary<string, object> ContextData { get; private set; }
+        public IDictionary<string, object> ContextData =>
+            _requestContext.ContextData;
 
         public CancellationToken RequestAborted { get; }
 
         public IFieldHelper FieldHelper { get; }
 
         public IActivator Activator { get; }
+
+        public QueryExecutionDiagnostics Diagnostics =>
+            _requestContext.Diagnostics;
 
         public void AddError(IError error)
         {
@@ -92,11 +90,13 @@ namespace HotChocolate.Execution
 
         public IExecutionContext Clone()
         {
-            var cloned = (ExecutionContext)base.MemberwiseClone();
-            cloned.ContextData = new ConcurrentDictionary<string, object>(
-                cloned.ContextData);
-            cloned.Result = new QueryResult();
-            return cloned;
+            return new ExecutionContext
+            (
+                Schema,
+                Operation,
+                _requestContext.Clone(),
+                RequestAborted
+            );
         }
     }
 }

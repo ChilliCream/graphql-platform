@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -32,18 +32,16 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            return ExecuteInternalAsync(executionContext, cancellationToken);
+            return ExecuteInternalAsync(executionContext);
         }
 
         private async Task<IExecutionResult> ExecuteInternalAsync(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
+            IExecutionContext executionContext)
         {
             EventDescription eventDescription = CreateEvent(executionContext);
 
             IEventStream eventStream = await SubscribeAsync(
-                executionContext.Services,
-                eventDescription)
+                executionContext.Services, eventDescription)
                     .ConfigureAwait(false);
 
             return new SubscriptionResult(

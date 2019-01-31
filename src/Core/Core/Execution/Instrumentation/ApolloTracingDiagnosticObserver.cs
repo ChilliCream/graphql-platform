@@ -7,7 +7,8 @@ using Microsoft.Extensions.DiagnosticAdapter;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingDiagnosticListener
+    internal class ApolloTracingDiagnosticObserver
+        : IDiagnosticObserver
     {
         private static readonly AsyncLocal<ApolloTracingResultBuilder>
             _builder = new AsyncLocal<ApolloTracingResultBuilder>();

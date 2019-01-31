@@ -14,6 +14,9 @@ namespace HotChocolate.Types
         IInputFieldDescriptor Type<TInputType>()
             where TInputType : IInputType;
 
+        IInputFieldDescriptor Type<TInputType>(TInputType inputType)
+            where TInputType : class, IInputType;
+
         IInputFieldDescriptor Type(ITypeNode type);
 
         IInputFieldDescriptor Ignore();

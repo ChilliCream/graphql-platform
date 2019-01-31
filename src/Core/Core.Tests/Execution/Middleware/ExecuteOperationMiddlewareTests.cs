@@ -41,11 +41,22 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>()
                 .FirstOrDefault();
 
-            var operation = new Operation(
-                query, operationNode, schema.MutationType, null);
+            var operation = new Operation
+            (
+                query,
+                operationNode,
+                new VariableValueBuilder(
+                    schema,
+                    operationNode)
+                    .CreateValues(new Dictionary<string, object>()),
+                     schema.MutationType,
+                     null
+            );
 
             IReadOnlyQueryRequest request = new QueryRequest("{ a }")
                 .ToReadOnly();
+
+            var observable = new DiagnosticListener("Foo");
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -53,10 +64,10 @@ namespace HotChocolate.Execution
                     ErrorHandler.Default),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticListener),
-                    DiagnosticEvents.Listener),
+                    observable),
                 new KeyValuePair<Type, object>(
                     typeof(DiagnosticSource),
-                    DiagnosticEvents.Listener));
+                    observable));
 
             var context = new QueryContext
             (
@@ -67,19 +78,22 @@ namespace HotChocolate.Execution
             )
             {
                 Document = query,
-                Operation = operation,
-                Variables = new VariableValueBuilder(
-                    schema, operation.Definition)
-                    .CreateValues(new Dictionary<string, object>())
+                Operation = operation
             };
 
             var options = new QueryExecutionOptions();
             var strategyResolver = new ExecutionStrategyResolver(options);
 
+            var diagnostics = new QueryExecutionDiagnostics(
+                new DiagnosticListener("Foo"),
+                new IDiagnosticObserver[0],
+                TracingPreference.Never);
+
             var middleware = new ExecuteOperationMiddleware(
                 c => Task.CompletedTask,
                 strategyResolver,
-                new Cache<DirectiveMiddlewareCompiler>(10));
+                new Cache<DirectiveMiddlewareCompiler>(10),
+                diagnostics);
 
             // act
             await middleware.InvokeAsync(context);

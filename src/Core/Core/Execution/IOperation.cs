@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         /// operation-<see cref="Definition" />.
         /// </summary>
         /// <value></value>
-        DocumentNode Query { get; }
+        DocumentNode Document { get; }
 
         /// <summary>
         /// Gets the syntax node representing the operation definition.
@@ -37,5 +37,11 @@ namespace HotChocolate.Execution
         /// Gets the operation type (Query, Mutation, Subscription).
         /// </summary>
         OperationType Type { get; }
+
+        /// <summary>
+        /// Gets the variable values for this operation.
+        /// </summary>
+        /// <value></value>
+        IVariableCollection Variables { get; }
     }
 }

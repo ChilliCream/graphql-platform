@@ -6,6 +6,7 @@
     <AssemblyName>HotChocolate.Utilities</AssemblyName>
     <RootNamespace>HotChocolate.Utilities</RootNamespace>
     <PackageId>HotChocolate.Utilities</PackageId>
+    <Description>Contains internal helper classees and untilities used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

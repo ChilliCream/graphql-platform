@@ -81,9 +81,17 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Type<TInputType>()
+        IDirectiveArgumentDescriptor
+            IDirectiveArgumentDescriptor.Type<TInputType>()
         {
             Type<TInputType>();
+            return this;
+        }
+
+        IDirectiveArgumentDescriptor
+            IDirectiveArgumentDescriptor.Type<TInputType>(TInputType inputType)
+        {
+            Type(inputType);
             return this;
         }
 

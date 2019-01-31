@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "Execution timeout has been exceeded."
     }
   ]
