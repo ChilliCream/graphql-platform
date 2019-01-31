@@ -112,7 +112,7 @@ namespace HotChocolate.Execution
             }
 
             [DiagnosticName("HotChocolate.Execution.Query.Stop")]
-            public virtual void OnQueryStop(IResolverContext context)
+            public virtual void OnQueryStop()
             {
                 QueryStop = true;
             }
