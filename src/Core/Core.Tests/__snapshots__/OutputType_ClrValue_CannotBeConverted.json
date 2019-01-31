@@ -5,6 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "The internal resolver value could not be converted to a valid value of `Name`.",
       "path": [
         "stringToName"

@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "The field `foo` does not exist on the type `Mutation`.",
       "locations": [
         {

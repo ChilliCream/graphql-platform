@@ -5,16 +5,19 @@
   "Extensions": {},
   "Errors": [
     {
-      "message": "Unexpected Execution Error",
-      "path": [
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": [
         "error8"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {}
     }
   ]
 }

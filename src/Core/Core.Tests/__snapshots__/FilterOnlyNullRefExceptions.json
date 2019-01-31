@@ -6,31 +6,34 @@
   "Extensions": {},
   "Errors": [
     {
-      "message": "Unexpected Execution Error",
-      "path": [
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": [
         "foo"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {}
     },
     {
-      "message": "Unexpected Execution Error",
-      "path": [
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": [
         "bar"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 7
         }
       ],
-      "extensions": {
-        "code": "NullRef"
-      }
+      "Exception": null,
+      "Extensions": {}
     }
   ]
 }

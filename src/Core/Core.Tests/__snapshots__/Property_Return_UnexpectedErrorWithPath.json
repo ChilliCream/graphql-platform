@@ -7,17 +7,20 @@
   "Extensions": {},
   "Errors": [
     {
-      "message": "Unexpected Execution Error",
-      "path": [
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": [
         "error13",
         "bar"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 13
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {}
     }
   ]
 }

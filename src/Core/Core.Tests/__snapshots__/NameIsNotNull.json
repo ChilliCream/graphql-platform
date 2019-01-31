@@ -5,6 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "Argument is not valid.",
       "path": [
         "sayHello"

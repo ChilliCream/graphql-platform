@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "The operation that shall be executed has a complexity of 25. \nThe maximum allowed query complexity is 20.",
       "locations": [
         {
