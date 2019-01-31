@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Server
 {
@@ -16,11 +16,9 @@ namespace HotChocolate.Server
             // services.AddSingleton<Query>();
 
             // enable InMemory messaging services for subscription support.
-            // var inMemoryEventRegistry = new InMemoryEventRegistry();
-            // services.AddSingleton<IEventRegistry>(inMemoryEventRegistry);
-            // services.AddSingleton<IEventSender>(inMemoryEventRegistry);
+            // services.AddInMemorySubscriptionProvider();
 
-            // this registration enables you to use DataLoader in your resolvers.
+            // this enables you to use DataLoader in your resolvers.
             services.AddDataLoaderRegistry();
 
             // Add GraphQL Services
