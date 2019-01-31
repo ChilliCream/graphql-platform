@@ -3,6 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
+      "Exception": null,
       "message": "foo",
       "path": [
         "root",
@@ -19,12 +20,14 @@
       }
     },
     {
+      "Exception": null,
       "message": "qux",
       "extensions": {
         "bar": "baz"
       }
     },
     {
+      "Exception": null,
       "message": "quux"
     }
   ]
