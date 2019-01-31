@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-<<<<<<< HEAD
-=======
 using HotChocolate.Execution.Configuration;
->>>>>>> 659d4e56eb9c4c6418386cb889a2c6c75a81be84
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Moq;
@@ -38,23 +35,20 @@ namespace HotChocolate.Execution
             var operation = new Mock<IOperation>();
             operation.Setup(t => t.Document).Returns(query);
 
-            var variables = new Mock<IVariableCollection>();
-
             var contextData = new Dictionary<string, object>
             {
                 { "abc", "123" }
             };
 
-            var diagnostics = new QueryExecutionDiagnostics(
-                new DiagnosticListener("Foo"),
-                new IDiagnosticObserver[0],
-                TracingPreference.Never);
+            var requestContext = new Mock<IRequestContext>();
+            requestContext.Setup(t => t.ContextData).Returns(contextData);
 
             // act
             var executionContext = new ExecutionContext(
-                schema, serviceScope, operation.Object,
-                variables.Object, fs => null, contextData,
-                CancellationToken.None, diagnostics);
+                schema,
+                operation.Object,
+                requestContext.Object,
+                CancellationToken.None);
 
             // assert
             Assert.True(ReferenceEquals(
@@ -95,11 +89,17 @@ namespace HotChocolate.Execution
                 new IDiagnosticObserver[0],
                 TracingPreference.Never);
 
+            var requestContext = new RequestContext(
+                serviceScope,
+                fs => null,
+                contextData,
+                diagnostics);
+
             // act
             var executionContext = new ExecutionContext(
-                schema, serviceScope, operation.Object,
-                variables.Object, fs => null, contextData,
-                CancellationToken.None, diagnostics);
+                schema, operation.Object, requestContext,
+                CancellationToken.None);
+
             IExecutionContext cloned = executionContext.Clone();
 
             // assert
