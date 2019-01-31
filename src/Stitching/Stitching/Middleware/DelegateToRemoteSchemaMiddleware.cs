@@ -62,7 +62,7 @@ namespace HotChocolate.Stitching
                 context.Schema);
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
-                    context.QueryDocument, context.Operation,
+                    context.Document, context.Operation,
                     context.FieldSelection, context.ObjectType);
 
             IReadOnlyCollection<VariableValue> variableValues =
