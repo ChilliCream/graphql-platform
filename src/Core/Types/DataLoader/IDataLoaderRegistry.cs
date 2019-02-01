@@ -10,13 +10,13 @@ namespace HotChocolate.DataLoader
         IServiceProvider services);
 
     public delegate Task<IReadOnlyDictionary<TKey, TValue>> Fetch<TKey, TValue>(
-        IReadOnlyCollection<TKey> keys);
+        IReadOnlyList<TKey> keys);
 
     public delegate FetchGrouped<TKey, TValue> FetchGroupedFactory<TKey, TValue>(
         IServiceProvider services);
 
     public delegate Task<ILookup<TKey, TValue>> FetchGrouped<TKey, TValue>(
-        IReadOnlyCollection<TKey> keys);
+        IReadOnlyList<TKey> keys);
 
     public delegate FetchSingle<TKey, TValue> FetchSingleFactory<TKey, TValue>(
         IServiceProvider services);
