@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true<IsTestProject>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <PropertyGroup>

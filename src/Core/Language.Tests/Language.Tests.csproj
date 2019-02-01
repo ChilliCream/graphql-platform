@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.Language.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true<IsTestProject>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <PropertyGroup>
