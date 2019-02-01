@@ -136,12 +136,19 @@ namespace HotChocolate.Execution
 
         private void ReleaseProcessSyncIfNeeded()
         {
-            lock (_processSync)
+            try
             {
-                if (_processSync.CurrentCount == 0)
+                lock (_processSync)
                 {
-                    _processSync.Release();
+                    if (_processSync.CurrentCount == 0)
+                    {
+                        _processSync.Release();
+                    }
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // the batch is disposed so we are doing nothing here.
             }
         }
 
