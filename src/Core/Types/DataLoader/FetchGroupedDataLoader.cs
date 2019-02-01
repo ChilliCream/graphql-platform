@@ -25,9 +25,10 @@ namespace HotChocolate.DataLoader
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
-        protected override async Task<IReadOnlyList<Result<TValue[]>>> FetchAsync(
-            IReadOnlyList<TKey> keys,
-            CancellationToken cancellationToken)
+        protected override async Task<IReadOnlyList<Result<TValue[]>>>
+            FetchAsync(
+                IReadOnlyList<TKey> keys,
+                CancellationToken cancellationToken)
         {
             ILookup<TKey, TValue> result = await _fetch(keys)
                 .ConfigureAwait(false);

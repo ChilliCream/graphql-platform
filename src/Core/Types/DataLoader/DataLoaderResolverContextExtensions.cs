@@ -38,7 +38,7 @@ namespace HotChocolate.Resolvers
                 key, registry, r => r.Register(key, factory));
         }
 
-        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
+        public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             Fetch<TKey, TValue> fetch)
@@ -88,10 +88,11 @@ namespace HotChocolate.Resolvers
                 key, registry, r => r.Register(key, factory));
         }
 
-        public static IDataLoader<TKey, TValue[]> DataLoader<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchGrouped<TKey, TValue> fetch)
+        public static IDataLoader<TKey, TValue[]>
+            GroupedDataLoader<TKey, TValue>(
+                this IResolverContext context,
+                string key,
+                FetchGrouped<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -138,7 +139,7 @@ namespace HotChocolate.Resolvers
                 key, registry, r => r.Register(key, factory));
         }
 
-        public static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
+        public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchSingle<TKey, TValue> fetch)
@@ -188,7 +189,7 @@ namespace HotChocolate.Resolvers
             return () => dataLoader.LoadAsync("none");
         }
 
-        public static Func<Task<TValue>> DataLoader<TValue>(
+        public static Task<TValue> FetchOnce<TValue>(
             this IResolverContext context,
             string key,
             FetchOnce<TValue> fetch)
@@ -206,7 +207,7 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return DataLoader(context, key, services => fetch);
+            return DataLoader(context, key, services => fetch)();
         }
 
         public static T DataLoader<T>(
