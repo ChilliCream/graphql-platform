@@ -1,6 +1,5 @@
 query fetch {
   customer(id: "Q3VzdG9tZXIteDE=") {
-    foo
     id
     name
     __typename

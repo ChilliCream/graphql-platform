@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
 
@@ -29,7 +31,7 @@ namespace HotChocolate.Stitching
                 ?? throw new ArgumentNullException(nameof(queryExecutors));
         }
 
-        public IQueryExecutor GetQueryExecutor(string schemaName)
+        public IRemoteQueryClient GetRemoteQueryClient(string schemaName)
         {
             if (string.IsNullOrEmpty(schemaName))
             {
@@ -37,7 +39,12 @@ namespace HotChocolate.Stitching
                     "The schema name cannot be null or empty.",
                     nameof(schemaName));
             }
+            return new RemoteQueryClient(GetQueryExecutor(schemaName));
+        }
 
+
+        public IQueryExecutor GetQueryExecutor(string schemaName)
+        {
             if (_queryExecutors.TryGetValue(
                     schemaName,
                     out IQueryExecutor executor))
