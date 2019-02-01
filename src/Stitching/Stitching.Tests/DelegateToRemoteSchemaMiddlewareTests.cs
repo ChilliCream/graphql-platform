@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
@@ -177,9 +178,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public async Task WithLocal(
-            QueryRequest request,
-            [CallerMemberName]string snapshotName = null)
+        public async Task ExecuteStitchedQueryWithComputedField()
         {
             // arrange
             TestServer server_contracts = TestServerFactory.Create(
@@ -215,12 +214,21 @@ namespace HotChocolate.Stitching
                 .SetSchema(FileResource.Open("Customer.graphql")));
 
             serviceCollection.AddStitchedSchema(
-                FileResource.Open("StitchingWithLocalField.graphql"),
+                FileResource.Open("StitchingComputed.graphql"),
                 c =>
                 {
-
+                    c.Map(new FieldReference("Customer", "foo"),
+                        next => context =>
+                        {
+                            var obj = context.Parent<OrderedDictionary>();
+                            context.Result = obj["name"] + "_" + obj["id"];
+                            return Task.CompletedTask;
+                        });
                     c.RegisterType<DateTimeType>();
                 });
+
+            var request = new QueryRequest(
+                FileResource.Open("StitchingQueryComputedField.graphql"));
 
             IServiceProvider services =
                 request.Services =
@@ -232,7 +240,7 @@ namespace HotChocolate.Stitching
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.Snapshot(snapshotName);
+            result.Snapshot();
         }
     }
 }

@@ -98,15 +98,48 @@ namespace HotChocolate.Stitching
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
-                IDirective directive = field.Directives[DirectiveNames.Delegate]
-                    .FirstOrDefault();
+                CollectDelegationDependencies(context, type, field);
+                CollectComputeDependencies(context, type, field);
+            }
+        }
 
-                if (directive != null)
+        private void CollectDelegationDependencies(
+            Context context,
+            IComplexOutputType type,
+            IOutputField field)
+        {
+            IDirective directive = field.Directives[DirectiveNames.Delegate]
+                .FirstOrDefault();
+
+            if (directive != null)
+            {
+                CollectFieldNames(
+                    directive.ToObject<DelegateDirective>(),
+                    type,
+                    context.Dependencies);
+            }
+        }
+
+        private void CollectComputeDependencies(
+            Context context,
+            IComplexOutputType type,
+            IOutputField field)
+        {
+            IDirective directive = field.Directives[DirectiveNames.DependentOn]
+                .FirstOrDefault();
+
+            if (directive != null)
+            {
+                foreach (string fieldName in directive
+                    .ToObject<DependentOnDirective>().Fields)
                 {
-                    CollectFieldNames(
-                        directive.ToObject<DelegateDirective>(),
-                        type,
-                        context.Dependencies);
+                    if (type.Fields.TryGetField(
+                        fieldName,
+                        out IOutputField dependency))
+                    {
+                        context.Dependencies.Add(
+                            new FieldDependency(type.Name, dependency.Name));
+                    }
                 }
             }
         }

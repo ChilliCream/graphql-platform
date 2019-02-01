@@ -24,7 +24,7 @@ type Customer {
   contractIds: [ID!]
     @schema(name: "contract")
     @delegate(path: "contracts(customerId:$fields:id).id")
-  foo: String @dependency(fields: ["id", "name"])
+  foo: String @dependentOn(fields: ["id", "name"])
 }
 
 type Consultant {
