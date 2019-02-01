@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Subscriptions.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true<IsTestProject>
   </PropertyGroup>
 
   <PropertyGroup>

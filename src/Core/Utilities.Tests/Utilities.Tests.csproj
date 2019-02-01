@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>HotChocolate.Utilities.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Utilities.Tests</RootNamespace>
+    <RootNamespace>HotChocolate.Utilities</RootNamespace>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true<IsTestProject>
   </PropertyGroup>
 
   <PropertyGroup>

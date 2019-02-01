@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <IsPackable>false</IsPackable>
+    <IsTestProject>true<IsTestProject>
   </PropertyGroup>
 
   <PropertyGroup>
