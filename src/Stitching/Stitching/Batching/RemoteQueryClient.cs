@@ -12,7 +12,7 @@ namespace HotChocolate.Stitching
     public class RemoteQueryClient
         : IRemoteQueryClient
     {
-        private IQueryExecutor _executor;
+        private readonly IQueryExecutor _executor;
 
         public RemoteQueryClient(IQueryExecutor executor)
         {

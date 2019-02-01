@@ -189,7 +189,7 @@ namespace HotChocolate.Resolvers
             return () => dataLoader.LoadAsync("none");
         }
 
-        public static Task<TValue> FetchOnce<TValue>(
+        public static Task<TValue> FetchOnceAsync<TValue>(
             this IResolverContext context,
             string key,
             FetchOnce<TValue> fetch)

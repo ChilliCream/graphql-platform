@@ -27,7 +27,7 @@ namespace HotChocolate.Integration.DataLoader
                 {
                     c.BindResolver(async ctx =>
                     {
-                        return await ctx.FetchOnce<string>(
+                        return await ctx.FetchOnceAsync<string>(
                             "fetchItems",
                             () => Task.FromResult("fooBar"));
 

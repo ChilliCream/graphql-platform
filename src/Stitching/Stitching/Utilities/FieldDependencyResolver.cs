@@ -103,9 +103,9 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private void CollectDelegationDependencies(
+        private static void CollectDelegationDependencies(
             Context context,
-            IComplexOutputType type,
+            IHasName type,
             IOutputField field)
         {
             IDirective directive = field.Directives[DirectiveNames.Delegate]
@@ -120,7 +120,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private void CollectComputeDependencies(
+        private static void CollectComputeDependencies(
             Context context,
             IComplexOutputType type,
             IOutputField field)
