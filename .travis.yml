@@ -9,4 +9,5 @@ branches:
   only:
     - master
 script:
-  - ./build.sh -t CoreTests
+  - dotnet tool install -g Cake.Tool
+  - dotnet cake -target=CoreTests
