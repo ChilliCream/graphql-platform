@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.Validation.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Validation</RootNamespace>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
+
   </PropertyGroup>
 
   <PropertyGroup>
