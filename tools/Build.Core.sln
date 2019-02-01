@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching", "..\src\Stitchi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching.Tests", "..\src\Stitching\Stitching.Tests\Stitching.Tests.csproj", "{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.Tests", "..\src\Core\Core.Diagnostics.Tests\Core.Diagnostics.Tests.csproj", "{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -338,5 +340,17 @@ Global
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x64.Build.0 = Release|Any CPU
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x86.ActiveCfg = Release|Any CPU
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x86.Build.0 = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x64.Build.0 = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
