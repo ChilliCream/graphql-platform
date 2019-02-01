@@ -121,12 +121,18 @@ namespace HotChocolate.Stitching
                 {
                     if (type.Fields.TryGetField(selection.Name.Value,
                         out IOutputField field)
-                        && field.Directives.Contains(DirectiveNames.Delegate))
+                        && IsDelegationField(field.Directives))
                     {
                         selections.Remove(selection);
                     }
                 }
             }
+        }
+
+        private static bool IsDelegationField(IDirectiveCollection directives)
+        {
+            return directives.Contains(DirectiveNames.Delegate)
+            || directives.Contains(DirectiveNames.DependentOn);
         }
 
         private static void AddDependencies(

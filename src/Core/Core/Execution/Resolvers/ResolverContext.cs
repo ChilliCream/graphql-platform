@@ -190,5 +190,10 @@ namespace HotChocolate.Execution
             ObjectType typeContext) =>
             _executionContext.FieldHelper.CollectFields(
                 typeContext, FieldSelection.SelectionSet);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            _executionContext.FieldHelper.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }

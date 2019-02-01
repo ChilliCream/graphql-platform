@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <IsPackable>false</IsPackable>
+
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,7 +34,7 @@
     <PackageReference Include="OpenCover" Version="4.6.519" />
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 
   <ItemGroup>

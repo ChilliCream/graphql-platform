@@ -112,5 +112,10 @@ namespace HotChocolate.Resolvers
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
             _resolverContext.CollectFields(typeContext);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            _resolverContext.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }

@@ -27,11 +27,10 @@ namespace HotChocolate.Integration.DataLoader
                 {
                     c.BindResolver(async ctx =>
                     {
-                        Func<Task<string>> dataLoader =
-                            ctx.DataLoader<string>(
-                                "fetchItems",
-                                () => Task.FromResult("fooBar"));
-                        return await dataLoader();
+                        return await ctx.FetchOnceAsync<string>(
+                            "fetchItems",
+                            () => Task.FromResult("fooBar"));
+
                     }).To("Query", "fetchItem");
                 });
 
@@ -64,7 +63,7 @@ namespace HotChocolate.Integration.DataLoader
                     c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
-                            ctx.DataLoader<string, string>(
+                            ctx.CacheDataLoader<string, string>(
                                 "fetchItems",
                                 key => Task.FromResult(key));
                         return await dataLoader.LoadAsync("fooBar");
@@ -100,11 +99,12 @@ namespace HotChocolate.Integration.DataLoader
                     c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string> dataLoader =
-                            ctx.DataLoader<string, string>(
+                            ctx.BatchDataLoader<string, string>(
                                 "fetchItems",
                                 keys =>
-                                Task.FromResult<IReadOnlyDictionary<string, string>>(
-                                    keys.ToDictionary(t => t)));
+                                Task.FromResult<
+                                    IReadOnlyDictionary<string, string>>(
+                                        keys.ToDictionary(t => t)));
                         return await dataLoader.LoadAsync("fooBar");
                     }).To("Query", "fetchItem");
                 });
@@ -138,7 +138,7 @@ namespace HotChocolate.Integration.DataLoader
                     c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string[]> dataLoader =
-                            ctx.DataLoader<string, string>(
+                            ctx.GroupedDataLoader<string, string>(
                                 "fetchItems",
                                 keys =>
                                 Task.FromResult(keys.ToLookup(t => t)));

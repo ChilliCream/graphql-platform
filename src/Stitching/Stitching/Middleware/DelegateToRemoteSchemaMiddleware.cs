@@ -88,12 +88,12 @@ namespace HotChocolate.Stitching
             QueryRequest request,
             string schemaName)
         {
-            IQueryExecutor remoteExecutor =
+            IRemoteQueryClient remoteQueryClient =
                 context.Service<IStitchingContext>()
-                    .GetQueryExecutor(schemaName);
+                    .GetRemoteQueryClient(schemaName);
 
-            IExecutionResult result =
-                await remoteExecutor.ExecuteAsync(request)
+            IExecutionResult result = await remoteQueryClient
+                    .ExecuteAsync(context, request)
                     .ConfigureAwait(false);
 
             if (result is IReadOnlyQueryResult queryResult)

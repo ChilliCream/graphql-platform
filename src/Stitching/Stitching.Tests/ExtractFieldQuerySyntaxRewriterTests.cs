@@ -11,23 +11,25 @@ namespace HotChocolate.Stitching
 {
     public class ExtractFieldQuerySyntaxRewriterTests
     {
-        [InlineData("StitchingQuery.graphql")]
-        [InlineData("StitchingQueryWithFragmentDefs.graphql")]
-        [InlineData("StitchingQueryWithInlineFragment.graphql")]
-        [InlineData("StitchingQueryWithUnion.graphql")]
-        [InlineData("StitchingQueryWithVariables.graphql")]
-        [InlineData("StitchingQueryWithArguments.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQuery.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithFragmentDefs.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithInlineFragment.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithUnion.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithVariables.graphql")]
+        [InlineData("Stitching.graphql", "StitchingQueryWithArguments.graphql")]
+        [InlineData("StitchingComputed.graphql", "StitchingQueryComputedField.graphql")]
         [Theory]
-        public void ExtractField(string queryFile)
+        public void ExtractField(string schemaFile, string queryFile)
         {
             // arrange
             ISchema schema = Schema.Create(
-                FileResource.Open("Stitching.graphql"),
+                FileResource.Open(schemaFile),
                 c =>
                 {
                     c.RegisterType<DateTimeType>();
                     c.RegisterDirective<DelegateDirectiveType>();
                     c.RegisterDirective<SchemaDirectiveType>();
+                    c.RegisterDirective<DependentOnDirectiveType>();
                     c.Use(next => context => Task.CompletedTask);
                 });
 
