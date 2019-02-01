@@ -178,6 +178,22 @@ namespace HotChocolate.Resolvers
         IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext);
 
+        /// <summary>
+        /// Collects the fields of a selection set with the specified
+        /// type context.
+        /// </summary>
+        /// <param name="typeContext">The object type context.</param>
+        /// <param name="selectionSet">
+        /// The selection set that shall be analyzed.
+        /// </param>
+        /// <returns>
+        /// Returns the fields that would be selected if this resolver
+        /// returns an object of the specified typeContext.
+        /// </returns>
+        IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext,
+            SelectionSetNode selectionSet);
+
         [Obsolete(
             "Use RequestAborted. " +
             "This property will be removed with version 1.0.0.")]

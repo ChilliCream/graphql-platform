@@ -103,5 +103,10 @@ namespace HotChocolate.Execution
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
             _middlewareContext.CollectFields(typeContext);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            _middlewareContext.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }
