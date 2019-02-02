@@ -9,15 +9,15 @@ namespace HotChocolate.DataLoader
     internal sealed class FetchSingleDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
     {
-        private readonly FetchSingle<TKey, TValue> _fetch;
+        private readonly FetchCache<TKey, TValue> _fetch;
 
-        public FetchSingleDataLoader(FetchSingle<TKey, TValue> fetch)
+        public FetchSingleDataLoader(FetchCache<TKey, TValue> fetch)
             : this(fetch, DataLoaderDefaults.CacheSize)
         {
         }
 
         public FetchSingleDataLoader(
-            FetchSingle<TKey, TValue> fetch,
+            FetchCache<TKey, TValue> fetch,
             int cacheSize)
             : base(new DataLoaderOptions<TKey>
             {

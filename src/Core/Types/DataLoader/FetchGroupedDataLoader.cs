@@ -10,9 +10,9 @@ namespace HotChocolate.DataLoader
     internal sealed class FetchGroupedDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue[]>
     {
-        private readonly FetchGrouped<TKey, TValue> _fetch;
+        private readonly FetchGroupe<TKey, TValue> _fetch;
 
-        public FetchGroupedDataLoader(FetchGrouped<TKey, TValue> fetch)
+        public FetchGroupedDataLoader(FetchGroupe<TKey, TValue> fetch)
             : base(new DataLoaderOptions<TKey>
             {
                 AutoDispatching = false,

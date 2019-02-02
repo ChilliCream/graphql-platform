@@ -1,32 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
 namespace HotChocolate.DataLoader
 {
-    public delegate Fetch<TKey, TValue> FetchFactory<TKey, TValue>(
+    public delegate FetchBatch<TKey, TValue> FetchBatchFactory<TKey, TValue>(
         IServiceProvider services);
 
-    public delegate Task<IReadOnlyDictionary<TKey, TValue>> Fetch<TKey, TValue>(
+    public delegate Task<IReadOnlyDictionary<TKey, TValue>>
+        FetchBatch<TKey, TValue>(IReadOnlyList<TKey> keys);
+
+    public delegate Task<IReadOnlyDictionary<TKey, TValue>>
+        FetchBatchCt<TKey, TValue>(
+            IReadOnlyList<TKey> keys,
+            CancellationToken cancellationToken);
+
+    public delegate FetchGroupe<TKey, TValue> FetchGroupeFactory<TKey, TValue>(
+        IServiceProvider services);
+
+    public delegate Task<ILookup<TKey, TValue>> FetchGroupe<TKey, TValue>(
         IReadOnlyList<TKey> keys);
 
-    public delegate FetchGrouped<TKey, TValue> FetchGroupedFactory<TKey, TValue>(
+    public delegate Task<ILookup<TKey, TValue>> FetchGroupeCt<TKey, TValue>(
+        IReadOnlyList<TKey> keys,
+        CancellationToken cancellationToken);
+
+    public delegate FetchCache<TKey, TValue> FetchCacheFactory<TKey, TValue>(
         IServiceProvider services);
 
-    public delegate Task<ILookup<TKey, TValue>> FetchGrouped<TKey, TValue>(
-        IReadOnlyList<TKey> keys);
+    public delegate Task<TValue> FetchCache<TKey, TValue>(TKey key);
 
-    public delegate FetchSingle<TKey, TValue> FetchSingleFactory<TKey, TValue>(
-        IServiceProvider services);
-
-    public delegate Task<TValue> FetchSingle<TKey, TValue>(TKey key);
+    public delegate Task<TValue> FetchCacheCt<TKey, TValue>(
+        TKey key,
+        CancellationToken cancellationToken);
 
     public delegate FetchOnce<TValue> FetchOnceFactory<TValue>(
         IServiceProvider services);
 
     public delegate Task<TValue> FetchOnce<TValue>();
+
+    public delegate Task<TValue> FetchOnceCt<TValue>(
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// The DataLoader-registry holds the instances of DataLoders

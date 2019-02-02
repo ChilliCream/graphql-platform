@@ -9,9 +9,9 @@ namespace HotChocolate.DataLoader
     internal sealed class FetchDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
     {
-        private readonly Fetch<TKey, TValue> _fetch;
+        private readonly FetchBatch<TKey, TValue> _fetch;
 
-        public FetchDataLoader(Fetch<TKey, TValue> fetch)
+        public FetchDataLoader(FetchBatch<TKey, TValue> fetch)
             : base(new DataLoaderOptions<TKey>
             {
                 AutoDispatching = false,
