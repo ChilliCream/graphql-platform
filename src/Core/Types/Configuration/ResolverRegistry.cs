@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 
@@ -223,8 +224,10 @@ namespace HotChocolate.Configuration
             {
                 if (!ctx.IsResultModified && fieldResolver != null)
                 {
-                    ctx.Result = await fieldResolver.Invoke(ctx)
-                        .ConfigureAwait(false);
+                    Task<object> task = fieldResolver.Invoke(ctx);
+                    ctx.Result = task == null
+                        ? null
+                        : await task.ConfigureAwait(false);
                 }
             };
         }
