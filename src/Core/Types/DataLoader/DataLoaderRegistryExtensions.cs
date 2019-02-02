@@ -9,7 +9,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchFactory<TKey, TValue> factory)
+            FetchBatchFactory<TKey, TValue> factory)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -32,7 +32,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            Fetch<TKey, TValue> fetch)
+            FetchBatch<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -54,7 +54,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchGroupedFactory<TKey, TValue> factory)
+            FetchGroupeFactory<TKey, TValue> factory)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -77,7 +77,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchGrouped<TKey, TValue> fetch)
+            FetchGroupe<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -99,7 +99,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchSingleFactory<TKey, TValue> factory)
+            FetchCacheFactory<TKey, TValue> factory)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -122,7 +122,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchSingle<TKey, TValue> fetch)
+            FetchCache<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {

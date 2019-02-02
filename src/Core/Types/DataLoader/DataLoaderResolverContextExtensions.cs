@@ -9,24 +9,12 @@ namespace HotChocolate.Resolvers
 {
     public static class DataLoaderResolverContextExtensions
     {
-        private static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchFactory<TKey, TValue> factory)
+        private static IDataLoader<TKey, TValue>
+            BatchDataLoaderFactory<TKey, TValue>(
+                this IResolverContext context,
+                string key,
+                FetchBatchFactory<TKey, TValue> factory)
         {
-            if (string.IsNullOrEmpty(key))
-            {
-                // TODO : resources
-                throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
-                    nameof(key));
-            }
-
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue> dataLoader,
                 out IDataLoaderRegistry registry))
@@ -41,8 +29,13 @@ namespace HotChocolate.Resolvers
         public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            Fetch<TKey, TValue> fetch)
+            FetchBatch<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -56,14 +49,19 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return DataLoader(context, key, services => fetch);
+            return BatchDataLoaderFactory(context, key, services => fetch);
         }
 
-        private static IDataLoader<TKey, TValue[]> DataLoader<TKey, TValue>(
+        public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            FetchGroupedFactory<TKey, TValue> factory)
+            FetchBatchCt<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -72,11 +70,23 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (factory == null)
+            if (fetch == null)
             {
-                throw new ArgumentNullException(nameof(factory));
+                throw new ArgumentNullException(nameof(fetch));
             }
 
+            return BatchDataLoader<TKey, TValue>(
+                context,
+                key,
+                keys => fetch(keys, context.RequestAborted));
+        }
+
+        private static IDataLoader<TKey, TValue[]>
+            GroupDataLoaderFactory<TKey, TValue>(
+                this IResolverContext context,
+                string key,
+                FetchGroupeFactory<TKey, TValue> factory)
+        {
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue[]> dataLoader,
                 out IDataLoaderRegistry registry))
@@ -89,11 +99,16 @@ namespace HotChocolate.Resolvers
         }
 
         public static IDataLoader<TKey, TValue[]>
-            GroupedDataLoader<TKey, TValue>(
+            GroupDataLoader<TKey, TValue>(
                 this IResolverContext context,
                 string key,
-                FetchGrouped<TKey, TValue> fetch)
+                FetchGroupe<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -107,14 +122,20 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return DataLoader(context, key, services => fetch);
+            return GroupDataLoaderFactory(context, key, services => fetch);
         }
 
-        private static IDataLoader<TKey, TValue> DataLoader<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchSingleFactory<TKey, TValue> factory)
+        public static IDataLoader<TKey, TValue[]>
+            GroupDataLoader<TKey, TValue>(
+                this IResolverContext context,
+                string key,
+                FetchGroupeCt<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -123,11 +144,23 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (factory == null)
+            if (fetch == null)
             {
-                throw new ArgumentNullException(nameof(factory));
+                throw new ArgumentNullException(nameof(fetch));
             }
 
+            return GroupDataLoader<TKey, TValue>(
+                context,
+                key,
+                keys => fetch(keys, context.RequestAborted));
+        }
+
+        private static IDataLoader<TKey, TValue>
+            CacheDataLoaderFactory<TKey, TValue>(
+                this IResolverContext context,
+                string key,
+                FetchCacheFactory<TKey, TValue> factory)
+        {
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue> dataLoader,
                 out IDataLoaderRegistry registry))
@@ -142,8 +175,13 @@ namespace HotChocolate.Resolvers
         public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            FetchSingle<TKey, TValue> fetch)
+            FetchCache<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -157,14 +195,19 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return DataLoader(context, key, services => fetch);
+            return CacheDataLoaderFactory(context, key, services => fetch);
         }
 
-        private static Func<Task<TValue>> DataLoader<TValue>(
+        public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            FetchOnceFactory<TValue> factory)
+            FetchCacheCt<TKey, TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -173,11 +216,22 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (factory == null)
+            if (fetch == null)
             {
-                throw new ArgumentNullException(nameof(factory));
+                throw new ArgumentNullException(nameof(fetch));
             }
 
+            return CacheDataLoader<TKey, TValue>(
+                context,
+                key,
+                keys => fetch(keys, context.RequestAborted));
+        }
+
+        private static Func<Task<TValue>> FetchOnceFactory<TValue>(
+            this IResolverContext context,
+            string key,
+            FetchOnceFactory<TValue> factory)
+        {
             if (!TryGetDataLoader(context, key,
                 out IDataLoader<string, TValue> dataLoader,
                 out IDataLoaderRegistry registry))
@@ -194,6 +248,11 @@ namespace HotChocolate.Resolvers
             string key,
             FetchOnce<TValue> fetch)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources
@@ -207,7 +266,36 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return DataLoader(context, key, services => fetch)();
+            return FetchOnceFactory(context, key, services => fetch)();
+        }
+
+        public static Task<TValue> FetchOnceAsync<TValue>(
+            this IResolverContext context,
+            string key,
+            FetchOnceCt<TValue> fetch)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (string.IsNullOrEmpty(key))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The DataLoader key cannot be null or empty.",
+                    nameof(key));
+            }
+
+            if (fetch == null)
+            {
+                throw new ArgumentNullException(nameof(fetch));
+            }
+
+            return FetchOnceAsync(
+                context,
+                key,
+                () => fetch(context.RequestAborted));
         }
 
         public static T DataLoader<T>(
@@ -215,6 +303,11 @@ namespace HotChocolate.Resolvers
             string key)
             where T : class, IDataLoader
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (string.IsNullOrEmpty(key))
             {
                 // TODO : resources

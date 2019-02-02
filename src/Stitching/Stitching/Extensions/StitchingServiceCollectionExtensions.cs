@@ -143,14 +143,21 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return services.AddSingleton(Schema.Create(
+            services.AddSingleton<
+                IQueryResultSerializer,
+                JsonQueryResultSerializer>();
+
+            IQueryExecutor executor = Schema.Create(
                 schema,
                 c =>
                 {
                     configure(c);
                     c.UseSchemaStitching();
                 })
-                .MakeExecutable(b => b.UseStitchingPipeline()));
+                .MakeExecutable(b => b.UseStitchingPipeline());
+
+            return services.AddSingleton(executor)
+                .AddSingleton(executor.Schema);
         }
     }
 }

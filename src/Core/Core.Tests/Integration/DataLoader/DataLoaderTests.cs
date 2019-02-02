@@ -138,7 +138,7 @@ namespace HotChocolate.Integration.DataLoader
                     c.BindResolver(async ctx =>
                     {
                         IDataLoader<string, string[]> dataLoader =
-                            ctx.GroupedDataLoader<string, string>(
+                            ctx.GroupDataLoader<string, string>(
                                 "fetchItems",
                                 keys =>
                                 Task.FromResult(keys.ToLookup(t => t)));
