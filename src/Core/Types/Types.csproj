@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.9.0" />
-    <PackageReference Include="GreenDonut" Version="2.0.0-preview.7" />
+    <PackageReference Include="GreenDonut" Version="2.0.0-rc.1" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
