@@ -89,7 +89,7 @@ namespace HotChocolate.Resolvers
         }
 
         public static IDataLoader<TKey, TValue[]>
-            GroupedDataLoader<TKey, TValue>(
+            GroupDataLoader<TKey, TValue>(
                 this IResolverContext context,
                 string key,
                 FetchGrouped<TKey, TValue> fetch)
