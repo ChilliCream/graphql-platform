@@ -8,6 +8,53 @@ namespace HotChocolate.Types
     public class ListTypeTests
     {
         [Fact]
+        public void Create_ElementTypeNull_ArgNullExec()
+        {
+            // arrange
+            // act
+            Action action = () => new ListType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Create_ElementTypeIsListType_ArgExec()
+        {
+            // arrange
+            // act
+            Action action = () => new ListType(new ListType(new StringType()));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void InstanceOf_LiteralIsNull_ArgNullExec()
+        {
+            // arrange
+            // act
+            Action action = () => new ListType(new StringType())
+                .IsInstanceOfType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void InstanceOf_ElementTypeIsOutType_InvalidExec()
+        {
+            // arrange
+            // act
+            Action action = () => new ListType(
+                new ObjectType(c => c.Name("foo")))
+                .IsInstanceOfType(new StringValueNode("foo"));
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
         public void EnsureElementTypeIsCorrectlySet()
         {
             // arrange
