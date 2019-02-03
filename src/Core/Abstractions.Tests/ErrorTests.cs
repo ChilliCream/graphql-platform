@@ -63,7 +63,7 @@ namespace HotChocolate
             error = error.AddExtension("a", "b").AddExtension("c", "d");
 
             // assert
-            Assert.Collection(error.Extensions.OrderBy(t => t.Key)
+            Assert.Collection(error.Extensions.OrderBy(t => t.Key),
                 t =>
                 {
                     Assert.Equal("a", t.Key);
