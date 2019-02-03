@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2019-02-03
+
 ### Added
 
 - Query Middleware [#338](https://github.com/ChilliCream/hotchocolate/issues/338).
@@ -149,7 +151,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 
-[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.6.11...HEAD
+[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/ChilliCream/hotchocolate/compare/0.6.11...0.7.0
 [0.6.11]: https://github.com/ChilliCream/hotchocolate/compare/0.6.10...0.6.11
 [0.6.10]: https://github.com/ChilliCream/hotchocolate/compare/0.6.9...0.6.10
 [0.6.9]: https://github.com/ChilliCream/hotchocolate/compare/0.6.8...0.6.9
