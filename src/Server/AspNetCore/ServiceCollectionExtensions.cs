@@ -391,7 +391,7 @@ namespace HotChocolate
             }
 
             return serviceCollection
-                .AddSingleton<IQueryExecutor>(s =>
+                .AddSingleton(s =>
                     buildExecutor(s, QueryExecutionBuilder.New()))
                 .AddSingleton(s =>
                     s.GetRequiredService<IQueryExecutor>().Schema)
