@@ -23,12 +23,12 @@ namespace HotChocolate
             _error.Message = error.Message;
             _error.Code = error.Code;
             _error.Exception = error.Exception;
-            if (_error.Extensions != null && _error.Extensions.Count > 0)
+            if (error.Extensions != null && error.Extensions.Count > 0)
             {
                 _error.Extensions = ImmutableDictionary
                     .CreateRange(error.Extensions);
             }
-            if (_error.Locations != null && _error.Locations.Count > 0)
+            if (error.Locations != null && error.Locations.Count > 0)
             {
                 _error.Locations = ImmutableList.CreateRange(error.Locations);
             }
@@ -53,7 +53,7 @@ namespace HotChocolate
             return this;
         }
 
-        public IErrorBuilder SetPath(IReadOnlyCollection<string> path)
+        public IErrorBuilder SetPath(IReadOnlyCollection<object> path)
         {
             _error.Path = path;
             return this;
