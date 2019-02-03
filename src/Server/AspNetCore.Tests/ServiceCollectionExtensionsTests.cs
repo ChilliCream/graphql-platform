@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -116,7 +117,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
-                null, 
+                null,
                 new Action<ISchemaConfiguration>(c => { }));
 
             // assert
@@ -237,6 +238,133 @@ namespace HotChocolate.AspNetCore
                 new ServiceCollection(),
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld_ServiceNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld_SchemaSdlNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                default(string),
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld_SchemaSdlEmpty()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                string.Empty,
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld_ConfigureNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                default(Action<ISchemaConfiguration>),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld_BuilderNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaOptions_ServiceNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                schema,
+                new QueryExecutionOptions());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaOptions_SchemaNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                default(Schema),
+                new QueryExecutionOptions());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaOptions_OptionsNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                schema,
+                default(IQueryExecutionOptionsAccessor));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
