@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace HotChocolate
@@ -62,16 +63,16 @@ namespace HotChocolate
             error = error.AddExtension("a", "b").AddExtension("c", "d");
 
             // assert
-            Assert.Collection(error.Extensions,
-                t =>
-                {
-                    Assert.Equal("c", t.Key);
-                    Assert.Equal("d", t.Value);
-                },
+            Assert.Collection(error.Extensions.OrderBy(t => t.Key)
                 t =>
                 {
                     Assert.Equal("a", t.Key);
                     Assert.Equal("b", t.Value);
+                },
+                t =>
+                {
+                    Assert.Equal("c", t.Key);
+                    Assert.Equal("d", t.Value);
                 });
         }
 
