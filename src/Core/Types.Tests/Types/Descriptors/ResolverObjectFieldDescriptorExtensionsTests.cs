@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using Moq;
@@ -263,6 +264,75 @@ namespace HotChocolate.Types
                     .Resolver<object>(
                         descriptor.Object,
                         default(Func<Task<object>>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Resolver_IResolverContextCtObject_DescNull_ArgExc()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                ResolverObjectFieldDescriptorExtensions
+                    .Resolver(
+                        null,
+                        new Func<IResolverContext, CancellationToken, object>(
+                            (c, ct) => new object()));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Resolver_IResolverContextCtObject_ResolverNull_ArgExc()
+        {
+            // arrange
+            var descriptor = new Mock<IObjectFieldDescriptor>();
+
+            // act
+            Action action = () =>
+                ResolverObjectFieldDescriptorExtensions
+                    .Resolver(
+                        descriptor.Object,
+                        default(
+                            Func<IResolverContext, CancellationToken, object>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Resolver_IResolverContextCtTaskOfObject_DescNull_ArgExc()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                ResolverObjectFieldDescriptorExtensions
+                    .Resolver(
+                        null,
+                        new Func<IResolverContext, CancellationToken,
+                            Task<object>>((c, ct) =>
+                                Task.FromResult(new object())));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Resolver_IResolverCtxCtTaskOfObject_ResolverNull_ArgExc()
+        {
+            // arrange
+            var descriptor = new Mock<IObjectFieldDescriptor>();
+
+            // act
+            Action action = () =>
+                ResolverObjectFieldDescriptorExtensions
+                    .Resolver(
+                        descriptor.Object,
+                        default(Func<IResolverContext, CancellationToken,
+                            Task<object>>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
