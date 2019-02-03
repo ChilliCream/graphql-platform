@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace HotChocolate
 {
@@ -7,6 +8,26 @@ namespace HotChocolate
         : IErrorBuilder
     {
         private readonly Error _error = new Error();
+
+        public ErrorBuilder()
+        {
+        }
+
+        private ErrorBuilder(IError error)
+        {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
+            _error.Message = error.Message;
+            _error.Code = error.Code;
+            _error.Exception = error.Exception;
+            _error.Extensions = ImmutableDictionary
+                .CreateRange(error.Extensions);
+            _error.Locations = ImmutableList.CreateRange(error.Locations);
+            _error.Path = error.Path;
+        }
 
         public IErrorBuilder SetMessage(string message)
         {
@@ -87,5 +108,10 @@ namespace HotChocolate
         }
 
         public static ErrorBuilder New() => new ErrorBuilder();
+
+        public static ErrorBuilder FromError(IError error)
+        {
+            return new ErrorBuilder(error);
+        }
     }
 }
