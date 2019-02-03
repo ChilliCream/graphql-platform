@@ -129,7 +129,7 @@ namespace HotChocolate
 
             // assert
             Assert.Collection(error.Path,
-                t => Assert.Equal("foo", t));
+                t => Assert.Equal("foo", t.ToString()));
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace HotChocolate
 
             // assert
             Assert.Collection(error.Path,
-                t => Assert.Equal("foo", t));
+                t => Assert.Equal("foo", t.ToString()));
         }
 
         [Fact]
@@ -205,7 +205,7 @@ namespace HotChocolate
                   .AddLocation(0, 3);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentOutOfRangeException>(action);
         }
 
         [Fact]
@@ -217,7 +217,7 @@ namespace HotChocolate
                   .AddLocation(2, 0);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentOutOfRangeException>(action);
         }
 
         [Fact]
