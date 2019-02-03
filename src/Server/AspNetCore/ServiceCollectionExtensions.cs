@@ -5,10 +5,6 @@ using HotChocolate.Execution;
 
 namespace HotChocolate
 {
-    public delegate IQueryExecutor BuildExecutor(
-        IServiceProvider services,
-        IQueryExecutionBuilder builder);
-
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQL(
@@ -371,28 +367,6 @@ namespace HotChocolate
 
             return serviceCollection
                 .AddSingleton(executor)
-                .AddSingleton<ISchema>(s =>
-                    s.GetRequiredService<IQueryExecutor>().Schema)
-                .AddJsonSerializer();
-        }
-
-        public static IServiceCollection AddGraphQL(
-            this IServiceCollection serviceCollection,
-            BuildExecutor buildExecutor)
-        {
-            if (serviceCollection == null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
-            if (buildExecutor == null)
-            {
-                throw new ArgumentNullException(nameof(buildExecutor));
-            }
-
-            return serviceCollection
-                .AddSingleton(s =>
-                    buildExecutor(s, QueryExecutionBuilder.New()))
                 .AddSingleton(s =>
                     s.GetRequiredService<IQueryExecutor>().Schema)
                 .AddJsonSerializer();

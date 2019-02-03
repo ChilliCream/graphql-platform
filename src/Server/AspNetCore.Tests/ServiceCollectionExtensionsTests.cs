@@ -135,5 +135,53 @@ namespace HotChocolate.AspNetCore
             // assert
             Assert.Throws<ArgumentNullException>(action);
         }
+
+        [Fact]
+        public void AddGraphQL_ServicesConfigureBuilder_ServiceNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesConfigureBuilder_SchemaFactoryNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                default(Action<ISchemaConfiguration>),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesConfigureBuilder_BuilderNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                new Action<ISchemaConfiguration>(c => { }),
+                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
     }
 }
