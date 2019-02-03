@@ -8,6 +8,17 @@ namespace HotChocolate.Types
     public class ArgumentDescriptorTests
     {
         [Fact]
+        public void Create_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new ArgumentDescriptor("Type", null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
@@ -22,6 +33,21 @@ namespace HotChocolate.Types
             ArgumentDescription description = descriptor.CreateDescription();
             TypeReference typeRef = description.TypeReference;
             Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
+        }
+
+        [Fact]
+        public void SetTypeInstance()
+        {
+            // arrange
+            var descriptor = new ArgumentDescriptor("Type");
+
+            // act
+            ((IArgumentDescriptor)descriptor).Type(new StringType());
+
+            // assert
+            ArgumentDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
+            Assert.IsType<StringType>(typeRef.SchemaType);
         }
 
         [Fact]
@@ -94,6 +120,21 @@ namespace HotChocolate.Types
                 description.TypeReference.ClrType);
             Assert.Equal("string",
                 description.NativeDefaultValue);
+        }
+
+        [Fact]
+        public void SetDefaultValueNull()
+        {
+            // arrange
+            var descriptor = new ArgumentDescriptor("args");
+
+            // act
+            ((IArgumentDescriptor)descriptor).DefaultValue(null);
+
+            // assert
+            ArgumentDescription description = descriptor.CreateDescription();
+            Assert.Equal(NullValueNode.Default, description.DefaultValue);
+            Assert.Null(description.NativeDefaultValue);
         }
 
         [Fact]

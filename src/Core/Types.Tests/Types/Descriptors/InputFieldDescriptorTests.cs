@@ -44,6 +44,23 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void SetSchemaType()
+        {
+            // arrange
+            var descriptor = new InputFieldDescriptor(
+                typeof(ObjectField).GetProperty("Arguments"));
+
+            // act
+            ((IInputFieldDescriptor)descriptor)
+                .Type(new StringType());
+
+            // assert
+            InputFieldDescription description = descriptor.CreateDescription();
+            TypeReference typeRef = description.TypeReference;
+            Assert.IsType<StringType>(typeRef.SchemaType);
+        }
+
+        [Fact]
         public void OverwriteName()
         {
             // arrange

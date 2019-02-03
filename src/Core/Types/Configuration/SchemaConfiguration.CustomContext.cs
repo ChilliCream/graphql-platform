@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration
     {
         [Obsolete(
            "Use the IQueryContext.ContextData / IResolverContext.ContextData" +
-           "instead. See https://hotchocolate.io/docs/migrate_dataloader " +
+           "instead. See https://hotchocolate.io/docs/migration " +
            "for more information." +
            "This type will be removed with version 1.0.0.",
            true)]

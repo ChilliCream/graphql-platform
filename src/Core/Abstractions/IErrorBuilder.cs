@@ -9,7 +9,7 @@ namespace HotChocolate
 
         IErrorBuilder SetCode(string code);
 
-        IErrorBuilder SetPath(IReadOnlyCollection<string> path);
+        IErrorBuilder SetPath(IReadOnlyCollection<object> path);
 
         IErrorBuilder SetPath(Path path);
 

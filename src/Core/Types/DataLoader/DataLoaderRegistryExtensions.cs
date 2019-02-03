@@ -77,7 +77,7 @@ namespace HotChocolate.DataLoader
         public static bool Register<TKey, TValue>(
             this IDataLoaderRegistry registry,
             string key,
-            FetchGroupe<TKey, TValue> fetch)
+            FetchGroup<TKey, TValue> fetch)
         {
             if (string.IsNullOrEmpty(key))
             {

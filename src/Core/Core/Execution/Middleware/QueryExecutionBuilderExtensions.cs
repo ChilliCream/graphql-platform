@@ -228,7 +228,7 @@ namespace HotChocolate.Execution
                 FieldClassMiddlewareFactory.Create(factory));
         }
 
-        public static IQueryExecutionBuilder Map(
+        public static IQueryExecutionBuilder MapField(
             this IQueryExecutionBuilder builder,
             FieldReference fieldReference,
             FieldMiddleware middleware)
@@ -255,7 +255,7 @@ namespace HotChocolate.Execution
         }
 
 
-        public static IQueryExecutionBuilder Map<TMiddleware>(
+        public static IQueryExecutionBuilder MapField<TMiddleware>(
             this IQueryExecutionBuilder builder,
             FieldReference fieldReference)
             where TMiddleware : class
@@ -282,7 +282,7 @@ namespace HotChocolate.Execution
                     }));
         }
 
-        public static IQueryExecutionBuilder Map<TMiddleware>(
+        public static IQueryExecutionBuilder MapField<TMiddleware>(
             this IQueryExecutionBuilder builder,
             FieldReference fieldReference,
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)

@@ -85,6 +85,4 @@ namespace HotChocolate.Utilities
             }
         }
     }
-
-
 }

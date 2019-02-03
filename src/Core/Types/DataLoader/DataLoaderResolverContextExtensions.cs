@@ -102,7 +102,7 @@ namespace HotChocolate.Resolvers
             GroupDataLoader<TKey, TValue>(
                 this IResolverContext context,
                 string key,
-                FetchGroupe<TKey, TValue> fetch)
+                FetchGroup<TKey, TValue> fetch)
         {
             if (context == null)
             {
@@ -129,7 +129,7 @@ namespace HotChocolate.Resolvers
             GroupDataLoader<TKey, TValue>(
                 this IResolverContext context,
                 string key,
-                FetchGroupeCt<TKey, TValue> fetch)
+                FetchGroupCt<TKey, TValue> fetch)
         {
             if (context == null)
             {
