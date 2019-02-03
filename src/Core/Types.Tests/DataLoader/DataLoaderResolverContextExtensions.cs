@@ -45,7 +45,7 @@ namespace HotChocolate.Resolvers
                             null)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -98,7 +98,7 @@ namespace HotChocolate.Resolvers
                             null)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace HotChocolate.Resolvers
                             Task.FromResult(lookup.Object)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -206,7 +206,7 @@ namespace HotChocolate.Resolvers
                             Task.FromResult(lookup.Object)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -257,7 +257,7 @@ namespace HotChocolate.Resolvers
                         Task.FromResult(string.Empty)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -308,7 +308,7 @@ namespace HotChocolate.Resolvers
                             Task.FromResult(string.Empty)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -357,7 +357,7 @@ namespace HotChocolate.Resolvers
                     new FetchOnce<string>(() => Task.FromResult(string.Empty)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
@@ -408,7 +408,7 @@ namespace HotChocolate.Resolvers
                         Task.FromResult(string.Empty)));
 
             // act
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentException>(a);
         }
 
         [Fact]
