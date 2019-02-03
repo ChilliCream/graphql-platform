@@ -41,9 +41,9 @@ This document shall give and outlook of what we have planned for the next releas
   - [x] Interface
   - [x] Union
   - [x] Enum
-  - [ ] EnumValue (in development - 0.7.0)
-  - [ ] InputObject (in development - 0.7.0)
-  - [ ] InputFieldDefinition (in development - 0.7.0)
+  - [x] EnumValue
+  - [x] InputObject
+  - [x] InputFieldDefinition
 
 ### Validation
 
@@ -121,7 +121,7 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] Schema-First approach
 - [x] Code-First approach
-- [ ] Schema Builder (in development - 0.8.0)
+- [ ] Schema Builder (in development - 0.9.0)
 
 ## Supported Frameworks
 
@@ -129,7 +129,7 @@ We are currently working on the following features that are proposed for the nex
 
   - [x] Get
   - [x] Post
-  - [ ] _WebSockets_ (in development - 0.8.0)
+  - [ ] _WebSockets_ (in development - 0.10.0)
   - [x] .net Framework 4.7
   - [x] .net Framework 4.6.1
 

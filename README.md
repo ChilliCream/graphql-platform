@@ -8,8 +8,6 @@
 
 _Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook.
 
-We are currently in the process of closing some gaps and hope to finalise Version 1 by December. We have listed our progress toward version one at the bottom of this readme.
-
 ## Getting Started
 
 If you are just getting started with GraphQL a good way to learn is visiting [GraphQL.org](https://graphql.org).

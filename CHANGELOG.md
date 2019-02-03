@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for dynamic generated schema types [#558](https://github.com/ChilliCream/hotchocolate/issues/558).
 - Added generic union type [#552](https://github.com/ChilliCream/hotchocolate/issues/552).
 - Added options to AddStitchedSchema [#556](https://github.com/ChilliCream/hotchocolate/issues/556).
+- Added scoped context data to the resolver context [#537](https://github.com/ChilliCream/hotchocolate/issues/537).
 
 ### Changed
 
