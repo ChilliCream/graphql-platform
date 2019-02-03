@@ -18,13 +18,13 @@ namespace HotChocolate.DataLoader
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken);
 
-    public delegate FetchGroupe<TKey, TValue> FetchGroupeFactory<TKey, TValue>(
+    public delegate FetchGroup<TKey, TValue> FetchGroupeFactory<TKey, TValue>(
         IServiceProvider services);
 
-    public delegate Task<ILookup<TKey, TValue>> FetchGroupe<TKey, TValue>(
+    public delegate Task<ILookup<TKey, TValue>> FetchGroup<TKey, TValue>(
         IReadOnlyList<TKey> keys);
 
-    public delegate Task<ILookup<TKey, TValue>> FetchGroupeCt<TKey, TValue>(
+    public delegate Task<ILookup<TKey, TValue>> FetchGroupCt<TKey, TValue>(
         IReadOnlyList<TKey> keys,
         CancellationToken cancellationToken);
 
