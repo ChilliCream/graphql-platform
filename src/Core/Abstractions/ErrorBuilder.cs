@@ -23,9 +23,15 @@ namespace HotChocolate
             _error.Message = error.Message;
             _error.Code = error.Code;
             _error.Exception = error.Exception;
-            _error.Extensions = ImmutableDictionary
-                .CreateRange(error.Extensions);
-            _error.Locations = ImmutableList.CreateRange(error.Locations);
+            if (_error.Extensions != null && _error.Extensions.Count > 0)
+            {
+                _error.Extensions = ImmutableDictionary
+                    .CreateRange(error.Extensions);
+            }
+            if (_error.Locations != null && _error.Locations.Count > 0)
+            {
+                _error.Locations = ImmutableList.CreateRange(error.Locations);
+            }
             _error.Path = error.Path;
         }
 
