@@ -520,15 +520,15 @@
     </div>
   </div>
 
-  <div id="root"></div>
+  <div id="root" />
   <script type="text/javascript">
     window.addEventListener('load', function (event) {
 
-      var loadingWrapper = document.getElementById('loading-wrapper');
+      const loadingWrapper = document.getElementById('loading-wrapper');
       loadingWrapper.classList.add('fadeOut');
 
 
-      var root = document.getElementById('root');
+      const root = document.getElementById('root');
       root.classList.add('playgroundIn');
 
       GraphQLPlayground.init(root, {
