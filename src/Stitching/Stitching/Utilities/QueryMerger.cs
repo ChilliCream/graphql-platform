@@ -9,6 +9,7 @@ namespace HotChocolate.Stitching
         private readonly List<DocumentNode> _queryies =
             new List<DocumentNode>();
 
+
         public QueryMerger AddQuery(DocumentNode query)
         {
             if (query == null)
@@ -29,36 +30,59 @@ namespace HotChocolate.Stitching
     }
 
     public class QueryMergeRewriter
-        : QuerySyntaxRewriter<QueryMergeRewriter.QueryMergeRewriterContext>
+        : QuerySyntaxRewriter<bool>
     {
+        private readonly List<FieldNode> _fields = new List<FieldNode>();
+        private Dictionary<string, FragmentDefinitionNode> _fragments =
+            new Dictionary<string, FragmentDefinitionNode>();
+
+        private string _requestName;
+        private bool _rewriteFragments;
+
+
+
+
+        protected override FieldNode RewriteField(FieldNode node, bool first)
+        {
+            FieldNode current = node;
+            NameNode alias = CreateNewName(node.Alias ?? node.Name);
+
+            current = current.WithAlias(alias);
+
+            current = Rewrite(current, node.Arguments, first,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
+
+            if (node.SelectionSet != null)
+            {
+                current = Rewrite(current, node.SelectionSet, false,
+                    RewriteSelectionSet, current.WithSelectionSet);
+            }
+
+            return current;
+        }
 
         protected override FragmentSpreadNode RewriteFragmentSpread(
-            FragmentSpreadNode node,
-            QueryMergeRewriterContext context)
+            FragmentSpreadNode node, bool first)
         {
-            return node.WithName(context.CreateNewName(node.Name));
+            return _rewriteFragments
+                ? node.WithName(CreateNewName(node.Name))
+                : node;
         }
 
         protected override FragmentDefinitionNode RewriteFragmentDefinition(
-            FragmentDefinitionNode node,
-            QueryMergeRewriterContext context)
+            FragmentDefinitionNode node, bool first)
         {
-            return base.RewriteFragmentDefinition(
-                node.WithName(context.CreateNewName(node.Name)),
-                context);
+            return _rewriteFragments
+                ? base.RewriteFragmentDefinition(
+                    node.WithName(CreateNewName(node.Name)),
+                    first)
+                : base.RewriteFragmentDefinition(node, first);
         }
 
-
-        public class QueryMergeRewriterContext
+        public NameNode CreateNewName(NameNode name)
         {
-            public string RequestName;
-
-            public NameNode CreateNewName(NameNode name)
-            {
-                return new NameNode($"{RequestName}_{name.Value}");
-            }
+            return new NameNode($"{_requestName}_{name.Value}");
         }
     }
-
-
 }
