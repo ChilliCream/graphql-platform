@@ -63,5 +63,70 @@ namespace HotChocolate.Stitching
             // assert
             QuerySyntaxSerializer.Serialize(document).Snapshot();
         }
+
+        [Fact]
+        public void DocumentHasNoOperation()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(
+                "type Foo { s: String }");
+
+            // act
+            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            Action action = () => rewriter.AddQuery(query, "_a");
+
+            // assert
+            Assert.Equal("document",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void DocumentIsNull()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(
+                "type Foo { s: String }");
+
+            // act
+            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            Action action = () => rewriter.AddQuery(null, "_a");
+
+            // assert
+            Assert.Equal("document",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void QueriesAreNotOfTheSameOperationType()
+        {
+            // arrange
+            DocumentNode query_a = Parser.Default.Parse("query a { b }");
+            DocumentNode query_b = Parser.Default.Parse("mutation a { b }");
+
+            // act
+            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            rewriter.AddQuery(query_a, "abc");
+            Action action = () => rewriter.AddQuery(query_b, "abc");
+
+            // assert
+            Assert.Equal("document",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void RequestNameIsEmpty()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(
+                "type Foo { s: String }");
+
+            // act
+            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            Action action = () => rewriter.AddQuery(query, default(NameString));
+
+            // assert
+            Assert.Equal("requestName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
     }
 }

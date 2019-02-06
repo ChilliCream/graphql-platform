@@ -45,15 +45,17 @@ namespace HotChocolate.Stitching
 
             if (operation == null)
             {
-                throw new InvalidOperationException(
-                    "The query document must have at least one query.");
+                throw new ArgumentException(
+                    "The query document must have at least one query.",
+                    nameof(document));
             }
 
             if (_operationType.HasValue
                 && _operationType.Value != operation.Operation)
             {
-                throw new InvalidOperationException(
-                    "You can only merge operations of the same type.");
+                throw new ArgumentException(
+                    "You can only merge operations of the same type.",
+                    nameof(document));
             }
 
             _operationType = operation.Operation;
