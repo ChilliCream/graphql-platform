@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
             QueryRequest request)
         {
             return executor.ExecuteAsync(
-                request,
+                request.ToReadOnly(),
                 CancellationToken.None);
         }
 
@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
             string query)
         {
             return executor.ExecuteAsync(
-                new QueryRequest(query),
+                new QueryRequest(query).ToReadOnly(),
                 CancellationToken.None);
         }
 
@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             return executor.ExecuteAsync(
-                new QueryRequest(query),
+                new QueryRequest(query).ToReadOnly(),
                 cancellationToken);
         }
 
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
                 new QueryRequest(query)
                 {
                     VariableValues = variableValues
-                },
+                }.ToReadOnly(),
                 CancellationToken.None);
         }
 
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
                 new QueryRequest(query)
                 {
                     VariableValues = variableValues
-                },
+                }.ToReadOnly(),
                 cancellationToken);
         }
 

@@ -128,5 +128,20 @@ namespace HotChocolate.Stitching
             Assert.Equal("requestName",
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
+
+        [Fact]
+        public void CreateNewInstance_GlobalVariablesIsNull()
+        {
+            // arrange
+            DocumentNode query = Parser.Default.Parse(
+                "type Foo { s: String }");
+
+            // act
+            Action action = () => new MergeQueryRewriter(null);
+
+            // assert
+            Assert.Equal("globalVariableNames",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
     }
 }

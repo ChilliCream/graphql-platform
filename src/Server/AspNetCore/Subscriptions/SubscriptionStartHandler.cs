@@ -33,7 +33,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             IExecutionResult result =
                 await context.QueryExecutor.ExecuteAsync(
-                    request, cancellationToken)
+                    request.ToReadOnly(), cancellationToken)
                     .ConfigureAwait(false);
 
             if (result is IResponseStream responseStream)

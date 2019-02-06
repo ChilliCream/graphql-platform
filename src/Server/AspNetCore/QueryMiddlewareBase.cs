@@ -188,7 +188,7 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
 
             IExecutionResult result = await queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
+                .ExecuteAsync(request.ToReadOnly(), context.GetCancellationToken())
                 .ConfigureAwait(false);
 
             await WriteResponseAsync(context.Response, result)

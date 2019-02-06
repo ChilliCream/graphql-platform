@@ -10,6 +10,6 @@ namespace HotChocolate.Stitching
     {
         Task<IExecutionResult> ExecuteAsync(
             IResolverContext context,
-            QueryRequest request);
+            IReadOnlyQueryRequest request);
     }
 }
