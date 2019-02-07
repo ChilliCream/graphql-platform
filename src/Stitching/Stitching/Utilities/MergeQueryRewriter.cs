@@ -145,18 +145,17 @@ namespace HotChocolate.Stitching
                 NameNode responseName = node.Alias ?? node.Name;
                 NameNode alias = responseName.CreateNewName(_requestPrefix);
                 _aliases[alias.Value] = responseName.Value;
-
                 current = current.WithAlias(alias);
+            }
 
-                current = Rewrite(current, node.Arguments, first,
-                    (p, c) => RewriteMany(p, c, RewriteArgument),
-                    current.WithArguments);
+            current = Rewrite(current, node.Arguments, first,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
 
-                if (node.SelectionSet != null)
-                {
-                    current = Rewrite(current, node.SelectionSet, false,
-                        RewriteSelectionSet, current.WithSelectionSet);
-                }
+            if (node.SelectionSet != null)
+            {
+                current = Rewrite(current, node.SelectionSet, false,
+                    RewriteSelectionSet, current.WithSelectionSet);
             }
 
             return current;

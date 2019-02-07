@@ -136,7 +136,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public void requestPrefixIsEmpty()
+        public void RequestPrefixIsEmpty()
         {
             // arrange
             DocumentNode query = Parser.Default.Parse(

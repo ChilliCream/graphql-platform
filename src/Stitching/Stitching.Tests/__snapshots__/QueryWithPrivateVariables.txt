@@ -1,4 +1,4 @@
-query exec_batch($customerId: ID!) {
+query exec_batch($_b_customerId: ID!) {
   _a_customer: customerOrConsultant(id: "Q3VzdG9tZXIteDE=") {
     ... _a_customer
     ... _a_consultant
@@ -7,7 +7,7 @@ query exec_batch($customerId: ID!) {
     ... _a_customer
     ... _a_consultant
   }
-  _b_customer: customer(id: $customerId) {
+  _b_customer: customer(id: $_b_customerId) {
     name
     consultant {
       name
