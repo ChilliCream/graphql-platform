@@ -1,4 +1,4 @@
-query fetch@__hc_auto_gen {
+query fetch {
   customer(id: "Q3VzdG9tZXIteDE=") {
     name
     consultant {

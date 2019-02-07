@@ -1,4 +1,4 @@
-query fetch($customerId: ID!)@__hc_auto_gen {
+query fetch($customerId: ID!) {
   customer(id: $customerId) {
     name
     consultant {

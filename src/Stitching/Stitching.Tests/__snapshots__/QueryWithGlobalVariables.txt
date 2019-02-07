@@ -1,7 +1,7 @@
-query exec_batch($_a_fields_customerId: ID!, $_a_global: ID!, $_b_fields_customerId: ID!, $_b_global: ID!) {
+query exec_batch($_a_fields_customerId: ID!, $global: ID!, $_b_fields_customerId: ID!) {
   _a_customer: customer(id: $_a_customerId) {
     name
-    consultant(id: $_a_global) {
+    consultant(id: $global) {
       name
     }
     contracts {
@@ -12,7 +12,7 @@ query exec_batch($_a_fields_customerId: ID!, $_a_global: ID!, $_b_fields_custome
   }
   _b_customer: customer(id: $_b_customerId) {
     name
-    consultant(id: $_b_global) {
+    consultant(id: $global) {
       name
     }
     contracts {
