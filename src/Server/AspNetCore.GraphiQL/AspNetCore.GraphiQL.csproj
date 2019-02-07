@@ -25,11 +25,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="**\*.css;**\*.html;**\*.js" />
+    <None Remove="**\*.css;**\*.html;**\*.js;**\*.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="**\*.css;**\*.html;**\*.js" />
+    <EmbeddedResource Include="**\*.css;**\*.html;**\*.js;**\*.ico" />
   </ItemGroup>
 
   <ItemGroup>
