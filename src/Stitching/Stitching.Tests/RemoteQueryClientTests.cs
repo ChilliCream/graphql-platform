@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -80,6 +81,7 @@ namespace HotChocolate.Stitching
             await client.DispatchAsync(CancellationToken.None);
 
             // assert
+            Assert.Equal(1, count);
             query.Snapshot("DispatchMultipleQueries_MergedQuery");
 
             IExecutionResult result_a = await task_a;
@@ -130,11 +132,66 @@ namespace HotChocolate.Stitching
             await client.DispatchAsync(CancellationToken.None);
 
             // assert
+            Assert.Equal(1, count);
+
             IExecutionResult result_a = await task_a;
             result_a.Snapshot("DispatchMultipleQueriesAndRewriteErrors_A");
 
             IExecutionResult result_b = await task_b;
             result_b.Snapshot("DispatchMultipleQueriesAndRewriteErrors_B");
+        }
+
+        [Fact]
+        public async Task DispatchMultipleQueriesWithVariables()
+        {
+            // arrange
+            IReadOnlyQueryRequest mergedRequest = null;
+            int count = 0;
+
+            var result = new QueryResult();
+            result.Data["__0__a"] = "a";
+            result.Data["__1__a"] = "b";
+            result.Data["__1__b"] = "c";
+
+            var executor = new Mock<IQueryExecutor>();
+            executor.Setup(t => t.ExecuteAsync(
+                It.IsAny<IReadOnlyQueryRequest>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(new Func<IReadOnlyQueryRequest,
+                    CancellationToken, Task<IExecutionResult>>((r, ct) =>
+                {
+                    count++;
+                    mergedRequest = r;
+                    return Task.FromResult<IExecutionResult>(result);
+                }));
+
+            var request_a = new QueryRequest(
+                "query a($a: String) { a(b: $a) }")
+            {
+                VariableValues = new Dictionary<string, object>
+                {
+                    { "a", "foo" }
+                }
+            };
+
+            var request_b = new QueryRequest(
+                "query b { a b }");
+
+            var client = new RemoteQueryClient(
+                new EmptyServiceProvider(),
+                executor.Object);
+
+            // act
+            Task<IExecutionResult> task_a = client.ExecuteAsync(request_a);
+            Task<IExecutionResult> task_b = client.ExecuteAsync(request_b);
+            await client.DispatchAsync(CancellationToken.None);
+
+            // assert
+            await task_a;
+            await task_b;
+
+            Assert.Equal(1, count);
+            mergedRequest.Snapshot();
         }
     }
 }

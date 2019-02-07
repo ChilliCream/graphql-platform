@@ -67,7 +67,8 @@ namespace HotChocolate.Stitching
                 request.Services = _services;
 
                 var result = (IReadOnlyQueryResult)await _queryExecutor
-                    .ExecuteAsync(request, cancellationToken);
+                    .ExecuteAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
 
                 requests[0].Promise.SetResult(result);
             }
@@ -200,7 +201,7 @@ namespace HotChocolate.Stitching
             return result;
         }
 
-        private IError RewriteError(IError error, string responseName)
+        private static IError RewriteError(IError error, string responseName)
         {
             var path = new List<object>();
             path.Add(responseName);
@@ -212,7 +213,7 @@ namespace HotChocolate.Stitching
             return error.WithPath(path);
         }
 
-        private bool TryResolveField(
+        private static bool TryResolveField(
             IError error,
             IDictionary<string, string> aliases,
             out string responseName)

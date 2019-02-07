@@ -88,7 +88,7 @@ namespace HotChocolate.Stitching
 
         private static async Task<IReadOnlyQueryResult> ExecuteQueryAsync(
             IResolverContext context,
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             string schemaName)
         {
             IRemoteQueryClient remoteQueryClient =
