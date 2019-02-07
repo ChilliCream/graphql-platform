@@ -204,16 +204,14 @@ namespace HotChocolate.Stitching
 
             serviceCollection.AddSingleton(httpClientFactory.Object);
 
-            serviceCollection.AddSingleton(
-                StitchingContextBuilder.New()
-                    .AddExecutor(RemoteExecutorBuilder.New()
-                        .SetSchemaName("Contract")
-                        .SetSchema(FileResource.Open("Contract.graphql"))
-                        .AddScalarType<DateTimeType>())
-                    .AddExecutor(RemoteExecutorBuilder.New()
-                        .SetSchemaName("customer")
-                        .SetSchema(FileResource.Open("Customer.graphql")))
-                    .Build());
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("contract")
+                .SetSchema(FileResource.Open("Contract.graphql"))
+                .AddScalarType<DateTimeType>());
+
+            serviceCollection.AddRemoteQueryExecutor(b => b
+                .SetSchemaName("customer")
+                .SetSchema(FileResource.Open("Customer.graphql")));
 
             serviceCollection.AddStitchedSchema(
                 FileResource.Open("StitchingComputed.graphql"),

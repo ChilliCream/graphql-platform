@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("query a { a }").ToReadOnly();
+            var request = new QueryRequest("query a { a }");
 
             var context = new QueryContext
             (
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
                 c.RegisterQueryType<DisposableQuery>();
             });
 
-            var request = new QueryRequest("{ isDisposable }").ToReadOnly();
+            var request = new QueryRequest("{ isDisposable }");
 
             var context = new QueryContext
             (
@@ -91,7 +91,7 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ isDisposable }")
             {
                 InitialValue = rootValue
-            }.ToReadOnly();
+            };
 
             var context = new QueryContext
             (
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution
                 c.RegisterQueryType<DisposableQuery>();
             });
 
-            var request = new QueryRequest("{ isDisposable }").ToReadOnly();
+            var request = new QueryRequest("{ isDisposable }");
 
             var context = new QueryContext
             (
@@ -167,7 +167,7 @@ namespace HotChocolate.Execution
             var request = new QueryRequest("{ isDisposable }")
             {
                 InitialValue = rootValue
-            }.ToReadOnly();
+            };
 
             var context = new QueryContext
             (
@@ -202,7 +202,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("query a { a }").ToReadOnly();
+            var request = new QueryRequest("query a { a }");
 
             var context = new QueryContext
             (
@@ -236,7 +236,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("{ a } query a { a }").ToReadOnly();
+            var request = new QueryRequest("{ a } query a { a }");
 
             var context = new QueryContext
             (
@@ -276,8 +276,7 @@ namespace HotChocolate.Execution
             });
 
             var request = new QueryRequest(
-                "query a { a } query b { a }", "c")
-                .ToReadOnly();
+                "query a { a } query b { a }", "c");
 
             var context = new QueryContext
             (
@@ -319,7 +318,7 @@ namespace HotChocolate.Execution
                     .To("Foo", "a");
             });
 
-            var request = new QueryRequest("query a { a }").ToReadOnly();
+            var request = new QueryRequest("query a { a }");
 
             var context = new QueryContext
             (
@@ -359,7 +358,7 @@ namespace HotChocolate.Execution
                 {
                     { "a", "abc" }
                 }
-            }.ToReadOnly();
+            };
 
             var context = new QueryContext
             (

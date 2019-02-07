@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public class QueryRequest
+        : IReadOnlyQueryRequest
     {
         public QueryRequest(string query)
         {
@@ -48,10 +49,5 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<string, object> Properties { get; set; }
 
         public IServiceProvider Services { get; set; }
-
-        public IReadOnlyQueryRequest ToReadOnly()
-        {
-            return new ReadOnlyQueryRequest(this);
-        }
     }
 }

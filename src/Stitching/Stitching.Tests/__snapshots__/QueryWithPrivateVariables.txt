@@ -1,0 +1,45 @@
+query exec_batch($_b_customerId: ID!) {
+  _a_customer: customerOrConsultant(id: "Q3VzdG9tZXIteDE=") {
+    ... _a_customer
+    ... _a_consultant
+  }
+  _a_consultant: customerOrConsultant(id: "Q29uc3VsdGFudC14MQ==") {
+    ... _a_customer
+    ... _a_consultant
+  }
+  _b_customer: customer(id: $_b_customerId) {
+    name
+    consultant {
+      name
+    }
+    contracts {
+      id
+      ... on LifeInsuranceContract {
+        premium
+      }
+      ... on SomeOtherContract {
+        expiryDate
+      }
+    }
+  }
+}
+
+fragment _a_customer on Customer {
+  name
+  consultant {
+    name
+  }
+  contracts {
+    id
+    ... on LifeInsuranceContract {
+      premium
+    }
+    ... on SomeOtherContract {
+      expiryDate
+    }
+  }
+}
+
+fragment _a_consultant on Consultant {
+  name
+}

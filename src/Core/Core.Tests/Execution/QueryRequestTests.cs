@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
             };
 
             // act
-            var copy = new QueryRequest(original.ToReadOnly());
+            var copy = new QueryRequest(original);
 
             // assert
             Assert.Equal("abc", copy.Query);

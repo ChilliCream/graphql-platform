@@ -53,8 +53,7 @@ namespace HotChocolate.Execution
                      null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var observable = new DiagnosticListener("Foo");
 

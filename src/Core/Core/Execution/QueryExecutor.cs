@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
         public ISchema Schema { get; }
 
         public Task<IExecutionResult> ExecuteAsync(
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             CancellationToken cancellationToken)
         {
             if (request == null)
@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
             var context = new QueryContext(
                 Schema,
                 serviceScope,
-                request.ToReadOnly(),
+                request,
                 fs => _fieldMiddlewareCompiler.GetMiddleware(fs.Field));
 
             return ExecuteMiddlewareAsync(context);
