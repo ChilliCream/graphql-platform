@@ -78,8 +78,7 @@ namespace HotChocolate.Stitching
 
             return new QueryRequest(QuerySyntaxSerializer.Serialize(query))
             {
-                VariableValues = CreateVariables(variableValues),
-                Services = context.Service<IServiceProvider>()
+                VariableValues = CreateVariables(variableValues)
             };
         }
 

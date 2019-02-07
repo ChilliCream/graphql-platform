@@ -37,6 +37,11 @@ namespace HotChocolate.Stitching
                 return Task.CompletedTask;
             }
 
+            if (requests.Count == 1)
+            {
+
+            }
+
             var rewriter = new MergeQueryRewriter();
             var variableValues = new Dictionary<string, object>();
 
@@ -52,41 +57,74 @@ namespace HotChocolate.Stitching
                 cancellationToken);
         }
 
+        private async Task DispatchSingleRequestsAsync(
+            IList<BufferedRequest> requests,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var request = new QueryRequest(requests[0].Request);
+                request.Services = _services;
+
+                var result = (IReadOnlyQueryResult)await _queryExecutor
+                    .ExecuteAsync(request, cancellationToken);
+
+                requests[0].Promise.SetResult(result);
+            }
+            catch (Exception ex)
+            {
+                requests[0].Promise.SetException(ex);
+            }
+        }
+
         private async Task DispatchRequestsAsync(
             IList<BufferedRequest> requests,
             DocumentNode mergedQuery,
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
-            var mergedRequest = new QueryRequest(
-                QuerySyntaxSerializer.Serialize(mergedQuery))
+            int index = 0;
+            try
             {
-                VariableValues = variableValues,
-                Services = _services
-            };
-
-            var mergedResult = (IReadOnlyQueryResult)await _queryExecutor
-                .ExecuteAsync(mergedRequest, cancellationToken);
-            var handledErrors = new HashSet<IError>();
-
-            for (int i = 0; i < requests.Count; i++)
-            {
-                IQueryResult result = ExtractResult(
-                    requests[i].Aliases,
-                    mergedResult,
-                    handledErrors);
-
-                if (handledErrors.Count < mergedResult.Errors.Count
-                    && i == requests.Count - 1)
+                var mergedRequest = new QueryRequest(
+                    QuerySyntaxSerializer.Serialize(mergedQuery))
                 {
-                    foreach (IError error in mergedResult.Errors
-                        .Except(handledErrors))
-                    {
-                        result.Errors.Add(error);
-                    }
-                }
+                    VariableValues = variableValues,
+                    Services = _services
+                };
 
-                requests[i].Promise.SetResult(result);
+                var mergedResult = (IReadOnlyQueryResult)await _queryExecutor
+                    .ExecuteAsync(mergedRequest, cancellationToken);
+                var handledErrors = new HashSet<IError>();
+
+                for (int i = 0; i < requests.Count; i++)
+                {
+                    index = i;
+
+                    IQueryResult result = ExtractResult(
+                        requests[i].Aliases,
+                        mergedResult,
+                        handledErrors);
+
+                    if (handledErrors.Count < mergedResult.Errors.Count
+                        && i == requests.Count - 1)
+                    {
+                        foreach (IError error in mergedResult.Errors
+                            .Except(handledErrors))
+                        {
+                            result.Errors.Add(error);
+                        }
+                    }
+
+                    requests[i].Promise.SetResult(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                for (int i = index; i < requests.Count; i++)
+                {
+                    requests[i].Promise.SetException(ex);
+                }
             }
         }
 

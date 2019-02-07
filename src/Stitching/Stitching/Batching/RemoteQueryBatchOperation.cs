@@ -34,7 +34,8 @@ namespace HotChocolate.Stitching
             if (_bufferSize > 0)
             {
                 await Task.WhenAll(_clients.Select(t =>
-                   t.DispatchAsync(cancellationToken)));
+                   t.DispatchAsync(cancellationToken)))
+                   .ConfigureAwait(false);
             }
 
             UpdateBufferSize();
