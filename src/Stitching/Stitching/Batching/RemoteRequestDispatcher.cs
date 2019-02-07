@@ -39,7 +39,7 @@ namespace HotChocolate.Stitching
 
             if (requests.Count == 1)
             {
-
+                return DispatchSingleRequestsAsync(requests, cancellationToken);
             }
 
             var rewriter = new MergeQueryRewriter();
@@ -148,11 +148,14 @@ namespace HotChocolate.Stitching
             IDictionary<string, object> merged,
             NameString requestPrefix)
         {
-            foreach (KeyValuePair<string, object> item in original)
+            if (original != null)
             {
-                string variableName = MergeUtils.CreateNewName(
-                    item.Key, requestPrefix);
-                merged.Add(variableName, item.Value);
+                foreach (KeyValuePair<string, object> item in original)
+                {
+                    string variableName = MergeUtils.CreateNewName(
+                        item.Key, requestPrefix);
+                    merged.Add(variableName, item.Value);
+                }
             }
         }
 
@@ -173,16 +176,53 @@ namespace HotChocolate.Stitching
 
             foreach (IError error in mergedResult.Errors)
             {
-                if (error.Path != null
-                    && error.Path.FirstOrDefault() is string s
-                    && aliases.ContainsKey(s))
+                if (TryResolveField(error, aliases, out string responseName))
                 {
+                    var path = new List<object>();
+                    path.Add(responseName);
+                    if (error.Path.Count > 1)
+                    {
+                        path.AddRange(error.Path.Skip(1));
+                    }
+
                     handledErrors.Add(error);
-                    result.Errors.Add(error);
+                    result.Errors.Add(RewriteError(error, responseName));
                 }
             }
 
             return result;
+        }
+
+        private IError RewriteError(IError error, string responseName)
+        {
+            var path = new List<object>();
+            path.Add(responseName);
+            if (error.Path.Count > 1)
+            {
+                path.AddRange(error.Path.Skip(1));
+            }
+
+            return error.WithPath(path);
+        }
+
+        private bool TryResolveField(
+            IError error,
+            IDictionary<string, string> aliases,
+            out string responseName)
+        {
+            if (error.Path != null)
+            {
+                string rootField = error.Path.FirstOrDefault()?.ToString();
+                if (rootField != null
+                    && aliases.TryGetValue(rootField, out string s))
+                {
+                    responseName = s;
+                    return true;
+                }
+            }
+
+            responseName = null;
+            return false;
         }
     }
 }

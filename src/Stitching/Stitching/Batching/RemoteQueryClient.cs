@@ -30,7 +30,6 @@ namespace HotChocolate.Stitching
         public int BufferSize => _bufferSize;
 
         public Task<IExecutionResult> ExecuteAsync(
-            IResolverContext context,
             IReadOnlyQueryRequest request)
         {
             var bufferRequest = new BufferedRequest(request);

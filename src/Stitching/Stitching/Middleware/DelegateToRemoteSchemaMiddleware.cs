@@ -92,7 +92,7 @@ namespace HotChocolate.Stitching
                     .GetRemoteQueryClient(schemaName);
 
             IExecutionResult result = await remoteQueryClient
-                    .ExecuteAsync(context, request)
+                    .ExecuteAsync(request)
                     .ConfigureAwait(false);
 
             if (result is IReadOnlyQueryResult queryResult)

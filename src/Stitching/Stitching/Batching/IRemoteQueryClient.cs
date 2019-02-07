@@ -18,7 +18,6 @@ namespace HotChocolate.Stitching
         int BufferSize { get; }
 
         Task<IExecutionResult> ExecuteAsync(
-            IResolverContext context,
             IReadOnlyQueryRequest request);
 
         Task DispatchAsync(CancellationToken cancellationToken);
