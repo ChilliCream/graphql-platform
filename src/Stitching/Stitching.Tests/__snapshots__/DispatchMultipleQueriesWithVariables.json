@@ -1,0 +1,10 @@
+{
+  "Query": "query exec_batch($__0__a: String) {\n  __0__a: a(b: $__0__a)\n  __1__a: a\n  __1__b: b\n}",
+  "OperationName": null,
+  "VariableValues": {
+    "__0__a": "foo"
+  },
+  "InitialValue": null,
+  "Properties": null,
+  "Services": {}
+}
