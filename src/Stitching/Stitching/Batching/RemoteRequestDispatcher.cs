@@ -167,7 +167,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private IQueryResult ExtractResult(
+        private static IQueryResult ExtractResult(
             IDictionary<string, string> aliases,
             IReadOnlyQueryResult mergedResult,
             ICollection<IError> handledErrors)
