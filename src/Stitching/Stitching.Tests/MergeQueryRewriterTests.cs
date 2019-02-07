@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using Xunit;
@@ -65,6 +67,26 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public void AliasesMapIsCorrect()
+        {
+            // arrange
+            DocumentNode query_a = Parser.Default.Parse(
+                FileResource.Open("MergeQueryWithVariable.graphql"));
+            DocumentNode query_b = Parser.Default.Parse(
+                FileResource.Open("MergeQueryWithVariable.graphql"));
+
+            // act
+            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            IDictionary<string, string> a = rewriter.AddQuery(query_a, "_a");
+            IDictionary<string, string> b = rewriter.AddQuery(query_b, "_b");
+
+            // assert
+            a.Snapshot("AliasesMapIsCorrect_A");
+            b.Snapshot("AliasesMapIsCorrect_B");
+        }
+
+
+        [Fact]
         public void DocumentHasNoOperation()
         {
             // arrange
@@ -114,7 +136,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public void RequestNameIsEmpty()
+        public void requestPrefixIsEmpty()
         {
             // arrange
             DocumentNode query = Parser.Default.Parse(
@@ -125,7 +147,7 @@ namespace HotChocolate.Stitching
             Action action = () => rewriter.AddQuery(query, default(NameString));
 
             // assert
-            Assert.Equal("requestName",
+            Assert.Equal("requestPrefix",
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
 
@@ -141,7 +163,7 @@ namespace HotChocolate.Stitching
 
             // assert
             Assert.Equal("globalVariableNames",
-                Assert.Throws<ArgumentException>(action).ParamName);
+                Assert.Throws<ArgumentNullException>(action).ParamName);
         }
     }
 }
