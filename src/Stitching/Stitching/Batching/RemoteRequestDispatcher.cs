@@ -88,7 +88,7 @@ namespace HotChocolate.Stitching
             try
             {
                 var mergedRequest = new QueryRequest(
-                    QuerySyntaxSerializer.Serialize(mergedQuery))
+                    QuerySyntaxSerializer.Serialize(mergedQuery, false))
                 {
                     VariableValues = variableValues,
                     Services = _services

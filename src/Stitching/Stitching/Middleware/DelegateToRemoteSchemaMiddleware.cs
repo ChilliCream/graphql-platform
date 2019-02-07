@@ -76,7 +76,8 @@ namespace HotChocolate.Stitching
                 .AddFragmentDefinitions(extractedField.Fragments)
                 .Build();
 
-            return new QueryRequest(QuerySyntaxSerializer.Serialize(query))
+            return new QueryRequest(QuerySyntaxSerializer
+                .Serialize(query, false))
             {
                 VariableValues = CreateVariables(variableValues),
                 Properties = new Dictionary<string, object>
