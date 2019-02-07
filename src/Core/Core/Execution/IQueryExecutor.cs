@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         ISchema Schema { get; }
 
         Task<IExecutionResult> ExecuteAsync(
-            QueryRequest request,
+            IReadOnlyQueryRequest request,
             CancellationToken cancellationToken);
     }
 }

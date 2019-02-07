@@ -136,6 +136,13 @@ namespace HotChocolate
             return error;
         }
 
+        public IError WithPath(IReadOnlyCollection<object> path)
+        {
+            Error error = Copy();
+            error.Path = path;
+            return error;
+        }
+
         internal Error Copy()
         {
             return new Error

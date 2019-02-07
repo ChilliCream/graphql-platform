@@ -319,9 +319,20 @@ namespace HotChocolate.Execution
 
         public IError WithPath(Path path)
         {
-            return new QueryError(Message,
+            return new QueryError(
+                Message,
                 path?.ToCollection(),
-                Locations, _extensions);
+                Locations,
+                _extensions);
+        }
+
+        public IError WithPath(IReadOnlyCollection<object> path)
+        {
+            return new QueryError(
+                Message,
+                path,
+                Locations,
+                _extensions);
         }
 
         public IError WithLocations(IReadOnlyCollection<Location> locations)

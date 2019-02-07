@@ -18,8 +18,7 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var context = new QueryContext
             (
@@ -54,8 +53,7 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{");
 
             var context = new QueryContext
             (
