@@ -16,7 +16,7 @@ namespace HotChocolate.Stitching
         private readonly RemoteRequestDispatcher _dispatcher;
         private List<BufferedRequest> _bufferedRequests =
             new List<BufferedRequest>();
-        private int _bufferSize = 0;
+        private int _bufferSize;
 
         public event RequestBufferedEventHandler BufferedRequest;
 
