@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import GraphiQL from "graphiql";
+import "whatwg-fetch";
+import "es6-promise/auto";
 
 import "graphiql/graphiql.css";
 

@@ -25,11 +25,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js" />
+    <None Remove="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js;..\AspNetCore.GraphiQL\**\*.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js" />
+    <EmbeddedResource Include="..\AspNetCore.GraphiQL\**\*.css;..\AspNetCore.GraphiQL\**\*.html;..\AspNetCore.GraphiQL\**\*.js;..\AspNetCore.GraphiQL\**\*.ico" />
   </ItemGroup>
 
   <ItemGroup>
