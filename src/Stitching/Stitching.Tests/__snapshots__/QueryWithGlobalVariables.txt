@@ -24,9 +24,9 @@ query exec_batch($fields_customerId: ID!, $global: ID!) {
 }
 
 fragment life on LifeInsuranceContract {
-  _a_premium: premium
+  premium
 }
 
 fragment other on SomeOtherContract {
-  _a_expiryDate: expiryDate
+  expiryDate
 }

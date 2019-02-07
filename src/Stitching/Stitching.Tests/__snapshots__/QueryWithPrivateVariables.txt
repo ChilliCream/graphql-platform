@@ -25,11 +25,11 @@ query exec_batch($customerId: ID!) {
 }
 
 fragment _a_customer on Customer {
-  _a_name: name
-  _a_consultant: consultant {
+  name
+  consultant {
     name
   }
-  _a_contracts: contracts {
+  contracts {
     id
     ... on LifeInsuranceContract {
       premium
@@ -41,5 +41,5 @@ fragment _a_customer on Customer {
 }
 
 fragment _a_consultant on Consultant {
-  _a_name: name
+  name
 }
