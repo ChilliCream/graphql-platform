@@ -1,4 +1,4 @@
-query customer_query($fields_customerId: ID!, $global: ID!) @__hc_auto_gen {
+query customer_query($fields_customerId: ID!, $global: ID!) {
   customer(id: $customerId) {
     name
     consultant(id: $global) {

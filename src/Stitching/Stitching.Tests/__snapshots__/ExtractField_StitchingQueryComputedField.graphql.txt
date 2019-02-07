@@ -1,4 +1,4 @@
-query fetch {
+query fetch@__hc_auto_gen {
   customer(id: "Q3VzdG9tZXIteDE=") {
     id
     name

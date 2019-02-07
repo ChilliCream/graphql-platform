@@ -19,9 +19,9 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            rewriter.AddQuery(Parser.Default.Parse(query_a), "_a");
-            rewriter.AddQuery(Parser.Default.Parse(query_b), "_b");
-            rewriter.AddQuery(Parser.Default.Parse(query_c), "_c");
+            rewriter.AddQuery(Parser.Default.Parse(query_a), "_a", false);
+            rewriter.AddQuery(Parser.Default.Parse(query_b), "_b", false);
+            rewriter.AddQuery(Parser.Default.Parse(query_c), "_c", false);
             DocumentNode document = rewriter.Merge();
 
             // assert
@@ -39,8 +39,8 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            rewriter.AddQuery(query_a, "_a");
-            rewriter.AddQuery(query_b, "_b");
+            rewriter.AddQuery(query_a, "_a", false);
+            rewriter.AddQuery(query_b, "_b", false);
             DocumentNode document = rewriter.Merge();
 
             // assert
@@ -57,9 +57,10 @@ namespace HotChocolate.Stitching
                 FileResource.Open("MergeQueryWithVariable.graphql"));
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            rewriter.AddQuery(query_a, "_a");
-            rewriter.AddQuery(query_b, "_b");
+            var rewriter = new MergeQueryRewriter(
+                new HashSet<string>(new[] { "global" }));
+            rewriter.AddQuery(query_a, "_a", true);
+            rewriter.AddQuery(query_b, "_b", true);
             DocumentNode document = rewriter.Merge();
 
             // assert
@@ -77,8 +78,10 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            IDictionary<string, string> a = rewriter.AddQuery(query_a, "_a");
-            IDictionary<string, string> b = rewriter.AddQuery(query_b, "_b");
+            IDictionary<string, string> a =
+                rewriter.AddQuery(query_a, "_a", true);
+            IDictionary<string, string> b =
+                rewriter.AddQuery(query_b, "_b", true);
 
             // assert
             a.Snapshot("AliasesMapIsCorrect_A");
@@ -95,7 +98,7 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            Action action = () => rewriter.AddQuery(query, "_a");
+            Action action = () => rewriter.AddQuery(query, "_a", false);
 
             // assert
             Assert.Equal("document",
@@ -111,7 +114,7 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            Action action = () => rewriter.AddQuery(null, "_a");
+            Action action = () => rewriter.AddQuery(null, "_a", false);
 
             // assert
             Assert.Equal("document",
@@ -127,8 +130,8 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            rewriter.AddQuery(query_a, "abc");
-            Action action = () => rewriter.AddQuery(query_b, "abc");
+            rewriter.AddQuery(query_a, "abc", false);
+            Action action = () => rewriter.AddQuery(query_b, "abc", false);
 
             // assert
             Assert.Equal("document",
@@ -144,7 +147,8 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            Action action = () => rewriter.AddQuery(query, default(NameString));
+            Action action = () => rewriter.AddQuery(
+                query, default(NameString), false);
 
             // assert
             Assert.Equal("requestPrefix",

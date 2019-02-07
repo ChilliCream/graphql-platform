@@ -4,14 +4,16 @@
     "b": "c"
   },
   "Extensions": {},
-  "Errors": [{
-    "Message": "foo",
-    "Code": null,
-    "Path": [
-      "b"
-    ],
-    "Locations": [],
-    "Exception": null,
-    "Extensions": {}
-  }]
+  "Errors": [
+    {
+      "Message": "foo",
+      "Code": null,
+      "Path": [
+        "b"
+      ],
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ]
 }

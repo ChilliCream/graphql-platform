@@ -1,4 +1,4 @@
-query fetch($fields_bar: String) {
+query fetch($fields_bar: String)@__hc_auto_gen {
   a {
     b {
       c {
