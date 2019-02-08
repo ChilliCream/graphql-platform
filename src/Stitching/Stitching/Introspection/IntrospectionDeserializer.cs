@@ -53,7 +53,10 @@ namespace HotChocolate.Stitching.Introspection
                     return CreateObject(type);
 
                 case TypeKind.Scalar:
+                    return CreateScalar(type);
+
                 case TypeKind.Union:
+                    return CreateUnion(type);
 
                 default:
                     throw new NotSupportedException(
@@ -172,7 +175,7 @@ namespace HotChocolate.Stitching.Introspection
                 new NameNode(type.Name),
                 new StringValueNode(type.Name),
                 Array.Empty<DirectiveNode>(),
-                CreateInterfaceRefs(type.Interfaces),
+                CreateNamedTypeRefs(type.Interfaces),
                 CreateFields(type.Fields)
             );
         }
@@ -199,7 +202,32 @@ namespace HotChocolate.Stitching.Introspection
             return list;
         }
 
-        private static IReadOnlyList<NamedTypeNode> CreateInterfaceRefs(
+        private static UnionTypeDefinitionNode CreateUnion(
+            FullType type)
+        {
+            return new UnionTypeDefinitionNode
+            (
+                null,
+                new NameNode(type.Name),
+                new StringValueNode(type.Name),
+                Array.Empty<DirectiveNode>(),
+                CreateNamedTypeRefs(type.PossibleTypes)
+            );
+        }
+
+        private static ScalarTypeDefinitionNode CreateScalar(
+            FullType type)
+        {
+            return new ScalarTypeDefinitionNode
+            (
+                null,
+                new NameNode(type.Name),
+                new StringValueNode(type.Name),
+                Array.Empty<DirectiveNode>()
+            );
+        }
+
+        private static IReadOnlyList<NamedTypeNode> CreateNamedTypeRefs(
             IEnumerable<TypeRef> interfaces)
         {
             var list = new List<NamedTypeNode>();
