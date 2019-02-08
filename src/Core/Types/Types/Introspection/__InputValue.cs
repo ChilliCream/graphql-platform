@@ -7,14 +7,15 @@ namespace HotChocolate.Types.Introspection
     internal sealed class __InputValue
         : ObjectType<InputField>
     {
-        protected override void Configure(IObjectTypeDescriptor<InputField> descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor<InputField> descriptor)
         {
             descriptor.Name("__InputValue");
 
             descriptor.Description(
-                "Arguments provided to Fields or Directives and the input fields of an " +
-                "InputObject are represented as Input Values which describe their type " +
-                "and optionally a default value.");
+                "Arguments provided to Fields or Directives and the input " +
+                "fields of an InputObject are represented as Input Values " +
+                "which describe their type and optionally a default value.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
@@ -28,8 +29,8 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Field(t => t.DefaultValue)
                 .Description(
-                    "A GraphQL-formatted string representing the default value for this " +
-                    "input value.")
+                    "A GraphQL-formatted string representing the default " +
+                    "value for this input value.")
                 .Type<StringType>()
                 .Resolver(c =>
                 {
@@ -42,7 +43,9 @@ namespace HotChocolate.Types.Introspection
 
                     if (field.DefaultValue != null)
                     {
-                        object nativeValue = field.Type.ParseLiteral(field.DefaultValue);
+                        object nativeValue = field.Type.ParseLiteral(
+                            field.DefaultValue);
+
                         if (field.Type is ISerializableType serializableType)
                         {
                             return JsonConvert.SerializeObject(

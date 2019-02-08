@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -379,6 +381,30 @@ namespace HotChocolate.Language
             {
                 writer.WriteIndentation();
             }
+        }
+
+        public static string Serialize(ISyntaxNode node) =>
+            Serialize(node, true);
+
+        public static string Serialize(ISyntaxNode node, bool useIndentation)
+        {
+            var text = new StringBuilder();
+            Serialize(node, new StringWriter(text), useIndentation);
+            return text.ToString();
+        }
+
+        public static void Serialize(
+            ISyntaxNode node,
+            TextWriter writer) =>
+            Serialize(node, writer, true);
+
+        public static void Serialize(
+            ISyntaxNode node,
+            TextWriter writer,
+            bool useIndentation)
+        {
+            var serializer = new QuerySyntaxSerializer(useIndentation);
+            serializer.Visit(node, new DocumentWriter(writer));
         }
     }
 }
