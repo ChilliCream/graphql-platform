@@ -383,10 +383,10 @@ namespace HotChocolate.Language
             }
         }
 
-        public static string Serialize(ISyntaxNode node) =>
+        public static string Serialize(DocumentNode node) =>
             Serialize(node, true);
 
-        public static string Serialize(ISyntaxNode node, bool useIndentation)
+        public static string Serialize(DocumentNode node, bool useIndentation)
         {
             var text = new StringBuilder();
             Serialize(node, new StringWriter(text), useIndentation);
@@ -394,16 +394,16 @@ namespace HotChocolate.Language
         }
 
         public static void Serialize(
-            ISyntaxNode node,
+            DocumentNode node,
             TextWriter writer) =>
             Serialize(node, writer, true);
 
         public static void Serialize(
-            ISyntaxNode node,
+            DocumentNode node,
             TextWriter writer,
             bool useIndentation)
         {
-            var serializer = new QuerySyntaxSerializer(useIndentation);
+            var serializer = new SchemaSyntaxSerializer(useIndentation);
             serializer.Visit(node, new DocumentWriter(writer));
         }
     }

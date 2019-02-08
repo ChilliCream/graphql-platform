@@ -49,6 +49,7 @@ namespace HotChocolate.Stitching.Introspection
 
                 case TypeKind.Interface:
                     return CreateInterface(type);
+
                 case TypeKind.Object:
                     return CreateObject(type);
 
@@ -70,7 +71,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Description),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
                 CreateEnumValues(type.EnumValues)
             );
@@ -88,7 +89,7 @@ namespace HotChocolate.Stitching.Introspection
                 (
                     null,
                     new NameNode(value.Name),
-                    new StringValueNode(value.Description),
+                    CreateDescription(value.Description),
                     CreateDirectives(
                         value.IsDepricated,
                         value.DeprecationReason)
@@ -105,7 +106,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Description),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
                 CreateInputVals(type.InputFields)
             );
@@ -122,7 +123,7 @@ namespace HotChocolate.Stitching.Introspection
                 (
                     null,
                     new NameNode(field.Name),
-                    new StringValueNode(field.Name),
+                    CreateDescription(field.Description),
                     CreateTypeReference(field.Type),
                     NullValueNode.Default, // TODO : create a default value deserializer
                     Array.Empty<DirectiveNode>()
@@ -160,7 +161,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Name),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
                 CreateFields(type.Fields)
             );
@@ -173,7 +174,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Name),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
                 CreateNamedTypeRefs(type.Interfaces),
                 CreateFields(type.Fields)
@@ -191,7 +192,7 @@ namespace HotChocolate.Stitching.Introspection
                 (
                     null,
                     new NameNode(field.Name),
-                    new StringValueNode(field.Name),
+                    CreateDescription(field.Description),
                     CreateInputVals(field.Args),
                     CreateTypeReference(field.Type),
                     CreateDirectives(
@@ -209,7 +210,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Name),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>(),
                 CreateNamedTypeRefs(type.PossibleTypes)
             );
@@ -222,7 +223,7 @@ namespace HotChocolate.Stitching.Introspection
             (
                 null,
                 new NameNode(type.Name),
-                new StringValueNode(type.Name),
+                CreateDescription(type.Description),
                 Array.Empty<DirectiveNode>()
             );
         }
@@ -259,6 +260,13 @@ namespace HotChocolate.Stitching.Introspection
                 };
             }
             return Array.Empty<DirectiveNode>();
+        }
+
+        private static StringValueNode CreateDescription(string description)
+        {
+            return string.IsNullOrEmpty(description)
+                ? null
+                : new StringValueNode(description);
         }
     }
 }
