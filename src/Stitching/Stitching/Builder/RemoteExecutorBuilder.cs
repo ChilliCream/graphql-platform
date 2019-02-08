@@ -1,13 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Introspection;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
     public class RemoteExecutorBuilder
     {
+        private const string _introspectionQuery =
+            "HotChocolate.Stitching" +
+            ".Resources.IntrospectionQuery.graphql";
         private string _schemaName;
         private string _schema;
         private readonly List<Type> _scalarTypes = new List<Type>();
@@ -74,6 +81,58 @@ namespace HotChocolate.Stitching
 
             _scalarTypes.Add(scalarType);
             return this;
+        }
+
+        public async Task<IRemoteExecutorAccessor> BuildAsync(
+            Func<string, HttpClient> clientFactory)
+        {
+            if (string.IsNullOrEmpty(_schemaName))
+            {
+                throw new InvalidOperationException(
+                    "Cannot build a remote executor without a schema name.");
+            }
+
+            DocumentNode schemaDocument;
+
+            if (string.IsNullOrEmpty(_schema))
+            {
+                var queryClient = new HttpQueryClient();
+
+                var request = new RemoteQueryRequest
+                {
+                    Query = EmbeddedResources.OpenText(_introspectionQuery)
+                };
+
+                string json = await queryClient.FetchStringAsync(
+                    request, clientFactory(_schemaName));
+                schemaDocument = IntrospectionDeserializer.Deserialize(json);
+            }
+            else
+            {
+                schemaDocument = Parser.Default.Parse(_schema);
+            }
+
+            ISchema schema = Schema.Create(
+                schemaDocument,
+                c =>
+                {
+                    foreach (Type type in _scalarTypes)
+                    {
+                        c.RegisterType(type);
+                    }
+
+                    foreach (ScalarType instance in _scalarTypeInstances)
+                    {
+                        c.RegisterType(instance);
+                    }
+
+                    c.UseNullResolver();
+                });
+
+            return new RemoteExecutorAccessor(
+                _schemaName,
+                schema.MakeExecutable(b =>
+                    b.UseQueryDelegationPipeline(_schemaName)));
         }
 
         public IRemoteExecutorAccessor Build()

@@ -28,6 +28,27 @@ namespace HotChocolate.Stitching
             RemoteQueryRequest request,
             HttpClient httpClient)
         {
+            string result = await FetchStringAsync(request, httpClient)
+                .ConfigureAwait(false);
+
+            return HttpResponseDeserializer.Deserialize(
+                JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
+        }
+
+        public async Task<string> FetchStringAsync(
+            RemoteQueryRequest request,
+            HttpClient httpClient)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (httpClient == null)
+            {
+                throw new ArgumentNullException(nameof(httpClient));
+            }
+
             var content = new StringContent(
                 SerializeRemoteRequest(request),
                 Encoding.UTF8,
@@ -37,11 +58,8 @@ namespace HotChocolate.Stitching
                 await httpClient.PostAsync(default(Uri), content)
                     .ConfigureAwait(false);
 
-            string result = await response.Content.ReadAsStringAsync()
+            return await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
-
-            return HttpResponseDeserializer.Deserialize(
-                JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
         }
 
         private RemoteQueryRequest CreateRemoteRequest(

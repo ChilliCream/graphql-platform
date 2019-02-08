@@ -60,6 +60,25 @@ namespace HotChocolate
 
         public static IServiceCollection AddRemoteQueryExecutor(
             this IServiceCollection services,
+            IRemoteExecutorAccessor executorAccessor)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (executorAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(executorAccessor));
+            }
+
+            services.TryAddStitchingContext();
+            services.AddSingleton<IRemoteExecutorAccessor>(executorAccessor);
+            return services;
+        }
+
+        public static IServiceCollection AddRemoteQueryExecutor(
+            this IServiceCollection services,
             string schemaName,
             Func<IServiceProvider, IQueryExecutor> queryExecutorFactory)
         {
