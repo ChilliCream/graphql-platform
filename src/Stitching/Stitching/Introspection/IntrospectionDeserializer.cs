@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Stitching.Introspection
 {
@@ -125,7 +126,7 @@ namespace HotChocolate.Stitching.Introspection
                     new NameNode(field.Name),
                     CreateDescription(field.Description),
                     CreateTypeReference(field.Type),
-                    NullValueNode.Default, // TODO : create a default value deserializer
+                    ParseDefaultValue(field.DefaultValue),
                     Array.Empty<DirectiveNode>()
                 ));
             }
@@ -267,6 +268,22 @@ namespace HotChocolate.Stitching.Introspection
             return string.IsNullOrEmpty(description)
                 ? null
                 : new StringValueNode(description);
+        }
+
+        private static IValueNode ParseDefaultValue(string defaultValue)
+        {
+            if (!string.IsNullOrEmpty(defaultValue))
+            {
+                SyntaxToken start = Lexer.Default.Read(new Source(defaultValue));
+                var context = new ParserContext(
+                    new Source(defaultValue),
+                    start,
+                    ParserOptions.Default,
+                    Parser.ParseName);
+                context.MoveNext();
+                return Parser.ParseValueLiteral(context, true);
+            }
+            return NullValueNode.Default;
         }
     }
 }

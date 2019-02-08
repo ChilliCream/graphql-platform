@@ -7,15 +7,16 @@ namespace HotChocolate.Stitching.Introspection
     public class IntrospectionDeserializerTests
     {
         [Fact]
-        public void foo()
+        public void DeserializeStarWarsIntrospectionResult()
         {
+            // arrange
             string json = FileResource.Open("StarWarsIntrospectionResult.json");
 
+            // act
             DocumentNode schema = IntrospectionDeserializer.Deserialize(json);
 
+            // assert
             SchemaSyntaxSerializer.Serialize(schema).Snapshot();
         }
-
-
     }
 }
