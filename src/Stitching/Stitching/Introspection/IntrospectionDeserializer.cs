@@ -23,9 +23,61 @@ namespace HotChocolate.Stitching.Introspection
                 .DeserializeObject<IntrospectionResult>(json);
 
             var typeDefinitions = new List<IDefinitionNode>();
+            typeDefinitions.Add(CreateSchema(result.Data.Schema));
             typeDefinitions.AddRange(CreateTypes(result.Data.Schema.Types));
 
+            foreach (Directive directive in result.Data.Schema.Directives)
+            {
+                DirectiveDefinitionNode directiveDefinition =
+                    CreateDirectiveDefinition(directive);
+                if (directiveDefinition.Locations.Any())
+                {
+                    typeDefinitions.Add(directiveDefinition);
+                }
+            }
+
             return new DocumentNode(typeDefinitions);
+        }
+
+        private static SchemaDefinitionNode CreateSchema(Models.Schema schema)
+        {
+            var operations = new List<OperationTypeDefinitionNode>();
+
+            AddRootTypeRef(
+                schema.QueryType,
+                OperationType.Query,
+                operations);
+
+            AddRootTypeRef(
+                schema.MutationType,
+                OperationType.Mutation,
+                operations);
+
+            AddRootTypeRef(
+                schema.SubscriptionType,
+                OperationType.Subscription,
+                operations);
+
+            return new SchemaDefinitionNode
+            (
+                null,
+                Array.Empty<DirectiveNode>(),
+                operations
+            );
+        }
+
+        private static void AddRootTypeRef(
+            RootTypeRef rootType,
+            OperationType operation,
+            ICollection<OperationTypeDefinitionNode> operations)
+        {
+            if (rootType != null && rootType.Name != null)
+            {
+                operations.Add(new OperationTypeDefinitionNode(
+                    null,
+                    operation,
+                    new NamedTypeNode(new NameNode(rootType.Name))));
+            }
         }
 
         private static IEnumerable<ITypeDefinitionNode> CreateTypes(
@@ -36,7 +88,6 @@ namespace HotChocolate.Stitching.Introspection
                 yield return CreateTypes(type);
             }
         }
-
 
         private static ITypeDefinitionNode CreateTypes(FullType type)
         {
@@ -91,7 +142,7 @@ namespace HotChocolate.Stitching.Introspection
                     null,
                     new NameNode(value.Name),
                     CreateDescription(value.Description),
-                    CreateDirectives(
+                    CreateDepricatedDirective(
                         value.IsDepricated,
                         value.DeprecationReason)
                 ));
@@ -132,27 +183,6 @@ namespace HotChocolate.Stitching.Introspection
             }
 
             return list;
-        }
-
-        private static ITypeNode CreateTypeReference(TypeRef typeRef)
-        {
-            if (typeRef.Kind == TypeKind.Non_Null)
-            {
-                return new NonNullTypeNode
-                (
-                    (INullableTypeNode)CreateTypeReference(typeRef.OfType)
-                );
-            }
-
-            if (typeRef.Kind == TypeKind.List)
-            {
-                return new ListTypeNode
-                (
-                    CreateTypeReference(typeRef.OfType)
-                );
-            }
-
-            return new NamedTypeNode(new NameNode(typeRef.Name));
         }
 
         private static InterfaceTypeDefinitionNode CreateInterface(
@@ -196,7 +226,7 @@ namespace HotChocolate.Stitching.Introspection
                     CreateDescription(field.Description),
                     CreateInputVals(field.Args),
                     CreateTypeReference(field.Type),
-                    CreateDirectives(
+                    CreateDepricatedDirective(
                         field.IsDepricated,
                         field.DeprecationReason)
                 ));
@@ -229,6 +259,49 @@ namespace HotChocolate.Stitching.Introspection
             );
         }
 
+        private static DirectiveDefinitionNode CreateDirectiveDefinition(
+            Directive directive)
+        {
+            // TODO : we should switch to to new locations property if available
+            var locations = new List<NameNode>();
+
+            if (directive.OnField)
+            {
+                locations.Add(new NameNode(
+                    DirectiveLocation.Field.ToString()));
+            }
+
+            if (directive.OnFragment)
+            {
+                locations.Add(new NameNode(
+                    DirectiveLocation.FieldDefinition.ToString()));
+                locations.Add(new NameNode(
+                    DirectiveLocation.InlineFragment.ToString()));
+                locations.Add(new NameNode(
+                    DirectiveLocation.FragmentSpread.ToString()));
+            }
+
+            if (directive.OnOperation)
+            {
+                locations.Add(new NameNode(
+                    DirectiveLocation.Query.ToString()));
+                locations.Add(new NameNode(
+                    DirectiveLocation.Mutation.ToString()));
+                locations.Add(new NameNode(
+                    DirectiveLocation.Subscription.ToString()));
+            }
+
+            return new DirectiveDefinitionNode
+            (
+                null,
+                new NameNode(directive.Name),
+                CreateDescription(directive.Description),
+                false, // TODO : enable repeatable directives
+                CreateInputVals(directive.Args),
+                locations
+            );
+        }
+
         private static IReadOnlyList<NamedTypeNode> CreateNamedTypeRefs(
             IEnumerable<TypeRef> interfaces)
         {
@@ -242,7 +315,7 @@ namespace HotChocolate.Stitching.Introspection
             return list;
         }
 
-        private static IReadOnlyList<DirectiveNode> CreateDirectives(
+        private static IReadOnlyList<DirectiveNode> CreateDepricatedDirective(
             bool isDepricated, string deprecationReason)
         {
             if (isDepricated)
@@ -284,6 +357,27 @@ namespace HotChocolate.Stitching.Introspection
                 return Parser.ParseValueLiteral(context, true);
             }
             return NullValueNode.Default;
+        }
+
+        private static ITypeNode CreateTypeReference(TypeRef typeRef)
+        {
+            if (typeRef.Kind == TypeKind.Non_Null)
+            {
+                return new NonNullTypeNode
+                (
+                    (INullableTypeNode)CreateTypeReference(typeRef.OfType)
+                );
+            }
+
+            if (typeRef.Kind == TypeKind.List)
+            {
+                return new ListTypeNode
+                (
+                    CreateTypeReference(typeRef.OfType)
+                );
+            }
+
+            return new NamedTypeNode(new NameNode(typeRef.Name));
         }
     }
 }

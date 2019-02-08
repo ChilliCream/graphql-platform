@@ -269,6 +269,43 @@ namespace HotChocolate.Language
             WriteInputValueDefinition(node, writer);
         }
 
+        protected override void VisitDirectiveDefinition(
+            DirectiveDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Directive);
+            writer.WriteSpace();
+            writer.Write('@');
+            writer.WriteName(node.Name);
+
+            if (node.Arguments.Any())
+            {
+                writer.Write("(");
+                writer.WriteMany(
+                    node.Arguments,
+                    VisitArgumentValueDefinition,
+                    w => w.WriteSpace());
+                writer.Write(")");
+            }
+
+            writer.WriteSpace();
+
+            if (node.IsRepeatable)
+            {
+                writer.Write(Keywords.Repeatable);
+                writer.WriteSpace();
+            }
+
+            writer.Write(Keywords.On);
+            writer.WriteSpace();
+
+            writer.WriteMany(node.Locations,
+                (n, w) => writer.WriteName(n),
+                " | ");
+        }
+
         protected virtual void VisitArgumentValueDefinition(
            InputValueDefinitionNode node,
            DocumentWriter writer)
