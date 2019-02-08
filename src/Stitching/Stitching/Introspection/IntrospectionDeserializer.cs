@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
 using Newtonsoft.Json;
@@ -47,9 +48,13 @@ namespace HotChocolate.Stitching.Introspection
                     return CreateInputObject(type);
 
                 case TypeKind.Interface:
+                    return CreateInterface(type);
                 case TypeKind.Object:
+                    return CreateObject(type);
+
                 case TypeKind.Scalar:
                 case TypeKind.Union:
+
                 default:
                     throw new NotSupportedException(
                         "The specified type is not supported.");
@@ -158,6 +163,20 @@ namespace HotChocolate.Stitching.Introspection
             );
         }
 
+        private static ObjectTypeDefinitionNode CreateObject(
+            FullType type)
+        {
+            return new ObjectTypeDefinitionNode
+            (
+                null,
+                new NameNode(type.Name),
+                new StringValueNode(type.Name),
+                Array.Empty<DirectiveNode>(),
+                CreateInterfaceRefs(type.Interfaces),
+                CreateFields(type.Fields)
+            );
+        }
+
         private static IReadOnlyList<FieldDefinitionNode> CreateFields(
             IEnumerable<Field> fields)
         {
@@ -177,6 +196,19 @@ namespace HotChocolate.Stitching.Introspection
                         field.DeprecationReason)
                 ));
             }
+            return list;
+        }
+
+        private static IReadOnlyList<NamedTypeNode> CreateInterfaceRefs(
+            IEnumerable<TypeRef> interfaces)
+        {
+            var list = new List<NamedTypeNode>();
+
+            foreach (TypeRef typeRef in interfaces)
+            {
+                list.Add(new NamedTypeNode(new NameNode(typeRef.Name)));
+            }
+
             return list;
         }
 
