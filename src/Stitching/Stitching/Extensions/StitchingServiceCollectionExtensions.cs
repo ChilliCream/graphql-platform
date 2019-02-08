@@ -164,7 +164,7 @@ namespace HotChocolate
                     configure(c);
                     c.UseSchemaStitching();
                 })
-                .MakeExecutable(b => b.UseStitchingPipeline());
+                .MakeExecutable(b => b.UseStitchingPipeline(options));
 
             return services.AddSingleton(executor)
                 .AddSingleton(executor.Schema);
