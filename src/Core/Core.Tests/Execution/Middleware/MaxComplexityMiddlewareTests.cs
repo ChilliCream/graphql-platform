@@ -56,8 +56,7 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -143,8 +142,7 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -231,8 +229,7 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -322,8 +319,7 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(

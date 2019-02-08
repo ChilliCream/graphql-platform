@@ -305,16 +305,27 @@ namespace HotChocolate.Language
             }
         }
 
-        public static string Serialize(ISyntaxNode node)
+        public static string Serialize(ISyntaxNode node) =>
+            Serialize(node, true);
+
+        public static string Serialize(ISyntaxNode node, bool useIndentation)
         {
             var text = new StringBuilder();
-            Serialize(node, new StringWriter(text));
+            Serialize(node, new StringWriter(text), useIndentation);
             return text.ToString();
         }
 
-        public static void Serialize(ISyntaxNode node, TextWriter writer)
+        public static void Serialize(
+            ISyntaxNode node,
+            TextWriter writer) =>
+            Serialize(node, writer, true);
+
+        public static void Serialize(
+            ISyntaxNode node,
+            TextWriter writer,
+            bool useIndentation)
         {
-            var serializer = new QuerySyntaxSerializer(true);
+            var serializer = new QuerySyntaxSerializer(useIndentation);
             serializer.Visit(node, new DocumentWriter(writer));
         }
     }

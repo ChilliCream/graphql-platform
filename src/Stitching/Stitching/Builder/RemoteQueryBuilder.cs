@@ -244,7 +244,7 @@ namespace HotChocolate.Stitching
                 new NameNode("fetch"),
                 operation,
                 variables,
-                new List<DirectiveNode>(),
+                Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(null, fields));
         }
 

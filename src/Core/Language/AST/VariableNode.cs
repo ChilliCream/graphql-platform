@@ -148,12 +148,12 @@ namespace HotChocolate.Language
 
         public VariableNode WithLocation(Location location)
         {
-            return new VariableNode(Location, Name);
+            return new VariableNode(location, Name);
         }
 
         public VariableNode WithName(NameNode name)
         {
-            return new VariableNode(Location, Name);
+            return new VariableNode(Location, name);
         }
     }
 }

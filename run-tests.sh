@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-./build.sh -t Tests
+dotnet cake --target=CoreTests

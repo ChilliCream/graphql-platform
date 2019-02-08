@@ -6,10 +6,20 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
+    public delegate void RequestBufferedEventHandler(
+        IRemoteQueryClient sender,
+        EventArgs eventArgs);
+
     public interface IRemoteQueryClient
     {
+        event RequestBufferedEventHandler BufferedRequest;
+
+
+        int BufferSize { get; }
+
         Task<IExecutionResult> ExecuteAsync(
-            IResolverContext context,
-            QueryRequest request);
+            IReadOnlyQueryRequest request);
+
+        Task DispatchAsync(CancellationToken cancellationToken);
     }
 }

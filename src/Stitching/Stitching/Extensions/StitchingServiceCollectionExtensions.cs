@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
@@ -90,9 +91,18 @@ namespace HotChocolate
         private static void TryAddStitchingContext(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<IStitchingContext>(
+            services.TryAddScoped<IStitchingContext>(
                 s => new StitchingContext(
+                    s,
                     s.GetServices<IRemoteExecutorAccessor>()));
+
+            if (!services.Any(d =>
+                d.ImplementationType == typeof(RemoteQueryBatchOperation)))
+            {
+                services.AddScoped<
+                    IBatchOperation,
+                    RemoteQueryBatchOperation>();
+            }
         }
 
         public static IServiceCollection AddStitchedSchema(
@@ -154,7 +164,7 @@ namespace HotChocolate
                     configure(c);
                     c.UseSchemaStitching();
                 })
-                .MakeExecutable(b => b.UseStitchingPipeline());
+                .MakeExecutable(b => b.UseStitchingPipeline(options));
 
             return services.AddSingleton(executor)
                 .AddSingleton(executor.Schema);
