@@ -16,7 +16,7 @@ namespace HotChocolate.Stitching
                     nameof(resourceName));
             }
 
-            var assembly = Assembly.GetExecutingAssembly();
+            var assembly = typeof(EmbeddedResources).Assembly;
 
             using (Stream stream = assembly.GetManifestResourceStream(
                 resourceName))

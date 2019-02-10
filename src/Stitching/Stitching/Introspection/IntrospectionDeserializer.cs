@@ -347,7 +347,9 @@ namespace HotChocolate.Stitching.Introspection
         {
             if (!string.IsNullOrEmpty(defaultValue))
             {
-                SyntaxToken start = Lexer.Default.Read(new Source(defaultValue));
+                SyntaxToken start = Lexer.Default.Read(
+                    new Source(defaultValue));
+
                 var context = new ParserContext(
                     new Source(defaultValue),
                     start,

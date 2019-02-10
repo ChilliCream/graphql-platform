@@ -121,7 +121,8 @@ namespace HotChocolate.Stitching
                 };
 
                 string json = await queryClient.FetchStringAsync(
-                    request, clientFactory(_schemaName));
+                    request, clientFactory(_schemaName))
+                    .ConfigureAwait(false);
                 schemaDocument = IntrospectionDeserializer.Deserialize(json);
             }
             else
