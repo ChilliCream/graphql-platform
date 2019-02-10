@@ -83,7 +83,18 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public async Task<IRemoteExecutorAccessor> BuildAsync(
+        public Task<IRemoteExecutorAccessor> BuildAsync(
+            IHttpClientFactory clientFactory)
+        {
+            if (clientFactory == null)
+            {
+                throw new ArgumentNullException(nameof(clientFactory));
+            }
+
+            return BuildAsync(s => clientFactory.CreateClient(s));
+        }
+
+        public Task<IRemoteExecutorAccessor> BuildAsync(
             Func<string, HttpClient> clientFactory)
         {
             if (string.IsNullOrEmpty(_schemaName))
@@ -92,6 +103,12 @@ namespace HotChocolate.Stitching
                     "Cannot build a remote executor without a schema name.");
             }
 
+            return BuildInternalAsync(clientFactory);
+        }
+
+        private async Task<IRemoteExecutorAccessor> BuildInternalAsync(
+            Func<string, HttpClient> clientFactory)
+        {
             DocumentNode schemaDocument;
 
             if (string.IsNullOrEmpty(_schema))

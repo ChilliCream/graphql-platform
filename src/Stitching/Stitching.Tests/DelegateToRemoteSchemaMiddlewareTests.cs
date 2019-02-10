@@ -243,7 +243,7 @@ namespace HotChocolate.Stitching
             result.Snapshot();
         }
 
-          [Fact]
+        [Fact]
         public async Task ExecuteStitchedQueryWithComputedField2()
         {
             // arrange
