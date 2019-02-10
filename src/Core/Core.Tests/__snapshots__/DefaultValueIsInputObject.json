@@ -2,7 +2,7 @@
   "Data": {
     "__schema": {
       "queryType": {
-        "name": "Query"
+        "name": "BarType"
       },
       "mutationType": null,
       "subscriptionType": null,
@@ -903,109 +903,28 @@
           "possibleTypes": null
         },
         {
-          "kind": "SCALAR",
-          "name": "Decimal",
-          "description": "The built-in `Decimal` scalar type.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Byte",
-          "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Short",
-          "description": "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Long",
-          "description": "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "DateTime",
-          "description": "The `DateTime` scalar represents an ISO-8601 compliant date time type.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Date",
-          "description": "The `Date` scalar represents an ISO-8601 compliant date type.",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Uuid",
-          "description": null,
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "SCALAR",
-          "name": "Url",
-          "description": null,
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
           "kind": "OBJECT",
-          "name": "Query",
+          "name": "BarType",
           "description": null,
           "fields": [
             {
               "name": "a",
               "description": null,
-              "args": [],
+              "args": [
+                {
+                  "name": "b",
+                  "description": null,
+                  "type": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "BazInput",
+                    "ofType": null
+                  },
+                  "defaultValue": "{ qux: \"fooBar\" }"
+                }
+              ],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "b",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "OBJECT",
-                "name": "Foo",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -1028,25 +947,23 @@
           "possibleTypes": null
         },
         {
-          "kind": "OBJECT",
-          "name": "Foo",
+          "kind": "INPUT_OBJECT",
+          "name": "BazInput",
           "description": null,
-          "fields": [
+          "fields": null,
+          "inputFields": [
             {
-              "name": "a",
+              "name": "qux",
               "description": null,
-              "args": [],
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
               },
-              "isDeprecated": false,
-              "deprecationReason": null
+              "defaultValue": "\"123456\""
             }
           ],
-          "inputFields": null,
-          "interfaces": [],
+          "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
         }

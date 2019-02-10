@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -267,6 +269,43 @@ namespace HotChocolate.Language
             WriteInputValueDefinition(node, writer);
         }
 
+        protected override void VisitDirectiveDefinition(
+            DirectiveDefinitionNode node,
+            DocumentWriter writer)
+        {
+            WriteDescription(node.Description, writer);
+
+            writer.Write(Keywords.Directive);
+            writer.WriteSpace();
+            writer.Write('@');
+            writer.WriteName(node.Name);
+
+            if (node.Arguments.Any())
+            {
+                writer.Write("(");
+                writer.WriteMany(
+                    node.Arguments,
+                    VisitArgumentValueDefinition,
+                    w => w.WriteSpace());
+                writer.Write(")");
+            }
+
+            writer.WriteSpace();
+
+            if (node.IsRepeatable)
+            {
+                writer.Write(Keywords.Repeatable);
+                writer.WriteSpace();
+            }
+
+            writer.Write(Keywords.On);
+            writer.WriteSpace();
+
+            writer.WriteMany(node.Locations,
+                (n, w) => writer.WriteName(n),
+                " | ");
+        }
+
         protected virtual void VisitArgumentValueDefinition(
            InputValueDefinitionNode node,
            DocumentWriter writer)
@@ -379,6 +418,30 @@ namespace HotChocolate.Language
             {
                 writer.WriteIndentation();
             }
+        }
+
+        public static string Serialize(DocumentNode node) =>
+            Serialize(node, true);
+
+        public static string Serialize(DocumentNode node, bool useIndentation)
+        {
+            var text = new StringBuilder();
+            Serialize(node, new StringWriter(text), useIndentation);
+            return text.ToString();
+        }
+
+        public static void Serialize(
+            DocumentNode node,
+            TextWriter writer) =>
+            Serialize(node, writer, true);
+
+        public static void Serialize(
+            DocumentNode node,
+            TextWriter writer,
+            bool useIndentation)
+        {
+            var serializer = new SchemaSyntaxSerializer(useIndentation);
+            serializer.Visit(node, new DocumentWriter(writer));
         }
     }
 }

@@ -5,20 +5,18 @@ namespace HotChocolate.Types.Factories
 {
     internal static class SyntaxNodeExtensions
     {
-        private const string _deprecated = "deprecated";
-        private const string _deprecationReason = "reason";
-
-        public static string DeprecationReason(this Language.IHasDirectives syntaxNode)
+        public static string DeprecationReason(
+            this Language.IHasDirectives syntaxNode)
         {
-            DirectiveNode directive = syntaxNode.Directives
-                .FirstOrDefault(t => t.Name.Value == _deprecated);
+            DirectiveNode directive = syntaxNode.Directives.FirstOrDefault(t =>
+                t.Name.Value == WellKnownDirectives.Deprecated);
             if (directive == null)
             {
                 return null;
             }
 
-            ArgumentNode argument = directive.Arguments
-                .FirstOrDefault(t => t.Name.Value == _deprecationReason);
+            ArgumentNode argument = directive.Arguments.FirstOrDefault(t =>
+                t.Name.Value == WellKnownDirectives.DeprecationReasonArgument);
             if (argument == null)
             {
                 return null;

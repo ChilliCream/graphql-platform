@@ -5,9 +5,12 @@ namespace HotChocolate.Language
     public sealed class NonNullTypeNode
         : ITypeNode
     {
-        public NonNullTypeNode(
-            Location location,
-            INullableTypeNode type)
+        public NonNullTypeNode(INullableTypeNode type)
+            : this(null, type)
+        {
+        }
+
+        public NonNullTypeNode(Location location, INullableTypeNode type)
         {
             Location = location;
             Type = type ?? throw new ArgumentNullException(nameof(type));

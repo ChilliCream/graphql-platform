@@ -139,6 +139,23 @@ namespace HotChocolate.Execution
             result.Snapshot();
         }
 
+        [Fact]
+        public async Task DefaultValueIsInputObject()
+        {
+            // arrange
+            string query = FileResource.Open("IntrospectionQuery.graphql");
+            IQueryExecutor executor = Schema.Create(t =>
+                t.RegisterQueryType<BarType>())
+                .MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.Snapshot();
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -172,6 +189,35 @@ namespace HotChocolate.Execution
                     .Type<StringType>()
                     .Resolver(() => "foo.a");
             }
+        }
+
+        private class BarType
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Field("a")
+                    .Type<StringType>()
+                    .Argument("b", a => a.Type<BazType>()
+                        .DefaultValue(new Baz { Qux = "fooBar" }))
+                    .Resolver(() => "foo.a");
+            }
+        }
+
+        public class BazType
+            : InputObjectType<Baz>
+        {
+            protected override void Configure(
+                IInputObjectTypeDescriptor<Baz> descriptor)
+            {
+                descriptor.Field(t => t.Qux).DefaultValue("123456");
+            }
+        }
+
+
+        public class Baz
+        {
+            public string Qux { get; set; }
         }
 
         private sealed class UpperDirectiveType
