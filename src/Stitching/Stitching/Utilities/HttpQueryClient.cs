@@ -35,7 +35,7 @@ namespace HotChocolate.Stitching
                 JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
         }
 
-        public async Task<string> FetchStringAsync(
+        public Task<string> FetchStringAsync(
             RemoteQueryRequest request,
             HttpClient httpClient)
         {
@@ -49,6 +49,13 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(httpClient));
             }
 
+            return FetchStringInternalAsync(request, httpClient);
+        }
+
+        private async Task<string> FetchStringInternalAsync(
+            RemoteQueryRequest request,
+            HttpClient httpClient)
+        {
             var content = new StringContent(
                 SerializeRemoteRequest(request),
                 Encoding.UTF8,
