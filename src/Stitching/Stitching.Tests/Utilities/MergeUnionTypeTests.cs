@@ -21,12 +21,10 @@ namespace HotChocolate.Stitching
             {
                 new TypeInfo(
                     schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    schema_a,
-                    "Schema_A"),
+                    new SchemaInfo("Schema_A", schema_a)),
                 new TypeInfo(
                     schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    schema_b,
-                    "Schema_B"),
+                    new SchemaInfo("Schema_B", schema_b))
             };
 
             var context = new SchemaMergeContext();

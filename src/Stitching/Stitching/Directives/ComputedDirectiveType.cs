@@ -11,6 +11,7 @@ namespace HotChocolate.Stitching
             descriptor.Name(DirectiveNames.Computed)
                 .Location(Types.DirectiveLocation.FieldDefinition);
             descriptor.Argument(t => t.DependantOn)
+                .Name(DirectiveFieldNames.Computed_DependantOn)
                 .Type<ListType<NonNullType<StringType>>>()
                 .Description(
                     "Specifies the fields on which a computed " +

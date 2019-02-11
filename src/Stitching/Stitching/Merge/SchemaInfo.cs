@@ -50,7 +50,7 @@ namespace HotChocolate.Stitching
                 OperationType.Subscription);
         }
 
-        public string Name { get; }
+        public NameString Name { get; }
 
         public DocumentNode Document { get; }
 
@@ -103,6 +103,32 @@ namespace HotChocolate.Stitching
             }
 
             return null;
+        }
+
+        public bool TryGetOperationType(
+            ObjectTypeDefinitionNode rootType,
+            out OperationType operationType)
+        {
+            if (rootType == QueryType)
+            {
+                operationType = OperationType.Query;
+                return true;
+            }
+
+            if (rootType == MutationType)
+            {
+                operationType = OperationType.Mutation;
+                return true;
+            }
+
+            if (rootType == SubscriptionType)
+            {
+                operationType = OperationType.Subscription;
+                return true;
+            }
+
+            operationType = default;
+            return false;
         }
     }
 }

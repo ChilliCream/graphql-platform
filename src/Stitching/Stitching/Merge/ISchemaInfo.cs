@@ -5,7 +5,7 @@ namespace HotChocolate.Stitching
 {
     public interface ISchemaInfo
     {
-        string Name { get; }
+        NameString Name { get; }
 
         DocumentNode Document { get; }
 
@@ -20,5 +20,9 @@ namespace HotChocolate.Stitching
         ObjectTypeDefinitionNode SubscriptionType { get; }
 
         bool IsRootType(ITypeDefinitionNode typeDefinition);
+
+        bool TryGetOperationType(
+            ObjectTypeDefinitionNode rootType, out
+            OperationType operationType);
     }
 }

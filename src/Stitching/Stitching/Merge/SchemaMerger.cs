@@ -14,6 +14,7 @@ namespace HotChocolate.Stitching
         private static List<MergeTypeHandler> _defaultHandlers =
             new List<MergeTypeHandler>
             {
+                SchemaMergerExtensions.CreateHandler<RootTypeMergeHandler>(),
                 SchemaMergerExtensions.CreateHandler<EnumTypeMergeHandler>(),
                 SchemaMergerExtensions.CreateHandler<UnionTypeMergeHandler>(),
             };
@@ -57,26 +58,54 @@ namespace HotChocolate.Stitching
             List<SchemaInfo> schemas = _schemas
                 .Select(t => new SchemaInfo(t.Key, t.Value))
                 .ToList();
-            ISet<string> typeNames = CreateNameSet(schemas);
-            var types = new List<TypeInfo>();
 
             var context = new SchemaMergeContext();
 
-            SetTypes(OperationType.Query, types, schemas);
-            merge(context, types);
-
-            foreach (string typeName in typeNames)
-            {
-                SetTypes(typeName, types, schemas);
-                merge(context, types);
-            }
+            MergeRootType(context, OperationType.Query, schemas, merge);
+            MergeRootType(context, OperationType.Mutation, schemas, merge);
+            MergeRootType(context, OperationType.Subscription, schemas, merge);
+            MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
             return context.CreateSchema();
         }
 
-        private void MergeRootType(OperationType operationType, IEnumerable<SchemaInfo> schemas,)
+        private void MergeRootType(
+            ISchemaMergeContext context,
+            OperationType operation,
+            IEnumerable<SchemaInfo> schemas,
+            MergeTypeDelegate merge)
         {
+            var types = new List<TypeInfo>();
 
+            foreach (SchemaInfo schema in schemas)
+            {
+                ObjectTypeDefinitionNode rootType =
+                    schema.GetRootType(operation);
+                if (rootType != null)
+                {
+                    types.Add(new TypeInfo(rootType, schema));
+                }
+            }
+
+            if (types.Count > 0)
+            {
+                merge(context, types);
+            }
+        }
+
+        private void MergeTypes(
+            ISchemaMergeContext context,
+            ISet<string> typeNames,
+            IEnumerable<SchemaInfo> schemas,
+            MergeTypeDelegate merge)
+        {
+            var types = new List<TypeInfo>();
+
+            foreach (string typeName in typeNames)
+            {
+                SetTypes(typeName, schemas, types);
+                merge(context, types);
+            }
         }
 
         private ISet<string> CreateNameSet(
@@ -97,8 +126,8 @@ namespace HotChocolate.Stitching
 
         private void SetTypes(
             string name,
-            ICollection<TypeInfo> types,
-            IEnumerable<SchemaInfo> schemas)
+            IEnumerable<SchemaInfo> schemas,
+            ICollection<TypeInfo> types)
         {
             types.Clear();
 
@@ -109,19 +138,6 @@ namespace HotChocolate.Stitching
                 {
                     types.Add(new TypeInfo(typeDefinition, schema));
                 }
-            }
-        }
-
-        private void SetTypes(
-            OperationType operation,
-            ICollection<TypeInfo> types,
-            IEnumerable<SchemaInfo> schemas)
-        {
-            types.Clear();
-
-            foreach (SchemaInfo schema in schemas)
-            {
-
             }
         }
 

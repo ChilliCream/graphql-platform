@@ -17,6 +17,22 @@ namespace HotChocolate.Stitching
             return $"{typeInfo.Schema.Name}_{typeInfo.Definition.Name.Value}";
         }
 
+        public static NameString CreateUniqueName(
+            this ITypeInfo typeInfo, NamedSyntaxNode namedSyntaxNode)
+        {
+            if (typeInfo == null)
+            {
+                throw new ArgumentNullException(nameof(typeInfo));
+            }
+
+            if (namedSyntaxNode == null)
+            {
+                throw new ArgumentNullException(nameof(namedSyntaxNode));
+            }
+
+            return $"{typeInfo.Schema.Name}_{namedSyntaxNode.Name.Value}";
+        }
+
         public static EnumTypeDefinitionNode Rename(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName)
@@ -81,6 +97,57 @@ namespace HotChocolate.Stitching
             ));
 
             return list;
+        }
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName) =>
+            AddDelegationPath(field, schemaName, null);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            string delegationPath)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            var list = new List<DirectiveNode>(field.Directives);
+
+            list.RemoveAll(t =>
+                DirectiveNames.Delegate.Equals(t.Name.Value));
+
+            list.RemoveAll(t =>
+                DirectiveNames.Schema.Equals(t.Name.Value));
+
+            if (string.IsNullOrEmpty(delegationPath))
+            {
+                list.Add(new DirectiveNode(DirectiveNames.Delegate));
+            }
+            else
+            {
+                list.Add(new DirectiveNode
+                (
+                    DirectiveNames.Delegate,
+                    new ArgumentNode(
+                        DirectiveFieldNames.Delegate_Path,
+                        delegationPath)
+                ));
+            }
+
+            list.Add(new DirectiveNode
+            (
+                DirectiveNames.Schema,
+                new ArgumentNode(
+                    DirectiveFieldNames.Delegate_Path,
+                    delegationPath)
+            ));
+
+            return field.WithDirectives(list);
         }
     }
 }

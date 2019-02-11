@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
@@ -36,42 +37,6 @@ namespace HotChocolate.Stitching
             {
                 _next.Invoke(context, types);
             }
-        }
-    }
-
-    public class ObjectTypeMergeHandler
-         : ITypeMergeHanlder
-    {
-        private readonly MergeTypeDelegate _next;
-
-        public ObjectTypeMergeHandler(MergeTypeDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
-        public void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
-        {
-
-        }
-    }
-
-    public class RootTypeMergeHandler
-         : ITypeMergeHanlder
-    {
-        private readonly MergeTypeDelegate _next;
-
-        public RootTypeMergeHandler(MergeTypeDelegate next)
-        {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-        }
-
-        public void Merge(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
-        {
-
         }
     }
 }
