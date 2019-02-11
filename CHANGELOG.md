@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The stitching layer now batches requests to the remote schemas.
+- Introspection schema serializer.
+
+### Fixed
+
+- Introspection default values are no serialized correctly.
+
 ## [0.7.0] - 2019-02-03
 
 ### Added

@@ -255,7 +255,7 @@ namespace HotChocolate.Language
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
 
-            return node;
+            return current;
         }
 
 
@@ -271,7 +271,7 @@ namespace HotChocolate.Language
             current = Rewrite(current, node.Value, context,
                 RewriteValue, current.WithValue);
 
-            return node;
+            return current;
         }
 
         protected virtual IntValueNode RewriteIntValue(
@@ -353,7 +353,7 @@ namespace HotChocolate.Language
             current = Rewrite(current, node.Name, context,
                 RewriteName, current.WithName);
 
-            return node;
+            return current;
         }
 
         protected virtual ListTypeNode RewriteListType(

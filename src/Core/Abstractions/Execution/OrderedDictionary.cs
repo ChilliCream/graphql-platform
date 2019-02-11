@@ -5,15 +5,21 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public class OrderedDictionary
-        : IDictionary<string, object>
-        , IReadOnlyDictionary<string, object>
+        : OrderedDictionary<string, object>
     {
-        private readonly List<KeyValuePair<string, object>> _order =
-            new List<KeyValuePair<string, object>>();
-        private readonly Dictionary<string, object> _map =
-            new Dictionary<string, object>();
 
-        public object this[string key]
+    }
+
+    public class OrderedDictionary<TKey, TValue>
+        : IDictionary<TKey, TValue>
+        , IReadOnlyDictionary<TKey, TValue>
+    {
+        private readonly List<KeyValuePair<TKey, TValue>> _order =
+            new List<KeyValuePair<TKey, TValue>>();
+        private readonly Dictionary<TKey, TValue> _map =
+            new Dictionary<TKey, TValue>();
+
+        public TValue this[TKey key]
         {
             get
             {
@@ -25,7 +31,7 @@ namespace HotChocolate.Execution
                 {
                     _map[key] = value;
                     _order[IndexOfKey(key)] =
-                        new KeyValuePair<string, object>(key, value);
+                        new KeyValuePair<TKey, TValue>(key, value);
                 }
                 else
                 {
@@ -34,27 +40,27 @@ namespace HotChocolate.Execution
             }
         }
 
-        public ICollection<string> Keys => _map.Keys;
+        public ICollection<TKey> Keys => _map.Keys;
 
-        IEnumerable<string> IReadOnlyDictionary<string, object>.Keys =>
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys =>
             Keys;
 
-        public ICollection<object> Values => _map.Values;
+        public ICollection<TValue> Values => _map.Values;
 
-        IEnumerable<object> IReadOnlyDictionary<string, object>.Values =>
+        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values =>
             Values;
 
         public int Count => _order.Count;
 
         public bool IsReadOnly => false;
 
-        public void Add(string key, object value)
+        public void Add(TKey key, TValue value)
         {
             _map.Add(key, value);
-            _order.Add(new KeyValuePair<string, object>(key, value));
+            _order.Add(new KeyValuePair<TKey, TValue>(key, value));
         }
 
-        public void Add(KeyValuePair<string, object> item)
+        public void Add(KeyValuePair<TKey, TValue> item)
         {
             _map.Add(item.Key, item.Value);
             _order.Add(item);
@@ -66,29 +72,29 @@ namespace HotChocolate.Execution
             _order.Clear();
         }
 
-        public bool Contains(KeyValuePair<string, object> item)
+        public bool Contains(KeyValuePair<TKey, TValue> item)
         {
             return _order.Contains(item);
         }
 
-        public bool ContainsKey(string key)
+        public bool ContainsKey(TKey key)
         {
             return _map.ContainsKey(key);
         }
 
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             _order.CopyTo(array, arrayIndex);
         }
 
-        public bool Remove(string key)
+        public bool Remove(TKey key)
         {
             bool success = _map.Remove(key);
             _order.RemoveAt(IndexOfKey(key));
             return success;
         }
 
-        public bool Remove(KeyValuePair<string, object> item)
+        public bool Remove(KeyValuePair<TKey, TValue> item)
         {
             int index = _order.IndexOf(item);
             if (index != -1)
@@ -100,16 +106,16 @@ namespace HotChocolate.Execution
             return false;
         }
 
-        public bool TryGetValue(string key, out object value)
+        public bool TryGetValue(TKey key, out TValue value)
         {
             return _map.TryGetValue(key, out value);
         }
 
-        private int IndexOfKey(string key)
+        private int IndexOfKey(TKey key)
         {
             for (int i = 0; i < _order.Count; i++)
             {
-                if (string.Equals(key, _order[i].Key, StringComparison.Ordinal))
+                if (key.Equals(_order[i].Key))
                 {
                     return i;
                 }
@@ -117,7 +123,7 @@ namespace HotChocolate.Execution
             return -1;
         }
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             return _order.GetEnumerator();
         }
