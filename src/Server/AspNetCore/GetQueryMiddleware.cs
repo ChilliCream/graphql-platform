@@ -41,6 +41,7 @@ namespace HotChocolate.AspNetCore
                 context.Request.Method,
                 HttpMethods.Get,
                 StringComparison.Ordinal) &&
+                    IsGraphQlEndpointRequest(context) &&
                     HasQueryParameter(context);
         }
 
@@ -84,6 +85,14 @@ namespace HotChocolate.AspNetCore
                     ? JObject.Parse(variables)
                     : null
             };
+        }
+
+        private bool IsGraphQlEndpointRequest(HttpContext context)
+        {
+            return context.Request.Path.Value.TrimEnd('/')
+                .Equals(
+                    Options.Path.Value?.TrimEnd('/'),
+                    StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool HasQueryParameter(HttpContext context)

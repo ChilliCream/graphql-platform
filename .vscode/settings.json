@@ -1,8 +1,10 @@
 {
   "dotnet-test-explorer.testProjectPath": "src",
   "files.insertFinalNewline": true,
-  "editor.formatOnSave": true,
   "files.associations": {
     "*.js": "javascriptreact"
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true
   }
 }
