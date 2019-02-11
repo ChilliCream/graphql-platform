@@ -26,8 +26,7 @@ namespace HotChocolate.Execution
                 c.BindResolver(() => "hello world")
                     .To("Query", "a");
             });
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }")
-                .ToReadOnly();
+            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
 
             var context = new QueryContext
             (

@@ -24,6 +24,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Resources\IntrospectionQuery.graphql" />
+    <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 

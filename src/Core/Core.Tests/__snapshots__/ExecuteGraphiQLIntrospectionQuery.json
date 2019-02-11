@@ -1114,7 +1114,7 @@
                   "ofType": null
                 }
               },
-              "defaultValue": null
+              "defaultValue": "1"
             },
             {
               "name": "multipliers",
