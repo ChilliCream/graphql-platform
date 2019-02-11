@@ -32,9 +32,9 @@ namespace HotChocolate.Stitching
             IReadOnlyList<ITypeInfo> types);
     }
 
-    delegate MergeTypeDelegate MergeTypeFactory(MergeTypeDelegate next);
-    delegate void MergeTypeDelegate(IMergeSchemaContext context, IReadOnlyList<ITypeInfo> types);
+    public delegate MergeTypeDelegate MergeTypeFactory(MergeTypeDelegate next);
 
+    public delegate void MergeTypeDelegate(IMergeSchemaContext context, IReadOnlyList<ITypeInfo> types);
 
     public class MergeEnumType
         : ITypeMerger
@@ -53,15 +53,19 @@ namespace HotChocolate.Stitching
             if (types.All(t => t.Definition is EnumTypeDefinitionNode))
             {
                 var first = (EnumTypeDefinitionNode)types[0].Definition;
+                StringValueNode description = first.Description;
                 var values = new HashSet<string>(
                     first.Values.Select(t => t.Name.Value));
 
                 for (int i = 0; i < types.Count; i++)
                 {
-                    if (AreEqual(values,
-                        (EnumTypeDefinitionNode)types[i].Definition))
+                    var other = (EnumTypeDefinitionNode)types[i].Definition;
+                    if (AreEqual(values, first))
                     {
-                        return false;
+                        if (description != null && other.Description != null)
+                        {
+                            description = other.Description;
+                        }
                     }
                 }
             }
