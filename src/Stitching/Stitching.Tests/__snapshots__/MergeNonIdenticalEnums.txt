@@ -1,0 +1,10 @@
+enum Schema_C_Foo @renamed(name: "Foo") {
+  BAR
+  BAZ
+  QUX
+}
+
+enum Foo {
+  BAR
+  BAZ
+}

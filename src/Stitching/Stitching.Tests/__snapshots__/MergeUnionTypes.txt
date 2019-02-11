@@ -1,0 +1,3 @@
+union Schema_B_Foo @renamed(name: "Foo") = Bar | Baz
+
+union Foo = Bar | Baz
