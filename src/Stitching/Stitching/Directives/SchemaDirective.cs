@@ -2,6 +2,6 @@
 {
     public class SchemaDirective
     {
-        public string Name { get; set; }
+        public NameString Name { get; set; }
     }
 }

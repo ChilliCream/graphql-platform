@@ -8,8 +8,10 @@ namespace HotChocolate.Stitching
         protected override void Configure(
             IDirectiveTypeDescriptor<ComputedDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Computed)
-                .Location(Types.DirectiveLocation.FieldDefinition);
+            descriptor.Name(DirectiveNames.Computed);
+
+            descriptor.Location(Types.DirectiveLocation.FieldDefinition);
+
             descriptor.Argument(t => t.DependantOn)
                 .Name(DirectiveFieldNames.Computed_DependantOn)
                 .Type<ListType<NonNullType<StringType>>>()
