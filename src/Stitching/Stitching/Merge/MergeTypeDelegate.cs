@@ -6,6 +6,6 @@ namespace HotChocolate.Stitching
         MergeTypeDelegate next);
 
     public delegate void MergeTypeDelegate(
-        IMergeSchemaContext context,
+        ISchemaMergeContext context,
         IReadOnlyList<ITypeInfo> types);
 }

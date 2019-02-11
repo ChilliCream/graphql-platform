@@ -29,10 +29,10 @@ namespace HotChocolate.Stitching
                     "Schema_B"),
             };
 
-            var context = new MergeSchemaContext();
+            var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new MergeUnionType((c, t) => { });
+            var typeMerger = new UnionTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert

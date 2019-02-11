@@ -11,8 +11,14 @@ namespace HotChocolate.Stitching
     public class SchemaMerger
         : ISchemaMerger
     {
-        public List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
-        public OrderedDictionary<string, DocumentNode> _schemas =
+        private static List<MergeTypeHandler> _defaultHandlers =
+            new List<MergeTypeHandler>
+            {
+                SchemaMergerExtensions.CreateHandler<EnumTypeMergeHandler>(),
+                SchemaMergerExtensions.CreateHandler<UnionTypeMergeHandler>(),
+            };
+        private List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
+        private OrderedDictionary<string, DocumentNode> _schemas =
             new OrderedDictionary<string, DocumentNode>();
 
         public ISchemaMerger AddHandler(MergeTypeHandler handler)
@@ -54,7 +60,10 @@ namespace HotChocolate.Stitching
             ISet<string> typeNames = CreateNameSet(schemas);
             var types = new List<TypeInfo>();
 
-            var context = new MergeSchemaContext();
+            var context = new SchemaMergeContext();
+
+            SetTypes(OperationType.Query, types, schemas);
+            merge(context, types);
 
             foreach (string typeName in typeNames)
             {
@@ -63,6 +72,11 @@ namespace HotChocolate.Stitching
             }
 
             return context.CreateSchema();
+        }
+
+        private void MergeRootType(OperationType operationType, IEnumerable<SchemaInfo> schemas,)
+        {
+
         }
 
         private ISet<string> CreateNameSet(
@@ -93,11 +107,21 @@ namespace HotChocolate.Stitching
                 if (schema.Types.TryGetValue(name,
                     out ITypeDefinitionNode typeDefinition))
                 {
-                    types.Add(new TypeInfo(
-                        typeDefinition,
-                        schema.Schema,
-                        schema.Name));
+                    types.Add(new TypeInfo(typeDefinition, schema));
                 }
+            }
+        }
+
+        private void SetTypes(
+            OperationType operation,
+            ICollection<TypeInfo> types,
+            IEnumerable<SchemaInfo> schemas)
+        {
+            types.Clear();
+
+            foreach (SchemaInfo schema in schemas)
+            {
+
             }
         }
 
@@ -109,31 +133,20 @@ namespace HotChocolate.Stitching
                     "The type definitions could not be handled.");
             };
 
+            var handlers = new List<MergeTypeHandler>();
+            handlers.AddRange(_defaultHandlers);
+            handlers.AddRange(_handlers);
 
-            for (int i = _handlers.Count - 1; i >= 0; i--)
+            for (int i = handlers.Count - 1; i >= 0; i--)
             {
-                current = _handlers[i].Invoke(current);
+                current = handlers[i].Invoke(current);
             }
 
             return current;
         }
 
-        private class SchemaInfo
-        {
-            public SchemaInfo(string name, DocumentNode schema)
-            {
-                Name = name;
-                Schema = schema;
-                Types = schema.Definitions
-                    .OfType<ITypeDefinitionNode>()
-                    .ToDictionary(t => t.Name.Value);
-            }
+        public static SchemaMerger New() => new SchemaMerger();
 
-            public string Name { get; }
 
-            public DocumentNode Schema { get; }
-
-            public IDictionary<string, ITypeDefinitionNode> Types { get; }
-        }
     }
 }

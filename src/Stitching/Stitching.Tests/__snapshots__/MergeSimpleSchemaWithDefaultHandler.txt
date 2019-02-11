@@ -1,0 +1,5 @@
+union B_Foo @renamed(name: "Foo") = Bar | Baz
+
+union Foo = Bar | Baz
+
+union A = B | C

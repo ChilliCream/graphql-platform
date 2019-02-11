@@ -29,10 +29,10 @@ namespace HotChocolate.Stitching
                     "Schema_B"),
             };
 
-            var context = new MergeSchemaContext();
+            var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new MergeEnumType((c, t) => { });
+            var typeMerger = new EnumTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert
@@ -60,10 +60,10 @@ namespace HotChocolate.Stitching
                     "Schema_B"),
             };
 
-            var context = new MergeSchemaContext();
+            var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new MergeEnumType((c, t) => { });
+            var typeMerger = new EnumTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert
@@ -97,10 +97,10 @@ namespace HotChocolate.Stitching
                     "Schema_C"),
             };
 
-            var context = new MergeSchemaContext();
+            var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new MergeEnumType((c, t) => { });
+            var typeMerger = new EnumTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert

@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            return $"{typeInfo.SchemaName}_{typeInfo.Definition.Name.Value}";
+            return $"{typeInfo.Schema.Name}_{typeInfo.Definition.Name.Value}";
         }
 
         public static EnumTypeDefinitionNode Rename(

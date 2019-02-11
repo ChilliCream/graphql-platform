@@ -5,18 +5,18 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public class MergeEnumType
-        : ITypeMerger
+    public class EnumTypeMergeHandler
+        : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
 
-        public MergeEnumType(MergeTypeDelegate next)
+        public EnumTypeMergeHandler(MergeTypeDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
         public void Merge(
-            IMergeSchemaContext context,
+            ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
             if (types.All(t => t.Definition is EnumTypeDefinitionNode))

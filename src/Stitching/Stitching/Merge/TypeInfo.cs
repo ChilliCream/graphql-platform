@@ -3,32 +3,24 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public class TypeInfo
+    internal class TypeInfo
         : ITypeInfo
     {
         public TypeInfo(
-            ITypeDefinitionNode definition,
-            DocumentNode schema,
-            string schemaName)
+            ITypeDefinitionNode typeDefinition,
+            ISchemaInfo schema)
         {
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
-                    nameof(schemaName));
-            }
-
-            Definition = definition
-                ?? throw new ArgumentNullException(nameof(definition));
+            Definition = typeDefinition
+                ?? throw new ArgumentNullException(nameof(typeDefinition));
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
-            SchemaName = schemaName;
+            IsRootType = schema.IsRootType(typeDefinition);
         }
 
         public ITypeDefinitionNode Definition { get; }
 
-        public DocumentNode Schema { get; }
+        public ISchemaInfo Schema { get; }
 
-        public string SchemaName { get; }
+        public bool IsRootType { get; }
     }
 }

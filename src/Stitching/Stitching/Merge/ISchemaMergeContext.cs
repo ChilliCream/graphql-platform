@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public interface IMergeSchemaContext
+    public interface ISchemaMergeContext
     {
         void AddType(ITypeDefinitionNode type);
     }

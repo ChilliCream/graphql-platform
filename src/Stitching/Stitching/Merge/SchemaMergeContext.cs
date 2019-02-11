@@ -5,8 +5,8 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public class MergeSchemaContext
-        : IMergeSchemaContext
+    public class SchemaMergeContext
+        : ISchemaMergeContext
     {
         public Dictionary<NameString, ITypeDefinitionNode> _types =
             new Dictionary<NameString, ITypeDefinitionNode>();
