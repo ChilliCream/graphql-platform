@@ -125,13 +125,13 @@ namespace HotChocolate.Stitching
             IComplexOutputType type,
             IOutputField field)
         {
-            IDirective directive = field.Directives[DirectiveNames.DependentOn]
+            IDirective directive = field.Directives[DirectiveNames.Computed]
                 .FirstOrDefault();
 
             if (directive != null)
             {
                 foreach (string fieldName in directive
-                    .ToObject<DependentOnDirective>().Fields)
+                    .ToObject<ComputedDirective>().DependantOn)
                 {
                     if (type.Fields.TryGetField(
                         fieldName,

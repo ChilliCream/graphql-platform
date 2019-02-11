@@ -2,16 +2,16 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
-    public class DependentOnDirectiveType
-        : DirectiveType<DependentOnDirective>
+    public class ComputedDirectiveType
+        : DirectiveType<ComputedDirective>
     {
         protected override void Configure(
-            IDirectiveTypeDescriptor<DependentOnDirective> descriptor)
+            IDirectiveTypeDescriptor<ComputedDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.DependentOn)
+            descriptor.Name(DirectiveNames.Computed)
                 .Location(Types.DirectiveLocation.FieldDefinition);
-            descriptor.Argument(t => t.Fields)
-                .Type<NonNullType<ListType<NonNullType<StringType>>>>()
+            descriptor.Argument(t => t.DependantOn)
+                .Type<ListType<NonNullType<StringType>>>()
                 .Description(
                     "Specifies the fields on which a computed " +
                     "field is dependent on.");

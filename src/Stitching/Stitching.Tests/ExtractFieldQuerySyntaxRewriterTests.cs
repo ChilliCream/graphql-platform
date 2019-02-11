@@ -29,7 +29,7 @@ namespace HotChocolate.Stitching
                     c.RegisterType<DateTimeType>();
                     c.RegisterDirective<DelegateDirectiveType>();
                     c.RegisterDirective<SchemaDirectiveType>();
-                    c.RegisterDirective<DependentOnDirectiveType>();
+                    c.RegisterDirective<ComputedDirectiveType>();
                     c.Use(next => context => Task.CompletedTask);
                 });
 

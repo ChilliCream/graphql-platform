@@ -57,7 +57,7 @@ namespace HotChocolate.Stitching
                 var values = new HashSet<string>(
                     first.Values.Select(t => t.Name.Value));
 
-                for (int i = 0; i < types.Count; i++)
+                for (int i = 1; i < types.Count; i++)
                 {
                     var other = (EnumTypeDefinitionNode)types[i].Definition;
                     if (AreEqual(values, first))
@@ -67,7 +67,14 @@ namespace HotChocolate.Stitching
                             description = other.Description;
                         }
                     }
+                    else
+                    {
+                        context.AddType(other.Rename(
+                            types[i].CreateUniqueName()));
+                    }
                 }
+
+                context.AddType(first);
             }
             else
             {
@@ -94,4 +101,60 @@ namespace HotChocolate.Stitching
         }
     }
 
+    public static class MergeSyntaxNodeExtensions
+    {
+        public static NameString CreateUniqueName(
+            this ITypeInfo typeInfo)
+        {
+            if (typeInfo == null)
+            {
+                throw new ArgumentNullException(nameof(typeInfo));
+            }
+
+            return $"{typeInfo.SchemaName}_{typeInfo.Definition.Name.Value}";
+        }
+
+        public static EnumTypeDefinitionNode Rename(
+            this EnumTypeDefinitionNode enumTypeDefinition,
+            NameString newName)
+        {
+            if (enumTypeDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(enumTypeDefinition));
+            }
+
+            newName.EnsureNotEmpty(nameof(newName));
+
+            NameString originalName = enumTypeDefinition.Name.Value;
+
+            IReadOnlyList<DirectiveNode> directives =
+                AddRenamedDirective(
+                    enumTypeDefinition.Directives,
+                    originalName);
+
+            return enumTypeDefinition
+                .WithName(new NameNode(newName))
+                .WithDirectives(directives);
+        }
+
+        private static IReadOnlyList<DirectiveNode> AddRenamedDirective(
+            IReadOnlyList<DirectiveNode> directives,
+            NameString originalName)
+        {
+            var list = new List<DirectiveNode>(directives);
+
+            list.RemoveAll(t =>
+                DirectiveNames.Renamed.Equals(t.Name.Value));
+
+            list.Add(new DirectiveNode
+            (
+                DirectiveNames.Renamed,
+                new ArgumentNode(
+                    DirectiveFieldNames.Renamed_Name,
+                    originalName)
+            ));
+
+            return list;
+        }
+    }
 }

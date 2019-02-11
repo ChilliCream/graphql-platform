@@ -31,7 +31,7 @@ namespace HotChocolate
 
             configuration.RegisterDirective<DelegateDirectiveType>();
             configuration.RegisterDirective<SchemaDirectiveType>();
-            configuration.RegisterDirective<DependentOnDirectiveType>();
+            configuration.RegisterDirective<ComputedDirectiveType>();
             configuration.RegisterIsOfType(IsOfTypeFallback);
             configuration.Use<DelegateToRemoteSchemaMiddleware>();
             configuration.Use<DictionaryResultMiddleware>();

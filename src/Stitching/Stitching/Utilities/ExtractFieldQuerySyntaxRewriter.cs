@@ -132,7 +132,7 @@ namespace HotChocolate.Stitching
         private static bool IsDelegationField(IDirectiveCollection directives)
         {
             return directives.Contains(DirectiveNames.Delegate)
-            || directives.Contains(DirectiveNames.DependentOn);
+            || directives.Contains(DirectiveNames.Computed);
         }
 
         private static void AddDependencies(
