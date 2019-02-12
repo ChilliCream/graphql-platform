@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore
     public class QueryMiddlewareOptions
     {
         private PathString _path = new PathString("/");
-        private PathString _subscriptionPath;
+        private PathString _subscriptionPath = new PathString("/ws");
 
         public int QueryCacheSize { get; set; } = 100;
 
