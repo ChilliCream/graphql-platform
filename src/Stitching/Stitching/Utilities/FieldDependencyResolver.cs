@@ -130,15 +130,21 @@ namespace HotChocolate.Stitching
 
             if (directive != null)
             {
-                foreach (string fieldName in directive
-                    .ToObject<ComputedDirective>().DependantOn)
+                string[] dependantOn = directive
+                    .ToObject<ComputedDirective>()
+                    .DependantOn;
+
+                if (dependantOn != null)
                 {
-                    if (type.Fields.TryGetField(
-                        fieldName,
-                        out IOutputField dependency))
+                    foreach (string fieldName in dependantOn)
                     {
-                        context.Dependencies.Add(
-                            new FieldDependency(type.Name, dependency.Name));
+                        if (type.Fields.TryGetField(
+                            fieldName,
+                            out IOutputField dependency))
+                        {
+                            context.Dependencies.Add(new FieldDependency(
+                                type.Name, dependency.Name));
+                        }
                     }
                 }
             }
