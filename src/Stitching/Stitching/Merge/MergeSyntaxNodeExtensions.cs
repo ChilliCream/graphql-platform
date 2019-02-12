@@ -121,30 +121,22 @@ namespace HotChocolate.Stitching
             list.RemoveAll(t =>
                 DirectiveNames.Delegate.Equals(t.Name.Value));
 
-            list.RemoveAll(t =>
-                DirectiveNames.Schema.Equals(t.Name.Value));
+            var arguments = new List<ArgumentNode>();
+            arguments.Add(new ArgumentNode(
+                DirectiveFieldNames.Delegate_Schema,
+                schemaName));
 
-            if (string.IsNullOrEmpty(delegationPath))
+            if (!string.IsNullOrEmpty(delegationPath))
             {
-                list.Add(new DirectiveNode(DirectiveNames.Delegate));
-            }
-            else
-            {
-                list.Add(new DirectiveNode
-                (
-                    DirectiveNames.Delegate,
-                    new ArgumentNode(
-                        DirectiveFieldNames.Delegate_Path,
-                        delegationPath)
-                ));
+                arguments.Add(new ArgumentNode(
+                    DirectiveFieldNames.Delegate_Path,
+                    delegationPath));
             }
 
             list.Add(new DirectiveNode
             (
-                DirectiveNames.Schema,
-                new ArgumentNode(
-                    DirectiveFieldNames.Delegate_Path,
-                    delegationPath)
+                DirectiveNames.Delegate,
+                arguments
             ));
 
             return field.WithDirectives(list);

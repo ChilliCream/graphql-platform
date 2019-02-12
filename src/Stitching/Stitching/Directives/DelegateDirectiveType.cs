@@ -16,6 +16,12 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.Path)
                 .Name(DirectiveFieldNames.Delegate_Path)
                 .Type<StringType>();
+
+            descriptor.Argument(t => t.Schema)
+                .Name(DirectiveFieldNames.Delegate_Schema)
+                .Type<NonNullType<StringType>>()
+                .Description("The name of the schema to which this " +
+                    "field shall be delegated to.");
         }
     }
 }

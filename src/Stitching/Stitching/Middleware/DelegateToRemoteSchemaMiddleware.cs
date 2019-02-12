@@ -30,11 +30,7 @@ namespace HotChocolate.Stitching
                 .Directives[DirectiveNames.Delegate]
                 .FirstOrDefault()?.ToObject<DelegateDirective>();
 
-            SchemaDirective schemaDirective = context.Field
-                .Directives[DirectiveNames.Schema]
-                .FirstOrDefault()?.ToObject<SchemaDirective>();
-
-            if (delegateDirective != null && schemaDirective != null)
+            if (delegateDirective != null)
             {
                 IImmutableStack<SelectionPathComponent> path =
                     delegateDirective.Path is null
@@ -44,9 +40,11 @@ namespace HotChocolate.Stitching
                 QueryRequest request = CreateQuery(context, path);
 
                 IReadOnlyQueryResult result = await ExecuteQueryAsync(
-                    context, request, schemaDirective.Name)
+                    context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
 
+                context.ScopedContextData = context.ScopedContextData.SetItem(
+                    WellKnownProperties.SchemaName, delegateDirective.Schema);
                 context.Result = ExtractData(result.Data, path.Count());
                 ReportErrors(context, result.Errors);
             }
