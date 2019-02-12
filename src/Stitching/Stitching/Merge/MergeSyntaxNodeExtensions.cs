@@ -35,7 +35,7 @@ namespace HotChocolate.Stitching
 
         public static EnumTypeDefinitionNode Rename(
             this EnumTypeDefinitionNode enumTypeDefinition,
-            NameString newName)
+            NameString newName, NameString schemaName)
         {
             if (enumTypeDefinition == null)
             {
@@ -49,7 +49,8 @@ namespace HotChocolate.Stitching
             IReadOnlyList<DirectiveNode> directives =
                 AddRenamedDirective(
                     enumTypeDefinition.Directives,
-                    originalName);
+                    originalName,
+                    schemaName);
 
             return enumTypeDefinition
                 .WithName(new NameNode(newName))
@@ -58,7 +59,7 @@ namespace HotChocolate.Stitching
 
         public static UnionTypeDefinitionNode Rename(
             this UnionTypeDefinitionNode enumTypeDefinition,
-            NameString newName)
+            NameString newName, NameString schemaName)
         {
             if (enumTypeDefinition == null)
             {
@@ -72,7 +73,8 @@ namespace HotChocolate.Stitching
             IReadOnlyList<DirectiveNode> directives =
                 AddRenamedDirective(
                     enumTypeDefinition.Directives,
-                    originalName);
+                    originalName,
+                    schemaName);
 
             return enumTypeDefinition
                 .WithName(new NameNode(newName))
@@ -81,19 +83,19 @@ namespace HotChocolate.Stitching
 
         private static IReadOnlyList<DirectiveNode> AddRenamedDirective(
             IReadOnlyList<DirectiveNode> directives,
-            NameString originalName)
+            NameString originalName, NameString schemaName)
         {
             var list = new List<DirectiveNode>(directives);
-
-            list.RemoveAll(t =>
-                DirectiveNames.Renamed.Equals(t.Name.Value));
 
             list.Add(new DirectiveNode
             (
                 DirectiveNames.Renamed,
                 new ArgumentNode(
                     DirectiveFieldNames.Renamed_Name,
-                    originalName)
+                    originalName),
+                new ArgumentNode(
+                    DirectiveFieldNames.Renamed_Schema,
+                    schemaName)
             ));
 
             return list;

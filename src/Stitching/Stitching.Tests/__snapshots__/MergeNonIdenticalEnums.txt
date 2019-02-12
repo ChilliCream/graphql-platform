@@ -1,4 +1,4 @@
-enum Schema_C_Foo @renamed(name: "Foo") {
+enum Schema_C_Foo @renamed(name: "Foo", schema: "Schema_C") {
   BAR
   BAZ
   QUX

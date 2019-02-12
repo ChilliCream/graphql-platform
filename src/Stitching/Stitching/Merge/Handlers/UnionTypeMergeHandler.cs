@@ -28,7 +28,8 @@ namespace HotChocolate.Stitching
                 {
                     var other = (UnionTypeDefinitionNode)types[i].Definition;
                     context.AddType(other.Rename(
-                        types[i].CreateUniqueName()));
+                        types[i].CreateUniqueName(),
+                        types[i].Schema.Name));
                 }
 
                 context.AddType(first);

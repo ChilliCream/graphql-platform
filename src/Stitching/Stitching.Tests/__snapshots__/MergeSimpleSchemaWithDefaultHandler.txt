@@ -1,4 +1,4 @@
-union B_Foo @renamed(name: "Foo") = Bar | Baz
+union B_Foo @renamed(name: "Foo", schema: "B") = Bar | Baz
 
 union Foo = Bar | Baz
 
