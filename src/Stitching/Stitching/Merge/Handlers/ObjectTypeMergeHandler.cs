@@ -19,17 +19,76 @@ namespace HotChocolate.Stitching
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            var notMerged = new List<ITypeInfo>(types);
-            var buckets = new List<List<ITypeInfo>>();
+            ITypeInfo left = types.FirstOrDefault(t =>
+               t.Definition is ObjectTypeDefinitionNode);
 
-            while (notMerged.Count > 0)
+            if (left == null)
             {
-                var readToMerge = new List<ITypeInfo>();
+                _next.Invoke(context, types);
+            }
+            else
+            {
+                var notMerged = new List<ITypeInfo>(types);
+                while (notMerged.Count > 0 && left != null)
+                {
+                    var leftDef = (ObjectTypeDefinitionNode)left.Definition;
+                    var readyToMerge = new List<ITypeInfo>();
+                    left.MoveType(notMerged, readyToMerge);
+
+                    for (int i = 0; i < types.Count; i++)
+                    {
+                        if (types[i].Definition is
+                            ObjectTypeDefinitionNode rightDef
+                            && CanBeMerged(leftDef, rightDef))
+                        {
+                            types[i].MoveType(notMerged, readyToMerge);
+                        }
+                    }
+
+                    MergeType(context, readyToMerge);
+
+                    left = types.FirstOrDefault(t =>
+                        t.Definition is ObjectTypeDefinitionNode);
+                }
+
+                _next.Invoke(context, notMerged);
+            }
+        }
+
+        private void MergeType(
+            ISchemaMergeContext context,
+            IReadOnlyList<ITypeInfo> types)
+        {
+            string name = types[0].Definition.Name.Value;
+
+            if (context.ContainsType(name))
+            {
                 for (int i = 0; i < types.Count; i++)
                 {
-
+                    name = types[i].CreateUniqueName();
+                    if (!context.ContainsType(name))
+                    {
+                        break;
+                    }
                 }
             }
+
+            // ? : how do we handle the interfaces correctly
+            List<ObjectTypeDefinitionNode> definitions = types
+                .Select(t => t.Definition)
+                .Cast<ObjectTypeDefinitionNode>()
+                .ToList();
+
+            var interfaces = new HashSet<string>(
+                definitions.SelectMany(d =>
+                    d.Interfaces.Select(t => t.Name.Value)));
+
+            ObjectTypeDefinitionNode definition = definitions[0]
+                .WithInterfaces(interfaces.Select(t =>
+                    new NamedTypeNode(new NameNode(t))).ToList())
+                .WithName(new NameNode(name));
+
+            context.AddType(definition);
         }
 
         private static bool CanBeMerged(

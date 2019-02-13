@@ -27,6 +27,12 @@ namespace HotChocolate.Stitching
             _types.Add(type.Name.Value, type);
         }
 
+        public bool ContainsType(NameString typeName)
+        {
+            typeName.EnsureNotEmpty(nameof(typeName));
+            return _types.ContainsKey(typeName);
+        }
+
         public DocumentNode CreateSchema()
         {
             return new DocumentNode(_types.Values.ToArray());

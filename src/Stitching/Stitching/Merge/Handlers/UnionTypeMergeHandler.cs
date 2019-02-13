@@ -20,24 +20,29 @@ namespace HotChocolate.Stitching
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types.All(t => t.Definition is UnionTypeDefinitionNode))
-            {
-                var first = (UnionTypeDefinitionNode)types[0].Definition;
+            var notMerged = new List<ITypeInfo>();
 
-                for (int i = 1; i < types.Count; i++)
+            for (int i = 0; i < types.Count; i++)
+            {
+                if (types[i].Definition is UnionTypeDefinitionNode def)
                 {
-                    var other = (UnionTypeDefinitionNode)types[i].Definition;
-                    context.AddType(other.Rename(
-                        types[i].CreateUniqueName(),
-                        types[i].Schema.Name));
+                    if (context.ContainsType(def.Name.Value))
+                    {
+                        context.AddType(def.WithName(
+                            new NameNode(types[i].CreateUniqueName())));
+                    }
+                    else
+                    {
+                        context.AddType(def);
+                    }
                 }
+                else
+                {
+                    notMerged.Add(types[i]);
+                }
+            }
 
-                context.AddType(first);
-            }
-            else
-            {
-                _next.Invoke(context, types);
-            }
+            _next.Invoke(context, notMerged);
         }
     }
 }

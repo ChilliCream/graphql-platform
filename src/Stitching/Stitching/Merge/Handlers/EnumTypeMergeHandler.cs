@@ -19,45 +19,79 @@ namespace HotChocolate.Stitching
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types.All(t => t.Definition is EnumTypeDefinitionNode))
-            {
-                var first = (EnumTypeDefinitionNode)types[0].Definition;
-                StringValueNode description = first.Description;
-                var values = new HashSet<string>(
-                    first.Values.Select(t => t.Name.Value));
+            ITypeInfo left = types.FirstOrDefault(t =>
+               t.Definition is EnumTypeDefinitionNode);
 
-                for (int i = 1; i < types.Count; i++)
-                {
-                    var other = (EnumTypeDefinitionNode)types[i].Definition;
-                    if (AreEqual(values, other))
-                    {
-                        if (description == null && other.Description != null)
-                        {
-                            description = other.Description;
-                        }
-                    }
-                    else
-                    {
-                        context.AddType(other.Rename(
-                            types[i].CreateUniqueName(),
-                            types[i].Schema.Name));
-                    }
-                }
-
-                if (first.Description != description)
-                {
-                    first = first.WithDescription(description);
-                }
-
-                context.AddType(first);
-            }
-            else
+            if (left == null)
             {
                 _next.Invoke(context, types);
             }
+            else
+            {
+                var notMerged = new List<ITypeInfo>(types);
+                while (notMerged.Count > 0 && left != null)
+                {
+                    var leftDef = (EnumTypeDefinitionNode)left.Definition;
+                    var leftValueSet = new HashSet<string>(
+                        leftDef.Values.Select(t => t.Name.Value));
+                    var readyToMerge = new List<ITypeInfo>();
+                    left.MoveType(notMerged, readyToMerge);
+
+                    for (int i = 0; i < types.Count; i++)
+                    {
+                        if (types[i].Definition is
+                            EnumTypeDefinitionNode rightDef
+                            && CanBeMerged(leftValueSet, rightDef))
+                        {
+                            types[i].MoveType(notMerged, readyToMerge);
+                        }
+                    }
+
+                    MergeType(context, readyToMerge);
+
+                    left = types.FirstOrDefault(t =>
+                        t.Definition is EnumTypeDefinitionNode);
+                }
+
+                _next.Invoke(context, notMerged);
+            }
         }
 
-        private bool AreEqual(
+        private void MergeType(
+            ISchemaMergeContext context,
+            IReadOnlyList<ITypeInfo> types)
+        {
+            var definition = (EnumTypeDefinitionNode)types[0].Definition;
+
+            EnumTypeDefinitionNode descriptionDef =
+                types.Select(t => t.Definition)
+                .Cast<EnumTypeDefinitionNode>()
+                .FirstOrDefault(t => t.Description != null);
+
+            if (descriptionDef != null)
+            {
+                definition = definition.WithDescription(
+                    descriptionDef.Description);
+            }
+
+            string name = types[0].Definition.Name.Value;
+
+            if (context.ContainsType(name))
+            {
+                for (int i = 0; i < types.Count; i++)
+                {
+                    name = types[i].CreateUniqueName();
+                    if (!context.ContainsType(name))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            context.AddType(definition.WithName(new NameNode(name)));
+        }
+
+        private bool CanBeMerged(
             ISet<string> left,
             EnumTypeDefinitionNode right)
         {
