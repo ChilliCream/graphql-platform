@@ -1,10 +1,10 @@
+enum Foo {
+  BAR
+  BAZ
+}
+
 enum Schema_C_Foo @renamed(name: "Foo", schema: "Schema_C") {
   BAR
   BAZ
   QUX
-}
-
-enum Foo {
-  BAR
-  BAZ
 }

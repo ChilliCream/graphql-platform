@@ -66,6 +66,8 @@ namespace HotChocolate.Stitching
             MergeRootType(context, OperationType.Subscription, schemas, merge);
             MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
+            // TODO : FIX NAMES
+
             return context.CreateSchema();
         }
 

@@ -37,19 +37,19 @@ namespace HotChocolate.Stitching
                     var readyToMerge = new List<ITypeInfo>();
                     left.MoveType(notMerged, readyToMerge);
 
-                    for (int i = 0; i < types.Count; i++)
+                    for (int i = 0; i < notMerged.Count; i++)
                     {
-                        if (types[i].Definition is
+                        if (notMerged[i].Definition is
                             EnumTypeDefinitionNode rightDef
                             && CanBeMerged(leftValueSet, rightDef))
                         {
-                            types[i].MoveType(notMerged, readyToMerge);
+                            notMerged[i].MoveType(notMerged, readyToMerge);
                         }
                     }
 
                     MergeType(context, readyToMerge);
 
-                    left = types.FirstOrDefault(t =>
+                    left = notMerged.FirstOrDefault(t =>
                         t.Definition is EnumTypeDefinitionNode);
                 }
 
@@ -74,7 +74,7 @@ namespace HotChocolate.Stitching
                     descriptionDef.Description);
             }
 
-            string name = types[0].Definition.Name.Value;
+            NameString name = types[0].Definition.Name.Value;
 
             if (context.ContainsType(name))
             {
@@ -88,7 +88,15 @@ namespace HotChocolate.Stitching
                 }
             }
 
-            context.AddType(definition.WithName(new NameNode(name)));
+            if (name.Equals(definition.Name.Value))
+            {
+                context.AddType(definition);
+            }
+            else
+            {
+                context.AddType(definition.Rename(name,
+                    types.Select(t => t.Schema.Name)));
+            }
         }
 
         private bool CanBeMerged(
