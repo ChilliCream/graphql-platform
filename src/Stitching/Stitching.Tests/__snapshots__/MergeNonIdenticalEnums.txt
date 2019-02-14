@@ -1,9 +1,9 @@
-enum Foo {
+enum Foo @source(name: "Foo", schema: "Schema_A") @source(name: "Foo", schema: "Schema_B") {
   BAR
   BAZ
 }
 
-enum Schema_C_Foo @renamed(name: "Foo", schema: "Schema_C") {
+enum Schema_C_Foo @source(name: "Foo", schema: "Schema_C") {
   BAR
   BAZ
   QUX

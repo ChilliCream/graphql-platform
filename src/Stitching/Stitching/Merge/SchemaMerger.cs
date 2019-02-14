@@ -14,9 +14,16 @@ namespace HotChocolate.Stitching
         private static List<MergeTypeHandler> _defaultHandlers =
             new List<MergeTypeHandler>
             {
-                SchemaMergerExtensions.CreateHandler<RootTypeMergeHandler>(),
-                SchemaMergerExtensions.CreateHandler<EnumTypeMergeHandler>(),
-                SchemaMergerExtensions.CreateHandler<UnionTypeMergeHandler>(),
+                SchemaMergerExtensions
+                    .CreateHandler<RootTypeMergeHandler>(),
+                SchemaMergerExtensions
+                    .CreateHandler<ObjectTypeMergeHandler>(),
+                SchemaMergerExtensions
+                    .CreateHandler<InterfaceTypeMergeHandler>(),
+                SchemaMergerExtensions
+                    .CreateHandler<UnionTypeMergeHandler>(),
+                SchemaMergerExtensions
+                    .CreateHandler<EnumTypeMergeHandler>(),
             };
         private List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
         private OrderedDictionary<string, DocumentNode> _schemas =

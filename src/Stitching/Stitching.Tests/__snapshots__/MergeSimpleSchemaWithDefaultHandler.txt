@@ -1,5 +1,5 @@
-union B_Foo @renamed(name: "Foo", schema: "B") = Bar | Baz
+union Foo @source(name: "Foo", schema: "A") @source(name: "Foo", schema: "B") = Bar | Baz
 
-union Foo = Bar | Baz
+union B_Foo @source(name: "Foo", schema: "A") @source(name: "Foo", schema: "B") = Bar | Baz
 
-union A = B | C
+union A @source(name: "A", schema: "A") = B | C

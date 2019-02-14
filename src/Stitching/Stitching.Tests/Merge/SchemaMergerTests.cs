@@ -24,5 +24,26 @@ namespace HotChocolate.Stitching
             // assert
             SchemaSyntaxSerializer.Serialize(schema).Snapshot();
         }
+
+        [Fact]
+        public void MergeDemoSchemaWithDefaultHandler()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    FileResource.Open("Contract.graphql"));
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    FileResource.Open("Customer.graphql"));
+
+            // act
+            DocumentNode schema = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).Snapshot();
+        }
     }
 }

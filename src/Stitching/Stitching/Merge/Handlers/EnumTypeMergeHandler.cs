@@ -88,15 +88,8 @@ namespace HotChocolate.Stitching
                 }
             }
 
-            if (name.Equals(definition.Name.Value))
-            {
-                context.AddType(definition);
-            }
-            else
-            {
-                context.AddType(definition.Rename(name,
-                    types.Select(t => t.Schema.Name)));
-            }
+            context.AddType(definition.AddSource(name,
+                types.Select(t => t.Schema.Name)));
         }
 
         private bool CanBeMerged(

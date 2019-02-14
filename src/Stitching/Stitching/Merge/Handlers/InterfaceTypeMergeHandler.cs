@@ -5,12 +5,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public class ObjectTypeMergeHandler
+    public class InterfaceTypeMergeHandler
          : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
 
-        public ObjectTypeMergeHandler(MergeTypeDelegate next)
+        public InterfaceTypeMergeHandler(MergeTypeDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -20,7 +20,7 @@ namespace HotChocolate.Stitching
             IReadOnlyList<ITypeInfo> types)
         {
             ITypeInfo left = types.FirstOrDefault(t =>
-               t.Definition is ObjectTypeDefinitionNode);
+               t.Definition is InterfaceTypeDefinitionNode);
 
             if (left == null)
             {
@@ -29,16 +29,17 @@ namespace HotChocolate.Stitching
             else
             {
                 var notMerged = new List<ITypeInfo>(types);
+
                 while (notMerged.Count > 0 && left != null)
                 {
-                    var leftDef = (ObjectTypeDefinitionNode)left.Definition;
+                    var leftDef = (InterfaceTypeDefinitionNode)left.Definition;
                     var readyToMerge = new List<ITypeInfo>();
                     left.MoveType(notMerged, readyToMerge);
 
                     for (int i = 0; i < notMerged.Count; i++)
                     {
                         if (notMerged[i].Definition is
-                            ObjectTypeDefinitionNode rightDef
+                            InterfaceTypeDefinitionNode rightDef
                             && CanBeMerged(leftDef, rightDef))
                         {
                             notMerged[i].MoveType(notMerged, readyToMerge);
@@ -48,7 +49,7 @@ namespace HotChocolate.Stitching
                     MergeType(context, readyToMerge);
 
                     left = notMerged.FirstOrDefault(t =>
-                        t.Definition is ObjectTypeDefinitionNode);
+                        t.Definition is InterfaceTypeDefinitionNode);
                 }
 
                 if (notMerged.Count > 0)
@@ -76,27 +77,20 @@ namespace HotChocolate.Stitching
                 }
             }
 
-            List<ObjectTypeDefinitionNode> definitions = types
+            List<InterfaceTypeDefinitionNode> definitions = types
                 .Select(t => t.Definition)
-                .Cast<ObjectTypeDefinitionNode>()
+                .Cast<InterfaceTypeDefinitionNode>()
                 .ToList();
 
-            // ? : how do we handle the interfaces correctly
-            var interfaces = new HashSet<string>(
-                definitions.SelectMany(d =>
-                    d.Interfaces.Select(t => t.Name.Value)));
-
-            ObjectTypeDefinitionNode definition = definitions[0]
-                .WithInterfaces(interfaces.Select(t =>
-                    new NamedTypeNode(new NameNode(t))).ToList())
+            InterfaceTypeDefinitionNode definition = definitions[0]
                 .AddSource(name, types.Select(t => t.Schema.Name));
 
             context.AddType(definition);
         }
 
         private static bool CanBeMerged(
-            ObjectTypeDefinitionNode left,
-            ObjectTypeDefinitionNode right)
+            InterfaceTypeDefinitionNode left,
+            InterfaceTypeDefinitionNode right)
         {
             if (left.Name.Value.Equals(
                 right.Name.Value,

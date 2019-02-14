@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,15 +27,16 @@ namespace HotChocolate.Stitching
             {
                 if (types[i].Definition is UnionTypeDefinitionNode def)
                 {
-                    if (context.ContainsType(def.Name.Value))
+                    string name = def.Name.Value;
+
+                    if (context.ContainsType(name))
                     {
-                        context.AddType(def.WithName(
-                            new NameNode(types[i].CreateUniqueName())));
+                        name = types[i].CreateUniqueName();
                     }
-                    else
-                    {
-                        context.AddType(def);
-                    }
+
+                    context.AddType(def.AddSource(
+                        name,
+                        types.Select(t => t.Schema.Name)));
                 }
                 else
                 {
@@ -42,7 +44,10 @@ namespace HotChocolate.Stitching
                 }
             }
 
-            _next.Invoke(context, notMerged);
+            if (notMerged.Count > 0)
+            {
+                _next.Invoke(context, notMerged);
+            }
         }
     }
 }

@@ -2,20 +2,22 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
-    public class RenamedDirectiveType
-        : DirectiveType<RenamedDirective>
+    public class SourceDirectiveType
+        : DirectiveType<SourceDirective>
     {
         protected override void Configure(
-            IDirectiveTypeDescriptor<RenamedDirective> descriptor)
+            IDirectiveTypeDescriptor<SourceDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Renamed)
+            descriptor.Name(DirectiveNames.Source)
                 .Description("Annotates the original name of a type.");
 
             descriptor.Location(DirectiveLocation.Enum)
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.Interface)
                 .Location(DirectiveLocation.Union)
-                .Location(DirectiveLocation.InputObject);
+                .Location(DirectiveLocation.InputObject)
+                .Location(DirectiveLocation.FieldDefinition)
+                .Location(DirectiveLocation.EnumValue);
 
             descriptor.Repeatable();
 

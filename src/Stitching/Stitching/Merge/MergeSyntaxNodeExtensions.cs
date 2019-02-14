@@ -33,7 +33,18 @@ namespace HotChocolate.Stitching
             return $"{typeInfo.Schema.Name}_{namedSyntaxNode.Name.Value}";
         }
 
-        public static EnumTypeDefinitionNode Rename(
+        public static EnumTypeDefinitionNode AddSource(
+            this EnumTypeDefinitionNode enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static EnumTypeDefinitionNode AddSource(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -41,6 +52,11 @@ namespace HotChocolate.Stitching
             if (enumTypeDefinition == null)
             {
                 throw new ArgumentNullException(nameof(enumTypeDefinition));
+            }
+
+            if (schemaNames == null)
+            {
+                throw new ArgumentNullException(nameof(schemaNames));
             }
 
             newName.EnsureNotEmpty(nameof(newName));
@@ -58,27 +74,126 @@ namespace HotChocolate.Stitching
                 .WithDirectives(directives);
         }
 
-        public static UnionTypeDefinitionNode Rename(
-            this UnionTypeDefinitionNode enumTypeDefinition,
+        public static UnionTypeDefinitionNode AddSource(
+            this UnionTypeDefinitionNode unionTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                unionTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static UnionTypeDefinitionNode AddSource(
+            this UnionTypeDefinitionNode unionTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
         {
-            if (enumTypeDefinition == null)
+            if (unionTypeDefinition == null)
             {
-                throw new ArgumentNullException(nameof(enumTypeDefinition));
+                throw new ArgumentNullException(nameof(unionTypeDefinition));
+            }
+
+            if (schemaNames == null)
+            {
+                throw new ArgumentNullException(nameof(schemaNames));
             }
 
             newName.EnsureNotEmpty(nameof(newName));
 
-            NameString originalName = enumTypeDefinition.Name.Value;
+            NameString originalName = unionTypeDefinition.Name.Value;
 
             IReadOnlyList<DirectiveNode> directives =
                 AddRenamedDirective(
-                    enumTypeDefinition.Directives,
+                    unionTypeDefinition.Directives,
                     originalName,
                     schemaNames);
 
-            return enumTypeDefinition
+            return unionTypeDefinition
+                .WithName(new NameNode(newName))
+                .WithDirectives(directives);
+        }
+
+        public static ObjectTypeDefinitionNode AddSource(
+            this ObjectTypeDefinitionNode objectTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                objectTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static ObjectTypeDefinitionNode AddSource(
+            this ObjectTypeDefinitionNode objectTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            if (objectTypeDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(objectTypeDefinition));
+            }
+
+            if (schemaNames == null)
+            {
+                throw new ArgumentNullException(nameof(schemaNames));
+            }
+
+            newName.EnsureNotEmpty(nameof(newName));
+
+            NameString originalName = objectTypeDefinition.Name.Value;
+
+            IReadOnlyList<DirectiveNode> directives =
+                AddRenamedDirective(
+                    objectTypeDefinition.Directives,
+                    originalName,
+                    schemaNames);
+
+            return objectTypeDefinition
+                .WithName(new NameNode(newName))
+                .WithDirectives(directives);
+        }
+
+        public static InterfaceTypeDefinitionNode AddSource(
+            this InterfaceTypeDefinitionNode interfaceTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                interfaceTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static InterfaceTypeDefinitionNode AddSource(
+            this InterfaceTypeDefinitionNode interfaceTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            if (interfaceTypeDefinition == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(interfaceTypeDefinition));
+            }
+
+            if (schemaNames == null)
+            {
+                throw new ArgumentNullException(nameof(schemaNames));
+            }
+
+            newName.EnsureNotEmpty(nameof(newName));
+
+            NameString originalName = interfaceTypeDefinition.Name.Value;
+
+            IReadOnlyList<DirectiveNode> directives =
+                AddRenamedDirective(
+                    interfaceTypeDefinition.Directives,
+                    originalName,
+                    schemaNames);
+
+            return interfaceTypeDefinition
                 .WithName(new NameNode(newName))
                 .WithDirectives(directives);
         }
@@ -94,7 +209,7 @@ namespace HotChocolate.Stitching
             {
                 list.Add(new DirectiveNode
                 (
-                    DirectiveNames.Renamed,
+                    DirectiveNames.Source,
                     new ArgumentNode(
                         DirectiveFieldNames.Renamed_Name,
                         originalName),
