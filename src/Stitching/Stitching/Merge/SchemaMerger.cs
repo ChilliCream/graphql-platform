@@ -15,6 +15,8 @@ namespace HotChocolate.Stitching
             new List<MergeTypeHandler>
             {
                 SchemaMergerExtensions
+                    .CreateHandler<ScalarTypeMergeHandler>(),
+                SchemaMergerExtensions
                     .CreateHandler<RootTypeMergeHandler>(),
                 SchemaMergerExtensions
                     .CreateHandler<ObjectTypeMergeHandler>(),
@@ -166,7 +168,5 @@ namespace HotChocolate.Stitching
         }
 
         public static SchemaMerger New() => new SchemaMerger();
-
-
     }
 }

@@ -355,6 +355,7 @@ namespace HotChocolate.Stitching
             {
                 customer(id: ""Q3VzdG9tZXIteDE="") {
                     name
+                }
             }");
 
             // assert

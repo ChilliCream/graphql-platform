@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Resources
 {
     internal static class EmbeddedResources
     {

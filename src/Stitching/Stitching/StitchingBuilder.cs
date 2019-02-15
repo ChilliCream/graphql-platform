@@ -10,6 +10,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Resources;
 using HotChocolate.Stitching.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
