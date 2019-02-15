@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
 using Xunit;
 
 namespace HotChocolate.Stitching

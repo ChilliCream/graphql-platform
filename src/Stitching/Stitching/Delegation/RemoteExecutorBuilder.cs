@@ -6,9 +6,10 @@ using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteExecutorBuilder
     {

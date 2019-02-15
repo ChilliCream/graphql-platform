@@ -5,8 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Client
 {
     internal class RemoteRequestDispatcher
     {

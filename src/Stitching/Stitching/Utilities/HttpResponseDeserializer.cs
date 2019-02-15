@@ -4,7 +4,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using Newtonsoft.Json.Linq;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     internal static class HttpResponseDeserializer
     {

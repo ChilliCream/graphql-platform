@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
 using Xunit;
 
 namespace HotChocolate.Stitching

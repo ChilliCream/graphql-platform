@@ -2,7 +2,7 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     internal sealed class ScopedVariableNode
         : IValueNode<string>

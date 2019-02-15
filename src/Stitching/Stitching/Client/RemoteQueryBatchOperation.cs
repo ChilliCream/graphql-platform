@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Client
 {
     public sealed class RemoteQueryBatchOperation
         : IBatchOperation

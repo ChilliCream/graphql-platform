@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using Xunit;
 

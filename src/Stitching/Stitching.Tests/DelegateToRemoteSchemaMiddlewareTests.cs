@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
 
 namespace HotChocolate.Stitching
 {

@@ -7,7 +7,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     internal class ArgumentScopedVariableResolver
         : IScopedVariableResolver

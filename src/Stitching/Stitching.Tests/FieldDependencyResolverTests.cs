@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using Xunit;
 

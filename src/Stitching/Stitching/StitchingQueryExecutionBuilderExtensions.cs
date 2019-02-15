@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Stitching;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 

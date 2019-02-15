@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Delegation;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Client
 {
     public class StitchingContext
         : IStitchingContext

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     internal class RemoteQueryRequest
     {

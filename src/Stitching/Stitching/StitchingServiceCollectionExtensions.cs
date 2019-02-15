@@ -3,6 +3,8 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
+using HotChocolate.Stitching.Client;
+using HotChocolate.Stitching.Delegation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

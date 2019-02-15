@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     internal class RootScopedVariableResolver
         : IScopedVariableResolver

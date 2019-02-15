@@ -5,7 +5,7 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     internal static class SelectionPathParser
     {

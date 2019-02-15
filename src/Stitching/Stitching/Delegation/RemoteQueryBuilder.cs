@@ -4,9 +4,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteQueryBuilder
     {

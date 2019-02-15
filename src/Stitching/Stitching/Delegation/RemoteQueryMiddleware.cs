@@ -2,9 +2,10 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteQueryMiddleware
     {

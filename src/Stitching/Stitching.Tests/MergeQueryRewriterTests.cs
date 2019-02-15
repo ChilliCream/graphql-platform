@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 using Xunit;
 
 namespace HotChocolate.Stitching

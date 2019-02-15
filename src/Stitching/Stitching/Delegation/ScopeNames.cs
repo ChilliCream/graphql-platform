@@ -1,7 +1,7 @@
 using HotChocolate;
 
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public static class ScopeNames
     {

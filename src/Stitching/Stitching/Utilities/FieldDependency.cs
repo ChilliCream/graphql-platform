@@ -1,7 +1,7 @@
 
 using System;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     public readonly struct FieldDependency
         : IEquatable<FieldDependency>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using Moq;
 using Xunit;

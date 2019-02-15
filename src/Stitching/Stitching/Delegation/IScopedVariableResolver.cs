@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     internal interface IScopedVariableResolver
     {

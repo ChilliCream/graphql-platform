@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Client
 {
     public class RemoteQueryClient
         : IRemoteQueryClient

@@ -1,6 +1,6 @@
 using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public interface IRemoteExecutorAccessor
     {

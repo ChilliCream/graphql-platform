@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
