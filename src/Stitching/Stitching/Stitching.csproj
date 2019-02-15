@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Content Remove="Resources\IntrospectionQuery.graphql" />
-    <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +33,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\StitchingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
