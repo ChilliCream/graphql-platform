@@ -6,7 +6,7 @@ namespace HotChocolate.Stitching
 {
     public static class SchemaMergerExtensions
     {
-        public static ISchemaMerger AddHandler<T>(
+        public static ISchemaMerger AddMergeHandler<T>(
             this ISchemaMerger merger)
             where T : ITypeMergeHanlder
         {

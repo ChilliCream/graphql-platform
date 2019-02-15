@@ -16,6 +16,7 @@ using Moq;
 using Xunit;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Stitching
 {
@@ -306,6 +307,55 @@ namespace HotChocolate.Stitching
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.Snapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteStitchedQueryBuilder()
+        {
+            // arrange
+            TestServer server_contracts = TestServerFactory.Create(
+                ContractSchemaFactory.ConfigureSchema,
+                ContractSchemaFactory.ConfigureServices,
+                new QueryMiddlewareOptions());
+
+            TestServer server_customers = TestServerFactory.Create(
+                CustomerSchemaFactory.ConfigureSchema,
+                CustomerSchemaFactory.ConfigureServices,
+                new QueryMiddlewareOptions());
+
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
+                .Returns(new Func<string, HttpClient>(n =>
+                {
+                    return n.Equals("contract")
+                        ? server_contracts.CreateClient()
+                        : server_customers.CreateClient();
+                }));
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer"));
+
+            var request = new QueryRequest(
+                FileResource.Open("StitchingQueryComputedField.graphql"));
+
+            IServiceProvider services =
+                request.Services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(@"
+            {
+                customer(id: ""Q3VzdG9tZXIteDE="") {
+                    name
+            }");
 
             // assert
             result.Snapshot();

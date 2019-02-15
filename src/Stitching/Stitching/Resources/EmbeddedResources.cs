@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching
             var assembly = typeof(EmbeddedResources).Assembly;
 
             using (Stream stream = assembly.GetManifestResourceStream(
-                resourceName))
+                "HotChocolate.Stitching.Resources." + resourceName))
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {

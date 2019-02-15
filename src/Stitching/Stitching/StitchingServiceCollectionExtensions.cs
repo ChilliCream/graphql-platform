@@ -190,5 +190,66 @@ namespace HotChocolate
             return services.AddSingleton(executor)
                 .AddSingleton(executor.Schema);
         }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            Action<IStitchingBuilder> build)
+        {
+            return AddStitchedSchema(
+                services,
+                build,
+                new QueryExecutionOptions());
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            Action<IStitchingBuilder> build,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return AddStitchedSchema(
+                services,
+                build,
+                c => { },
+                options);
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            Action<IStitchingBuilder> build,
+            Action<ISchemaConfiguration> configure)
+        {
+            return AddStitchedSchema(
+                services,
+                build,
+                configure,
+                new QueryExecutionOptions());
+        }
+
+        public static IServiceCollection AddStitchedSchema(
+            this IServiceCollection services,
+            Action<IStitchingBuilder> build,
+            Action<ISchemaConfiguration> configure,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (build == null)
+            {
+                throw new ArgumentNullException(nameof(build));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            var stitchingBuilder = new StitchingBuilder();
+            build(stitchingBuilder);
+            stitchingBuilder.Populate(services, configure, options);
+            return services;
+        }
     }
 }
