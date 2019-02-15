@@ -9,14 +9,12 @@ using HotChocolate.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
-using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Stitching
 {
@@ -222,7 +220,7 @@ namespace HotChocolate.Stitching
                     c.Map(new FieldReference("Customer", "foo"),
                         next => context =>
                         {
-                            var obj = context.Parent<OrderedDictionary>();
+                            OrderedDictionary obj = context.Parent<OrderedDictionary>();
                             context.Result = obj["name"] + "_" + obj["id"];
                             return Task.CompletedTask;
                         });
