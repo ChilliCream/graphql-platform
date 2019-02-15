@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 
@@ -13,9 +14,9 @@ namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteExecutorBuilder
     {
-        private const string _introspectionQuery =
-            "HotChocolate.Stitching" +
-            ".Resources.IntrospectionQuery.graphql";
+        private static readonly string _introspectionQuery =
+            Encoding.UTF8.GetString(Resources.IntrospectionQuery);
+
         private string _schemaName;
         private string _schema;
         private readonly List<Type> _scalarTypes = new List<Type>();
@@ -118,7 +119,7 @@ namespace HotChocolate.Stitching.Delegation
 
                 var request = new RemoteQueryRequest
                 {
-                    Query = EmbeddedResources.OpenText(_introspectionQuery)
+                    Query = _introspectionQuery
                 };
 
                 string json = await queryClient.FetchStringAsync(

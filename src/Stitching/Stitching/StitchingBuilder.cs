@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -10,7 +11,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Introspection;
-using HotChocolate.Stitching.Resources;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -248,6 +249,9 @@ namespace HotChocolate.Stitching
 
     public static class StitchingBuilderExtensions
     {
+        private static readonly string _introspectionQuery =
+            Encoding.UTF8.GetString(Resources.IntrospectionQuery);
+
         public static IStitchingBuilder AddSchemaFromFile(
             this IStitchingBuilder builder,
             NameString name,
@@ -289,12 +293,9 @@ namespace HotChocolate.Stitching
                 HttpClient httpClient = s.GetRequiredService<IHttpClientFactory>()
                     .CreateClient(name);
 
-                string introspectionQuery = EmbeddedResources
-                    .OpenText("IntrospectionQuery.graphql");
-
                 var request = new RemoteQueryRequest
                 {
-                    Query = introspectionQuery
+                    Query = _introspectionQuery
                 };
 
                 var queryClient = new HttpQueryClient();
