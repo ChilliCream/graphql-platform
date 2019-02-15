@@ -249,8 +249,7 @@ namespace HotChocolate.Stitching
 
     public static class StitchingBuilderExtensions
     {
-        private static readonly string _introspectionQuery =
-            Encoding.UTF8.GetString(Resources.IntrospectionQuery);
+        private static readonly string _introspectionQuery = Resources.IntrospectionQuery;
 
         public static IStitchingBuilder AddSchemaFromFile(
             this IStitchingBuilder builder,

@@ -15,7 +15,7 @@ namespace HotChocolate.Stitching.Delegation
     public class RemoteExecutorBuilder
     {
         private static readonly string _introspectionQuery =
-            Encoding.UTF8.GetString(Resources.IntrospectionQuery);
+            Resources.IntrospectionQuery;
 
         private string _schemaName;
         private string _schema;
