@@ -8,7 +8,7 @@ namespace HotChocolate.Stitching.Delegation
         : IRemoteExecutorAccessor
     {
         public RemoteExecutorAccessor(
-            string schemaName,
+            NameString schemaName,
             IQueryExecutor executor)
         {
             if (string.IsNullOrEmpty(schemaName))
@@ -23,7 +23,8 @@ namespace HotChocolate.Stitching.Delegation
                 ?? throw new ArgumentNullException(nameof(executor));
 
         }
-        public string SchemaName { get; }
+
+        public NameString SchemaName { get; }
 
         public IQueryExecutor Executor { get; }
     }

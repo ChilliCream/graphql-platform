@@ -1,29 +1,20 @@
 using System;
-using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
     public interface IStitchingBuilder
     {
-        IStitchingBuilder AddSchema(string name, Uri uri);
+        IStitchingBuilder AddSchema(NameString name, Func<DocumentNode> loadSchema);
 
-        IStitchingBuilder AddSchema(string name, DocumentNode document);
+        IStitchingBuilder AddExtensions(Func<DocumentNode> loadExtensions);
 
-        IStitchingBuilder AddSchema(string name, ISchema schema);
+        IStitchingBuilder AddMergeHandler(MergeTypeHandler handler);
 
-        IStitchingBuilder AddExtension(DocumentNode document);
-
+        void Populate(IServiceCollection services,
+            Action<ISchemaConfiguration> configure,
+            IQueryExecutionOptionsAccessor options);
     }
-
-    /*
-
-    StichingBuilder.New()
-    .AddRemoteSchema(foo)
-    .AddExtensionFromFile("Extensions.graphql")
-    .AddConflictResolver(types => new ConflictResolution(false))
-    .AddFieldSelector((type, field) => false)
-    .RenameField("schemaName", new FieldReference("Type", "field"), "newFieldName")
-    .Merge();
-     */
 }

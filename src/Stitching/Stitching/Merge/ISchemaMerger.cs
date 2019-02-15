@@ -4,8 +4,8 @@ namespace HotChocolate.Stitching
 {
     public interface ISchemaMerger
     {
-        ISchemaMerger AddSchema(string name, DocumentNode schema);
-        ISchemaMerger AddHandler(MergeTypeHandler handler);
+        ISchemaMerger AddSchema(NameString name, DocumentNode schema);
+        ISchemaMerger AddMergeHandler(MergeTypeHandler mergeHandler);
         DocumentNode Merge();
     }
 }

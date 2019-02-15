@@ -15,7 +15,7 @@ namespace HotChocolate.Stitching
                 throw new System.ArgumentNullException(nameof(merger));
             }
 
-            merger.AddHandler(CreateHandler<T>());
+            merger.AddMergeHandler(CreateHandler<T>());
 
             return merger;
         }

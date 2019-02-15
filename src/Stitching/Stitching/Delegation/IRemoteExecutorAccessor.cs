@@ -4,7 +4,8 @@ namespace HotChocolate.Stitching.Delegation
 {
     public interface IRemoteExecutorAccessor
     {
-        string SchemaName { get; }
+        NameString SchemaName { get; }
+
         IQueryExecutor Executor { get; }
     }
 }

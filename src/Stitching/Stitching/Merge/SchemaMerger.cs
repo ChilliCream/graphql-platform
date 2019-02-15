@@ -26,10 +26,10 @@ namespace HotChocolate.Stitching
                     .CreateHandler<EnumTypeMergeHandler>(),
             };
         private List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
-        private OrderedDictionary<string, DocumentNode> _schemas =
-            new OrderedDictionary<string, DocumentNode>();
+        private OrderedDictionary<NameString, DocumentNode> _schemas =
+            new OrderedDictionary<NameString, DocumentNode>();
 
-        public ISchemaMerger AddHandler(MergeTypeHandler handler)
+        public ISchemaMerger AddMergeHandler(MergeTypeHandler handler)
         {
             if (handler == null)
             {
@@ -40,19 +40,14 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public ISchemaMerger AddSchema(string name, DocumentNode schema)
+        public ISchemaMerger AddSchema(NameString name, DocumentNode schema)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
-                    nameof(name));
-            }
-
             if (schema == null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
+
+            name.EnsureNotEmpty(nameof(name));
 
             _schemas.Add(name, schema);
 

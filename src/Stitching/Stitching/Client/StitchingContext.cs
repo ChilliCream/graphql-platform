@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Client
         private readonly object _sync = new object();
         private readonly List<IObserver<IRemoteQueryClient>> _observers =
             new List<IObserver<IRemoteQueryClient>>();
-        private readonly IDictionary<string, RemoteQueryClient> _clients;
+        private readonly IDictionary<NameString, RemoteQueryClient> _clients;
 
         public StitchingContext(
             IServiceProvider services,
@@ -35,14 +35,9 @@ namespace HotChocolate.Stitching.Client
                 t => new RemoteQueryClient(services, t.Executor));
         }
 
-        public IRemoteQueryClient GetRemoteQueryClient(string schemaName)
+        public IRemoteQueryClient GetRemoteQueryClient(NameString schemaName)
         {
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                throw new ArgumentException(
-                    "The schema name cannot be null or empty.",
-                    nameof(schemaName));
-            }
+            schemaName.EnsureNotEmpty(nameof(schemaName));
 
             if (_clients.TryGetValue(schemaName, out RemoteQueryClient client))
             {
