@@ -358,7 +358,7 @@ namespace HotChocolate.Stitching.Merge
                         "DIRECTIVE DOES NOT EXIST");
                 }
 
-                if (alreadyDeclared.Add(directive.Name.Value)
+                if (!alreadyDeclared.Add(directive.Name.Value)
                     && directiveDefinition.IsUnique)
                 {
                     // TODO : Resources
