@@ -61,6 +61,7 @@ namespace HotChocolate.Stitching
         public DocumentNode Merge()
         {
             MergeTypeDelegate merge = CompileMergeDelegate();
+
             List<SchemaInfo> schemas = _schemas
                 .Select(t => new SchemaInfo(t.Key, t.Value))
                 .ToList();
@@ -70,6 +71,7 @@ namespace HotChocolate.Stitching
             MergeRootType(context, OperationType.Query, schemas, merge);
             MergeRootType(context, OperationType.Mutation, schemas, merge);
             MergeRootType(context, OperationType.Subscription, schemas, merge);
+
             MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
             // TODO : FIX NAMES

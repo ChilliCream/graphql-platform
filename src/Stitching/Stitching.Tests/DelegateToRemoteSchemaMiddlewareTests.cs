@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Cache;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -244,76 +246,42 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public async Task ExecuteStitchedQueryWithComputedField2()
+        public async Task ExecuteStitchedQueryBuilder()
         {
             // arrange
-            TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
-                ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
-                CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
-                }));
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddSingleton(httpClientFactory.Object);
-
-            serviceCollection.AddRemoteQueryExecutor(
-                await RemoteExecutorBuilder.New()
-                    .SetSchemaName("contract")
-                    .AddScalarType<DateTimeType>()
-                    .BuildAsync(n => server_contracts.CreateClient()));
-
-            serviceCollection.AddRemoteQueryExecutor(b => b
-                .SetSchemaName("customer")
-                .SetSchema(FileResource.Open("Customer.graphql")));
-
-            serviceCollection.AddStitchedSchema(
-                FileResource.Open("StitchingComputed.graphql"),
-                c =>
-                {
-                    c.Map(new FieldReference("Customer", "foo"),
-                        next => context =>
-                        {
-                            var obj = context.Parent<OrderedDictionary>();
-                            context.Result = obj["name"] + "_" + obj["id"];
-                            return Task.CompletedTask;
-                        });
-                    c.RegisterType<DateTimeType>();
-                });
-
-            var request = new QueryRequest(
-                FileResource.Open("StitchingQueryComputedField.graphql"));
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer"));
 
             IServiceProvider services =
-                request.Services =
                 serviceCollection.BuildServiceProvider();
 
             var executor = services.GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                {
+                    customer(id: ""Q3VzdG9tZXIteDE="") {
+                        name
+                    }
+                }");
+                request.Services = scope.ServiceProvider;
+                result = await executor.ExecuteAsync(request);
+            }
 
             // assert
             result.Snapshot();
         }
 
-        [Fact]
-        public async Task ExecuteStitchedQueryBuilder()
+        private IHttpClientFactory CreateRemoteSchemas()
         {
-            // arrange
             TestServer server_contracts = TestServerFactory.Create(
                 ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
@@ -332,32 +300,7 @@ namespace HotChocolate.Stitching
                         ? server_contracts.CreateClient()
                         : server_customers.CreateClient();
                 }));
-
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(httpClientFactory.Object);
-            serviceCollection.AddStitchedSchema(builder =>
-                builder.AddSchemaFromHttp("contract")
-                    .AddSchemaFromHttp("customer"));
-
-            var request = new QueryRequest(
-                FileResource.Open("StitchingQueryComputedField.graphql"));
-
-            IServiceProvider services =
-                request.Services =
-                serviceCollection.BuildServiceProvider();
-
-            var executor = services.GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(@"
-            {
-                customer(id: ""Q3VzdG9tZXIteDE="") {
-                    name
-                }
-            }");
-
-            // assert
-            result.Snapshot();
+            return httpClientFactory.Object;
         }
     }
 }

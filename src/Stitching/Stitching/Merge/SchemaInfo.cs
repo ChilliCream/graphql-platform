@@ -24,6 +24,8 @@ namespace HotChocolate.Stitching
 
             Dictionary<string, ITypeDefinitionNode> types = schema.Definitions
                 .OfType<ITypeDefinitionNode>()
+                .Where(t => !t.Name.Value.StartsWith("__",
+                    StringComparison.Ordinal))
                 .ToDictionary(t => t.Name.Value);
             Types = types;
 
