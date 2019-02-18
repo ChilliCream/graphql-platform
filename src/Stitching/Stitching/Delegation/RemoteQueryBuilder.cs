@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
@@ -186,7 +183,7 @@ namespace HotChocolate.Stitching.Delegation
                 ? requestedField.Name.Value
                 : requestedField.Alias.Value;
 
-            var alias = component.Name.Value.EqualsOrdinal(responseName)
+            NameNode alias = component.Name.Value.EqualsOrdinal(responseName)
                 ? null
                 : new NameNode(responseName);
 
@@ -222,7 +219,7 @@ namespace HotChocolate.Stitching.Delegation
             SelectionPathComponent next,
             string alias)
         {
-            var aliasNode = string.IsNullOrEmpty(alias)
+            NameNode aliasNode = string.IsNullOrEmpty(alias)
                 ? null : new NameNode(alias);
 
             return new FieldNode

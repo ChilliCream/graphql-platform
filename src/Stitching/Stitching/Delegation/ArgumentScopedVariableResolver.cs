@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -29,7 +30,7 @@ namespace HotChocolate.Stitching.Delegation
             if (!ScopeNames.Arguments.Equals(variable.Scope.Value))
             {
                 throw new ArgumentException(
-                    "This resolver can only handle argument scopes.",
+                    Resources.ArgumentScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
@@ -39,8 +40,9 @@ namespace HotChocolate.Stitching.Delegation
             if (argument == null)
             {
                 throw new QueryException(QueryError.CreateFieldError(
-                    $"An argument with the name `{variable.Name.Value}` " +
-                    "does not exist.",
+                    string.Format(CultureInfo.InvariantCulture,
+                        Resources.ArgumentScopedVariableResolver_InvalidArgumentName,
+                        variable.Name.Value),
                     context.Path,
                     context.FieldSelection)
                     .WithCode(ErrorCodes.ArgumentNotDefined));

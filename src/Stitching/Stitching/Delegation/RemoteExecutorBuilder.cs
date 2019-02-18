@@ -1,22 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Properties;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteExecutorBuilder
     {
-        private static readonly string _introspectionQuery =
-            Resources.IntrospectionQuery;
-
         private string _schemaName;
         private string _schema;
         private readonly List<Type> _scalarTypes = new List<Type>();
@@ -28,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
+                    Resources.Schema_EmptyOrNull,
                     nameof(schemaName));
             }
 
@@ -41,7 +32,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schema))
             {
                 throw new ArgumentException(
-                    "The schema mustn't be null or empty.",
+                    Resources.Schema_EmptyOrNull,
                     nameof(schema));
             }
 
@@ -77,7 +68,7 @@ namespace HotChocolate.Stitching.Delegation
             if (!typeof(ScalarType).IsAssignableFrom(scalarType))
             {
                 throw new ArgumentException(
-                    $"scalarType must extend {typeof(ScalarType).FullName}.",
+                    Resources.ScalarType_InvalidBaseType,
                     nameof(scalarType));
             }
 
@@ -85,88 +76,18 @@ namespace HotChocolate.Stitching.Delegation
             return this;
         }
 
-        public Task<IRemoteExecutorAccessor> BuildAsync(
-            IHttpClientFactory clientFactory)
-        {
-            if (clientFactory == null)
-            {
-                throw new ArgumentNullException(nameof(clientFactory));
-            }
-
-            return BuildAsync(s => clientFactory.CreateClient(s));
-        }
-
-        public Task<IRemoteExecutorAccessor> BuildAsync(
-            Func<string, HttpClient> clientFactory)
-        {
-            if (string.IsNullOrEmpty(_schemaName))
-            {
-                throw new InvalidOperationException(
-                    "Cannot build a remote executor without a schema name.");
-            }
-
-            return BuildInternalAsync(clientFactory);
-        }
-
-        private async Task<IRemoteExecutorAccessor> BuildInternalAsync(
-            Func<string, HttpClient> clientFactory)
-        {
-            DocumentNode schemaDocument;
-
-            if (string.IsNullOrEmpty(_schema))
-            {
-                var queryClient = new HttpQueryClient();
-
-                var request = new RemoteQueryRequest
-                {
-                    Query = _introspectionQuery
-                };
-
-                string json = await queryClient.FetchStringAsync(
-                    request, clientFactory(_schemaName))
-                    .ConfigureAwait(false);
-                schemaDocument = IntrospectionDeserializer.Deserialize(json);
-            }
-            else
-            {
-                schemaDocument = Parser.Default.Parse(_schema);
-            }
-
-            ISchema schema = Schema.Create(
-                schemaDocument,
-                c =>
-                {
-                    foreach (Type type in _scalarTypes)
-                    {
-                        c.RegisterType(type);
-                    }
-
-                    foreach (ScalarType instance in _scalarTypeInstances)
-                    {
-                        c.RegisterType(instance);
-                    }
-
-                    c.UseNullResolver();
-                });
-
-            return new RemoteExecutorAccessor(
-                _schemaName,
-                schema.MakeExecutable(b =>
-                    b.UseQueryDelegationPipeline(_schemaName)));
-        }
-
         public IRemoteExecutorAccessor Build()
         {
             if (string.IsNullOrEmpty(_schemaName))
             {
                 throw new InvalidOperationException(
-                    "Cannot build a remote executor without a schema name.");
+                    Resources.RemoteExecutorBuilder_NoSchemaName);
             }
 
             if (string.IsNullOrEmpty(_schema))
             {
                 throw new InvalidOperationException(
-                    "Cannot build a remote executor without a schema.");
+                    Resources.RemoteExecutorBuilder_NoSchema);
             }
 
             ISchema schema = Schema.Create(

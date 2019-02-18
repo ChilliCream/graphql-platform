@@ -16,8 +16,11 @@ namespace HotChocolate.Stitching.Client
         }
 
         public IReadOnlyQueryRequest Request { get; }
+
         public DocumentNode Document { get; }
+
         public TaskCompletionSource<IExecutionResult> Promise { get; }
+
         public IDictionary<string, string> Aliases { get; set; }
     }
 }

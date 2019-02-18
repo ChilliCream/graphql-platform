@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Delegation
 {
@@ -40,11 +42,12 @@ namespace HotChocolate.Stitching.Delegation
             }
 
             throw new QueryException(QueryError.CreateFieldError(
-               $"The specified scope `{variable.Scope.Value}` " +
-               "is not supported.",
-               context.Path,
-               context.FieldSelection)
-               .WithCode(ErrorCodes.ScopeNotDefined));
+                string.Format(CultureInfo.InvariantCulture,
+                    Resources.RootScopedVariableResolver_ScopeNotSupported,
+                    variable.Scope.Value),
+                context.Path,
+                context.FieldSelection)
+                .WithCode(ErrorCodes.ScopeNotDefined));
         }
     }
 }

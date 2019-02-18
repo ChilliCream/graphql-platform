@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Client
 {
@@ -44,8 +43,10 @@ namespace HotChocolate.Stitching.Client
                 return client;
             }
 
-            throw new ArgumentException(
-                $"There is now shema with the given name `{schemaName}`.");
+            throw new ArgumentException(string.Format(
+                CultureInfo.InvariantCulture,
+                Resources.Schema_NotFound,
+                schemaName));
         }
 
         public IDisposable Subscribe(IObserver<IRemoteQueryClient> observer)

@@ -117,6 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ArgumentScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle argument scopes.</value>
+  </data>
+  <data name="ArgumentScopedVariableResolver_InvalidArgumentName" xml:space="preserve">
+    <value>An argument with the name `{0}` does not exist.</value>
+  </data>
+  <data name="ComputedDirectiveType_Description" xml:space="preserve">
+    <value>Specifies the fields on which a computed field is dependent on.</value>
+  </data>
+  <data name="DelegateDirectiveType_Description" xml:space="preserve">
+    <value>The name of the schema to which this field shall be delegated to.</value>
+  </data>
+  <data name="FieldScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle field scopes.</value>
+  </data>
+  <data name="FieldScopedVariableResolver_InvalidFieldName" xml:space="preserve">
+    <value>A field with the name `{0}` does not exist.</value>
+  </data>
   <data name="IntrospectionQuery" xml:space="preserve">
     <value>query IntrospectionQuery {
     __schema {
@@ -195,5 +213,29 @@
       }
     }
   }</value>
+  </data>
+  <data name="RemoteExecutorBuilder_NoSchema" xml:space="preserve">
+    <value>Cannot build a remote executor without a schema.</value>
+  </data>
+  <data name="RemoteExecutorBuilder_NoSchemaName" xml:space="preserve">
+    <value>Cannot build a remote executor without a schema name.</value>
+  </data>
+  <data name="RootScopedVariableResolver_ScopeNotSupported" xml:space="preserve">
+    <value>The specified scope `{0}` is not supported.</value>
+  </data>
+  <data name="ScalarType_InvalidBaseType" xml:space="preserve">
+    <value>The provided type must extend `HotChocolate.Types.ScalarType` in order to be recognised as valid scalar type.</value>
+  </data>
+  <data name="Schema_EmptyOrNull" xml:space="preserve">
+    <value>The schema name mustn't be null or empty.</value>
+  </data>
+  <data name="Schema_NotFound" xml:space="preserve">
+    <value>There is no schema with the given name `{0}`.</value>
+  </data>
+  <data name="SelectionPathParser_StartOfFileTokenExpected" xml:space="preserve">
+    <value>The first token must be a start of file token.</value>
+  </data>
+  <data name="SourceDirectiveType_Description" xml:space="preserve">
+    <value />
   </data>
 </root>

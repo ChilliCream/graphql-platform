@@ -16,8 +16,11 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         public string Name { get; }
+
         public ITypeNode Type { get; }
+
         public object Value { get; }
+
         public IValueNode DefaultValue { get; }
     }
 }

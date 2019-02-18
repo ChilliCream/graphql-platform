@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
+                    Resources.Schema_EmptyOrNull,
                     nameof(schemaName));
             }
 
@@ -28,7 +29,7 @@ namespace HotChocolate.Stitching.Delegation
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            var httpClientFactory =
+            IHttpClientFactory httpClientFactory =
                 context.Services.GetRequiredService<IHttpClientFactory>();
 
             context.Result = await _client.FetchAsync(

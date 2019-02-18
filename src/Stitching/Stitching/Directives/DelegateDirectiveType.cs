@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
@@ -20,8 +20,7 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.Schema)
                 .Name(DirectiveFieldNames.Delegate_Schema)
                 .Type<NonNullType<StringType>>()
-                .Description("The name of the schema to which this " +
-                    "field shall be delegated to.");
+                .Description(Resources.DelegateDirectiveType_Description);
         }
     }
 }

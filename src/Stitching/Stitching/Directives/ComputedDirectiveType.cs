@@ -1,3 +1,4 @@
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
@@ -15,9 +16,7 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.DependantOn)
                 .Name(DirectiveFieldNames.Computed_DependantOn)
                 .Type<ListType<NonNullType<StringType>>>()
-                .Description(
-                    "Specifies the fields on which a computed " +
-                    "field is dependent on.");
+                .Description(Resources.ComputedDirectiveType_Description);
         }
     }
 }

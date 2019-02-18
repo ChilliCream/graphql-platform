@@ -1,6 +1,6 @@
-
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Delegation
 {
@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
+                    Resources.Schema_EmptyOrNull,
                     nameof(schemaName));
             }
 

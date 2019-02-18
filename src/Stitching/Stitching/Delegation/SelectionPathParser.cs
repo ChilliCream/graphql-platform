@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
@@ -27,7 +28,7 @@ namespace HotChocolate.Stitching.Delegation
             if (start.Kind != TokenKind.StartOfFile)
             {
                 throw new InvalidOperationException(
-                    "The first token must be a start of file token.");
+                    Resources.SelectionPathParser_StartOfFileTokenExpected);
             }
 
             return ParseSelectionPath(source, start, ParserOptions.Default);
@@ -52,8 +53,9 @@ namespace HotChocolate.Stitching.Delegation
                 SyntaxToken start,
                 ParserOptions options)
         {
-            var path = ImmutableStack<SelectionPathComponent>.Empty;
-            ParserContext context = new ParserContext(
+            ImmutableStack<SelectionPathComponent> path =
+                ImmutableStack<SelectionPathComponent>.Empty;
+            var context = new ParserContext(
                 source, start, options, Parser.ParseName);
 
             context.MoveNext();

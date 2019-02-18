@@ -1,4 +1,3 @@
-﻿
 using System;
 using HotChocolate.Language;
 
@@ -13,19 +12,9 @@ namespace HotChocolate.Stitching.Delegation
             NameNode scope,
             NameNode name)
         {
-            if (scope == null)
-            {
-                throw new ArgumentNullException(nameof(scope));
-            }
-
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             Location = location;
-            Scope = scope;
-            Name = name;
+            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
         public NodeKind Kind { get; } = NodeKind.Variable;
