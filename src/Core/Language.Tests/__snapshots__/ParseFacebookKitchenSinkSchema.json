@@ -1501,6 +1501,7 @@
       },
       "Description": null,
       "IsRepeatable": false,
+      "IsUnique": true,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
@@ -1556,6 +1557,7 @@
       },
       "Description": null,
       "IsRepeatable": true,
+      "IsUnique": false,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
@@ -1611,6 +1613,7 @@
       },
       "Description": null,
       "IsRepeatable": false,
+      "IsUnique": true,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
@@ -1666,6 +1669,7 @@
       },
       "Description": null,
       "IsRepeatable": false,
+      "IsUnique": true,
       "Arguments": [
         {
           "Kind": "InputValueDefinition",
