@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Stitching
 {
@@ -14,8 +15,19 @@ namespace HotChocolate.Stitching
             NameString name,
             LoadSchemaDocument loadSchema);
 
-        IStitchingBuilder AddExtensions(LoadSchemaDocument loadExtensions);
+        IStitchingBuilder AddExtensions(
+            LoadSchemaDocument loadExtensions);
 
-        IStitchingBuilder AddMergeHandler(MergeTypeHandler handler);
+        IStitchingBuilder AddMergeHandler(
+            MergeTypeHandler handler);
+
+        IStitchingBuilder AddSchemaConfiguration(
+            Action<ISchemaConfiguration> configure);
+
+        IStitchingBuilder AddExecutionConfiguration(
+            Action<IQueryExecutionBuilder> configure);
+
+        IStitchingBuilder SetExecutionOptions(
+            IQueryExecutionOptionsAccessor options);
     }
 }

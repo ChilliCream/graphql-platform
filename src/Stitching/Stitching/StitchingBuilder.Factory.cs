@@ -22,21 +22,20 @@ namespace HotChocolate.Stitching
     {
         private class StitchingFactory
         {
+            private readonly StitchingBuilder _builder;
             private readonly IReadOnlyList<IRemoteExecutorAccessor> _executors;
             private readonly DocumentNode _mergedSchema;
-            private readonly Action<ISchemaConfiguration> _configure;
             private readonly IQueryExecutionOptionsAccessor _options;
 
             private StitchingFactory(
+                StitchingBuilder builder,
                 IReadOnlyList<IRemoteExecutorAccessor> executors,
-                DocumentNode mergedSchema,
-                Action<ISchemaConfiguration> configure,
-                IQueryExecutionOptionsAccessor options)
+                DocumentNode mergedSchema)
             {
+                _builder = builder;
                 _executors = executors;
                 _mergedSchema = mergedSchema;
-                _configure = configure;
-                _options = options;
+                _options = _builder._options ?? new QueryExecutionOptions();
             }
 
             public IStitchingContext CreateStitchingContext(
@@ -51,18 +50,28 @@ namespace HotChocolate.Stitching
                     _mergedSchema,
                     c =>
                     {
-                        _configure(c);
+                        foreach (Action<ISchemaConfiguration> configure in
+                            _builder._schemaConfigs)
+                        {
+                            configure(c);
+                        }
                         c.RegisterExtendedScalarTypes();
                         c.UseSchemaStitching();
                     })
-                    .MakeExecutable(b => b.UseStitchingPipeline(_options));
+                    .MakeExecutable(b =>
+                    {
+                        foreach (Action<IQueryExecutionBuilder> configure in
+                            _builder._execConfigs)
+                        {
+                            configure(b);
+                        }
+                        return b.UseStitchingPipeline(_options);
+                    });
             }
 
             public static StitchingFactory Create(
                 StitchingBuilder builder,
-                IServiceProvider services,
-                Action<ISchemaConfiguration> configure,
-                IQueryExecutionOptionsAccessor options)
+                IServiceProvider services)
             {
                 IDictionary<NameString, DocumentNode> schemas =
                     LoadSchemas(builder._schemas, services);
@@ -74,9 +83,7 @@ namespace HotChocolate.Stitching
                     MergeSchemas(builder, schemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
 
-                return new StitchingFactory(
-                    executors, mergedSchema,
-                    configure, options);
+                return new StitchingFactory(builder, executors, mergedSchema);
             }
 
             private static IDictionary<NameString, DocumentNode> LoadSchemas(

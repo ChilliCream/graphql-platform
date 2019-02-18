@@ -27,6 +27,11 @@ namespace HotChocolate.Stitching
             new List<LoadSchemaDocument>();
         private readonly List<MergeTypeHandler> _mergeHandlers =
             new List<MergeTypeHandler>();
+        private readonly List<Action<ISchemaConfiguration>> _schemaConfigs =
+            new List<Action<ISchemaConfiguration>>();
+        private readonly List<Action<IQueryExecutionBuilder>> _execConfigs =
+            new List<Action<IQueryExecutionBuilder>>();
+        private IQueryExecutionOptionsAccessor _options;
 
         public IStitchingBuilder AddSchema(
             NameString name,
@@ -69,29 +74,51 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public void Populate(
-            IServiceCollection serviceCollection,
-            Action<ISchemaConfiguration> configure,
+        public IStitchingBuilder AddSchemaConfiguration(
+            Action<ISchemaConfiguration> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            _schemaConfigs.Add(configure);
+            return this;
+        }
+
+        public IStitchingBuilder AddExecutionConfiguration(
+            Action<IQueryExecutionBuilder> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            _execConfigs.Add(configure);
+            return this;
+        }
+
+        public IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _options = options;
+            return this;
+        }
+
+        public void Populate(IServiceCollection serviceCollection)
         {
             if (serviceCollection == null)
             {
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             serviceCollection.TryAddSingleton(services =>
-                StitchingFactory.Create(
-                    this, services, configure, options));
+                StitchingFactory.Create(this, services));
 
             serviceCollection.TryAddScoped(services =>
                 services.GetRequiredService<StitchingFactory>()
@@ -115,7 +142,7 @@ namespace HotChocolate.Stitching
         }
 
         public static StitchingBuilder New() => new StitchingBuilder();
+
+
     }
-
-
 }

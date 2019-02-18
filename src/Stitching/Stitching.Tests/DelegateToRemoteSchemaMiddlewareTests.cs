@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Cache;
 using System;
@@ -18,6 +19,8 @@ using HotChocolate.Types;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
 using FileResource = ChilliCream.Testing.FileResource;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -243,6 +246,9 @@ namespace HotChocolate.Stitching
                 {
                     customer(id: ""Q3VzdG9tZXIteDE="") {
                         name
+                        contracts {
+                            id
+                        }
                     }
                 }");
                 request.Services = scope.ServiceProvider;

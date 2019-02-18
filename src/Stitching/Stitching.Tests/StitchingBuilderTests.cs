@@ -13,6 +13,7 @@ using HotChocolate.Utilities;
 using ChilliCream.Testing;
 using IOPath = System.IO.Path;
 using HotChocolate.Stitching.Merge;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Stitching
 {
@@ -110,6 +111,12 @@ namespace HotChocolate.Stitching
             public IDictionary<NameString, LoadSchemaDocument> Schemas
             { get; } = new OrderedDictionary<NameString, LoadSchemaDocument>();
 
+            public IStitchingBuilder AddExecutionConfiguration(
+                Action<IQueryExecutionBuilder> configure)
+            {
+                throw new NotSupportedException();
+            }
+
             public IStitchingBuilder AddExtensions(
                 LoadSchemaDocument loadExtensions)
             {
@@ -128,6 +135,16 @@ namespace HotChocolate.Stitching
             {
                 Schemas[name] = loadSchema;
                 return this;
+            }
+
+            public IStitchingBuilder AddSchemaConfiguration(Action<ISchemaConfiguration> configure)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IStitchingBuilder SetExecutionOptions(IQueryExecutionOptionsAccessor options)
+            {
+                throw new NotSupportedException();
             }
         }
     }
