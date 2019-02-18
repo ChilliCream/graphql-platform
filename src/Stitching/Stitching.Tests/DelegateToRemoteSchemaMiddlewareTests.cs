@@ -223,7 +223,8 @@ namespace HotChocolate.Stitching
             serviceCollection.AddSingleton(clientFactory);
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
-                    .AddSchemaFromHttp("customer"));
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensions(s => FileResource.Open("StitchingExtensions.graphql")));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
