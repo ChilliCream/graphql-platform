@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class UnionTypeExtensionNode
         : UnionTypeDefinitionNodeBase
-        , ITypeExtensionNode
+        , INamedTypeExtensionNode
     {
         public UnionTypeExtensionNode(
             Location location,
