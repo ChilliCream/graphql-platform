@@ -15,6 +15,7 @@ using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
@@ -110,6 +111,41 @@ namespace HotChocolate.Stitching
             return this;
         }
 
+        public IStitchingBuilder IgnoreRootTypes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingBuilder IgnoreRootTypes(NameString schemaName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext IgnoreType(NameString typeName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext IgnoreType(NameString schemaName, NameString typeName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext IgnoreField(NameString schemaName, FieldReference field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext RenameType(NameString schemaName, NameString typeName, NameString newName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext RenameField(NameString schemaName, FieldReference field, NameString newName)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Populate(IServiceCollection serviceCollection)
         {
             if (serviceCollection == null)
@@ -142,7 +178,5 @@ namespace HotChocolate.Stitching
         }
 
         public static StitchingBuilder New() => new StitchingBuilder();
-
-
     }
 }
