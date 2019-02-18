@@ -115,6 +115,15 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The json mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string IntrospectionDeserializer_Json_NullOrEmpty {
+            get {
+                return ResourceManager.GetString("IntrospectionDeserializer_Json_NullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to query IntrospectionQuery {
         ///    __schema {
         ///      queryType { name }
@@ -233,11 +242,20 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to The name of the schema to which this type belongs to..
         /// </summary>
         internal static string SourceDirectiveType_Schema_Description {
             get {
                 return ResourceManager.GetString("SourceDirectiveType_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified type is not supported..
+        /// </summary>
+        internal static string Type_NotSupported {
+            get {
+                return ResourceManager.GetString("Type_NotSupported", resourceCulture);
             }
         }
     }
