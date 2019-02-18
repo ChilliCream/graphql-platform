@@ -144,6 +144,9 @@
   <data name="FieldScopedVariableResolver_InvalidFieldName" xml:space="preserve">
     <value>A field with the name `{0}` does not exist.</value>
   </data>
+  <data name="IntrospectionDeserializer_Json_NullOrEmpty" xml:space="preserve">
+    <value>json mustn't be null or empty.</value>
+  </data>
   <data name="IntrospectionQuery" xml:space="preserve">
     <value>query IntrospectionQuery {
     __schema {
@@ -252,5 +255,8 @@
   </data>
   <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
     <value>The name of the schema to which this type belongs to.</value>
+  </data>
+  <data name="Type_NotSupported" xml:space="preserve">
+    <value>The type definition is not yet supported.</value>
   </data>
 </root>
