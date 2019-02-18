@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Stitching
 {
-    public class MergeUnionTypeTests
+    public class UnionTypeMergeHandlerTests
     {
         [Fact]
         public void MergeUnionTypes()

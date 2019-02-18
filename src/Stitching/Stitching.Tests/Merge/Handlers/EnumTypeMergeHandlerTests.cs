@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Stitching
 {
-    public class MergeEnumTypeTests
+    public class EnumTypeMergeHandlerTests
     {
         [Fact]
         public void MergeIdenticalEnums()

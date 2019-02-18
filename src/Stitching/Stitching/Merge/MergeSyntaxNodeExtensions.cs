@@ -74,6 +74,47 @@ namespace HotChocolate.Stitching
                 .WithDirectives(directives);
         }
 
+        public static InputObjectTypeDefinitionNode AddSource(
+            this InputObjectTypeDefinitionNode enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static InputObjectTypeDefinitionNode AddSource(
+            this InputObjectTypeDefinitionNode enumTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            if (enumTypeDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(enumTypeDefinition));
+            }
+
+            if (schemaNames == null)
+            {
+                throw new ArgumentNullException(nameof(schemaNames));
+            }
+
+            newName.EnsureNotEmpty(nameof(newName));
+
+            NameString originalName = enumTypeDefinition.Name.Value;
+
+            IReadOnlyList<DirectiveNode> directives =
+                AddRenamedDirective(
+                    enumTypeDefinition.Directives,
+                    originalName,
+                    schemaNames);
+
+            return enumTypeDefinition
+                .WithName(new NameNode(newName))
+                .WithDirectives(directives);
+        }
+
         public static UnionTypeDefinitionNode AddSource(
             this UnionTypeDefinitionNode unionTypeDefinition,
             NameString newName,

@@ -92,7 +92,26 @@ namespace HotChocolate.Stitching
                 types.Select(t => t.Schema.Name)));
         }
 
-        private bool CanBeMerged(
+        internal static bool CanBeMerged(
+            EnumTypeDefinitionNode left,
+            EnumTypeDefinitionNode right)
+        {
+            if (left == null)
+            {
+                throw new ArgumentNullException(nameof(left));
+            }
+
+            if (right == null)
+            {
+                throw new ArgumentNullException(nameof(right));
+            }
+
+            var leftValueSet = new HashSet<string>(
+                left.Values.Select(t => t.Name.Value));
+            return CanBeMerged(leftValueSet, right);
+        }
+
+        private static bool CanBeMerged(
             ISet<string> left,
             EnumTypeDefinitionNode right)
         {

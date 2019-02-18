@@ -17,6 +17,8 @@ namespace HotChocolate.Stitching
                 SchemaMergerExtensions
                     .CreateHandler<ScalarTypeMergeHandler>(),
                 SchemaMergerExtensions
+                    .CreateHandler<InputObjectTypeMergeHandler>(),
+                SchemaMergerExtensions
                     .CreateHandler<RootTypeMergeHandler>(),
                 SchemaMergerExtensions
                     .CreateHandler<ObjectTypeMergeHandler>(),
