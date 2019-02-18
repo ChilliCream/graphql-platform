@@ -12,13 +12,14 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using ChilliCream.Testing;
 using IOPath = System.IO.Path;
+using HotChocolate.Stitching.Merge;
 
-namespace HotChocolate.Stitching.Merge
+namespace HotChocolate.Stitching
 {
-    public class SchemaMergerIntegrationTests
+    public class StitchingBuilderTests
         : IClassFixture<TestServerFactory>
     {
-        public SchemaMergerIntegrationTests(
+        public StitchingBuilderTests(
             TestServerFactory testServerFactory)
         {
             TestServerFactory = testServerFactory;
