@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
@@ -14,9 +13,11 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
+using FileResource = ChilliCream.Testing.FileResource;
 
 namespace HotChocolate.Stitching
 {
@@ -32,14 +33,14 @@ namespace HotChocolate.Stitching
         private TestServerFactory TestServerFactory { get; set; }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithInlineFragment()
+        public async Task ExecuteStitchingQueryWithInlineFragment()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithInlineFragment.graphql"));
 
             // act and assert
-            return ExecuteStitchedQuery(request);
+            await ExecuteStitchedQuery(request);
         }
 
         [Fact]
@@ -130,28 +131,11 @@ namespace HotChocolate.Stitching
             [CallerMemberName]string snapshotName = null)
         {
             // arrange
-            TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
-                ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
-                CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
-                }));
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddSingleton(clientFactory);
 
             serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("contract")
@@ -176,35 +160,18 @@ namespace HotChocolate.Stitching
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.Snapshot(snapshotName);
+            ChilliCream.Testing.ObjectExtensions.Snapshot(result, snapshotName);
         }
 
         [Fact]
         public async Task ExecuteStitchedQueryWithComputedField()
         {
             // arrange
-            TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
-                ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
-                CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
-                }));
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddSingleton(clientFactory);
 
             serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("contract")
@@ -222,7 +189,8 @@ namespace HotChocolate.Stitching
                     c.Map(new FieldReference("Customer", "foo"),
                         next => context =>
                         {
-                            OrderedDictionary obj = context.Parent<OrderedDictionary>();
+                            OrderedDictionary obj =
+                                context.Parent<OrderedDictionary>();
                             context.Result = obj["name"] + "_" + obj["id"];
                             return Task.CompletedTask;
                         });
@@ -242,7 +210,7 @@ namespace HotChocolate.Stitching
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.Snapshot();
+            Snapshot.Match(result);
         }
 
         [Fact]
@@ -273,11 +241,12 @@ namespace HotChocolate.Stitching
                     }
                 }");
                 request.Services = scope.ServiceProvider;
+
                 result = await executor.ExecuteAsync(request);
             }
 
             // assert
-            result.Snapshot();
+            Snapshot.Match(result);
         }
 
         private IHttpClientFactory CreateRemoteSchemas()
