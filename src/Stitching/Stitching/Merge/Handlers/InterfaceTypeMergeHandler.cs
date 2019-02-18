@@ -35,6 +35,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     var leftDef = (InterfaceTypeDefinitionNode)left.Definition;
                     var readyToMerge = new List<ITypeInfo>();
                     left.MoveType(notMerged, readyToMerge);
+                    var next = new List<ITypeInfo>(notMerged);
 
                     for (int i = 0; i < notMerged.Count; i++)
                     {
@@ -42,11 +43,12 @@ namespace HotChocolate.Stitching.Merge.Handlers
                             InterfaceTypeDefinitionNode rightDef
                             && CanBeMerged(leftDef, rightDef))
                         {
-                            notMerged[i].MoveType(notMerged, readyToMerge);
+                            notMerged[i].MoveType(next, readyToMerge);
                         }
                     }
 
                     MergeType(context, readyToMerge);
+                    notMerged = next;
 
                     left = notMerged.FirstOrDefault(t =>
                         t.Definition is InterfaceTypeDefinitionNode);

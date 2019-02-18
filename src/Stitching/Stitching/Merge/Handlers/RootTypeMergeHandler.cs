@@ -20,36 +20,39 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types[0].IsRootType)
+            if (types.Count > 0)
             {
-                var names = new HashSet<string>();
-                var fields = new List<FieldDefinitionNode>();
-
-                foreach (ITypeInfo type in types)
+                if (types[0].IsRootType)
                 {
-                    var rootType = (ObjectTypeDefinitionNode)type.Definition;
-                    IntegrateFields(rootType, type, names, fields);
-                }
+                    var names = new HashSet<string>();
+                    var fields = new List<FieldDefinitionNode>();
 
-                if (types[0].Schema.TryGetOperationType(
-                    (ObjectTypeDefinitionNode)types[0].Definition,
-                    out OperationType operationType))
-                {
-                    var mergedRootType = new ObjectTypeDefinitionNode
-                    (
-                        null,
-                        new NameNode(operationType.ToString()),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<NamedTypeNode>(),
-                        fields
-                    );
-                    context.AddType(mergedRootType);
+                    foreach (ITypeInfo type in types)
+                    {
+                        var rootType = (ObjectTypeDefinitionNode)type.Definition;
+                        IntegrateFields(rootType, type, names, fields);
+                    }
+
+                    if (types[0].Schema.TryGetOperationType(
+                        (ObjectTypeDefinitionNode)types[0].Definition,
+                        out OperationType operationType))
+                    {
+                        var mergedRootType = new ObjectTypeDefinitionNode
+                        (
+                            null,
+                            new NameNode(operationType.ToString()),
+                            null,
+                            Array.Empty<DirectiveNode>(),
+                            Array.Empty<NamedTypeNode>(),
+                            fields
+                        );
+                        context.AddType(mergedRootType);
+                    }
                 }
-            }
-            else
-            {
-                _next.Invoke(context, types);
+                else
+                {
+                    _next.Invoke(context, types);
+                }
             }
         }
 

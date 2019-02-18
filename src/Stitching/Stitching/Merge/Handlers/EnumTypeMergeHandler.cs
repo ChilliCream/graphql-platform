@@ -29,6 +29,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             else
             {
                 var notMerged = new List<ITypeInfo>(types);
+
                 while (notMerged.Count > 0 && left != null)
                 {
                     var leftDef = (EnumTypeDefinitionNode)left.Definition;
@@ -36,6 +37,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                         leftDef.Values.Select(t => t.Name.Value));
                     var readyToMerge = new List<ITypeInfo>();
                     left.MoveType(notMerged, readyToMerge);
+                    var next = new List<ITypeInfo>(notMerged);
 
                     for (int i = 0; i < notMerged.Count; i++)
                     {
@@ -43,17 +45,22 @@ namespace HotChocolate.Stitching.Merge.Handlers
                             EnumTypeDefinitionNode rightDef
                             && CanBeMerged(leftValueSet, rightDef))
                         {
-                            notMerged[i].MoveType(notMerged, readyToMerge);
+                            notMerged[i].MoveType(next, readyToMerge);
                         }
                     }
 
                     MergeType(context, readyToMerge);
+                    notMerged = next;
 
                     left = notMerged.FirstOrDefault(t =>
                         t.Definition is EnumTypeDefinitionNode);
                 }
 
-                _next.Invoke(context, notMerged);
+
+                if (notMerged.Count > 0)
+                {
+                    _next.Invoke(context, notMerged);
+                }
             }
         }
 

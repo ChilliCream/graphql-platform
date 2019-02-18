@@ -23,6 +23,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             {
                 IReadOnlyList<ITypeInfo> current =
                     types.Where(t => !IsScalarType(t.Definition)).ToList();
+
                 if (current.Count > 0)
                 {
                     _next.Invoke(context, current);
