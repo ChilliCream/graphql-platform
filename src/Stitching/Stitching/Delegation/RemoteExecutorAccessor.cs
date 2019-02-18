@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    Resources.Schema_EmptyOrNull,
+                    Resources.SchemaName_EmptyOrNull,
                     nameof(schemaName));
             }
 

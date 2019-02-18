@@ -154,7 +154,8 @@ namespace HotChocolate.Stitching
                 request.Services =
                 serviceCollection.BuildServiceProvider();
 
-            var executor = services.GetRequiredService<IQueryExecutor>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -204,7 +205,8 @@ namespace HotChocolate.Stitching
                 request.Services =
                 serviceCollection.BuildServiceProvider();
 
-            var executor = services.GetRequiredService<IQueryExecutor>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -224,12 +226,14 @@ namespace HotChocolate.Stitching
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
                     .AddSchemaFromHttp("customer")
-                    .AddExtensions(s => FileResource.Open("StitchingExtensions.graphql")));
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
 
-            var executor = services.GetRequiredService<IQueryExecutor>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
             IExecutionResult result = null;
 
             // act

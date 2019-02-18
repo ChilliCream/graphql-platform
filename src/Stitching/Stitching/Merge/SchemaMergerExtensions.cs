@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -35,9 +36,7 @@ namespace HotChocolate.Stitching.Merge
             if (constructor == null)
             {
                 throw new ArgumentException(
-                    "A type merge handler has to have one constructore " +
-                    "that has only one parameter of the type " +
-                    "MergeTypeDelegate.");
+                    Resources.SchemaMergerExtensions_NoValidConstructor);
             }
 
             return next =>

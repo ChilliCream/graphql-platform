@@ -124,6 +124,24 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The extensions document mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string Extensions_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("Extensions_EmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema extensions file path mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string ExtensionsFilePath_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("ExtensionsFilePath_EmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle field scopes..
         /// </summary>
         internal static string FieldScopedVariableResolver_CannotHandleVariable {
@@ -224,7 +242,7 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The schema name mustn&apos;t be null or empty..
+        ///   Looks up a localized string similar to The schema mustn&apos;t be null or empty..
         /// </summary>
         internal static string Schema_EmptyOrNull {
             get {
@@ -233,11 +251,38 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The schema file path mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string SchemaFilePath_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("SchemaFilePath_EmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A type merge handler has to have one constructore that has only one parameter of the type MergeTypeDelegate..
+        /// </summary>
+        internal static string SchemaMergerExtensions_NoValidConstructor {
+            get {
+                return ResourceManager.GetString("SchemaMergerExtensions_NoValidConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string SchemaName_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("SchemaName_EmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There is no schema with the given name `{0}`..
         /// </summary>
-        internal static string Schema_NotFound {
+        internal static string SchemaName_NotFound {
             get {
-                return ResourceManager.GetString("Schema_NotFound", resourceCulture);
+                return ResourceManager.GetString("SchemaName_NotFound", resourceCulture);
             }
         }
         
@@ -274,6 +319,15 @@ namespace HotChocolate.Stitching.Properties {
         internal static string SourceDirectiveType_Schema_Description {
             get {
                 return ResourceManager.GetString("SourceDirectiveType_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string StitchingBuilderExtensions {
+            get {
+                return ResourceManager.GetString("StitchingBuilderExtensions", resourceCulture);
             }
         }
         

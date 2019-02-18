@@ -138,6 +138,12 @@
   <data name="DelegateDirectiveType_Description" xml:space="preserve">
     <value>The name of the schema to which this field shall be delegated to.</value>
   </data>
+  <data name="ExtensionsFilePath_EmptyOrNull" xml:space="preserve">
+    <value>The schema extensions file path mustn't be null or empty.</value>
+  </data>
+  <data name="Extensions_EmptyOrNull" xml:space="preserve">
+    <value>The extensions document mustn't be null or empty.</value>
+  </data>
   <data name="FieldScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
     <value>This resolver can only handle field scopes.</value>
   </data>
@@ -238,11 +244,20 @@
   <data name="ScalarType_InvalidBaseType" xml:space="preserve">
     <value>The provided type must extend `HotChocolate.Types.ScalarType` in order to be recognised as valid scalar type.</value>
   </data>
-  <data name="Schema_EmptyOrNull" xml:space="preserve">
+  <data name="SchemaFilePath_EmptyOrNull" xml:space="preserve">
+    <value>The schema file path mustn't be null or empty.</value>
+  </data>
+  <data name="SchemaMergerExtensions_NoValidConstructor" xml:space="preserve">
+    <value>A type merge handler has to have one constructore that has only one parameter of the type MergeTypeDelegate.</value>
+  </data>
+  <data name="SchemaName_EmptyOrNull" xml:space="preserve">
     <value>The schema name mustn't be null or empty.</value>
   </data>
-  <data name="Schema_NotFound" xml:space="preserve">
+  <data name="SchemaName_NotFound" xml:space="preserve">
     <value>There is no schema with the given name `{0}`.</value>
+  </data>
+  <data name="Schema_EmptyOrNull" xml:space="preserve">
+    <value>The schema mustn't be null or empty.</value>
   </data>
   <data name="SelectionPathParser_StartOfFileTokenExpected" xml:space="preserve">
     <value>The first token must be a start of file token.</value>
@@ -255,6 +270,9 @@
   </data>
   <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
     <value>The name of the schema to which this type belongs to.</value>
+  </data>
+  <data name="StitchingBuilderExtensions" xml:space="preserve">
+    <value />
   </data>
   <data name="Type_NotSupported" xml:space="preserve">
     <value>The type definition is not yet supported.</value>

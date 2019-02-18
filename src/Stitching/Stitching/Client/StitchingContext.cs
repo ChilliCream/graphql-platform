@@ -45,7 +45,7 @@ namespace HotChocolate.Stitching.Client
 
             throw new ArgumentException(string.Format(
                 CultureInfo.InvariantCulture,
-                Resources.Schema_NotFound,
+                Resources.SchemaName_NotFound,
                 schemaName));
         }
 

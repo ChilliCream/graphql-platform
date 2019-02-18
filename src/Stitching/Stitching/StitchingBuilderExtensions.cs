@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(schema))
             {
                 throw new ArgumentException(
-                    "The schema mustn't be null or empty,",
+                    Resources.Schema_EmptyOrNull,
                     nameof(schema));
             }
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException(
-                    "The schema file path mustn't be null or empty,",
+                    Resources.SchemaFilePath_EmptyOrNull,
                     nameof(path));
             }
 
@@ -107,7 +107,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException(
-                    "The schema file path mustn't be null or empty,",
+                    Resources.ExtensionsFilePath_EmptyOrNull,
                     nameof(path));
             }
 
@@ -129,7 +129,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(extensions))
             {
                 throw new ArgumentException(
-                    "The extensions mustn't be null or empty,",
+                    Resources.Extensions_EmptyOrNull,
                     nameof(extensions));
             }
 
