@@ -4,7 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge.Handlers
 {
     public class RootTypeMergeHandler
          : ITypeMergeHanlder

@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using ChilliCream.Testing;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge.Handlers
 {
     public class InputObjectTypeMergeHandlerTests
     {

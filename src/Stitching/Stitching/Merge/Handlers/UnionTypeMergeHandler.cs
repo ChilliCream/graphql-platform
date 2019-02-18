@@ -5,7 +5,7 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge.Handlers
 {
     public class UnionTypeMergeHandler
         : ITypeMergeHanlder

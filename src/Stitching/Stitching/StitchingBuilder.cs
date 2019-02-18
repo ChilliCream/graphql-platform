@@ -4,16 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Stitching
 {

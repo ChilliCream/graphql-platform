@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     public interface ITypeInfo
     {

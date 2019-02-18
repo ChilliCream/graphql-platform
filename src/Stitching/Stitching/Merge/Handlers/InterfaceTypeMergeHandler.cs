@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge.Handlers
 {
     public class InterfaceTypeMergeHandler
          : ITypeMergeHanlder

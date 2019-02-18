@@ -2,7 +2,7 @@ using ChilliCream.Testing;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     public class SchemaMergerTests
     {

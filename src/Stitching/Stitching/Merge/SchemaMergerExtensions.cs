@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     public static class SchemaMergerExtensions
     {

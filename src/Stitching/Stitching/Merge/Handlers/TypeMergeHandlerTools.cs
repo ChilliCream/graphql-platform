@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge.Handlers
 {
     internal static class TypeMergeHandlerTools
     {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using System;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     internal class SchemaInfo
         : ISchemaInfo

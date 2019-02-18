@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     public static class MergeSyntaxNodeExtensions
     {

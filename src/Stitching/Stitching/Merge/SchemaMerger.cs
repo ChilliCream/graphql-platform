@@ -5,8 +5,9 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Merge.Handlers;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Merge
 {
     public class SchemaMerger
         : ISchemaMerger

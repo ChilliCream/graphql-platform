@@ -1,7 +1,8 @@
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Stitching.Merge;
 
 namespace HotChocolate.Stitching
 {
@@ -9,7 +10,9 @@ namespace HotChocolate.Stitching
 
     public interface IStitchingBuilder
     {
-        IStitchingBuilder AddSchema(NameString name, LoadSchemaDocument loadSchema);
+        IStitchingBuilder AddSchema(
+            NameString name,
+            LoadSchemaDocument loadSchema);
 
         IStitchingBuilder AddExtensions(LoadSchemaDocument loadExtensions);
 
