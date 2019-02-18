@@ -151,8 +151,11 @@ namespace HotChocolate.Stitching
         {
             MergeTypeDelegate current = (c, t) =>
             {
-                throw new NotSupportedException(
-                    "The type definitions could not be handled.");
+                if (t.Count > 0)
+                {
+                    throw new NotSupportedException(
+                        "The type definitions could not be handled.");
+                }
             };
 
             var handlers = new List<MergeTypeHandler>();
