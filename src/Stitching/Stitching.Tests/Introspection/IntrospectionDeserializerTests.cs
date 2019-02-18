@@ -1,3 +1,4 @@
+using System;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using Xunit;
@@ -17,6 +18,17 @@ namespace HotChocolate.Stitching.Introspection
 
             // assert
             SchemaSyntaxSerializer.Serialize(schema).Snapshot();
+        }
+
+        [Fact]
+        public void JsonIsNull()
+        {
+            // arrange
+            // act
+            Action action = () => IntrospectionDeserializer.Deserialize(null);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
         }
     }
 }
