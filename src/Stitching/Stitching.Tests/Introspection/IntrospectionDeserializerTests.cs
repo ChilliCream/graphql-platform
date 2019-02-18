@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching.Introspection
             Action action = () => IntrospectionDeserializer.Deserialize(null);
 
             // assert
-            Assert.Throws<ArgumentException>(action).Snapshot();
+            Assert.Throws<ArgumentException>(action).Message.Snapshot();
         }
     }
 }

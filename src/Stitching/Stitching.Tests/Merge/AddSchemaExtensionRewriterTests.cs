@@ -75,7 +75,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
 
         [Fact]
@@ -240,7 +240,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
 
         [Fact]
@@ -259,7 +259,7 @@ namespace HotChocolate.Stitching.Merge
                   Parser.Default.Parse(extensions));
 
             // assert
-            Assert.Throws<SchemaMergeException>(action).Snapshot();
+            Assert.Throws<SchemaMergeException>(action).Message.Snapshot();
         }
     }
 }
