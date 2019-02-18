@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge
@@ -49,29 +50,9 @@ namespace HotChocolate.Stitching.Merge
             NameString newName,
             IEnumerable<NameString> schemaNames)
         {
-            if (enumTypeDefinition == null)
-            {
-                throw new ArgumentNullException(nameof(enumTypeDefinition));
-            }
-
-            if (schemaNames == null)
-            {
-                throw new ArgumentNullException(nameof(schemaNames));
-            }
-
-            newName.EnsureNotEmpty(nameof(newName));
-
-            NameString originalName = enumTypeDefinition.Name.Value;
-
-            IReadOnlyList<DirectiveNode> directives =
-                AddRenamedDirective(
-                    enumTypeDefinition.Directives,
-                    originalName,
-                    schemaNames);
-
-            return enumTypeDefinition
-                .WithName(new NameNode(newName))
-                .WithDirectives(directives);
+            return AddSource(enumTypeDefinition, newName, schemaNames,
+                (n, d) => enumTypeDefinition
+                    .WithName(n).WithDirectives(d));
         }
 
         public static InputObjectTypeDefinitionNode AddSource(
@@ -90,29 +71,9 @@ namespace HotChocolate.Stitching.Merge
             NameString newName,
             IEnumerable<NameString> schemaNames)
         {
-            if (enumTypeDefinition == null)
-            {
-                throw new ArgumentNullException(nameof(enumTypeDefinition));
-            }
-
-            if (schemaNames == null)
-            {
-                throw new ArgumentNullException(nameof(schemaNames));
-            }
-
-            newName.EnsureNotEmpty(nameof(newName));
-
-            NameString originalName = enumTypeDefinition.Name.Value;
-
-            IReadOnlyList<DirectiveNode> directives =
-                AddRenamedDirective(
-                    enumTypeDefinition.Directives,
-                    originalName,
-                    schemaNames);
-
-            return enumTypeDefinition
-                .WithName(new NameNode(newName))
-                .WithDirectives(directives);
+            return AddSource(enumTypeDefinition, newName, schemaNames,
+                (n, d) => enumTypeDefinition
+                    .WithName(n).WithDirectives(d));
         }
 
         public static UnionTypeDefinitionNode AddSource(
@@ -131,29 +92,9 @@ namespace HotChocolate.Stitching.Merge
             NameString newName,
             IEnumerable<NameString> schemaNames)
         {
-            if (unionTypeDefinition == null)
-            {
-                throw new ArgumentNullException(nameof(unionTypeDefinition));
-            }
-
-            if (schemaNames == null)
-            {
-                throw new ArgumentNullException(nameof(schemaNames));
-            }
-
-            newName.EnsureNotEmpty(nameof(newName));
-
-            NameString originalName = unionTypeDefinition.Name.Value;
-
-            IReadOnlyList<DirectiveNode> directives =
-                AddRenamedDirective(
-                    unionTypeDefinition.Directives,
-                    originalName,
-                    schemaNames);
-
-            return unionTypeDefinition
-                .WithName(new NameNode(newName))
-                .WithDirectives(directives);
+            return AddSource(unionTypeDefinition, newName, schemaNames,
+                (n, d) => unionTypeDefinition
+                    .WithName(n).WithDirectives(d));
         }
 
         public static ObjectTypeDefinitionNode AddSource(
@@ -172,29 +113,9 @@ namespace HotChocolate.Stitching.Merge
             NameString newName,
             IEnumerable<NameString> schemaNames)
         {
-            if (objectTypeDefinition == null)
-            {
-                throw new ArgumentNullException(nameof(objectTypeDefinition));
-            }
-
-            if (schemaNames == null)
-            {
-                throw new ArgumentNullException(nameof(schemaNames));
-            }
-
-            newName.EnsureNotEmpty(nameof(newName));
-
-            NameString originalName = objectTypeDefinition.Name.Value;
-
-            IReadOnlyList<DirectiveNode> directives =
-                AddRenamedDirective(
-                    objectTypeDefinition.Directives,
-                    originalName,
-                    schemaNames);
-
-            return objectTypeDefinition
-                .WithName(new NameNode(newName))
-                .WithDirectives(directives);
+            return AddSource(objectTypeDefinition, newName, schemaNames,
+                (n, d) => objectTypeDefinition
+                    .WithName(n).WithDirectives(d));
         }
 
         public static InterfaceTypeDefinitionNode AddSource(
@@ -212,6 +133,18 @@ namespace HotChocolate.Stitching.Merge
             this InterfaceTypeDefinitionNode interfaceTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
+        {
+            return AddSource(interfaceTypeDefinition, newName, schemaNames,
+                (n, d) => interfaceTypeDefinition
+                    .WithName(n).WithDirectives(d));
+        }
+
+        private static T AddSource<T>(
+            T interfaceTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames,
+            Func<NameNode, IReadOnlyList<DirectiveNode>, T> rewrite)
+            where T : NamedSyntaxNode
         {
             if (interfaceTypeDefinition == null)
             {
@@ -234,9 +167,7 @@ namespace HotChocolate.Stitching.Merge
                     originalName,
                     schemaNames);
 
-            return interfaceTypeDefinition
-                .WithName(new NameNode(newName))
-                .WithDirectives(directives);
+            return rewrite(new NameNode(newName), directives);
         }
 
         private static IReadOnlyList<DirectiveNode> AddRenamedDirective(
@@ -248,19 +179,37 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (NameString schemaName in schemaNames)
             {
-                list.Add(new DirectiveNode
-                (
-                    DirectiveNames.Source,
-                    new ArgumentNode(
-                        DirectiveFieldNames.Renamed_Name,
-                        originalName),
-                    new ArgumentNode(
-                        DirectiveFieldNames.Renamed_Schema,
-                        schemaName)
-                ));
+                if (!list.Any(t => HasSourceDirective(t, schemaName)))
+                {
+                    list.Add(new DirectiveNode
+                    (
+                        DirectiveNames.Source,
+                        new ArgumentNode(
+                            DirectiveFieldNames.Source_Name,
+                            originalName),
+                        new ArgumentNode(
+                            DirectiveFieldNames.Source_Schema,
+                            schemaName)
+                    ));
+                }
             }
 
             return list;
+        }
+
+        private static bool HasSourceDirective(
+            DirectiveNode directive,
+            NameString schemaName)
+        {
+            if (DirectiveNames.Source.Equals(directive.Name.Value))
+            {
+                ArgumentNode argument = directive.Arguments.FirstOrDefault(t =>
+                    DirectiveFieldNames.Source_Schema.Equals(t.Name));
+                return argument != null
+                    && argument.Value is StringValueNode sv
+                    && schemaName.Equals(sv.Value);
+            }
+            return false;
         }
 
         public static FieldDefinitionNode AddDelegationPath(

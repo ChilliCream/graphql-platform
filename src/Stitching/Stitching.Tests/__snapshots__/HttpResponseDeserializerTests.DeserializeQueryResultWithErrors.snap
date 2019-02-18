@@ -1,5 +1,21 @@
 {
-  "Data": {},
+  "Data": {
+    "foo": [
+      {
+        "qux": {
+          "quux": 123
+        }
+      }
+    ],
+    "bar": [
+      123
+    ],
+    "baz": {
+      "qux": {
+        "quux": 123
+      }
+    }
+  },
   "Extensions": {},
   "Errors": [
     {

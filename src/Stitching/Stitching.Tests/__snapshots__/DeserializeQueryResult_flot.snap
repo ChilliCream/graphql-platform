@@ -3,16 +3,16 @@
     "foo": [
       {
         "qux": {
-          "quux": "hello"
+          "quux": 1.5
         }
       }
     ],
     "bar": [
-      "hello"
+      1.5
     ],
     "baz": {
       "qux": {
-        "quux": "hello"
+        "quux": 1.5
       }
     }
   },

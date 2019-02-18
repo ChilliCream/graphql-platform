@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
+using Xunit;
+using Snapshooter.Xunit;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
-using Xunit;
+using FileResource = ChilliCream.Testing.FileResource;
 
 namespace HotChocolate.Stitching
 {
@@ -41,7 +42,7 @@ namespace HotChocolate.Stitching
                     schema.GetType<ObjectType>("Customer"));
 
             // assert
-            dependencies.Snapshot();
+            Snapshot.Match(dependencies);
         }
     }
 }

@@ -23,12 +23,12 @@ namespace HotChocolate.Stitching
             descriptor.Repeatable();
 
             descriptor.Argument(t => t.Name)
-                .Name(DirectiveFieldNames.Renamed_Name)
+                .Name(DirectiveFieldNames.Source_Name)
                 .Type<NonNullType<StringType>>()
                 .Description(Resources.SourceDirectiveType_Name_Description);
 
             descriptor.Argument(t => t.Schema)
-                .Name(DirectiveFieldNames.Renamed_Schema)
+                .Name(DirectiveFieldNames.Source_Schema)
                 .Type<NonNullType<StringType>>()
                 .Description(Resources.SourceDirectiveType_Schema_Description);
         }

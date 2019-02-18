@@ -2,9 +2,9 @@ namespace HotChocolate.Stitching
 {
     internal static class DirectiveFieldNames
     {
-        public static NameString Renamed_Schema { get; } = "schema";
+        public static NameString Source_Schema { get; } = "schema";
 
-        public static NameString Renamed_Name { get; } = "name";
+        public static NameString Source_Name { get; } = "name";
 
         public static NameString Delegate_Schema { get; } = "schema";
 
