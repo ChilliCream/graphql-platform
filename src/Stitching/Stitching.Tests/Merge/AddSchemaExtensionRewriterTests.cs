@@ -117,7 +117,7 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             const string schema = "interface Foo { bar: String }";
-            const string extensions = "interface type Foo { baz: Bar } " +
+            const string extensions = "extend interface Foo { baz: Bar } " +
                 "interface Bar { baz: String }";
 
             // act
@@ -172,6 +172,85 @@ namespace HotChocolate.Stitching.Merge
             // arrange
             const string schema = "interface Foo @foo { bar: String }";
             const string extensions = "extend interface Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Parser.Default.Parse(schema),
+                  Parser.Default.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Snapshot();
+        }
+
+        [Fact]
+        public void UnionType_AddType()
+        {
+            // arrange
+            const string schema = "union Foo = A | B "
+                + "type A { a: String } "
+                + "type B { b: String }";
+            const string extensions = "extend union Foo = C "
+                + "type C { c: String }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).Snapshot();
+        }
+
+        [Fact]
+        public void UnionType_AddDirectives()
+        {
+            // arrange
+            const string schema = "union Foo = A | B "
+                + "type A { a: String } "
+                + "type B { b: String } "
+                + "directive @foo on INTERFACE";
+            const string extensions = "extend union Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).Snapshot();
+        }
+
+        [Fact]
+        public void UnionType_AddDuplicateDirectives()
+        {
+            // arrange
+            const string schema = "union Foo @foo = A | B "
+                + "type A { a: String } "
+                + "type B { b: String } "
+                + "directive @foo on INTERFACE";
+            const string extensions = "extend union Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Parser.Default.Parse(schema),
+                  Parser.Default.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Snapshot();
+        }
+
+        [Fact]
+        public void UnionType_AddUndeclaredDirectives()
+        {
+            // arrange
+            const string schema = "union Foo = A | B "
+                + "type A { a: String } "
+                + "type B { b: String }";
+            const string extensions = "extend union Foo @foo";
 
             // act
             var rewriter = new AddSchemaExtensionRewriter();
