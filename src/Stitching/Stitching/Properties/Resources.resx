@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AddSchemaExtensionRewriter_DirectiveDoesNotExist" xml:space="preserve">
+    <value>The directive `{0}` was not specified in this schema and cannot be used.</value>
+  </data>
+  <data name="AddSchemaExtensionRewriter_DirectiveIsUnique" xml:space="preserve">
+    <value>The directive `{0}` is not marked as repeatable and can only be declared once.</value>
+  </data>
+  <data name="AddSchemaExtensionRewriter_TypeMismatch" xml:space="preserve">
+    <value>`{0}` is of type `{1}` and cannot be extended with `{2}`.</value>
+  </data>
   <data name="ArgumentScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
     <value>This resolver can only handle argument scopes.</value>
   </data>
@@ -236,6 +245,12 @@
     <value>The first token must be a start of file token.</value>
   </data>
   <data name="SourceDirectiveType_Description" xml:space="preserve">
-    <value />
+    <value>Annotates the original name of a type.</value>
+  </data>
+  <data name="SourceDirectiveType_Name_Description" xml:space="preserve">
+    <value>The original name of the annotated type.</value>
+  </data>
+  <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
+    <value>The name of the schema to which this type belongs to.</value>
   </data>
 </root>

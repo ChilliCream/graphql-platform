@@ -61,6 +61,33 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive `{0}` was not specified in this schema and cannot be used..
+        /// </summary>
+        internal static string AddSchemaExtensionRewriter_DirectiveDoesNotExist {
+            get {
+                return ResourceManager.GetString("AddSchemaExtensionRewriter_DirectiveDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The directive `{0}` is not marked as repeatable and can only be declared once..
+        /// </summary>
+        internal static string AddSchemaExtensionRewriter_DirectiveIsUnique {
+            get {
+                return ResourceManager.GetString("AddSchemaExtensionRewriter_DirectiveIsUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to `{0}` is of type `{1}` and cannot be extended with `{2}`..
+        /// </summary>
+        internal static string AddSchemaExtensionRewriter_TypeMismatch {
+            get {
+                return ResourceManager.GetString("AddSchemaExtensionRewriter_TypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle argument scopes..
         /// </summary>
         internal static string ArgumentScopedVariableResolver_CannotHandleVariable {
@@ -111,15 +138,6 @@ namespace HotChocolate.Stitching.Properties {
         internal static string FieldScopedVariableResolver_InvalidFieldName {
             get {
                 return ResourceManager.GetString("FieldScopedVariableResolver_InvalidFieldName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The json mustn&apos;t be null or empty..
-        /// </summary>
-        internal static string IntrospectionDeserializer_Json_NullOrEmpty {
-            get {
-                return ResourceManager.GetString("IntrospectionDeserializer_Json_NullOrEmpty", resourceCulture);
             }
         }
         
@@ -247,15 +265,6 @@ namespace HotChocolate.Stitching.Properties {
         internal static string SourceDirectiveType_Schema_Description {
             get {
                 return ResourceManager.GetString("SourceDirectiveType_Schema_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The specified type is not supported..
-        /// </summary>
-        internal static string Type_NotSupported {
-            get {
-                return ResourceManager.GetString("Type_NotSupported", resourceCulture);
             }
         }
     }

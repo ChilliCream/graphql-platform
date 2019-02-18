@@ -1,9 +1,10 @@
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -24,14 +25,14 @@ namespace HotChocolate.Stitching.Merge
                 throw new ArgumentNullException(nameof(extensions));
             }
 
-            List<ITypeDefinitionNode> newTypes = extensions.Definitions
+            var newTypes = extensions.Definitions
                 .OfType<ITypeDefinitionNode>().ToList();
 
             DocumentNode current = schema;
 
             if (newTypes.Count > 0)
             {
-                List<IDefinitionNode> definitions = schema.Definitions.ToList();
+                var definitions = schema.Definitions.ToList();
                 definitions.AddRange(newTypes);
                 current = current.WithDefinitions(definitions);
             }
@@ -51,17 +52,23 @@ namespace HotChocolate.Stitching.Merge
                 current.Name.Value,
                 out INamedTypeExtensionNode extension))
             {
-                if (extension is UnionTypeExtensionNode objectTypeExtension)
+                if (extension is UnionTypeExtensionNode unionTypeExtension)
                 {
-                    current = AddTypes(current, objectTypeExtension);
-                    current = AddDirectives(current, objectTypeExtension,
+                    current = AddTypes(current, unionTypeExtension);
+                    current = AddDirectives(current, unionTypeExtension,
                         d => current.WithDirectives(d), context);
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -111,9 +118,15 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -151,9 +164,15 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -216,9 +235,15 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -269,9 +294,15 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -321,9 +352,15 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        current, extension, "EXTENSION TYPE DOES NOT MATCH");
+                        current,
+                        extension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            node.Name.Value,
+                            node.Kind,
+                            extension.Kind));
                 }
             }
 
@@ -352,18 +389,23 @@ namespace HotChocolate.Stitching.Merge
                 if (!context.Directives.TryGetValue(directive.Name.Value,
                     out DirectiveDefinitionNode directiveDefinition))
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,
-                        "DIRECTIVE DOES NOT EXIST");
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_DirectiveDoesNotExist,
+                            directive.Name.Value));
                 }
 
                 if (!alreadyDeclared.Add(directive.Name.Value)
                     && directiveDefinition.IsUnique)
                 {
-                    // TODO : Resources
                     throw new SchemaMergeException(
-                        typeDefinition, typeExtension, "DIRECTIVE IS UNIQUE");
+                        typeDefinition, typeExtension,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Resources.AddSchemaExtensionRewriter_DirectiveIsUnique,
+                            directive.Name.Value));
                 }
 
                 directives.Add(directive);
