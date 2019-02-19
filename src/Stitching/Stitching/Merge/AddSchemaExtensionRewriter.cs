@@ -392,8 +392,8 @@ namespace HotChocolate.Stitching.Merge
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,
                         string.Format(
-                            CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_DirectiveDoesNotExist,
+                            CultureInfo.InvariantCulture, Resources
+                            .AddSchemaExtensionRewriter_DirectiveDoesNotExist,
                             directive.Name.Value));
                 }
 
@@ -403,8 +403,8 @@ namespace HotChocolate.Stitching.Merge
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,
                         string.Format(
-                            CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_DirectiveIsUnique,
+                            CultureInfo.InvariantCulture, Resources
+                            .AddSchemaExtensionRewriter_DirectiveIsUnique,
                             directive.Name.Value));
                 }
 

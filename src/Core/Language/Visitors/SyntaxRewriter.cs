@@ -179,7 +179,9 @@ namespace HotChocolate.Language
             }
         }
 
-        protected virtual ITypeNode RewriteType(ITypeNode node, TContext context)
+        protected virtual ITypeNode RewriteType(
+            ITypeNode node,
+            TContext context)
         {
             switch (node)
             {
