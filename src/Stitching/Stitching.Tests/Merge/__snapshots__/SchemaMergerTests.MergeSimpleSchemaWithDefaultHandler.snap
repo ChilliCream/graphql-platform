@@ -1,0 +1,1 @@
+"union Foo @source(name: \"Foo\", schema: \"A\") @source(name: \"Foo\", schema: \"B\") = Bar | Baz\n\nunion B_Foo @source(name: \"Foo\", schema: \"A\") @source(name: \"Foo\", schema: \"B\") = Bar | Baz\n\nunion A @source(name: \"A\", schema: \"A\") = B | C"

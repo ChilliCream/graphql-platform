@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using ChilliCream.Testing;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
@@ -34,7 +34,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -63,7 +64,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -97,7 +99,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -131,7 +134,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             typeMerger.Merge(context, types);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema())
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -166,7 +170,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             Assert.Collection(leftovers,
                 t => Assert.IsType<InputObjectTypeInfo>(t));
 
-            Snapshooter.Xunit.Snapshot.Match(new List<object>
+            Snapshot.Match(new List<object>
             {
                 SchemaSyntaxSerializer.Serialize(context.CreateSchema()),
                 leftovers

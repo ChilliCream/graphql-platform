@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Merge.Handlers;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -33,6 +34,10 @@ namespace HotChocolate.Stitching.Merge
         private List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
         private OrderedDictionary<NameString, DocumentNode> _schemas =
             new OrderedDictionary<NameString, DocumentNode>();
+        private Dictionary<NameString, ISet<NameString>> _ignoredTypes =
+            new Dictionary<NameString, ISet<NameString>>();
+        private HashSet<NameString> _ignoredRootTypes =
+            new HashSet<NameString>();
 
         public ISchemaMerger AddMergeHandler(MergeTypeHandler handler)
         {
@@ -90,11 +95,14 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (SchemaInfo schema in schemas)
             {
-                ObjectTypeDefinitionNode rootType =
-                    schema.GetRootType(operation);
-                if (rootType != null)
+                if (!_ignoredRootTypes.Contains(schema.Name))
                 {
-                    types.Add(new ObjectTypeInfo(rootType, schema));
+                    ObjectTypeDefinitionNode rootType =
+                        schema.GetRootType(operation);
+                    if (rootType != null)
+                    {
+                        types.Add(new ObjectTypeInfo(rootType, schema));
+                    }
                 }
             }
 
@@ -144,13 +152,24 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (SchemaInfo schema in schemas)
             {
-                if (schema.Types.TryGetValue(name,
-                    out ITypeDefinitionNode typeDefinition))
+                if (!IsTypeIgnored(schema.Name, name)
+                    && schema.Types.TryGetValue(name,
+                        out ITypeDefinitionNode typeDefinition))
                 {
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
             }
         }
+
+        private bool IsTypeIgnored(NameString schemaName, NameString typeName)
+        {
+            return _ignoredTypes.Count > 0
+                && _ignoredTypes.TryGetValue(schemaName,
+                    out ISet<NameString> ignoredTypes)
+                && ignoredTypes.Contains(typeName);
+        }
+
+
 
         private MergeTypeDelegate CompileMergeDelegate()
         {
@@ -176,5 +195,30 @@ namespace HotChocolate.Stitching.Merge
         }
 
         public static SchemaMerger New() => new SchemaMerger();
+
+        public IStitchingBuilder IgnoreRootTypes(NameString schemaName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext IgnoreType(NameString schemaName, NameString typeName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext IgnoreField(NameString schemaName, FieldReference field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext RenameType(NameString schemaName, NameString typeName, NameString newName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IStitchingContext RenameField(NameString schemaName, FieldReference field, NameString newName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

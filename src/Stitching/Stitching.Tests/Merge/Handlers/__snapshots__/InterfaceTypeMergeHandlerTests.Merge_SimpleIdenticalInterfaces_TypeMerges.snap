@@ -1,0 +1,1 @@
+"interface A @source(name: \"A\", schema: \"Schema_A\") @source(name: \"A\", schema: \"Schema_B\") {\n  b: String\n}"

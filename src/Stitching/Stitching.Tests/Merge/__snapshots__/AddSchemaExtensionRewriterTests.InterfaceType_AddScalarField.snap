@@ -1,0 +1,1 @@
+"interface Foo {\n  bar: String\n  baz: Int\n}"

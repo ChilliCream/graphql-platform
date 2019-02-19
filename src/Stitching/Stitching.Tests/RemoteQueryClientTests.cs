@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Utilities;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -42,7 +43,7 @@ namespace HotChocolate.Stitching
             await result;
 
 
-            query.Snapshot();
+            query.MatchSnapshot();
         }
 
         [Fact]
@@ -83,13 +84,13 @@ namespace HotChocolate.Stitching
 
             // assert
             Assert.Equal(1, count);
-            query.Snapshot("DispatchMultipleQueries_MergedQuery");
+            query.MatchSnapshot("DispatchMultipleQueries_MergedQuery");
 
             IExecutionResult result_a = await task_a;
-            result_a.Snapshot("DispatchMultipleQueries_Result_A");
+            result_a.MatchSnapshot("DispatchMultipleQueries_Result_A");
 
             IExecutionResult result_b = await task_b;
-            result_b.Snapshot("DispatchMultipleQueries_Result_B");
+            result_b.MatchSnapshot("DispatchMultipleQueries_Result_B");
         }
 
         [Fact]
@@ -136,10 +137,10 @@ namespace HotChocolate.Stitching
             Assert.Equal(1, count);
 
             IExecutionResult result_a = await task_a;
-            result_a.Snapshot("DispatchMultipleQueriesAndRewriteErrors_A");
+            result_a.MatchSnapshot("DispatchMultipleQueriesAndRewriteErrors_A");
 
             IExecutionResult result_b = await task_b;
-            result_b.Snapshot("DispatchMultipleQueriesAndRewriteErrors_B");
+            result_b.MatchSnapshot("DispatchMultipleQueriesAndRewriteErrors_B");
         }
 
         [Fact]
@@ -185,10 +186,10 @@ namespace HotChocolate.Stitching
             Assert.Equal(1, count);
 
             IExecutionResult result_a = await task_a;
-            result_a.Snapshot("DispatchMultipleQueriesWithGlobalError_A");
+            result_a.MatchSnapshot("DispatchMultipleQueriesWithGlobalError_A");
 
             IExecutionResult result_b = await task_b;
-            result_b.Snapshot("DispatchMultipleQueriesWithGlobalError_B");
+            result_b.MatchSnapshot("DispatchMultipleQueriesWithGlobalError_B");
         }
 
         [Fact]
@@ -275,7 +276,7 @@ namespace HotChocolate.Stitching
             await task_b;
 
             Assert.Equal(1, count);
-            mergedRequest.Snapshot();
+            mergedRequest.MatchSnapshot();
         }
     }
 }

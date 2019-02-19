@@ -15,6 +15,7 @@ using IOPath = System.IO.Path;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching
 {
@@ -52,7 +53,7 @@ namespace HotChocolate.Stitching
                 merger.AddSchema(item.Key, item.Value.Invoke(services));
             }
 
-            SchemaSyntaxSerializer.Serialize(merger.Merge()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
         }
 
         [Fact]
@@ -80,7 +81,7 @@ namespace HotChocolate.Stitching
                 merger.AddSchema(item.Key, item.Value.Invoke(services));
             }
 
-            SchemaSyntaxSerializer.Serialize(merger.Merge()).Snapshot();
+            SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
         }
 
         private IHttpClientFactory CreateRemoteSchemas()

@@ -1,4 +1,0 @@
-type Query {
-  b: String @delegate(schema: "Schema_A")
-  Schema_B_b: String @delegate(schema: "Schema_B", path: "b")
-}

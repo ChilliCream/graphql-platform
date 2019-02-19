@@ -1,0 +1,1 @@
+"type Foo @foo {\n  bar: String\n}\n\ndirective @foo on OBJECT"

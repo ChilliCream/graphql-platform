@@ -33,6 +33,8 @@ namespace HotChocolate.Stitching
         private readonly List<Action<IQueryExecutionBuilder>> _execConfigs =
             new List<Action<IQueryExecutionBuilder>>();
         private IQueryExecutionOptionsAccessor _options;
+        private bool _ignoreRootTypes;
+
 
         public IStitchingBuilder AddSchema(
             NameString name,

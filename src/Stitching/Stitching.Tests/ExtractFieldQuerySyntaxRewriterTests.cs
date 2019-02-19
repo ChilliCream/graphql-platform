@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -58,7 +59,7 @@ namespace HotChocolate.Stitching
                 .Build();
 
             QuerySyntaxSerializer.Serialize(document)
-                .Snapshot(nameof(ExtractField) + "_" + queryFile);
+                .MatchSnapshot(nameof(ExtractField) + "_" + queryFile);
         }
     }
 }

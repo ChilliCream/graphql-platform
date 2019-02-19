@@ -1,0 +1,1 @@
+"query fetch {\n  contracts(id: \"Q3VzdG9tZXIteDE=\") {\n    id\n    __typename\n  }\n}"

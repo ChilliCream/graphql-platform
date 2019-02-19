@@ -1,0 +1,1 @@
+"type Query {\n  a: String @delegate(schema: \"Schema_A\")\n  Schema_B_a: String @delegate(schema: \"Schema_B\", path: \"a\")\n}"

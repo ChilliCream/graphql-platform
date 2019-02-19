@@ -1,6 +1,7 @@
 using ChilliCream.Testing;
-using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -22,7 +23,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).Snapshot();
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
         }
 
         [Fact]
@@ -43,7 +44,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).Snapshot();
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
         }
     }
 }

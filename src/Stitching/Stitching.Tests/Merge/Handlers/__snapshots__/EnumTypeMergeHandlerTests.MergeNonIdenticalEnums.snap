@@ -1,0 +1,1 @@
+"enum Foo @source(name: \"Foo\", schema: \"Schema_A\") @source(name: \"Foo\", schema: \"Schema_B\") {\n  BAR\n  BAZ\n}\n\nenum Schema_C_Foo @source(name: \"Foo\", schema: \"Schema_C\") {\n  BAR\n  BAZ\n  QUX\n}"

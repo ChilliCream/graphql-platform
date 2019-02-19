@@ -43,7 +43,8 @@ namespace HotChocolate.Stitching
                 HttpResponseDeserializer.Deserialize(serializedResult);
 
             // assert
-            Snapshot.Match(deserializedResult, "DeserializeQueryResult_" + type);
+            Snapshot.Match(deserializedResult,
+                "DeserializeQueryResult_" + type);
         }
 
         [Fact]

@@ -1,0 +1,1 @@
+"query fetch {\n  customer: customerOrConsultant(id: \"Q3VzdG9tZXIteDE=\") {\n    ... customer\n    ... consultant\n    ... on Customer {\n      id\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment customer on Customer {\n  name\n  consultant {\n    name\n    __typename\n  }\n  id\n  __typename\n}\n\nfragment consultant on Consultant {\n  name\n  __typename\n}"

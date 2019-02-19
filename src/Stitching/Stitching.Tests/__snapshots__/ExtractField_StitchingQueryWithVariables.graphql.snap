@@ -1,0 +1,1 @@
+"query fetch($customerId: ID!) {\n  customer(id: $customerId) {\n    name\n    consultant {\n      name\n      __typename\n    }\n    id\n    __typename\n  }\n}"

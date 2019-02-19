@@ -1,0 +1,1 @@
+"union Foo @foo = A | B\n\ntype A {\n  a: String\n}\n\ntype B {\n  b: String\n}\n\ndirective @foo on INTERFACE"

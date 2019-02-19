@@ -42,23 +42,29 @@ namespace HotChocolate.Stitching
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithInlineFragment.graphql"));
 
-            // act and assert
-            await ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithFragmentDefinition()
+        public async Task ExecuteStitchingQueryWithFragmentDefinition()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithFragmentDefs.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithVariables()
+        public async Task ExecuteStitchingQueryWithVariables()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
@@ -70,68 +76,85 @@ namespace HotChocolate.Stitching
                 }
             };
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithUnion()
+        public async Task ExecuteStitchingQueryWithUnion()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithUnion.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithArguments()
+        public async Task ExecuteStitchingQueryWithArguments()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithArguments.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact(Skip = "Not yet supported!")]
-        public Task ExecuteStitchingQueryDeepArrayPath()
+        public async Task ExecuteStitchingQueryDeepArrayPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepArrayPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryDeepObjectPath()
+        public async Task ExecuteStitchingQueryDeepObjectPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepObjectPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryDeepScalarPath()
+        public async Task ExecuteStitchingQueryDeepScalarPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepScalarPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
-        private async Task ExecuteStitchedQuery(
-            QueryRequest request,
-            [CallerMemberName]string snapshotName = null)
+        private Task<IExecutionResult> ExecuteStitchedQuery(
+            QueryRequest request)
         {
             // arrange
             IHttpClientFactory clientFactory = CreateRemoteSchemas();
@@ -161,10 +184,7 @@ namespace HotChocolate.Stitching
                 .GetRequiredService<IQueryExecutor>();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            ChilliCream.Testing.ObjectExtensions.Snapshot(result, snapshotName);
+            return executor.ExecuteAsync(request);
         }
 
         [Fact]

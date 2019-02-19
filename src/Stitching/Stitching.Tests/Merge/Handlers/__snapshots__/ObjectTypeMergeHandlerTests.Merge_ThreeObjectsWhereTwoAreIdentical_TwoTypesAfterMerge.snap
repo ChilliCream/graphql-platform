@@ -1,0 +1,1 @@
+"type A @source(name: \"A\", schema: \"Schema_A\") @source(name: \"A\", schema: \"Schema_C\") {\n  b: String\n}\n\ntype Schema_B_A @source(name: \"A\", schema: \"Schema_B\") {\n  b(a: String): String\n}"

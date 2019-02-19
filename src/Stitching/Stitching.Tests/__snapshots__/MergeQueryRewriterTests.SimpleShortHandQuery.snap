@@ -1,0 +1,1 @@
+"query exec_batch {\n  _a_a: a {\n    b\n  }\n  _b_c: c {\n    d\n  }\n  _c_a: a {\n    c\n  }\n}"

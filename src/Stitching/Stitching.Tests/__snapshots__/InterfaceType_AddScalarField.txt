@@ -1,4 +1,0 @@
-interface Foo {
-  bar: String
-  baz: Int
-}

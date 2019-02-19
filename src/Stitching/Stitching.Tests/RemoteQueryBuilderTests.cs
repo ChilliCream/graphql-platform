@@ -6,6 +6,7 @@ using System.Text;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -52,7 +53,7 @@ namespace HotChocolate.Stitching
                 .Build();
 
             // assert
-            QuerySyntaxSerializer.Serialize(newQuery).Snapshot();
+            QuerySyntaxSerializer.Serialize(newQuery).MatchSnapshot();
         }
     }
 }

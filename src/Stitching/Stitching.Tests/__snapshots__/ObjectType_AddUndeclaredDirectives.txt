@@ -1,1 +1,0 @@
-The directive `foo` was not specified in this schema and cannot be used.
