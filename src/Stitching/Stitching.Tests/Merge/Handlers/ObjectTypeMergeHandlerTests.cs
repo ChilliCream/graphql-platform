@@ -1,0 +1,108 @@
+using System.Linq;
+using System.Collections.Generic;
+using HotChocolate.Language;
+using ChilliCream.Testing;
+using Xunit;
+
+namespace HotChocolate.Stitching.Merge.Handlers
+{
+    public class ObjectTypeMergeHandlerTests
+    {
+        [Fact]
+        public void Merge_SimpleIdenticalObjects_TypeMerges()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse("type A { b: String }");
+            DocumentNode schema_b =
+                Parser.Default.Parse("type A { b: String }");
+
+            var types = new List<ITypeInfo>
+            {
+                TypeInfo.Create(
+                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_A", schema_a)),
+                TypeInfo.Create(
+                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_B", schema_b))
+            };
+
+            var context = new SchemaMergeContext();
+
+            // act
+            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
+            typeMerger.Merge(context, types);
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+        }
+
+        [Fact]
+        public void Merge_ThreeObjectsWhereTwoAreIdentical_TwoTypesAfterMerge()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse("type A { b: String }");
+            DocumentNode schema_b =
+                Parser.Default.Parse("type A { b(a: String): String }");
+            DocumentNode schema_c =
+                Parser.Default.Parse("type A { b: String }");
+
+            var types = new List<ITypeInfo>
+            {
+                TypeInfo.Create(
+                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_A", schema_a)),
+                TypeInfo.Create(
+                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_B", schema_b)),
+                TypeInfo.Create(
+                    schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_C", schema_c))
+            };
+
+            var context = new SchemaMergeContext();
+
+            // act
+            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
+            typeMerger.Merge(context, types);
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+        }
+
+        [Fact]
+        public void Merge_ObjectWithDifferentInterfaces_TypesMerge()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse("type A implements IA { b: String }");
+            DocumentNode schema_b =
+                Parser.Default.Parse("type A implements IB { b : String }");
+            DocumentNode schema_c =
+                Parser.Default.Parse("type A implements IC { b: String }");
+
+            var types = new List<ITypeInfo>
+            {
+                TypeInfo.Create(
+                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_A", schema_a)),
+                TypeInfo.Create(
+                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_B", schema_b)),
+                TypeInfo.Create(
+                    schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
+                    new SchemaInfo("Schema_C", schema_c))
+            };
+
+            var context = new SchemaMergeContext();
+
+            // act
+            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
+            typeMerger.Merge(context, types);
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
+        }
+    }
+}
