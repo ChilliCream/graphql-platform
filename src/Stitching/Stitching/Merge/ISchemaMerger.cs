@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching.Merge
@@ -8,9 +7,8 @@ namespace HotChocolate.Stitching.Merge
     {
         ISchemaMerger AddSchema(NameString name, DocumentNode schema);
         ISchemaMerger AddMergeHandler(MergeTypeHandler mergeHandler);
-        ISchemaMerger AddTypeRewriter(ITypeRewriter rewriter);
-        ISchemaMerger IgnoreRootTypes(NameString schemaName);
-        ISchemaMerger IgnoreType(NameString schemaName, NameString typeName);
+        ISchemaMerger AddRewriter(ITypeRewriter rewriter);
+        ISchemaMerger AddRewriter(IDocumentRewriter rewriter);
         DocumentNode Merge();
     }
 }

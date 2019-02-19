@@ -16,6 +16,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching
 {
@@ -32,14 +33,10 @@ namespace HotChocolate.Stitching
             new List<Action<ISchemaConfiguration>>();
         private readonly List<Action<IQueryExecutionBuilder>> _execConfigs =
             new List<Action<IQueryExecutionBuilder>>();
-        private readonly List<RenameTypeDescriptor> _renameTypeDescriptors =
-            new List<RenameTypeDescriptor>();
-        private readonly List<RenameFieldDescriptor> _renameFieldDescriptors =
-            new List<RenameFieldDescriptor>();
-        private readonly List<RenameTypeDescriptor> _ignoreTypeDescriptors =
-            new List<RenameTypeDescriptor>();
-        private readonly List<RenameFieldDescriptor> _ignoreFieldDescriptors =
-            new List<RenameFieldDescriptor>();
+        private readonly List<ITypeRewriter> _typeRewriters =
+            new List<ITypeRewriter>();
+        private readonly List<IDocumentRewriter> _docRewriters =
+            new List<IDocumentRewriter>();
         private IQueryExecutionOptionsAccessor _options;
         private bool _ignoreRootTypes;
 
@@ -121,42 +118,27 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IStitchingBuilder IgnoreRootTypes()
+        public IStitchingBuilder AddRewriter(ITypeRewriter rewriter)
         {
-            throw new NotImplementedException();
+            if (rewriter == null)
+            {
+                throw new ArgumentNullException(nameof(rewriter));
+            }
+
+            _typeRewriters.Add(rewriter);
+            return this;
         }
 
-        public IStitchingBuilder IgnoreRootTypes(NameString schemaName)
+        public IStitchingBuilder AddRewriter(IDocumentRewriter rewriter)
         {
-            throw new NotImplementedException();
+            if (rewriter == null)
+            {
+                throw new ArgumentNullException(nameof(rewriter));
+            }
+
+            _docRewriters.Add(rewriter);
+            return this;
         }
-
-        public IStitchingBuilder IgnoreType(NameString typeName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingBuilder IgnoreType(NameString schemaName, NameString typeName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingBuilder IgnoreField(NameString schemaName, FieldReference field)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingBuilder RenameType(NameString schemaName, NameString typeName, NameString newName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingBuilder RenameField(NameString schemaName, FieldReference field, NameString newName)
-        {
-            throw new NotImplementedException();
-        }
-
-
 
         public void Populate(IServiceCollection serviceCollection)
         {
@@ -190,66 +172,5 @@ namespace HotChocolate.Stitching
         }
 
         public static StitchingBuilder New() => new StitchingBuilder();
-
-        private class RenameTypeDescriptor
-        {
-            private RenameTypeDescriptor(
-                NameString schemaName,
-                NameString typeName,
-                NameString newName)
-            {
-                SchemaName = schemaName;
-                TypeName = typeName;
-                NewName = newName;
-            }
-
-            public NameString SchemaName { get; }
-            public NameString TypeName { get; }
-            public NameString NewName { get; }
-        }
-
-        private class RenameFieldDescriptor
-        {
-            private RenameFieldDescriptor(
-                NameString schemaName,
-                FieldReference field,
-                NameString newName)
-            {
-                SchemaName = schemaName;
-                Field = field;
-                NewName = newName;
-            }
-            public NameString SchemaName { get; }
-            public FieldReference Field { get; }
-            public NameString NewName { get; }
-        }
-
-        private class IgnoreTypeDescriptor
-        {
-            private IgnoreTypeDescriptor(
-                NameString schemaName,
-                NameString typeName)
-            {
-                SchemaName = schemaName;
-                TypeName = typeName;
-            }
-
-            public NameString SchemaName { get; }
-            public NameString TypeName { get; }
-        }
-
-        private class IgnoreFieldDescriptor
-        {
-            private IgnoreFieldDescriptor(
-                NameString schemaName,
-                FieldReference field)
-            {
-                SchemaName = schemaName;
-                Field = field;
-
-            }
-            public NameString SchemaName { get; }
-            public FieldReference Field { get; }
-        }
     }
 }

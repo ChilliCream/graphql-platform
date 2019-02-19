@@ -7,6 +7,10 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Stitching.Merge;
+using System.Reflection;
+using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching
 {
@@ -134,6 +138,183 @@ namespace HotChocolate.Stitching
             }
 
             builder.AddExtensions(s => Parser.Default.Parse(extensions));
+            return builder;
+        }
+
+        public static IStitchingBuilder IgnoreRootTypes(
+           this IStitchingBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddRewriter(
+                new RemoveRootTypeRewriter());
+        }
+
+        public static IStitchingBuilder IgnoreRootTypes(
+            this IStitchingBuilder builder,
+            NameString schemaName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            return builder.AddRewriter(
+                new RemoveRootTypeRewriter(schemaName));
+        }
+
+        public static IStitchingBuilder IgnoreType(
+            this IStitchingBuilder builder,
+            NameString typeName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            return builder.AddRewriter(
+                new RemoveTypeRewriter(typeName));
+        }
+
+        public static IStitchingBuilder IgnoreType(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            NameString typeName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            return builder.AddRewriter(
+                new RemoveTypeRewriter(schemaName, typeName));
+        }
+
+        public static IStitchingBuilder IgnoreField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            FieldReference field)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            return builder.AddRewriter(
+                new RemoveFieldRewriter(schemaName, field));
+        }
+
+        public static IStitchingBuilder RenameType(
+            this IStitchingBuilder builder,
+            NameString originalTypeName,
+            NameString newTypeName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
+            newTypeName.EnsureNotEmpty(nameof(newTypeName));
+
+            return builder.AddRewriter(
+                new RenameTypeRewriter(originalTypeName, newTypeName));
+        }
+
+        public static IStitchingBuilder RenameType(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            NameString originalTypeName,
+            NameString newTypeName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
+            newTypeName.EnsureNotEmpty(nameof(newTypeName));
+
+            return builder.AddRewriter(
+                new RenameTypeRewriter(
+                    schemaName, originalTypeName, newTypeName));
+        }
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            FieldReference field,
+            NameString newFieldName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            newFieldName.EnsureNotEmpty(nameof(newFieldName));
+
+            return builder.AddRewriter(
+                new RenameFieldRewriter(
+                    field, newFieldName));
+        }
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            FieldReference field,
+            NameString newFieldName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            newFieldName.EnsureNotEmpty(nameof(newFieldName));
+
+            return builder.AddRewriter(
+                new RenameFieldRewriter(
+                    schemaName, field, newFieldName));
+        }
+
+        public static IStitchingBuilder AddMergeHandler<T>(
+           this IStitchingBuilder builder)
+           where T : ITypeMergeHanlder
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.AddMergeHandler(SchemaMergerExtensions.CreateHandler<T>());
+
             return builder;
         }
     }

@@ -15,6 +15,7 @@ using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching
 {
@@ -147,6 +148,16 @@ namespace HotChocolate.Stitching
                 foreach (MergeTypeHandler handler in builder._mergeHandlers)
                 {
                     merger.AddMergeHandler(handler);
+                }
+
+                foreach (ITypeRewriter rewriter in builder._docRewriters)
+                {
+                    merger.AddRewriter(rewriter);
+                }
+
+                foreach (IDocumentRewriter rewriter in builder._typeRewriters)
+                {
+                    merger.AddRewriter(rewriter);
                 }
 
                 return merger.Merge();

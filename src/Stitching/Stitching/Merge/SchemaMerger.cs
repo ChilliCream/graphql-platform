@@ -36,10 +36,13 @@ namespace HotChocolate.Stitching.Merge
                 SchemaMergerExtensions
                     .CreateHandler<EnumTypeMergeHandler>(),
             };
-        private List<MergeTypeHandler> _handlers = new List<MergeTypeHandler>();
-        private List<ITypeRewriter> _typeRewriters = new List<ITypeRewriter>();
-
-        private OrderedDictionary<NameString, DocumentNode> _schemas =
+        private readonly List<MergeTypeHandler> _handlers =
+            new List<MergeTypeHandler>();
+        private readonly List<ITypeRewriter> _typeRewriters =
+            new List<ITypeRewriter>();
+        private readonly List<IDocumentRewriter> _docRewriters =
+            new List<IDocumentRewriter>();
+        private readonly OrderedDictionary<NameString, DocumentNode> _schemas =
             new OrderedDictionary<NameString, DocumentNode>();
 
         public ISchemaMerger AddMergeHandler(MergeTypeHandler handler)
@@ -67,22 +70,41 @@ namespace HotChocolate.Stitching.Merge
             return this;
         }
 
+        public ISchemaMerger AddRewriter(ITypeRewriter rewriter)
+        {
+            if (rewriter == null)
+            {
+                throw new ArgumentNullException(nameof(rewriter));
+            }
 
+            _typeRewriters.Add(rewriter);
+            return this;
+        }
+
+        public ISchemaMerger AddRewriter(IDocumentRewriter rewriter)
+        {
+            if (rewriter == null)
+            {
+                throw new ArgumentNullException(nameof(rewriter));
+            }
+
+            _docRewriters.Add(rewriter);
+            return this;
+        }
 
         public DocumentNode Merge()
         {
             MergeTypeDelegate merge = CompileMergeDelegate();
-
-            List<SchemaInfo> schemas = _schemas
-                .Select(t => new SchemaInfo(t.Key, t.Value))
-                .ToList();
+            IReadOnlyList<ISchemaInfo> schemas = CreateSchemaInfos();
 
             var context = new SchemaMergeContext();
 
+            // merge root types
             MergeRootType(context, OperationType.Query, schemas, merge);
             MergeRootType(context, OperationType.Mutation, schemas, merge);
             MergeRootType(context, OperationType.Subscription, schemas, merge);
 
+            // merge all other types
             MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
             // TODO : FIX NAMES
@@ -90,24 +112,58 @@ namespace HotChocolate.Stitching.Merge
             return context.CreateSchema();
         }
 
+        private IReadOnlyList<ISchemaInfo> CreateSchemaInfos()
+        {
+            List<SchemaInfo> original = _schemas
+                .Select(t => new SchemaInfo(t.Key, t.Value))
+                .ToList();
+
+            if (_docRewriters.Count == 0)
+            {
+                return original;
+            }
+
+            var rewritten = new List<SchemaInfo>();
+
+            foreach (SchemaInfo schemaInfo in original)
+            {
+                DocumentNode current = schemaInfo.Document;
+
+                foreach (IDocumentRewriter rewriter in _docRewriters)
+                {
+                    current = rewriter.Rewrite(schemaInfo, current);
+                }
+
+                if (current == schemaInfo.Document)
+                {
+                    rewritten.Add(schemaInfo);
+                }
+                else
+                {
+                    rewritten.Add(new SchemaInfo(
+                        schemaInfo.Name,
+                        schemaInfo.Document));
+                }
+            }
+
+            return rewritten;
+        }
+
         private void MergeRootType(
             ISchemaMergeContext context,
             OperationType operation,
-            IEnumerable<SchemaInfo> schemas,
+            IEnumerable<ISchemaInfo> schemas,
             MergeTypeDelegate merge)
         {
             var types = new List<TypeInfo>();
 
             foreach (SchemaInfo schema in schemas)
             {
-                if (!_ignoredRootTypes.Contains(schema.Name))
+                ObjectTypeDefinitionNode rootType =
+                    schema.GetRootType(operation);
+                if (rootType != null)
                 {
-                    ObjectTypeDefinitionNode rootType =
-                        schema.GetRootType(operation);
-                    if (rootType != null)
-                    {
-                        types.Add(new ObjectTypeInfo(rootType, schema));
-                    }
+                    types.Add(new ObjectTypeInfo(rootType, schema));
                 }
             }
 
@@ -120,7 +176,7 @@ namespace HotChocolate.Stitching.Merge
         private void MergeTypes(
             ISchemaMergeContext context,
             ISet<string> typeNames,
-            IEnumerable<SchemaInfo> schemas,
+            IEnumerable<ISchemaInfo> schemas,
             MergeTypeDelegate merge)
         {
             var types = new List<ITypeInfo>();
@@ -133,7 +189,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         private ISet<string> CreateNameSet(
-            IEnumerable<SchemaInfo> schemas)
+            IEnumerable<ISchemaInfo> schemas)
         {
             HashSet<string> names = new HashSet<string>();
 
@@ -150,18 +206,22 @@ namespace HotChocolate.Stitching.Merge
 
         private void SetTypes(
             string name,
-            IEnumerable<SchemaInfo> schemas,
+            IEnumerable<ISchemaInfo> schemas,
             ICollection<ITypeInfo> types)
         {
             types.Clear();
 
             foreach (SchemaInfo schema in schemas)
             {
-                if (!IsTypeIgnored(schema.Name, name)
-                    && schema.Types.TryGetValue(name,
-                        out ITypeDefinitionNode typeDefinition))
+                if (schema.Types.TryGetValue(name,
+                    out ITypeDefinitionNode typeDefinition))
                 {
-                    typeDefinition = RewriteType(schema.Name, typeDefinition);
+                    foreach (ITypeRewriter rewriter in _typeRewriters)
+                    {
+                        typeDefinition = rewriter.Rewrite(
+                            schema, typeDefinition);
+                    }
+
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
             }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -8,6 +9,13 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal delegate T RewriteFieldsDelegate<T>(
         IReadOnlyList<FieldDefinitionNode> fields)
         where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode;
+
+    public interface IDocumentRewriter
+    {
+        DocumentNode Rewrite(
+            ISchemaInfo schema,
+            DocumentNode document);
+    }
 
     public interface ITypeRewriter
     {
@@ -65,6 +73,87 @@ namespace HotChocolate.Stitching.Merge.Rewriters
         }
     }
 
+    internal class RemoveTypeRewriter
+        : IDocumentRewriter
+    {
+        private readonly NameString? _schemaName;
+        private readonly NameString _typeName;
+
+        public RemoveTypeRewriter(NameString typeName)
+        {
+            _typeName = typeName.EnsureNotEmpty(nameof(typeName));
+        }
+
+        public RemoveTypeRewriter(NameString schemaName, NameString typeName)
+        {
+            _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+            _typeName = typeName.EnsureNotEmpty(nameof(typeName));
+        }
+
+        public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
+        {
+            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            {
+                return document;
+            }
+
+            ITypeDefinitionNode typeDefinition = document.Definitions
+                .OfType<ITypeDefinitionNode>()
+                .FirstOrDefault(t =>
+                    _typeName.Equals(t.GetOriginalName(schema.Name)));
+
+            if (typeDefinition == null)
+            {
+                return document;
+            }
+
+            var definitions = new List<IDefinitionNode>(document.Definitions);
+            definitions.Remove(typeDefinition);
+            return document.WithDefinitions(definitions);
+        }
+    }
+
+    internal class RemoveRootTypeRewriter
+        : IDocumentRewriter
+    {
+        private readonly NameString? _schemaName;
+
+        public RemoveRootTypeRewriter()
+        {
+        }
+
+        public RemoveRootTypeRewriter(NameString schemaName)
+        {
+            _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        }
+
+        public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
+        {
+            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            {
+                return document;
+            }
+
+            var definitions = new List<IDefinitionNode>(document.Definitions);
+
+            RemoveType(definitions, schema.QueryType);
+            RemoveType(definitions, schema.QueryType);
+            RemoveType(definitions, schema.QueryType);
+
+            return document.WithDefinitions(definitions);
+        }
+
+        private static void RemoveType(
+            ICollection<IDefinitionNode> definitions,
+            ITypeDefinitionNode typeDefinition)
+        {
+            if (typeDefinition == null)
+            {
+                definitions.Remove(typeDefinition);
+            }
+        }
+    }
+
     internal class RenameFieldRewriter
         : ITypeRewriter
     {
@@ -99,7 +188,8 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 return typeDefinition;
             }
 
-            if (!_field.TypeName.Equals(typeDefinition.Name.Value))
+            NameString typeName = typeDefinition.GetOriginalName(schema.Name);
+            if (!_field.TypeName.Equals(typeName))
             {
                 return typeDefinition;
             }
@@ -195,7 +285,8 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 return typeDefinition;
             }
 
-            if (!_field.TypeName.Equals(typeDefinition.Name.Value))
+            NameString typeName = typeDefinition.GetOriginalName(schema.Name);
+            if (!_field.TypeName.Equals(typeName))
             {
                 return typeDefinition;
             }

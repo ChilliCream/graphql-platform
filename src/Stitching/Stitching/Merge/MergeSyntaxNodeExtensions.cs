@@ -370,5 +370,25 @@ namespace HotChocolate.Stitching.Merge
 
             return field.WithDirectives(list);
         }
+
+        public static NameString GetOriginalName(
+            this ITypeDefinitionNode typeDefinition,
+            NameString schemaName)
+        {
+            DirectiveNode sourceDirective = typeDefinition.Directives
+                .FirstOrDefault(t => HasSourceDirective(t, schemaName));
+
+            if (sourceDirective != null)
+            {
+                ArgumentNode argument = sourceDirective.Arguments.First(t =>
+                    DirectiveFieldNames.Source_Name.Equals(t.Name.Value));
+                if (argument.Value is StringValueNode value)
+                {
+                    return value.Value;
+                }
+            }
+
+            return typeDefinition.Name.Value;
+        }
     }
 }

@@ -1,9 +1,10 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
-using HotChocolate.Execution;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
@@ -31,22 +32,8 @@ namespace HotChocolate.Stitching
         IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options);
 
-        IStitchingBuilder IgnoreRootTypes();
+        IStitchingBuilder AddRewriter(ITypeRewriter rewriter);
 
-        IStitchingBuilder IgnoreRootTypes(NameString schemaName);
-
-        IStitchingBuilder IgnoreType(NameString typeName);
-
-        IStitchingBuilder IgnoreType(NameString schemaName,
-            NameString typeName);
-
-        IStitchingBuilder IgnoreField(NameString schemaName,
-            FieldReference field);
-
-        IStitchingBuilder RenameType(NameString schemaName,
-            NameString typeName, NameString newName);
-
-        IStitchingBuilder RenameField(NameString schemaName,
-            FieldReference field, NameString newName);
+        IStitchingBuilder AddRewriter(IDocumentRewriter rewriter);
     }
 }

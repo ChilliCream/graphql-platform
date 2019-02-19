@@ -16,6 +16,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
+using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching
 {
@@ -131,6 +132,16 @@ namespace HotChocolate.Stitching
                 throw new NotSupportedException();
             }
 
+            public IStitchingBuilder AddRewriter(ITypeRewriter rewriter)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IStitchingBuilder AddRewriter(IDocumentRewriter rewriter)
+            {
+                throw new NotSupportedException();
+            }
+
             public IStitchingBuilder AddSchema(
                 NameString name,
                 LoadSchemaDocument loadSchema)
@@ -141,51 +152,6 @@ namespace HotChocolate.Stitching
 
             public IStitchingBuilder AddSchemaConfiguration(
                 Action<ISchemaConfiguration> configure)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingContext IgnoreField(
-                NameString schemaName,
-                FieldReference field)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingBuilder IgnoreRootTypes()
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingBuilder IgnoreRootTypes(NameString schemaName)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingContext IgnoreType(NameString typeName)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingContext IgnoreType(
-                NameString schemaName,
-                NameString typeName)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingContext RenameField(
-                NameString schemaName,
-                FieldReference field,
-                NameString newName)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingContext RenameType(
-                NameString schemaName,
-                NameString typeName,
-                NameString newName)
             {
                 throw new NotSupportedException();
             }
