@@ -39,7 +39,8 @@ namespace HotChocolate.Stitching
                     ? ImmutableStack<SelectionPathComponent>.Empty
                     : SelectionPathParser.Parse(delegateDirective.Path);
 
-                QueryRequest request = CreateQuery(context, path);
+                QueryRequest request =
+                    CreateQuery(context, delegateDirective.Schema, path);
 
                 IReadOnlyQueryResult result = await ExecuteQueryAsync(
                     context, request, delegateDirective.Schema)
@@ -56,13 +57,14 @@ namespace HotChocolate.Stitching
 
         private static QueryRequest CreateQuery(
             IMiddlewareContext context,
+            NameString schemaName,
             IImmutableStack<SelectionPathComponent> path)
         {
             var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
                 context.Schema);
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
-                    context.Document, context.Operation,
+                    schemaName, context.Document, context.Operation,
                     context.FieldSelection, context.ObjectType);
 
             IReadOnlyCollection<VariableValue> variableValues =

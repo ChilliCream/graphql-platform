@@ -48,7 +48,7 @@ namespace HotChocolate.Stitching
             // act
             var rewriter = new ExtractFieldQuerySyntaxRewriter(schema);
             ExtractedField extractedField = rewriter.ExtractField(
-                query, operation, selection,
+                "customer", query, operation, selection,
                 schema.GetType<ObjectType>("Query"));
 
             // assert

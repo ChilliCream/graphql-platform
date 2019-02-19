@@ -23,6 +23,7 @@ namespace HotChocolate.Stitching.Utilities
         protected override bool VisitFragmentDefinitions => false;
 
         public ExtractedField ExtractField(
+            NameString sourceSchema,
             DocumentNode document,
             OperationDefinitionNode operation,
             FieldNode field,
@@ -48,7 +49,10 @@ namespace HotChocolate.Stitching.Utilities
                 throw new ArgumentNullException(nameof(declaringType));
             }
 
-            var context = Context.New(declaringType, document, operation);
+            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
+
+            var context = Context.New(sourceSchema,
+                declaringType, document, operation);
 
             FieldNode rewrittenField = RewriteField(field, context);
 
@@ -67,6 +71,21 @@ namespace HotChocolate.Stitching.Utilities
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
+                SourceDirective sourceDirective =
+                    field.Directives[DirectiveNames.Source]
+                        .Select(t => t.ToObject<SourceDirective>())
+                        .FirstOrDefault(t => context.Schema.Equals(t.Schema));
+
+                if (sourceDirective != null)
+                {
+                    if (current.Alias == null)
+                    {
+                        current = current.WithAlias(current.Name);
+                    }
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
                 current = Rewrite(current, node.Arguments, context,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
@@ -257,10 +276,12 @@ namespace HotChocolate.Stitching.Utilities
         public class Context
         {
             private Context(
+                NameString schema,
                 INamedOutputType typeContext,
                 DocumentNode document,
                 OperationDefinitionNode operation)
             {
+                Schema = schema;
                 Variables = new Dictionary<string, VariableDefinitionNode>();
                 Document = document;
                 Operation = operation;
@@ -277,6 +298,7 @@ namespace HotChocolate.Stitching.Utilities
                 TypeContext = typeContext;
                 Fragments = context.Fragments;
                 FragmentPath = context.FragmentPath;
+                Schema = context.Schema;
             }
 
             private Context(
@@ -288,8 +310,11 @@ namespace HotChocolate.Stitching.Utilities
                 Operation = context.Operation;
                 TypeContext = context.TypeContext;
                 Fragments = context.Fragments;
+                Schema = context.Schema;
                 FragmentPath = fragmentPath;
             }
+
+            public NameString Schema { get; }
 
             public DocumentNode Document { get; }
 
@@ -316,11 +341,12 @@ namespace HotChocolate.Stitching.Utilities
             }
 
             public static Context New(
+                NameString schema,
                 INamedOutputType typeContext,
                 DocumentNode document,
                 OperationDefinitionNode operation)
             {
-                return new Context(typeContext, document, operation);
+                return new Context(schema, typeContext, document, operation);
             }
         }
     }

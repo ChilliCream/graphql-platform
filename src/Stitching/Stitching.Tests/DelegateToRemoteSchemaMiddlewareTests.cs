@@ -249,6 +249,8 @@ namespace HotChocolate.Stitching
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
                     .AddSchemaFromHttp("customer")
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
                     .AddExtensionsFromString(
                         FileResource.Open("StitchingExtensions.graphql")));
 
@@ -265,7 +267,7 @@ namespace HotChocolate.Stitching
                 var request = new QueryRequest(@"
                 {
                     customer(id: ""Q3VzdG9tZXIteDE="") {
-                        name
+                        bar: foo
                         contracts {
                             id
                         }
