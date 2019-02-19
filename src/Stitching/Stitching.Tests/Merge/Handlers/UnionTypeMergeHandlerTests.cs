@@ -19,10 +19,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
             var types = new List<ITypeInfo>
             {
-                new TypeInfo(
+                TypeInfo.Create(
                     schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new TypeInfo(
+                TypeInfo.Create(
                     schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b))
             };

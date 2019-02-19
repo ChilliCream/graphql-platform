@@ -6,90 +6,35 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class InputObjectTypeMergeHandler
-        : ITypeMergeHanlder
+    internal class InputObjectTypeMergeHandler
+        : TypeMergeHanlderBase<InputObjectTypeInfo>
     {
-        private readonly MergeTypeDelegate _next;
-
         public InputObjectTypeMergeHandler(MergeTypeDelegate next)
+            : base(next)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public void Merge(
+        protected override void MergeTypes(
             ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
+            IReadOnlyList<InputObjectTypeInfo> types,
+            NameString newTypeName)
         {
-            ITypeInfo left = types.FirstOrDefault(t =>
-               t.Definition is InputObjectTypeDefinitionNode);
-
-            if (left == null)
-            {
-                _next.Invoke(context, types);
-            }
-            else
-            {
-                var notMerged = new List<ITypeInfo>(types);
-                while (notMerged.Count > 0 && left != null)
-                {
-                    var readyToMerge = new List<ITypeInfo>();
-                    left.MoveType(notMerged, readyToMerge);
-                    var next = new List<ITypeInfo>(notMerged);
-
-                    for (int i = 0; i < notMerged.Count; i++)
-                    {
-                        if (CanBeMerged(left, notMerged[i]))
-                        {
-                            notMerged[i].MoveType(next, readyToMerge);
-                        }
-                    }
-
-                    MergeType(context, readyToMerge);
-
-                    notMerged = next;
-                    left = notMerged.FirstOrDefault(t =>
-                        t.Definition is InputObjectTypeDefinitionNode);
-                }
-
-                if (notMerged.Count > 0)
-                {
-                    _next.Invoke(context, notMerged);
-                }
-            }
-        }
-
-        private void MergeType(
-            ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
-        {
-            string name = types[0].Definition.Name.Value;
-
-            if (context.ContainsType(name))
-            {
-                for (int i = 0; i < types.Count; i++)
-                {
-                    name = types[i].CreateUniqueName();
-                    if (!context.ContainsType(name))
-                    {
-                        break;
-                    }
-                }
-            }
-
             List<InputObjectTypeDefinitionNode> definitions = types
                 .Select(t => t.Definition)
                 .Cast<InputObjectTypeDefinitionNode>()
                 .ToList();
 
-            InputObjectTypeDefinitionNode definition = definitions[0]
-                .AddSource(name, types.Select(t => t.Schema.Name));
+            InputObjectTypeDefinitionNode definition =
+                definitions[0].AddSource(
+                    newTypeName,
+                    types.Select(t => t.Schema.Name));
 
             context.AddType(definition);
         }
 
-        private static bool CanBeMerged(
-            ITypeInfo left,
-            ITypeInfo right)
+        protected override bool CanBeMerged(
+            InputObjectTypeInfo left,
+            InputObjectTypeInfo right)
         {
             var processed = new HashSet<string>();
             var queue = new Queue<TypePair>();
@@ -154,8 +99,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     && rt is InputObjectTypeDefinitionNode)
                 {
                     queue.Enqueue(new TypePair(
-                        new TypeInfo(lt, typePair.Left.Schema),
-                        new TypeInfo(rt, typePair.Right.Schema)));
+                        TypeInfo.Create(lt, typePair.Left.Schema),
+                        TypeInfo.Create(rt, typePair.Right.Schema)));
                     return true;
                 }
                 else if (lt is ScalarTypeDefinitionNode

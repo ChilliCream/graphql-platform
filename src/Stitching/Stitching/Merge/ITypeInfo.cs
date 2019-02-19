@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge
@@ -10,6 +11,13 @@ namespace HotChocolate.Stitching.Merge
         ISchemaInfo Schema { get; }
 
         bool IsRootType { get; }
+    }
+
+    public interface ITypeInfo<T>
+        : ITypeInfo
+        where T : ITypeDefinitionNode
+    {
+        new T Definition { get; }
     }
 
     public static class TypeInfoExtensions

@@ -6,7 +6,7 @@ using HotChocolate.Stitching.Delegation;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class RootTypeMergeHandler
+    internal class RootTypeMergeHandler
          : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
@@ -27,10 +27,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     var names = new HashSet<string>();
                     var fields = new List<FieldDefinitionNode>();
 
-                    foreach (ITypeInfo type in types)
+                    foreach (ObjectTypeInfo type in
+                        types.OfType<ObjectTypeInfo>())
                     {
-                        var rootType = (ObjectTypeDefinitionNode)type.Definition;
-                        IntegrateFields(rootType, type, names, fields);
+                        IntegrateFields(type.Definition, type, names, fields);
                     }
 
                     if (types[0].Schema.TryGetOperationType(

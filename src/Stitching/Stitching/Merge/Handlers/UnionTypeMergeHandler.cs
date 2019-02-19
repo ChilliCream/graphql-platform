@@ -7,7 +7,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class UnionTypeMergeHandler
+    internal class UnionTypeMergeHandler
         : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
@@ -21,32 +21,26 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            var notMerged = new List<ITypeInfo>();
-
-            for (int i = 0; i < types.Count; i++)
+            if (types.OfType<UnionTypeInfo>().Any())
             {
-                if (types[i].Definition is UnionTypeDefinitionNode def)
+                var notMerged = types.OfType<UnionTypeInfo>().ToList();
+                bool hasLeftovers = types.Count > notMerged.Count;
+
+                for (int i = 0; i < notMerged.Count; i++)
                 {
-                    string name = def.Name.Value;
-
-                    if (context.ContainsType(name))
-                    {
-                        name = types[i].CreateUniqueName();
-                    }
-
-                    context.AddType(def.AddSource(
-                        name,
+                    context.AddType(notMerged[i].Definition.AddSource(
+                        TypeMergeHelpers.CreateName(context, notMerged[i]),
                         types.Select(t => t.Schema.Name)));
                 }
-                else
+
+                if (hasLeftovers)
                 {
-                    notMerged.Add(types[i]);
+                    _next.Invoke(context, types.NotOfType<UnionTypeInfo>());
                 }
             }
-
-            if (notMerged.Count > 0)
+            else
             {
-                _next.Invoke(context, notMerged);
+                _next.Invoke(context, types);
             }
         }
     }

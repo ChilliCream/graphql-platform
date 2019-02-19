@@ -5,7 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class EnumTypeMergeHandler
+    internal class EnumTypeMergeHandler
         : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
@@ -19,8 +19,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            ITypeInfo left = types.FirstOrDefault(t =>
-               t.Definition is EnumTypeDefinitionNode);
+            EnumTypeInfo left = types.OfType<EnumTypeInfo>().FirstOrDefault();
 
             if (left == null)
             {
@@ -28,51 +27,46 @@ namespace HotChocolate.Stitching.Merge.Handlers
             }
             else
             {
-                var notMerged = new List<ITypeInfo>(types);
+                var notMerged = types.OfType<EnumTypeInfo>().ToList();
+                bool hasLeftovers = types.Count > notMerged.Count;
 
                 while (notMerged.Count > 0 && left != null)
                 {
-                    var leftDef = (EnumTypeDefinitionNode)left.Definition;
                     var leftValueSet = new HashSet<string>(
-                        leftDef.Values.Select(t => t.Name.Value));
-                    var readyToMerge = new List<ITypeInfo>();
-                    left.MoveType(notMerged, readyToMerge);
-                    var next = new List<ITypeInfo>(notMerged);
+                        left.Definition.Values.Select(t => t.Name.Value));
 
-                    for (int i = 0; i < notMerged.Count; i++)
+                    var readyToMerge = new List<EnumTypeInfo>();
+                    readyToMerge.Add(left);
+
+                    for (int i = 1; i < notMerged.Count; i++)
                     {
-                        if (notMerged[i].Definition is
-                            EnumTypeDefinitionNode rightDef
-                            && CanBeMerged(leftValueSet, rightDef))
+                        if (CanBeMerged(leftValueSet, notMerged[i].Definition))
                         {
-                            notMerged[i].MoveType(next, readyToMerge);
+                            readyToMerge.Add(notMerged[i]);
                         }
                     }
 
                     MergeType(context, readyToMerge);
-                    notMerged = next;
 
-                    left = notMerged.FirstOrDefault(t =>
-                        t.Definition is EnumTypeDefinitionNode);
+                    notMerged.RemoveAll(readyToMerge.Contains);
+                    left = notMerged.Count == 0 ? null : notMerged[0];
                 }
 
-
-                if (notMerged.Count > 0)
+                if (hasLeftovers)
                 {
-                    _next.Invoke(context, notMerged);
+                    _next.Invoke(context, types.NotOfType<EnumTypeInfo>());
                 }
             }
         }
 
-        private void MergeType(
+        private static void MergeType(
             ISchemaMergeContext context,
-            IReadOnlyList<ITypeInfo> types)
+            IReadOnlyList<EnumTypeInfo> types)
         {
-            var definition = (EnumTypeDefinitionNode)types[0].Definition;
+            var definition = types[0].Definition;
 
             EnumTypeDefinitionNode descriptionDef =
                 types.Select(t => t.Definition)
-                .Cast<EnumTypeDefinitionNode>()
                 .FirstOrDefault(t => t.Description != null);
 
             if (descriptionDef != null)
@@ -81,21 +75,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     descriptionDef.Description);
             }
 
-            NameString name = types[0].Definition.Name.Value;
-
-            if (context.ContainsType(name))
-            {
-                for (int i = 0; i < types.Count; i++)
-                {
-                    name = types[i].CreateUniqueName();
-                    if (!context.ContainsType(name))
-                    {
-                        break;
-                    }
-                }
-            }
-
-            context.AddType(definition.AddSource(name,
+            context.AddType(definition.AddSource(
+                TypeMergeHelpers.CreateName(context, types),
                 types.Select(t => t.Schema.Name)));
         }
 

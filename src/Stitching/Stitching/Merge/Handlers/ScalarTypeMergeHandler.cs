@@ -5,7 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class ScalarTypeMergeHandler
+    internal class ScalarTypeMergeHandler
         : ITypeMergeHanlder
     {
         private readonly MergeTypeDelegate _next;
@@ -19,25 +19,14 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types.Any(t => IsScalarType(t.Definition)))
+            if (types.OfType<ScalarTypeInfo>().Any())
             {
-                IReadOnlyList<ITypeInfo> current =
-                    types.Where(t => !IsScalarType(t.Definition)).ToList();
-
-                if (current.Count > 0)
-                {
-                    _next.Invoke(context, current);
-                }
+                _next.Invoke(context, types.NotOfType<ScalarTypeInfo>());
             }
             else
             {
                 _next.Invoke(context, types);
             }
-        }
-
-        public static bool IsScalarType(ITypeDefinitionNode definition)
-        {
-            return definition is ScalarTypeDefinitionNode;
         }
     }
 }

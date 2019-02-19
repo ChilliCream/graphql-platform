@@ -94,7 +94,7 @@ namespace HotChocolate.Stitching.Merge
                     schema.GetRootType(operation);
                 if (rootType != null)
                 {
-                    types.Add(new TypeInfo(rootType, schema));
+                    types.Add(new ObjectTypeInfo(rootType, schema));
                 }
             }
 
@@ -110,7 +110,7 @@ namespace HotChocolate.Stitching.Merge
             IEnumerable<SchemaInfo> schemas,
             MergeTypeDelegate merge)
         {
-            var types = new List<TypeInfo>();
+            var types = new List<ITypeInfo>();
 
             foreach (string typeName in typeNames)
             {
@@ -138,7 +138,7 @@ namespace HotChocolate.Stitching.Merge
         private void SetTypes(
             string name,
             IEnumerable<SchemaInfo> schemas,
-            ICollection<TypeInfo> types)
+            ICollection<ITypeInfo> types)
         {
             types.Clear();
 
@@ -147,7 +147,7 @@ namespace HotChocolate.Stitching.Merge
                 if (schema.Types.TryGetValue(name,
                     out ITypeDefinitionNode typeDefinition))
                 {
-                    types.Add(new TypeInfo(typeDefinition, schema));
+                    types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
             }
         }
