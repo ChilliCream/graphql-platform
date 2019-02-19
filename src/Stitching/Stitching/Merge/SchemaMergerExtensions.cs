@@ -70,6 +70,24 @@ namespace HotChocolate.Stitching.Merge
 
         public static ISchemaMerger IgnoreField(
             this ISchemaMerger schemaMerger,
+            FieldReference field)
+        {
+            if (schemaMerger == null)
+            {
+                throw new ArgumentNullException(nameof(schemaMerger));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            return schemaMerger.AddTypeRewriter(
+                new RemoveFieldRewriter(field));
+        }
+
+        public static ISchemaMerger IgnoreField(
+            this ISchemaMerger schemaMerger,
             NameString schemaName,
             FieldReference field)
         {
