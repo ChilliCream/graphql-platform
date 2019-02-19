@@ -6,16 +6,16 @@ using Xunit;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
-    public class ObjectTypeMergeHandlerTests
+    public class InterfaceTypeMergeHandlerTests
     {
         [Fact]
-        public void Merge_SimpleIdenticalObjects_TypeMerges()
+        public void Merge_SimpleIdenticalInterfaces_TypeMerges()
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Parser.Default.Parse("interface A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type A { b: String }");
+                Parser.Default.Parse("interface A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -30,7 +30,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
+            var typeMerger = new InterfaceTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert
@@ -38,15 +38,15 @@ namespace HotChocolate.Stitching.Merge.Handlers
         }
 
         [Fact]
-        public void Merge_ThreeObjectsWhereTwoAreIdentical_TwoTypesAfterMerge()
+        public void Merge_ThreeInterfWhereTwoAreIdentical_TwoTypesAfterMerge()
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Parser.Default.Parse("interface A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type A { b(a: String): String }");
+                Parser.Default.Parse("interface A { b(a: String): String }");
             DocumentNode schema_c =
-                Parser.Default.Parse("type A { b: String }");
+                Parser.Default.Parse("interface A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -64,7 +64,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             var context = new SchemaMergeContext();
 
             // act
-            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
+            var typeMerger = new InterfaceTypeMergeHandler((c, t) => { });
             typeMerger.Merge(context, types);
 
             // assert
@@ -72,45 +72,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         }
 
         [Fact]
-        public void Merge_ObjectWithDifferentInterfaces_TypesMerge()
+        public void Merge_DifferentTypes_InterfMergesLeftoversArePassed()
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A implements IA { b: String }");
-            DocumentNode schema_b =
-                Parser.Default.Parse("type A implements IB { b : String }");
-            DocumentNode schema_c =
-                Parser.Default.Parse("type A implements IC { b: String }");
-
-            var types = new List<ITypeInfo>
-            {
-                TypeInfo.Create(
-                    schema_a.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_A", schema_a)),
-                TypeInfo.Create(
-                    schema_b.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_B", schema_b)),
-                TypeInfo.Create(
-                    schema_c.Definitions.OfType<ITypeDefinitionNode>().First(),
-                    new SchemaInfo("Schema_C", schema_c))
-            };
-
-            var context = new SchemaMergeContext();
-
-            // act
-            var typeMerger = new ObjectTypeMergeHandler((c, t) => { });
-            typeMerger.Merge(context, types);
-
-            // assert
-            SchemaSyntaxSerializer.Serialize(context.CreateSchema()).Snapshot();
-        }
-
-        [Fact]
-        public void Merge_DifferentTypes_ObjectMergesLeftoversArePassed()
-        {
-            // arrange
-            DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Parser.Default.Parse("interface A { b: String }");
             DocumentNode schema_b =
                 Parser.Default.Parse("enum A { B C }");
 
@@ -129,7 +95,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             var leftovers = new List<ITypeInfo>();
 
             // act
-            var typeMerger = new ObjectTypeMergeHandler(
+            var typeMerger = new InterfaceTypeMergeHandler(
                 (c, t) => leftovers.AddRange(t));
             typeMerger.Merge(context, types);
 
