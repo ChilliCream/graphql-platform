@@ -1,16 +1,20 @@
 {
-  "Data": {},
-  "Extensions": {},
-  "Errors": [
-    {
-      "Exception": null,
-      "message": "The field `customers` does not exist on the type `Query`.",
-      "locations": [
+  "Data": {
+    "a": {
+      "bar": "Freddy Freeman",
+      "contracts": [
         {
-          "line": 3,
-          "column": 22
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx"
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy"
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
         }
       ]
     }
-  ]
+  },
+  "Extensions": {},
+  "Errors": []
 }

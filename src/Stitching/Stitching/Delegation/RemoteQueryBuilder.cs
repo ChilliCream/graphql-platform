@@ -9,6 +9,8 @@ namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteQueryBuilder
     {
+        private static readonly CollectUsedVariableVisitor _usedVariables =
+            new CollectUsedVariableVisitor();
         private readonly List<FieldNode> _additionalFields =
             new List<FieldNode>();
         private readonly List<VariableDefinitionNode> _variables =
@@ -163,11 +165,16 @@ namespace HotChocolate.Stitching.Delegation
                 current = CreateSelection(current, component);
             }
 
+            ISet<string> usedVariables =
+                _usedVariables.GetUsedVariables(current);
+
             var definitions = new List<IDefinitionNode>();
             definitions.Add(CreateOperation(
                 operation,
                 new List<FieldNode> { current },
-                _variables));
+                _variables.Where(t =>
+                    usedVariables.Contains(t.Variable.Name.Value))
+                    .ToList()));
             definitions.AddRange(_fragments);
 
             return new DocumentNode(null, definitions);
@@ -264,5 +271,22 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         public static RemoteQueryBuilder New() => new RemoteQueryBuilder();
+    }
+
+    internal class CollectUsedVariableVisitor
+        : QuerySyntaxWalker<ISet<string>>
+    {
+        public ISet<string> GetUsedVariables(FieldNode node)
+        {
+            var variables = new HashSet<string>();
+            VisitField(node, variables);
+            return variables;
+        }
+
+        protected override void VisitVariable(
+            VariableNode node, ISet<string> context)
+        {
+            context.Add(node.Name.Value);
+        }
     }
 }
