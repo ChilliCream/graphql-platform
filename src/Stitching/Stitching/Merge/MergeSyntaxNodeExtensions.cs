@@ -320,7 +320,7 @@ namespace HotChocolate.Stitching.Merge
             if (DirectiveNames.Source.Equals(directive.Name.Value))
             {
                 ArgumentNode argument = directive.Arguments.FirstOrDefault(t =>
-                    DirectiveFieldNames.Source_Schema.Equals(t.Name));
+                    DirectiveFieldNames.Source_Schema.Equals(t.Name.Value));
                 return argument != null
                     && argument.Value is StringValueNode sv
                     && schemaName.Equals(sv.Value);

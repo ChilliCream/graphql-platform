@@ -71,7 +71,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
-        public void MergeDemoSchemaAndRemoveRootTypesFromSchemaA()
+        public void MergeDemoSchemaAndRemoveRootTypesOnSchemaA()
         {
             // arrange
             DocumentNode schema_a =
@@ -93,7 +93,52 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
-        public void MergeSchemaAndRemoveTypeAFromAllSchemas()
+        public void MergeSchemaAndRenameTypeAtoXyzOnAllSchemas()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: String b2: String } type B { c: String }");
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type A { b1: String b3: String } type B { c: String }");
+
+            // act
+            DocumentNode schema = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameType("A", "A", "Xyz")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void MergeSchemaAndRenameTypeAtoXyzOnSchemaA()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: String b2: String } type B { c: String }");
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type A { b1: String b3: String } type B { c: String }");
+
+            // act
+            DocumentNode schema = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameType("A", "A", "Xyz")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
+        public void MergeSchemaAndRemoveTypeAOnAllSchemas()
         {
             // arrange
             DocumentNode schema_a =
@@ -116,7 +161,7 @@ namespace HotChocolate.Stitching.Merge
 
 
         [Fact]
-        public void MergeSchemaAndRemoveTypeAFromSchemaA()
+        public void MergeSchemaAndRemoveTypeAOnSchemaA()
         {
             // arrange
             DocumentNode schema_a =
@@ -138,7 +183,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
-        public void MergeSchemaAndRemoveFieldB1FromAllSchemas()
+        public void MergeSchemaAndRemoveFieldB1OnAllSchemas()
         {
             // arrange
             DocumentNode schema_a =
@@ -161,7 +206,7 @@ namespace HotChocolate.Stitching.Merge
 
 
         [Fact]
-        public void MergeSchemaAndRemoveFieldB1FromSchemaA()
+        public void MergeSchemaAndRemoveFieldB1OnSchemaA()
         {
             // arrange
             DocumentNode schema_a =
@@ -183,7 +228,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
-        public void MergeSchemaAndRenameFieldB1toB11FromAllSchemas()
+        public void MergeSchemaAndRenameFieldB1toB11OnAllSchemas()
         {
             // arrange
             DocumentNode schema_a =
@@ -206,7 +251,7 @@ namespace HotChocolate.Stitching.Merge
 
 
         [Fact]
-        public void MergeSchemaAndRenameFieldB1toB11FromSchemaA()
+        public void MergeSchemaAndRenameFieldB1toB11OnSchemaA()
         {
             // arrange
             DocumentNode schema_a =
