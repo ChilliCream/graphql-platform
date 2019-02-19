@@ -32,8 +32,8 @@ namespace HotChocolate.Stitching
         IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options);
 
-        IStitchingBuilder AddRewriter(ITypeRewriter rewriter);
+        IStitchingBuilder AddTypeRewriter(ITypeRewriter rewriter);
 
-        IStitchingBuilder AddRewriter(IDocumentRewriter rewriter);
+        IStitchingBuilder AddDocumentRewriter(IDocumentRewriter rewriter);
     }
 }

@@ -149,7 +149,7 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddRewriter(
+            return builder.AddDocumentRewriter(
                 new RemoveRootTypeRewriter());
         }
 
@@ -164,7 +164,7 @@ namespace HotChocolate.Stitching
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            return builder.AddRewriter(
+            return builder.AddDocumentRewriter(
                 new RemoveRootTypeRewriter(schemaName));
         }
 
@@ -179,7 +179,7 @@ namespace HotChocolate.Stitching
 
             typeName.EnsureNotEmpty(nameof(typeName));
 
-            return builder.AddRewriter(
+            return builder.AddDocumentRewriter(
                 new RemoveTypeRewriter(typeName));
         }
 
@@ -196,7 +196,7 @@ namespace HotChocolate.Stitching
             schemaName.EnsureNotEmpty(nameof(schemaName));
             typeName.EnsureNotEmpty(nameof(typeName));
 
-            return builder.AddRewriter(
+            return builder.AddDocumentRewriter(
                 new RemoveTypeRewriter(schemaName, typeName));
         }
 
@@ -217,7 +217,7 @@ namespace HotChocolate.Stitching
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            return builder.AddRewriter(
+            return builder.AddTypeRewriter(
                 new RemoveFieldRewriter(schemaName, field));
         }
 
@@ -234,7 +234,7 @@ namespace HotChocolate.Stitching
             originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
             newTypeName.EnsureNotEmpty(nameof(newTypeName));
 
-            return builder.AddRewriter(
+            return builder.AddTypeRewriter(
                 new RenameTypeRewriter(originalTypeName, newTypeName));
         }
 
@@ -253,7 +253,7 @@ namespace HotChocolate.Stitching
             originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
             newTypeName.EnsureNotEmpty(nameof(newTypeName));
 
-            return builder.AddRewriter(
+            return builder.AddTypeRewriter(
                 new RenameTypeRewriter(
                     schemaName, originalTypeName, newTypeName));
         }
@@ -275,7 +275,7 @@ namespace HotChocolate.Stitching
 
             newFieldName.EnsureNotEmpty(nameof(newFieldName));
 
-            return builder.AddRewriter(
+            return builder.AddTypeRewriter(
                 new RenameFieldRewriter(
                     field, newFieldName));
         }
@@ -299,14 +299,49 @@ namespace HotChocolate.Stitching
             schemaName.EnsureNotEmpty(nameof(schemaName));
             newFieldName.EnsureNotEmpty(nameof(newFieldName));
 
-            return builder.AddRewriter(
+            return builder.AddTypeRewriter(
                 new RenameFieldRewriter(
                     schemaName, field, newFieldName));
         }
 
+        public static IStitchingBuilder AddTypeRewriter(
+            this IStitchingBuilder builder,
+            RewriteTypeDefinitionDelegate rewrite)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (rewrite == null)
+            {
+                throw new ArgumentNullException(nameof(rewrite));
+            }
+
+            return builder.AddTypeRewriter(new DelegateTypeRewriter(rewrite));
+        }
+
+        public static IStitchingBuilder AddDocumentRewriter(
+            this IStitchingBuilder builder,
+            RewriteDocumentDelegate rewrite)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (rewrite == null)
+            {
+                throw new ArgumentNullException(nameof(rewrite));
+            }
+
+            return builder.AddDocumentRewriter(
+                new DelegateDocumentRewriter(rewrite));
+        }
+
         public static IStitchingBuilder AddMergeHandler<T>(
-           this IStitchingBuilder builder)
-           where T : ITypeMergeHanlder
+            this IStitchingBuilder builder)
+            where T : ITypeMergeHanlder
         {
             if (builder == null)
             {

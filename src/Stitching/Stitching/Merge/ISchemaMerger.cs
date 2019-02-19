@@ -7,8 +7,8 @@ namespace HotChocolate.Stitching.Merge
     {
         ISchemaMerger AddSchema(NameString name, DocumentNode schema);
         ISchemaMerger AddMergeHandler(MergeTypeHandler mergeHandler);
-        ISchemaMerger AddRewriter(ITypeRewriter rewriter);
-        ISchemaMerger AddRewriter(IDocumentRewriter rewriter);
+        ISchemaMerger AddTypeRewriter(ITypeRewriter rewriter);
+        ISchemaMerger AddDocumentRewriter(IDocumentRewriter rewriter);
         DocumentNode Merge();
     }
 }

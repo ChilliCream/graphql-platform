@@ -132,12 +132,12 @@ namespace HotChocolate.Stitching
                 throw new NotSupportedException();
             }
 
-            public IStitchingBuilder AddRewriter(ITypeRewriter rewriter)
+            public IStitchingBuilder AddTypeRewriter(ITypeRewriter rewriter)
             {
                 throw new NotSupportedException();
             }
 
-            public IStitchingBuilder AddRewriter(IDocumentRewriter rewriter)
+            public IStitchingBuilder AddDocumentRewriter(IDocumentRewriter rewriter)
             {
                 throw new NotSupportedException();
             }

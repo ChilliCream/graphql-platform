@@ -17,7 +17,7 @@ namespace HotChocolate.Stitching.Merge
                 throw new ArgumentNullException(nameof(schemaMerger));
             }
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddDocumentRewriter(
                 new RemoveRootTypeRewriter());
         }
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Stitching.Merge
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddDocumentRewriter(
                 new RemoveRootTypeRewriter(schemaName));
         }
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching.Merge
 
             typeName.EnsureNotEmpty(nameof(typeName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddDocumentRewriter(
                 new RemoveTypeRewriter(typeName));
         }
 
@@ -64,7 +64,7 @@ namespace HotChocolate.Stitching.Merge
             schemaName.EnsureNotEmpty(nameof(schemaName));
             typeName.EnsureNotEmpty(nameof(typeName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddDocumentRewriter(
                 new RemoveTypeRewriter(schemaName, typeName));
         }
 
@@ -85,7 +85,7 @@ namespace HotChocolate.Stitching.Merge
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddTypeRewriter(
                 new RemoveFieldRewriter(schemaName, field));
         }
 
@@ -102,7 +102,7 @@ namespace HotChocolate.Stitching.Merge
             originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
             newTypeName.EnsureNotEmpty(nameof(newTypeName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddTypeRewriter(
                 new RenameTypeRewriter(originalTypeName, newTypeName));
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Stitching.Merge
             originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
             newTypeName.EnsureNotEmpty(nameof(newTypeName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddTypeRewriter(
                 new RenameTypeRewriter(
                     schemaName, originalTypeName, newTypeName));
         }
@@ -143,7 +143,7 @@ namespace HotChocolate.Stitching.Merge
 
             newFieldName.EnsureNotEmpty(nameof(newFieldName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddTypeRewriter(
                 new RenameFieldRewriter(
                     field, newFieldName));
         }
@@ -167,7 +167,7 @@ namespace HotChocolate.Stitching.Merge
             schemaName.EnsureNotEmpty(nameof(schemaName));
             newFieldName.EnsureNotEmpty(nameof(newFieldName));
 
-            return schemaMerger.AddRewriter(
+            return schemaMerger.AddTypeRewriter(
                 new RenameFieldRewriter(
                     schemaName, field, newFieldName));
         }

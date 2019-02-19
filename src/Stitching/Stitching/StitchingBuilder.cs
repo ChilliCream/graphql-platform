@@ -118,7 +118,7 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IStitchingBuilder AddRewriter(ITypeRewriter rewriter)
+        public IStitchingBuilder AddTypeRewriter(ITypeRewriter rewriter)
         {
             if (rewriter == null)
             {
@@ -129,7 +129,7 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IStitchingBuilder AddRewriter(IDocumentRewriter rewriter)
+        public IStitchingBuilder AddDocumentRewriter(IDocumentRewriter rewriter)
         {
             if (rewriter == null)
             {

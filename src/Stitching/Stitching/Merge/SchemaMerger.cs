@@ -70,7 +70,7 @@ namespace HotChocolate.Stitching.Merge
             return this;
         }
 
-        public ISchemaMerger AddRewriter(ITypeRewriter rewriter)
+        public ISchemaMerger AddTypeRewriter(ITypeRewriter rewriter)
         {
             if (rewriter == null)
             {
@@ -81,7 +81,7 @@ namespace HotChocolate.Stitching.Merge
             return this;
         }
 
-        public ISchemaMerger AddRewriter(IDocumentRewriter rewriter)
+        public ISchemaMerger AddDocumentRewriter(IDocumentRewriter rewriter)
         {
             if (rewriter == null)
             {
