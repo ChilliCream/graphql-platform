@@ -64,8 +64,8 @@ namespace HotChocolate.Stitching
                 context.Schema);
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
-                    schemaName, context.Document, context.Operation,
-                    context.FieldSelection, context.ObjectType);
+                schemaName, context.Document, context.Operation,
+                context.FieldSelection, context.ObjectType);
 
             IReadOnlyCollection<VariableValue> variableValues =
                 CreateVariableValues(context, path, extractedField);

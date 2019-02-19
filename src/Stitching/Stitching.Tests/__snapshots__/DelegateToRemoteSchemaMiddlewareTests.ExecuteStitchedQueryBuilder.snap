@@ -1,7 +1,21 @@
 {
   "Data": {
-    "customer": {
-      "name": "Freddy Freeman",
+    "a": {
+      "bar": "Freddy Freeman",
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx"
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy"
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
+        }
+      ]
+    },
+    "b": {
+      "foo": "Freddy Freeman",
       "contracts": [
         {
           "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx"

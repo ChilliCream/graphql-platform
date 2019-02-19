@@ -150,14 +150,14 @@ namespace HotChocolate.Stitching
                     merger.AddMergeHandler(handler);
                 }
 
-                foreach (ITypeRewriter rewriter in builder._docRewriters)
-                {
-                    merger.AddTypeRewriter(rewriter);
-                }
-
-                foreach (IDocumentRewriter rewriter in builder._typeRewriters)
+                foreach (IDocumentRewriter rewriter in builder._docRewriters)
                 {
                     merger.AddDocumentRewriter(rewriter);
+                }
+
+                foreach (ITypeRewriter rewriter in builder._typeRewriters)
+                {
+                    merger.AddTypeRewriter(rewriter);
                 }
 
                 return merger.Merge();

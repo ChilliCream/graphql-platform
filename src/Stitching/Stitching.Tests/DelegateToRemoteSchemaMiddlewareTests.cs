@@ -266,8 +266,15 @@ namespace HotChocolate.Stitching
             {
                 var request = new QueryRequest(@"
                 {
-                    customer(id: ""Q3VzdG9tZXIteDE="") {
+                    a: customer(id: ""Q3VzdG9tZXIteDE="") {
                         bar: foo
+                        contracts {
+                            id
+                        }
+                    }
+
+                    b: customer(id: ""Q3VzdG9tZXIteDE="") {
+                        foo
                         contracts {
                             id
                         }
