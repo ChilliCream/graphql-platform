@@ -289,6 +289,54 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        [Fact]
+        public async Task ExecuteStitchedQueryBuilderVariableArguments()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer2(customerId: $id) {
+                        bar: foo
+                        contracts {
+                            id
+                        }
+                    }
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         private IHttpClientFactory CreateRemoteSchemas()
         {
             TestServer server_contracts = TestServerFactory.Create(

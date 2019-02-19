@@ -4,3 +4,8 @@ extend type Customer {
   contractIds: [ID!]
     @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
 }
+
+extend type Query {
+  customer2(customerId: ID!): Customer
+    @delegate(schema: "customer", path: "customer(id:$arguments:customerId)")
+}

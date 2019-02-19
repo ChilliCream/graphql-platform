@@ -1,0 +1,16 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "The field `customers` does not exist on the type `Query`.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 22
+        }
+      ]
+    }
+  ]
+}
