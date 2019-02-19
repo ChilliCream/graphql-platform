@@ -33,28 +33,20 @@ namespace HotChocolate.Stitching
 
         IStitchingBuilder IgnoreRootTypes();
 
-        IStitchingBuilder IgnoreRootTypes(
-            NameString schemaName);
+        IStitchingBuilder IgnoreRootTypes(NameString schemaName);
 
-        IStitchingContext IgnoreType(
+        IStitchingBuilder IgnoreType(NameString typeName);
+
+        IStitchingBuilder IgnoreType(NameString schemaName,
             NameString typeName);
 
-        IStitchingContext IgnoreType(
-            NameString schemaName,
-            NameString typeName);
-
-        IStitchingContext IgnoreField(
-            NameString schemaName,
+        IStitchingBuilder IgnoreField(NameString schemaName,
             FieldReference field);
 
-        IStitchingContext RenameType(
-            NameString schemaName,
-            NameString typeName,
-            NameString newName);
+        IStitchingBuilder RenameType(NameString schemaName,
+            NameString typeName, NameString newName);
 
-        IStitchingContext RenameField(
-            NameString schemaName,
-            FieldReference field,
-            NameString newName);
+        IStitchingBuilder RenameField(NameString schemaName,
+            FieldReference field, NameString newName);
     }
 }

@@ -7,22 +7,13 @@ namespace HotChocolate.Stitching.Merge
     {
         ISchemaMerger AddSchema(NameString name, DocumentNode schema);
         ISchemaMerger AddMergeHandler(MergeTypeHandler mergeHandler);
-        IStitchingBuilder IgnoreRootTypes(
-            NameString schemaName);
-        IStitchingContext IgnoreType(
-            NameString schemaName,
-            NameString typeName);
-        IStitchingContext IgnoreField(
-            NameString schemaName,
-            FieldReference field);
-        IStitchingContext RenameType(
-            NameString schemaName,
-            NameString typeName,
-            NameString newName);
-        IStitchingContext RenameField(
-            NameString schemaName,
-            FieldReference field,
-            NameString newName);
+        ISchemaMerger IgnoreRootTypes(NameString schemaName);
+        ISchemaMerger IgnoreType(NameString schemaName, NameString typeName);
+        ISchemaMerger IgnoreField(NameString schemaName, FieldReference field);
+        ISchemaMerger RenameType(NameString schemaName,
+            NameString typeName, NameString newName);
+        ISchemaMerger RenameField(NameString schemaName,
+            FieldReference field, NameString newName);
         DocumentNode Merge();
     }
 }

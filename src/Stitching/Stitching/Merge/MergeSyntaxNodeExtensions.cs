@@ -34,6 +34,122 @@ namespace HotChocolate.Stitching.Merge
             return $"{typeInfo.Schema.Name}_{namedSyntaxNode.Name.Value}";
         }
 
+        public static T AddSource<T>(
+            this T enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+            where T : ITypeDefinitionNode
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static T AddSource<T>(
+            this T typeDefinitionNode,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+            where T : ITypeDefinitionNode
+        {
+            ITypeDefinitionNode node = typeDefinitionNode;
+
+            switch (node)
+            {
+                case ObjectTypeDefinitionNode otd:
+                    node = AddSource(otd, newName, schemaNames);
+                    break;
+
+                case InterfaceTypeDefinitionNode itd:
+                    node = AddSource(itd, newName, schemaNames);
+                    break;
+
+                case UnionTypeDefinitionNode utd:
+                    node = AddSource(utd, newName, schemaNames);
+                    break;
+
+                case InputObjectTypeDefinitionNode iotd:
+                    node = AddSource(iotd, newName, schemaNames);
+                    break;
+
+                case EnumTypeDefinitionNode etd:
+                    node = AddSource(etd, newName, schemaNames);
+                    break;
+
+                case ScalarTypeDefinitionNode std:
+                    node = AddSource(std, newName, schemaNames);
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            return (T)node;
+        }
+
+        public static FieldDefinitionNode AddSource(
+            this FieldDefinitionNode enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static FieldDefinitionNode AddSource(
+            this FieldDefinitionNode enumTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            return AddSource(enumTypeDefinition, newName, schemaNames,
+                (n, d) => enumTypeDefinition
+                    .WithName(n).WithDirectives(d));
+        }
+
+        public static InputValueDefinitionNode AddSource(
+            this InputValueDefinitionNode enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static InputValueDefinitionNode AddSource(
+            this InputValueDefinitionNode enumTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            return AddSource(enumTypeDefinition, newName, schemaNames,
+                (n, d) => enumTypeDefinition
+                    .WithName(n).WithDirectives(d));
+        }
+
+        public static ScalarTypeDefinitionNode AddSource(
+            this ScalarTypeDefinitionNode enumTypeDefinition,
+            NameString newName,
+            params NameString[] schemaNames)
+        {
+            return AddSource(
+                enumTypeDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static ScalarTypeDefinitionNode AddSource(
+            this ScalarTypeDefinitionNode enumTypeDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            return AddSource(enumTypeDefinition, newName, schemaNames,
+                (n, d) => enumTypeDefinition
+                    .WithName(n).WithDirectives(d));
+        }
+
         public static EnumTypeDefinitionNode AddSource(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName,

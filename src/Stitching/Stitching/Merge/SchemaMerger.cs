@@ -13,6 +13,10 @@ namespace HotChocolate.Stitching.Merge
     public class SchemaMerger
         : ISchemaMerger
     {
+        private delegate T RewriteFieldsDelegate<T>(
+            IReadOnlyList<FieldDefinitionNode> fields)
+            where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode;
+
         private static List<MergeTypeHandler> _defaultHandlers =
             new List<MergeTypeHandler>
             {
@@ -36,6 +40,12 @@ namespace HotChocolate.Stitching.Merge
             new OrderedDictionary<NameString, DocumentNode>();
         private Dictionary<NameString, ISet<NameString>> _ignoredTypes =
             new Dictionary<NameString, ISet<NameString>>();
+        private Dictionary<NameString, IgnoredFields> _ignoreFields =
+            new Dictionary<NameString, IgnoredFields>();
+        private Dictionary<NameString, Renamed> _renameType =
+            new Dictionary<NameString, Renamed>();
+        private Dictionary<NameString, RenamedFields> _renameFields =
+            new Dictionary<NameString, RenamedFields>();
         private HashSet<NameString> _ignoredRootTypes =
             new HashSet<NameString>();
 
@@ -60,6 +70,107 @@ namespace HotChocolate.Stitching.Merge
             name.EnsureNotEmpty(nameof(name));
 
             _schemas.Add(name, schema);
+
+            return this;
+        }
+
+        public ISchemaMerger IgnoreRootTypes(NameString schemaName)
+        {
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            _ignoredRootTypes.Add(schemaName);
+            return this;
+        }
+
+        public ISchemaMerger IgnoreType(
+            NameString schemaName,
+            NameString typeName)
+        {
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            if (!_ignoredTypes.TryGetValue(typeName, out ISet<NameString> set))
+            {
+                set = new HashSet<NameString>();
+                _ignoredTypes[typeName] = set;
+            }
+            set.Add(typeName);
+
+            return this;
+        }
+
+        public ISchemaMerger IgnoreField(
+            NameString schemaName,
+            FieldReference field)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            if (!_ignoreFields.TryGetValue(schemaName, out IgnoredFields types))
+            {
+                types = new IgnoredFields();
+                _ignoreFields[schemaName] = types;
+            }
+
+            if (!types.TryGetValue(field.TypeName, out ISet<NameString> fields))
+            {
+                fields = new HashSet<NameString>();
+                types[field.TypeName] = fields;
+            }
+
+            fields.Add(field.FieldName);
+
+            return this;
+        }
+
+        public ISchemaMerger RenameType(
+            NameString schemaName,
+            NameString typeName,
+            NameString newName)
+        {
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            typeName.EnsureNotEmpty(nameof(typeName));
+            newName.EnsureNotEmpty(nameof(newName));
+
+            if (!_renameType.TryGetValue(schemaName, out Renamed map))
+            {
+                map = new Renamed();
+                _renameType[schemaName] = map;
+            }
+            map[typeName] = newName;
+
+            return this;
+        }
+
+        public ISchemaMerger RenameField(
+            NameString schemaName,
+            FieldReference field,
+            NameString newName)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            newName.EnsureNotEmpty(nameof(newName));
+
+            if (!_renameFields.TryGetValue(schemaName, out RenamedFields types))
+            {
+                types = new RenamedFields();
+                _renameFields[schemaName] = types;
+            }
+
+            if (!types.TryGetValue(field.TypeName, out Renamed fields))
+            {
+                fields = new Renamed();
+                types[field.TypeName] = fields;
+            }
+
+            fields[field.FieldName] = newName;
 
             return this;
         }
@@ -156,6 +267,7 @@ namespace HotChocolate.Stitching.Merge
                     && schema.Types.TryGetValue(name,
                         out ITypeDefinitionNode typeDefinition))
                 {
+                    typeDefinition = RewriteType(schema.Name, typeDefinition);
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
             }
@@ -169,7 +281,162 @@ namespace HotChocolate.Stitching.Merge
                 && ignoredTypes.Contains(typeName);
         }
 
+        private ITypeDefinitionNode RewriteType(
+            NameString schemaName,
+            ITypeDefinitionNode typeDefinitionNode)
+        {
+            ITypeDefinitionNode current = typeDefinitionNode;
 
+            if (_renameType.TryGetValue(schemaName, out Renamed map)
+                && map.TryGetValue(typeDefinitionNode.Name.Value,
+                    out NameString newName))
+            {
+                current = current.AddSource(newName, schemaName);
+            }
+
+            return RewriteFields(schemaName, typeDefinitionNode);
+        }
+
+        private ITypeDefinitionNode RewriteFields(
+            NameString schemaName,
+            ITypeDefinitionNode typeDefinitionNode)
+        {
+            switch (typeDefinitionNode)
+            {
+                case InputObjectTypeDefinitionNode iotd:
+                    return RenameFields(schemaName,
+                        RemoveFields(schemaName, iotd));
+
+                case ObjectTypeDefinitionNode otd:
+                    otd = RemoveFields(schemaName, otd,
+                        f => otd.WithFields(f));
+                    return RenameFields(schemaName, otd,
+                        f => otd.WithFields(f));
+
+                case InterfaceTypeDefinitionNode itd:
+                    itd = RemoveFields(schemaName, itd,
+                        f => itd.WithFields(f));
+                    return RenameFields(schemaName, itd,
+                        f => itd.WithFields(f));
+
+                default:
+                    return typeDefinitionNode;
+            }
+        }
+
+        private T RenameFields<T>(
+            NameString schemaName,
+            T typeDefinition,
+            RewriteFieldsDelegate<T> rewrite)
+            where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
+        {
+            if (_renameFields.TryGetValue(schemaName, out RenamedFields types)
+                && types.TryGetValue(typeDefinition.Name.Value,
+                    out Renamed fieldNames))
+            {
+                var renamedFields = new List<FieldDefinitionNode>();
+
+                foreach (FieldDefinitionNode field in
+                    typeDefinition.Fields)
+                {
+                    if (fieldNames.TryGetValue(field.Name.Value,
+                        out NameString newName))
+                    {
+                        renamedFields.Add(field.AddSource(newName, schemaName));
+                    }
+                    else
+                    {
+                        renamedFields.Add(field);
+                    }
+                }
+
+                return rewrite(renamedFields);
+            }
+
+            return typeDefinition;
+        }
+
+        private T RemoveFields<T>(
+            NameString schemaName,
+            T typeDefinition,
+            RewriteFieldsDelegate<T> rewrite)
+            where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
+        {
+            if (_ignoreFields.TryGetValue(schemaName, out IgnoredFields types)
+                && types.TryGetValue(typeDefinition.Name.Value,
+                    out ISet<NameString> ignoredFields))
+            {
+                var renamedFields = new List<FieldDefinitionNode>();
+
+                foreach (FieldDefinitionNode field in
+                    typeDefinition.Fields)
+                {
+                    if (!ignoredFields.Contains(field.Name.Value))
+                    {
+                        renamedFields.Add(field);
+                    }
+                }
+
+                return rewrite(renamedFields);
+            }
+
+            return typeDefinition;
+        }
+
+        private InputObjectTypeDefinitionNode RenameFields(
+            NameString schemaName,
+            InputObjectTypeDefinitionNode typeDefinition)
+        {
+            if (_renameFields.TryGetValue(schemaName, out RenamedFields types)
+                && types.TryGetValue(typeDefinition.Name.Value,
+                    out Renamed fieldNames))
+            {
+                var renamedFields = new List<InputValueDefinitionNode>();
+
+                foreach (InputValueDefinitionNode field in
+                    typeDefinition.Fields)
+                {
+                    if (fieldNames.TryGetValue(field.Name.Value,
+                        out NameString newName))
+                    {
+                        renamedFields.Add(field.AddSource(newName, schemaName));
+                    }
+                    else
+                    {
+                        renamedFields.Add(field);
+                    }
+                }
+
+                return typeDefinition.WithFields(renamedFields);
+            }
+
+            return typeDefinition;
+        }
+
+        private InputObjectTypeDefinitionNode RemoveFields(
+            NameString schemaName,
+            InputObjectTypeDefinitionNode typeDefinition)
+        {
+            if (_ignoreFields.TryGetValue(schemaName, out IgnoredFields types)
+                && types.TryGetValue(typeDefinition.Name.Value,
+                    out ISet<NameString> ignoredFields))
+            {
+                var renamedFields = new List<InputValueDefinitionNode>();
+
+                foreach (InputValueDefinitionNode field in
+                    typeDefinition.Fields)
+                {
+                    if (!ignoredFields.Contains(field.Name.Value))
+                    {
+                        renamedFields.Add(field);
+                    }
+                }
+
+                return typeDefinition.WithFields(renamedFields);
+            }
+
+            return typeDefinition;
+        }
 
         private MergeTypeDelegate CompileMergeDelegate()
         {
@@ -196,29 +463,19 @@ namespace HotChocolate.Stitching.Merge
 
         public static SchemaMerger New() => new SchemaMerger();
 
-        public IStitchingBuilder IgnoreRootTypes(NameString schemaName)
+        private class RenamedFields
+            : Dictionary<NameString, Renamed>
         {
-            throw new NotImplementedException();
         }
 
-        public IStitchingContext IgnoreType(NameString schemaName, NameString typeName)
+        private class Renamed
+            : Dictionary<NameString, NameString>
         {
-            throw new NotImplementedException();
         }
 
-        public IStitchingContext IgnoreField(NameString schemaName, FieldReference field)
+        private class IgnoredFields
+            : Dictionary<NameString, ISet<NameString>>
         {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingContext RenameType(NameString schemaName, NameString typeName, NameString newName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IStitchingContext RenameField(NameString schemaName, FieldReference field, NameString newName)
-        {
-            throw new NotImplementedException();
         }
     }
 }
