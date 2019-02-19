@@ -142,7 +142,7 @@ namespace HotChocolate.Stitching.Merge
                 {
                     rewritten.Add(new SchemaInfo(
                         schemaInfo.Name,
-                        schemaInfo.Document));
+                        current));
                 }
             }
 

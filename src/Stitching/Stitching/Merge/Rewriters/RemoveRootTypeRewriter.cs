@@ -28,8 +28,8 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             var definitions = new List<IDefinitionNode>(document.Definitions);
 
             RemoveType(definitions, schema.QueryType);
-            RemoveType(definitions, schema.QueryType);
-            RemoveType(definitions, schema.QueryType);
+            RemoveType(definitions, schema.MutationType);
+            RemoveType(definitions, schema.SubscriptionType);
 
             return document.WithDefinitions(definitions);
         }
@@ -38,7 +38,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             ICollection<IDefinitionNode> definitions,
             ITypeDefinitionNode typeDefinition)
         {
-            if (typeDefinition == null)
+            if (typeDefinition != null)
             {
                 definitions.Remove(typeDefinition);
             }

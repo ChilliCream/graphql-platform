@@ -38,8 +38,6 @@ namespace HotChocolate.Stitching
         private readonly List<IDocumentRewriter> _docRewriters =
             new List<IDocumentRewriter>();
         private IQueryExecutionOptionsAccessor _options;
-        private bool _ignoreRootTypes;
-
 
         public IStitchingBuilder AddSchema(
             NameString name,
