@@ -25,12 +25,12 @@ namespace HotChocolate.Stitching
 
             descriptor.Argument(t => t.Name)
                 .Name(DirectiveFieldNames.Source_Name)
-                .Type<NonNullType<StringType>>()
+                .Type<NonNullType<NameType>>()
                 .Description(Resources.SourceDirectiveType_Name_Description);
 
             descriptor.Argument(t => t.Schema)
                 .Name(DirectiveFieldNames.Source_Schema)
-                .Type<NonNullType<StringType>>()
+                .Type<NonNullType<NameType>>()
                 .Description(Resources.SourceDirectiveType_Schema_Description);
         }
     }

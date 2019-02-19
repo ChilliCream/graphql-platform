@@ -4,8 +4,8 @@ namespace HotChocolate.Stitching
 {
     public class SourceDirective
     {
-        public string Name { get; set; }
+        public NameString Name { get; set; }
 
-        public string Schema { get; set; }
+        public NameString Schema { get; set; }
     }
 }

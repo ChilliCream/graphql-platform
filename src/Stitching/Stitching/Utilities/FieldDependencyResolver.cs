@@ -131,7 +131,7 @@ namespace HotChocolate.Stitching.Utilities
 
             if (directive != null)
             {
-                string[] dependantOn = directive
+                NameString[] dependantOn = directive
                     .ToObject<ComputedDirective>()
                     .DependantOn;
 

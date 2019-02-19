@@ -71,12 +71,8 @@ namespace HotChocolate.Stitching.Utilities
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
-                SourceDirective sourceDirective =
-                    field.Directives[DirectiveNames.Source]
-                        .Select(t => t.ToObject<SourceDirective>())
-                        .FirstOrDefault(t => context.Schema.Equals(t.Schema));
-
-                if (sourceDirective != null)
+                if (field.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
                 {
                     if (current.Alias == null)
                     {
@@ -239,22 +235,31 @@ namespace HotChocolate.Stitching.Utilities
             Context context)
         {
             Context newContext = context;
+            FragmentDefinitionNode current = node;
 
-            if (newContext.FragmentPath.Contains(node.Name.Value))
+            if (newContext.FragmentPath.Contains(current.Name.Value))
             {
                 return node;
             }
 
             if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
+                current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
                 newContext = newContext
-                    .AddFragment(node.Name.Value)
+                    .AddFragment(current.Name.Value)
                     .SetTypeContext(type);
+
+                if (type.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
+                {
+                    current = current.WithTypeCondition(
+                        current.TypeCondition.WithName(
+                            new NameNode(sourceDirective.Name)));
+                }
             }
 
-            return base.RewriteFragmentDefinition(node, newContext);
+            return base.RewriteFragmentDefinition(current, newContext);
         }
 
         protected override InlineFragmentNode RewriteInlineFragment(
@@ -262,16 +267,28 @@ namespace HotChocolate.Stitching.Utilities
             Context context)
         {
             Context newContext = context;
+            InlineFragmentNode current = node;
+
 
             if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
+                current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
                 newContext = newContext.SetTypeContext(type);
+
+                if (type.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
+                {
+                    current = current.WithTypeCondition(
+                        current.TypeCondition.WithName(
+                            new NameNode(sourceDirective.Name)));
+                }
             }
 
-            return base.RewriteInlineFragment(node, newContext);
+            return base.RewriteInlineFragment(current, newContext);
         }
+
+
 
         public class Context
         {

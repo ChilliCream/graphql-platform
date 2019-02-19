@@ -45,10 +45,21 @@ namespace HotChocolate
         {
             if (resolverResult is IReadOnlyDictionary<string, object> dict)
             {
-                return dict.TryGetValue(WellKnownFieldNames.TypeName,
-                    out object value)
-                    && value is string name
-                    && objectType.Name.Equals(name);
+                if (dict.TryGetValue(WellKnownFieldNames.TypeName, out object v)
+                    && v is string typeName)
+                {
+                    if (objectType.Directives.Contains(DirectiveNames.Source)
+                        && context.ScopedContextData.TryGetValue(
+                            WellKnownProperties.SchemaName, out object o)
+                        && o is NameString schemaName
+                        && objectType.TryGetSourceDirective(schemaName,
+                            out SourceDirective sourceDirective))
+                    {
+                        return sourceDirective.Name.Equals(typeName);
+                    }
+
+                    return objectType.Name.Equals(typeName);
+                }
             }
             else if (objectType.ClrType == typeof(object))
             {
