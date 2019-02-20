@@ -89,27 +89,51 @@ namespace HotChocolate.Stitching
 
         public IRemoteQueryRequestBuilder SetQuery(DocumentNode query)
         {
-            throw new NotImplementedException();
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            _query = query;
+            return this;
         }
 
         public IRemoteQueryRequestBuilder SetOperation(string operationName)
         {
-            throw new NotImplementedException();
-        }
-
-        public IRemoteQueryRequestBuilder SetVariableValues(IDictionary<string, object> variableValues)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IRemoteQueryRequestBuilder AddVariableValue(string name, object value)
-        {
-            throw new NotImplementedException();
+            _operationName = operationName;
+            return this;
         }
 
         public IRemoteQueryRequestBuilder SetInitialValue(object initialValue)
         {
-            throw new NotImplementedException();
+            _initialValue = initialValue;
+            return this;
+        }
+
+        public IRemoteQueryRequestBuilder SetServices(
+            IServiceProvider services)
+        {
+            _services = services;
+            return this;
+        }
+
+        public IRemoteQueryRequestBuilder SetVariableValues(
+            IDictionary<string, object> variableValues)
+        {
+            _variableValues = variableValues;
+            return this;
+        }
+
+        public IRemoteQueryRequestBuilder AddVariableValue(
+            string name, object value)
+        {
+            if (_variableValues == null)
+            {
+                _variableValues = new Dictionary<string, object>();
+            }
+
+            _variableValues.Add(name, value);
+            return this;
         }
 
         public IRemoteQueryRequestBuilder SetProperties(
@@ -128,13 +152,6 @@ namespace HotChocolate.Stitching
             }
 
             _properties.Add(name, value);
-            return this;
-        }
-
-        public IRemoteQueryRequestBuilder SetServices(
-            IServiceProvider services)
-        {
-            _services = services;
             return this;
         }
 
@@ -198,18 +215,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        public static RemoteQueryRequestBuilder New() => new RemoteQueryRequestBuilder();
-    }
-
-
-    [Serializable]
-    public class QueryRequestBuilderException : Exception
-    {
-        public QueryRequestBuilderException() { }
-        public QueryRequestBuilderException(string message) : base(message) { }
-        public QueryRequestBuilderException(string message, Exception inner) : base(message, inner) { }
-        protected QueryRequestBuilderException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+        public static RemoteQueryRequestBuilder New() =>
+            new RemoteQueryRequestBuilder();
     }
 }

@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schemaName))
             {
                 throw new ArgumentException(
-                    Resources.SchemaName_EmptyOrNull,
+                    StitchingResources.SchemaName_EmptyOrNull,
                     nameof(schemaName));
             }
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(schema))
             {
                 throw new ArgumentException(
-                    Resources.SchemaName_EmptyOrNull,
+                    StitchingResources.SchemaName_EmptyOrNull,
                     nameof(schema));
             }
 
@@ -68,7 +68,7 @@ namespace HotChocolate.Stitching.Delegation
             if (!typeof(ScalarType).IsAssignableFrom(scalarType))
             {
                 throw new ArgumentException(
-                    Resources.ScalarType_InvalidBaseType,
+                    StitchingResources.ScalarType_InvalidBaseType,
                     nameof(scalarType));
             }
 
@@ -81,13 +81,13 @@ namespace HotChocolate.Stitching.Delegation
             if (string.IsNullOrEmpty(_schemaName))
             {
                 throw new InvalidOperationException(
-                    Resources.RemoteExecutorBuilder_NoSchemaName);
+                    StitchingResources.RemoteExecutorBuilder_NoSchemaName);
             }
 
             if (string.IsNullOrEmpty(_schema))
             {
                 throw new InvalidOperationException(
-                    Resources.RemoteExecutorBuilder_NoSchema);
+                    StitchingResources.RemoteExecutorBuilder_NoSchema);
             }
 
             ISchema schema = Schema.Create(

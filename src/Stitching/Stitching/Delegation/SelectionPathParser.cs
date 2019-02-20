@@ -27,8 +27,8 @@ namespace HotChocolate.Stitching.Delegation
             SyntaxToken start = Lexer.Default.Read(RemoveDots(source));
             if (start.Kind != TokenKind.StartOfFile)
             {
-                throw new InvalidOperationException(
-                    Resources.SelectionPathParser_StartOfFileTokenExpected);
+                throw new InvalidOperationException(StitchingResources
+                    .SelectionPathParser_StartOfFileTokenExpected);
             }
 
             return ParseSelectionPath(source, start, ParserOptions.Default);

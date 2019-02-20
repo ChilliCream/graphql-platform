@@ -218,8 +218,8 @@ namespace HotChocolate.Stitching.Merge
 
             if (constructor == null)
             {
-                throw new ArgumentException(
-                    Resources.SchemaMergerExtensions_NoValidConstructor);
+                throw new ArgumentException(StitchingResources
+                    .SchemaMergerExtensions_NoValidConstructor);
             }
 
             return next =>

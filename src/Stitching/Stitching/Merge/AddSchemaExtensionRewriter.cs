@@ -65,7 +65,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -123,7 +124,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -169,7 +171,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -240,7 +243,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -299,7 +303,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -357,7 +362,8 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            Resources.AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources
+                                .AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -392,7 +398,7 @@ namespace HotChocolate.Stitching.Merge
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,
                         string.Format(
-                            CultureInfo.InvariantCulture, Resources
+                            CultureInfo.InvariantCulture, StitchingResources
                             .AddSchemaExtensionRewriter_DirectiveDoesNotExist,
                             directive.Name.Value));
                 }
@@ -403,7 +409,7 @@ namespace HotChocolate.Stitching.Merge
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,
                         string.Format(
-                            CultureInfo.InvariantCulture, Resources
+                            CultureInfo.InvariantCulture, StitchingResources
                             .AddSchemaExtensionRewriter_DirectiveIsUnique,
                             directive.Name.Value));
                 }

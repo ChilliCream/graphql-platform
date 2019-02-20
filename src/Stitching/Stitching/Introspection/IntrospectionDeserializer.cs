@@ -14,8 +14,8 @@ namespace HotChocolate.Stitching.Introspection
         {
             if (string.IsNullOrEmpty(json))
             {
-                throw new ArgumentException(
-                    Resources.IntrospectionDeserializer_Json_NullOrEmpty,
+                throw new ArgumentException(StitchingResources
+                    .IntrospectionDeserializer_Json_NullOrEmpty,
                     nameof(json));
             }
 
@@ -113,7 +113,7 @@ namespace HotChocolate.Stitching.Introspection
 
                 default:
                     throw new NotSupportedException(
-                        Resources.Type_NotSupported);
+                        StitchingResources.Type_NotSupported);
             }
         }
 

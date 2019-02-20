@@ -43,7 +43,8 @@ namespace HotChocolate.Stitching.Delegation
 
             throw new QueryException(QueryError.CreateFieldError(
                 string.Format(CultureInfo.InvariantCulture,
-                    Resources.RootScopedVariableResolver_ScopeNotSupported,
+                    StitchingResources
+                        .RootScopedVariableResolver_ScopeNotSupported,
                     variable.Scope.Value),
                 context.Path,
                 context.FieldSelection)
