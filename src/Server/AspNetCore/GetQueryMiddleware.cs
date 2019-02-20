@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -51,7 +51,7 @@ namespace HotChocolate.AspNetCore
             QueryRequestDto request = ReadRequest(context);
 #if ASPNETCLASSIC
             IServiceProvider serviceProvider = context.CreateRequestServices(
-                Services);
+                Executor.Schema.Services);
 #else
 
             IServiceProvider serviceProvider = context.CreateRequestServices();

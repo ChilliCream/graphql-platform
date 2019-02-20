@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,7 +45,7 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
 #if ASPNETCLASSIC
             IServiceProvider serviceProvider = context.CreateRequestServices(
-                Services);
+                Executor.Schema.Services);
 #else
             IServiceProvider serviceProvider = context.CreateRequestServices();
 #endif
