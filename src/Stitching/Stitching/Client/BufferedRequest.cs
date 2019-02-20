@@ -9,10 +9,12 @@ namespace HotChocolate.Stitching.Client
     {
         public BufferedRequest(IReadOnlyQueryRequest request)
         {
-            Request = request;
-            Document = Parser.Default.Parse(request.Query);
             Promise = new TaskCompletionSource<IExecutionResult>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
+            Request = request;
+            Document = request is IRemoteQueryRequest remoteRequest
+                ? remoteRequest.Query
+                : Parser.Default.Parse(request.Query);
         }
 
         public IReadOnlyQueryRequest Request { get; }
