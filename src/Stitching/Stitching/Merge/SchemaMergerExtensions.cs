@@ -199,12 +199,12 @@ namespace HotChocolate.Stitching.Merge
                 throw new System.ArgumentNullException(nameof(merger));
             }
 
-            merger.AddMergeHandler(CreateHandler<T>());
+            merger.AddMergeRule(CreateHandler<T>());
 
             return merger;
         }
 
-        internal static MergeTypeHandler CreateHandler<T>()
+        internal static MergeTypeRuleFactory CreateHandler<T>()
             where T : ITypeMergeHanlder
         {
             ConstructorInfo constructor = typeof(T).GetTypeInfo()
@@ -213,7 +213,7 @@ namespace HotChocolate.Stitching.Merge
                     ParameterInfo[] parameters = c.GetParameters();
                     return parameters.Length == 1
                         && parameters[0].ParameterType ==
-                            typeof(MergeTypeDelegate);
+                            typeof(MergeTypeRuleDelegate);
                 });
 
             if (constructor == null)

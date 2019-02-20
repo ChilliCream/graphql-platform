@@ -10,9 +10,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
     internal class UnionTypeMergeHandler
         : ITypeMergeHanlder
     {
-        private readonly MergeTypeDelegate _next;
+        private readonly MergeTypeRuleDelegate _next;
 
-        public UnionTypeMergeHandler(MergeTypeDelegate next)
+        public UnionTypeMergeHandler(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

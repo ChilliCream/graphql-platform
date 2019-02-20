@@ -8,7 +8,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
     internal class InterfaceTypeMergeHandler
         : TypeMergeHanlderBase<InterfaceTypeInfo>
     {
-        public InterfaceTypeMergeHandler(MergeTypeDelegate next)
+        public InterfaceTypeMergeHandler(MergeTypeRuleDelegate next)
             : base(next)
         {
         }

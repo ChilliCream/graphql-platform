@@ -8,9 +8,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
     internal class ScalarTypeMergeHandler
         : ITypeMergeHanlder
     {
-        private readonly MergeTypeDelegate _next;
+        private readonly MergeTypeRuleDelegate _next;
 
-        public ScalarTypeMergeHandler(MergeTypeDelegate next)
+        public ScalarTypeMergeHandler(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

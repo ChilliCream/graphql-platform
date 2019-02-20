@@ -348,7 +348,7 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddMergeHandler(SchemaMergerExtensions.CreateHandler<T>());
+            builder.AddMergeRule(SchemaMergerExtensions.CreateHandler<T>());
 
             return builder;
         }

@@ -8,9 +8,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
     internal class EnumTypeMergeHandler
         : ITypeMergeHanlder
     {
-        private readonly MergeTypeDelegate _next;
+        private readonly MergeTypeRuleDelegate _next;
 
-        public EnumTypeMergeHandler(MergeTypeDelegate next)
+        public EnumTypeMergeHandler(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

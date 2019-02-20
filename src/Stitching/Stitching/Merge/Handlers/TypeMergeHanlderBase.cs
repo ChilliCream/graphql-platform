@@ -8,9 +8,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         : ITypeMergeHanlder
         where T : ITypeInfo
     {
-        private readonly MergeTypeDelegate _next;
+        private readonly MergeTypeRuleDelegate _next;
 
-        protected TypeMergeHanlderBase(MergeTypeDelegate next)
+        protected TypeMergeHanlderBase(MergeTypeRuleDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }

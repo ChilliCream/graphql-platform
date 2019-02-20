@@ -146,9 +146,9 @@ namespace HotChocolate.Stitching
                     merger.AddSchema(name, schemas[name]);
                 }
 
-                foreach (MergeTypeHandler handler in builder._mergeHandlers)
+                foreach (MergeTypeRuleFactory handler in builder._mergeRules)
                 {
-                    merger.AddMergeHandler(handler);
+                    merger.AddMergeRule(handler);
                 }
 
                 foreach (IDocumentRewriter rewriter in builder._docRewriters)

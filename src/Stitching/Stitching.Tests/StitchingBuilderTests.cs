@@ -126,8 +126,8 @@ namespace HotChocolate.Stitching
                 throw new NotSupportedException();
             }
 
-            public IStitchingBuilder AddMergeHandler(
-                MergeTypeHandler handler)
+            public IStitchingBuilder AddMergeRule(
+                MergeTypeRuleFactory handler)
             {
                 throw new NotSupportedException();
             }
