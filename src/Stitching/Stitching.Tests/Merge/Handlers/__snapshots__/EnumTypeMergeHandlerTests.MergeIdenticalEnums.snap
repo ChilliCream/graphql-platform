@@ -1,1 +1,4 @@
-"enum Foo @source(name: \"Foo\", schema: \"Schema_A\") @source(name: \"Foo\", schema: \"Schema_B\") {\n  BAR\n  BAZ\n}"
+enum Foo @source(name: "Foo", schema: "Schema_A") @source(name: "Foo", schema: "Schema_B") {
+  BAR
+  BAZ
+}

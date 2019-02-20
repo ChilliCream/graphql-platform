@@ -1,1 +1,8 @@
-"type Foo {\n  bar: String\n  baz: Bar\n}\n\ntype Bar {\n  baz: String\n}"
+type Foo {
+  bar: String
+  baz: Bar
+}
+
+type Bar {
+  baz: String
+}

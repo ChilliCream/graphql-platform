@@ -1,1 +1,5 @@
-"interface Foo @foo {\n  bar: String\n}\n\ndirective @foo on INTERFACE"
+interface Foo @foo {
+  bar: String
+}
+
+directive @foo on INTERFACE

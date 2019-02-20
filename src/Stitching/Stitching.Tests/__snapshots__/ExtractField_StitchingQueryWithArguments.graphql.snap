@@ -1,1 +1,6 @@
-"query fetch {\n  contracts(id: \"Q3VzdG9tZXIteDE=\") {\n    id\n    __typename\n  }\n}"
+query fetch {
+  contracts(id: "Q3VzdG9tZXIteDE=") {
+    id
+    __typename
+  }
+}

@@ -1,1 +1,13 @@
-"union Foo = A | B | C\n\ntype A {\n  a: String\n}\n\ntype B {\n  b: String\n}\n\ntype C {\n  c: String\n}"
+union Foo = A | B | C
+
+type A {
+  a: String
+}
+
+type B {
+  b: String
+}
+
+type C {
+  c: String
+}

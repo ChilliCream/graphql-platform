@@ -1,1 +1,15 @@
-"query fetch($fields_bar: String) {\n  a {\n    b {\n      c {\n        bar: d(a: $fields_bar) {\n          baz {\n            ... on Baz {\n              qux\n            }\n          }\n        }\n      }\n    }\n  }\n}"
+query fetch($fields_bar: String) {
+  a {
+    b {
+      c {
+        bar: d(a: $fields_bar) {
+          baz {
+            ... on Baz {
+              qux
+            }
+          }
+        }
+      }
+    }
+  }
+}
