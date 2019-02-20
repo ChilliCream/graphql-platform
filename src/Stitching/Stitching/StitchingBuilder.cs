@@ -145,6 +145,10 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
+            serviceCollection.TryAddSingleton<
+                IQueryResultSerializer,
+                JsonQueryResultSerializer>();
+
             serviceCollection.TryAddSingleton(services =>
                 StitchingFactory.Create(this, services));
 
