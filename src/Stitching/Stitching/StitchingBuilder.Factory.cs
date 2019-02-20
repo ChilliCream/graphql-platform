@@ -166,7 +166,7 @@ namespace HotChocolate.Stitching
 
             private static DocumentNode AddExtensions(
                 DocumentNode schema,
-                IReadOnlyList<DocumentNode> extensions)
+                IReadOnlyCollection<DocumentNode> extensions)
             {
                 if (extensions.Count == 0)
                 {
