@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -31,22 +32,27 @@ namespace HotChocolate.Stitching
         new DocumentNode Query { get; }
     }
 
-    public class RemoteQueryRequest
+    internal class RemoteQueryRequest
         : IRemoteQueryRequest
     {
-        public DocumentNode Query =>
+        public RemoteQueryRequest() { }
 
-        public string OperationName => throw new NotImplementedException();
+        public DocumentNode Query { get; internal set; }
 
-        public IReadOnlyDictionary<string, object> VariableValues => throw new NotImplementedException();
+        public string OperationName { get; internal set; }
 
-        public object InitialValue => throw new NotImplementedException();
+        public IReadOnlyDictionary<string, object> VariableValues
+        { get; internal set; }
 
-        public IReadOnlyDictionary<string, object> Properties => throw new NotImplementedException();
+        public object InitialValue { get; internal set; }
 
-        public IServiceProvider Services => throw new NotImplementedException();
+        public IReadOnlyDictionary<string, object> Properties
+        { get; internal set; }
 
-        string IReadOnlyQueryRequest.Query => QuerySyntaxSerializer.Serialize(Query);
+        public IServiceProvider Services { get; internal set; }
+
+        string IReadOnlyQueryRequest.Query =>
+            QuerySyntaxSerializer.Serialize(Query);
     }
 
     public interface IRemoteQueryRequestBuilder
@@ -105,40 +111,93 @@ namespace HotChocolate.Stitching
             throw new NotImplementedException();
         }
 
-
-        public IRemoteQueryRequestBuilder SetProperties(IDictionary<string, object> properties)
+        public IRemoteQueryRequestBuilder SetProperties(
+            IDictionary<string, object> properties)
         {
-            throw new NotImplementedException();
+            _properties = properties;
+            return this;
         }
 
-
-        public IRemoteQueryRequestBuilder AddProperties(string name, object value)
+        public IRemoteQueryRequestBuilder AddProperties(
+            string name, object value)
         {
-            if(_properties == null)
-            { }
+            if (_properties == null)
+            {
+                _properties = new Dictionary<string, object>();
+            }
+
+            _properties.Add(name, value);
+            return this;
         }
 
-        public IRemoteQueryRequestBuilder SetServices(IServiceProvider services)
+        public IRemoteQueryRequestBuilder SetServices(
+            IServiceProvider services)
         {
             _services = services;
             return this;
         }
 
-
         public IRemoteQueryRequest Create()
         {
-            throw new NotImplementedException();
+            if (_query == null)
+            {
+                // TODO : Resources
+                throw new InvalidOperationException("TODO");
+            }
+
+            ValidateOperation(_query, _operationName);
+
+            return new RemoteQueryRequest
+            {
+                Query = _query,
+                OperationName = _operationName,
+                InitialValue = _initialValue,
+                Services = _services,
+                VariableValues = _variableValues == null
+                    ? null
+                    : new Dictionary<string, object>(_variableValues),
+                Properties = _properties == null
+                    ? null
+                    : new Dictionary<string, object>(_properties)
+            };
         }
 
-      
+        private static void ValidateOperation(
+            DocumentNode query,
+            string operationName)
+        {
+            var operations = query.Definitions
+                .OfType<OperationDefinitionNode>()
+                .ToList();
 
-     
-       
+            if (string.IsNullOrEmpty(operationName))
+            {
+                if (operations.Count == 1)
+                {
+                    return;
+                }
 
-       
-       
+                // TODO : Resources
+                throw new InvalidOperationException(
+                    "Only queries that contain one operation can be executed " +
+                    "without specifying the opartion name.");
+            }
+            else
+            {
+                OperationDefinitionNode operation =
+                    operations.SingleOrDefault(t =>
+                        t.Name.Value.Equals(operationName,
+                            StringComparison.Ordinal));
+                if (operation == null)
+                {
+                    // TODO : Resources
+                    throw new InvalidOperationException(
+                        $"The specified operation `{operationName}` " +
+                        "does not exist.");
+                }
+            }
+        }
 
         public static RemoteQueryRequestBuilder New() => new RemoteQueryRequestBuilder();
-
     }
 }
