@@ -174,7 +174,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            serviceCollection.TryAddSingleton<
+            services.TryAddSingleton<
                 IQueryResultSerializer,
                 JsonQueryResultSerializer>();
 
