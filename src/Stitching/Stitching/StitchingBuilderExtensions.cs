@@ -84,7 +84,7 @@ namespace HotChocolate.Stitching
                     s.GetRequiredService<IHttpClientFactory>()
                     .CreateClient(name);
 
-                var request = new RemoteQueryRequest
+                var request = new HttpQueryRequest
                 {
                     Query = _introspectionQuery
                 };

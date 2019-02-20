@@ -25,7 +25,7 @@ namespace HotChocolate.Stitching.Utilities
             FetchAsync(CreateRemoteRequest(request), httpClient);
 
         public async Task<QueryResult> FetchAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             string result = await FetchStringAsync(request, httpClient)
@@ -36,7 +36,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         public Task<string> FetchStringAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             if (request == null)
@@ -53,7 +53,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private async Task<string> FetchStringInternalAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             var content = new StringContent(
@@ -69,10 +69,10 @@ namespace HotChocolate.Stitching.Utilities
                 .ConfigureAwait(false);
         }
 
-        private RemoteQueryRequest CreateRemoteRequest(
+        private HttpQueryRequest CreateRemoteRequest(
             IReadOnlyQueryRequest request)
         {
-            return new RemoteQueryRequest
+            return new HttpQueryRequest
             {
                 Query = request.Query,
                 OperationName = request.OperationName,
@@ -81,7 +81,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private string SerializeRemoteRequest(
-            RemoteQueryRequest remoteRequest)
+            HttpQueryRequest remoteRequest)
         {
             return JsonConvert.SerializeObject(
                 remoteRequest, _jsonSettings);

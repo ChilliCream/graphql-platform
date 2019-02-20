@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Stitching.Utilities
 {
-    internal class RemoteQueryRequest
+    internal class HttpQueryRequest
     {
         public string OperationName { get; set; }
         public string NamedQuery { get; set; }
