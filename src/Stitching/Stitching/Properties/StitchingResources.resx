@@ -233,10 +233,13 @@
   }</value>
   </data>
   <data name="QueryRequestBuilder_OperationNameInvalid" xml:space="preserve">
-    <value />
+    <value>The specified operation `{0}` does not exist.</value>
   </data>
   <data name="QueryRequestBuilder_OperationNameMissing" xml:space="preserve">
     <value>Specify an operation name in order to create a query request that contains multiple operations.</value>
+  </data>
+  <data name="QueryRequestBuilder_QueryIsNull" xml:space="preserve">
+    <value>Specify a query in order to create a query request.</value>
   </data>
   <data name="RemoteExecutorBuilder_NoSchema" xml:space="preserve">
     <value>Cannot build a remote executor without a schema.</value>
@@ -276,9 +279,6 @@
   </data>
   <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
     <value>The name of the schema to which this type belongs to.</value>
-  </data>
-  <data name="StitchingBuilderExtensions" xml:space="preserve">
-    <value />
   </data>
   <data name="Type_NotSupported" xml:space="preserve">
     <value>The type definition is not yet supported.</value>
