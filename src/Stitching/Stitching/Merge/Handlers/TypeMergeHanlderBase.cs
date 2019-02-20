@@ -19,13 +19,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            T left = types.OfType<T>().FirstOrDefault();
-
-            if (left == null)
-            {
-                _next.Invoke(context, types);
-            }
-            else
+            if (types.OfType<T>().Any())
             {
                 var notMerged = types.OfType<T>().ToList();
                 bool hasLeftovers = types.Count > notMerged.Count;
@@ -39,6 +33,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 {
                     _next.Invoke(context, types.NotOfType<T>());
                 }
+            }
+            else
+            {
+                _next.Invoke(context, types);
             }
         }
 

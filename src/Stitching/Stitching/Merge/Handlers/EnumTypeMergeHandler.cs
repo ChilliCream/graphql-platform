@@ -21,10 +21,6 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             if (types.OfType<EnumTypeInfo>().Any())
             {
-                _next.Invoke(context, types);
-            }
-            else
-            {
                 var notMerged = types.OfType<EnumTypeInfo>().ToList();
                 bool hasLeftovers = types.Count > notMerged.Count;
 
@@ -37,6 +33,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 {
                     _next.Invoke(context, types.NotOfType<EnumTypeInfo>());
                 }
+            }
+            else
+            {
+                _next.Invoke(context, types);
             }
         }
 
