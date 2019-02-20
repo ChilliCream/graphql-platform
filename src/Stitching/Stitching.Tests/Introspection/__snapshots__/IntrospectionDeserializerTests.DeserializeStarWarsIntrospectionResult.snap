@@ -1,1 +1,236 @@
-"schema {\n  query: Query\n  mutation: Mutation\n  subscription: Subscription\n}\n\n\"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.\"\nscalar String\n\n\"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\\\"4\\\"`) or integer (such as `4`) input value will be accepted as an ID.\"\nscalar ID\n\n\"The `Boolean` scalar type represents `true` or `false`.\"\nscalar Boolean\n\n\"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.\"\nscalar Int\n\n\"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\\/\\/en.wikipedia.org\\/wiki\\/IEEE_floating_point).\"\nscalar Float\n\nscalar Decimal\n\nscalar Long\n\n\"The `DateTime` scalar represents an ISO-8601 compliant date time type.\"\nscalar DateTime\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\nscalar Uuid\n\nscalar Url\n\n\"A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\\n\\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.\"\ntype __Directive {\n  name: String!\n  description: String\n  locations: [__DirectiveLocation!]!\n  args: [__InputValue!]!\n  onOperation: Boolean!\n  onFragment: Boolean!\n  onField: Boolean!\n}\n\n\"A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.\"\nenum __DirectiveLocation {\n  \"Location adjacent to a query operation.\"\n  QUERY\n  \"Location adjacent to a mutation operation.\"\n  MUTATION\n  \"Location adjacent to a subscription operation.\"\n  SUBSCRIPTION\n  \"Location adjacent to a field.\"\n  FIELD\n  \"Location adjacent to a fragment definition.\"\n  FRAGMENT_DEFINITION\n  \"Location adjacent to a fragment spread.\"\n  FRAGMENT_SPREAD\n  \"Location adjacent to an inline fragment.\"\n  INLINE_FRAGMENT\n  \"Location adjacent to a schema definition.\"\n  SCHEMA\n  \"Location adjacent to a scalar definition.\"\n  SCALAR\n  \"Location adjacent to an object type definition.\"\n  OBJECT\n  \"Location adjacent to a field definition.\"\n  FIELD_DEFINITION\n  \"Location adjacent to an argument definition\"\n  ARGUMENT_DEFINITION\n  \"Location adjacent to an interface definition.\"\n  INTERFACE\n  \"Location adjacent to a union definition.\"\n  UNION\n  \"Location adjacent to an enum definition.\"\n  ENUM\n  \"Location adjacent to an enum value definition.\"\n  ENUM_VALUE\n  \"Location adjacent to an input object type definition.\"\n  INPUT_OBJECT\n  \"Location adjacent to an input object field definition.\"\n  INPUT_FIELD_DEFINITION\n}\n\n\"One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.\"\ntype __EnumValue {\n  name: String!\n  description: String\n  isDeprecated: Boolean!\n  deprecationReason: String\n}\n\n\"Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.\"\ntype __Field {\n  name: String!\n  description: String\n  args: [__InputValue!]!\n  type: __Type!\n  isDeprecated: Boolean!\n  deprecationReason: String\n}\n\n\"Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.\"\ntype __InputValue {\n  name: String!\n  description: String\n  type: __Type!\n  \"A GraphQL-formatted string representing the default value for this input value.\"\n  defaultValue: String\n}\n\n\"A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.\"\ntype __Schema {\n  \"A list of all types supported by this server.\"\n  types: [__Type!]!\n  \"The type that query operations will be rooted at.\"\n  queryType: __Type!\n  \"If this server supports mutation, the type that mutation operations will be rooted at.\"\n  mutationType: __Type\n  \"If this server support subscription, the type that subscription operations will be rooted at.\"\n  subscriptionType: __Type\n  \"A list of all directives supported by this server.\"\n  directives: [__Directive!]!\n}\n\n\"The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\\n\\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.\"\ntype __Type {\n  kind: __TypeKind!\n  name: String\n  description: String\n  fields(includeDeprecated: Boolean = false): [__Field!]\n  interfaces: [__Type!]\n  possibleTypes: [__Type!]\n  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]\n  inputFields: [__InputValue!]\n  ofType: __Type\n}\n\n\"An enum describing what kind of type a given `__Type` is.\"\nenum __TypeKind {\n  \"Indicates this type is a scalar.\"\n  SCALAR\n  \"Indicates this type is an object. `fields` and `interfaces` are valid fields.\"\n  OBJECT\n  \"Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.\"\n  INTERFACE\n  \"Indicates this type is a union. `possibleTypes` is a valid field.\"\n  UNION\n  \"Indicates this type is an enum. `enumValues` is a valid field.\"\n  ENUM\n  \"Indicates this type is an input object. `inputFields` is a valid field.\"\n  INPUT_OBJECT\n  \"Indicates this type is a list. `ofType` is a valid field.\"\n  LIST\n  \"Indicates this type is a non-null. `ofType` is a valid field.\"\n  NON_NULL\n}\n\ntype Query {\n  hero(episode: Episode!): Character\n  character(characterIds: [ID!]!): [Character!]!\n  human(id: ID!): Human\n  droid(id: ID!): Droid\n  search(text: String): [SearchResult]\n}\n\ntype Mutation {\n  createReview(episode: Episode! review: ReviewInput!): Review!\n}\n\ntype Subscription {\n  onReview(episode: Episode!): Review!\n}\n\ntype Human implements Character {\n  id: ID!\n  appearsIn: [Episode]\n  friends: [Character]\n  height(unit: Unit): Float\n  name: String\n  homePlanet: String\n}\n\ntype Droid implements Character {\n  id: ID!\n  appearsIn: [Episode]\n  friends: [Character]\n  height(unit: Unit): Float\n  name: String\n  primaryFunction: String\n}\n\nenum Episode {\n  NEWHOPE\n  EMPIRE\n  JEDI\n}\n\ninterface Character {\n  id: ID!\n  name: String\n  friends: [Character]\n  appearsIn: [Episode]\n  height(unit: Unit): Float\n}\n\nunion SearchResult = Starship | Human | Droid\n\ntype Review {\n  stars: Int!\n  commentary: String\n}\n\ninput ReviewInput {\n  stars: Int!\n  commentary: String\n}\n\nenum Unit {\n  FOOT\n  METERS\n}\n\ntype Starship {\n  id: String\n  name: String\n  length: Float!\n}\n\n\"Directs the executor to skip this field or fragment when the `if` argument is true.\"\ndirective @skip(\"Skipped when true.\" if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD\n\n\"Directs the executor to include this field or fragment only when the `if` argument is true.\"\ndirective @include(\"Included when true.\" if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD"
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
+scalar ID
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+scalar Decimal
+
+scalar Long
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+scalar Uuid
+
+scalar Url
+
+"A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor."
+type __Directive {
+  name: String!
+  description: String
+  locations: [__DirectiveLocation!]!
+  args: [__InputValue!]!
+  onOperation: Boolean!
+  onFragment: Boolean!
+  onField: Boolean!
+}
+
+"A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies."
+enum __DirectiveLocation {
+  "Location adjacent to a query operation."
+  QUERY
+  "Location adjacent to a mutation operation."
+  MUTATION
+  "Location adjacent to a subscription operation."
+  SUBSCRIPTION
+  "Location adjacent to a field."
+  FIELD
+  "Location adjacent to a fragment definition."
+  FRAGMENT_DEFINITION
+  "Location adjacent to a fragment spread."
+  FRAGMENT_SPREAD
+  "Location adjacent to an inline fragment."
+  INLINE_FRAGMENT
+  "Location adjacent to a schema definition."
+  SCHEMA
+  "Location adjacent to a scalar definition."
+  SCALAR
+  "Location adjacent to an object type definition."
+  OBJECT
+  "Location adjacent to a field definition."
+  FIELD_DEFINITION
+  "Location adjacent to an argument definition"
+  ARGUMENT_DEFINITION
+  "Location adjacent to an interface definition."
+  INTERFACE
+  "Location adjacent to a union definition."
+  UNION
+  "Location adjacent to an enum definition."
+  ENUM
+  "Location adjacent to an enum value definition."
+  ENUM_VALUE
+  "Location adjacent to an input object type definition."
+  INPUT_OBJECT
+  "Location adjacent to an input object field definition."
+  INPUT_FIELD_DEFINITION
+}
+
+"One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string."
+type __EnumValue {
+  name: String!
+  description: String
+  isDeprecated: Boolean!
+  deprecationReason: String
+}
+
+"Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type."
+type __Field {
+  name: String!
+  description: String
+  args: [__InputValue!]!
+  type: __Type!
+  isDeprecated: Boolean!
+  deprecationReason: String
+}
+
+"Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value."
+type __InputValue {
+  name: String!
+  description: String
+  type: __Type!
+  "A GraphQL-formatted string representing the default value for this input value."
+  defaultValue: String
+}
+
+"A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations."
+type __Schema {
+  "A list of all types supported by this server."
+  types: [__Type!]!
+  "The type that query operations will be rooted at."
+  queryType: __Type!
+  "If this server supports mutation, the type that mutation operations will be rooted at."
+  mutationType: __Type
+  "If this server support subscription, the type that subscription operations will be rooted at."
+  subscriptionType: __Type
+  "A list of all directives supported by this server."
+  directives: [__Directive!]!
+}
+
+"The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types."
+type __Type {
+  kind: __TypeKind!
+  name: String
+  description: String
+  fields(includeDeprecated: Boolean = false): [__Field!]
+  interfaces: [__Type!]
+  possibleTypes: [__Type!]
+  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  inputFields: [__InputValue!]
+  ofType: __Type
+}
+
+"An enum describing what kind of type a given `__Type` is."
+enum __TypeKind {
+  "Indicates this type is a scalar."
+  SCALAR
+  "Indicates this type is an object. `fields` and `interfaces` are valid fields."
+  OBJECT
+  "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields."
+  INTERFACE
+  "Indicates this type is a union. `possibleTypes` is a valid field."
+  UNION
+  "Indicates this type is an enum. `enumValues` is a valid field."
+  ENUM
+  "Indicates this type is an input object. `inputFields` is a valid field."
+  INPUT_OBJECT
+  "Indicates this type is a list. `ofType` is a valid field."
+  LIST
+  "Indicates this type is a non-null. `ofType` is a valid field."
+  NON_NULL
+}
+
+type Query {
+  hero(episode: Episode!): Character
+  character(characterIds: [ID!]!): [Character!]!
+  human(id: ID!): Human
+  droid(id: ID!): Droid
+  search(text: String): [SearchResult]
+}
+
+type Mutation {
+  createReview(episode: Episode! review: ReviewInput!): Review!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+}
+
+type Human implements Character {
+  id: ID!
+  appearsIn: [Episode]
+  friends: [Character]
+  height(unit: Unit): Float
+  name: String
+  homePlanet: String
+}
+
+type Droid implements Character {
+  id: ID!
+  appearsIn: [Episode]
+  friends: [Character]
+  height(unit: Unit): Float
+  name: String
+  primaryFunction: String
+}
+
+enum Episode {
+  NEWHOPE
+  EMPIRE
+  JEDI
+}
+
+interface Character {
+  id: ID!
+  name: String
+  friends: [Character]
+  appearsIn: [Episode]
+  height(unit: Unit): Float
+}
+
+union SearchResult = Starship | Human | Droid
+
+type Review {
+  stars: Int!
+  commentary: String
+}
+
+input ReviewInput {
+  stars: Int!
+  commentary: String
+}
+
+enum Unit {
+  FOOT
+  METERS
+}
+
+type Starship {
+  id: String
+  name: String
+  length: Float!
+}
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip("Skipped when true." if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD
+
+"Directs the executor to include this field or fragment only when the `if` argument is true."
+directive @include("Included when true." if: Boolean!) on FIELD | FIELD_DEFINITION | INLINE_FRAGMENT | FRAGMENT_SPREAD

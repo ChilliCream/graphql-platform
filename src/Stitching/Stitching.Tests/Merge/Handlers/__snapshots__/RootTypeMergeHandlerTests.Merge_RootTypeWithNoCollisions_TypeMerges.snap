@@ -1,1 +1,4 @@
-"type Query {\n  a: String @delegate(schema: \"Schema_A\")\n  b: String @delegate(schema: \"Schema_B\")\n}"
+type Query {
+  a: String @delegate(schema: "Schema_A")
+  b: String @delegate(schema: "Schema_B")
+}

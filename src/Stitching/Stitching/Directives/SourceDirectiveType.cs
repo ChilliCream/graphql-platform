@@ -10,7 +10,8 @@ namespace HotChocolate.Stitching
             IDirectiveTypeDescriptor<SourceDirective> descriptor)
         {
             descriptor.Name(DirectiveNames.Source)
-                .Description(Resources.SourceDirectiveType_Description);
+                .Description(StitchingResources
+                    .SourceDirectiveType_Description);
 
             descriptor.Location(DirectiveLocation.Enum)
                 .Location(DirectiveLocation.Object)
@@ -26,12 +27,14 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.Name)
                 .Name(DirectiveFieldNames.Source_Name)
                 .Type<NonNullType<NameType>>()
-                .Description(Resources.SourceDirectiveType_Name_Description);
+                .Description(StitchingResources
+                    .SourceDirectiveType_Name_Description);
 
             descriptor.Argument(t => t.Schema)
                 .Name(DirectiveFieldNames.Source_Schema)
                 .Type<NonNullType<NameType>>()
-                .Description(Resources.SourceDirectiveType_Schema_Description);
+                .Description(StitchingResources
+                    .SourceDirectiveType_Schema_Description);
         }
     }
 }

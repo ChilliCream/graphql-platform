@@ -20,7 +20,8 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.Schema)
                 .Name(DirectiveFieldNames.Delegate_Schema)
                 .Type<NonNullType<NameType>>()
-                .Description(Resources.DelegateDirectiveType_Description);
+                .Description(StitchingResources
+                    .DelegateDirectiveType_Description);
         }
     }
 }

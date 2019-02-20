@@ -1,1 +1,4 @@
-"interface Foo {\n  bar: String\n  baz: Int\n}"
+interface Foo {
+  bar: String
+  baz: Int
+}

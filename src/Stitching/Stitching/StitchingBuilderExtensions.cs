@@ -17,7 +17,7 @@ namespace HotChocolate.Stitching
     public static class StitchingBuilderExtensions
     {
         private static readonly string _introspectionQuery =
-            Resources.IntrospectionQuery;
+            StitchingResources.IntrospectionQuery;
 
         public static IStitchingBuilder AddSchemaFromString(
             this IStitchingBuilder builder,
@@ -32,7 +32,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(schema))
             {
                 throw new ArgumentException(
-                    Resources.Schema_EmptyOrNull,
+                    StitchingResources.Schema_EmptyOrNull,
                     nameof(schema));
             }
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException(
-                    Resources.SchemaFilePath_EmptyOrNull,
+                    StitchingResources.SchemaFilePath_EmptyOrNull,
                     nameof(path));
             }
 
@@ -111,7 +111,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException(
-                    Resources.ExtensionsFilePath_EmptyOrNull,
+                    StitchingResources.ExtensionsFilePath_EmptyOrNull,
                     nameof(path));
             }
 
@@ -133,7 +133,7 @@ namespace HotChocolate.Stitching
             if (string.IsNullOrEmpty(extensions))
             {
                 throw new ArgumentException(
-                    Resources.Extensions_EmptyOrNull,
+                    StitchingResources.Extensions_EmptyOrNull,
                     nameof(extensions));
             }
 

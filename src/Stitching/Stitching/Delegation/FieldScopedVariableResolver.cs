@@ -28,7 +28,8 @@ namespace HotChocolate.Stitching.Delegation
             if (!ScopeNames.Fields.Equals(variable.Scope.Value))
             {
                 throw new ArgumentException(
-                    Resources.FieldScopedVariableResolver_CannotHandleVariable,
+                    StitchingResources
+                        .FieldScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
@@ -49,7 +50,8 @@ namespace HotChocolate.Stitching.Delegation
 
             throw new QueryException(QueryError.CreateFieldError(
                 string.Format(CultureInfo.InvariantCulture,
-                    Resources.FieldScopedVariableResolver_InvalidFieldName,
+                    StitchingResources
+                        .FieldScopedVariableResolver_InvalidFieldName,
                     variable.Name.Value),
                 context.Path,
                 context.FieldSelection)

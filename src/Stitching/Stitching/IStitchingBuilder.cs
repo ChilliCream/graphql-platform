@@ -10,12 +10,17 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Stitching
 {
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
+    public delegate IQueryExecutor ExecutorFactory(IServiceProvider services);
 
     public interface IStitchingBuilder
     {
         IStitchingBuilder AddSchema(
             NameString name,
             LoadSchemaDocument loadSchema);
+
+        IStitchingBuilder AddQueryExecutor(
+            NameString name,
+            ExecutorFactory factory);
 
         IStitchingBuilder AddExtensions(
             LoadSchemaDocument loadExtensions);
