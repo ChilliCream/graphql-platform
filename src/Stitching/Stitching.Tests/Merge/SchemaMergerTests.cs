@@ -3,6 +3,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using Snapshooter;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -107,7 +108,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode schema = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameType("A", "A", "Xyz")
+                .RenameType("A", "Xyz")
                 .Merge();
 
             // assert
@@ -270,6 +271,41 @@ namespace HotChocolate.Stitching.Merge
 
             // assert
             SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
+        public void RenameReferencingType()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: B } " +
+                    "type B implements C { c: String } " +
+                    "interface C { c: String }");
+
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type B { b1: String b3: String } type C { c: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameType("A", "B", "Foo")
+                .Merge();
+
+            DocumentNode b = SchemaMerger.New()
+                .AddSchema("B", schema_b)
+                .AddSchema("A", schema_a)
+                .RenameType("A", "B", "Foo")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot(
+                SnapshotNameExtension.Create("A"));
+            SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
+                SnapshotNameExtension.Create("B"));
+
         }
     }
 }

@@ -1,0 +1,1 @@
+"type A @source(name: \"A\", schema: \"A\") {\n  b1: Foo\n}\n\ntype Foo implements A_C @source(name: \"B\", schema: \"A\") {\n  c: String\n}\n\ntype C @source(name: \"C\", schema: \"B\") {\n  c: String\n}\n\ninterface A_C @source(name: \"C\", schema: \"A\") {\n  c: String\n}\n\ntype B @source(name: \"B\", schema: \"B\") {\n  b1: String\n  b3: String\n}"

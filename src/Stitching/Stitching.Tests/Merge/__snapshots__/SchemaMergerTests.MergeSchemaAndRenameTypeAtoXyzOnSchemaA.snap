@@ -1,1 +1,1 @@
-"type Xyz @source(name: \"A\", schema: \"A\") {\n  b1: String\n  b2: String\n}\n\ntype A @source(name: \"A\", schema: \"B\") {\n  b1: String\n  b3: String\n}\n\ntype B @source(name: \"B\", schema: \"A\") @source(name: \"B\", schema: \"B\") {\n  c: String\n}"
+"type Xyz @source(name: \"A\", schema: \"A\") {\n  b1: String\n  b2: String\n}\n\ntype B @source(name: \"B\", schema: \"A\") @source(name: \"B\", schema: \"B\") {\n  c: String\n}\n\ntype A @source(name: \"A\", schema: \"B\") {\n  b1: String\n  b3: String\n}"

@@ -103,32 +103,29 @@ namespace HotChocolate.Stitching.Merge
             // merge all other types
             MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
-            // TODO : FIX NAMES
-
-            return context.CreateSchema();
+            return RewriteTypeReferences(schemas, context.CreateSchema());
         }
 
         private IReadOnlyList<ISchemaInfo> CreateSchemaInfos()
         {
             List<SchemaInfo> original = _schemas
-                .Select(t => new SchemaInfo(t.Key, t.Value))
+                .Select(t => new SchemaInfo(t.Key,
+                    PrepareSchemaDocument(t.Value, t.Key)))
                 .ToList();
 
-            if (_docRewriters.Count == 0)
+            if (_docRewriters.Count == 0 && _typeRewriters.Count == 0)
             {
                 return original;
             }
 
             var rewritten = new List<SchemaInfo>();
+            var referenceRewriter = new TypeReferenceRewriter();
 
             foreach (SchemaInfo schemaInfo in original)
             {
                 DocumentNode current = schemaInfo.Document;
-
-                foreach (IDocumentRewriter rewriter in _docRewriters)
-                {
-                    current = rewriter.Rewrite(schemaInfo, current);
-                }
+                current = RewriteDocument(schemaInfo, current);
+                current = RewriteTypes(schemaInfo, current);
 
                 if (current == schemaInfo.Document)
                 {
@@ -136,6 +133,9 @@ namespace HotChocolate.Stitching.Merge
                 }
                 else
                 {
+                    current = referenceRewriter.RewriteSchema(
+                        current, schemaInfo.Name);
+
                     rewritten.Add(new SchemaInfo(
                         schemaInfo.Name,
                         current));
@@ -143,6 +143,98 @@ namespace HotChocolate.Stitching.Merge
             }
 
             return rewritten;
+        }
+
+        internal static DocumentNode PrepareSchemaDocument(
+            DocumentNode document,
+            NameString schemaName)
+        {
+            var definitions = new List<IDefinitionNode>();
+            foreach (IDefinitionNode definition in document.Definitions)
+            {
+                if (definition is ITypeDefinitionNode typeDefinition)
+                {
+                    if (!IsIntrospectionType(typeDefinition))
+                    {
+                        // add source directive
+                        definitions.Add(typeDefinition.Rename(
+                            typeDefinition.Name.Value, schemaName));
+                    }
+                }
+                else
+                {
+                    definitions.Add(definition);
+                }
+            }
+            return document.WithDefinitions(definitions);
+        }
+
+        private static bool IsIntrospectionType(
+            ITypeDefinitionNode typeDefinition)
+        {
+            // we should check this against the actual kown list of intro types.
+            return typeDefinition.Name.Value
+                .StartsWith("__", StringComparison.Ordinal);
+        }
+
+        private DocumentNode RewriteDocument(
+            ISchemaInfo schema,
+            DocumentNode document)
+        {
+            DocumentNode current = document;
+
+            foreach (IDocumentRewriter rewriter in _docRewriters)
+            {
+                current = rewriter.Rewrite(schema, current);
+            }
+
+            return current;
+        }
+
+        private DocumentNode RewriteTypes(
+            ISchemaInfo schema,
+            DocumentNode document)
+        {
+            if (_typeRewriters.Count == 0)
+            {
+                return document;
+            }
+
+            var definitions = new List<IDefinitionNode>();
+
+            foreach (IDefinitionNode definition in document.Definitions)
+            {
+                if (definition is ITypeDefinitionNode typeDefinition)
+                {
+                    foreach (ITypeRewriter rewriter in _typeRewriters)
+                    {
+                        typeDefinition = rewriter.Rewrite(
+                            schema, typeDefinition);
+                    }
+                    definitions.Add(typeDefinition);
+                }
+                else
+                {
+                    definitions.Add(definition);
+                }
+            }
+
+            return document.WithDefinitions(definitions);
+        }
+
+        private static DocumentNode RewriteTypeReferences(
+            IReadOnlyList<ISchemaInfo> schemas,
+            DocumentNode document)
+        {
+            DocumentNode current = document;
+            var referenceRewriter = new TypeReferenceRewriter();
+
+            foreach (ISchemaInfo schema in schemas)
+            {
+                current = referenceRewriter.RewriteSchema(current, schema.Name);
+            }
+
+            return current;
         }
 
         private static void MergeRootType(
@@ -212,11 +304,7 @@ namespace HotChocolate.Stitching.Merge
                 if (schema.Types.TryGetValue(name,
                     out ITypeDefinitionNode typeDefinition))
                 {
-                    foreach (ITypeRewriter rewriter in _typeRewriters)
-                    {
-                        typeDefinition = rewriter.Rewrite(
-                            schema, typeDefinition);
-                    }
+
 
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }

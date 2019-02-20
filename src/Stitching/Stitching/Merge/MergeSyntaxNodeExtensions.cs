@@ -348,6 +348,13 @@ namespace HotChocolate.Stitching.Merge
             this ITypeDefinitionNode typeDefinition,
             NameString schemaName)
         {
+            if (typeDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(typeDefinition));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
             DirectiveNode sourceDirective = typeDefinition.Directives
                 .FirstOrDefault(t => HasSourceDirective(t, schemaName));
 
@@ -362,6 +369,21 @@ namespace HotChocolate.Stitching.Merge
             }
 
             return typeDefinition.Name.Value;
+        }
+
+        internal static bool IsFromSchema(
+            this ITypeDefinitionNode typeDefinition,
+            NameString schemaName)
+        {
+            if (typeDefinition == null)
+            {
+                throw new ArgumentNullException(nameof(typeDefinition));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            return typeDefinition.Directives.Any(t =>
+                HasSourceDirective(t, schemaName));
         }
     }
 }

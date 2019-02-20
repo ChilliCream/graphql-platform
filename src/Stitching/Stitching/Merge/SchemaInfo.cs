@@ -9,31 +9,35 @@ namespace HotChocolate.Stitching.Merge
     internal class SchemaInfo
         : ISchemaInfo
     {
-        public SchemaInfo(string name, DocumentNode schema)
+        public SchemaInfo(string name, DocumentNode document)
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new System.ArgumentException(
+                // TODO : resources
+                throw new ArgumentException(
                     "The schema name mustn't be null or empty.",
                     nameof(name));
             }
 
-            Name = name;
-            Document = schema
-                ?? throw new ArgumentNullException(nameof(schema));
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
 
-            Dictionary<string, ITypeDefinitionNode> types = schema.Definitions
-                .OfType<ITypeDefinitionNode>()
-                .Where(t => !t.Name.Value.StartsWith("__",
-                    StringComparison.Ordinal))
-                .ToDictionary(t => t.Name.Value);
+            Name = name;
+            Document = document;
+
+            Dictionary<string, ITypeDefinitionNode> types =
+                document.Definitions
+                    .OfType<ITypeDefinitionNode>()
+                    .ToDictionary(t => t.Name.Value);
             Types = types;
 
-            Directives = schema.Definitions
+            Directives = document.Definitions
                 .OfType<DirectiveDefinitionNode>()
                 .ToDictionary(t => t.Name.Value);
 
-            SchemaDefinitionNode schemaDefinition = schema.Definitions
+            SchemaDefinitionNode schemaDefinition = document.Definitions
                 .OfType<SchemaDefinitionNode>().FirstOrDefault();
 
             QueryType = ResolveRootType(
@@ -80,6 +84,32 @@ namespace HotChocolate.Stitching.Merge
                 || typeDefinition == SubscriptionType;
         }
 
+        public bool TryGetOperationType(
+            ObjectTypeDefinitionNode rootType,
+            out OperationType operationType)
+        {
+            if (rootType == QueryType)
+            {
+                operationType = OperationType.Query;
+                return true;
+            }
+
+            if (rootType == MutationType)
+            {
+                operationType = OperationType.Mutation;
+                return true;
+            }
+
+            if (rootType == SubscriptionType)
+            {
+                operationType = OperationType.Subscription;
+                return true;
+            }
+
+            operationType = default;
+            return false;
+        }
+
         private static ObjectTypeDefinitionNode ResolveRootType(
             IDictionary<string, ITypeDefinitionNode> types,
             SchemaDefinitionNodeBase schemaDefinition,
@@ -105,32 +135,6 @@ namespace HotChocolate.Stitching.Merge
             }
 
             return null;
-        }
-
-        public bool TryGetOperationType(
-            ObjectTypeDefinitionNode rootType,
-            out OperationType operationType)
-        {
-            if (rootType == QueryType)
-            {
-                operationType = OperationType.Query;
-                return true;
-            }
-
-            if (rootType == MutationType)
-            {
-                operationType = OperationType.Mutation;
-                return true;
-            }
-
-            if (rootType == SubscriptionType)
-            {
-                operationType = OperationType.Subscription;
-                return true;
-            }
-
-            operationType = default;
-            return false;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 {
                     context.AddType(notMerged[i].Definition.Rename(
                         TypeMergeHelpers.CreateName(context, notMerged[i]),
-                        types.Select(t => t.Schema.Name)));
+                        notMerged[i].Schema.Name));
                 }
 
                 if (hasLeftovers)

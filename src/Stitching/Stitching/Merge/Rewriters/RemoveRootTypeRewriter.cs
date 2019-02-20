@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Rewriters
@@ -27,20 +28,25 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
             var definitions = new List<IDefinitionNode>(document.Definitions);
 
-            RemoveType(definitions, schema.QueryType);
-            RemoveType(definitions, schema.MutationType);
-            RemoveType(definitions, schema.SubscriptionType);
+            RemoveType(definitions, schema.QueryType?.Name.Value);
+            RemoveType(definitions, schema.MutationType?.Name.Value);
+            RemoveType(definitions, schema.SubscriptionType?.Name.Value);
 
             return document.WithDefinitions(definitions);
         }
 
         private static void RemoveType(
             ICollection<IDefinitionNode> definitions,
-            IDefinitionNode typeDefinition)
+            string typeName)
         {
-            if (typeDefinition != null)
+            if (typeName != null)
             {
-                definitions.Remove(typeDefinition);
+                var rootType = definitions.OfType<ITypeDefinitionNode>()
+                    .FirstOrDefault(t => t.Name.Value.Equals(typeName));
+                if (rootType != null)
+                {
+                    definitions.Remove(rootType);
+                }
             }
         }
     }
