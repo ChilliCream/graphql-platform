@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching
 {
@@ -141,8 +142,8 @@ namespace HotChocolate.Stitching
         {
             if (_query == null)
             {
-                // TODO : Resources
-                throw new InvalidOperationException("TODO");
+                throw new QueryRequestBuilderException(
+                    StitchingResources.QueryRequestBuilder_QueryIsNull);
             }
 
             ValidateOperation(_query, _operationName);
@@ -177,10 +178,8 @@ namespace HotChocolate.Stitching
                     return;
                 }
 
-                // TODO : Resources
-                throw new InvalidOperationException(
-                    "Only queries that contain one operation can be executed " +
-                    "without specifying the opartion name.");
+                throw new QueryRequestBuilderException(StitchingResources
+                    .QueryRequestBuilder_OperationNameMissing);
             }
             else
             {
@@ -190,14 +189,27 @@ namespace HotChocolate.Stitching
                             StringComparison.Ordinal));
                 if (operation == null)
                 {
-                    // TODO : Resources
-                    throw new InvalidOperationException(
-                        $"The specified operation `{operationName}` " +
-                        "does not exist.");
+                    throw new QueryRequestBuilderException(
+                        string.Format(CultureInfo.InvariantCulture,
+                            StitchingResources
+                                .QueryRequestBuilder_OperationNameMissing,
+                            operationName));
                 }
             }
         }
 
         public static RemoteQueryRequestBuilder New() => new RemoteQueryRequestBuilder();
+    }
+
+
+    [Serializable]
+    public class QueryRequestBuilderException : Exception
+    {
+        public QueryRequestBuilderException() { }
+        public QueryRequestBuilderException(string message) : base(message) { }
+        public QueryRequestBuilderException(string message, Exception inner) : base(message, inner) { }
+        protected QueryRequestBuilderException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 }

@@ -232,6 +232,12 @@
     }
   }</value>
   </data>
+  <data name="QueryRequestBuilder_OperationNameInvalid" xml:space="preserve">
+    <value />
+  </data>
+  <data name="QueryRequestBuilder_OperationNameMissing" xml:space="preserve">
+    <value>Specify an operation name in order to create a query request that contains multiple operations.</value>
+  </data>
   <data name="RemoteExecutorBuilder_NoSchema" xml:space="preserve">
     <value>Cannot build a remote executor without a schema.</value>
   </data>

@@ -22,14 +22,14 @@ namespace HotChocolate.Stitching.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class StitchingResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal StitchingResources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace HotChocolate.Stitching.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Stitching.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Stitching.Properties.StitchingResources", typeof(StitchingResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -206,6 +206,33 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified operation `{0}` does not exist..
+        /// </summary>
+        internal static string QueryRequestBuilder_OperationNameInvalid {
+            get {
+                return ResourceManager.GetString("QueryRequestBuilder_OperationNameInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify an operation name in order to create a query request that contains multiple operations..
+        /// </summary>
+        internal static string QueryRequestBuilder_OperationNameMissing {
+            get {
+                return ResourceManager.GetString("QueryRequestBuilder_OperationNameMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify a query in order to create a query request..
+        /// </summary>
+        internal static string QueryRequestBuilder_QueryIsNull {
+            get {
+                return ResourceManager.GetString("QueryRequestBuilder_QueryIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot build a remote executor without a schema..
         /// </summary>
         internal static string RemoteExecutorBuilder_NoSchema {
@@ -319,15 +346,6 @@ namespace HotChocolate.Stitching.Properties {
         internal static string SourceDirectiveType_Schema_Description {
             get {
                 return ResourceManager.GetString("SourceDirectiveType_Schema_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string StitchingBuilderExtensions {
-            get {
-                return ResourceManager.GetString("StitchingBuilderExtensions", resourceCulture);
             }
         }
         
