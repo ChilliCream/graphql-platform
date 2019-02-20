@@ -1,0 +1,5 @@
+extend type Customer {
+  contracts: [Contract!]
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
+  foo: String @computed(dependantOn: ["id", "name"])
+}
