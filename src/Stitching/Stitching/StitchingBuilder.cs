@@ -23,8 +23,10 @@ namespace HotChocolate.Stitching
     public partial class StitchingBuilder
         : IStitchingBuilder
     {
-        private OrderedDictionary<NameString, LoadSchemaDocument> _schemas =
-            new OrderedDictionary<NameString, LoadSchemaDocument>();
+        private readonly OrderedDictionary<NameString, LoadSchemaDocument>
+            _schemas = new OrderedDictionary<NameString, LoadSchemaDocument>();
+        private readonly OrderedDictionary<NameString, ExecutorFactory>
+            _execFacs = new OrderedDictionary<NameString, ExecutorFactory>();
         private readonly List<LoadSchemaDocument> _extensions =
             new List<LoadSchemaDocument>();
         private readonly List<MergeTypeRuleFactory> _mergeRules =
@@ -51,6 +53,22 @@ namespace HotChocolate.Stitching
             name.EnsureNotEmpty(nameof(name));
 
             _schemas.Add(name, loadSchema);
+
+            return this;
+        }
+
+        public IStitchingBuilder AddQueryExecutor(
+            NameString name,
+            ExecutorFactory factory)
+        {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            name.EnsureNotEmpty(nameof(name));
+
+            _execFacs.Add(name, factory);
 
             return this;
         }
