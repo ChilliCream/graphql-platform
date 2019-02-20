@@ -66,7 +66,6 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
                 throw new ArgumentNullException(nameof(options));
-            Services = Executor.Schema.Services;
         }
 
         /// <summary>
@@ -82,8 +81,6 @@ namespace HotChocolate.AspNetCore
         /// Gets the GraphQL middleware options.
         /// </summary>
         protected QueryMiddlewareOptions Options { get; }
-
-        protected IServiceProvider Services { get; }
 
 
 #if ASPNETCLASSIC

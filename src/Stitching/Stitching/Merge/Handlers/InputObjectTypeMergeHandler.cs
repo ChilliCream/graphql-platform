@@ -21,11 +21,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             List<InputObjectTypeDefinitionNode> definitions = types
                 .Select(t => t.Definition)
-                .Cast<InputObjectTypeDefinitionNode>()
                 .ToList();
 
             InputObjectTypeDefinitionNode definition =
-                definitions[0].AddSource(
+                definitions[0].Rename(
                     newTypeName,
                     types.Select(t => t.Schema.Name));
 
@@ -75,7 +74,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 foreach (string typeName in fieldTypes)
                 {
                     if (processed.Add(typeName)
-                        && !CanEnqueueFieldType(typePair, typeName, queue))
+                        && !TryEnqueueFieldType(typePair, typeName, queue))
                     {
                         return false;
                     }
@@ -85,7 +84,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             return true;
         }
 
-        private static bool CanEnqueueFieldType(
+        private static bool TryEnqueueFieldType(
             TypePair typePair,
             string typeName,
             Queue<TypePair> queue)
@@ -95,26 +94,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 && typePair.Right.Schema.Types.TryGetValue(typeName,
                 out ITypeDefinitionNode rt))
             {
-                if (lt is InputObjectTypeDefinitionNode
-                    && rt is InputObjectTypeDefinitionNode)
-                {
-                    queue.Enqueue(new TypePair(
-                        TypeInfo.Create(lt, typePair.Left.Schema),
-                        TypeInfo.Create(rt, typePair.Right.Schema)));
-                    return true;
-                }
-                else if (lt is ScalarTypeDefinitionNode
-                    && rt is ScalarTypeDefinitionNode)
-                {
-                    return true;
-                }
-                else if (lt is EnumTypeDefinitionNode let
-                    && rt is EnumTypeDefinitionNode ret)
-                {
-                    return EnumTypeMergeHandler.CanBeMerged(let, ret);
-                }
-
-                return false;
+                return TryEnqueueForAnalysis(
+                    TypeInfo.Create(lt, typePair.Left.Schema),
+                    TypeInfo.Create(rt, typePair.Right.Schema),
+                    queue);
             }
             else if (!typePair.Left.Schema.Types.ContainsKey(typeName)
                 && !typePair.Right.Schema.Types.ContainsKey(typeName))
@@ -125,6 +108,47 @@ namespace HotChocolate.Stitching.Merge.Handlers
             }
 
             return false;
+        }
+
+        private static bool TryEnqueueForAnalysis(
+            ITypeInfo left, ITypeInfo right,
+            Queue<TypePair> queue)
+        {
+            switch (GetMergeStatus(left.Definition, left.Definition))
+            {
+                case MergeStatus.Analyze:
+                    queue.Enqueue(new TypePair(right, left));
+                    return true;
+                case MergeStatus.Merge:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static MergeStatus GetMergeStatus(
+            ITypeDefinitionNode leftType,
+            ITypeDefinitionNode rightType)
+        {
+            if (leftType is InputObjectTypeDefinitionNode
+                && rightType is InputObjectTypeDefinitionNode)
+            {
+                return MergeStatus.Analyze;
+            }
+            else if (leftType is ScalarTypeDefinitionNode
+                && rightType is ScalarTypeDefinitionNode)
+            {
+                return MergeStatus.Merge;
+            }
+            else if (leftType is EnumTypeDefinitionNode let
+                && rightType is EnumTypeDefinitionNode ret)
+            {
+                return EnumTypeMergeHandler.CanBeMerged(let, ret)
+                    ? MergeStatus.Merge
+                    : MergeStatus.Invalid;
+            }
+
+            return MergeStatus.Analyze;
         }
 
         private static bool CanBeMerged(
@@ -207,6 +231,13 @@ namespace HotChocolate.Stitching.Merge.Handlers
             public ITypeInfo Left { get; }
 
             public ITypeInfo Right { get; }
+        }
+
+        private enum MergeStatus
+        {
+            Merge,
+            Invalid,
+            Analyze
         }
     }
 }

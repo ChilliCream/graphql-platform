@@ -47,27 +47,28 @@ namespace HotChocolate.Stitching
 
             public IQueryExecutor CreateStitchedQueryExecuter()
             {
-                return Schema.Create(
-                    _mergedSchema,
-                    c =>
-                    {
-                        foreach (Action<ISchemaConfiguration> configure in
-                            _builder._schemaConfigs)
+                return new LazyQueryExecutor(() =>
+                    Schema.Create(
+                        _mergedSchema,
+                        c =>
                         {
-                            configure(c);
-                        }
-                        c.RegisterExtendedScalarTypes();
-                        c.UseSchemaStitching();
-                    })
-                    .MakeExecutable(b =>
-                    {
-                        foreach (Action<IQueryExecutionBuilder> configure in
-                            _builder._execConfigs)
+                            foreach (Action<ISchemaConfiguration> configure in
+                                _builder._schemaConfigs)
+                            {
+                                configure(c);
+                            }
+                            c.RegisterExtendedScalarTypes();
+                            c.UseSchemaStitching();
+                        })
+                        .MakeExecutable(b =>
                         {
-                            configure(b);
-                        }
-                        return b.UseStitchingPipeline(_options);
-                    });
+                            foreach (Action<IQueryExecutionBuilder> configure in
+                                _builder._execConfigs)
+                            {
+                                configure(b);
+                            }
+                            return b.UseStitchingPipeline(_options);
+                        }));
             }
 
             public static StitchingFactory Create(

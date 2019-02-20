@@ -76,7 +76,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 if (_field.FieldName.Equals(field.Name.Value))
                 {
                     renamedFields.Add(
-                        field.AddSource(_newFieldName, schemaName));
+                        field.Rename(_newFieldName, schemaName));
                 }
                 else
                 {
@@ -98,7 +98,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 if (_field.FieldName.Equals(field.Name.Value))
                 {
                     renamedFields.Add(
-                        field.AddSource(_newFieldName, schemaName));
+                        field.Rename(_newFieldName, schemaName));
                 }
                 else
                 {

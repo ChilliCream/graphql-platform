@@ -82,7 +82,7 @@ namespace HotChocolate.Stitching.Merge
 
         private static ObjectTypeDefinitionNode ResolveRootType(
             IDictionary<string, ITypeDefinitionNode> types,
-            SchemaDefinitionNode schemaDefinition,
+            SchemaDefinitionNodeBase schemaDefinition,
             OperationType operation)
         {
             string typeName = null;

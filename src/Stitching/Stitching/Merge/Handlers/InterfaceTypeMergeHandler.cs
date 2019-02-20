@@ -20,11 +20,10 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             List<InterfaceTypeDefinitionNode> definitions = types
                 .Select(t => t.Definition)
-                .Cast<InterfaceTypeDefinitionNode>()
                 .ToList();
 
             InterfaceTypeDefinitionNode definition =
-                definitions[0].AddSource(
+                definitions[0].Rename(
                     newTypeName,
                     types.Select(t => t.Schema.Name));
 

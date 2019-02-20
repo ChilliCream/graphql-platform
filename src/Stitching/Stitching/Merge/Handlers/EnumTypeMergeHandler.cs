@@ -19,9 +19,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            EnumTypeInfo left = types.OfType<EnumTypeInfo>().FirstOrDefault();
-
-            if (left == null)
+            if (types.OfType<EnumTypeInfo>().Any())
             {
                 _next.Invoke(context, types);
             }
@@ -30,26 +28,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 var notMerged = types.OfType<EnumTypeInfo>().ToList();
                 bool hasLeftovers = types.Count > notMerged.Count;
 
-                while (notMerged.Count > 0 && left != null)
+                while (notMerged.Count > 0)
                 {
-                    var leftValueSet = new HashSet<string>(
-                        left.Definition.Values.Select(t => t.Name.Value));
-
-                    var readyToMerge = new List<EnumTypeInfo>();
-                    readyToMerge.Add(left);
-
-                    for (int i = 1; i < notMerged.Count; i++)
-                    {
-                        if (CanBeMerged(leftValueSet, notMerged[i].Definition))
-                        {
-                            readyToMerge.Add(notMerged[i]);
-                        }
-                    }
-
-                    MergeType(context, readyToMerge);
-
-                    notMerged.RemoveAll(readyToMerge.Contains);
-                    left = notMerged.Count == 0 ? null : notMerged[0];
+                    MergeNextType(context, notMerged);
                 }
 
                 if (hasLeftovers)
@@ -57,6 +38,30 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     _next.Invoke(context, types.NotOfType<EnumTypeInfo>());
                 }
             }
+        }
+
+        private static void MergeNextType(
+            ISchemaMergeContext context,
+            List<EnumTypeInfo> notMerged)
+        {
+            EnumTypeInfo left = notMerged[0];
+
+            var leftValueSet = new HashSet<string>(
+            left.Definition.Values.Select(t => t.Name.Value));
+
+            var readyToMerge = new List<EnumTypeInfo>();
+            readyToMerge.Add(left);
+
+            for (int i = 1; i < notMerged.Count; i++)
+            {
+                if (CanBeMerged(leftValueSet, notMerged[i].Definition))
+                {
+                    readyToMerge.Add(notMerged[i]);
+                }
+            }
+
+            MergeType(context, readyToMerge);
+            notMerged.RemoveAll(readyToMerge.Contains);
         }
 
         private static void MergeType(
@@ -75,7 +80,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     descriptionDef.Description);
             }
 
-            context.AddType(definition.AddSource(
+            context.AddType(definition.Rename(
                 TypeMergeHelpers.CreateName(context, types),
                 types.Select(t => t.Schema.Name)));
         }
@@ -100,8 +105,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
         }
 
         private static bool CanBeMerged(
-            ISet<string> left,
-            EnumTypeDefinitionNode right)
+            ICollection<string> left,
+            EnumTypeDefinitionNodeBase right)
         {
             if (left.Count == right.Values.Count)
             {

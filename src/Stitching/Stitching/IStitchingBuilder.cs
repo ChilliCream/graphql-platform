@@ -20,8 +20,8 @@ namespace HotChocolate.Stitching
         IStitchingBuilder AddExtensions(
             LoadSchemaDocument loadExtensions);
 
-        IStitchingBuilder AddMergeHandler(
-            MergeTypeHandler handler);
+        IStitchingBuilder AddMergeRule(
+            MergeTypeRuleFactory factory);
 
         IStitchingBuilder AddSchemaConfiguration(
             Action<ISchemaConfiguration> configure);

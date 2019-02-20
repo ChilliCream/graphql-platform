@@ -27,8 +27,8 @@ namespace HotChocolate.Stitching
             new OrderedDictionary<NameString, LoadSchemaDocument>();
         private readonly List<LoadSchemaDocument> _extensions =
             new List<LoadSchemaDocument>();
-        private readonly List<MergeTypeHandler> _mergeHandlers =
-            new List<MergeTypeHandler>();
+        private readonly List<MergeTypeRuleFactory> _mergeRules =
+            new List<MergeTypeRuleFactory>();
         private readonly List<Action<ISchemaConfiguration>> _schemaConfigs =
             new List<Action<ISchemaConfiguration>>();
         private readonly List<Action<IQueryExecutionBuilder>> _execConfigs =
@@ -68,14 +68,14 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IStitchingBuilder AddMergeHandler(MergeTypeHandler handler)
+        public IStitchingBuilder AddMergeRule(MergeTypeRuleFactory factory)
         {
-            if (handler == null)
+            if (factory == null)
             {
-                throw new ArgumentNullException(nameof(handler));
+                throw new ArgumentNullException(nameof(factory));
             }
 
-            _mergeHandlers.Add(handler);
+            _mergeRules.Add(factory);
 
             return this;
         }

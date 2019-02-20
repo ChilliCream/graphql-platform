@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {
     internal static class TypeMergeHelpers
     {
+        private const int _maxRetries = 10000;
+
         public static NameString CreateName<T>(
             ISchemaMergeContext context,
             params T[] types)
@@ -33,7 +37,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 {
                     name = types[0].Definition.Name.Value;
 
-                    for (int i = 0; i < 10000; i++)
+                    for (int i = 0; i < _maxRetries; i++)
                     {
                         NameString n = name + $"_{i}";
                         if (!context.ContainsType(name))
@@ -46,6 +50,34 @@ namespace HotChocolate.Stitching.Merge.Handlers
             }
 
             return name;
+        }
+
+        public static NameString CreateUniqueName(
+            this ITypeInfo typeInfo)
+        {
+            if (typeInfo == null)
+            {
+                throw new ArgumentNullException(nameof(typeInfo));
+            }
+
+            return $"{typeInfo.Schema.Name}_{typeInfo.Definition.Name.Value}";
+        }
+
+        public static NameString CreateUniqueName(
+            this ITypeInfo typeInfo,
+            NamedSyntaxNode namedSyntaxNode)
+        {
+            if (typeInfo == null)
+            {
+                throw new ArgumentNullException(nameof(typeInfo));
+            }
+
+            if (namedSyntaxNode == null)
+            {
+                throw new ArgumentNullException(nameof(namedSyntaxNode));
+            }
+
+            return $"{typeInfo.Schema.Name}_{namedSyntaxNode.Name.Value}";
         }
     }
 }

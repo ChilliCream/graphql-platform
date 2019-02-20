@@ -20,7 +20,6 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             List<ObjectTypeDefinitionNode> definitions = types
                 .Select(t => t.Definition)
-                .Cast<ObjectTypeDefinitionNode>()
                 .ToList();
 
             // ? : how do we handle the interfaces correctly
@@ -31,7 +30,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ObjectTypeDefinitionNode definition = definitions[0]
                 .WithInterfaces(interfaces.Select(t =>
                     new NamedTypeNode(new NameNode(t))).ToList())
-                .AddSource(newTypeName, types.Select(t => t.Schema.Name));
+                .Rename(newTypeName, types.Select(t => t.Schema.Name));
 
             context.AddType(definition);
         }

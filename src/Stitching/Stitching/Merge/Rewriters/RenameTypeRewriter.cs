@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 return typeDefinition;
             }
 
-            return typeDefinition.AddSource(_newTypeName, schema.Name);
+            return typeDefinition.Rename(_newTypeName, schema.Name);
         }
     }
 }

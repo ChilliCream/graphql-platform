@@ -59,7 +59,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
         private static void IntegrateFields(
             ObjectTypeDefinitionNode rootType,
             ITypeInfo typeInfo,
-            HashSet<string> names,
+            ISet<string> names,
             ICollection<FieldDefinitionNode> fields)
         {
             string schemaName = typeInfo.Schema.Name;

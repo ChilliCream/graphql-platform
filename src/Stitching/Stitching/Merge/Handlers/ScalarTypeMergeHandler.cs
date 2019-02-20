@@ -19,14 +19,12 @@ namespace HotChocolate.Stitching.Merge.Handlers
             ISchemaMergeContext context,
             IReadOnlyList<ITypeInfo> types)
         {
-            if (types.OfType<ScalarTypeInfo>().Any())
-            {
-                _next.Invoke(context, types.NotOfType<ScalarTypeInfo>());
-            }
-            else
-            {
-                _next.Invoke(context, types);
-            }
+            IReadOnlyList<ITypeInfo> unhandled =
+                types.OfType<ScalarTypeInfo>().Any()
+                    ? types.NotOfType<ScalarTypeInfo>()
+                    : types;
+
+            _next.Invoke(context, unhandled);
         }
     }
 }

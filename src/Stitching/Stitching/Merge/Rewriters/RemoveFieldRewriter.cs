@@ -40,15 +40,13 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             switch (typeDefinition)
             {
                 case InputObjectTypeDefinitionNode iotd:
-                    return RemoveFields(iotd, schema.Name);
+                    return RemoveFields(iotd);
 
                 case ObjectTypeDefinitionNode otd:
-                    return RemoveFields(otd, schema.Name,
-                        f => otd.WithFields(f));
+                    return RemoveFields(otd, f => otd.WithFields(f));
 
                 case InterfaceTypeDefinitionNode itd:
-                    return RemoveFields(itd, schema.Name,
-                        f => itd.WithFields(f));
+                    return RemoveFields(itd, f => itd.WithFields(f));
 
                 default:
                     return typeDefinition;
@@ -57,7 +55,6 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
         private T RemoveFields<T>(
             T typeDefinition,
-            NameString schemaName,
             RewriteFieldsDelegate<T> rewrite)
             where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode
         {
@@ -75,8 +72,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
         }
 
         private InputObjectTypeDefinitionNode RemoveFields(
-            InputObjectTypeDefinitionNode typeDefinition,
-            NameString schemaName)
+            InputObjectTypeDefinitionNode typeDefinition)
         {
             var renamedFields = new List<InputValueDefinitionNode>();
 

@@ -195,6 +195,10 @@ namespace HotChocolate
             this IServiceCollection services,
             Action<IStitchingBuilder> build)
         {
+            services.AddSingleton<
+                IQueryResultSerializer,
+                JsonQueryResultSerializer>();
+
             var stitchingBuilder = new StitchingBuilder();
             build(stitchingBuilder);
             stitchingBuilder.Populate(services);

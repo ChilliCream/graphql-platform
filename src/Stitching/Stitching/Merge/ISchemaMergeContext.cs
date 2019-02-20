@@ -4,8 +4,12 @@ namespace HotChocolate.Stitching.Merge
 {
     public interface ISchemaMergeContext
     {
+        void AddType(ITypeDefinitionNode type);
+
+        void AddDirective(DirectiveDefinitionNode directive);
+
         bool ContainsType(NameString typeName);
 
-        void AddType(ITypeDefinitionNode type);
+        bool ContainsDirective(NameString directiveName);
     }
 }

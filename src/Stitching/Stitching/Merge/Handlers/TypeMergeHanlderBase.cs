@@ -10,7 +10,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
     {
         private readonly MergeTypeDelegate _next;
 
-        public TypeMergeHanlderBase(MergeTypeDelegate next)
+        protected TypeMergeHanlderBase(MergeTypeDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -30,25 +30,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 var notMerged = types.OfType<T>().ToList();
                 bool hasLeftovers = types.Count > notMerged.Count;
 
-                while (notMerged.Count > 0 && left != null)
+                while (notMerged.Count > 0)
                 {
-                    var readyToMerge = new List<T>();
-                    readyToMerge.Add(left);
-
-                    for (int i = 1; i < notMerged.Count; i++)
-                    {
-                        if (CanBeMerged(left, notMerged[i]))
-                        {
-                            readyToMerge.Add(notMerged[i]);
-                        }
-                    }
-
-                    NameString newTypeName = TypeMergeHelpers.CreateName<T>(
-                        context, readyToMerge);
-                    MergeTypes(context, readyToMerge, newTypeName);
-
-                    notMerged.RemoveAll(readyToMerge.Contains);
-                    left = notMerged.Count == 0 ? default : notMerged[0];
+                    MergeNextType(context, notMerged);
                 }
 
                 if (hasLeftovers)
@@ -56,6 +40,31 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     _next.Invoke(context, types.NotOfType<T>());
                 }
             }
+        }
+
+        private void MergeNextType(
+            ISchemaMergeContext context,
+            List<T> notMerged)
+        {
+            T left = notMerged[0];
+
+            var readyToMerge = new List<T>();
+            readyToMerge.Add(left);
+
+            for (int i = 1; i < notMerged.Count; i++)
+            {
+                if (CanBeMerged(left, notMerged[i]))
+                {
+                    readyToMerge.Add(notMerged[i]);
+                }
+            }
+
+            NameString newTypeName =
+                TypeMergeHelpers.CreateName<T>(
+                    context, readyToMerge);
+
+            MergeTypes(context, readyToMerge, newTypeName);
+            notMerged.RemoveAll(readyToMerge.Contains);
         }
 
         protected abstract bool CanBeMerged(T left, T right);

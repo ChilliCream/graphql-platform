@@ -7,46 +7,19 @@ namespace HotChocolate.Stitching.Merge
 {
     public static class MergeSyntaxNodeExtensions
     {
-        public static NameString CreateUniqueName(
-            this ITypeInfo typeInfo)
-        {
-            if (typeInfo == null)
-            {
-                throw new ArgumentNullException(nameof(typeInfo));
-            }
-
-            return $"{typeInfo.Schema.Name}_{typeInfo.Definition.Name.Value}";
-        }
-
-        public static NameString CreateUniqueName(
-            this ITypeInfo typeInfo, NamedSyntaxNode namedSyntaxNode)
-        {
-            if (typeInfo == null)
-            {
-                throw new ArgumentNullException(nameof(typeInfo));
-            }
-
-            if (namedSyntaxNode == null)
-            {
-                throw new ArgumentNullException(nameof(namedSyntaxNode));
-            }
-
-            return $"{typeInfo.Schema.Name}_{namedSyntaxNode.Name.Value}";
-        }
-
-        public static T AddSource<T>(
+        public static T Rename<T>(
             this T enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
             where T : ITypeDefinitionNode
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static T AddSource<T>(
+        public static T Rename<T>(
             this T typeDefinitionNode,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -57,27 +30,27 @@ namespace HotChocolate.Stitching.Merge
             switch (node)
             {
                 case ObjectTypeDefinitionNode otd:
-                    node = AddSource(otd, newName, schemaNames);
+                    node = Rename(otd, newName, schemaNames);
                     break;
 
                 case InterfaceTypeDefinitionNode itd:
-                    node = AddSource(itd, newName, schemaNames);
+                    node = Rename(itd, newName, schemaNames);
                     break;
 
                 case UnionTypeDefinitionNode utd:
-                    node = AddSource(utd, newName, schemaNames);
+                    node = Rename(utd, newName, schemaNames);
                     break;
 
                 case InputObjectTypeDefinitionNode iotd:
-                    node = AddSource(iotd, newName, schemaNames);
+                    node = Rename(iotd, newName, schemaNames);
                     break;
 
                 case EnumTypeDefinitionNode etd:
-                    node = AddSource(etd, newName, schemaNames);
+                    node = Rename(etd, newName, schemaNames);
                     break;
 
                 case ScalarTypeDefinitionNode std:
-                    node = AddSource(std, newName, schemaNames);
+                    node = Rename(std, newName, schemaNames);
                     break;
 
                 default:
@@ -87,18 +60,18 @@ namespace HotChocolate.Stitching.Merge
             return (T)node;
         }
 
-        public static FieldDefinitionNode AddSource(
+        public static FieldDefinitionNode Rename(
             this FieldDefinitionNode enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static FieldDefinitionNode AddSource(
+        public static FieldDefinitionNode Rename(
             this FieldDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -108,18 +81,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static InputValueDefinitionNode AddSource(
+        public static InputValueDefinitionNode Rename(
             this InputValueDefinitionNode enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static InputValueDefinitionNode AddSource(
+        public static InputValueDefinitionNode Rename(
             this InputValueDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -129,18 +102,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static ScalarTypeDefinitionNode AddSource(
+        public static ScalarTypeDefinitionNode Rename(
             this ScalarTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static ScalarTypeDefinitionNode AddSource(
+        public static ScalarTypeDefinitionNode Rename(
             this ScalarTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -150,18 +123,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static EnumTypeDefinitionNode AddSource(
+        public static EnumTypeDefinitionNode Rename(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static EnumTypeDefinitionNode AddSource(
+        public static EnumTypeDefinitionNode Rename(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -171,18 +144,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static InputObjectTypeDefinitionNode AddSource(
+        public static InputObjectTypeDefinitionNode Rename(
             this InputObjectTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 enumTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static InputObjectTypeDefinitionNode AddSource(
+        public static InputObjectTypeDefinitionNode Rename(
             this InputObjectTypeDefinitionNode enumTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -192,18 +165,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static UnionTypeDefinitionNode AddSource(
+        public static UnionTypeDefinitionNode Rename(
             this UnionTypeDefinitionNode unionTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 unionTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static UnionTypeDefinitionNode AddSource(
+        public static UnionTypeDefinitionNode Rename(
             this UnionTypeDefinitionNode unionTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -213,18 +186,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static ObjectTypeDefinitionNode AddSource(
+        public static ObjectTypeDefinitionNode Rename(
             this ObjectTypeDefinitionNode objectTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 objectTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static ObjectTypeDefinitionNode AddSource(
+        public static ObjectTypeDefinitionNode Rename(
             this ObjectTypeDefinitionNode objectTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -234,18 +207,18 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
-        public static InterfaceTypeDefinitionNode AddSource(
+        public static InterfaceTypeDefinitionNode Rename(
             this InterfaceTypeDefinitionNode interfaceTypeDefinition,
             NameString newName,
             params NameString[] schemaNames)
         {
-            return AddSource(
+            return Rename(
                 interfaceTypeDefinition,
                 newName,
                 (IEnumerable<NameString>)schemaNames);
         }
 
-        public static InterfaceTypeDefinitionNode AddSource(
+        public static InterfaceTypeDefinitionNode Rename(
             this InterfaceTypeDefinitionNode interfaceTypeDefinition,
             NameString newName,
             IEnumerable<NameString> schemaNames)
@@ -287,7 +260,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         private static IReadOnlyList<DirectiveNode> AddRenamedDirective(
-            IReadOnlyList<DirectiveNode> directives,
+            IEnumerable<DirectiveNode> directives,
             NameString originalName,
             IEnumerable<NameString> schemaNames)
         {

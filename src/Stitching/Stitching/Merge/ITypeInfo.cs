@@ -13,7 +13,7 @@ namespace HotChocolate.Stitching.Merge
         bool IsRootType { get; }
     }
 
-    public interface ITypeInfo<T>
+    public interface ITypeInfo<out T>
         : ITypeInfo
         where T : ITypeDefinitionNode
     {

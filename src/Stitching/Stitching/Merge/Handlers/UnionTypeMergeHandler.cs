@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
 
                 for (int i = 0; i < notMerged.Count; i++)
                 {
-                    context.AddType(notMerged[i].Definition.AddSource(
+                    context.AddType(notMerged[i].Definition.Rename(
                         TypeMergeHelpers.CreateName(context, notMerged[i]),
                         types.Select(t => t.Schema.Name)));
                 }

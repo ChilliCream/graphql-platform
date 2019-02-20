@@ -36,7 +36,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
         private static void RemoveType(
             ICollection<IDefinitionNode> definitions,
-            ITypeDefinitionNode typeDefinition)
+            IDefinitionNode typeDefinition)
         {
             if (typeDefinition != null)
             {

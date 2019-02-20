@@ -14,12 +14,8 @@ namespace HotChocolate.Stitching.Merge
     public class SchemaMerger
         : ISchemaMerger
     {
-        private delegate T RewriteFieldsDelegate<T>(
-            IReadOnlyList<FieldDefinitionNode> fields)
-            where T : ComplexTypeDefinitionNodeBase, ITypeDefinitionNode;
-
-        private static List<MergeTypeHandler> _defaultHandlers =
-            new List<MergeTypeHandler>
+        private static List<MergeTypeRuleFactory> _defaultMergeRules =
+            new List<MergeTypeRuleFactory>
             {
                 SchemaMergerExtensions
                     .CreateHandler<ScalarTypeMergeHandler>(),
@@ -36,8 +32,8 @@ namespace HotChocolate.Stitching.Merge
                 SchemaMergerExtensions
                     .CreateHandler<EnumTypeMergeHandler>(),
             };
-        private readonly List<MergeTypeHandler> _handlers =
-            new List<MergeTypeHandler>();
+        private readonly List<MergeTypeRuleFactory> _mergeRules =
+            new List<MergeTypeRuleFactory>();
         private readonly List<ITypeRewriter> _typeRewriters =
             new List<ITypeRewriter>();
         private readonly List<IDocumentRewriter> _docRewriters =
@@ -45,14 +41,14 @@ namespace HotChocolate.Stitching.Merge
         private readonly OrderedDictionary<NameString, DocumentNode> _schemas =
             new OrderedDictionary<NameString, DocumentNode>();
 
-        public ISchemaMerger AddMergeHandler(MergeTypeHandler handler)
+        public ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory)
         {
-            if (handler == null)
+            if (factory == null)
             {
-                throw new ArgumentNullException(nameof(handler));
+                throw new ArgumentNullException(nameof(factory));
             }
 
-            _handlers.Add(handler);
+            _mergeRules.Add(factory);
             return this;
         }
 
@@ -94,7 +90,7 @@ namespace HotChocolate.Stitching.Merge
 
         public DocumentNode Merge()
         {
-            MergeTypeDelegate merge = CompileMergeDelegate();
+            MergeTypeRuleDelegate merge = CompileMergeDelegate();
             IReadOnlyList<ISchemaInfo> schemas = CreateSchemaInfos();
 
             var context = new SchemaMergeContext();
@@ -153,7 +149,7 @@ namespace HotChocolate.Stitching.Merge
             ISchemaMergeContext context,
             OperationType operation,
             IEnumerable<ISchemaInfo> schemas,
-            MergeTypeDelegate merge)
+            MergeTypeRuleDelegate merge)
         {
             var types = new List<TypeInfo>();
 
@@ -177,7 +173,7 @@ namespace HotChocolate.Stitching.Merge
             ISchemaMergeContext context,
             ISet<string> typeNames,
             IEnumerable<ISchemaInfo> schemas,
-            MergeTypeDelegate merge)
+            MergeTypeRuleDelegate merge)
         {
             var types = new List<ITypeInfo>();
 
@@ -227,9 +223,9 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        private MergeTypeDelegate CompileMergeDelegate()
+        private MergeTypeRuleDelegate CompileMergeDelegate()
         {
-            MergeTypeDelegate current = (c, t) =>
+            MergeTypeRuleDelegate current = (c, t) =>
             {
                 if (t.Count > 0)
                 {
@@ -238,9 +234,9 @@ namespace HotChocolate.Stitching.Merge
                 }
             };
 
-            var handlers = new List<MergeTypeHandler>();
-            handlers.AddRange(_defaultHandlers);
-            handlers.AddRange(_handlers);
+            var handlers = new List<MergeTypeRuleFactory>();
+            handlers.AddRange(_defaultMergeRules);
+            handlers.AddRange(_mergeRules);
 
             for (int i = handlers.Count - 1; i >= 0; i--)
             {
