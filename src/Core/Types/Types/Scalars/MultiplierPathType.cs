@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -48,8 +50,9 @@ namespace HotChocolate.Types
                 if (!MultiplierPathString.IsValidName(stringLiteral.Value))
                 {
                     throw new ScalarSerializationException(
-                        AbstractionResources.Type_Name_IsNotValid(
-                            stringLiteral.Value));
+                        string.Format(CultureInfo.InvariantCulture,
+                            Resources.Type_NameIsNotValid,
+                            stringLiteral.Value ?? "null"));
                 }
                 return new MultiplierPathString(stringLiteral.Value);
             }
