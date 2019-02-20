@@ -145,7 +145,7 @@ namespace HotChocolate.Stitching.Merge
             return rewritten;
         }
 
-        private void MergeRootType(
+        private static void MergeRootType(
             ISchemaMergeContext context,
             OperationType operation,
             IEnumerable<ISchemaInfo> schemas,
@@ -153,7 +153,7 @@ namespace HotChocolate.Stitching.Merge
         {
             var types = new List<TypeInfo>();
 
-            foreach (SchemaInfo schema in schemas)
+            foreach (ISchemaInfo schema in schemas)
             {
                 ObjectTypeDefinitionNode rootType =
                     schema.GetRootType(operation);
@@ -184,12 +184,12 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        private ISet<string> CreateNameSet(
+        private static ISet<string> CreateNameSet(
             IEnumerable<ISchemaInfo> schemas)
         {
             HashSet<string> names = new HashSet<string>();
 
-            foreach (SchemaInfo schema in schemas)
+            foreach (ISchemaInfo schema in schemas)
             {
                 foreach (string name in schema.Types.Keys)
                 {
@@ -207,7 +207,7 @@ namespace HotChocolate.Stitching.Merge
         {
             types.Clear();
 
-            foreach (SchemaInfo schema in schemas)
+            foreach (ISchemaInfo schema in schemas)
             {
                 if (schema.Types.TryGetValue(name,
                     out ITypeDefinitionNode typeDefinition))
