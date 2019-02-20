@@ -160,9 +160,10 @@ namespace HotChocolate.Stitching
                     RemoteQueryBatchOperation>();
             }
 
-            serviceCollection.TryAddSingleton(services =>
-                services.GetRequiredService<StitchingFactory>()
-                    .CreateStitchedQueryExecuter());
+            serviceCollection.TryAddSingleton<IQueryExecutor>(
+                services => new LazyQueryExecutor(() =>
+                    services.GetRequiredService<StitchingFactory>()
+                        .CreateStitchedQueryExecuter()));
 
             serviceCollection.TryAddSingleton(services =>
                 services.GetRequiredService<IQueryExecutor>()
