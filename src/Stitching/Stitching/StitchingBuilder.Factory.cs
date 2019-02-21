@@ -70,19 +70,33 @@ namespace HotChocolate.Stitching
                 StitchingBuilder builder,
                 IServiceProvider services)
             {
-                IDictionary<NameString, DocumentNode> schemas =
+                // fetch schemas for createing remote schemas
+                IDictionary<NameString, DocumentNode> remoteSchemas =
                     LoadSchemas(builder._schemas, services);
 
+                // fetch schema extensions
                 IReadOnlyList<DocumentNode> extensions =
                     LoadExtensions(builder._extensions, services);
 
+                // add local remote executors
                 var executors = new List<IRemoteExecutorAccessor>(
-                    services.GetServices<IRemoteExecutorAccessor>());
-                executors.AddRange(CreateRemoteExecutors(schemas));
+                   services.GetServices<IRemoteExecutorAccessor>());
 
-                DocumentNode mergedSchema = MergeSchemas(builder, schemas);
+                // create schema map for merge process
+                var allSchemas = new Dictionary<NameString, DocumentNode>(
+                    remoteSchemas);
+
+                // add schemas from local remote schemas for merging them
+                AddSchemasFromExecutors(allSchemas, executors);
+
+                // add remote executors
+                executors.AddRange(CreateRemoteExecutors(remoteSchemas));
+
+                // merge schema
+                DocumentNode mergedSchema = MergeSchemas(builder, allSchemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
 
+                // create factory
                 return new StitchingFactory(builder, executors, mergedSchema);
             }
 
@@ -97,15 +111,19 @@ namespace HotChocolate.Stitching
                     schemas[name] = schemaLoaders[name].Invoke(services);
                 }
 
-                foreach (IRemoteExecutorAccessor accessor in
-                    services.GetServices<IRemoteExecutorAccessor>())
+                return schemas;
+            }
+
+            private static void AddSchemasFromExecutors(
+                IDictionary<NameString, DocumentNode> schemas,
+                IEnumerable<IRemoteExecutorAccessor> accessors)
+            {
+                foreach (IRemoteExecutorAccessor accessor in accessors)
                 {
                     schemas[accessor.SchemaName] =
                         SchemaSerializer.SerializeSchema(
                             accessor.Executor.Schema);
                 }
-
-                return schemas;
             }
 
             private static IReadOnlyList<DocumentNode> LoadExtensions(
