@@ -11,14 +11,4 @@ namespace HotChocolate.Types.Descriptors
 
         public bool Ignore { get; set; }
     }
-
-    public abstract class FieldDescriptionBase<T>
-        : FieldDescriptionBase
-        , IHasSyntaxNode
-        where T : class, ISyntaxNode
-    {
-        public T SyntaxNode { get; set; }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-    }
 }

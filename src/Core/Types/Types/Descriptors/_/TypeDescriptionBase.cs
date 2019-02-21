@@ -32,14 +32,4 @@ namespace HotChocolate.Types.Descriptors
 
         public abstract IDescriptionValidationResult Validate();
     }
-
-    public abstract class TypeDescriptionBase<T>
-        : TypeDescriptionBase
-        , IHasSyntaxNode
-        where T : class, ISyntaxNode
-    {
-        public T SyntaxNode { get; set; }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-    }
 }
