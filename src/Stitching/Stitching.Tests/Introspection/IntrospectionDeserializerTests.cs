@@ -22,6 +22,19 @@ namespace HotChocolate.Stitching.Introspection
         }
 
         [Fact]
+        public void DeserializeGiaIntrospectionResult()
+        {
+            // arrange
+            string json = FileResource.Open("GiaIntrospection.json");
+
+            // act
+            DocumentNode schema = IntrospectionDeserializer.Deserialize(json);
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
         public void JsonIsNull()
         {
             // arrange

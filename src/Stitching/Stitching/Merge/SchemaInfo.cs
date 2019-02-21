@@ -3,19 +3,39 @@ using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using System;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
     internal class SchemaInfo
         : ISchemaInfo
     {
+        private static readonly Dictionary<OperationType, string> _names =
+            new Dictionary<OperationType, string>
+            {
+                {
+                    OperationType.Query,
+                    OperationType.Query.ToString()
+                },
+                {
+                    OperationType.Mutation,
+                    OperationType.Mutation.ToString()
+                },
+                {
+                    OperationType.Subscription,
+                    OperationType.Subscription.ToString()
+                }
+            };
+        private ObjectTypeDefinitionNode _queryType;
+        private ObjectTypeDefinitionNode _mutationType;
+        private ObjectTypeDefinitionNode _subscriptionType;
+
         public SchemaInfo(string name, DocumentNode document)
         {
             if (string.IsNullOrEmpty(name))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The schema name mustn't be null or empty.",
+                    StitchingResources.SchemaName_EmptyOrNull,
                     nameof(name));
             }
 
@@ -40,21 +60,13 @@ namespace HotChocolate.Stitching.Merge
             SchemaDefinitionNode schemaDefinition = document.Definitions
                 .OfType<SchemaDefinitionNode>().FirstOrDefault();
 
-            QueryType = ResolveRootType(
-                types,
-                schemaDefinition,
-                OperationType.Query);
-
-            MutationType = ResolveRootType(
-                types,
-                schemaDefinition,
-                OperationType.Mutation);
-
-            SubscriptionType = ResolveRootType(
-                types,
-                schemaDefinition,
-                OperationType.Subscription);
+            RootTypes = GetRootTypeMapppings(
+                GetRootTypeNameMapppings(schemaDefinition),
+                types);
         }
+
+        protected Dictionary<OperationType, ObjectTypeDefinitionNode> RootTypes
+        { get; }
 
         public NameString Name { get; }
 
@@ -66,11 +78,47 @@ namespace HotChocolate.Stitching.Merge
         public IReadOnlyDictionary<string, DirectiveDefinitionNode> Directives
         { get; }
 
-        public ObjectTypeDefinitionNode QueryType { get; }
+        public ObjectTypeDefinitionNode QueryType
+        {
+            get
+            {
+                if (_queryType == null
+                    && RootTypes.TryGetValue(OperationType.Query,
+                        out ObjectTypeDefinitionNode type))
+                {
+                    _queryType = type;
+                }
+                return _queryType;
+            }
+        }
 
-        public ObjectTypeDefinitionNode MutationType { get; }
+        public ObjectTypeDefinitionNode MutationType
+        {
+            get
+            {
+                if (_mutationType == null
+                    && RootTypes.TryGetValue(OperationType.Mutation,
+                        out ObjectTypeDefinitionNode type))
+                {
+                    _mutationType = type;
+                }
+                return _mutationType;
+            }
+        }
 
-        public ObjectTypeDefinitionNode SubscriptionType { get; }
+        public ObjectTypeDefinitionNode SubscriptionType
+        {
+            get
+            {
+                if (_subscriptionType == null
+                    && RootTypes.TryGetValue(OperationType.Subscription,
+                        out ObjectTypeDefinitionNode type))
+                {
+                    _subscriptionType = type;
+                }
+                return _subscriptionType;
+            }
+        }
 
         public bool IsRootType(ITypeDefinitionNode typeDefinition)
         {
@@ -79,30 +127,21 @@ namespace HotChocolate.Stitching.Merge
                 throw new ArgumentNullException(nameof(typeDefinition));
             }
 
-            return typeDefinition == QueryType
-                || typeDefinition == MutationType
-                || typeDefinition == SubscriptionType;
+            if (typeDefinition is ObjectTypeDefinitionNode ot)
+            {
+                return RootTypes.ContainsValue(ot);
+            }
+
+            return false;
         }
 
         public bool TryGetOperationType(
             ObjectTypeDefinitionNode rootType,
             out OperationType operationType)
         {
-            if (rootType == QueryType)
+            if (RootTypes.ContainsValue(rootType))
             {
-                operationType = OperationType.Query;
-                return true;
-            }
-
-            if (rootType == MutationType)
-            {
-                operationType = OperationType.Mutation;
-                return true;
-            }
-
-            if (rootType == SubscriptionType)
-            {
-                operationType = OperationType.Subscription;
+                operationType = RootTypes.First(t => t.Value == rootType).Key;
                 return true;
             }
 
@@ -110,31 +149,39 @@ namespace HotChocolate.Stitching.Merge
             return false;
         }
 
-        private static ObjectTypeDefinitionNode ResolveRootType(
-            IDictionary<string, ITypeDefinitionNode> types,
-            SchemaDefinitionNodeBase schemaDefinition,
-            OperationType operation)
+        private static Dictionary<OperationType, ObjectTypeDefinitionNode>
+            GetRootTypeMapppings(
+                IDictionary<OperationType, string> nameMappings,
+                IDictionary<string, ITypeDefinitionNode> types)
         {
-            string typeName = null;
+            var map = new Dictionary<OperationType, ObjectTypeDefinitionNode>();
 
-            if (schemaDefinition != null)
+            foreach (KeyValuePair<OperationType, string> nameMapping in
+                nameMappings)
             {
-                NamedTypeNode namedType = schemaDefinition.OperationTypes
-                    .FirstOrDefault(t => t.Operation == OperationType.Query)?
-                    .Type;
-                typeName = namedType?.Name.Value;
+                if (types.TryGetValue(nameMapping.Value, out
+                    ITypeDefinitionNode definition)
+                    && definition is ObjectTypeDefinitionNode objectType)
+                {
+                    types.Remove(nameMapping.Value);
+                    map.Add(nameMapping.Key, objectType);
+                }
             }
 
-            typeName = operation.ToString();
+            return map;
+        }
 
-            if (types.TryGetValue(typeName, out ITypeDefinitionNode definition)
-                && definition is ObjectTypeDefinitionNode objectType)
+        private static IDictionary<OperationType, string>
+            GetRootTypeNameMapppings(SchemaDefinitionNodeBase schemaDefinition)
+        {
+            if (schemaDefinition == null)
             {
-                types.Remove(typeName);
-                return objectType;
+                return _names;
             }
 
-            return null;
+            return schemaDefinition.OperationTypes.ToDictionary(
+                t => t.Operation,
+                t => t.Type.Name.Value);
         }
     }
 }
