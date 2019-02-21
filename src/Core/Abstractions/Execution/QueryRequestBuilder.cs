@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -17,12 +16,7 @@ namespace HotChocolate.Execution
 
         public IQueryRequestBuilder SetQuery(string query)
         {
-            if (query == null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-
-            _query = query;
+            _query = query ?? throw new ArgumentNullException(nameof(query));
             return this;
         }
 
@@ -87,11 +81,9 @@ namespace HotChocolate.Execution
         {
             if (_query == null)
             {
-                // TODO : RESOURCES
                 throw new QueryRequestBuilderException(
-                    "TODO");
+                    AbstractionResources.QueryRequestBuilder_QueryIsNull);
             }
-
 
             return new QueryRequest
             {

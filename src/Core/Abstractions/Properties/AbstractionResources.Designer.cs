@@ -22,14 +22,14 @@ namespace HotChocolate.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class AbstractionResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal AbstractionResources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace HotChocolate.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Properties.AbstractionResources", typeof(AbstractionResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -84,6 +84,15 @@ namespace HotChocolate.Properties {
         internal static string Name_MustNotBeEmpty {
             get {
                 return ResourceManager.GetString("Name_MustNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must specify a query before creating a query request..
+        /// </summary>
+        internal static string QueryRequestBuilder_QueryIsNull {
+            get {
+                return ResourceManager.GetString("QueryRequestBuilder_QueryIsNull", resourceCulture);
             }
         }
         

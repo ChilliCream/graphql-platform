@@ -15,8 +15,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(
-                    Resources.DirectiveArgument_NameMustNotBeNullOrempty,
+                throw new ArgumentException(AbstractionResources
+                    .DirectiveArgument_NameMustNotBeNullOrempty,
                     nameof(name));
             }
 

@@ -26,7 +26,7 @@ namespace HotChocolate
             {
                 throw new ArgumentException(
                     string.Format(CultureInfo.InvariantCulture,
-                        Resources.Type_NameIsNotValid,
+                        AbstractionResources.Type_NameIsNotValid,
                         value ?? "null"),
                     nameof(value));
             }
@@ -262,7 +262,7 @@ namespace HotChocolate
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    Resources.Name_MustNotBeEmpty,
+                    AbstractionResources.Name_MustNotBeEmpty,
                     argumentName);
             }
 

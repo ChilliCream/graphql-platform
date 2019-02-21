@@ -16,7 +16,7 @@ namespace HotChocolate
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
-                    Resources.DataLoader_KeyMustNotBeNullOrEmpty,
+                    AbstractionResources.DataLoader_KeyMustNotBeNullOrEmpty,
                     nameof(key));
             }
 

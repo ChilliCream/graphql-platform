@@ -51,7 +51,7 @@ namespace HotChocolate.Types
                 {
                     throw new ScalarSerializationException(
                         string.Format(CultureInfo.InvariantCulture,
-                            Resources.Type_NameIsNotValid,
+                            AbstractionResources.Type_NameIsNotValid,
                             stringLiteral.Value ?? "null"));
                 }
                 return new MultiplierPathString(stringLiteral.Value);

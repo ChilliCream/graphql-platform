@@ -11,8 +11,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(key))
             {
-                throw new ArgumentException(
-                    Resources.State_KeyMustNotBeNullOrEmpty,
+                throw new ArgumentException(AbstractionResources
+                    .State_KeyMustNotBeNullOrEmpty,
                     nameof(key));
             }
 
