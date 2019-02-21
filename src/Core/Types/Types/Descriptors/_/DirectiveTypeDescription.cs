@@ -3,17 +3,12 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     public class DirectiveTypeDescription
-        : TypeDescriptionBase
+        : TypeDescriptionBase<DirectiveDefinitionNode>
         , IHasClrType
-        , IHasSyntaxNode
     {
-        public DirectiveDefinitionNode SyntaxNode { get; set; }
-
-        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
         public bool IsRepeatable { get; set; }
 
         public Type ClrType { get; set; }

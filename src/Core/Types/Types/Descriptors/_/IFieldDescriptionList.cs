@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     public interface IFieldDescriptionList<T>
         : IList<T>

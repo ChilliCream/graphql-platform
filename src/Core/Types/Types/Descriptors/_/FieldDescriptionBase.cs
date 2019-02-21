@@ -1,16 +1,24 @@
-﻿namespace HotChocolate.Types
+﻿using HotChocolate.Language;
+
+namespace HotChocolate.Types.Descriptors
 {
-    public class FieldDescriptionBase
+    public abstract class FieldDescriptionBase
         : TypeDescriptionBase
     {
         protected FieldDescriptionBase() { }
 
-        public TypeReference Type { get; set; }
+        public ITypeReference Type { get; set; }
 
-        public bool Ignored { get; set; }
+        public bool Ignore { get; set; }
+    }
 
-        public bool? IsTypeNullable { get; set; }
+    public abstract class FieldDescriptionBase<T>
+        : FieldDescriptionBase
+        , IHasSyntaxNode
+        where T : class, ISyntaxNode
+    {
+        public T SyntaxNode { get; set; }
 
-        public bool? IsElementTypeNullable { get; set; }
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
     }
 }

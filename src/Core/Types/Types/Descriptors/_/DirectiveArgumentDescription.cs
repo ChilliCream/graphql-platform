@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class DirectiveArgumentDescription
+    public class DirectiveArgumentDescription
         : ArgumentDescription
     {
         public PropertyInfo Property { get; set; }
