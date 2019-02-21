@@ -8,8 +8,11 @@ namespace HotChocolate.Types
     public class DirectiveTypeDescription
         : TypeDescriptionBase
         , IHasClrType
+        , IHasSyntaxNode
     {
         public DirectiveDefinitionNode SyntaxNode { get; set; }
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         public bool IsRepeatable { get; set; }
 
