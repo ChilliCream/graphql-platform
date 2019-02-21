@@ -38,8 +38,8 @@ namespace HotChocolate.Types
         protected void Type<TOutputType>()
             where TOutputType : IOutputType
         {
-            FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(
+            FieldDescription.Type = FieldDescription
+                .Type.GetMoreSpecific(
                     typeof(TOutputType),
                     TypeContext.Output);
         }
@@ -52,13 +52,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            FieldDescription.TypeReference = new TypeReference(type);
+            FieldDescription.Type = new TypeReference(type);
         }
 
         protected void Type(ITypeNode type)
         {
-            FieldDescription.TypeReference = FieldDescription
-                .TypeReference.GetMoreSpecific(type);
+            FieldDescription.Type = FieldDescription
+                .Type.GetMoreSpecific(type);
         }
 
         protected void Argument(

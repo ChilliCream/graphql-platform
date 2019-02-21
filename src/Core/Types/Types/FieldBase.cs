@@ -26,7 +26,7 @@ namespace HotChocolate.Types
 
             Name = description.Name;
             Description = description.Description;
-            TypeReference = description.TypeReference;
+            TypeReference = description.Type;
 
             var directives = new DirectiveCollection(
                 this,

@@ -21,7 +21,7 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.IsType<StringType>(typeRef.SchemaType);
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(string), description.TypeReference.ClrType);
+            Assert.Equal(typeof(string), description.Type.ClrType);
             Assert.Equal("string", description.NativeDefaultValue);
         }
 
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
             // assert
             InputFieldDescription description = descriptor.CreateDescription();
             Assert.Equal(typeof(FieldCollection<InputField>),
-                description.TypeReference.ClrType);
+                description.Type.ClrType);
             Assert.Equal("arguments", description.Name);
         }
     }

@@ -25,8 +25,8 @@ namespace HotChocolate.Types
             {
                 var attribute =
                     member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
-                fieldDescription.IsNullable = attribute.IsNullable;
-                fieldDescription.IsElementNullable = attribute.IsElementNullable;
+                fieldDescription.IsTypeNullable = attribute.IsNullable;
+                fieldDescription.IsElementTypeNullable = attribute.IsElementNullable;
             }
         }
 
@@ -34,14 +34,14 @@ namespace HotChocolate.Types
             this FieldDescriptionBase fieldDescription,
             Func<Type, TypeReference> createContext)
         {
-            if (fieldDescription.IsNullable.HasValue
-                    && fieldDescription.TypeReference.IsClrTypeReference())
+            if (fieldDescription.IsTypeNullable.HasValue
+                    && fieldDescription.Type.IsClrTypeReference())
             {
-                fieldDescription.TypeReference = createContext(
+                fieldDescription.Type = createContext(
                     DotNetTypeInfoFactory.Rewrite(
-                        fieldDescription.TypeReference.ClrType,
-                        !fieldDescription.IsNullable.Value,
-                        !fieldDescription.IsElementNullable.Value));
+                        fieldDescription.Type.ClrType,
+                        !fieldDescription.IsTypeNullable.Value,
+                        !fieldDescription.IsElementTypeNullable.Value));
             }
         }
     }

@@ -5,12 +5,12 @@
     {
         protected FieldDescriptionBase() { }
 
-        public TypeReference TypeReference { get; set; }
+        public TypeReference Type { get; set; }
 
         public bool Ignored { get; set; }
 
-        public bool? IsNullable { get; set; }
+        public bool? IsTypeNullable { get; set; }
 
-        public bool? IsElementNullable { get; set; }
+        public bool? IsElementTypeNullable { get; set; }
     }
 }

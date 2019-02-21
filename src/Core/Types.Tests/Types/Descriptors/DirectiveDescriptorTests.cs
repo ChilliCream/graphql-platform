@@ -175,10 +175,10 @@ namespace HotChocolate.Types
             Assert.Collection(description.Arguments,
                 t => Assert.Equal(
                     typeof(NonNullType<StringType>),
-                    t.TypeReference.ClrType),
+                    t.Type.ClrType),
                 t => Assert.Equal(
                     typeof(string),
-                    t.TypeReference.ClrType));
+                    t.Type.ClrType));
         }
 
         [Fact]

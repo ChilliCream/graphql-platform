@@ -27,7 +27,7 @@ namespace HotChocolate.Types
 
             FieldDescription.Name = member.GetGraphQLName();
             FieldDescription.Description = member.GetGraphQLDescription();
-            FieldDescription.TypeReference = member.GetOutputType();
+            FieldDescription.Type = member.GetOutputType();
             FieldDescription.AcquireNonNullStatus(member);
         }
 

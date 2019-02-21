@@ -32,7 +32,7 @@ namespace HotChocolate.Types
             FieldDescription.SourceType = sourceType;
             FieldDescription.Name = member.GetGraphQLName();
             FieldDescription.Description = member.GetGraphQLDescription();
-            FieldDescription.TypeReference = member.GetOutputType();
+            FieldDescription.Type = member.GetOutputType();
             FieldDescription.AcquireNonNullStatus(member);
         }
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Types
             Type resultType)
         {
             FieldDescription.Resolver = fieldResolver;
-            FieldDescription.TypeReference = FieldDescription.TypeReference
+            FieldDescription.Type = FieldDescription.Type
                 .GetMoreSpecific(resultType, TypeContext.Output);
         }
 

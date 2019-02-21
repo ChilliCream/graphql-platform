@@ -20,6 +20,7 @@ namespace HotChocolate.Types
         public BindingBehavior ArgumentBindingBehavior { get; set; }
 
         public IDirectiveMiddleware Middleware { get; set; }
+
         public HashSet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();
 

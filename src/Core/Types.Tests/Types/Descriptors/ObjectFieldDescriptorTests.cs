@@ -22,7 +22,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.TypeReference;
+            TypeReference typeRef = description.Type;
             Assert.Equal(typeof(NonNullType<ListType<NonNullType<__InputValue>>>), typeRef.ClrType);
         }
 
@@ -112,7 +112,7 @@ namespace HotChocolate.Types
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
             Assert.Equal(typeof(NativeType<string>),
-                description.TypeReference.ClrType);
+                description.Type.ClrType);
             Assert.NotNull(description.Resolver);
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -136,7 +136,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(__Type), description.TypeReference.ClrType);
+            Assert.Equal(typeof(__Type), description.Type.ClrType);
             Assert.NotNull(description.Resolver);
         }
 

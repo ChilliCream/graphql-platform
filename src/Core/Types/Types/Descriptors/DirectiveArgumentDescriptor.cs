@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         {
             InputDescription.Description = property.GetGraphQLDescription();
             InputDescription.Property = property;
-            InputDescription.TypeReference = property.GetInputType();
+            InputDescription.Type = property.GetInputType();
         }
 
         protected new DirectiveArgumentDescription InputDescription

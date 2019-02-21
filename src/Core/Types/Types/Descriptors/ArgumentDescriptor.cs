@@ -24,7 +24,7 @@ namespace HotChocolate.Types
 
             InputDescription = new ArgumentDescription();
             InputDescription.Name = argumentName;
-            InputDescription.TypeReference = argumentType.GetInputType();
+            InputDescription.Type = argumentType.GetInputType();
             InputDescription.DefaultValue = NullValueNode.Default;
         }
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Types
 
         public void Type<TInputType>()
         {
-            InputDescription.TypeReference = InputDescription.TypeReference
+            InputDescription.Type = InputDescription.Type
                 .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
         }
 
@@ -68,12 +68,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(inputType));
             }
 
-            InputDescription.TypeReference = new TypeReference(inputType);
+            InputDescription.Type = new TypeReference(inputType);
         }
 
         public void Type(ITypeNode type)
         {
-            InputDescription.TypeReference = InputDescription.TypeReference
+            InputDescription.Type = InputDescription.Type
                 .GetMoreSpecific(type);
         }
 
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
             }
             else
             {
-                InputDescription.TypeReference = InputDescription.TypeReference
+                InputDescription.Type = InputDescription.Type
                     .GetMoreSpecific(defaultValue.GetType(), TypeContext.Input);
                 InputDescription.NativeDefaultValue = defaultValue;
                 InputDescription.DefaultValue = null;
