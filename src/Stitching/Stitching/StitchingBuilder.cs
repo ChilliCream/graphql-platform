@@ -1,22 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
-using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
-using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching
 {
@@ -54,8 +48,9 @@ namespace HotChocolate.Stitching
 
             if (_schemas.ContainsKey(name) || _execFacs.ContainsKey(name))
             {
-                // TODO : RESOURCES
-                throw new ArgumentException("TODO", nameof(name));
+                throw new ArgumentException(
+                    StitchingResources.StitchingBuilder_SchemaNameInUse,
+                    nameof(name));
             }
 
             _schemas.Add(name, loadSchema);
@@ -76,8 +71,9 @@ namespace HotChocolate.Stitching
 
             if (_schemas.ContainsKey(name) || _execFacs.ContainsKey(name))
             {
-                // TODO : RESOURCES
-                throw new ArgumentException("TODO", nameof(name));
+                throw new ArgumentException(
+                    StitchingResources.StitchingBuilder_SchemaNameInUse,
+                    nameof(name));
             }
 
             _execFacs.Add(name, factory);

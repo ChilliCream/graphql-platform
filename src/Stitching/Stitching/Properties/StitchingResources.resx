@@ -280,6 +280,9 @@
   <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
     <value>The name of the schema to which this type belongs to.</value>
   </data>
+  <data name="StitchingBuilder_SchemaNameInUse" xml:space="preserve">
+    <value>The specified schema name was already beeing used.</value>
+  </data>
   <data name="Type_NotSupported" xml:space="preserve">
     <value>The type definition is not yet supported.</value>
   </data>

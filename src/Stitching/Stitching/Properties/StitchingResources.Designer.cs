@@ -350,6 +350,15 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified schema name was already beeing used..
+        /// </summary>
+        internal static string StitchingBuilder_SchemaNameInUse {
+            get {
+                return ResourceManager.GetString("StitchingBuilder_SchemaNameInUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type definition is not yet supported..
         /// </summary>
         internal static string Type_NotSupported {
