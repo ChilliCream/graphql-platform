@@ -156,7 +156,8 @@ namespace HotChocolate.Stitching
                             schemas[name].Definitions
                                 .OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new CustomScalarType(typeDefinition));
+                            c.RegisterType(new CustomScalarType(
+                                typeDefinition));
                         }
 
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
