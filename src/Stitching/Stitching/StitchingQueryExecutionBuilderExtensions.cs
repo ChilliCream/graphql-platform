@@ -50,18 +50,9 @@ namespace HotChocolate.Execution
             return builder
                 .AddOptions(options)
                 .AddErrorHandler()
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
-                .AddQueryCache(options.QueryCacheSize)
-                .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
                 .UseExceptionHandling()
-                .UseQueryParser()
-                .UseValidation()
-                .UseOperationResolver()
-                .UseMaxComplexity()
                 .UseRemoteQueryExecutor(schemaName);
         }
 
