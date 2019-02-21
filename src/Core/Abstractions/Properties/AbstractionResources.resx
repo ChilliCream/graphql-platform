@@ -129,6 +129,9 @@
   <data name="QueryRequestBuilder_QueryIsNull" xml:space="preserve">
     <value>You must specify a query before creating a query request.</value>
   </data>
+  <data name="QueryRequestBuilder_QueryIsNullOrEmpty" xml:space="preserve">
+    <value>The query mustn't be null or empty.</value>
+  </data>
   <data name="State_KeyMustNotBeNullOrEmpty" xml:space="preserve">
     <value>The state key mustn't null or empty.</value>
   </data>

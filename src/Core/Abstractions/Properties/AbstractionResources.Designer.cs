@@ -97,6 +97,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The query mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryRequestBuilder_QueryIsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("QueryRequestBuilder_QueryIsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The state key mustn&apos;t null or empty..
         /// </summary>
         internal static string State_KeyMustNotBeNullOrEmpty {

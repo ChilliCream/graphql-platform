@@ -16,7 +16,9 @@ namespace HotChocolate.Execution
 
         public IQueryRequestBuilder SetQuery(string query)
         {
-            _query = query ?? throw new ArgumentNullException(nameof(query));
+            _query = query ?? throw new ArgumentException(
+                AbstractionResources.QueryRequestBuilder_QueryIsNullOrEmpty,
+                nameof(query));
             return this;
         }
 

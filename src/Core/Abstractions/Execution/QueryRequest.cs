@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -11,7 +12,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query cannot be null or empty.",
+                    AbstractionResources.QueryRequestBuilder_QueryIsNullOrEmpty,
                     nameof(query));
             }
             Query = query;
