@@ -149,8 +149,8 @@ namespace HotChocolate.AspNetCore
         protected abstract Task<IQueryRequestBuilder> CreateQueryRequestAsync(
             HttpContext context);
 
-        private async Task<IReadOnlyQueryRequest> CreateQueryRequestInternalAsync(
-            HttpContext context)
+        private async Task<IReadOnlyQueryRequest>
+            CreateQueryRequestInternalAsync(HttpContext context)
         {
             IQueryRequestBuilder builder =
                 await CreateQueryRequestAsync(context)

@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Utilities
         public CustomScalarType(ScalarTypeDefinitionNode typeDefinition)
             : base(typeDefinition?.Name.Value)
         {
-            Description = typeDefinition.Description?.Value;
+            Description = typeDefinition?.Description?.Value;
         }
 
         public override Type ClrType => typeof(object);

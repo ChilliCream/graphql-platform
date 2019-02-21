@@ -92,7 +92,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        public async Task PrepareRequestAsync(IQueryRequestBuilder requestBuilder)
+        public async Task PrepareRequestAsync(
+            IQueryRequestBuilder requestBuilder)
         {
             requestBuilder.SetProperties(
                 new Dictionary<string, object>(RequestProperties));
