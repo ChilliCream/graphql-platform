@@ -27,19 +27,68 @@ namespace HotChocolate.Stitching.Merge
 
             var newTypes = extensions.Definitions
                 .OfType<ITypeDefinitionNode>().ToList();
+            var newDirectives = extensions.Definitions
+                .OfType<DirectiveDefinitionNode>().ToList();
 
             DocumentNode current = schema;
 
-            if (newTypes.Count > 0)
+            if (newTypes.Count > 0 || newDirectives.Count > 0)
             {
+                current = RemoveDirectives(current,
+                    newDirectives.Select(t => t.Name.Value));
+                current = RemoveTypes(current,
+                    newTypes.Select(t => t.Name.Value));
+
                 var definitions = schema.Definitions.ToList();
                 definitions.AddRange(newTypes);
+                definitions.AddRange(newDirectives);
                 current = current.WithDefinitions(definitions);
             }
 
             var context = new MergeContext(schema, extensions);
             current = RewriteDocument(current, context);
             return current;
+        }
+
+        private DocumentNode RemoveDirectives(
+            DocumentNode document,
+            IEnumerable<string> directiveNames)
+        {
+            return RemoveDefinitions(
+                document,
+                d => d.Definitions.OfType<DirectiveDefinitionNode>()
+                    .ToDictionary(t => t.Name.Value, t => (IDefinitionNode)t),
+                directiveNames);
+        }
+
+        private DocumentNode RemoveTypes(
+            DocumentNode document,
+            IEnumerable<string> directiveNames)
+        {
+            return RemoveDefinitions(
+                document,
+                d => d.Definitions.OfType<ITypeDefinitionNode>()
+                    .ToDictionary(t => t.Name.Value, t => (IDefinitionNode)t),
+                directiveNames);
+        }
+
+        private DocumentNode RemoveDefinitions(
+            DocumentNode document,
+            Func<DocumentNode, Dictionary<string, IDefinitionNode>> toDict,
+            IEnumerable<string> names)
+        {
+            List<IDefinitionNode> definitions = document.Definitions.ToList();
+            Dictionary<string, IDefinitionNode> directives = toDict(document);
+
+            foreach (string name in names)
+            {
+                if (directives.TryGetValue(name, out IDefinitionNode directive))
+                {
+                    definitions.Remove(directive);
+                }
+            }
+
+            return document.WithDefinitions(definitions);
         }
 
         protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
