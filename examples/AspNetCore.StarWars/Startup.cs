@@ -84,7 +84,7 @@ namespace StarWars
             app.UseGraphQL(new GraphQLMiddlewareOptions
             {
                 Path = "/graphql",
-                OnCreateRequest = (c, r, p, ct) =>
+                OnCreateRequest = (ctx, builder, ct) =>
                 {
                     var identity = new ClaimsIdentity();
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
