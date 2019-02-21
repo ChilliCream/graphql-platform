@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System;
 using System.Collections.Concurrent;
@@ -92,15 +92,15 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        public async Task PrepareRequestAsync(QueryRequest request)
+        public async Task PrepareRequestAsync(IQueryRequestBuilder requestBuilder)
         {
-            var properties = new Dictionary<string, object>(RequestProperties);
-            request.Properties = properties;
+            requestBuilder.SetProperties(
+                new Dictionary<string, object>(RequestProperties));
 
             if (_onCreateRequest != null)
             {
                 await _onCreateRequest(
-                    HttpContext, request, properties,
+                    HttpContext, requestBuilder,
                     HttpContext.RequestAborted)
                     .ConfigureAwait(false);
             }
