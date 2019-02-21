@@ -9,6 +9,8 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching
 {
@@ -35,6 +37,7 @@ namespace HotChocolate.Stitching
             public IStitchingContext CreateStitchingContext(
                 IServiceProvider services)
             {
+
                 return new StitchingContext(services, _executors);
             }
 
@@ -69,12 +72,15 @@ namespace HotChocolate.Stitching
             {
                 IDictionary<NameString, DocumentNode> schemas =
                     LoadSchemas(builder._schemas, services);
+
                 IReadOnlyList<DocumentNode> extensions =
                     LoadExtensions(builder._extensions, services);
-                IReadOnlyList<IRemoteExecutorAccessor> executors =
-                    CreateRemoteExecutors(schemas);
-                DocumentNode mergedSchema =
-                    MergeSchemas(builder, schemas);
+
+                var executors = new List<IRemoteExecutorAccessor>(
+                    services.GetServices<IRemoteExecutorAccessor>());
+                executors.AddRange(CreateRemoteExecutors(schemas));
+
+                DocumentNode mergedSchema = MergeSchemas(builder, schemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
 
                 return new StitchingFactory(builder, executors, mergedSchema);
@@ -89,6 +95,14 @@ namespace HotChocolate.Stitching
                 foreach (NameString name in schemaLoaders.Keys)
                 {
                     schemas[name] = schemaLoaders[name].Invoke(services);
+                }
+
+                foreach (IRemoteExecutorAccessor accessor in
+                    services.GetServices<IRemoteExecutorAccessor>())
+                {
+                    schemas[accessor.SchemaName] =
+                        SchemaSerializer.SerializeSchema(
+                            accessor.Executor.Schema);
                 }
 
                 return schemas;

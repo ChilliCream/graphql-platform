@@ -19,6 +19,28 @@ namespace HotChocolate.Stitching
         private static readonly string _introspectionQuery =
             StitchingResources.IntrospectionQuery;
 
+        public static IStitchingBuilder AddSchema(
+            this IStitchingBuilder builder,
+            NameString name,
+            ISchema schema)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            name.EnsureNotEmpty(nameof(name));
+
+            builder.AddQueryExecutor(name, s => schema.MakeExecutable());
+
+            return builder;
+        }
+
         public static IStitchingBuilder AddSchemaFromString(
             this IStitchingBuilder builder,
             NameString name,
@@ -82,7 +104,7 @@ namespace HotChocolate.Stitching
             {
                 HttpClient httpClient =
                     s.GetRequiredService<IHttpClientFactory>()
-                    .CreateClient(name);
+                        .CreateClient(name);
 
                 var request = new HttpQueryRequest
                 {

@@ -1,0 +1,16 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "The field `hello` does not exist on the type `Query`.",
+      "locations": [
+        {
+          "line": 13,
+          "column": 22
+        }
+      ]
+    }
+  ]
+}

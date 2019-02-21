@@ -52,6 +52,12 @@ namespace HotChocolate.Stitching
 
             name.EnsureNotEmpty(nameof(name));
 
+            if (_schemas.ContainsKey(name) || _execFacs.ContainsKey(name))
+            {
+                // TODO : RESOURCES
+                throw new ArgumentException("TODO", nameof(name));
+            }
+
             _schemas.Add(name, loadSchema);
 
             return this;
@@ -67,6 +73,12 @@ namespace HotChocolate.Stitching
             }
 
             name.EnsureNotEmpty(nameof(name));
+
+            if (_schemas.ContainsKey(name) || _execFacs.ContainsKey(name))
+            {
+                // TODO : RESOURCES
+                throw new ArgumentException("TODO", nameof(name));
+            }
 
             _execFacs.Add(name, factory);
 
@@ -167,12 +179,21 @@ namespace HotChocolate.Stitching
                 IQueryResultSerializer,
                 JsonQueryResultSerializer>();
 
+            foreach (KeyValuePair<NameString, ExecutorFactory> factory in
+                _execFacs)
+            {
+                serviceCollection.AddSingleton<IRemoteExecutorAccessor>(
+                    services => new RemoteExecutorAccessor(
+                            factory.Key,
+                            factory.Value.Invoke(services)));
+            }
+
             serviceCollection.TryAddSingleton(services =>
-                StitchingFactory.Create(this, services));
+                    StitchingFactory.Create(this, services));
 
             serviceCollection.TryAddScoped(services =>
-                services.GetRequiredService<StitchingFactory>()
-                    .CreateStitchingContext(services));
+                    services.GetRequiredService<StitchingFactory>()
+                        .CreateStitchingContext(services));
 
             if (!serviceCollection.Any(d =>
                 d.ImplementationType == typeof(RemoteQueryBatchOperation)))
@@ -184,8 +205,9 @@ namespace HotChocolate.Stitching
 
             serviceCollection.TryAddSingleton<IQueryExecutor>(
                 services => new LazyQueryExecutor(() =>
+
                     services.GetRequiredService<StitchingFactory>()
-                        .CreateStitchedQueryExecuter()));
+                                .CreateStitchedQueryExecuter()));
 
             serviceCollection.TryAddSingleton(services =>
                 services.GetRequiredService<IQueryExecutor>()
