@@ -6,7 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate
 {
     // TODO : work in progress new schmea builder interface
-    internal interface ISchemaBuilder
+    public interface ISchemaBuilder
     {
         ISchemaBuilder Use(FieldMiddleware middleware);
 
