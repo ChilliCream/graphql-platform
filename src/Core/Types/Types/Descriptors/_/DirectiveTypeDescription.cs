@@ -5,26 +5,27 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    internal class DirectiveTypeDescription
+    public class DirectiveTypeDescription
+        : TypeDescriptionBase
+        , IHasClrType
     {
         public DirectiveDefinitionNode SyntaxNode { get; set; }
-
-        public string Name { get; set; }
-
-        public string Description { get; set; }
 
         public bool IsRepeatable { get; set; }
 
         public Type ClrType { get; set; }
 
-        public BindingBehavior ArgumentBindingBehavior { get; set; }
-
         public IDirectiveMiddleware Middleware { get; set; }
 
-        public HashSet<DirectiveLocation> Locations { get; } =
+        public ISet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();
 
-        public List<DirectiveArgumentDescription> Arguments { get; } =
-            new List<DirectiveArgumentDescription>();
+        public IFieldDescriptionList<DirectiveArgumentDescription> Arguments
+        { get; } = new FieldDescriptionList<DirectiveArgumentDescription>();
+
+        public override IDescriptionValidationResult Validate()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

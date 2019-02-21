@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Types
 {
-    public class TypeDescriptionBase
+    public abstract class TypeDescriptionBase
     {
         protected TypeDescriptionBase() { }
 
@@ -28,5 +28,7 @@ namespace HotChocolate.Types
         /// </summary>
         public IDictionary<string, object> ContextData { get; } =
             new Dictionary<string, object>();
+
+        public abstract IDescriptionValidationResult Validate();
     }
 }
