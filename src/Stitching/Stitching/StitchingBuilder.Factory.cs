@@ -8,6 +8,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
+using System.Linq;
 
 namespace HotChocolate.Stitching
 {
@@ -118,7 +119,14 @@ namespace HotChocolate.Stitching
                     IQueryExecutor executor = Schema.Create(schemas[name], c =>
                     {
                         c.UseNullResolver();
-                        c.RegisterExtendedScalarTypes();
+
+                        foreach (ScalarTypeDefinitionNode typeDefinition in
+                            schemas[name].Definitions
+                                .OfType<ScalarTypeDefinitionNode>())
+                        {
+                            c.RegisterType(new CustomScalarType(typeDefinition));
+                        }
+
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
                     executors.Add(new RemoteExecutorAccessor(name, executor));
                 }
