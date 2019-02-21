@@ -45,8 +45,8 @@ namespace HotChocolate.AspNetCore
         }
 
         /// <inheritdoc />
-        protected override Task<QueryRequest> CreateQueryRequestAsync(
-            HttpContext context)
+        protected override Task<IQueryRequestBuilder>
+            CreateQueryRequestAsync(HttpContext context)
         {
             QueryRequestDto request = ReadRequest(context);
 #if ASPNETCLASSIC
@@ -58,12 +58,12 @@ namespace HotChocolate.AspNetCore
 #endif
 
             return Task.FromResult(
-                new QueryRequest(request.Query, request.OperationName)
-                {
-                    VariableValues = QueryMiddlewareUtilities
-                        .ToDictionary(request.Variables),
-                    Services = serviceProvider
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery(request.Query)
+                    .SetOperation(request.OperationName)
+                    .SetVariableValues(QueryMiddlewareUtilities
+                        .ToDictionary(request.Variables))
+                    .SetServices(serviceProvider));
         }
 
         private static QueryRequestDto ReadRequest(HttpContext context)

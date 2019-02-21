@@ -24,8 +24,7 @@ namespace HotChocolate.AspNetCore
 
     public delegate Task OnCreateRequestAsync(
         HttpContext context,
-        QueryRequest request,
-        IDictionary<string, object> properties,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 
     public class QueryMiddlewareOptions
