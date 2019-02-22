@@ -13,7 +13,8 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Argument("d").Type<DateTimeType>();
             descriptor.Middleware(next => ctx =>
             {
-                ctx.Result = ctx.Directive.GetArgument<DateTime>("d");
+                ctx.Result = ctx.Directive.GetArgument<DateTime>("d")
+                    .ToUniversalTime();
                 return next.Invoke(ctx);
             });
         }
