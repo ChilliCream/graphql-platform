@@ -20,7 +20,10 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Field("extendedScalar")
                 .Argument("d", a => a.Type<DateTimeType>())
                 .Type<DateTimeType>()
-                .Resolver(ctx => ctx.Argument<DateTime>("d").ToUniversalTime());
+                .Resolver(ctx => { 
+                    DateTime dateTime = ctx.Argument<DateTime>("d").ToUniversalTime();
+                    return dateTime;
+                });
         }
     }
 }
