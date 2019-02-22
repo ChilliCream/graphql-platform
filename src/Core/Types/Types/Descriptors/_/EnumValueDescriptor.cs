@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    internal class EnumValueDescriptor
+    public class EnumValueDescriptor
         : IEnumValueDescriptor
         , IDescriptionFactory<EnumValueDescription>
     {

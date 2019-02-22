@@ -2,30 +2,6 @@
 
 namespace HotChocolate.Types
 {
-    public interface IEnumTypeDescriptor
-        : IFluent
-    {
-        IEnumTypeDescriptor SyntaxNode(EnumTypeDefinitionNode syntaxNode);
-
-        IEnumTypeDescriptor Name(NameString name);
-
-        IEnumTypeDescriptor Description(string description);
-
-        IEnumValueDescriptor Item<T>(T value);
-
-        IEnumTypeDescriptor BindItems(BindingBehavior bindingBehavior);
-
-        IEnumTypeDescriptor Directive<T>(T directive)
-            where T : class;
-
-        IEnumTypeDescriptor Directive<T>()
-            where T : class, new();
-
-        IEnumTypeDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
-
     public interface IEnumTypeDescriptor<T>
         : IEnumTypeDescriptor
     {

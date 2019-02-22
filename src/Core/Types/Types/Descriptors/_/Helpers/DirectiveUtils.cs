@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     internal static class DirectiveUtils
     {
         public static void AddDirective<T>(
-            this ICollection<DirectiveDescription> directives,
+            this IHasDirectiveDescriptions directivesContainer,
             T directive)
             where T : class
         {
@@ -20,26 +20,28 @@ namespace HotChocolate.Types
             switch (directive)
             {
                 case DirectiveNode node:
-                    directives.Add(new DirectiveDescription(node));
+                    directivesContainer.Directives.Add(
+                        new DirectiveDescription(node));
                     break;
                 case string s:
                     AddDirective(
-                        directives,
+                        directivesContainer,
                         new NameString(s),
                         Array.Empty<ArgumentNode>());
                     break;
                 default:
-                    directives.Add(new DirectiveDescription(directive));
+                    directivesContainer.Directives.Add(
+                        new DirectiveDescription(directive));
                     break;
             }
         }
 
         public static void AddDirective(
-            this ICollection<DirectiveDescription> directives,
+            this IHasDirectiveDescriptions directivesContainer,
             NameString name,
             IEnumerable<ArgumentNode> arguments)
         {
-            directives.Add(new DirectiveDescription(
+            directivesContainer.Directives.Add(new DirectiveDescription(
                 new DirectiveNode(
                     name.EnsureNotEmpty(nameof(name)),
                     arguments.ToArray())));
