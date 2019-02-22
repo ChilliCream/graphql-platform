@@ -141,8 +141,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(valueNode));
             }
 
+            object obj = argument.Type.ParseLiteral(valueNode);
+            if (targetType.IsInstanceOfType(obj))
+            {
+                return obj;
+            }
+
             if (_converter.TryConvert(typeof(object), targetType,
-                argument.Type.ParseLiteral(valueNode), out object o))
+                obj, out object o))
             {
                 return o;
             }
