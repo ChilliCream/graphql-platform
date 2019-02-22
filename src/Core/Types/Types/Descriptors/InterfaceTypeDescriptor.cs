@@ -54,9 +54,9 @@ namespace HotChocolate.Types
                     fields[fieldDescription.Name] = fieldDescription;
                 }
 
-                if (fieldDescription.ClrMember != null)
+                if (fieldDescription.Member != null)
                 {
-                    handledMembers.Add(fieldDescription.ClrMember);
+                    handledMembers.Add(fieldDescription.Member);
                 }
             }
 

@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InputFieldDescription
+    public class InputFieldDescription
         : ArgumentDescription
     {
         public PropertyInfo Property { get; set; }

@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         public InterfaceFieldDescriptor(MemberInfo member)
             : base(new InterfaceFieldDescription())
         {
-            FieldDescription.ClrMember = member
+            FieldDescription.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
             FieldDescription.Name = member.GetGraphQLName();
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
             {
                 FieldDescriptorUtilities.DiscoverArguments(
                     FieldDescription.Arguments,
-                    FieldDescription.ClrMember);
+                    FieldDescription.Member);
                 _argumentsInitialized = true;
             }
         }

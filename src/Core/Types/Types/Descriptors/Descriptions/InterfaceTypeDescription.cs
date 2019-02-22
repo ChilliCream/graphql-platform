@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceTypeDescription
-        : TypeDescriptionBase
+    public class InterfaceTypeDescription
+        : TypeDescriptionBase<InterfaceTypeDefinitionNode>
     {
-        public Type ClrType { get; set; }
-
-        public BindingBehavior FieldBindingBehavior { get; set; } =
-            BindingBehavior.Implicit;
-
-        public InterfaceTypeDefinitionNode SyntaxNode { get; set; }
-
         public ResolveAbstractType ResolveAbstractType { get; set; }
 
-        public List<InterfaceFieldDescription> Fields { get; set; } =
-            new List<InterfaceFieldDescription>();
+        public IBindableList<InterfaceFieldDescription> Fields { get; } =
+            new BindableList<InterfaceFieldDescription>();
     }
 }

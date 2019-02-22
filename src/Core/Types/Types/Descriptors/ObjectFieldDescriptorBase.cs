@@ -4,18 +4,18 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     internal class ObjectFieldDescriptorBase
-        : IDescriptionFactory<ObjectFieldDescriptionBase>
+        : IDescriptionFactory<OutputFieldDescriptionBase>
     {
         protected ObjectFieldDescriptorBase(
-            ObjectFieldDescriptionBase fieldDescription)
+            OutputFieldDescriptionBase fieldDescription)
         {
             FieldDescription = fieldDescription
                 ?? throw new ArgumentNullException(nameof(fieldDescription));
         }
 
-        protected ObjectFieldDescriptionBase FieldDescription { get; }
+        protected OutputFieldDescriptionBase FieldDescription { get; }
 
-        public ObjectFieldDescriptionBase CreateDescription()
+        public OutputFieldDescriptionBase CreateDescription()
         {
             return FieldDescription;
         }

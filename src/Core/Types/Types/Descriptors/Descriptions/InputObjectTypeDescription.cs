@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InputObjectTypeDescription
-        : TypeDescriptionBase
+    public class InputObjectTypeDescription
+        : TypeDescriptionBase<InputObjectTypeDefinitionNode>
     {
-        public InputObjectTypeDefinitionNode SyntaxNode { get; set; }
-
-        public Type ClrType { get; set; }
-
-        public List<InputFieldDescription> Fields { get; set; }
-            = new List<InputFieldDescription>();
+        public IBindableList<InputFieldDescription> Fields { get; }
+            = new BindableList<InputFieldDescription>();
 
         public BindingBehavior FieldBindingBehavior { get; set; }
     }

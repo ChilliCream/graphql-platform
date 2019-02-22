@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceFieldDescription
-        : ObjectFieldDescriptionBase
+    public class InterfaceFieldDescription
+        : OutputFieldDescriptionBase
     {
-        public MemberInfo ClrMember { get; set; }
+        public MemberInfo Member { get; set; }
     }
 }

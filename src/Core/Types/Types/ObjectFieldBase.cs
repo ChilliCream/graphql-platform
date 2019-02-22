@@ -8,7 +8,7 @@ namespace HotChocolate.Types
         , IOutputField
     {
         internal ObjectFieldBase(
-            ObjectFieldDescriptionBase fieldDescription)
+            OutputFieldDescriptionBase fieldDescription)
             : base(fieldDescription, DirectiveLocation.FieldDefinition)
         {
             SyntaxNode = fieldDescription.SyntaxNode;

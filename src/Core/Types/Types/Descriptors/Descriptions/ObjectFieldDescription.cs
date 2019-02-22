@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectFieldDescription
-        : ObjectFieldDescriptionBase
+    public class ObjectFieldDescription
+        : OutputFieldDescriptionBase
     {
-        public Type SourceType { get; set; }
-
         public Type ResolverType { get; set; }
 
-        public MemberInfo ClrMember { get; set; }
+        public MemberInfo Member { get; set; }
 
         public FieldResolverDelegate Resolver { get; set; }
 
-        public List<FieldMiddleware> MiddlewareComponents { get; } =
+        public ICollection<FieldMiddleware> MiddlewareComponents { get; } =
             new List<FieldMiddleware>();
     }
 }

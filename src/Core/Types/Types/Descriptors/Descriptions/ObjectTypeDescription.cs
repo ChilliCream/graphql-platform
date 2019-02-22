@@ -11,10 +11,10 @@ namespace HotChocolate.Types.Descriptors
 
         public BindingBehavior FieldBindingBehavior { get; set; }
 
-        public IBindableList<ObjectFieldDescription> Fields { get; } =
-            new BindableList<ObjectFieldDescription>();
-
         public ICollection<TypeReference> Interfaces { get; } =
             new List<TypeReference>();
+
+        public IBindableList<ObjectFieldDescription> Fields { get; } =
+            new BindableList<ObjectFieldDescription>();
     }
 }
