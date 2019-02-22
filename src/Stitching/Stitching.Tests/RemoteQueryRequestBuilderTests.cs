@@ -52,7 +52,7 @@ namespace HotChocolate.Stitching
 
             // assert
             Assert.Equal("query",
-                Assert.Throws<ArgumentException>(action).ParamName);
+                Assert.Throws<ArgumentNullException>(action).ParamName);
         }
 
         [Fact]
@@ -293,7 +293,7 @@ namespace HotChocolate.Stitching
         public void BuildRequest_SetAll_RequestIsCreated()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Parser.Default.Parse("query bar { foo }");
             var service = new { a = "123" };
 
             // act
