@@ -4,6 +4,7 @@ type Query {
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
+  extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
 }
 
 type Customer @source(name: "Customer", schema: "customer") {
