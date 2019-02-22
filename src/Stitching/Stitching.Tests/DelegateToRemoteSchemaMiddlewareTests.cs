@@ -493,12 +493,12 @@ namespace HotChocolate.Stitching
             {
                 var request = new QueryRequest(@"
                 query a($d: DateTime!) {
-                    a: extendedScalar(d: ""2018-01-01T01:00"")
+                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
                     b: extendedScalar(d: $d)
                 }");
                 request.VariableValues = new Dictionary<string, object>
                 {
-                    {"d", "2019-01-01T01:00"}
+                    {"d", "2019-01-01T01:00:00.000Z"}
                 };
                 request.Services = scope.ServiceProvider;
 
@@ -539,8 +539,9 @@ namespace HotChocolate.Stitching
             {
                 var request = new QueryRequest(@"
                 query a($d: DateTime!) {
-                    a: extendedScalar(d: ""2018-01-01T01:00"")
-                    b: extendedScalar(d: $d) @custom(d: ""2020-09-01T01:00"")
+                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                    b: extendedScalar(d: $d)
+                        @custom(d: ""2020-09-01T01:00:00.000Z"")
                 }");
                 request.VariableValues = new Dictionary<string, object>
                 {
