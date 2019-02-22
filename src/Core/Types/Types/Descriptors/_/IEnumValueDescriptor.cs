@@ -5,12 +5,13 @@ namespace HotChocolate.Types
     public interface IEnumValueDescriptor
         : IFluent
     {
-        IEnumValueDescriptor SyntaxNode(EnumValueDefinitionNode syntaxNode);
+        IEnumValueDescriptor SyntaxNode(
+            EnumValueDefinitionNode enumValueDefinition);
 
-        IEnumValueDescriptor Name(NameString name);
+        IEnumValueDescriptor Name(NameString value);
 
-        IEnumValueDescriptor Description(string description);
+        IEnumValueDescriptor Description(string value);
 
-        IEnumValueDescriptor DeprecationReason(string deprecationReason);
+        IEnumValueDescriptor DeprecationReason(string value);
     }
 }

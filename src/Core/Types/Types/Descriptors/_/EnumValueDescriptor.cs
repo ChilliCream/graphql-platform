@@ -1,7 +1,7 @@
 ﻿using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     public class EnumValueDescriptor
         : IEnumValueDescriptor
@@ -26,56 +26,32 @@ namespace HotChocolate.Types
             return ValueDescription;
         }
 
-        protected void SyntaxNode(EnumValueDefinitionNode syntaxNode)
+        DescriptionBase IDescriptionFactory.CreateDescription() =>
+            CreateDescription();
+
+        public IEnumValueDescriptor SyntaxNode(
+            EnumValueDefinitionNode enumValueDefinition)
         {
-            ValueDescription.SyntaxNode = syntaxNode;
-        }
-
-        protected void Name(NameString name)
-        {
-            ValueDescription.Name = name.EnsureNotEmpty(nameof(name));
-        }
-
-        protected void Description(string description)
-        {
-            ValueDescription.Description = description;
-        }
-
-        protected void DeprecationReason(string deprecationReason)
-        {
-            ValueDescription.DeprecationReason = deprecationReason;
-        }
-
-
-        #region IEnumValueDescriptor
-
-        IEnumValueDescriptor IEnumValueDescriptor.SyntaxNode(
-            EnumValueDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            ValueDescription.SyntaxNode = enumValueDefinition;
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Name(NameString name)
+        public IEnumValueDescriptor Name(NameString value)
         {
-            Name(name);
+            ValueDescription.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Description(
-            string description)
+        public IEnumValueDescriptor Description(string value)
         {
-            Description(description);
+            ValueDescription.Description = value;
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.DeprecationReason(
-            string deprecationReason)
+        public IEnumValueDescriptor DeprecationReason(string value)
         {
-            DeprecationReason(deprecationReason);
+            ValueDescription.Description = value;
             return this;
         }
-
-        #endregion
     }
 }

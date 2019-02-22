@@ -9,11 +9,11 @@ namespace HotChocolate.Types
         /// Associates the enum type with a syntax node
         /// of the parsed GraphQL SDL.
         /// </summary>
-        /// <param name="typeDefinition">
+        /// <param name="enumTypeDefinition">
         /// The the type definition node.
         /// </param>
         IEnumTypeDescriptor SyntaxNode(
-            EnumTypeDefinitionNode typeDefinition);
+            EnumTypeDefinitionNode enumTypeDefinition);
 
         /// <summary>
         /// Defines the name the enum type shall have.
@@ -40,7 +40,7 @@ namespace HotChocolate.Types
             BindingBehavior behavior);
 
         IEnumTypeDescriptor Directive<T>(
-            T instance)
+            T directiveInstance)
             where T : class;
 
         IEnumTypeDescriptor Directive<T>()

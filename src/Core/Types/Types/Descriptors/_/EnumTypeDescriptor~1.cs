@@ -14,61 +14,58 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        #region IEnumTypeDescriptor<T>
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.SyntaxNode(
-            EnumTypeDefinitionNode typeDefinition)
+        public new IEnumTypeDescriptor<T> SyntaxNode(
+            EnumTypeDefinitionNode enumTypeDefinition)
         {
-            EnumDescription.SyntaxNode = typeDefinition;
+            base.SyntaxNode(enumTypeDefinition);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(NameString value)
+        public new IEnumTypeDescriptor<T> Name(NameString value)
         {
-            EnumDescription.Name = value;
+            base.Name(value);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Description(
-            string description)
+        public new IEnumTypeDescriptor<T> Description(string value)
         {
-            EnumDescription.Description = description;
+            base.Description(value);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(
-            BindingBehavior bindingBehavior)
+        public IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior)
         {
-            BindItems(bindingBehavior);
+            base.BindItems(behavior);
             return this;
         }
 
-        IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
+        public IEnumTypeDescriptor<T> Item(T value)
         {
-            return Item(value);
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>(
-            TDirective directive)
-        {
-            EnumDescription.Directives.AddDirective(directive);
+            base.Item(value);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>()
+        public new IEnumTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class
         {
-            EnumDescription.Directives.AddDirective(new TDirective());
+            base.Directive(directiveInstance);
             return this;
         }
 
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
+        public new IEnumTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
+        {
+            base.Directive<TDirective>();
+            return this;
+        }
+
+        public new IEnumTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            EnumDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }
