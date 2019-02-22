@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
@@ -12,7 +13,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Argument("d").Type<DateTimeType>();
             descriptor.Middleware(next => ctx =>
             {
-                ctx.Result = ctx.Directive.GetArgument<DateTimeType>("d");
+                ctx.Result = ctx.Directive.GetArgument<DateTime>("d");
                 return next.Invoke(ctx);
             });
         }

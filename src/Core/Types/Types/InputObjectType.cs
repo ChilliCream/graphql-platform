@@ -171,6 +171,7 @@ namespace HotChocolate.Types
 
             if (Fields.IsEmpty)
             {
+                // TODO : resources
                 context.ReportError(new SchemaError(
                     $"The input object `{Name}` does not have any fields."));
             }
