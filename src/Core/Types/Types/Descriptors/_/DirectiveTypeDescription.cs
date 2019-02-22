@@ -1,29 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DirectiveTypeDescription
-        : TypeDescriptionBase<DirectiveDefinitionNode>
+        : DescriptionBase<DirectiveDefinitionNode>
         , IHasClrType
     {
+        private Type _clrType = typeof(object);
+
+        /// <summary>
+        /// Defines if this directive can be specified multiple
+        /// times on the same object.
+        /// </summary>
         public bool IsRepeatable { get; set; }
 
-        public Type ClrType { get; set; }
+        /// <summary>
+        /// Gets or sets the .net type representation of this directive.
+        /// </summary>
+        public Type ClrType
+        {
+            get => _clrType;
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _clrType = value;
+            }
+        }
 
+        /// <summary>
+        /// Gets or sets the associated field middleware.
+        /// </summary>
         public IDirectiveMiddleware Middleware { get; set; }
 
+        /// <summary>
+        /// Defines the location on which a directive can be annotated.
+        /// </summary>
         public ISet<DirectiveLocation> Locations { get; } =
             new HashSet<DirectiveLocation>();
 
-        public IFieldDescriptionList<DirectiveArgumentDescription> Arguments
-        { get; } = new FieldDescriptionList<DirectiveArgumentDescription>();
+        /// <summary>
+        /// Gets the directive arguments.
+        /// </summary>
+        public IBindableList<DirectiveArgumentDescription> Arguments
+        { get; } = new BindableList<DirectiveArgumentDescription>();
 
-        public override IDescriptionValidationResult Validate()
+        protected override void OnValidate(ICollection<IError> errors)
         {
-            throw new NotImplementedException();
+            base.OnValidate(errors);
+
+            if (Locations.Count == 0)
+            {
+                // TODO : resources
+                errors.Add(ErrorBuilder.New()
+                    .SetMessage(
+                        "A directive must at least specify one location " +
+                        "on which it is valid.")
+                    .Build());
+            }
+
+            foreach (IError argumentError in Arguments
+                .SelectMany(a => a.Validate().Errors))
+            {
+                errors.Add(argumentError);
+            }
         }
     }
 }

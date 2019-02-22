@@ -2,10 +2,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class FieldDescriptionList<T>
+    public class BindableList<T>
         : List<T>
-        , IFieldDescriptionList<T>
-        where T : FieldDescriptionBase
+        , IBindableList<T>
     {
         public BindingBehavior BindingBehavior { get; set; }
     }

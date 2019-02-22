@@ -8,6 +8,6 @@ namespace HotChocolate.Types.Descriptors
 
         bool HasErrors { get; }
 
-        ICollection<IError> Errors { get; }
+        IReadOnlyList<IError> Errors { get; }
     }
 }

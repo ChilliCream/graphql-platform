@@ -1,12 +1,15 @@
-﻿using HotChocolate.Language;
+﻿using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public abstract class FieldDescriptionBase<T>
-        : FieldDescriptionBase
+    public class DescriptionBase<T>
+        : DescriptionBase
         , IHasSyntaxNode
         where T : class, ISyntaxNode
     {
+        protected DescriptionBase() { }
+
         /// <summary>
         /// The associated syntax node from the GraphQL schema SDL.
         /// </summary>
