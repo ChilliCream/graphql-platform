@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+﻿namespace HotChocolate.Types.Descriptors
 {
     public enum BindingBehavior
     {

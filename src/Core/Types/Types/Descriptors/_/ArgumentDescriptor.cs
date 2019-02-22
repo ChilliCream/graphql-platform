@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ArgumentDescriptor
+    public class ArgumentDescriptor
         : IArgumentDescriptor
         , IDescriptionFactory<ArgumentDescription>
     {
@@ -47,27 +47,6 @@ namespace HotChocolate.Types.Descriptors
         DescriptionBase IDescriptionFactory.CreateDescription() =>
             CreateDescription();
 
-
-        public void _Type<TInputType>(TInputType inputType)
-            where TInputType : class, IInputType
-        {
-            if (inputType == null)
-            {
-                throw new ArgumentNullException(nameof(inputType));
-            }
-
-            InputDescription.Type = new TypeReference(inputType);
-        }
-
-        public void _Type(ITypeNode type)
-        {
-            InputDescription.Type = InputDescription.Type
-                .GetMoreSpecific(type);
-        }
-
-
-
-
         public IArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -97,7 +76,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
-            InputDescription.Type = new TypeReference(inputType);
+            InputDescription.Type = new SchemaTypeReference(inputType);
             return this;
         }
 
@@ -105,7 +84,7 @@ namespace HotChocolate.Types.Descriptors
             ITypeNode typeNode)
         {
             InputDescription.Type = InputDescription.Type
-                .GetMoreSpecific(type);
+                .GetMoreSpecific(typeNode);
             return this;
         }
 
@@ -134,19 +113,26 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IArgumentDescriptor Directive<T>(T directiveInstance) where T : class
+        public IArgumentDescriptor Directive<T>(T directiveInstance)
+            where T : class
         {
-            throw new NotImplementedException();
+            InputDescription.AddDirective(directiveInstance);
+            return this;
         }
 
-        public IArgumentDescriptor Directive<T>() where T : class, new()
+        public IArgumentDescriptor Directive<T>()
+            where T : class, new()
         {
-            throw new NotImplementedException();
+            InputDescription.AddDirective(new T());
+            return this;
         }
 
-        public IArgumentDescriptor Directive(NameString name, params ArgumentNode[] arguments)
+        public IArgumentDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
         {
-            throw new NotImplementedException();
+            InputDescription.AddDirective(name, arguments);
+            return this;
         }
     }
 }
