@@ -204,7 +204,7 @@ namespace HotChocolate.Stitching.Delegation
                 null,
                 component.Name,
                 alias,
-                Array.Empty<DirectiveNode>(),
+                requestedField.Directives,
                 arguments,
                 requestedField.SelectionSet
             );

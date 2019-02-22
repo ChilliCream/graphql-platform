@@ -103,8 +103,6 @@ namespace HotChocolate.Stitching.Merge
             // merge all other types
             MergeTypes(context, CreateNameSet(schemas), schemas, merge);
 
-
-
             return RewriteTypeReferences(schemas, context.CreateSchema());
         }
 
@@ -235,8 +233,6 @@ namespace HotChocolate.Stitching.Merge
             {
                 current = referenceRewriter.RewriteSchema(current, schema.Name);
             }
-
-            string s = SchemaSyntaxSerializer.Serialize(current);
 
             return current;
         }
