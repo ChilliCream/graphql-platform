@@ -1,0 +1,490 @@
+{
+  "Query": {
+    "Kind": "Document",
+    "Location": {
+      "Start": 0,
+      "End": 7,
+      "StartToken": {
+        "Kind": "StartOfFile",
+        "Start": 0,
+        "End": 0,
+        "Line": 1,
+        "Column": 1,
+        "Value": null,
+        "Previous": null,
+        "Next": {
+          "Kind": "LeftBrace",
+          "Start": 0,
+          "End": 1,
+          "Line": 1,
+          "Column": 1,
+          "Value": null,
+          "Next": {
+            "Kind": "Name",
+            "Start": 2,
+            "End": 5,
+            "Line": 1,
+            "Column": 3,
+            "Value": "foo",
+            "Next": {
+              "Kind": "RightBrace",
+              "Start": 6,
+              "End": 7,
+              "Line": 1,
+              "Column": 7,
+              "Value": null,
+              "Next": {
+                "Kind": "EndOfFile",
+                "Start": 8,
+                "End": 7,
+                "Line": 1,
+                "Column": 8,
+                "Value": null,
+                "Next": null
+              }
+            }
+          }
+        }
+      },
+      "EndToken": {
+        "Kind": "EndOfFile",
+        "Start": 8,
+        "End": 7,
+        "Line": 1,
+        "Column": 8,
+        "Value": null,
+        "Previous": {
+          "Kind": "RightBrace",
+          "Start": 6,
+          "End": 7,
+          "Line": 1,
+          "Column": 7,
+          "Value": null,
+          "Previous": {
+            "Kind": "Name",
+            "Start": 2,
+            "End": 5,
+            "Line": 1,
+            "Column": 3,
+            "Value": "foo",
+            "Previous": {
+              "Kind": "LeftBrace",
+              "Start": 0,
+              "End": 1,
+              "Line": 1,
+              "Column": 1,
+              "Value": null,
+              "Previous": {
+                "Kind": "StartOfFile",
+                "Start": 0,
+                "End": 0,
+                "Line": 1,
+                "Column": 1,
+                "Value": null,
+                "Previous": null
+              }
+            }
+          }
+        },
+        "Next": null
+      },
+      "Source": {
+        "Text": "{ foo }"
+      }
+    },
+    "Definitions": [
+      {
+        "Kind": "OperationDefinition",
+        "Location": {
+          "Start": 0,
+          "End": 7,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 0,
+            "End": 1,
+            "Line": 1,
+            "Column": 1,
+            "Value": null,
+            "Previous": {
+              "Kind": "StartOfFile",
+              "Start": 0,
+              "End": 0,
+              "Line": 1,
+              "Column": 1,
+              "Value": null,
+              "Previous": null
+            },
+            "Next": {
+              "Kind": "Name",
+              "Start": 2,
+              "End": 5,
+              "Line": 1,
+              "Column": 3,
+              "Value": "foo",
+              "Next": {
+                "Kind": "RightBrace",
+                "Start": 6,
+                "End": 7,
+                "Line": 1,
+                "Column": 7,
+                "Value": null,
+                "Next": {
+                  "Kind": "EndOfFile",
+                  "Start": 8,
+                  "End": 7,
+                  "Line": 1,
+                  "Column": 8,
+                  "Value": null,
+                  "Next": null
+                }
+              }
+            }
+          },
+          "EndToken": {
+            "Kind": "EndOfFile",
+            "Start": 8,
+            "End": 7,
+            "Line": 1,
+            "Column": 8,
+            "Value": null,
+            "Previous": {
+              "Kind": "RightBrace",
+              "Start": 6,
+              "End": 7,
+              "Line": 1,
+              "Column": 7,
+              "Value": null,
+              "Previous": {
+                "Kind": "Name",
+                "Start": 2,
+                "End": 5,
+                "Line": 1,
+                "Column": 3,
+                "Value": "foo",
+                "Previous": {
+                  "Kind": "LeftBrace",
+                  "Start": 0,
+                  "End": 1,
+                  "Line": 1,
+                  "Column": 1,
+                  "Value": null,
+                  "Previous": {
+                    "Kind": "StartOfFile",
+                    "Start": 0,
+                    "End": 0,
+                    "Line": 1,
+                    "Column": 1,
+                    "Value": null,
+                    "Previous": null
+                  }
+                }
+              }
+            },
+            "Next": null
+          },
+          "Source": {
+            "Text": "{ foo }"
+          }
+        },
+        "Name": null,
+        "Operation": "Query",
+        "VariableDefinitions": [],
+        "Directives": [],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 0,
+            "End": 7,
+            "StartToken": {
+              "Kind": "LeftBrace",
+              "Start": 0,
+              "End": 1,
+              "Line": 1,
+              "Column": 1,
+              "Value": null,
+              "Previous": {
+                "Kind": "StartOfFile",
+                "Start": 0,
+                "End": 0,
+                "Line": 1,
+                "Column": 1,
+                "Value": null,
+                "Previous": null
+              },
+              "Next": {
+                "Kind": "Name",
+                "Start": 2,
+                "End": 5,
+                "Line": 1,
+                "Column": 3,
+                "Value": "foo",
+                "Next": {
+                  "Kind": "RightBrace",
+                  "Start": 6,
+                  "End": 7,
+                  "Line": 1,
+                  "Column": 7,
+                  "Value": null,
+                  "Next": {
+                    "Kind": "EndOfFile",
+                    "Start": 8,
+                    "End": 7,
+                    "Line": 1,
+                    "Column": 8,
+                    "Value": null,
+                    "Next": null
+                  }
+                }
+              }
+            },
+            "EndToken": {
+              "Kind": "EndOfFile",
+              "Start": 8,
+              "End": 7,
+              "Line": 1,
+              "Column": 8,
+              "Value": null,
+              "Previous": {
+                "Kind": "RightBrace",
+                "Start": 6,
+                "End": 7,
+                "Line": 1,
+                "Column": 7,
+                "Value": null,
+                "Previous": {
+                  "Kind": "Name",
+                  "Start": 2,
+                  "End": 5,
+                  "Line": 1,
+                  "Column": 3,
+                  "Value": "foo",
+                  "Previous": {
+                    "Kind": "LeftBrace",
+                    "Start": 0,
+                    "End": 1,
+                    "Line": 1,
+                    "Column": 1,
+                    "Value": null,
+                    "Previous": {
+                      "Kind": "StartOfFile",
+                      "Start": 0,
+                      "End": 0,
+                      "Line": 1,
+                      "Column": 1,
+                      "Value": null,
+                      "Previous": null
+                    }
+                  }
+                }
+              },
+              "Next": null
+            },
+            "Source": {
+              "Text": "{ foo }"
+            }
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 2,
+                "End": 7,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 2,
+                  "End": 5,
+                  "Line": 1,
+                  "Column": 3,
+                  "Value": "foo",
+                  "Previous": {
+                    "Kind": "LeftBrace",
+                    "Start": 0,
+                    "End": 1,
+                    "Line": 1,
+                    "Column": 1,
+                    "Value": null,
+                    "Previous": {
+                      "Kind": "StartOfFile",
+                      "Start": 0,
+                      "End": 0,
+                      "Line": 1,
+                      "Column": 1,
+                      "Value": null,
+                      "Previous": null
+                    }
+                  },
+                  "Next": {
+                    "Kind": "RightBrace",
+                    "Start": 6,
+                    "End": 7,
+                    "Line": 1,
+                    "Column": 7,
+                    "Value": null,
+                    "Next": {
+                      "Kind": "EndOfFile",
+                      "Start": 8,
+                      "End": 7,
+                      "Line": 1,
+                      "Column": 8,
+                      "Value": null,
+                      "Next": null
+                    }
+                  }
+                },
+                "EndToken": {
+                  "Kind": "RightBrace",
+                  "Start": 6,
+                  "End": 7,
+                  "Line": 1,
+                  "Column": 7,
+                  "Value": null,
+                  "Previous": {
+                    "Kind": "Name",
+                    "Start": 2,
+                    "End": 5,
+                    "Line": 1,
+                    "Column": 3,
+                    "Value": "foo",
+                    "Previous": {
+                      "Kind": "LeftBrace",
+                      "Start": 0,
+                      "End": 1,
+                      "Line": 1,
+                      "Column": 1,
+                      "Value": null,
+                      "Previous": {
+                        "Kind": "StartOfFile",
+                        "Start": 0,
+                        "End": 0,
+                        "Line": 1,
+                        "Column": 1,
+                        "Value": null,
+                        "Previous": null
+                      }
+                    }
+                  },
+                  "Next": {
+                    "Kind": "EndOfFile",
+                    "Start": 8,
+                    "End": 7,
+                    "Line": 1,
+                    "Column": 8,
+                    "Value": null,
+                    "Next": null
+                  }
+                },
+                "Source": {
+                  "Text": "{ foo }"
+                }
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 2,
+                  "End": 7,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 2,
+                    "End": 5,
+                    "Line": 1,
+                    "Column": 3,
+                    "Value": "foo",
+                    "Previous": {
+                      "Kind": "LeftBrace",
+                      "Start": 0,
+                      "End": 1,
+                      "Line": 1,
+                      "Column": 1,
+                      "Value": null,
+                      "Previous": {
+                        "Kind": "StartOfFile",
+                        "Start": 0,
+                        "End": 0,
+                        "Line": 1,
+                        "Column": 1,
+                        "Value": null,
+                        "Previous": null
+                      }
+                    },
+                    "Next": {
+                      "Kind": "RightBrace",
+                      "Start": 6,
+                      "End": 7,
+                      "Line": 1,
+                      "Column": 7,
+                      "Value": null,
+                      "Next": {
+                        "Kind": "EndOfFile",
+                        "Start": 8,
+                        "End": 7,
+                        "Line": 1,
+                        "Column": 8,
+                        "Value": null,
+                        "Next": null
+                      }
+                    }
+                  },
+                  "EndToken": {
+                    "Kind": "RightBrace",
+                    "Start": 6,
+                    "End": 7,
+                    "Line": 1,
+                    "Column": 7,
+                    "Value": null,
+                    "Previous": {
+                      "Kind": "Name",
+                      "Start": 2,
+                      "End": 5,
+                      "Line": 1,
+                      "Column": 3,
+                      "Value": "foo",
+                      "Previous": {
+                        "Kind": "LeftBrace",
+                        "Start": 0,
+                        "End": 1,
+                        "Line": 1,
+                        "Column": 1,
+                        "Value": null,
+                        "Previous": {
+                          "Kind": "StartOfFile",
+                          "Start": 0,
+                          "End": 0,
+                          "Line": 1,
+                          "Column": 1,
+                          "Value": null,
+                          "Previous": null
+                        }
+                      }
+                    },
+                    "Next": {
+                      "Kind": "EndOfFile",
+                      "Start": 8,
+                      "End": 7,
+                      "Line": 1,
+                      "Column": 8,
+                      "Value": null,
+                      "Next": null
+                    }
+                  },
+                  "Source": {
+                    "Text": "{ foo }"
+                  }
+                },
+                "Value": "foo"
+              },
+              "Directives": []
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "OperationName": null,
+  "VariableValues": null,
+  "InitialValue": null,
+  "Properties": null,
+  "Services": null
+}

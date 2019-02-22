@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
+using HotChocolate.Stitching.Properties;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Stitching.Introspection
 {
@@ -14,8 +14,8 @@ namespace HotChocolate.Stitching.Introspection
         {
             if (string.IsNullOrEmpty(json))
             {
-                throw new ArgumentException(
-                    "The json mustn't be null or empty.",
+                throw new ArgumentException(StitchingResources
+                    .IntrospectionDeserializer_Json_NullOrEmpty,
                     nameof(json));
             }
 
@@ -113,7 +113,7 @@ namespace HotChocolate.Stitching.Introspection
 
                 default:
                     throw new NotSupportedException(
-                        "The specified type is not supported.");
+                        StitchingResources.Type_NotSupported);
             }
         }
 

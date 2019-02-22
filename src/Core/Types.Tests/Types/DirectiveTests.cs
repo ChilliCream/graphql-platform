@@ -94,32 +94,6 @@ namespace HotChocolate.Types
             Assert.Equal("123", barValue);
         }
 
-        [Fact]
-        public void GetArgumentFromCustomDirectiveAndConvertIt()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-            DirectiveType directiveType = schema.GetDirectiveType("Foo");
-            var fooDirective = new FooDirective
-            {
-                Bar = "123",
-                Child = new FooChild
-                {
-                    Bar = "456"
-                }
-            };
-
-            // act
-            var directive = new Directive(
-                directiveType, fooDirective, new object());
-            FooChild2 barValue = directive.GetArgument<FooChild2>("child");
-
-            // assert
-            Assert.Equal("456", barValue.Bar);
-        }
-
-
-
         private static ISchema CreateSchema()
         {
             return Schema.Create(c =>

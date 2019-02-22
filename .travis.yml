@@ -10,4 +10,5 @@ branches:
     - master
 script:
   - dotnet tool install -g Cake.Tool
+  - dotnet cake -target=TemplatesCompile
   - dotnet cake -target=CoreTests

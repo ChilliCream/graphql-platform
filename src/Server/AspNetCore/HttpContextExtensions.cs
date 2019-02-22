@@ -91,7 +91,8 @@ namespace HotChocolate.AspNetCore
             this HttpContext context,
             PathString path)
         {
-            return context.Request.Path.StartsWithSegments(path);
+            return context.Request.Path.Equals(path,
+                StringComparison.OrdinalIgnoreCase);
         }
     }
 }

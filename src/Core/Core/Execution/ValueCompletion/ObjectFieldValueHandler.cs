@@ -17,7 +17,8 @@ namespace HotChocolate.Execution
                 || completionContext.Type.IsUnionType())
             {
                 ObjectType objectType = ResolveObjectType(
-                    completionContext.ResolverContext, completionContext.Type, completionContext.Value);
+                    completionContext.ResolverContext,
+                    completionContext.Type, completionContext.Value);
                 if (objectType == null)
                 {
                     completionContext.ReportError(QueryError.CreateFieldError(

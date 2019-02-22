@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public class QuerySyntaxRewriter<TContext>
+        : SyntaxRewriter<TContext>
     {
         protected virtual bool VisitFragmentDefinitions => true;
 
@@ -78,23 +79,23 @@ namespace HotChocolate.Language
         {
             OperationDefinitionNode current = node;
 
-            if (node.Name != null)
+            if (current.Name != null)
             {
-                current = Rewrite(current, node.Name, context,
+                current = Rewrite(current, current.Name, context,
                     RewriteName, current.WithName);
 
-                current = Rewrite(current, node.VariableDefinitions, context,
+                current = Rewrite(current, current.VariableDefinitions, context,
                     (p, c) => RewriteMany(p, c, RewriteVariableDefinition),
                     current.WithVariableDefinitions);
 
-                current = Rewrite(current, node.Directives, context,
+                current = Rewrite(current, current.Directives, context,
                     (p, c) => RewriteMany(p, c, RewriteDirective),
                     current.WithDirectives);
             }
 
-            if (node.SelectionSet != null)
+            if (current.SelectionSet != null)
             {
-                current = Rewrite(current, node.SelectionSet, context,
+                current = Rewrite(current, current.SelectionSet, context,
                     RewriteSelectionSet, current.WithSelectionSet);
             }
 
@@ -107,15 +108,15 @@ namespace HotChocolate.Language
         {
             VariableDefinitionNode current = node;
 
-            current = Rewrite(current, node.Variable, context,
+            current = Rewrite(current, current.Variable, context,
                 RewriteVariable, current.WithVariable);
 
-            current = Rewrite(current, node.Type, context,
+            current = Rewrite(current, current.Type, context,
                 RewriteType, current.WithType);
 
-            if (node.DefaultValue != null)
+            if (current.DefaultValue != null)
             {
-                current = Rewrite(current, node.DefaultValue, context,
+                current = Rewrite(current, current.DefaultValue, context,
                     RewriteValue, current.WithDefaultValue);
             }
 
@@ -128,23 +129,23 @@ namespace HotChocolate.Language
         {
             FragmentDefinitionNode current = node;
 
-            current = Rewrite(current, node.Name, context,
+            current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
 
-            current = Rewrite(current, node.TypeCondition, context,
+            current = Rewrite(current, current.TypeCondition, context,
                 RewriteNamedType, current.WithTypeCondition);
 
-            current = Rewrite(current, node.VariableDefinitions, context,
+            current = Rewrite(current, current.VariableDefinitions, context,
                 (p, c) => RewriteMany(p, c, RewriteVariableDefinition),
                 current.WithVariableDefinitions);
 
-            current = Rewrite(current, node.Directives, context,
+            current = Rewrite(current, current.Directives, context,
                 (p, c) => RewriteMany(p, c, RewriteDirective),
                 current.WithDirectives);
 
-            if (node.SelectionSet != null)
+            if (current.SelectionSet != null)
             {
-                current = Rewrite(current, node.SelectionSet, context,
+                current = Rewrite(current, current.SelectionSet, context,
                     RewriteSelectionSet, current.WithSelectionSet);
             }
 
@@ -157,217 +158,11 @@ namespace HotChocolate.Language
         {
             SelectionSetNode current = node;
 
-            current = Rewrite(current, node.Selections, context,
+            current = Rewrite(current, current.Selections, context,
                 (p, c) => RewriteMany(p, c, RewriteSelection),
                 current.WithSelections);
 
             return current;
-        }
-
-        protected virtual FieldNode RewriteField(
-            FieldNode node,
-            TContext context)
-        {
-            FieldNode current = node;
-
-            if (node.Alias != null)
-            {
-                current = Rewrite(current, node.Alias, context,
-                    RewriteName, current.WithAlias);
-            }
-
-            current = Rewrite(current, node.Name, context,
-                RewriteName, current.WithName);
-
-            current = Rewrite(current, node.Arguments, context,
-                (p, c) => RewriteMany(p, c, RewriteArgument),
-                current.WithArguments);
-
-            current = Rewrite(current, node.Directives, context,
-                (p, c) => RewriteMany(p, c, RewriteDirective),
-                current.WithDirectives);
-
-
-            if (node.SelectionSet != null)
-            {
-                current = Rewrite(current, node.SelectionSet, context,
-                    RewriteSelectionSet, current.WithSelectionSet);
-            }
-
-            return current;
-        }
-
-        protected virtual FragmentSpreadNode RewriteFragmentSpread(
-            FragmentSpreadNode node,
-            TContext context)
-        {
-            FragmentSpreadNode current = node;
-
-            current = Rewrite(current, node.Name, context,
-                RewriteName, current.WithName);
-
-            current = Rewrite(current, node.Directives, context,
-                (p, c) => RewriteMany(p, c, RewriteDirective),
-                current.WithDirectives);
-
-            return current;
-        }
-
-        protected virtual InlineFragmentNode RewriteInlineFragment(
-            InlineFragmentNode node,
-            TContext context)
-        {
-            InlineFragmentNode current = node;
-
-            if (node.TypeCondition != null)
-            {
-                current = Rewrite(current, node.TypeCondition, context,
-                    RewriteNamedType, current.WithTypeCondition);
-            }
-
-            current = Rewrite(current, node.Directives, context,
-                (p, c) => RewriteMany(p, c, RewriteDirective),
-                current.WithDirectives);
-
-            if (node.SelectionSet != null)
-            {
-                current = Rewrite(current, node.SelectionSet, context,
-                    RewriteSelectionSet, current.WithSelectionSet);
-            }
-
-            return current;
-        }
-
-        protected virtual NameNode RewriteName(
-            NameNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-
-        protected virtual VariableNode RewriteVariable(
-            VariableNode node,
-            TContext context)
-        {
-            VariableNode current = node;
-
-            current = Rewrite(current, node.Name, context,
-                RewriteName, current.WithName);
-
-            return current;
-        }
-
-
-        protected virtual ArgumentNode RewriteArgument(
-            ArgumentNode node,
-            TContext context)
-        {
-            ArgumentNode current = node;
-
-            current = Rewrite(current, node.Name, context,
-                RewriteName, current.WithName);
-
-            current = Rewrite(current, node.Value, context,
-                RewriteValue, current.WithValue);
-
-            return current;
-        }
-
-        protected virtual IntValueNode RewriteIntValue(
-            IntValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual FloatValueNode RewriteFloatValue(
-            FloatValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual StringValueNode RewriteStringValue(
-            StringValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual BooleanValueNode RewriteBooleanValue(
-            BooleanValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual EnumValueNode RewriteEnumValue(
-            EnumValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual NullValueNode RewriteNullValue(
-            NullValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual ListValueNode RewriteListValue(
-            ListValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual ObjectValueNode RewriteObjectValue(
-            ObjectValueNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual ObjectFieldNode RewriteObjectField(
-            ObjectFieldNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual DirectiveNode RewriteDirective(
-            DirectiveNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual NamedTypeNode RewriteNamedType(
-            NamedTypeNode node,
-            TContext context)
-        {
-            NamedTypeNode current = node;
-
-            current = Rewrite(current, node.Name, context,
-                RewriteName, current.WithName);
-
-            return current;
-        }
-
-        protected virtual ListTypeNode RewriteListType(
-            ListTypeNode node,
-            TContext context)
-        {
-            return node;
-        }
-
-        protected virtual NonNullTypeNode RewriteNonNullType(
-            NonNullTypeNode node,
-            TContext context)
-        {
-            return node;
         }
 
         protected virtual ISelectionNode RewriteSelection(
@@ -390,122 +185,78 @@ namespace HotChocolate.Language
             }
         }
 
-        protected virtual IValueNode RewriteValue(
-            IValueNode node, TContext context)
-        {
-            if (node is null)
-            {
-                return null;
-            }
-
-            switch (node)
-            {
-                case IntValueNode value:
-                    return RewriteIntValue(value, context);
-
-                case FloatValueNode value:
-                    return RewriteFloatValue(value, context);
-
-                case StringValueNode value:
-                    return RewriteStringValue(value, context);
-
-                case BooleanValueNode value:
-                    return RewriteBooleanValue(value, context);
-
-                case EnumValueNode value:
-                    return RewriteEnumValue(value, context);
-
-                case NullValueNode value:
-                    return RewriteNullValue(value, context);
-
-                case ListValueNode value:
-                    return RewriteListValue(value, context);
-
-                case ObjectValueNode value:
-                    return RewriteObjectValue(value, context);
-
-                case VariableNode value:
-                    return RewriteVariable(value, context);
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        protected virtual ITypeNode RewriteType(ITypeNode node, TContext context)
-        {
-            switch (node)
-            {
-                case NonNullTypeNode value:
-                    return RewriteNonNullType(value, context);
-
-                case ListTypeNode value:
-                    return RewriteListType(value, context);
-
-                case NamedTypeNode value:
-                    return RewriteNamedType(value, context);
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        protected static TParent Rewrite<TParent, TProperty>(
-            TParent parent,
-            TProperty property,
-            TContext context,
-            Func<TProperty, TContext, TProperty> visit,
-            Func<TProperty, TParent> rewrite
-        )
-        {
-            TProperty rewritten = visit(property, context);
-            if (ReferenceEquals(property, rewritten))
-            {
-                return parent;
-            }
-            return rewrite(rewritten);
-        }
-
-        protected static IReadOnlyList<T> RewriteMany<T>(
-           IReadOnlyList<T> items,
-           TContext context,
-           Func<T, TContext, T> func)
-        {
-            var originalSet = new HashSet<T>(items);
-            var rewrittenSet = new List<T>();
-            var modified = false;
-
-            for (int i = 0; i < items.Count; i++)
-            {
-                T rewritten = func(items[i], context);
-                if (!modified && !originalSet.Contains(rewritten))
-                {
-                    modified = true;
-                }
-                rewrittenSet.Add(rewritten);
-            }
-
-            return modified ? rewrittenSet : items;
-        }
-    }
-
-    public static class DocumentRewriterExtensions
-    {
-        public static DocumentNode Rewrite<TRewriter, TContext>(
-            this DocumentNode node, TContext context)
-            where TRewriter : QuerySyntaxRewriter<TContext>, new()
-        {
-            var rewriter = new TRewriter();
-            return (DocumentNode)rewriter.Rewrite(node, context);
-        }
-
-        public static T Rewrite<T, TContext>(
-            this QuerySyntaxRewriter<TContext> rewriter,
-            T node,
+        protected virtual FieldNode RewriteField(
+            FieldNode node,
             TContext context)
-            where T : ISyntaxNode
         {
-            return (T)rewriter.Rewrite(node, context);
+            FieldNode current = node;
+
+            if (current.Alias != null)
+            {
+                current = Rewrite(current, current.Alias, context,
+                    RewriteName, current.WithAlias);
+            }
+
+            current = Rewrite(current, current.Name, context,
+                RewriteName, current.WithName);
+
+            current = Rewrite(current, current.Arguments, context,
+                (p, c) => RewriteMany(p, c, RewriteArgument),
+                current.WithArguments);
+
+            current = Rewrite(current, current.Directives, context,
+                (p, c) => RewriteMany(p, c, RewriteDirective),
+                current.WithDirectives);
+
+
+            if (current.SelectionSet != null)
+            {
+                current = Rewrite(current, current.SelectionSet, context,
+                    RewriteSelectionSet, current.WithSelectionSet);
+            }
+
+            return current;
+        }
+
+        protected virtual FragmentSpreadNode RewriteFragmentSpread(
+            FragmentSpreadNode node,
+            TContext context)
+        {
+            FragmentSpreadNode current = node;
+
+            current = Rewrite(current, current.Name, context,
+                RewriteName, current.WithName);
+
+            current = Rewrite(current, current.Directives, context,
+                (p, c) => RewriteMany(p, c, RewriteDirective),
+                current.WithDirectives);
+
+            return current;
+        }
+
+        protected virtual InlineFragmentNode RewriteInlineFragment(
+            InlineFragmentNode node,
+            TContext context)
+        {
+            InlineFragmentNode current = node;
+
+            if (current.TypeCondition != null)
+            {
+                current = Rewrite(current, current.TypeCondition, context,
+                    RewriteNamedType, current.WithTypeCondition);
+            }
+
+            current = Rewrite(current, current.Directives, context,
+                (p, c) => RewriteMany(p, c, RewriteDirective),
+                current.WithDirectives);
+
+            if (current.SelectionSet != null)
+            {
+                current = Rewrite(current, current.SelectionSet, context,
+                    RewriteSelectionSet, current.WithSelectionSet);
+            }
+
+            return current;
         }
     }
 }

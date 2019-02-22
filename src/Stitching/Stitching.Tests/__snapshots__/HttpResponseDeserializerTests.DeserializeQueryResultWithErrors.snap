@@ -1,0 +1,50 @@
+{
+  "Data": {
+    "foo": [
+      {
+        "qux": {
+          "quux": 123
+        }
+      }
+    ],
+    "bar": [
+      123
+    ],
+    "baz": {
+      "qux": {
+        "quux": 123
+      }
+    }
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "foo",
+      "path": [
+        "root",
+        "child"
+      ],
+      "locations": [
+        {
+          "line": 15,
+          "column": 16
+        }
+      ],
+      "extensions": {
+        "bar": "baz"
+      }
+    },
+    {
+      "Exception": null,
+      "message": "qux",
+      "extensions": {
+        "bar": "baz"
+      }
+    },
+    {
+      "Exception": null,
+      "message": "quux"
+    }
+  ]
+}

@@ -2,9 +2,8 @@
 {
     public interface IComplexOutputType
         : INamedOutputType
+        , IHasDirectives
     {
-        IDirectiveCollection Directives { get; }
-
         IFieldCollection<IOutputField> Fields { get; }
     }
 }

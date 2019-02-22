@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
@@ -9,8 +9,19 @@ namespace HotChocolate.Stitching
         protected override void Configure(
             IDirectiveTypeDescriptor<DelegateDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Delegate)
-                .Location(Types.DirectiveLocation.FieldDefinition);
+            descriptor.Name(DirectiveNames.Delegate);
+
+            descriptor.Location(Types.DirectiveLocation.FieldDefinition);
+
+            descriptor.Argument(t => t.Path)
+                .Name(DirectiveFieldNames.Delegate_Path)
+                .Type<StringType>();
+
+            descriptor.Argument(t => t.Schema)
+                .Name(DirectiveFieldNames.Delegate_Schema)
+                .Type<NonNullType<NameType>>()
+                .Description(StitchingResources
+                    .DelegateDirectiveType_Description);
         }
     }
 }

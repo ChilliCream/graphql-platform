@@ -22,6 +22,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             configuration.RegisterQueryType<QueryType>();
             configuration.RegisterType<LifeInsuranceContractType>();
             configuration.RegisterType<SomeOtherContractType>();
+            configuration.RegisterDirective<CustomDirectiveType>();
 
             configuration.UseGlobalObjectIdentifier();
         }

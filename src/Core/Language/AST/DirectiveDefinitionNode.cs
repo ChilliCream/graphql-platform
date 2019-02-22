@@ -35,8 +35,106 @@ namespace HotChocolate.Language
 
         public bool IsRepeatable { get; }
 
+        public bool IsUnique => !IsRepeatable;
+
         public IReadOnlyList<InputValueDefinitionNode> Arguments { get; }
 
         public IReadOnlyList<NameNode> Locations { get; }
+
+
+        public DirectiveDefinitionNode WithLocation(Location location)
+        {
+            return new DirectiveDefinitionNode
+            (
+                location,
+                Name,
+                Description,
+                IsRepeatable,
+                Arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode WithName(
+            NameNode name)
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                name,
+                Description,
+                IsRepeatable,
+                Arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                Name,
+                description,
+                IsRepeatable,
+                Arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode AsRepeatable()
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                Name,
+                Description,
+                true,
+                Arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode AsUnique()
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                Name,
+                Description,
+                false,
+                Arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode WithArguments(
+            IReadOnlyList<InputValueDefinitionNode> arguments)
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                Name,
+                Description,
+                IsRepeatable,
+                arguments,
+                Locations
+            );
+        }
+
+        public DirectiveDefinitionNode WithLocations(
+            IReadOnlyList<NameNode> locations)
+        {
+            return new DirectiveDefinitionNode
+            (
+                Location,
+                Name,
+                Description,
+                IsRepeatable,
+                Arguments,
+                locations
+            );
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         void UnregisterSubscription(string subscriptionId);
 
-        Task PrepareRequestAsync(QueryRequest request);
+        Task PrepareRequestAsync(IQueryRequestBuilder requestBuilder);
 
         Task SendMessageAsync(
             Stream messageStream,

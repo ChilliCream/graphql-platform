@@ -4,7 +4,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -28,8 +31,7 @@ namespace HotChocolate.Stitching
                 {
                     c.RegisterType<DateTimeType>();
                     c.RegisterDirective<DelegateDirectiveType>();
-                    c.RegisterDirective<SchemaDirectiveType>();
-                    c.RegisterDirective<DependentOnDirectiveType>();
+                    c.RegisterDirective<ComputedDirectiveType>();
                     c.Use(next => context => Task.CompletedTask);
                 });
 
@@ -46,7 +48,7 @@ namespace HotChocolate.Stitching
             // act
             var rewriter = new ExtractFieldQuerySyntaxRewriter(schema);
             ExtractedField extractedField = rewriter.ExtractField(
-                query, operation, selection,
+                "customer", query, operation, selection,
                 schema.GetType<ObjectType>("Query"));
 
             // assert
@@ -57,7 +59,7 @@ namespace HotChocolate.Stitching
                 .Build();
 
             QuerySyntaxSerializer.Serialize(document)
-                .Snapshot(nameof(ExtractField) + "_" + queryFile);
+                .MatchSnapshot(nameof(ExtractField) + "_" + queryFile);
         }
     }
 }

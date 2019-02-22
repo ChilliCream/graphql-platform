@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -471,7 +471,7 @@ namespace HotChocolate.AspNetCore.Authorization
                         {
                             app.UseGraphQL(new QueryMiddlewareOptions
                             {
-                                OnCreateRequest = (ctx, r, p, ct) =>
+                                OnCreateRequest = (ctx, r, ct) =>
                                 {
                                     configureUser(ctx);
                                     return Task.CompletedTask;

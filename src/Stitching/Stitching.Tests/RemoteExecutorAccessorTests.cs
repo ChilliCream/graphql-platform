@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Delegation;
 using Moq;
 using Xunit;
 

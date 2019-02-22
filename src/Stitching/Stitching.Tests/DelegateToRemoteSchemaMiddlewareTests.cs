@@ -1,20 +1,26 @@
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Net.Cache;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using ChilliCream.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Xunit;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
+using FileResource = ChilliCream.Testing.FileResource;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -30,29 +36,35 @@ namespace HotChocolate.Stitching
         private TestServerFactory TestServerFactory { get; set; }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithInlineFragment()
+        public async Task ExecuteStitchingQueryWithInlineFragment()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithInlineFragment.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithFragmentDefinition()
+        public async Task ExecuteStitchingQueryWithFragmentDefinition()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithFragmentDefs.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithVariables()
+        public async Task ExecuteStitchingQueryWithVariables()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
@@ -64,92 +76,92 @@ namespace HotChocolate.Stitching
                 }
             };
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithUnion()
+        public async Task ExecuteStitchingQueryWithUnion()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithUnion.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryWithArguments()
+        public async Task ExecuteStitchingQueryWithArguments()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryWithArguments.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact(Skip = "Not yet supported!")]
-        public Task ExecuteStitchingQueryDeepArrayPath()
+        public async Task ExecuteStitchingQueryDeepArrayPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepArrayPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryDeepObjectPath()
+        public async Task ExecuteStitchingQueryDeepObjectPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepObjectPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public Task ExecuteStitchingQueryDeepScalarPath()
+        public async Task ExecuteStitchingQueryDeepScalarPath()
         {
             // arrange
             var request = new QueryRequest(FileResource.Open(
                 "StitchingQueryDeepScalarPath.graphql"));
 
-            // act and assert
-            return ExecuteStitchedQuery(request);
+            // act
+            IExecutionResult result = await ExecuteStitchedQuery(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
-        private async Task ExecuteStitchedQuery(
-            QueryRequest request,
-            [CallerMemberName]string snapshotName = null)
+        private Task<IExecutionResult> ExecuteStitchedQuery(
+            QueryRequest request)
         {
             // arrange
-            TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
-                ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
-                CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
-                }));
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddSingleton(clientFactory);
 
             serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("contract")
@@ -168,41 +180,22 @@ namespace HotChocolate.Stitching
                 request.Services =
                 serviceCollection.BuildServiceProvider();
 
-            var executor = services.GetRequiredService<IQueryExecutor>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.Snapshot(snapshotName);
+            return executor.ExecuteAsync(request);
         }
 
         [Fact]
         public async Task ExecuteStitchedQueryWithComputedField()
         {
             // arrange
-            TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
-                ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
-                CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
-
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
-                }));
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton(httpClientFactory.Object);
+            serviceCollection.AddSingleton(clientFactory);
 
             serviceCollection.AddRemoteQueryExecutor(b => b
                 .SetSchemaName("contract")
@@ -220,7 +213,8 @@ namespace HotChocolate.Stitching
                     c.Map(new FieldReference("Customer", "foo"),
                         next => context =>
                         {
-                            var obj = context.Parent<OrderedDictionary>();
+                            OrderedDictionary obj =
+                                context.Parent<OrderedDictionary>();
                             context.Result = obj["name"] + "_" + obj["id"];
                             return Task.CompletedTask;
                         });
@@ -234,19 +228,336 @@ namespace HotChocolate.Stitching
                 request.Services =
                 serviceCollection.BuildServiceProvider();
 
-            var executor = services.GetRequiredService<IQueryExecutor>();
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.Snapshot();
+            Snapshot.Match(result);
         }
 
         [Fact]
-        public async Task ExecuteStitchedQueryWithComputedField2()
+        public async Task ExecuteStitchedQueryBuilder()
         {
             // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                {
+                    a: customer(id: ""Q3VzdG9tZXIteDE="") {
+                        bar: foo
+                        contracts {
+                            id
+                        }
+                    }
+
+                    b: customer(id: ""Q3VzdG9tZXIteDE="") {
+                        foo
+                        contracts {
+                            id
+                        }
+                    }
+                }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task ExecuteStitchedQueryBuilderVariableArguments()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer2(customerId: $id) {
+                        bar: foo
+                        contracts {
+                            id
+                        }
+                    }
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task ExecuteStitchedQueryBuilderWithRenamedType()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
+                    .RenameType("SomeOtherContract", "Other")
+                    .RenameType("LifeInsuranceContract", "Life")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer2(customerId: $id) {
+                        bar: foo
+                        contracts {
+                            id
+                            ... life
+                            ... on Other {
+                                expiryDate
+                            }
+                        }
+                    }
+                }
+
+                fragment life on Life
+                {
+                    premium
+                }
+
+                ");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task ExecuteStitchedQueryBuilderWithLocalSchema()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddSchema("hello",
+                        Schema.Create(
+                            "type Query { hello: String! }",
+                            c => c.BindResolver(ctx => "Hello World")
+                                .To("Query", "hello")))
+                    .RenameField("customer",
+                        new FieldReference("Customer", "name"), "foo")
+                    .RenameType("SomeOtherContract", "Other")
+                    .RenameType("LifeInsuranceContract", "Life")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql")));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer2(customerId: $id) {
+                        bar: foo
+                        contracts {
+                            id
+                            ... life
+                            ... on Other {
+                                expiryDate
+                            }
+                        }
+                    }
+                    hello
+                }
+
+                fragment life on Life
+                {
+                    premium
+                }
+
+                ");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact(Skip = "Fix this issue")]
+        public async Task ExtendedScalarAsInAndOutputType()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddSchemaConfiguration(c =>
+                    {
+                        c.RegisterExtendedScalarTypes();
+                    }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($d: DateTime!) {
+                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                    b: extendedScalar(d: $d)
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"d", "2019-01-01T01:00:00.000Z"}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task CustomDirectiveIsPassedOn()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensionsFromString(
+                        "directive @custom(d: DateTime) on FIELD")
+                    .AddSchemaConfiguration(c =>
+                    {
+                        c.RegisterExtendedScalarTypes();
+                    }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($d: DateTime!) {
+                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                    b: extendedScalar(d: $d)
+                        @custom(d: ""2020-09-01T01:00:00.000Z"")
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"d", "2019-01-01T01:00"}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        private IHttpClientFactory CreateRemoteSchemas()
+        {
             TestServer server_contracts = TestServerFactory.Create(
                 ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
@@ -265,49 +576,7 @@ namespace HotChocolate.Stitching
                         ? server_contracts.CreateClient()
                         : server_customers.CreateClient();
                 }));
-
-            var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddSingleton(httpClientFactory.Object);
-
-            serviceCollection.AddRemoteQueryExecutor(
-                await RemoteExecutorBuilder.New()
-                    .SetSchemaName("contract")
-                    .AddScalarType<DateTimeType>()
-                    .BuildAsync(n => server_contracts.CreateClient()));
-
-            serviceCollection.AddRemoteQueryExecutor(b => b
-                .SetSchemaName("customer")
-                .SetSchema(FileResource.Open("Customer.graphql")));
-
-            serviceCollection.AddStitchedSchema(
-                FileResource.Open("StitchingComputed.graphql"),
-                c =>
-                {
-                    c.Map(new FieldReference("Customer", "foo"),
-                        next => context =>
-                        {
-                            var obj = context.Parent<OrderedDictionary>();
-                            context.Result = obj["name"] + "_" + obj["id"];
-                            return Task.CompletedTask;
-                        });
-                    c.RegisterType<DateTimeType>();
-                });
-
-            var request = new QueryRequest(
-                FileResource.Open("StitchingQueryComputedField.graphql"));
-
-            IServiceProvider services =
-                request.Services =
-                serviceCollection.BuildServiceProvider();
-
-            var executor = services.GetRequiredService<IQueryExecutor>();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.Snapshot();
+            return httpClientFactory.Object;
         }
     }
 }

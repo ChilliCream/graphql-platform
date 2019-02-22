@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -373,9 +373,9 @@ namespace HotChocolate.AspNetCore
                 new QueryMiddlewareOptions
                 {
                     Path = path ?? "/",
-                    OnCreateRequest = (context, request, properties, ct) =>
+                    OnCreateRequest = (context, request, ct) =>
                     {
-                        properties["foo"] = "bar";
+                        request.AddProperty("foo", "bar");
                         return Task.CompletedTask;
                     }
                 });

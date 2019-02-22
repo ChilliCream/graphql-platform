@@ -1,0 +1,10 @@
+enum Foo @source(name: "Foo", schema: "Schema_A") {
+  BAR
+  BAZ
+}
+
+enum Schema_B_Foo @source(name: "Foo", schema: "Schema_B") @source(name: "Foo", schema: "Schema_C") {
+  BAR
+  BAZ
+  QUX
+}

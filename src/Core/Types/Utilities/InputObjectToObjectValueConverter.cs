@@ -17,7 +17,8 @@ namespace HotChocolate.Utilities
         }
 
         public ObjectValueNode Convert(
-            InputObjectType type, object obj)
+            InputObjectType type,
+            object obj)
         {
             if (type == null)
             {

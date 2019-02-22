@@ -1,0 +1,34 @@
+type Query {
+  contract(contractId: ID!): Contract @delegate(schema: "A")
+  contracts(customerId: ID!): [Contract!] @delegate(schema: "A")
+  customer(id: ID!): Customer @delegate(schema: "B")
+  consultant(id: ID!): Consultant @delegate(schema: "B")
+  customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "B")
+}
+
+interface Contract @source(name: "Contract", schema: "A") {
+  id: ID!
+}
+
+type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "A") {
+  id: ID!
+  premium: Float
+}
+
+type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "A") {
+  id: ID!
+  expiryDate: DateTime
+}
+
+type Customer @source(name: "Customer", schema: "B") {
+  id: ID!
+  name: String!
+  consultant: Consultant
+}
+
+type Consultant @source(name: "Consultant", schema: "B") {
+  id: ID!
+  name: String!
+}
+
+union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "B") = Customer | Consultant
