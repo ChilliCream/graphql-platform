@@ -6,7 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     public class ExtractFieldQuerySyntaxRewriter
         : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
@@ -23,6 +23,7 @@ namespace HotChocolate.Stitching
         protected override bool VisitFragmentDefinitions => false;
 
         public ExtractedField ExtractField(
+            NameString sourceSchema,
             DocumentNode document,
             OperationDefinitionNode operation,
             FieldNode field,
@@ -48,7 +49,10 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(declaringType));
             }
 
-            var context = Context.New(declaringType, document, operation);
+            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
+
+            var context = Context.New(sourceSchema,
+                declaringType, document, operation);
 
             FieldNode rewrittenField = RewriteField(field, context);
 
@@ -67,6 +71,17 @@ namespace HotChocolate.Stitching
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
+                if (field.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
+                {
+                    if (current.Alias == null)
+                    {
+                        current = current.WithAlias(current.Name);
+                    }
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
                 current = Rewrite(current, node.Arguments, context,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
@@ -132,7 +147,7 @@ namespace HotChocolate.Stitching
         private static bool IsDelegationField(IDirectiveCollection directives)
         {
             return directives.Contains(DirectiveNames.Delegate)
-            || directives.Contains(DirectiveNames.DependentOn);
+            || directives.Contains(DirectiveNames.Computed);
         }
 
         private static void AddDependencies(
@@ -220,22 +235,31 @@ namespace HotChocolate.Stitching
             Context context)
         {
             Context newContext = context;
+            FragmentDefinitionNode current = node;
 
-            if (newContext.FragmentPath.Contains(node.Name.Value))
+            if (newContext.FragmentPath.Contains(current.Name.Value))
             {
                 return node;
             }
 
             if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
+                current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
                 newContext = newContext
-                    .AddFragment(node.Name.Value)
+                    .AddFragment(current.Name.Value)
                     .SetTypeContext(type);
+
+                if (type.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
+                {
+                    current = current.WithTypeCondition(
+                        current.TypeCondition.WithName(
+                            new NameNode(sourceDirective.Name)));
+                }
             }
 
-            return base.RewriteFragmentDefinition(node, newContext);
+            return base.RewriteFragmentDefinition(current, newContext);
         }
 
         protected override InlineFragmentNode RewriteInlineFragment(
@@ -243,24 +267,38 @@ namespace HotChocolate.Stitching
             Context context)
         {
             Context newContext = context;
+            InlineFragmentNode current = node;
+
 
             if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
+                current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
                 newContext = newContext.SetTypeContext(type);
+
+                if (type.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective))
+                {
+                    current = current.WithTypeCondition(
+                        current.TypeCondition.WithName(
+                            new NameNode(sourceDirective.Name)));
+                }
             }
 
-            return base.RewriteInlineFragment(node, newContext);
+            return base.RewriteInlineFragment(current, newContext);
         }
+
+
 
         public class Context
         {
             private Context(
+                NameString schema,
                 INamedOutputType typeContext,
                 DocumentNode document,
                 OperationDefinitionNode operation)
             {
+                Schema = schema;
                 Variables = new Dictionary<string, VariableDefinitionNode>();
                 Document = document;
                 Operation = operation;
@@ -277,6 +315,7 @@ namespace HotChocolate.Stitching
                 TypeContext = typeContext;
                 Fragments = context.Fragments;
                 FragmentPath = context.FragmentPath;
+                Schema = context.Schema;
             }
 
             private Context(
@@ -288,8 +327,11 @@ namespace HotChocolate.Stitching
                 Operation = context.Operation;
                 TypeContext = context.TypeContext;
                 Fragments = context.Fragments;
+                Schema = context.Schema;
                 FragmentPath = fragmentPath;
             }
+
+            public NameString Schema { get; }
 
             public DocumentNode Document { get; }
 
@@ -316,11 +358,12 @@ namespace HotChocolate.Stitching
             }
 
             public static Context New(
+                NameString schema,
                 INamedOutputType typeContext,
                 DocumentNode document,
                 OperationDefinitionNode operation)
             {
-                return new Context(typeContext, document, operation);
+                return new Context(schema, typeContext, document, operation);
             }
         }
     }

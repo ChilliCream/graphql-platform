@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -11,6 +12,7 @@ namespace HotChocolate.Types
         , IHasName
         , IHasDescription
     {
+        private ITypeConversion _converter;
         private IDirectiveMiddleware _middleware;
 
         protected DirectiveType()
@@ -107,6 +109,8 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context);
 
+            _converter = context.Services.GetTypeConversion();
+
             foreach (INeedsInitialization argument in Arguments
                 .Cast<INeedsInitialization>())
             {
@@ -121,6 +125,46 @@ namespace HotChocolate.Types
         }
 
         #endregion
+
+        internal object DeserializeArgument(
+            InputField argument,
+            IValueNode valueNode,
+            Type targetType)
+        {
+            if (argument == null)
+            {
+                throw new ArgumentNullException(nameof(argument));
+            }
+
+            if (valueNode == null)
+            {
+                throw new ArgumentNullException(nameof(valueNode));
+            }
+
+            object obj = argument.Type.ParseLiteral(valueNode);
+            if (targetType.IsInstanceOfType(obj))
+            {
+                return obj;
+            }
+
+            if (_converter.TryConvert(typeof(object), targetType,
+                obj, out object o))
+            {
+                return o;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Unable to convert the argument value to the specified type.",
+                nameof(targetType));
+        }
+
+        internal T DeserializeArgument<T>(
+            InputField argument,
+            IValueNode valueNode)
+        {
+            return (T)DeserializeArgument(argument, valueNode, typeof(T));
+        }
     }
 
     public class DirectiveType<TDirective>

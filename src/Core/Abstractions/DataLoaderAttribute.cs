@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -14,9 +15,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot null or empty.",
+                    AbstractionResources.DataLoader_KeyMustNotBeNullOrEmpty,
                     nameof(key));
             }
 

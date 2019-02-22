@@ -44,6 +44,10 @@ namespace HotChocolate.Language
                     writer.WriteValue(value);
                     break;
 
+                case ArgumentNode argument:
+                    writer.WriteArgument(argument);
+                    break;
+
                 case DocumentNode value:
                     VisitDocument(value, writer);
                     break;

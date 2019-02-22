@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
     public abstract class InterfaceTypeDefinitionNodeBase
-        : NamedSyntaxNode
+        : ComplexTypeDefinitionNodeBase
     {
         protected InterfaceTypeDefinitionNodeBase(
             Location location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives)
+            : base(location, name, directives, fields)
         {
-            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
-
-        public IReadOnlyList<FieldDefinitionNode> Fields { get; }
     }
 }

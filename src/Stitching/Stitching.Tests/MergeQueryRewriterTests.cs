@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -25,7 +27,7 @@ namespace HotChocolate.Stitching
             DocumentNode document = rewriter.Merge();
 
             // assert
-            QuerySyntaxSerializer.Serialize(document).Snapshot();
+            QuerySyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
         [Fact]
@@ -44,7 +46,7 @@ namespace HotChocolate.Stitching
             DocumentNode document = rewriter.Merge();
 
             // assert
-            QuerySyntaxSerializer.Serialize(document).Snapshot();
+            QuerySyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
         [Fact]
@@ -64,7 +66,7 @@ namespace HotChocolate.Stitching
             DocumentNode document = rewriter.Merge();
 
             // assert
-            QuerySyntaxSerializer.Serialize(document).Snapshot();
+            QuerySyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
         [Fact]
@@ -84,8 +86,8 @@ namespace HotChocolate.Stitching
                 rewriter.AddQuery(query_b, "_b", true);
 
             // assert
-            a.Snapshot("AliasesMapIsCorrect_A");
-            b.Snapshot("AliasesMapIsCorrect_B");
+            a.MatchSnapshot("AliasesMapIsCorrect_A");
+            b.MatchSnapshot("AliasesMapIsCorrect_B");
         }
 
 

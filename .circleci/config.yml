@@ -7,6 +7,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Check that Templates Compile
+          command: dotnet cake -target=TemplatesCompile
+      - run:
           name: Pull Request Build
           command: dotnet cake -target=CoreTests
       - store_test_results:

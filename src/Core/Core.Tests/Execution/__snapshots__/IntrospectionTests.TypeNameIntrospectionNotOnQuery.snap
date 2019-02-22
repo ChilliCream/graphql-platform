@@ -1,0 +1,9 @@
+{
+  "Data": {
+    "b": {
+      "__typename": "Foo"
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}
