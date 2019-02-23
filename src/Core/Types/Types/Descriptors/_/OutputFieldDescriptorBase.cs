@@ -1,12 +1,13 @@
 ﻿using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectFieldDescriptorBase
-        : IDescriptionFactory<OutputFieldDescriptionBase>
+    internal class OutputFieldDescriptorBase<TDescription>
+        : IDescriptionFactory<TDescription>
+        where TDescription : OutputFieldDescriptionBase
     {
-        protected ObjectFieldDescriptorBase(
+        protected OutputFieldDescriptorBase(
             OutputFieldDescriptionBase fieldDescription)
         {
             FieldDescription = fieldDescription

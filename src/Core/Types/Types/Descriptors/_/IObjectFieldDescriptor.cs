@@ -7,24 +7,31 @@ namespace HotChocolate.Types
     public interface IObjectFieldDescriptor
         : IFluent
     {
-        IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
+        IObjectFieldDescriptor SyntaxNode(
+            FieldDefinitionNode fieldDefinition);
 
-        IObjectFieldDescriptor Name(NameString name);
+        IObjectFieldDescriptor Name(
+            NameString value);
 
-        IObjectFieldDescriptor Description(string description);
+        IObjectFieldDescriptor Description(
+            string value);
 
-        IObjectFieldDescriptor DeprecationReason(string deprecationReason);
+        IObjectFieldDescriptor DeprecationReason(
+            string value);
 
         IObjectFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
 
-        IObjectFieldDescriptor Type<TOutputType>(TOutputType type)
+        IObjectFieldDescriptor Type<TOutputType>(
+            TOutputType outputType)
             where TOutputType : class, IOutputType;
 
-        IObjectFieldDescriptor Type(ITypeNode type);
+        IObjectFieldDescriptor Type(
+            ITypeNode typeNode);
 
-        IObjectFieldDescriptor Argument(NameString name,
-            Action<IArgumentDescriptor> argument);
+        IObjectFieldDescriptor Argument(
+            NameString argumentName,
+            Action<IArgumentDescriptor> argumentdescriptor);
 
         IObjectFieldDescriptor Ignore();
 
@@ -35,9 +42,11 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             Type resultType);
 
-        IObjectFieldDescriptor Use(FieldMiddleware middleware);
+        IObjectFieldDescriptor Use(
+            FieldMiddleware middleware);
 
-        IObjectFieldDescriptor Directive<T>(T directive)
+        IObjectFieldDescriptor Directive<T>(
+            T directiveInstance)
             where T : class;
 
         IObjectFieldDescriptor Directive<T>()

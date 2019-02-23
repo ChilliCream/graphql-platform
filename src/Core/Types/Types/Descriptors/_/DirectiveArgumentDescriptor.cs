@@ -4,7 +4,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class DirectiveArgumentDescriptor
+    public class DirectiveArgumentDescriptor
         : ArgumentDescriptor
         , IDirectiveArgumentDescriptor
         , IDescriptionFactory<DirectiveArgumentDescription>
@@ -54,43 +54,45 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IDirectiveArgumentDescriptor Type<TInputType>()
+            where TInputType : IInputType
         {
-            throw new System.NotImplementedException();
+            base.Type<TInputType>();
+            return this;
         }
 
         public new IDirectiveArgumentDescriptor Type<TInputType>(
             TInputType inputType)
             where TInputType : class, IInputType
         {
-            throw new System.NotImplementedException();
+            base.Type<TInputType>(inputType);
+            return this;
         }
 
-    public new IDirectiveArgumentDescriptor Type(ITypeNode type)
-    {
-        throw new System.NotImplementedException();
+        public new IDirectiveArgumentDescriptor Type(
+            ITypeNode typeNode)
+        {
+            base.Type(typeNode);
+            return this;
+        }
+
+        public new IDirectiveArgumentDescriptor DefaultValue(
+            IValueNode value)
+        {
+            base.DefaultValue(value);
+            return this;
+        }
+
+        public new IDirectiveArgumentDescriptor DefaultValue(
+            object value)
+        {
+            base.DefaultValue(value);
+            return this;
+        }
+
+        public IDirectiveArgumentDescriptor Ignore()
+        {
+            InputDescription.Ignore = true;
+            return this;
+        }
     }
-
-
-    IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.DefaultValue(IValueNode defaultValue)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.DefaultValue(object defaultValue)
-    {
-        throw new System.NotImplementedException();
-    }
-
-
-
-
-
-
-
-    public IDirectiveArgumentDescriptor Ignore()
-    {
-        InputDescription.Ignore = true;
-        return this;
-    }
-}
 }

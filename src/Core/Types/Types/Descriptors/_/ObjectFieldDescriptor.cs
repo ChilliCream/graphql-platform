@@ -7,37 +7,33 @@ using HotChocolate.Resolvers;
 using System.Linq;
 using HotChocolate.Resolvers.CodeGeneration;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     internal class ObjectFieldDescriptor
-        : ObjectFieldDescriptorBase
-        , IObjectFieldDescriptor
+        : IObjectFieldDescriptor
         , IDescriptionFactory<ObjectFieldDescription>
     {
         private bool _argumentsInitialized;
 
         public ObjectFieldDescriptor(NameString fieldName)
-            : base(new ObjectFieldDescription())
         {
             FieldDescription.Name =
                 fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
-            : base(new ObjectFieldDescription())
         {
-            FieldDescription.ClrMember = member
+            FieldDescription.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
-            FieldDescription.SourceType = sourceType;
             FieldDescription.Name = member.GetGraphQLName();
             FieldDescription.Description = member.GetGraphQLDescription();
             FieldDescription.Type = member.GetOutputType();
             FieldDescription.AcquireNonNullStatus(member);
         }
 
-        protected new ObjectFieldDescription FieldDescription
-            => (ObjectFieldDescription)base.FieldDescription;
+        protected ObjectFieldDescription FieldDescription { get; } =
+            new ObjectFieldDescription();
 
         public new ObjectFieldDescription CreateDescription()
         {
@@ -46,15 +42,7 @@ namespace HotChocolate.Types
             return FieldDescription;
         }
 
-        public void ResolverType(Type resolverType)
-        {
-            FieldDescription.ResolverType = resolverType;
-        }
 
-        protected void Ignore()
-        {
-            FieldDescription.Ignored = true;
-        }
 
         protected void Resolver(FieldResolverDelegate fieldResolver)
         {
@@ -93,49 +81,59 @@ namespace HotChocolate.Types
 
         #region IObjectFieldDescriptor
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.SyntaxNode(
-            FieldDefinitionNode syntaxNode)
+        public IObjectFieldDescriptor SyntaxNode(
+            FieldDefinitionNode fieldDefinition)
         {
-            SyntaxNode(syntaxNode);
+            FieldDescription.SyntaxNode = fieldDefinition;
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Name(NameString name)
+        public IObjectFieldDescriptor Name(NameString value)
         {
-            Name(name);
+            FieldDescription.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Description(
+        public IObjectFieldDescriptor Description(
             string description)
         {
-            Description(description);
+            FieldDescription.Description = description;
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.DeprecationReason(
+        public IObjectFieldDescriptor DeprecationReason(
             string deprecationReason)
         {
-            DeprecationReason(deprecationReason);
+            FieldDescription.DeprecationReason = deprecationReason;
             return this;
         }
 
         IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>()
         {
-            Type<TOutputType>();
+            FieldDescription.Type = FieldDescription.SetMoreSpecificType(
+                typeof(TInputType), TypeContext.Input);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>(
-            TOutputType type)
+        public IObjectFieldDescriptor Type<TOutputType>(
+            TOutputType outputType)
+            where TOutputType : class, IOutputType
         {
-            Type<TOutputType>(type);
+            if (outputType == null)
+            {
+                throw new ArgumentNullException(nameof(outputType));
+            }
+            FieldDescription.Type = new SchemaTypeReference(outputType);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Type(ITypeNode type)
+        public IObjectFieldDescriptor Type(ITypeNode typeNode)
         {
-            Type(type);
+            if (typeNode == null)
+            {
+                throw new ArgumentNullException(nameof(typeNode));
+            }
+            FieldDescription.SetMoreSpecificType(typeNode);
             return this;
         }
 
@@ -193,6 +191,11 @@ namespace HotChocolate.Types
         {
             FieldDescription.Directives.AddDirective(name, arguments);
             return this;
+        }
+
+        DescriptionBase IDescriptionFactory.CreateDescription()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

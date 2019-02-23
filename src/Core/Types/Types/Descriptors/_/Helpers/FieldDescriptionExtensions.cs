@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     internal static class DescriptorHelpers
     {
@@ -43,6 +44,23 @@ namespace HotChocolate.Types
                         !fieldDescription.IsTypeNullable.Value,
                         !fieldDescription.IsElementTypeNullable.Value));
             }
+        }
+
+        public static ITypeReference SetMoreSpecificType<TDescription>(
+            this TDescription description,
+            Type type,
+            TypeContext context)
+            where TDescription : FieldDescriptionBase
+        {
+            throw new NotImplementedException();
+        }
+
+        public static ITypeReference SetMoreSpecificType<TDescription>(
+            this TDescription description,
+            ITypeNode typeNode)
+            where TDescription : FieldDescriptionBase
+        {
+            throw new NotImplementedException();
         }
     }
 }
