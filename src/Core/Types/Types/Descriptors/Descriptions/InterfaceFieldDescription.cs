@@ -3,7 +3,7 @@
 namespace HotChocolate.Types.Descriptors
 {
     public class InterfaceFieldDescription
-        : OutputFieldDescriptionBase
+        : ComplexFieldDescriptionBase
     {
         public MemberInfo Member { get; set; }
     }

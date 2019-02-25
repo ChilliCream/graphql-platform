@@ -3,23 +3,26 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class OutputFieldDescriptorBase<TDescription>
+    internal class ComplexFieldDescriptorBase<TDescription>
         : IDescriptionFactory<TDescription>
-        where TDescription : OutputFieldDescriptionBase
+        where TDescription : ComplexFieldDescriptionBase
     {
-        protected OutputFieldDescriptorBase(
-            OutputFieldDescriptionBase fieldDescription)
+        protected ComplexFieldDescriptorBase(
+            ComplexFieldDescriptionBase fieldDescription)
         {
             FieldDescription = fieldDescription
                 ?? throw new ArgumentNullException(nameof(fieldDescription));
         }
 
-        protected OutputFieldDescriptionBase FieldDescription { get; }
+        protected TDescription FieldDescription { get; }
 
-        public OutputFieldDescriptionBase CreateDescription()
+        public TDescription CreateDescription()
         {
             return FieldDescription;
         }
+
+        DescriptionBase IDescriptionFactory.CreateDescription() =>
+            CreateDescription();
 
         protected void SyntaxNode(FieldDefinitionNode syntaxNode)
         {
@@ -81,5 +84,7 @@ namespace HotChocolate.Types.Descriptors
         {
             FieldDescription.DeprecationReason = deprecationReason;
         }
+
+
     }
 }

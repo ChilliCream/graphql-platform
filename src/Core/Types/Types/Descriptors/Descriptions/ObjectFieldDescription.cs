@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectFieldDescription
-        : OutputFieldDescriptionBase
+        : ComplexFieldDescriptionBase
     {
         public Type ResolverType { get; set; }
 
