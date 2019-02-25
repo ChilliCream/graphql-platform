@@ -27,7 +27,19 @@
           "id": "U29tZU90aGVyQ29udHJhY3QteDE="
         }
       ],
-      "say": "hello"
+      "say": "hello",
+      "consultant": {
+        "customers": {
+          "edges": [
+            {
+              "cursor": "eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjF9",
+              "node": {
+                "name": "Carol Danvers"
+              }
+            }
+          ]
+        }
+      }
     }
   },
   "Extensions": {},

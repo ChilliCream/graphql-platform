@@ -303,7 +303,9 @@ namespace HotChocolate.Stitching
                     .RenameField("customer",
                         new FieldReference("Customer", "name"), "foo")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -316,7 +318,8 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 var request = new QueryRequest(@"
-                query a($id: ID! $input: SayInput!) {
+                query a($id: ID! $input: SayInput!
+                    $first: PaginationAmount $after: String) {
                     a: customer2(customerId: $id) {
                         bar: foo
                         contracts {
@@ -333,6 +336,17 @@ namespace HotChocolate.Stitching
                             id
                         }
                         say(input: $input)
+                        consultant {
+                            customers(first: $first after: $after)
+                            {
+                                edges {
+                                    cursor
+                                    node {
+                                        name: foo
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -342,7 +356,9 @@ namespace HotChocolate.Stitching
                     {"id", "Q3VzdG9tZXIteDE="},
                     {"input", new Dictionary<string, object> {
                         {"words",  new List<object> { "hello" }}
-                    }}
+                    }},
+                    {"first", 1},
+                    {"after", "eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjB9"}
                 };
                 request.Services = scope.ServiceProvider;
 
