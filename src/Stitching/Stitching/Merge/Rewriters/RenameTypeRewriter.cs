@@ -6,10 +6,6 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal class RenameTypeRewriter
         : ITypeRewriter
     {
-        private readonly NameString? _schemaName;
-        private readonly NameString _originalTypeName;
-        private readonly NameString _newTypeName;
-
         public RenameTypeRewriter(
             NameString originalTypeName,
             NameString newTypeName)

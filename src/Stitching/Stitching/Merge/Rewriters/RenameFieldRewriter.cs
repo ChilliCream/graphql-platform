@@ -8,10 +8,6 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal class RenameFieldRewriter
         : ITypeRewriter
     {
-        private readonly NameString? _schemaName;
-        private readonly FieldReference _field;
-        private readonly NameString _newFieldName;
-
         public RenameFieldRewriter(
             FieldReference field,
             NameString newFieldName)
