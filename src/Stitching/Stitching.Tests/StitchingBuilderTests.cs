@@ -4,19 +4,19 @@ using System.Net.Http;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 using Xunit;
+using Snapshooter.Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
-using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using ChilliCream.Testing;
 using IOPath = System.IO.Path;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Resolvers;
-using Snapshooter.Xunit;
-using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching
 {
@@ -380,6 +380,122 @@ namespace HotChocolate.Stitching
             // assert
             Assert.Equal("extensions",
                 Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddTypeRewriter()
+        {
+            // arrange
+            ITypeRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddTypeRewriter(It.IsAny<ITypeRewriter>()))
+                .Returns(new Func<ITypeRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            StitchingBuilderExtensions
+                .AddTypeRewriter(mock.Object, (schema, type) => type);
+
+            // assert
+            Assert.IsType<DelegateTypeRewriter>(typeRewriter);
+        }
+
+        [Fact]
+        public void AddTypeRewriter_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .AddTypeRewriter(null, (schema, type) => type);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddTypeRewriter_DelegateIsNull_ArgumentNullException()
+        {
+            // arrange
+            ITypeRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddTypeRewriter(It.IsAny<ITypeRewriter>()))
+                .Returns(new Func<ITypeRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .AddTypeRewriter(mock.Object,
+                    (RewriteTypeDefinitionDelegate)null);
+
+            // assert
+            Assert.Equal("rewrite",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddDocumentRewriter()
+        {
+            // arrange
+            IDocumentRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            StitchingBuilderExtensions
+                .AddDocumentRewriter(mock.Object, (schema, doc) => doc);
+
+            // assert
+            Assert.IsType<DelegateDocumentRewriter>(typeRewriter);
+        }
+
+        [Fact]
+        public void AddDocumentRewriter_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .AddDocumentRewriter(null, (schema, doc) => doc);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddDocumentRewriter_DelegateIsNull_ArgumentNullException()
+        {
+            // arrange
+            IDocumentRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .AddDocumentRewriter(mock.Object,
+                    (RewriteDocumentDelegate)null);
+
+            // assert
+            Assert.Equal("rewrite",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
         }
 
         private IHttpClientFactory CreateRemoteSchemas()
