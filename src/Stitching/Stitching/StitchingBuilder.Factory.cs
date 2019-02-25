@@ -95,6 +95,8 @@ namespace HotChocolate.Stitching
                 // merge schema
                 DocumentNode mergedSchema = MergeSchemas(builder, allSchemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
+                mergedSchema = RewriteMerged(builder, mergedSchema);
+                VisitMerged(builder, mergedSchema);
 
                 // create factory
                 return new StitchingFactory(builder, executors, mergedSchema);
@@ -215,6 +217,40 @@ namespace HotChocolate.Stitching
                 }
 
                 return currentSchema;
+            }
+
+            private static DocumentNode RewriteMerged(
+                StitchingBuilder builder,
+                DocumentNode schema)
+            {
+                if (builder._mergedDocRws.Count == 0)
+                {
+                    return schema;
+                }
+
+                DocumentNode current = schema;
+
+                foreach (Func<DocumentNode, DocumentNode> rewriter in
+                    builder._mergedDocRws)
+                {
+                    current = rewriter.Invoke(current);
+                }
+
+                return current;
+            }
+
+            private static void VisitMerged(
+                StitchingBuilder builder,
+                DocumentNode schema)
+            {
+                if (builder._mergedDocVis.Count > 0)
+                {
+                    foreach (Action<DocumentNode> visitor in
+                        builder._mergedDocVis)
+                    {
+                        visitor.Invoke(schema);
+                    }
+                }
             }
         }
     }

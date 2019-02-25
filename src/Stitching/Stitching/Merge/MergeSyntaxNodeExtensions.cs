@@ -371,7 +371,7 @@ namespace HotChocolate.Stitching.Merge
             return typeDefinition.Name.Value;
         }
 
-        internal static bool IsFromSchema(
+        public static bool IsFromSchema(
             this ITypeDefinitionNode typeDefinition,
             NameString schemaName)
         {

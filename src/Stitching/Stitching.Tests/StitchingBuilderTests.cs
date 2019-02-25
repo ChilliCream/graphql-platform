@@ -824,6 +824,18 @@ namespace HotChocolate.Stitching
             {
                 throw new NotSupportedException();
             }
+
+            public IStitchingBuilder AddMergedDocumentRewriter(
+                Func<DocumentNode, DocumentNode> rewrite)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IStitchingBuilder AddMergedDocumentVisitor(
+                Action<DocumentNode> visit)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }
