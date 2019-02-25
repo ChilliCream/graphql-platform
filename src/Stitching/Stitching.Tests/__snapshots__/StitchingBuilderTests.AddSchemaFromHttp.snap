@@ -11,19 +11,54 @@ type Customer @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   consultant(customer: CustomerInput): Consultant
+  say(input: SayInput!): String
 }
 
 type Consultant @source(name: "Consultant", schema: "customer") {
   id: ID!
   name: String!
+  customers(first: PaginationAmount after: String last: PaginationAmount before: String): CustomerConnection
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant
+
+input SayInput @source(name: "SayInput", schema: "customer") {
+  words: [String]
+}
+
+"A connection to a list of items."
+type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CustomerEdge!]
+  totalCount: Int!
+}
 
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String
   name: String
   consultantId: String
+}
+
+"Information about pagination in a connection."
+type PageInfo @source(name: "PageInfo", schema: "customer") {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"An edge in a connection."
+type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Customer
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {

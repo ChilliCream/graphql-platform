@@ -252,7 +252,9 @@ namespace HotChocolate.Stitching
                     .RenameField("customer",
                         new FieldReference("Customer", "name"), "foo")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -385,7 +387,9 @@ namespace HotChocolate.Stitching
                     .RenameType("SomeOtherContract", "Other")
                     .RenameType("LifeInsuranceContract", "Life")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -451,7 +455,9 @@ namespace HotChocolate.Stitching
                     .RenameType("SomeOtherContract", "Other")
                     .RenameType("LifeInsuranceContract", "Life")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -511,7 +517,9 @@ namespace HotChocolate.Stitching
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
-                    }));
+                    })
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -557,7 +565,9 @@ namespace HotChocolate.Stitching
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
-                    }));
+                    })
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
