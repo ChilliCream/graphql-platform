@@ -32,6 +32,90 @@ namespace HotChocolate.Stitching
         public TestServerFactory TestServerFactory { get; }
 
         [Fact]
+        public void AddSchema()
+        {
+            // arrange
+            Schema customerSchema = Schema.Create(
+                CustomerSchemaFactory.ConfigureSchema);
+
+            Schema contractSchema = Schema.Create(
+                ContractSchemaFactory.ConfigureSchema);
+
+            var builder = new MockStitchingBuilder();
+
+            // act
+            builder.AddSchema("customer", customerSchema)
+                .AddSchema("contract", contractSchema);
+
+            // assert
+            var services = new EmptyServiceProvider();
+            var merger = new SchemaMerger();
+
+            foreach (KeyValuePair<NameString, ExecutorFactory> item in
+                builder.Executors)
+            {
+                ISchema schema = item.Value.Invoke(services).Schema;
+                merger.AddSchema(item.Key,
+                    SchemaSerializer.SerializeSchema(schema));
+            }
+
+            SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSchema_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            Schema customerSchema = Schema.Create(
+                CustomerSchemaFactory.ConfigureSchema);
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchema(null, "foo", customerSchema);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_SchemaIsNull_ArgumentNullException()
+        {
+            // arrange
+            Schema customerSchema = Schema.Create(
+                CustomerSchemaFactory.ConfigureSchema);
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchema(builder, "foo", null);
+
+            // assert
+            Assert.Equal("schema",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_SchemaNameIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            Schema customerSchema = Schema.Create(
+                CustomerSchemaFactory.ConfigureSchema);
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchema(builder, new NameString(), customerSchema);
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
         public void AddSchemaFromHttp()
         {
             // arrange
@@ -55,6 +139,19 @@ namespace HotChocolate.Stitching
             }
 
             SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSchemaFromHttp_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromHttp(null, "foo");
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]
@@ -114,6 +211,9 @@ namespace HotChocolate.Stitching
             public IDictionary<NameString, LoadSchemaDocument> Schemas
             { get; } = new OrderedDictionary<NameString, LoadSchemaDocument>();
 
+            public IDictionary<NameString, ExecutorFactory> Executors
+            { get; } = new OrderedDictionary<NameString, ExecutorFactory>();
+
             public IStitchingBuilder AddExecutionConfiguration(
                 Action<IQueryExecutionBuilder> configure)
             {
@@ -152,6 +252,13 @@ namespace HotChocolate.Stitching
                 return this;
             }
 
+            public IStitchingBuilder AddQueryExecutor(
+                NameString name, ExecutorFactory factory)
+            {
+                Executors[name] = factory;
+                return this;
+            }
+
             public IStitchingBuilder AddSchemaConfiguration(
                 Action<ISchemaConfiguration> configure)
             {
@@ -160,12 +267,6 @@ namespace HotChocolate.Stitching
 
             public IStitchingBuilder SetExecutionOptions(
                 IQueryExecutionOptionsAccessor options)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IStitchingBuilder AddQueryExecutor(
-                NameString name, ExecutorFactory factory)
             {
                 throw new NotSupportedException();
             }
