@@ -8,23 +8,24 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal class RemoveTypeRewriter
         : IDocumentRewriter
     {
-        private readonly NameString? _schemaName;
-        private readonly NameString _typeName;
-
         public RemoveTypeRewriter(NameString typeName)
         {
-            _typeName = typeName.EnsureNotEmpty(nameof(typeName));
+            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
         }
 
         public RemoveTypeRewriter(NameString schemaName, NameString typeName)
         {
-            _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _typeName = typeName.EnsureNotEmpty(nameof(typeName));
+            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
         }
+
+        public NameString? SchemaName { get; }
+
+        public NameString TypeName { get; }
 
         public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
         {
-            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
             {
                 return document;
             }
@@ -32,7 +33,7 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             ITypeDefinitionNode typeDefinition = document.Definitions
                 .OfType<ITypeDefinitionNode>()
                 .FirstOrDefault(t =>
-                    _typeName.Equals(t.GetOriginalName(schema.Name)));
+                    TypeName.Equals(t.GetOriginalName(schema.Name)));
 
             if (typeDefinition == null)
             {

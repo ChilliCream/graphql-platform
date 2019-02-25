@@ -14,9 +14,9 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             NameString originalTypeName,
             NameString newTypeName)
         {
-            _originalTypeName = originalTypeName
+            OriginalTypeName = originalTypeName
                 .EnsureNotEmpty(nameof(originalTypeName));
-            _newTypeName = newTypeName
+            NewTypeName = newTypeName
                 .EnsureNotEmpty(nameof(newTypeName));
         }
 
@@ -25,29 +25,35 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             NameString originalTypeName,
             NameString newTypeName)
         {
-            _schemaName = schemaName
+            SchemaName = schemaName
                 .EnsureNotEmpty(nameof(schemaName));
-            _originalTypeName = originalTypeName
+            OriginalTypeName = originalTypeName
                 .EnsureNotEmpty(nameof(originalTypeName));
-            _newTypeName = newTypeName
+            NewTypeName = newTypeName
                 .EnsureNotEmpty(nameof(newTypeName));
         }
+
+        public NameString? SchemaName { get; }
+
+        public NameString OriginalTypeName { get; }
+
+        public NameString NewTypeName { get; }
 
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,
             ITypeDefinitionNode typeDefinition)
         {
-            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
             {
                 return typeDefinition;
             }
 
-            if (!_originalTypeName.Equals(typeDefinition.Name.Value))
+            if (!OriginalTypeName.Equals(typeDefinition.Name.Value))
             {
                 return typeDefinition;
             }
 
-            return typeDefinition.Rename(_newTypeName, schema.Name);
+            return typeDefinition.Rename(NewTypeName, schema.Name);
         }
     }
 }

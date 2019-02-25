@@ -16,8 +16,8 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             FieldReference field,
             NameString newFieldName)
         {
-            _field = field ?? throw new ArgumentNullException(nameof(field));
-            _newFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
+            Field = field ?? throw new ArgumentNullException(nameof(field));
+            NewFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
         }
 
         public RenameFieldRewriter(
@@ -25,22 +25,28 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             FieldReference field,
             NameString newFieldName)
         {
-            _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _field = field ?? throw new ArgumentNullException(nameof(field));
-            _newFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
+            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+            Field = field ?? throw new ArgumentNullException(nameof(field));
+            NewFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
         }
+
+        public NameString? SchemaName { get; }
+
+        public FieldReference Field { get; }
+
+        public NameString NewFieldName { get; }
 
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,
             ITypeDefinitionNode typeDefinition)
         {
-            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
             {
                 return typeDefinition;
             }
 
             NameString typeName = typeDefinition.GetOriginalName(schema.Name);
-            if (!_field.TypeName.Equals(typeName))
+            if (!Field.TypeName.Equals(typeName))
             {
                 return typeDefinition;
             }
@@ -73,10 +79,10 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
             foreach (FieldDefinitionNode field in typeDefinition.Fields)
             {
-                if (_field.FieldName.Equals(field.Name.Value))
+                if (Field.FieldName.Equals(field.Name.Value))
                 {
                     renamedFields.Add(
-                        field.Rename(_newFieldName, schemaName));
+                        field.Rename(NewFieldName, schemaName));
                 }
                 else
                 {
@@ -95,10 +101,10 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
             foreach (InputValueDefinitionNode field in typeDefinition.Fields)
             {
-                if (_field.FieldName.Equals(field.Name.Value))
+                if (Field.FieldName.Equals(field.Name.Value))
                 {
                     renamedFields.Add(
-                        field.Rename(_newFieldName, schemaName));
+                        field.Rename(NewFieldName, schemaName));
                 }
                 else
                 {

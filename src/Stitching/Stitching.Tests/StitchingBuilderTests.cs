@@ -6,6 +6,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Schemas.Contracts;
@@ -502,13 +503,13 @@ namespace HotChocolate.Stitching
         public void AddDocumentRewriter()
         {
             // arrange
-            IDocumentRewriter typeRewriter = null;
+            IDocumentRewriter docRewriter = null;
             var mock = new Mock<IStitchingBuilder>();
             mock.Setup(t => t.AddDocumentRewriter(
                     It.IsAny<IDocumentRewriter>()))
                 .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
                 {
-                    typeRewriter = t;
+                    docRewriter = t;
                     return mock.Object;
                 }));
 
@@ -517,7 +518,7 @@ namespace HotChocolate.Stitching
                 .AddDocumentRewriter(mock.Object, (schema, doc) => doc);
 
             // assert
-            Assert.IsType<DelegateDocumentRewriter>(typeRewriter);
+            Assert.IsType<DelegateDocumentRewriter>(docRewriter);
         }
 
         [Fact]
@@ -537,13 +538,13 @@ namespace HotChocolate.Stitching
         public void AddDocumentRewriter_DelegateIsNull_ArgumentNullException()
         {
             // arrange
-            IDocumentRewriter typeRewriter = null;
+            IDocumentRewriter docRewriter = null;
             var mock = new Mock<IStitchingBuilder>();
             mock.Setup(t => t.AddDocumentRewriter(
                     It.IsAny<IDocumentRewriter>()))
                 .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
                 {
-                    typeRewriter = t;
+                    docRewriter = t;
                     return mock.Object;
                 }));
 
@@ -561,13 +562,13 @@ namespace HotChocolate.Stitching
         public void IgnoreRootTypes()
         {
             // arrange
-            IDocumentRewriter typeRewriter = null;
+            IDocumentRewriter docRewriter = null;
             var mock = new Mock<IStitchingBuilder>();
             mock.Setup(t => t.AddDocumentRewriter(
                     It.IsAny<IDocumentRewriter>()))
                 .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
                 {
-                    typeRewriter = t;
+                    docRewriter = t;
                     return mock.Object;
                 }));
 
@@ -575,7 +576,9 @@ namespace HotChocolate.Stitching
             StitchingBuilderExtensions.IgnoreRootTypes(mock.Object);
 
             // assert
-            Assert.IsType<RemoveRootTypeRewriter>(typeRewriter);
+            RemoveRootTypeRewriter rewriter =
+                Assert.IsType<RemoveRootTypeRewriter>(docRewriter);
+            Assert.Null(rewriter.SchemaName);
         }
 
         [Fact]
@@ -588,6 +591,144 @@ namespace HotChocolate.Stitching
 
             // assert
             Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreRootTypes_2()
+        {
+            // arrange
+            IDocumentRewriter docRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    docRewriter = t;
+                    return mock.Object;
+                }));
+            NameString schemaName = "Foo";
+
+            // act
+            StitchingBuilderExtensions.IgnoreRootTypes(mock.Object, schemaName);
+
+            // assert
+            RemoveRootTypeRewriter rewriter =
+                Assert.IsType<RemoveRootTypeRewriter>(docRewriter);
+            Assert.Equal(schemaName, rewriter.SchemaName);
+        }
+
+        [Fact]
+        public void IgnoreRootTypes_2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            NameString schemaName = "Foo";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreRootTypes(null, schemaName);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreRootTypes_2_NameIsEmpty_ArgumentException()
+        {
+            // arrange
+            IDocumentRewriter docRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    docRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreRootTypes(mock.Object, null);
+
+            // assert
+            Assert.Equal("schemaName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreField()
+        {
+            // arrange
+            ITypeRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddTypeRewriter(
+                    It.IsAny<ITypeRewriter>()))
+                .Returns(new Func<ITypeRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+            NameString schemaName = "Foo";
+            var fieldReference = new FieldReference("A", "a");
+
+            // act
+            StitchingBuilderExtensions.IgnoreField(
+                mock.Object, schemaName, fieldReference);
+
+            // assert
+            RemoveFieldRewriter rewriter =
+                Assert.IsType<RemoveFieldRewriter>(typeRewriter);
+            Assert.Equal(schemaName, rewriter.SchemaName);
+            Assert.Equal(fieldReference.TypeName, rewriter.Field.TypeName);
+            Assert.Equal(fieldReference.FieldName, rewriter.Field.FieldName);
+        }
+
+        [Fact]
+        public void IgnoreField_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            NameString schemaName = "Foo";
+            var fieldReference = new FieldReference("A", "a");
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreField(null, schemaName, fieldReference);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreField_SchemaIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            var mock = new Mock<IStitchingBuilder>();
+            var fieldReference = new FieldReference("A", "a");
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreField(mock.Object, null, fieldReference);
+
+            // assert
+            Assert.Equal("schemaName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreField_FieldIsNull_ArgumentNullException()
+        {
+            // arrange
+            var mock = new Mock<IStitchingBuilder>();
+            NameString schemaName = "Foo";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreField(mock.Object, schemaName, null);
+
+            // assert
+            Assert.Equal("field",
                 Assert.Throws<ArgumentNullException>(action).ParamName);
         }
 
