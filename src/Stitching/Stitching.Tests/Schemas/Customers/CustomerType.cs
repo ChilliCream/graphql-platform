@@ -17,9 +17,11 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 .Type<ConsultantType>();
 
             descriptor.Field("say")
-                .Argument("input", a => a.Type<InputObjectType<SayInput>>())
+                .Argument("input", a =>
+                    a.Type<NonNullType<InputObjectType<SayInput>>>())
                 .Type<StringType>()
-                .Resolver(ctx => ctx.Argument<SayInput>("input").Word);
+                .Resolver(ctx => string.Join(", ",
+                    ctx.Argument<SayInput>("input").Words));
         }
     }
 }

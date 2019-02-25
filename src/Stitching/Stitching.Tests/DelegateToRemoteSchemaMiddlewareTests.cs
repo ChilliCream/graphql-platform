@@ -316,7 +316,7 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 var request = new QueryRequest(@"
-                query a($id: ID! $input: SayInput) {
+                query a($id: ID! $input: SayInput!) {
                     a: customer2(customerId: $id) {
                         bar: foo
                         contracts {
@@ -341,7 +341,7 @@ namespace HotChocolate.Stitching
                 {
                     {"id", "Q3VzdG9tZXIteDE="},
                     {"input", new Dictionary<string, object> {
-                        {"word", "hello"}
+                        {"words",  new List<object> { "hello" }}
                     }}
                 };
                 request.Services = scope.ServiceProvider;

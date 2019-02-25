@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Stitching.Schemas.Customers
 {
     public class SayInput
     {
-        public string Word { get; set; }
+        public List<string> Words { get; set; }
     }
 }
