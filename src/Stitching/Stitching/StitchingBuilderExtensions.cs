@@ -2,15 +2,14 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
-using HotChocolate.Stitching.Merge;
-using System.Reflection;
-using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Merge.Rewriters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
