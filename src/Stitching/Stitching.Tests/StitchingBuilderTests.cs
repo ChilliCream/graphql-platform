@@ -382,6 +382,66 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public void AddExtensionsFromFile()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            builder.AddExtensionsFromFile(
+                    IOPath.Combine("__resources__", "Contract.graphql"))
+                .AddExtensionsFromFile(
+                    IOPath.Combine("__resources__", "Customer.graphql"));
+
+            // assert
+            var services = new EmptyServiceProvider();
+            var merger = new SchemaMerger();
+
+            var list = new List<string>();
+
+            foreach (LoadSchemaDocument item in builder.Extensions)
+            {
+                list.Add(SchemaSyntaxSerializer.Serialize(
+                    item.Invoke(services)));
+            }
+
+            list.MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddExtensionsFromFile_BuilderIsNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddExtensionsFromFile(null, "foo");
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [InlineData("")]
+        [InlineData(null)]
+        [Theory]
+        public void AddExtensionsFromFile_SchemaIsNull_ArgumentNullException(
+            string filePath)
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddExtensionsFromFile(builder, filePath);
+
+            // assert
+            Assert.Equal("path",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
         public void AddTypeRewriter()
         {
             // arrange
