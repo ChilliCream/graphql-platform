@@ -151,7 +151,24 @@ namespace HotChocolate.Stitching
                     .AddSchemaFromHttp(null, "foo");
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchemaFromHttp_NameIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromHttp(builder, new NameString());
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
         }
 
         [Fact]
@@ -180,6 +197,55 @@ namespace HotChocolate.Stitching
             }
 
             SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSchemaFromFile_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromFile(null, "foo", "bar");
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchemaFromFile_NameIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromFile(builder, new NameString(), "bar");
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [InlineData("")]
+        [InlineData(null)]
+        [Theory]
+        public void AddSchemaFromFile_SchemaIsNull_ArgumentNullException(
+            string filePath)
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromFile(builder, new NameString(), filePath);
+
+            // assert
+            Assert.Equal("path",
+                Assert.Throws<ArgumentException>(action).ParamName);
         }
 
         private IHttpClientFactory CreateRemoteSchemas()
