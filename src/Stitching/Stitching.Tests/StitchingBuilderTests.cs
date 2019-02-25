@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Microsoft.AspNetCore.TestHost;
-using Moq;
-using Xunit;
-using Snapshooter.Xunit;
+using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -13,9 +10,11 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
-using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
-using ChilliCream.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Stitching
