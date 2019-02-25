@@ -426,7 +426,8 @@ namespace HotChocolate.Stitching
             public IStitchingBuilder AddExtensions(
                 LoadSchemaDocument loadExtensions)
             {
-                throw new NotSupportedException();
+                Extensions.Add(loadExtensions);
+                return this;
             }
 
             public IStitchingBuilder AddMergeRule(
