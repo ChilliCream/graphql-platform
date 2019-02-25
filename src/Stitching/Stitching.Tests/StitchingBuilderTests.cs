@@ -557,6 +557,40 @@ namespace HotChocolate.Stitching
                 Assert.Throws<ArgumentNullException>(action).ParamName);
         }
 
+        [Fact]
+        public void IgnoreRootTypes()
+        {
+            // arrange
+            IDocumentRewriter typeRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    typeRewriter = t;
+                    return mock.Object;
+                }));
+
+            // act
+            StitchingBuilderExtensions.IgnoreRootTypes(mock.Object);
+
+            // assert
+            Assert.IsType<RemoveRootTypeRewriter>(typeRewriter);
+        }
+
+        [Fact]
+        public void IgnoreRootTypes_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreRootTypes(null);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
         private IHttpClientFactory CreateRemoteSchemas()
         {
             TestServer server_contracts = TestServerFactory.Create(
