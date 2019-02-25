@@ -345,7 +345,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         public static NameString GetOriginalName(
-            this ITypeDefinitionNode typeDefinition,
+            this INamedSyntaxNode typeDefinition,
             NameString schemaName)
         {
             if (typeDefinition == null)
@@ -372,7 +372,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         public static bool IsFromSchema(
-            this ITypeDefinitionNode typeDefinition,
+            this INamedSyntaxNode typeDefinition,
             NameString schemaName)
         {
             if (typeDefinition == null)

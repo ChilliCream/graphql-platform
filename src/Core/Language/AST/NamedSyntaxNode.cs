@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public abstract class NamedSyntaxNode
-        : ISyntaxNode
-        , IHasDirectives
+        : INamedSyntaxNode
     {
         protected NamedSyntaxNode(
             Location location,

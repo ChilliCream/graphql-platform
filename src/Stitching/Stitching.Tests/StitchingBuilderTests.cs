@@ -657,6 +657,136 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public void IgnoreType()
+        {
+            // arrange
+            IDocumentRewriter docRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    docRewriter = t;
+                    return mock.Object;
+                }));
+            NameString typeName = "Foo";
+
+            // act
+            StitchingBuilderExtensions.IgnoreType(mock.Object, typeName);
+
+            // assert
+            RemoveTypeRewriter rewriter =
+                Assert.IsType<RemoveTypeRewriter>(docRewriter);
+            Assert.Null(rewriter.SchemaName);
+            Assert.Equal(typeName, rewriter.TypeName);
+        }
+
+        [Fact]
+        public void IgnoreType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            NameString typeName = "Foo";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreType(null, typeName);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreType_NameIsEmpty_ArgumentException()
+        {
+            // arrange
+            var mock = new Mock<IStitchingBuilder>();
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreType(mock.Object, null);
+
+            // assert
+            Assert.Equal("typeName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreType_2()
+        {
+            // arrange
+            IDocumentRewriter docRewriter = null;
+            var mock = new Mock<IStitchingBuilder>();
+            mock.Setup(t => t.AddDocumentRewriter(
+                    It.IsAny<IDocumentRewriter>()))
+                .Returns(new Func<IDocumentRewriter, IStitchingBuilder>(t =>
+                {
+                    docRewriter = t;
+                    return mock.Object;
+                }));
+            NameString schemaName = "Foo";
+            NameString typeName = "Bar";
+
+            // act
+            StitchingBuilderExtensions.IgnoreType(
+                mock.Object, schemaName, typeName);
+
+            // assert
+            RemoveTypeRewriter rewriter =
+                Assert.IsType<RemoveTypeRewriter>(docRewriter);
+            Assert.Equal(schemaName, rewriter.SchemaName);
+            Assert.Equal(typeName, rewriter.TypeName);
+        }
+
+        [Fact]
+        public void IgnoreType_2_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            NameString schemaName = "Foo";
+            NameString typeName = "Bar";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreType(null, schemaName, typeName);
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreType_2_SchemaIsEmpty_ArgumentException()
+        {
+            // arrange
+            var mock = new Mock<IStitchingBuilder>();
+            NameString typeName = "Bar";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreType(mock.Object, null, typeName);
+
+            // assert
+            Assert.Equal("schemaName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void IgnoreType_2_NameIsEmpty_ArgumentException()
+        {
+            // arrange
+            var mock = new Mock<IStitchingBuilder>();
+            NameString schemaName = "Foo";
+
+            // act
+            Action action = () => StitchingBuilderExtensions
+                .IgnoreType(mock.Object, schemaName, null);
+
+            // assert
+            Assert.Equal("typeName",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
         public void IgnoreField()
         {
             // arrange

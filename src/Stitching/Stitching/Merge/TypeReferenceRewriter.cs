@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -20,10 +21,21 @@ namespace HotChocolate.Stitching.Merge
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
+            IReadOnlyDictionary<NameString, NameString> renamedTypes =
+                GetRenamedTypes(document, schemaName);
+
+            var context = new TypeReferenceContext(schemaName, renamedTypes);
+            return RewriteDocument(document, context);
+        }
+
+        private Dictionary<NameString, NameString> GetRenamedTypes(
+            DocumentNode document,
+            NameString schemaName)
+        {
             var names = new Dictionary<NameString, NameString>();
 
-            foreach (ITypeDefinitionNode type in document.Definitions
-                .OfType<ITypeDefinitionNode>())
+            foreach (NamedSyntaxNode type in document.Definitions
+                .OfType<NamedSyntaxNode>())
             {
                 NameString originalName = type.GetOriginalName(schemaName);
                 if (!originalName.Equals(type.Name.Value))
@@ -32,8 +44,97 @@ namespace HotChocolate.Stitching.Merge
                 }
             }
 
-            var context = new TypeReferenceContext(schemaName, names);
-            return RewriteDocument(document, context);
+            return names;
+        }
+
+        private Dictionary<FieldReference, NameString> GetRenamedFields(
+            DocumentNode document,
+            NameString schemaName)
+        {
+            DocumentNode current = document;
+            var others = new List<IDefinitionNode>(current.Definitions
+                .Where(t => !(t is ComplexTypeDefinitionNodeBase)));
+            var complexTypes = document.Definitions
+                .OfType<ComplexTypeDefinitionNodeBase>()
+                .ToDictionary(t => t.Name.Value);
+            var queue = new Queue<string>(complexTypes.Keys);
+
+            while (queue.Count > 0)
+            {
+                string name = queue.Dequeue();
+
+                switch (complexTypes[name])
+                {
+                    case ObjectTypeDefinitionNode objectType:
+                        break;
+                    case InterfaceTypeDefinitionNode interfaceType:
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static void RenameInterfaceField(
+            InterfaceTypeDefinitionNode interfaceType,
+            IDictionary<string, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<FieldDefinitionNode, NameString> renamedFields,
+            NameString schemaName)
+        {
+            foreach (FieldDefinitionNode fieldDefinition in
+                interfaceType.Fields)
+            {
+                NameString originalName =
+                    fieldDefinition.GetOriginalName(schemaName);
+                if (!originalName.Equals(fieldDefinition.Name.Value))
+                {
+
+                }
+            }
+        }
+
+
+        private static void RenameInterfaceField(
+            InterfaceTypeDefinitionNode interfaceType,
+            IDictionary<string, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<FieldDefinitionNode, NameString> renamedFields,
+            NameString schemaName,
+            NameString originalFieldName,
+            NameString newFieldName)
+        {
+            List<ObjectTypeDefinitionNode> objectTypes = types.Values
+                .OfType<ObjectTypeDefinitionNode>()
+                .Where(t => t.Interfaces.Select(i => i.Name.Value)
+                    .Any(n => string.Equals(n,
+                        interfaceType.Name.Value,
+                        StringComparison.Ordinal)))
+                .ToList();
+
+            AddNewFieldName(interfaceType, renamedFields,
+                schemaName, originalFieldName, newFieldName);
+
+            foreach (ObjectTypeDefinitionNode objectType in objectTypes)
+            {
+                AddNewFieldName(objectType, renamedFields,
+                    schemaName, originalFieldName, newFieldName);
+            }
+        }
+
+        private static void AddNewFieldName(
+            ComplexTypeDefinitionNodeBase type,
+            IDictionary<FieldDefinitionNode, NameString> renamedFields,
+            NameString schemaName,
+            NameString originalFieldName,
+            NameString newFieldName)
+        {
+            FieldDefinitionNode fieldDefinition = type.Fields.FirstOrDefault(
+                t => originalFieldName.Equals(t.GetOriginalName(schemaName)));
+            if (fieldDefinition != null)
+            {
+                renamedFields[fieldDefinition] = newFieldName;
+            }
         }
 
         protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
@@ -99,28 +200,30 @@ namespace HotChocolate.Stitching.Merge
         }
 
         private static bool IsRelevant(
-            ITypeDefinitionNode typeDefinition,
+            NamedSyntaxNode typeDefinition,
             TypeReferenceContext context)
         {
-            return !context.TargetSchema.HasValue
-                || typeDefinition.IsFromSchema(context.TargetSchema.Value);
+            return !context.SourceSchema.HasValue
+                || typeDefinition.IsFromSchema(context.SourceSchema.Value);
         }
 
         public sealed class TypeReferenceContext
         {
             public TypeReferenceContext(
-                NameString? targetSchema,
+                NameString? sourceSchema,
                 IReadOnlyDictionary<NameString, NameString> names)
             {
-                TargetSchema = targetSchema
-                    ?? throw new ArgumentNullException(nameof(targetSchema));
+                SourceSchema = sourceSchema
+                    ?? throw new ArgumentNullException(nameof(sourceSchema));
                 Names = names
                     ?? throw new ArgumentNullException(nameof(names));
             }
 
-            public NameString? TargetSchema { get; }
+            public NameString? SourceSchema { get; }
 
             public IReadOnlyDictionary<NameString, NameString> Names { get; }
         }
+
+
     }
 }

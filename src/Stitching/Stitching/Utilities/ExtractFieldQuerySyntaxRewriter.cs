@@ -151,7 +151,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private static void AddDependencies(
-            IHasName typeContext,
+            Types.IHasName typeContext,
             List<ISelectionNode> selections,
             IEnumerable<FieldDependency> dependencies)
         {
