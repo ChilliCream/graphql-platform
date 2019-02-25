@@ -4,6 +4,7 @@ using Xunit;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Snapshooter;
+using HotChocolate.Stitching.Introspection;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -306,6 +307,27 @@ namespace HotChocolate.Stitching.Merge
             SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
                 SnapshotNameExtension.Create("B"));
 
+        }
+
+        [Fact]
+        public void FieldDefinitionDoesNotHaveSameTypeShape()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: String b2: String } type B { c: String! }");
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type A { b1: String b3: String } type B { c: String }");
+
+            // act
+            DocumentNode merged = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
         }
     }
 }
