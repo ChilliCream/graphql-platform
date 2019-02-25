@@ -15,6 +15,11 @@ namespace HotChocolate.Stitching.Schemas.Customers
             descriptor.Field<CustomerResolver>(
                 t => t.GetConsultant(default, default))
                 .Type<ConsultantType>();
+
+            descriptor.Field("say")
+                .Argument("input", a => a.Type<InputObjectType<SayInput>>())
+                .Type<StringType>()
+                .Resolver(ctx => ctx.Argument<SayInput>("input").Word);
         }
     }
 }

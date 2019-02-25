@@ -316,17 +316,33 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 var request = new QueryRequest(@"
-                query a($id: ID!) {
+                query a($id: ID! $input: SayInput) {
                     a: customer2(customerId: $id) {
                         bar: foo
                         contracts {
                             id
                         }
                     }
-                }");
+                    ... customer
+                }
+
+                fragment customer on Query {
+                    b: customer2(customerId: $id) {
+                        bar: foo
+                        contracts {
+                            id
+                        }
+                        say(input: $input)
+                    }
+                }
+
+                ");
                 request.VariableValues = new Dictionary<string, object>
                 {
-                    {"id", "Q3VzdG9tZXIteDE="}
+                    {"id", "Q3VzdG9tZXIteDE="},
+                    {"input", new Dictionary<string, object> {
+                        {"word", "hello"}
+                    }}
                 };
                 request.Services = scope.ServiceProvider;
 
