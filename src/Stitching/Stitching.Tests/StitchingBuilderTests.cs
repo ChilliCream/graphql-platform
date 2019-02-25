@@ -248,6 +248,80 @@ namespace HotChocolate.Stitching
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
 
+        [Fact]
+        public void AddSchemaFromString()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            builder.AddSchemaFromString("contract",
+                    FileResource.Open("Contract.graphql"))
+                .AddSchemaFromString("customer",
+                    FileResource.Open("Customer.graphql"));
+
+            // assert
+            var services = new EmptyServiceProvider();
+            var merger = new SchemaMerger();
+
+            foreach (KeyValuePair<NameString, LoadSchemaDocument> item in
+                builder.Schemas)
+            {
+                merger.AddSchema(item.Key, item.Value.Invoke(services));
+            }
+
+            SchemaSyntaxSerializer.Serialize(merger.Merge()).MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSchemaFromString_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromString(null, "foo", "bar");
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchemaFromString_NameIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromString(builder, new NameString(), "bar");
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [InlineData("")]
+        [InlineData(null)]
+        [Theory]
+        public void AddSchemaFromString_SchemaIsNull_ArgumentNullException(
+            string filePath)
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddSchemaFromFile(builder, new NameString(), filePath);
+
+            // assert
+            Assert.Equal("path",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
         private IHttpClientFactory CreateRemoteSchemas()
         {
             TestServer server_contracts = TestServerFactory.Create(
