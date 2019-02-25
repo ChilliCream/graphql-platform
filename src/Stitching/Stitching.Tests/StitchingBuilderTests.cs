@@ -315,10 +315,70 @@ namespace HotChocolate.Stitching
             // act
             Action action = () =>
                 StitchingBuilderExtensions
-                    .AddSchemaFromFile(builder, new NameString(), filePath);
+                    .AddSchemaFromString(builder, new NameString(), filePath);
 
             // assert
-            Assert.Equal("path",
+            Assert.Equal("schema",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddExtensionsFromString()
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            builder.AddExtensionsFromString(
+                    FileResource.Open("Contract.graphql"))
+                .AddExtensionsFromString(
+                    FileResource.Open("Customer.graphql"));
+
+            // assert
+            var services = new EmptyServiceProvider();
+            var merger = new SchemaMerger();
+
+            var list = new List<string>();
+
+            foreach (LoadSchemaDocument item in builder.Extensions)
+            {
+                list.Add(SchemaSyntaxSerializer.Serialize(
+                    item.Invoke(services)));
+            }
+
+            list.MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddExtensionsFromString_BuilderIsNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddExtensionsFromString(null, "foo");
+
+            // assert
+            Assert.Equal("builder",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [InlineData("")]
+        [InlineData(null)]
+        [Theory]
+        public void AddExtensionsFromString_SchemaIsNull_ArgumentNullException(
+            string schema)
+        {
+            // arrange
+            var builder = new MockStitchingBuilder();
+
+            // act
+            Action action = () =>
+                StitchingBuilderExtensions
+                    .AddExtensionsFromString(builder, schema);
+
+            // assert
+            Assert.Equal("extensions",
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
 
@@ -348,6 +408,9 @@ namespace HotChocolate.Stitching
         private class MockStitchingBuilder
             : IStitchingBuilder
         {
+            public IList<LoadSchemaDocument> Extensions { get; } =
+                new List<LoadSchemaDocument>();
+
             public IDictionary<NameString, LoadSchemaDocument> Schemas
             { get; } = new OrderedDictionary<NameString, LoadSchemaDocument>();
 
