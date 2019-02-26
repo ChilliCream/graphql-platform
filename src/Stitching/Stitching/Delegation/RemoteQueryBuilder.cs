@@ -165,8 +165,9 @@ namespace HotChocolate.Stitching.Delegation
                 current = CreateSelection(current, component);
             }
 
-            ISet<string> usedVariables =
-                _usedVariables.GetUsedVariables(current);
+            var usedVariables = new HashSet<string>();
+            _usedVariables.CollectUsedVariables(current, usedVariables);
+            _usedVariables.CollectUsedVariables(_fragments, usedVariables);
 
             var definitions = new List<IDefinitionNode>();
             definitions.Add(CreateOperation(
@@ -271,22 +272,5 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         public static RemoteQueryBuilder New() => new RemoteQueryBuilder();
-    }
-
-    internal class CollectUsedVariableVisitor
-        : QuerySyntaxWalker<ISet<string>>
-    {
-        public ISet<string> GetUsedVariables(FieldNode node)
-        {
-            var variables = new HashSet<string>();
-            VisitField(node, variables);
-            return variables;
-        }
-
-        protected override void VisitVariable(
-            VariableNode node, ISet<string> context)
-        {
-            context.Add(node.Name.Value);
-        }
     }
 }

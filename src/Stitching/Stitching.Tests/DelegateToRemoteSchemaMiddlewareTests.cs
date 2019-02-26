@@ -21,6 +21,7 @@ using HotChocolate.Stitching.Delegation;
 using FileResource = ChilliCream.Testing.FileResource;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching
 {
@@ -320,47 +321,24 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 var request = new QueryRequest(@"
-                query a($id: ID! $input: SayInput!
-                    $first: PaginationAmount $after: String) {
-                    a: customer2(customerId: $id) {
-                        bar: foo
-                        contracts {
+                    query a($id: ID! $bar: String) {
+                        contracts(customerId: $id)
+                        {
                             id
+                            customerId
+                            ... foo
                         }
                     }
-                    ... customer
-                }
 
-                fragment customer on Query {
-                    b: customer2(customerId: $id) {
-                        bar: foo
-                        contracts {
-                            id
-                        }
-                        say(input: $input)
-                        consultant {
-                            customers(first: $first after: $after)
-                            {
-                                edges {
-                                    cursor
-                                    node {
-                                        name: foo
-                                    }
-                                }
-                            }
-                        }
+                    fragment foo on LifeInsuranceContract
+                    {
+                        foo(bar: $bar)
                     }
-                }
-
                 ");
                 request.VariableValues = new Dictionary<string, object>
                 {
                     {"id", "Q3VzdG9tZXIteDE="},
-                    {"input", new Dictionary<string, object> {
-                        {"words",  new List<object> { "hello" }}
-                    }},
-                    {"first", 1},
-                    {"after", "eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjB9"}
+                    {"bar", "this variable is passed to remote query!"}
                 };
                 request.Services = scope.ServiceProvider;
 
@@ -418,9 +396,8 @@ namespace HotChocolate.Stitching
                 fragment life on Life
                 {
                     premium
-                }
+                }");
 
-                ");
                 request.VariableValues = new Dictionary<string, object>
                 {
                     {"id", "Q3VzdG9tZXIteDE="}

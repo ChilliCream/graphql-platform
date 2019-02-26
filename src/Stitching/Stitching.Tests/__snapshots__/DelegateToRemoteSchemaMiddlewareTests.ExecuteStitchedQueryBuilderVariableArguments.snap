@@ -1,46 +1,21 @@
 {
   "Data": {
-    "a": {
-      "bar": "Freddy Freeman",
-      "contracts": [
-        {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx"
-        },
-        {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy"
-        },
-        {
-          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
-        }
-      ]
-    },
-    "b": {
-      "bar": "Freddy Freeman",
-      "contracts": [
-        {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx"
-        },
-        {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy"
-        },
-        {
-          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
-        }
-      ],
-      "say": "hello",
-      "consultant": {
-        "customers": {
-          "edges": [
-            {
-              "cursor": "eyJfX3RvdGFsQ291bnQiOjIsIl9fcG9zaXRpb24iOjF9",
-              "node": {
-                "name": "Carol Danvers"
-              }
-            }
-          ]
-        }
+    "contracts": [
+      {
+        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx",
+        "customerId": "1",
+        "foo": "this variable is passed to remote query!"
+      },
+      {
+        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy",
+        "customerId": "1",
+        "foo": "this variable is passed to remote query!"
+      },
+      {
+        "id": "U29tZU90aGVyQ29udHJhY3QteDE=",
+        "customerId": "1"
       }
-    }
+    ]
   },
   "Extensions": {},
   "Errors": []

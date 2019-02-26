@@ -63,14 +63,18 @@ type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
   id: ID!
+  customerId: ID!
+  foo(bar: String): String
   premium: Float!
 }
 
 type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "contract") {
   id: ID!
+  customerId: ID!
   expiryDate: DateTime!
 }
 
 interface Contract @source(name: "Contract", schema: "contract") {
   id: ID!
+  customerId: ID!
 }
