@@ -33,7 +33,7 @@ namespace HotChocolate.Stitching.Merge
             return RewriteDocument(document, context);
         }
 
-        private Dictionary<NameString, NameString> GetRenamedTypes(
+        private static Dictionary<NameString, NameString> GetRenamedTypes(
             DocumentNode document,
             NameString schemaName)
         {
@@ -52,7 +52,7 @@ namespace HotChocolate.Stitching.Merge
             return names;
         }
 
-        private Dictionary<FieldDefinitionNode, NameString> GetFieldsToRename(
+        private static Dictionary<FieldDefinitionNode, NameString> GetFieldsToRename(
             DocumentNode document,
             NameString schemaName)
         {
