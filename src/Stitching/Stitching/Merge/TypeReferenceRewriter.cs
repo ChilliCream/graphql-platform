@@ -24,7 +24,12 @@ namespace HotChocolate.Stitching.Merge
             IReadOnlyDictionary<NameString, NameString> renamedTypes =
                 GetRenamedTypes(document, schemaName);
 
-            var context = new TypeReferenceContext(schemaName, renamedTypes);
+            Dictionary<FieldDefinitionNode, NameString> fieldsToRename =
+                GetFieldsToRename(document, schemaName);
+
+            var context = new TypeReferenceContext(
+                schemaName, renamedTypes, fieldsToRename);
+
             return RewriteDocument(document, context);
         }
 
@@ -47,39 +52,113 @@ namespace HotChocolate.Stitching.Merge
             return names;
         }
 
-        private Dictionary<FieldReference, NameString> GetRenamedFields(
+        private Dictionary<FieldDefinitionNode, NameString> GetFieldsToRename(
             DocumentNode document,
             NameString schemaName)
         {
-            DocumentNode current = document;
-            var others = new List<IDefinitionNode>(current.Definitions
-                .Where(t => !(t is ComplexTypeDefinitionNodeBase)));
-            var complexTypes = document.Definitions
+            var fieldsToRename =
+                new Dictionary<FieldDefinitionNode, NameString>();
+
+            var types = document.Definitions
                 .OfType<ComplexTypeDefinitionNodeBase>()
-                .ToDictionary(t => t.Name.Value);
-            var queue = new Queue<string>(complexTypes.Keys);
+                .Where(t => t.IsFromSchema(schemaName))
+                .ToDictionary(t => t.GetOriginalName(schemaName));
+
+            var queue = new Queue<NameString>(types.Keys);
 
             while (queue.Count > 0)
             {
                 string name = queue.Dequeue();
 
-                switch (complexTypes[name])
+                switch (types[name])
                 {
                     case ObjectTypeDefinitionNode objectType:
+                        RenameObjectField(objectType, types,
+                            fieldsToRename, schemaName);
                         break;
                     case InterfaceTypeDefinitionNode interfaceType:
+                        RenameInterfaceField(interfaceType, types,
+                            fieldsToRename, schemaName);
                         break;
                     default:
                         throw new NotSupportedException();
                 }
             }
 
-            throw new NotImplementedException();
+            return fieldsToRename;
+        }
+
+        private static void RenameObjectField(
+            ObjectTypeDefinitionNode objectType,
+            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<FieldDefinitionNode, NameString> renamedFields,
+            NameString schemaName)
+        {
+            IReadOnlyCollection<InterfaceTypeDefinitionNode> interfaceTypes =
+                GetInterfaceTypes(objectType, types);
+
+            foreach (FieldDefinitionNode fieldDefinition in
+                objectType.Fields)
+            {
+                NameString originalName =
+                    fieldDefinition.GetOriginalName(schemaName);
+                if (!originalName.Equals(fieldDefinition.Name.Value))
+                {
+                    foreach (InterfaceTypeDefinitionNode interfaceType in
+                        GetInterfacesThatProvideFieldDefinition(
+                            originalName, interfaceTypes))
+                    {
+                        RenameInterfaceField(interfaceType, types,
+                            renamedFields, schemaName, originalName,
+                            fieldDefinition.Name.Value);
+                    }
+                }
+            }
+        }
+
+        private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
+            GetInterfaceTypes(
+                ObjectTypeDefinitionNode objectType,
+                IDictionary<NameString, ComplexTypeDefinitionNodeBase> types)
+        {
+            var interfaceTypes = new List<InterfaceTypeDefinitionNode>();
+
+            foreach (NamedTypeNode namedType in objectType.Interfaces)
+            {
+                if (types.TryGetValue(namedType.Name.Value,
+                    out ComplexTypeDefinitionNodeBase ct)
+                    && ct is InterfaceTypeDefinitionNode it)
+                {
+                    interfaceTypes.Add(it);
+                }
+            }
+
+            return interfaceTypes;
+        }
+
+        private static IReadOnlyCollection<InterfaceTypeDefinitionNode>
+            GetInterfacesThatProvideFieldDefinition(
+                NameString originalFieldName,
+                IEnumerable<InterfaceTypeDefinitionNode> interfaceTypes)
+        {
+            var items = new List<InterfaceTypeDefinitionNode>();
+
+            foreach (InterfaceTypeDefinitionNode interfaceType in
+                interfaceTypes)
+            {
+                if (interfaceType.Fields.Any(t =>
+                    originalFieldName.Equals(t.Name.Value)))
+                {
+                    items.Add(interfaceType);
+                }
+            }
+
+            return items;
         }
 
         private static void RenameInterfaceField(
             InterfaceTypeDefinitionNode interfaceType,
-            IDictionary<string, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
             IDictionary<FieldDefinitionNode, NameString> renamedFields,
             NameString schemaName)
         {
@@ -90,15 +169,15 @@ namespace HotChocolate.Stitching.Merge
                     fieldDefinition.GetOriginalName(schemaName);
                 if (!originalName.Equals(fieldDefinition.Name.Value))
                 {
-
+                    RenameInterfaceField(interfaceType, types, renamedFields,
+                        schemaName, originalName, fieldDefinition.Name.Value);
                 }
             }
         }
 
-
         private static void RenameInterfaceField(
             InterfaceTypeDefinitionNode interfaceType,
-            IDictionary<string, ComplexTypeDefinitionNodeBase> types,
+            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
             IDictionary<FieldDefinitionNode, NameString> renamedFields,
             NameString schemaName,
             NameString originalFieldName,
@@ -192,11 +271,26 @@ namespace HotChocolate.Stitching.Merge
             NamedTypeNode node,
             TypeReferenceContext context)
         {
-            if (context.Names.TryGetValue(node.Name.Value, out NameString newName))
+            if (context.Names.TryGetValue(node.Name.Value,
+                out NameString newName))
             {
                 return node.WithName(node.Name.WithValue(newName));
             }
             return node;
+        }
+
+        protected override FieldDefinitionNode RewriteFieldDefinition(
+            FieldDefinitionNode node,
+            TypeReferenceContext context)
+        {
+            FieldDefinitionNode current = node;
+
+            if (context.FieldNames.TryGetValue(current, out NameString newName))
+            {
+                current = current.Rename(newName, context.SourceSchema.Value);
+            }
+
+            return base.RewriteFieldDefinition(current, context);
         }
 
         private static bool IsRelevant(
@@ -211,19 +305,24 @@ namespace HotChocolate.Stitching.Merge
         {
             public TypeReferenceContext(
                 NameString? sourceSchema,
-                IReadOnlyDictionary<NameString, NameString> names)
+                IReadOnlyDictionary<NameString, NameString> names,
+                IReadOnlyDictionary<FieldDefinitionNode, NameString> fieldNames)
             {
                 SourceSchema = sourceSchema
                     ?? throw new ArgumentNullException(nameof(sourceSchema));
                 Names = names
                     ?? throw new ArgumentNullException(nameof(names));
+                FieldNames = fieldNames
+                    ?? throw new ArgumentNullException(nameof(fieldNames));
             }
 
             public NameString? SourceSchema { get; }
 
             public IReadOnlyDictionary<NameString, NameString> Names { get; }
+
+            public IReadOnlyDictionary<FieldDefinitionNode, NameString>
+            FieldNames
+            { get; }
         }
-
-
     }
 }
