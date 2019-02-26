@@ -13,6 +13,7 @@ using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -33,6 +34,106 @@ namespace HotChocolate.Stitching
 
         [Fact]
         public void AddSchema()
+        {
+            // arrange
+            StitchingBuilder stitchingBuilder = StitchingBuilder.New();
+
+            DocumentNode schema_a = Parser.Default.Parse(
+                "type A { b: String }");
+            DocumentNode schema_b = Parser.Default.Parse(
+                "type B { c: String }");
+
+            // act
+            stitchingBuilder.AddSchema("a", s => schema_a)
+                .AddSchema("b", s => schema_b);
+
+            // assert
+            var services = new ServiceCollection();
+            stitchingBuilder.Populate(services);
+
+            DocumentNode schema = services.BuildServiceProvider()
+                .GetRequiredService<StitchingBuilder.StitchingFactory>()
+                .MergedSchema;
+
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSchema_SchemaAlreadyRegistered_ArgumentNullException()
+        {
+            // arrange
+            StitchingBuilder stitchingBuilder = StitchingBuilder.New();
+            NameString schemName = "abc";
+
+            stitchingBuilder.AddSchema(
+                schemName,
+                sp => new DocumentNode(new List<IDefinitionNode>()));
+
+            // act
+            Action action = () => stitchingBuilder.AddSchema(
+                schemName,
+                sp => new DocumentNode(new List<IDefinitionNode>()));
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_SchemaAlreadyRegistered_2_ArgumentNullException()
+        {
+            // arrange
+            StitchingBuilder stitchingBuilder = StitchingBuilder.New();
+            NameString schemName = "abc";
+
+            stitchingBuilder.AddQueryExecutor(
+                schemName,
+                sp => default(IQueryExecutor));
+
+            // act
+            Action action = () => stitchingBuilder.AddSchema(
+                schemName,
+                sp => new DocumentNode(new List<IDefinitionNode>()));
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_SchemaNameIsEmpty_ArgumentNullException()
+        {
+            // arrange
+            StitchingBuilder stitchingBuilder = StitchingBuilder.New();
+            NameString schemName = "abc";
+
+            // act
+            Action action = () => stitchingBuilder.AddSchema(
+                null, sp => new DocumentNode(new List<IDefinitionNode>()));
+
+            // assert
+            Assert.Equal("name",
+                Assert.Throws<ArgumentException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_LoadSchemaIsNull_ArgumentNullException()
+        {
+            // arrange
+            StitchingBuilder stitchingBuilder = StitchingBuilder.New();
+            NameString schemName = "abc";
+
+            // act
+            Action action = () => stitchingBuilder.AddSchema(
+                schemName, (LoadSchemaDocument)null);
+
+            // assert
+            Assert.Equal("loadSchema",
+                Assert.Throws<ArgumentNullException>(action).ParamName);
+        }
+
+        [Fact]
+        public void AddSchema_2()
         {
             // arrange
             Schema customerSchema = Schema.Create(
@@ -63,7 +164,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public void AddSchema_BuilderIsNull_ArgumentNullException()
+        public void AddSchema_2_BuilderIsNull_ArgumentNullException()
         {
             // arrange
             Schema customerSchema = Schema.Create(
@@ -80,7 +181,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public void AddSchema_SchemaIsNull_ArgumentNullException()
+        public void AddSchema_2_SchemaIsNull_ArgumentNullException()
         {
             // arrange
             Schema customerSchema = Schema.Create(
@@ -98,7 +199,7 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
-        public void AddSchema_SchemaNameIsEmpty_ArgumentNullException()
+        public void AddSchema_2_SchemaNameIsEmpty_ArgumentNullException()
         {
             // arrange
             Schema customerSchema = Schema.Create(

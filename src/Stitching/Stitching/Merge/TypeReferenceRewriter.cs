@@ -52,9 +52,10 @@ namespace HotChocolate.Stitching.Merge
             return names;
         }
 
-        private static Dictionary<FieldDefinitionNode, NameString> GetFieldsToRename(
-            DocumentNode document,
-            NameString schemaName)
+        private static Dictionary<FieldDefinitionNode, NameString>
+            GetFieldsToRename(
+                DocumentNode document,
+                NameString schemaName)
         {
             var fieldsToRename =
                 new Dictionary<FieldDefinitionNode, NameString>();

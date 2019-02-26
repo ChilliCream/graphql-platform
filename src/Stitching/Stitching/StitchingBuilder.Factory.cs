@@ -16,11 +16,10 @@ namespace HotChocolate.Stitching
 {
     public partial class StitchingBuilder
     {
-        private class StitchingFactory
+        internal class StitchingFactory
         {
             private readonly StitchingBuilder _builder;
             private readonly IReadOnlyList<IRemoteExecutorAccessor> _executors;
-            private readonly DocumentNode _mergedSchema;
             private readonly IQueryExecutionOptionsAccessor _options;
 
             private StitchingFactory(
@@ -30,9 +29,11 @@ namespace HotChocolate.Stitching
             {
                 _builder = builder;
                 _executors = executors;
-                _mergedSchema = mergedSchema;
+                MergedSchema = mergedSchema;
                 _options = _builder._options ?? new QueryExecutionOptions();
             }
+
+            public DocumentNode MergedSchema { get; }
 
             public IStitchingContext CreateStitchingContext(
                 IServiceProvider services)
@@ -44,7 +45,7 @@ namespace HotChocolate.Stitching
             public IQueryExecutor CreateStitchedQueryExecuter()
             {
                 return Schema.Create(
-                    _mergedSchema,
+                    MergedSchema,
                     c =>
                     {
                         foreach (Action<ISchemaConfiguration> configure in
