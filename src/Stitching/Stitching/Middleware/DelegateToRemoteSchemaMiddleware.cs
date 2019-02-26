@@ -211,7 +211,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private static IRemoteQueryRequestBuilder AddVariables(
+        private static void AddVariables(
             IRemoteQueryRequestBuilder builder,
             DocumentNode query,
             IEnumerable<VariableValue> variableValues)
@@ -230,8 +230,6 @@ namespace HotChocolate.Stitching
                         variableValue.Name, variableValue.Value);
                 }
             }
-
-            return builder;
         }
 
         private static IReadOnlyList<VariableDefinitionNode> CreateVariableDefs(
