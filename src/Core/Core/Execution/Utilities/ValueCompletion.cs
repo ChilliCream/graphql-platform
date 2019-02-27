@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
             }
             else if (type.IsCompositeType())
             {
-                CompleteCompositeType(context, type);
+                CompleteCompositeType(context, type, result);
             }
             else
             {
@@ -134,7 +134,8 @@ namespace HotChocolate.Execution
 
         private static void CompleteCompositeType(
             ICompleteValueContext context,
-            IType type)
+            IType type,
+            object result)
         {
             ObjectType objectType = context.ResolveObjectType(type);
 
@@ -151,7 +152,7 @@ namespace HotChocolate.Execution
             {
                 var objectResult = new OrderedDictionary();
                 context.Value = objectResult;
-                context.EnqueueForProcessing(objectType, objectResult);
+                context.EnqueueForProcessing(objectType, objectResult, result);
             }
         }
 

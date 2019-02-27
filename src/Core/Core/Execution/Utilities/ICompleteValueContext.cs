@@ -30,6 +30,7 @@ namespace HotChocolate.Execution
 
         void EnqueueForProcessing(
             ObjectType objectType,
-            OrderedDictionary objectResult);
+            OrderedDictionary objectResult,
+            object resolverResult);
     }
 }

@@ -97,15 +97,15 @@ namespace HotChocolate.Execution
 
         public void EnqueueForProcessing(
             ObjectType objectType,
-            OrderedDictionary objectResult)
+            OrderedDictionary objectResult,
+            object resolverResult)
         {
             IReadOnlyCollection<FieldSelection> fields =
                 _fieldHelper.CollectFields(
                     objectType, _selectionSet);
 
             IImmutableStack<object> source =
-                _resolverTask.Source.Push(Value);
-
+                _resolverTask.Source.Push(resolverResult);
 
             foreach (FieldSelection field in fields)
             {
