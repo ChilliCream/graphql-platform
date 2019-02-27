@@ -15,8 +15,8 @@ namespace HotChocolate.Execution
 
             NonNullType nonNullType = new NonNullType(new StringType());
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(nonNullType);
             context.Setup(t => t.AsNonNullValueContext())
                 .Callback(() => newContextWasCreated = true)
@@ -40,8 +40,8 @@ namespace HotChocolate.Execution
 
             StringType stringType = new StringType();
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(stringType);
             context.Setup(t => t.AsNonNullValueContext())
                 .Callback(() => newContextWasCreated = true)

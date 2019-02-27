@@ -9,9 +9,7 @@ namespace HotChocolate.Types
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
     public abstract class ScalarType
-        : INamedOutputType
-        , INamedInputType
-        , ISerializableType
+        : ILeafType
     {
         /// <summary>
         /// Initializes a new instance of the

@@ -1,0 +1,25 @@
+{
+  "Data": {
+    "foo": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Cannot return null for non-nullable field.",
+      "Code": null,
+      "Path": [
+        "foo",
+        "nonnull_list_nonnull_element",
+        "b"
+      ],
+      "Locations": [
+        {
+          "line": 1,
+          "column": 40
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ]
+}

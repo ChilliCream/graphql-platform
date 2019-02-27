@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
 
             try
             {
-                IEnumerable<ResolverTask> rootResolverTasks =
+                IReadOnlyList<ResolverTask> rootResolverTasks =
                     CreateRootResolverTasks(
                         executionContext,
                         executionContext.Result.Data);
@@ -40,6 +40,10 @@ namespace HotChocolate.Execution
                     batchOperationHandler,
                     cancellationToken)
                         .ConfigureAwait(false);
+
+                EnsureRootValueNonNullState(
+                    executionContext.Result,
+                    rootResolverTasks);
 
                 return executionContext.Result;
             }
@@ -98,13 +102,11 @@ namespace HotChocolate.Execution
                 .ConfigureAwait(false);
 
             // serialize and integrate result into final query result
-            var completionContext = new FieldValueCompletionContext(
-                executionContext,
-                resolverTask.ResolverContext,
-                resolverTask,
+            var completionContext = new CompleteValueContext(
+                executionContext.FieldHelper,
                 enqueueTask);
 
-            CompleteValue(completionContext);
+            completionContext.CompleteValue(resolverTask);
         }
     }
 }

@@ -22,12 +22,12 @@ namespace HotChocolate.Execution
 
             ListType listType = new ListType(new StringType());
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.SetValue(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -68,12 +68,12 @@ namespace HotChocolate.Execution
 
             ListType listType = new ListType(new NonNullType(new StringType()));
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.SetValue(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -114,12 +114,12 @@ namespace HotChocolate.Execution
 
             ListType listType = new ListType(new NonNullType(new StringType()));
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.SetValue(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;
@@ -156,8 +156,8 @@ namespace HotChocolate.Execution
 
             StringType stringType = new StringType();
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(stringType);
 
             // act
@@ -177,8 +177,8 @@ namespace HotChocolate.Execution
 
             ListType listType = new ListType(new StringType());
 
-            Mock<IFieldValueCompletionContext> context =
-                new Mock<IFieldValueCompletionContext>(MockBehavior.Strict);
+            Mock<ICompleteValueContext> context =
+                new Mock<ICompleteValueContext>(MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(1);
             context.Setup(t => t.Path).Returns(Path.New("root"));
@@ -206,12 +206,12 @@ namespace HotChocolate.Execution
 
             ListType listType = new ListType(new StringType());
 
-            var context = new Mock<IFieldValueCompletionContext>(
+            var context = new Mock<ICompleteValueContext>(
                 MockBehavior.Strict);
             context.Setup(t => t.Type).Returns(listType);
             context.Setup(t => t.Value).Returns(list);
             context.Setup(t => t.Path).Returns(Path.New("root"));
-            context.Setup(t => t.IntegrateResult(Moq.It.IsAny<List<object>>()))
+            context.Setup(t => t.SetValue(Moq.It.IsAny<List<object>>()))
                 .Callback(new Action<object>(v =>
                 {
                     result = v;

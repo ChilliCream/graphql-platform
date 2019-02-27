@@ -12,24 +12,22 @@ namespace HotChocolate.Execution
     {
         private readonly IExecutionContext _executionContext;
         private readonly IDictionary<string, object> _result;
+        private readonly ResolverTask _parent;
 
         public ResolverTask(
             IExecutionContext executionContext,
-            ObjectType objectType,
             FieldSelection fieldSelection,
-            Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result,
-            IImmutableDictionary<string, object> scopedContextData)
+            IDictionary<string, object> result)
         {
             _executionContext = executionContext;
             Source = source;
-            ObjectType = objectType;
+            ObjectType = executionContext.Operation.RootType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
-            Path = path;
+            Path = Path.New(fieldSelection.ResponseName);
             _result = result;
-            ScopedContextData = scopedContextData;
+            ScopedContextData = ImmutableDictionary<string, object>.Empty;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
@@ -37,6 +35,45 @@ namespace HotChocolate.Execution
 
             FieldDelegate = executionContext.FieldHelper
                 .CreateMiddleware(fieldSelection);
+        }
+
+        private ResolverTask(
+            ResolverTask parent,
+            ObjectType objectType,
+            FieldSelection fieldSelection,
+            IImmutableStack<object> source,
+            IDictionary<string, object> result)
+        {
+            _parent = parent;
+            _executionContext = parent._executionContext;
+            Source = source;
+            ObjectType = objectType;
+            FieldSelection = fieldSelection;
+            FieldType = fieldSelection.Field.Type;
+            Path = parent.Path.Append(fieldSelection.ResponseName);
+            _result = result;
+            ScopedContextData = parent.ScopedContextData;
+
+            ResolverContext = new ResolverContext(
+                parent._executionContext, this,
+                parent._executionContext.RequestAborted);
+
+            FieldDelegate = parent._executionContext.FieldHelper
+                .CreateMiddleware(fieldSelection);
+        }
+
+        public ResolverTask Branch(
+            ObjectType objectType,
+            FieldSelection fieldSelection,
+            IImmutableStack<object> source,
+            IDictionary<string, object> result)
+        {
+            return new ResolverTask(
+                this,
+                objectType,
+                fieldSelection,
+                source,
+                result);
         }
 
         public IImmutableStack<object> Source { get; }
@@ -56,7 +93,7 @@ namespace HotChocolate.Execution
         public object ResolverResult { get; set; }
 
         public FieldDelegate FieldDelegate { get; }
-        
+
         public IImmutableDictionary<string, object> ScopedContextData
         {
             get;
@@ -71,7 +108,19 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void IntegrateResult(object value)
+        public void PropagateNonNullViolation()
+        {
+            if (FieldSelection.Field.Type.IsNonNullType() && _parent != null)
+            {
+                _parent.PropagateNonNullViolation();
+            }
+            else
+            {
+                SetResult(null);
+            }
+        }
+
+        public void SetResult(object value)
         {
             _result[FieldSelection.ResponseName] = value;
         }

@@ -7,9 +7,7 @@ namespace HotChocolate.Types
 {
     public class EnumType
         : NamedTypeBase
-        , INamedOutputType
-        , INamedInputType
-        , ISerializableType
+        , ILeafType
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();

@@ -142,6 +142,7 @@ namespace HotChocolate.Types
                 return nt.Name;
             }
 
+            // TODO : Resources
             throw new ArgumentException("The type structure is invalid.");
         }
 
@@ -157,6 +158,7 @@ namespace HotChocolate.Types
                 return nnlt;
             }
 
+            // TODO : Resources
             throw new ArgumentException("The type structure is invalid.");
         }
 
@@ -182,6 +184,7 @@ namespace HotChocolate.Types
                 return nt;
             }
 
+            // TODO : Resources
             throw new ArgumentException($"The type is not a {typeof(T).Name}.");
         }
 
@@ -199,10 +202,15 @@ namespace HotChocolate.Types
                     return nl.ElementType;
                 }
 
-                throw new InvalidOperationException("The specified type is not a valid list type.");
+                // TODO : Resources
+                throw new InvalidOperationException(
+                    "The specified type is not a valid list type.");
             }
 
-            throw new ArgumentException("The specified type is not a list type.", nameof(type));
+            // TODO : Resources
+            throw new ArgumentException(
+                "The specified type is not a list type.",
+                nameof(type));
         }
 
         public static bool IsEqualTo(this IType x, IType y)
@@ -287,6 +295,7 @@ namespace HotChocolate.Types
                 return new NamedTypeNode(null, new NameNode(nt.Name));
             }
 
+            // TODO : Resources
             throw new NotSupportedException(
                 "The specified type kind is not supported.");
         }

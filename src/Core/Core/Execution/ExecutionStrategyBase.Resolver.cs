@@ -4,14 +4,12 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
     internal abstract partial class ExecutionStrategyBase
     {
-        private static readonly FieldValueCompleter _fieldValueCompleter =
-            new FieldValueCompleter();
-
         protected static async Task<object> ExecuteResolverAsync(
            ResolverTask resolverTask,
            IErrorHandler errorHandler,
@@ -95,12 +93,6 @@ namespace HotChocolate.Execution
                 .ConfigureAwait(false);
 
             return middlewareContext.Result;
-        }
-
-        protected static void CompleteValue(
-            IFieldValueCompletionContext completionContext)
-        {
-            _fieldValueCompleter.CompleteValue(completionContext);
         }
     }
 }

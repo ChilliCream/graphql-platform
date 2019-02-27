@@ -163,10 +163,17 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (ContextData.TryGetValue(key, out object value)
-                && value is T v)
+            if (ContextData.TryGetValue(key, out object value))
             {
-                return v;
+                if (value is null)
+                {
+                    return default(T);
+                }
+
+                if (value is T v)
+                {
+                    return v;
+                }
             }
 
             // TODO : Resources
