@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
 
         Action SetElementNull { get; set; }
 
-        ObjectType ResolveObjectType(IType type);
+        ObjectType ResolveObjectType(IType type, object resolverResult);
 
         void AddError(Action<IErrorBuilder> error);
 

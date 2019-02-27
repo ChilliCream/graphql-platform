@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -103,8 +104,8 @@ namespace HotChocolate.Execution
 
             // serialize and integrate result into final query result
             var completionContext = new CompleteValueContext(
-                executionContext.FieldHelper,
-                enqueueTask);
+                executionContext.Services.GetTypeConversion(),
+                executionContext.FieldHelper, enqueueTask);
 
             completionContext.CompleteValue(resolverTask);
         }

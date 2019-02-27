@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -149,6 +150,7 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             var completionContext = new CompleteValueContext(
+                executionContext.Services.GetTypeConversion(),
                 executionContext.FieldHelper, enqueueTask);
 
             foreach (ResolverTask resolverTask in currentBatch)

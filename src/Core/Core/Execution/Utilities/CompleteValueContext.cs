@@ -19,9 +19,12 @@ namespace HotChocolate.Execution
         private Path _path;
 
         public CompleteValueContext(
+            ITypeConversion converter,
             IFieldHelper fieldHelper,
             Action<ResolverTask> enqueueTask)
         {
+            Converter = converter
+                ?? throw new ArgumentNullException(nameof(converter));
             _fieldHelper = fieldHelper
                 ?? throw new ArgumentNullException(nameof(fieldHelper));
             _enqueueTask = enqueueTask
@@ -138,7 +141,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        public ObjectType ResolveObjectType(IType type)
+        public ObjectType ResolveObjectType(IType type, object resolverResult)
         {
             if (type is ObjectType objectType)
             {
@@ -148,13 +151,13 @@ namespace HotChocolate.Execution
             {
                 return interfaceType.ResolveType(
                     _resolverTask.ResolverContext,
-                    _resolverTask.ResolverResult);
+                    resolverResult);
             }
             else if (type is UnionType unionType)
             {
                 return unionType.ResolveType(
                     _resolverTask.ResolverContext,
-                    _resolverTask.ResolverResult);
+                    resolverResult);
             }
 
             // TODO : resources

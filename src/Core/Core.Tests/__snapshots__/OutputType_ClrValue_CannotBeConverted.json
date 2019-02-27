@@ -5,17 +5,19 @@
   "Extensions": {},
   "Errors": [
     {
-      "Exception": null,
-      "message": "The internal resolver value could not be converted to a valid value of `Name`.",
-      "path": [
+      "Message": "The internal resolver value could not be converted to a valid value of `Name`.",
+      "Code": null,
+      "Path": [
         "stringToName"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "Exception": null,
+      "Extensions": {}
     }
   ]
 }

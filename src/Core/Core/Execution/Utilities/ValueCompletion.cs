@@ -137,7 +137,7 @@ namespace HotChocolate.Execution
             IType type,
             object result)
         {
-            ObjectType objectType = context.ResolveObjectType(type);
+            ObjectType objectType = context.ResolveObjectType(type, result);
 
             if (objectType == null)
             {
