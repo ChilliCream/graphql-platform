@@ -102,6 +102,50 @@ namespace HotChocolate.Execution
             result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
         }
 
+        [InlineData("nonnull_prop")]
+        [InlineData("nullable_prop")]
+        [Theory]
+        public async Task Object_NonNullElementIsNull(string fieldType)
+        {
+            // arrange
+            IQueryExecutor executor = CreateExecutor();
+
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
+                    .AddProperty("b", null)
+                    .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                request, CancellationToken.None);
+
+            // assert
+            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+        }
+
+        [InlineData("nonnull_prop")]
+        [InlineData("nullable_prop")]
+        [Theory]
+        public async Task Object_NonNullElementHasError(string fieldType)
+        {
+            // arrange
+            IQueryExecutor executor = CreateExecutor();
+
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                    .AddProperty("b", null)
+                    .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                request, CancellationToken.None);
+
+            // assert
+            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+        }
+
         private IQueryExecutor CreateExecutor()
         {
             string schema = @"
@@ -114,6 +158,8 @@ namespace HotChocolate.Execution
                     nonnull_list_nullable_element: [Bar]!
                     nullable_list_nonnull_element: [Bar!]
                     nonnull_list_nonnull_element: [Bar!]!
+                    nonnull_prop: Bar!
+                    nullable_prop: Bar
                 }
 
                 type Bar {
@@ -125,7 +171,8 @@ namespace HotChocolate.Execution
 
             return Schema.Create(schema, c =>
             {
-                c.BindResolver(ctx => new object()).To("Query", "foo");
+                c.BindResolver(ctx => new object())
+                    .To("Query", "foo");
                 c.BindResolver(ctx => new[] { new object() })
                     .To("Foo", "nullable_list_nullable_element");
                 c.BindResolver(ctx => new[] { new object() })
@@ -134,6 +181,10 @@ namespace HotChocolate.Execution
                     .To("Foo", "nullable_list_nonnull_element");
                 c.BindResolver(ctx => new[] { new object() })
                     .To("Foo", "nonnull_list_nonnull_element");
+                c.BindResolver(ctx => new object())
+                    .To("Foo", "nonnull_prop");
+                c.BindResolver(ctx => new object())
+                    .To("Foo", "nullable_prop");
                 c.BindResolver(ctx => ctx.CustomProperty<string>("a"))
                     .To("Bar", "a");
                 c.BindResolver(ctx => ctx.CustomProperty<string>("b"))
