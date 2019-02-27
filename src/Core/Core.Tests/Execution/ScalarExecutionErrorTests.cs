@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -45,7 +46,8 @@ namespace HotChocolate.Execution
                 "{ stringToFoo(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
