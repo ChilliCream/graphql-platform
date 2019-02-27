@@ -10,6 +10,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
         {
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
+            descriptor.Field(t => t.Street).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.ConsultantId).Ignore();
 
             descriptor.Field<CustomerResolver>(

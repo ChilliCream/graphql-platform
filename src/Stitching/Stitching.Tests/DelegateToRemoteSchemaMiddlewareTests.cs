@@ -480,6 +480,53 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        [Fact]
+        public async Task ReplaceField()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .IgnoreField("customer",
+                        new FieldReference("Customer", "name"))
+                    .RenameField("customer",
+                        new FieldReference("Customer", "street"), "name")
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer(id: $id) {
+                        name
+                    }
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         [Fact(Skip = "Fix this issue")]
         public async Task ExtendedScalarAsInAndOutputType()
         {
