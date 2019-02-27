@@ -158,7 +158,7 @@ namespace HotChocolate.Execution
 
         private static bool TryConvertLeafValue(
             ITypeConversion converter,
-            ILeafType leafType,
+            IHasClrType leafType,
             object value,
             out object scalarValue)
         {
