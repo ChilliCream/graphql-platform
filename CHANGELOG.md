@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introspection default values are now serialized correctly.
 - Added missing validation rule: https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined
+- The non-null value violation is now propagated correctly. https://facebook.github.io/graphql/June2018/#sec-Errors
 
 ## [0.7.0] - 2019-02-03
 
