@@ -10,6 +10,7 @@
       "Path": [
         "foo",
         "nonnull_list_nonnull_element",
+        0,
         "b"
       ],
       "Locations": [

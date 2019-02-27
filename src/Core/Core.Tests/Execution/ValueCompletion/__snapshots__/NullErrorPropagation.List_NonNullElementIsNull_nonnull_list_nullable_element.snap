@@ -1,6 +1,10 @@
 {
   "Data": {
-    "foo": null
+    "foo": {
+      "nonnull_list_nullable_element": [
+        null
+      ]
+    }
   },
   "Extensions": {},
   "Errors": [
@@ -10,6 +14,7 @@
       "Path": [
         "foo",
         "nonnull_list_nullable_element",
+        0,
         "b"
       ],
       "Locations": [

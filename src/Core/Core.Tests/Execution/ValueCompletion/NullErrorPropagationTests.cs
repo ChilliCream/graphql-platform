@@ -78,7 +78,29 @@ namespace HotChocolate.Execution
             result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
         }
 
+        [InlineData("nullable_list_nullable_element")]
+        [InlineData("nonnull_list_nullable_element")]
+        [InlineData("nullable_list_nonnull_element")]
+        [InlineData("nonnull_list_nonnull_element")]
+        [Theory]
+        public async Task List_NonNullElementHasError(string fieldType)
+        {
+            // arrange
+            IQueryExecutor executor = CreateExecutor();
 
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+                    .AddProperty("b", null)
+                    .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                request, CancellationToken.None);
+
+            // assert
+            result.MatchSnapshot(SnapshotNameExtension.Create(fieldType));
+        }
 
         private IQueryExecutor CreateExecutor()
         {
@@ -97,6 +119,7 @@ namespace HotChocolate.Execution
                 type Bar {
                     a: String
                     b: String!
+                    c: String!
                 }
                 ";
 
@@ -115,6 +138,9 @@ namespace HotChocolate.Execution
                     .To("Bar", "a");
                 c.BindResolver(ctx => ctx.CustomProperty<string>("b"))
                     .To("Bar", "b");
+                c.BindResolver(ctx => ErrorBuilder.New()
+                    .SetMessage("ERROR").Build())
+                    .To("Bar", "c");
             }).MakeExecutable();
         }
 

@@ -20,6 +20,8 @@ namespace HotChocolate.Execution
 
         bool IsViolatingNonNullType { get; set; }
 
+        Action SetElementNull { get; set; }
+
         ObjectType ResolveObjectType(IType type);
 
         void AddError(Action<IErrorBuilder> error);

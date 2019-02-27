@@ -13,6 +13,7 @@ namespace HotChocolate.Execution
         private readonly IExecutionContext _executionContext;
         private readonly IDictionary<string, object> _result;
         private readonly ResolverTask _parent;
+        private readonly Action _propagateNonNullViolation;
 
         public ResolverTask(
             IExecutionContext executionContext,
@@ -41,8 +42,10 @@ namespace HotChocolate.Execution
             ResolverTask parent,
             ObjectType objectType,
             FieldSelection fieldSelection,
+            Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result)
+            IDictionary<string, object> result,
+            Action propagateNonNullViolation)
         {
             _parent = parent;
             _executionContext = parent._executionContext;
@@ -50,9 +53,10 @@ namespace HotChocolate.Execution
             ObjectType = objectType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
-            Path = parent.Path.Append(fieldSelection.ResponseName);
+            Path = path;
             _result = result;
             ScopedContextData = parent.ScopedContextData;
+            _propagateNonNullViolation = propagateNonNullViolation;
 
             ResolverContext = new ResolverContext(
                 parent._executionContext, this,
@@ -65,15 +69,19 @@ namespace HotChocolate.Execution
         public ResolverTask Branch(
             ObjectType objectType,
             FieldSelection fieldSelection,
+            Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result)
+            IDictionary<string, object> result,
+            Action propagateNonNullViolation)
         {
             return new ResolverTask(
                 this,
                 objectType,
                 fieldSelection,
+                path,
                 source,
-                result);
+                result,
+                propagateNonNullViolation);
         }
 
         public IImmutableStack<object> Source { get; }
@@ -110,14 +118,19 @@ namespace HotChocolate.Execution
 
         public void PropagateNonNullViolation()
         {
-            if (FieldSelection.Field.Type.IsNonNullType() && _parent != null)
+            if (FieldSelection.Field.Type.IsNonNullType())
             {
-                _parent.PropagateNonNullViolation();
+                if (_propagateNonNullViolation != null)
+                {
+                    _propagateNonNullViolation.Invoke();
+                }
+                else if (_parent != null)
+                {
+                    _parent.PropagateNonNullViolation();
+                }
             }
-            else
-            {
-                SetResult(null);
-            }
+
+            SetResult(null);
         }
 
         public void SetResult(object value)

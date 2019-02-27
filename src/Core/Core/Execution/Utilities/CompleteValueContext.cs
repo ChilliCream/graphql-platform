@@ -42,6 +42,9 @@ namespace HotChocolate.Execution
                 _selection = _resolverTask.FieldSelection.Selection;
                 _selectionSet = _selection.SelectionSet;
                 _path = _resolverTask.Path;
+                SetElementNull = null;
+                IsViolatingNonNullType = false;
+                HasErrors = false;
             }
         }
 
@@ -67,6 +70,8 @@ namespace HotChocolate.Execution
 
         public bool IsViolatingNonNullType { get; set; }
 
+        public Action SetElementNull { get; set; }
+
         public void AddError(Action<IErrorBuilder> error)
         {
             if (error == null)
@@ -85,6 +90,8 @@ namespace HotChocolate.Execution
             {
                 throw new ArgumentNullException(nameof(error));
             }
+
+            HasErrors = true;
             _resolverTask.ReportError(error);
         }
 
@@ -99,12 +106,36 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source =
                 _resolverTask.Source.Push(Value);
 
+
             foreach (FieldSelection field in fields)
             {
                 _enqueueTask(_resolverTask.Branch(
-                    objectType, field, source,
-                    objectResult));
+                    objectType, field,
+                    Path.Append(field.ResponseName),
+                    source, objectResult,
+                    CreateListNonNullViolationPropagation(
+                        _resolverTask, SetElementNull)));
             }
+        }
+
+        private static Action CreateListNonNullViolationPropagation(
+            ResolverTask resolverTask,
+            Action setElementNull)
+        {
+            if (setElementNull == null)
+            {
+                return null;
+            }
+
+            return () =>
+            {
+                setElementNull.Invoke();
+
+                if (resolverTask.FieldType.ElementType().IsNonNullType())
+                {
+                    resolverTask.PropagateNonNullViolation();
+                }
+            };
         }
 
         public ObjectType ResolveObjectType(IType type)

@@ -57,8 +57,12 @@ namespace HotChocolate.Execution
 
                 foreach (object element in collection)
                 {
+                    list.Add(null);
+
+                    int local = i;
                     context.Value = null;
-                    context.Path = path.Append(i++);
+                    context.Path = path.Append(i);
+                    context.SetElementNull = () => list[local] = null;
 
                     CompleteValue(context, elementType, element);
 
@@ -70,9 +74,12 @@ namespace HotChocolate.Execution
                         return;
                     }
 
-                    list.Add(context.Value);
+                    list[i] = context.Value;
+                    i++;
                 }
 
+                context.IsViolatingNonNullType = false;
+                context.Path = path;
                 context.Value = list;
             }
             else

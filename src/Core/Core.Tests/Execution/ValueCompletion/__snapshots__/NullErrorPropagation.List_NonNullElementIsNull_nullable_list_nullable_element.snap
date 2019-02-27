@@ -1,7 +1,9 @@
 {
   "Data": {
     "foo": {
-      "nullable_list_nullable_element": null
+      "nullable_list_nullable_element": [
+        null
+      ]
     }
   },
   "Extensions": {},
@@ -12,6 +14,7 @@
       "Path": [
         "foo",
         "nullable_list_nullable_element",
+        0,
         "b"
       ],
       "Locations": [
