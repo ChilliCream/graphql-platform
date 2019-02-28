@@ -265,9 +265,11 @@ namespace HotChocolate.Stitching.Merge
             IEnumerable<NameString> schemaNames)
         {
             var list = new List<DirectiveNode>(directives);
+            bool hasSchemas = false;
 
             foreach (NameString schemaName in schemaNames)
             {
+                hasSchemas = true;
                 if (!list.Any(t => HasSourceDirective(t, schemaName)))
                 {
                     list.Add(new DirectiveNode
@@ -281,6 +283,14 @@ namespace HotChocolate.Stitching.Merge
                             schemaName)
                     ));
                 }
+            }
+
+            if (!hasSchemas)
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "NoSchema Specified!",
+                    nameof(schemaNames));
             }
 
             return list;

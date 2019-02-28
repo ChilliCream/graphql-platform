@@ -105,7 +105,8 @@ namespace HotChocolate.Stitching.Merge.Rewriters
             {
                 if (ArgumentName.Equals(argument.Name.Value))
                 {
-                    renamedArguments.Add(argument.Rename(NewArgumentName));
+                    renamedArguments.Add(argument.Rename(
+                        NewArgumentName, schemaName));
                 }
                 else
                 {

@@ -1,23 +1,12 @@
 {
   "Data": {
-    "createCustomer": null
-  },
-  "Extensions": {},
-  "Errors": [
-    {
-      "Exception": null,
-      "message": "The argument `input2` does not exist.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 19
-        }
-      ],
-      "extensions": {
-        "remote": [
-          "createCustomer"
-        ]
+    "createCustomer": {
+      "customer": {
+        "name": "a",
+        "contracts": []
       }
     }
-  ]
+  },
+  "Extensions": {},
+  "Errors": []
 }

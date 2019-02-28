@@ -717,7 +717,7 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
-        //[Fact]
+        [Fact]
         public async Task StitchedMutationWithRenamedFieldArgument()
         {
             // arrange
