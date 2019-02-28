@@ -9,6 +9,7 @@ type Query {
 
 type Mutation {
   createCustomer(input: CreateCustomerInput): CreateCustomerPayload @delegate(schema: "customer")
+  createCustomers(inputs: [CreateCustomerInput]): [CreateCustomerPayload] @delegate(schema: "customer")
 }
 
 type Customer @source(name: "Customer", schema: "customer") {

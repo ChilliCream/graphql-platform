@@ -717,6 +717,55 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        //[Fact]
+        public async Task StitchedMutationWithRenamedFieldArgument()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameFieldArgument(
+                        "Mutation", "createCustomer", "input", "input2")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input2: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         [Fact]
         public async Task StitchedMutationWithRenamedInputField()
         {
