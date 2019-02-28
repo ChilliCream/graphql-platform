@@ -7,6 +7,7 @@ using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.DataLoader
@@ -45,7 +46,7 @@ namespace HotChocolate.Integration.DataLoader
                 }); ;
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace HotChocolate.Integration.DataLoader
                 }); ;
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -120,7 +121,7 @@ namespace HotChocolate.Integration.DataLoader
                 }); ;
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -157,7 +158,7 @@ namespace HotChocolate.Integration.DataLoader
                 }); ;
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]

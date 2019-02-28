@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
                 "{ stringToName(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
                 "{ nameToString(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution
                 });
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class Query

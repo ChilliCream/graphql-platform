@@ -10,6 +10,7 @@ type Query {
 type Customer @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
+  street: String!
   consultant(customer: CustomerInput): Consultant
   say(input: SayInput!): String
 }
@@ -38,6 +39,7 @@ type CustomerConnection @source(name: "CustomerConnection", schema: "customer") 
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String
   name: String
+  street: String
   consultantId: String
 }
 

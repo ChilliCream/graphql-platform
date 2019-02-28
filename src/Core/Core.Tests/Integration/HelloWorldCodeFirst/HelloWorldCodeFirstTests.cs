@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.HelloWorldCodeFirst
@@ -28,7 +29,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -49,7 +50,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -69,7 +70,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -89,7 +90,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -110,7 +111,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private IServiceProvider CreateServiceProvider()

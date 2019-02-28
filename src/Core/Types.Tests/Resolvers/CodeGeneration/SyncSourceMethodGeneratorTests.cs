@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using ChilliCream.Testing;
 using HotChocolate.Resolvers.CodeGeneration;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Resolvers
@@ -25,7 +26,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -44,7 +45,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace HotChocolate.Resolvers
             string result = generator.Generate("abc", descriptor);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private MethodInfo GetMethod<T>(string name, int parameters)

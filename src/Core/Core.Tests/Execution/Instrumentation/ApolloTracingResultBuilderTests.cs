@@ -1,5 +1,6 @@
 ﻿using System;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -16,7 +17,7 @@ namespace HotChocolate.Execution.Instrumentation
             OrderedDictionary result = builder.Build();
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace HotChocolate.Execution.Instrumentation
             OrderedDictionary result = builder.Build();
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
     }
 }

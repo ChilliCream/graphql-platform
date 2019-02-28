@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -57,7 +58,7 @@ namespace HotChocolate.Execution
                 new QueryRequest("{ root { a { foo } b { foo } } }"));
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
     }
 }

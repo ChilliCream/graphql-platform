@@ -11,6 +11,7 @@ using HotChocolate.Subscriptions;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.StarWarsCodeFirst
@@ -38,7 +39,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -59,7 +60,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -80,7 +81,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -103,7 +104,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -134,7 +135,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -157,7 +158,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -185,7 +186,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -208,7 +209,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -237,7 +238,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -266,7 +267,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -295,7 +296,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -324,7 +325,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -353,7 +354,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -383,7 +384,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -414,7 +415,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -445,7 +446,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -477,7 +478,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -503,7 +504,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -526,7 +527,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -551,7 +552,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query, variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -571,7 +572,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -612,7 +613,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -636,7 +637,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -715,7 +716,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IExecutionResult result = executor.Execute(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private static Schema CreateSchema()

@@ -1,5 +1,6 @@
 ﻿using ChilliCream.Testing;
 using HotChocolate.Execution;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.ArgumentValidation
@@ -17,7 +18,7 @@ namespace HotChocolate.Integration.ArgumentValidation
                 "{ sayHello }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private static ISchema CreateSchema()

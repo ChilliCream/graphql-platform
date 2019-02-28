@@ -1,0 +1,23 @@
+{
+  "Data": {
+    "stringToName": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "The internal resolver value could not be converted to a valid value of `Name`.",
+      "Code": null,
+      "Path": [
+        "stringToName"
+      ],
+      "Locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ]
+}

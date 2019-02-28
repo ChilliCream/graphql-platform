@@ -1,0 +1,7 @@
+/* Foo.bar */
+public static FieldResolverDelegate abc  = async ctx => {
+var ct = ctx.RequestAborted;
+var source = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
+return await source.GetFooAsync().ConfigureAwait(false);
+
+};

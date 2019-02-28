@@ -16,6 +16,7 @@ type Consultant @source(name: "Consultant", schema: "customer") {
 type Customer @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
+  street: String!
   consultant(customer: CustomerInput): Consultant
   say(input: SayInput!): String
 }
@@ -54,6 +55,7 @@ union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "custom
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String
   name: String
+  street: String
   consultantId: String
 }
 

@@ -1,0 +1,10 @@
+{
+  "Data": {
+    "withScalarArgument": {
+      "a": "1234567890",
+      "b": "2",
+      "c": 3
+    }
+  },
+  "Errors": null
+}
