@@ -8,7 +8,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Stitching.Merge
 {
     internal sealed class TypeReferenceRewriter
-        : SchemaSyntaxRewriter<TypeReferenceRewriter.TypeReferenceContext>
+        : SchemaSyntaxRewriter<TypeReferenceRewriter.Context>
     {
         public DocumentNode RewriteSchema(
             DocumentNode document,
@@ -27,7 +27,7 @@ namespace HotChocolate.Stitching.Merge
             Dictionary<FieldDefinitionNode, NameString> fieldsToRename =
                 GetFieldsToRename(document, schemaName);
 
-            var context = new TypeReferenceContext(
+            var context = new Context(
                 schemaName, renamedTypes, fieldsToRename);
 
             return RewriteDocument(document, context);
@@ -219,7 +219,7 @@ namespace HotChocolate.Stitching.Merge
 
         protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
             ObjectTypeDefinitionNode node,
-            TypeReferenceContext context)
+            Context context)
         {
             if (IsRelevant(node, context))
             {
@@ -233,7 +233,7 @@ namespace HotChocolate.Stitching.Merge
         protected override InterfaceTypeDefinitionNode
             RewriteInterfaceTypeDefinition(
                 InterfaceTypeDefinitionNode node,
-                TypeReferenceContext context)
+                Context context)
         {
             if (IsRelevant(node, context))
             {
@@ -245,7 +245,7 @@ namespace HotChocolate.Stitching.Merge
 
         protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
             UnionTypeDefinitionNode node,
-            TypeReferenceContext context)
+            Context context)
         {
             if (IsRelevant(node, context))
             {
@@ -258,7 +258,7 @@ namespace HotChocolate.Stitching.Merge
         protected override InputObjectTypeDefinitionNode
             RewriteInputObjectTypeDefinition(
                 InputObjectTypeDefinitionNode node,
-                TypeReferenceContext context)
+                Context context)
         {
             if (IsRelevant(node, context))
             {
@@ -270,7 +270,7 @@ namespace HotChocolate.Stitching.Merge
 
         protected override NamedTypeNode RewriteNamedType(
             NamedTypeNode node,
-            TypeReferenceContext context)
+            Context context)
         {
             if (context.Names.TryGetValue(node.Name.Value,
                 out NameString newName))
@@ -282,7 +282,7 @@ namespace HotChocolate.Stitching.Merge
 
         protected override FieldDefinitionNode RewriteFieldDefinition(
             FieldDefinitionNode node,
-            TypeReferenceContext context)
+            Context context)
         {
             FieldDefinitionNode current = node;
 
@@ -296,15 +296,15 @@ namespace HotChocolate.Stitching.Merge
 
         private static bool IsRelevant(
             NamedSyntaxNode typeDefinition,
-            TypeReferenceContext context)
+            Context context)
         {
             return !context.SourceSchema.HasValue
                 || typeDefinition.IsFromSchema(context.SourceSchema.Value);
         }
 
-        public sealed class TypeReferenceContext
+        public sealed class Context
         {
-            public TypeReferenceContext(
+            public Context(
                 NameString? sourceSchema,
                 IReadOnlyDictionary<NameString, NameString> names,
                 IReadOnlyDictionary<FieldDefinitionNode, NameString> fieldNames)
