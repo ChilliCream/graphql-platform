@@ -5,5 +5,13 @@ var v0_a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
 var v1_b = ctx.Argument<System.String>("b");
 var v2_c = ctx.Argument<System.Int32>("c");
 var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
-return await resolver.GetFooAsync(v0_a, v1_b, v2_c).ConfigureAwait(false);
+var resolverTask = resolver.GetFooAsync(v0_a, v1_b, v2_c);
+if(resolverTask == null) {
+return null;
+}
+else
+{
+return await resolverTask.ConfigureAwait(false);
+}
+
 };
