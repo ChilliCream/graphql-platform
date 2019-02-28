@@ -63,6 +63,11 @@ namespace HotChocolate.Stitching
             var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
                 context.Schema);
 
+            OperationType operationType =
+                context.Schema.IsRootType(context.ObjectType)
+                    ? context.Operation.Operation
+                    : OperationType.Query;
+
             ExtractedField extractedField = fieldRewriter.ExtractField(
                 schemaName, context.Document, context.Operation,
                 context.FieldSelection, context.ObjectType);
@@ -71,7 +76,7 @@ namespace HotChocolate.Stitching
                 CreateVariableValues(context, path, extractedField);
 
             DocumentNode query = RemoteQueryBuilder.New()
-                .SetOperation(context.Operation.Operation)
+                .SetOperation(operationType)
                 .SetSelectionPath(path)
                 .SetRequestField(extractedField.Field)
                 .AddVariables(CreateVariableDefs(variableValues))
@@ -106,6 +111,7 @@ namespace HotChocolate.Stitching
                 return queryResult;
             }
 
+            // TODO : resources
             throw new QueryException(
                 "Only query results are supported in the " +
                 "delegation middleware.");

@@ -7,10 +7,18 @@ type Query {
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
 }
 
+type Mutation {
+  createCustomer(input: CreateCustomerInput): CreateCustomerPayload @delegate(schema: "customer")
+}
+
 type Consultant @source(name: "Consultant", schema: "customer") {
   id: ID!
   name: String!
   customers(first: PaginationAmount after: String last: PaginationAmount before: String): CustomerConnection
+}
+
+type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
+  customer: Customer
 }
 
 type Customer @source(name: "Customer", schema: "customer") {
@@ -51,6 +59,12 @@ type PageInfo @source(name: "PageInfo", schema: "customer") {
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant
+
+input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
+  name: String
+  street: String
+  consultantId: String
+}
 
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String

@@ -71,6 +71,8 @@ namespace HotChocolate.Stitching.Utilities
                 && type.Fields.TryGetField(node.Name.Value,
                     out IOutputField field))
             {
+                context.OutputField = field;
+
                 if (field.TryGetSourceDirective(context.Schema,
                     out SourceDirective sourceDirective))
                 {
@@ -98,6 +100,8 @@ namespace HotChocolate.Stitching.Utilities
                         current.WithSelectionSet
                     );
                 }
+
+                context.OutputField = null;
             }
 
             return current;
@@ -123,6 +127,63 @@ namespace HotChocolate.Stitching.Utilities
 
             return base.RewriteSelectionSet(current, context);
         }
+
+        protected override ArgumentNode RewriteArgument(
+            ArgumentNode node, Context context)
+        {
+            ArgumentNode current = node;
+
+            if (context.OutputField != null
+                && context.OutputField.Arguments.TryGetField(node.Name.Value,
+                out IInputField inputField))
+            {
+                Context cloned = context.Clone();
+                cloned.InputField = inputField;
+                cloned.InputType = inputField.Type;
+
+                if (inputField.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective)
+                    && !sourceDirective.Name.Equals(node.Name.Value))
+                {
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
+                return base.RewriteArgument(current, cloned);
+            }
+
+            return base.RewriteArgument(current, context);
+        }
+
+        protected override ObjectFieldNode RewriteObjectField(
+            ObjectFieldNode node, Context context)
+        {
+            if (context.InputType != null
+                && context.InputType.NamedType() is InputObjectType inputType
+                && inputType.Fields.TryGetField(node.Name.Value,
+                out InputField inputField))
+            {
+                ObjectFieldNode current = node;
+
+                Context cloned = context.Clone();
+                cloned.InputField = inputField;
+                cloned.InputType = inputField.Type;
+
+                if (inputField.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective)
+                    && !sourceDirective.Name.Equals(node.Name.Value))
+                {
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
+                current = base.RewriteObjectField(current, cloned);
+                return current;
+            }
+
+            return base.RewriteObjectField(node, context);
+        }
+
 
         private static void RemoveDelegationFields(
             SelectionSetNode node,
@@ -288,8 +349,6 @@ namespace HotChocolate.Stitching.Utilities
             return base.RewriteInlineFragment(current, newContext);
         }
 
-
-
         public class Context
         {
             private Context(
@@ -342,6 +401,14 @@ namespace HotChocolate.Stitching.Utilities
 
             public INamedOutputType TypeContext { get; protected set; }
 
+            public DirectiveType Directive { get; set; }
+
+            public IOutputField OutputField { get; set; }
+
+            public IInputField InputField { get; set; }
+
+            public IInputType InputType { get; set; }
+
             public ImmutableHashSet<string> FragmentPath { get; }
 
             public IDictionary<string, FragmentDefinitionNode> Fragments
@@ -355,6 +422,11 @@ namespace HotChocolate.Stitching.Utilities
             public Context AddFragment(string fragmentName)
             {
                 return new Context(this, FragmentPath.Add(fragmentName));
+            }
+
+            public Context Clone()
+            {
+                return (Context)MemberwiseClone();
             }
 
             public static Context New(

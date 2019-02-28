@@ -94,7 +94,12 @@ namespace HotChocolate.Language
             ObjectValueNode node,
             TContext context)
         {
-            return node;
+            ObjectValueNode current = node;
+
+            current = RewriteMany(current, current.Fields, context,
+                RewriteObjectField, current.WithFields);
+
+            return current;
         }
 
         protected virtual ObjectFieldNode RewriteObjectField(
