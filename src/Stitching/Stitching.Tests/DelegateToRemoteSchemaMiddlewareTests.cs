@@ -721,47 +721,51 @@ namespace HotChocolate.Stitching
         public async Task StitchedMutationWithRenamedInputField()
         {
             // arrange
-            IHttpClientFactory clientFactory = CreateRemoteSchemas();
-
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(clientFactory);
-            serviceCollection.AddStitchedSchema(builder =>
-                builder.AddSchemaFromHttp("contract")
-                    .AddSchemaFromHttp("customer")
-                    .RenameField(
-                        new FieldReference("CreateCustomerInput", "name"),
-                        "foo")
-                    .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql"))
-                    .AddSchemaConfiguration(c =>
-                        c.RegisterType<PaginationAmountType>()));
-
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            IQueryExecutor executor = services
-                .GetRequiredService<IQueryExecutor>();
-            IExecutionResult result = null;
-
-            // act
-            using (IServiceScope scope = services.CreateScope())
-            {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input: { foo: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
-                                }
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation {
+                    createCustomer(input: { foo: ""a"" })
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
                             }
                         }
-                    }");
-                request.Services = scope.ServiceProvider;
+                    }
+                }");
 
-                result = await executor.ExecuteAsync(request);
-            }
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldList()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation {
+                    createCustomers(inputs: [{ foo: ""a"" } { foo: ""b"" }])
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
 
             // assert
             Snapshot.Match(result);
@@ -771,6 +775,77 @@ namespace HotChocolate.Stitching
         public async Task StitchedMutationWithRenamedInputFieldInVariables()
         {
             // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation a($input: CreateCustomerInput) {
+                    createCustomer(input: $input)
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+            requestBuilder.AddVariableValue("input",
+                new Dictionary<string, object>
+                {
+                    { "foo", "abc" }
+                });
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldInVariablesList()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation a($input: [CreateCustomerInput]) {
+                    createCustomers(inputs: $input)
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+            requestBuilder.AddVariableValue("input",
+                new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "foo", "abc" }
+                    },
+                    new Dictionary<string, object>
+                    {
+                        { "foo", "def" }
+                    }
+                });
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        public async Task<IExecutionResult>
+            ExecutedMutationWithRenamedInputField(
+                IQueryRequestBuilder requestBuilder)
+        {
             IHttpClientFactory clientFactory = CreateRemoteSchemas();
 
             var serviceCollection = new ServiceCollection();
@@ -791,37 +866,13 @@ namespace HotChocolate.Stitching
 
             IQueryExecutor executor = services
                 .GetRequiredService<IQueryExecutor>();
-            IExecutionResult result = null;
 
-            // act
             using (IServiceScope scope = services.CreateScope())
             {
 
-                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                    .SetQuery(@"
-                        mutation m($input: CreateCustomerInput) {
-                            createCustomer(input: $input)
-                            {
-                                customer {
-                                    name
-                                    contracts {
-                                        id
-                                    }
-                                }
-                            }
-                        }")
-                    .AddVariableValue("input", new Dictionary<string, object>
-                    {
-                        { "foo", "abc" }
-                    })
-                    .SetServices(scope.ServiceProvider)
-                    .Create();
-
-                result = await executor.ExecuteAsync(request);
+                requestBuilder.SetServices(scope.ServiceProvider);
+                return await executor.ExecuteAsync(requestBuilder.Create());
             }
-
-            // assert
-            Snapshot.Match(result);
         }
 
         private IHttpClientFactory CreateRemoteSchemas()

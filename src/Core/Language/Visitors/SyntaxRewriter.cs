@@ -87,7 +87,12 @@ namespace HotChocolate.Language
             ListValueNode node,
             TContext context)
         {
-            return node;
+            ListValueNode current = node;
+
+            current = RewriteMany(current, current.Items, context,
+                RewriteValue, current.WithItems);
+
+            return current;
         }
 
         protected virtual ObjectValueNode RewriteObjectValue(

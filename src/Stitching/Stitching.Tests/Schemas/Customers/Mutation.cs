@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Stitching.Schemas.Customers
 {
@@ -24,6 +25,19 @@ namespace HotChocolate.Stitching.Schemas.Customers
             _repository.Customers.Add(customer);
 
             return new CreateCustomerPayload { Customer = customer };
+        }
+
+        public ICollection<CreateCustomerPayload> CreateCustomers(
+            ICollection<CreateCustomerInput> inputs)
+        {
+            var results = new List<CreateCustomerPayload>();
+
+            foreach (CreateCustomerInput input in inputs)
+            {
+                results.Add(CreateCustomer(input));
+            }
+
+            return results;
         }
     }
 }
