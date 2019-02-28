@@ -767,6 +767,63 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldInVariables()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField(
+                        new FieldReference("CreateCustomerInput", "name"),
+                        "foo")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+
+                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                    .SetQuery(@"
+                        mutation m($input: CreateCustomerInput) {
+                            createCustomer(input: $input)
+                            {
+                                customer {
+                                    name
+                                    contracts {
+                                        id
+                                    }
+                                }
+                            }
+                        }")
+                    .AddVariableValue("input", new Dictionary<string, object>
+                    {
+                        { "foo", "abc" }
+                    })
+                    .SetServices(scope.ServiceProvider)
+                    .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         private IHttpClientFactory CreateRemoteSchemas()
         {
             TestServer server_contracts = TestServerFactory.Create(
