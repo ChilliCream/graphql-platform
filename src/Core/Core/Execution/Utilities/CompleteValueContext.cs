@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -160,9 +161,8 @@ namespace HotChocolate.Execution
                     resolverResult);
             }
 
-            // TODO : resources
             throw new NotSupportedException(
-                "The specified type is not supported.");
+                CoreResources.ResolveObjectType_TypeNotSupported);
         }
     }
 }

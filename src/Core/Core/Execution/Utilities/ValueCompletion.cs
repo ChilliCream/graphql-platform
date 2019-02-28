@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -51,15 +53,15 @@ namespace HotChocolate.Execution
         {
             if (result is IEnumerable collection)
             {
-                int i = 0;
+                var i = 0;
                 var list = new List<object>();
                 Path path = context.Path;
 
-                foreach (object element in collection)
+                foreach (var element in collection)
                 {
                     list.Add(null);
 
-                    int local = i;
+                    var local = i;
                     context.Value = null;
                     context.Path = path.Append(i);
                     context.SetElementNull = () => list[local] = null;
@@ -84,11 +86,11 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // todo : resources
                 context.AddError(b =>
-                    b.SetMessage("A list values must implement " +
-                        $"`{typeof(IEnumerable).FullName}` in order " +
-                        "to be completed."));
+                    b.SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        CoreResources.CompleteList_ListTypeInvalid,
+                        typeof(IEnumerable).FullName)));
                 context.Value = null;
             }
         }
@@ -108,26 +110,24 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
-                    // TODO : resources
                     context.AddError(b =>
-                        b.SetMessage(
-                            "The internal resolver value could not be " +
-                            "converted to a valid value of " +
-                            $"`{leafType.TypeName()}`."));
+                        b.SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            CoreResources.CompleteLeafType_CannotConvertValue,
+                            leafType.TypeName())));
                 }
             }
             catch (ScalarSerializationException ex)
             {
-                // TODO : resources
                 context.AddError(b =>
                     b.SetMessage(ex.Message)
                         .SetException(ex));
             }
             catch (Exception ex)
             {
-                // TODO : resources
                 context.AddError(b =>
-                    b.SetMessage("Undefined scalar field serialization error.")
+                    b.SetMessage(CoreResources
+                        .CompleteLeadType_UndefinedError)
                         .SetException(ex));
             }
         }
@@ -141,11 +141,11 @@ namespace HotChocolate.Execution
 
             if (objectType == null)
             {
-                // TODO : resources
                 context.AddError(b =>
-                    b.SetMessage(
-                        "Could not resolve the schema type from " +
-                        $"`{context.Value.GetType().GetTypeName()}`."));
+                    b.SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        CoreResources.CompleteCompositeType_UnknownSchemaType,
+                        context.Value.GetType().GetTypeName())));
                 context.Value = null;
             }
             else
@@ -196,10 +196,8 @@ namespace HotChocolate.Execution
             {
                 if (!context.HasErrors)
                 {
-                    // TODO . resources
-                    context.AddError(b =>
-                        b.SetMessage(
-                            "Cannot return null for non-nullable field."));
+                    context.AddError(b => b.SetMessage(
+                        CoreResources.HandleNonNullViolation_Message));
                 }
 
                 context.IsViolatingNonNullType = true;

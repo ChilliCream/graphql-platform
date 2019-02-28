@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -136,20 +137,7 @@ namespace HotChocolate.Execution
         public void SetResult(object value)
         {
             _result[FieldSelection.ResponseName] = value;
-        }
-
-        public void ReportError(string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                // TODO : Resources
-                throw new ArgumentException(
-                    "The error message cannot be null or empty.",
-                    nameof(message));
-            }
-
-            ReportError(CreateError(message));
-        }
+        }       
 
         public void ReportError(IError error)
         {
@@ -166,7 +154,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message cannot be null or empty.",
+                    CoreResources.ResolverTask_ErrorMessageIsNull,
                     nameof(message));
             }
 

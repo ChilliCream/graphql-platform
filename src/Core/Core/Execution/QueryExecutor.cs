@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,8 +65,10 @@ namespace HotChocolate.Execution
 
                 if (context.Result == null)
                 {
-                    // TODO : Resources
-                    throw new InvalidOperationException();
+                    return QueryResult.CreateError(new Error
+                    {
+                        Message = CoreResources.QueryExecutor_NoResult
+                    });
                 }
 
                 if (context.Result is IQueryResult queryResult)
