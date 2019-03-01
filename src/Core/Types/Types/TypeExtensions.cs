@@ -38,6 +38,12 @@ namespace HotChocolate.Types
                 || IsType<InterfaceType>(type);
         }
 
+        public static bool IsComplexType(this IType type)
+        {
+            return IsType<ObjectType>(type)
+                || IsType<InterfaceType>(type);
+        }
+
         public static bool IsLeafType(this IType type)
         {
             return IsScalarType(type)

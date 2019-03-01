@@ -205,9 +205,12 @@ namespace HotChocolate.Stitching
                 remoteSchema.GetOperationType(operationType);
 
             var variables = new List<VariableValue>();
+            SelectionPathComponent[] comps = components.Reverse().ToArray();
 
-            foreach (SelectionPathComponent component in components)
+            for (int i = 0; i < comps.Length; i++)
             {
+                SelectionPathComponent component = comps[i];
+
                 if (!type.Fields.TryGetField(component.Name.Value,
                     out IOutputField field))
                 {
@@ -220,6 +223,19 @@ namespace HotChocolate.Stitching
 
                 ResolveScopedVariableArguments(
                     context, component, field, variables);
+
+                if (i + 1 < comps.Length)
+                {
+                    if (!field.Type.IsComplexType())
+                    {
+                        // TODO : RESOURCES
+                        throw new QueryException(new Error
+                        {
+                            Message = "RESOURCES"
+                        });
+                    }
+                    type = (IComplexOutputType)field.Type.NamedType();
+                }
             }
 
             return variables;
