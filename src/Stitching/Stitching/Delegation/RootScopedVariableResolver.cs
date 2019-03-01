@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 
@@ -16,6 +17,10 @@ namespace HotChocolate.Stitching.Delegation
                 new ArgumentScopedVariableResolver();
             Resolvers[ScopeNames.Fields] =
                 new FieldScopedVariableResolver();
+            Resolvers[ScopeNames.ContextData] =
+                new ContextDataScopedVariableResolver();
+            Resolvers[ScopeNames.ScopedContextData] =
+                new ScopedContextDataScopedVariableResolver();
         }
 
         private Dictionary<string, IScopedVariableResolver> Resolvers { get; } =
@@ -23,7 +28,8 @@ namespace HotChocolate.Stitching.Delegation
 
         public VariableValue Resolve(
             IResolverContext context,
-            ScopedVariableNode variable)
+            ScopedVariableNode variable,
+            ITypeNode targetType)
         {
             if (context == null)
             {
@@ -38,7 +44,7 @@ namespace HotChocolate.Stitching.Delegation
             if (Resolvers.TryGetValue(variable.Scope.Value,
                 out IScopedVariableResolver resolver))
             {
-                return resolver.Resolve(context, variable);
+                return resolver.Resolve(context, variable, targetType);
             }
 
             throw new QueryException(QueryError.CreateFieldError(

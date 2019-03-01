@@ -15,7 +15,8 @@ namespace HotChocolate.Stitching.Delegation
     {
         public VariableValue Resolve(
             IResolverContext context,
-            ScopedVariableNode variable)
+            ScopedVariableNode variable,
+            ITypeNode targetType)
         {
             if (context == null)
             {

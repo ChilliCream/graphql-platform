@@ -6,8 +6,10 @@ namespace HotChocolate.Stitching.Delegation
     internal class VariableValue
     {
         internal VariableValue(
-            string name, ITypeNode type,
-            object value, IValueNode defaultValue)
+            string name,
+            ITypeNode type,
+            object value,
+            IValueNode defaultValue)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));

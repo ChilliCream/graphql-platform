@@ -74,8 +74,13 @@ namespace HotChocolate.Stitching
                 schemaName, context.Document, context.Operation,
                 context.FieldSelection, context.ObjectType);
 
+            IEnumerable<VariableValue> scopedVariables =
+                ResolveScopedVariables(
+                    context, schemaName, operationType, path);
+
             IReadOnlyCollection<VariableValue> variableValues =
-                CreateVariableValues(context, path, extractedField);
+                CreateVariableValues(
+                    context, scopedVariables, extractedField);
 
             DocumentNode query = RemoteQueryBuilder.New()
                 .SetOperation(operationType)
@@ -163,19 +168,18 @@ namespace HotChocolate.Stitching
 
         private static IReadOnlyCollection<VariableValue> CreateVariableValues(
             IMiddlewareContext context,
-            IEnumerable<SelectionPathComponent> components,
+            IEnumerable<VariableValue> scopedVaribles,
             ExtractedField extractedField)
         {
             var values = new Dictionary<string, VariableValue>();
 
-            IReadOnlyDictionary<string, object> requestVariables =
-                context.GetVariables();
-
-            foreach (VariableValue value in ResolveScopedVariables(
-                context, components))
+            foreach (VariableValue value in scopedVaribles)
             {
                 values[value.Name] = value;
             }
+
+            IReadOnlyDictionary<string, object> requestVariables =
+                context.GetVariables();
 
             foreach (VariableValue value in ResolveUsedRequestVariables(
                 extractedField, requestVariables))
@@ -186,18 +190,63 @@ namespace HotChocolate.Stitching
             return values.Values;
         }
 
-        private static IEnumerable<VariableValue> ResolveScopedVariables(
+        private static IReadOnlyList<VariableValue> ResolveScopedVariables(
             IResolverContext context,
+            NameString schemaName,
+            OperationType operationType,
             IEnumerable<SelectionPathComponent> components)
         {
-            foreach (var component in components)
+            var stitchingContext = context.Service<IStitchingContext>();
+
+            ISchema remoteSchema =
+                stitchingContext.GetRemoteSchema(schemaName);
+
+            IComplexOutputType type =
+                remoteSchema.GetOperationType(operationType);
+
+            var variables = new List<VariableValue>();
+
+            foreach (SelectionPathComponent component in components)
             {
-                foreach (ArgumentNode argument in component.Arguments)
+                if (!type.Fields.TryGetField(component.Name.Value,
+                    out IOutputField field))
                 {
-                    if (argument.Value is ScopedVariableNode sv)
+                    // TODO : RESOURCES
+                    throw new QueryException(new Error
                     {
-                        yield return _resolvers.Resolve(context, sv);
-                    }
+                        Message = "RESOURCES"
+                    });
+                }
+
+                ResolveScopedVariableArguments(
+                    context, component, field, variables);
+            }
+
+            return variables;
+        }
+
+        private static void ResolveScopedVariableArguments(
+            IResolverContext context,
+            SelectionPathComponent component,
+            IOutputField field,
+            ICollection<VariableValue> variables)
+        {
+            foreach (ArgumentNode argument in component.Arguments)
+            {
+                if (!field.Arguments.TryGetField(argument.Name.Value,
+                    out IInputField arg))
+                {
+                    // TODO : RESOURCES
+                    throw new QueryException(new Error
+                    {
+                        Message = "RESOURCES"
+                    });
+                }
+
+                if (argument.Value is ScopedVariableNode sv)
+                {
+                    variables.Add(_resolvers.Resolve(
+                        context, sv, arg.Type.ToTypeNode()));
                 }
             }
         }
