@@ -115,11 +115,56 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This resolver can only handle contextData scopes..
+        /// </summary>
+        internal static string ContextDataScopedVariableResolver_CannotHandleVariable {
+            get {
+                return ResourceManager.GetString("ContextDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the schema to which this field shall be delegated to..
         /// </summary>
         internal static string DelegateDirectiveType_Description {
             get {
                 return ResourceManager.GetString("DelegateDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The path element argument `{0}` was not found..
+        /// </summary>
+        internal static string DelegateToRemoteSchemaMiddleware_ArgumentNotFound {
+            get {
+                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_ArgumentNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only query results are supported in the delegation middleware..
+        /// </summary>
+        internal static string DelegateToRemoteSchemaMiddleware_OnlyQueryResults {
+            get {
+                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_OnlyQueryResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The path element `{0}` has no corresponding field on type `{1}`..
+        /// </summary>
+        internal static string DelegateToRemoteSchemaMiddleware_PathElementInvalid {
+            get {
+                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_PathElementInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The scalar path elements are only allowed at the end..
+        /// </summary>
+        internal static string DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected {
+            get {
+                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected", resourceCulture);
             }
         }
         
@@ -202,6 +247,15 @@ namespace HotChocolate.Stitching.Properties {
         internal static string IntrospectionQuery {
             get {
                 return ResourceManager.GetString("IntrospectionQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No schema was specified..
+        /// </summary>
+        internal static string MergeSyntaxNodeExtensions_NoSchema {
+            get {
+                return ResourceManager.GetString("MergeSyntaxNodeExtensions_NoSchema", resourceCulture);
             }
         }
         
@@ -310,6 +364,15 @@ namespace HotChocolate.Stitching.Properties {
         internal static string SchemaName_NotFound {
             get {
                 return ResourceManager.GetString("SchemaName_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This resolver can only handle scopedContextData scopes..
+        /// </summary>
+        internal static string ScopedContextDataScopedVariableResolver_CannotHandleVariable {
+            get {
+                return ResourceManager.GetString("ScopedContextDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
         

@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -287,9 +288,8 @@ namespace HotChocolate.Stitching.Merge
 
             if (!hasSchemas)
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "NoSchema Specified!",
+                    StitchingResources.MergeSyntaxNodeExtensions_NoSchema,
                     nameof(schemaNames));
             }
 

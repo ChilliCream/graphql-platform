@@ -133,6 +133,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The query mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryExecutorExtensions_QueryIsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("QueryExecutorExtensions_QueryIsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified type is not supported..
         /// </summary>
         internal static string ResolveObjectType_TypeNotSupported {
@@ -174,6 +183,15 @@ namespace HotChocolate.Properties {
         internal static string ResolverTask_ErrorMessageIsNull {
             get {
                 return ResourceManager.GetString("ResolverTask_ErrorMessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Register a event registry as service in order to use subsciptions..
+        /// </summary>
+        internal static string SubscriptionExecutionStrategy_NoEventRegistry {
+            get {
+                return ResourceManager.GetString("SubscriptionExecutionStrategy_NoEventRegistry", resourceCulture);
             }
         }
         

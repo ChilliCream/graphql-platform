@@ -42,7 +42,6 @@ namespace HotChocolate.Utilities
 
             if (method == null)
             {
-                // TODO : Resources
                 throw new NotSupportedException(
                     UtilityResources.MiddlewareActivator_NoInvokeMethod);
             }

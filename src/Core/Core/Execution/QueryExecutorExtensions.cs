@@ -1,17 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
-    // TODO : argument validation!!!
     public static class QueryExecutorExtensions
     {
         public static Task<IExecutionResult> ExecuteAsync(
             this IQueryExecutor executor,
             IReadOnlyQueryRequest request)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return executor.ExecuteAsync(
                 request,
                 CancellationToken.None);
@@ -21,6 +31,18 @@ namespace HotChocolate.Execution
             this IQueryExecutor executor,
             string query)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
             return executor.ExecuteAsync(
                 new QueryRequest(query),
                 CancellationToken.None);
@@ -31,6 +53,18 @@ namespace HotChocolate.Execution
             string query,
             CancellationToken cancellationToken)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
             return executor.ExecuteAsync(
                 new QueryRequest(query),
                 cancellationToken);
@@ -41,6 +75,23 @@ namespace HotChocolate.Execution
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
+            if (variableValues == null)
+            {
+                throw new ArgumentNullException(nameof(variableValues));
+            }
+
             return executor.ExecuteAsync(
                 new QueryRequest(query)
                 {
@@ -55,6 +106,23 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
+            if (variableValues == null)
+            {
+                throw new ArgumentNullException(nameof(variableValues));
+            }
+
             return executor.ExecuteAsync(
                 new QueryRequest(query)
                 {
@@ -65,8 +133,18 @@ namespace HotChocolate.Execution
 
         public static IExecutionResult Execute(
             this IQueryExecutor executor,
-            QueryRequest request)
+            IReadOnlyQueryRequest request)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
             return Task.Factory.StartNew(
                 () => ExecuteAsync(executor, request))
                 .Unwrap()
@@ -78,6 +156,18 @@ namespace HotChocolate.Execution
             this IQueryExecutor executor,
             string query)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
             return executor.Execute(new QueryRequest(query));
         }
 
@@ -86,6 +176,23 @@ namespace HotChocolate.Execution
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
+            if (executor == null)
+            {
+                throw new ArgumentNullException(nameof(executor));
+            }
+
+            if (string.IsNullOrEmpty(query))
+            {
+                throw new ArgumentException(
+                    CoreResources.QueryExecutorExtensions_QueryIsNullOrEmpty,
+                    nameof(query));
+            }
+
+            if (variableValues == null)
+            {
+                throw new ArgumentNullException(nameof(variableValues));
+            }
+
             return executor.Execute(
                 new QueryRequest(query)
                 {

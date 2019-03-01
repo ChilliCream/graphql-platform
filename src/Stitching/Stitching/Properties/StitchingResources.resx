@@ -135,8 +135,23 @@
   <data name="ComputedDirectiveType_Description" xml:space="preserve">
     <value>Specifies the fields on which a computed field is dependent on.</value>
   </data>
+  <data name="ContextDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle contextData scopes.</value>
+  </data>
   <data name="DelegateDirectiveType_Description" xml:space="preserve">
     <value>The name of the schema to which this field shall be delegated to.</value>
+  </data>
+  <data name="DelegateToRemoteSchemaMiddleware_ArgumentNotFound" xml:space="preserve">
+    <value>The path element argument `{0}` was not found.</value>
+  </data>
+  <data name="DelegateToRemoteSchemaMiddleware_OnlyQueryResults" xml:space="preserve">
+    <value>Only query results are supported in the delegation middleware.</value>
+  </data>
+  <data name="DelegateToRemoteSchemaMiddleware_PathElementInvalid" xml:space="preserve">
+    <value>The path element `{0}` has no corresponding field on type `{1}`.</value>
+  </data>
+  <data name="DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected" xml:space="preserve">
+    <value>The scalar path elements are only allowed at the end.</value>
   </data>
   <data name="ExtensionsFilePath_EmptyOrNull" xml:space="preserve">
     <value>The schema extensions file path mustn't be null or empty.</value>
@@ -232,6 +247,9 @@
     }
   }</value>
   </data>
+  <data name="MergeSyntaxNodeExtensions_NoSchema" xml:space="preserve">
+    <value>No schema was specified.</value>
+  </data>
   <data name="QueryRequestBuilder_OperationNameInvalid" xml:space="preserve">
     <value>The specified operation `{0}` does not exist.</value>
   </data>
@@ -267,6 +285,9 @@
   </data>
   <data name="Schema_EmptyOrNull" xml:space="preserve">
     <value>The schema mustn't be null or empty.</value>
+  </data>
+  <data name="ScopedContextDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle scopedContextData scopes.</value>
   </data>
   <data name="SelectionPathParser_StartOfFileTokenExpected" xml:space="preserve">
     <value>The first token must be a start of file token.</value>

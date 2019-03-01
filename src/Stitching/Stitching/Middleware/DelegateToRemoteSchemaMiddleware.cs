@@ -1,18 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
@@ -121,10 +119,8 @@ namespace HotChocolate.Stitching
                 return queryResult;
             }
 
-            // TODO : resources
             throw new QueryException(
-                "Only query results are supported in the " +
-                "delegation middleware.");
+                StitchingResources.DelegateToRemoteSchemaMiddleware_OnlyQueryResults);
         }
 
         private static object ExtractData(
@@ -196,7 +192,7 @@ namespace HotChocolate.Stitching
             OperationType operationType,
             IEnumerable<SelectionPathComponent> components)
         {
-            var stitchingContext = context.Service<IStitchingContext>();
+            IStitchingContext stitchingContext = context.Service<IStitchingContext>();
 
             ISchema remoteSchema =
                 stitchingContext.GetRemoteSchema(schemaName);
@@ -214,10 +210,14 @@ namespace HotChocolate.Stitching
                 if (!type.Fields.TryGetField(component.Name.Value,
                     out IOutputField field))
                 {
-                    // TODO : RESOURCES
                     throw new QueryException(new Error
                     {
-                        Message = "RESOURCES"
+                        Message = string.Format(
+                            CultureInfo.InvariantCulture,
+                            StitchingResources
+                                .DelegateToRemoteSchemaMiddleware_PathElementInvalid,
+                            component.Name.Value,
+                            type.Name)
                     });
                 }
 
@@ -228,10 +228,10 @@ namespace HotChocolate.Stitching
                 {
                     if (!field.Type.IsComplexType())
                     {
-                        // TODO : RESOURCES
                         throw new QueryException(new Error
                         {
-                            Message = "RESOURCES"
+                            Message = StitchingResources
+                                .DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected                                
                         });
                     }
                     type = (IComplexOutputType)field.Type.NamedType();
@@ -252,10 +252,13 @@ namespace HotChocolate.Stitching
                 if (!field.Arguments.TryGetField(argument.Name.Value,
                     out IInputField arg))
                 {
-                    // TODO : RESOURCES
                     throw new QueryException(new Error
                     {
-                        Message = "RESOURCES"
+                        Message = string.Format(
+                            CultureInfo.InvariantCulture,
+                            StitchingResources
+                                .DelegateToRemoteSchemaMiddleware_ArgumentNotFound,
+                            argument.Name.Value)
                     });
                 }
 

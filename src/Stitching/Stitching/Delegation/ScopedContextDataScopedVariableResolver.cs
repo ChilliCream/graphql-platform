@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Delegation
 {
@@ -29,8 +30,8 @@ namespace HotChocolate.Stitching.Delegation
 
             if (!ScopeNames.ScopedContextData.Equals(variable.Scope.Value))
             {
-                // TODO : RESOURCES
-                throw new ArgumentException("NOT SUPPORTED",
+                throw new ArgumentException(StitchingResources
+                    .ScopedContextDataScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 

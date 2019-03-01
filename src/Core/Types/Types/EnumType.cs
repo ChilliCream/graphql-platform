@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -222,9 +224,11 @@ namespace HotChocolate.Types
         {
             if (!Values.Any())
             {
-                // TODO : Resources
                 context.ReportError(new SchemaError(
-                    $"The enum type `{Name}` has no values."));
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.EnumType_NoValues,
+                        Name)));
             }
         }
 

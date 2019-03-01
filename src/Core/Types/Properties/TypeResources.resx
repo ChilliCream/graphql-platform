@@ -132,6 +132,9 @@
   <data name="Edge_CursorIsNull" xml:space="preserve">
     <value>The cursor cannot be null or empty.</value>
   </data>
+  <data name="EnumType_NoValues" xml:space="preserve">
+    <value>The enum type `{0}` has no values.</value>
+  </data>
   <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
     <value>The input object type can only parse object value literals.</value>
   </data>

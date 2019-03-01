@@ -106,6 +106,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The enum type `{0}` has no values..
+        /// </summary>
+        internal static string EnumType_NoValues {
+            get {
+                return ResourceManager.GetString("EnumType_NoValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input object type can only parse object value literals..
         /// </summary>
         internal static string InputObjectType_CannotParseLiteral {
