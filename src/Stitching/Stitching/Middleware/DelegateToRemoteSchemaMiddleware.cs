@@ -192,7 +192,8 @@ namespace HotChocolate.Stitching
             OperationType operationType,
             IEnumerable<SelectionPathComponent> components)
         {
-            IStitchingContext stitchingContext = context.Service<IStitchingContext>();
+            IStitchingContext stitchingContext =
+                context.Service<IStitchingContext>();
 
             ISchema remoteSchema =
                 stitchingContext.GetRemoteSchema(schemaName);
@@ -231,7 +232,7 @@ namespace HotChocolate.Stitching
                         throw new QueryException(new Error
                         {
                             Message = StitchingResources
-                                .DelegationMiddleware_PathElementTypeUnexpected                                
+                                .DelegationMiddleware_PathElementTypeUnexpected
                         });
                     }
                     type = (IComplexOutputType)field.Type.NamedType();
