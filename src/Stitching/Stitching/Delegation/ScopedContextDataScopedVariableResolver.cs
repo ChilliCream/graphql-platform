@@ -31,7 +31,7 @@ namespace HotChocolate.Stitching.Delegation
             if (!ScopeNames.ScopedContextData.Equals(variable.Scope.Value))
             {
                 throw new ArgumentException(StitchingResources
-                    .ScopedContextDataScopedVariableResolver_CannotHandleVariable,
+                    .ScopedCtxDataScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 

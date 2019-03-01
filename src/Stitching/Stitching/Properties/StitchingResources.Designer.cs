@@ -370,9 +370,9 @@ namespace HotChocolate.Stitching.Properties {
         /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle scopedContextData scopes..
         /// </summary>
-        internal static string ScopedContextDataScopedVariableResolver_CannotHandleVariable {
+        internal static string ScopedCtxDataScopedVariableResolver_CannotHandleVariable {
             get {
-                return ResourceManager.GetString("ScopedContextDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
+                return ResourceManager.GetString("ScopedCtxDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
         

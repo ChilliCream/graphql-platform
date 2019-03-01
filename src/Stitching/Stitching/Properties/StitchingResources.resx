@@ -286,7 +286,7 @@
   <data name="Schema_EmptyOrNull" xml:space="preserve">
     <value>The schema mustn't be null or empty.</value>
   </data>
-  <data name="ScopedContextDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+  <data name="ScopedCtxDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
     <value>This resolver can only handle scopedContextData scopes.</value>
   </data>
   <data name="SelectionPathParser_StartOfFileTokenExpected" xml:space="preserve">
