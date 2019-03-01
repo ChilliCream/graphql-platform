@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
         {
             _executionContext = executionContext;
             Source = source;
-            ObjectType = executionContext.Operation.RootType;
+            ObjectType = fieldSelection.Field.DeclaringType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
             Path = Path.New(fieldSelection.ResponseName);
