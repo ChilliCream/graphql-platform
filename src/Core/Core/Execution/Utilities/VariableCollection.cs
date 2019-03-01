@@ -31,7 +31,8 @@ namespace HotChocolate.Execution
             if (!TryGetVariable(variableName, out T variableValue))
             {
                 throw new QueryException(ErrorBuilder.New()
-                    .SetMessage(CoreResources.VariableCollection_VariableNotDeclared)
+                    .SetMessage(CoreResources
+                        .VariableCollection_VariableNotDeclared)
                     .SetExtension(nameof(variableName), variableName)
                     .Build());
             }

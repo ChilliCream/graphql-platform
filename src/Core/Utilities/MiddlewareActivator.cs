@@ -22,14 +22,17 @@ namespace HotChocolate.Utilities
         internal static MiddlewareFactory<TMiddleware, TRequestDelegate>
             CompileFactory<TMiddleware, TRequestDelegate>()
         {
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
-            ParameterExpression nextDelegate = Expression.Parameter(typeof(TRequestDelegate));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression nextDelegate =
+                Expression.Parameter(typeof(TRequestDelegate));
 
             NewExpression createInstance = CreateMiddleware<TRequestDelegate>(
                 typeof(TMiddleware).GetTypeInfo(), services, nextDelegate);
 
-            return Expression.Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
-                createInstance, services, nextDelegate)
+            return Expression
+                .Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
+                    createInstance, services, nextDelegate)
                 .Compile();
         }
 
@@ -46,8 +49,10 @@ namespace HotChocolate.Utilities
                     UtilityResources.MiddlewareActivator_NoInvokeMethod);
             }
 
-            ParameterExpression context = Expression.Parameter(typeof(TContext));
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression context =
+                Expression.Parameter(typeof(TContext));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
             ParameterExpression middlewareInstance = Expression.Parameter(
                 middlewareType.AsType());
 
