@@ -169,7 +169,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\&quot;4\&quot;`) or integer (such as `4`) input value will be accepted as an ID..
+        ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `&quot;4&quot;`) or integer (such as `4`) input value will be accepted as an ID..
         /// </summary>
         internal static string IdType_Description {
             get {
