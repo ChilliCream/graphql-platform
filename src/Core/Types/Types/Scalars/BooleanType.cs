@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -21,7 +22,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResourceHelper.BooleanType_Description();
+            TypeResources.BooleanType_Description;
 
         public override Type ClrType => typeof(bool);
 

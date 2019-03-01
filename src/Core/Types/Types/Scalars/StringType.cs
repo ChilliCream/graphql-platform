@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -23,7 +24,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResourceHelper.StringType_Description();
+            TypeResources.StringType_Description;
 
         public override Type ClrType => typeof(string);
 

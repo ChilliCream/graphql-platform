@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -20,7 +21,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(field));
             }
 
-            T type = default(T);
+            T type = default;
             if (typeReference != null)
             {
                 type = context.GetType<T>(typeReference);

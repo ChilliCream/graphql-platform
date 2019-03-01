@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BooleanType_Description" xml:space="preserve">
+    <value>The `Boolean` scalar type represents `true` or `false`.</value>
+  </data>
+  <data name="ByteType_Description" xml:space="preserve">
+    <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
+  </data>
   <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
     <value>The DataLoader key cannot be null or empty.</value>
   </data>
@@ -125,6 +131,15 @@
   </data>
   <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
     <value>Unable to register a DataLoader with your DataLoader registry.</value>
+  </data>
+  <data name="DateTimeType_Description" xml:space="preserve">
+    <value>The `DateTime` scalar represents an ISO-8601 compliant date time type.</value>
+  </data>
+  <data name="DateType_Description" xml:space="preserve">
+    <value>The `Date` scalar represents an ISO-8601 compliant date type.</value>
+  </data>
+  <data name="DecimalType_Description" xml:space="preserve">
+    <value>The built-in `Decimal` scalar type.</value>
   </data>
   <data name="DirectiveType_UnableToConvert" xml:space="preserve">
     <value>Unable to convert the argument value to the specified type.</value>
@@ -135,11 +150,56 @@
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
   </data>
+  <data name="FloatType_Description" xml:space="preserve">
+    <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
+  </data>
+  <data name="IdType_Description" xml:space="preserve">
+    <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID.</value>
+  </data>
   <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
     <value>The input object type can only parse object value literals.</value>
   </data>
   <data name="InputObjectType_NoFields" xml:space="preserve">
     <value>The input object `{0}` does not have any fields.</value>
+  </data>
+  <data name="IntType_Description" xml:space="preserve">
+    <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
+  </data>
+  <data name="LongType_Description" xml:space="preserve">
+    <value>The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.</value>
+  </data>
+  <data name="MultiplierPathType_Description" xml:space="preserve">
+    <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
+  </data>
+  <data name="NameType_Description" xml:space="preserve">
+    <value>The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types.</value>
+  </data>
+  <data name="Name_Cannot_BeEmpty" xml:space="preserve">
+    <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
+  </data>
+  <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
+    <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
+  </data>
+  <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
+    <value>{0} cannot deserialize the given value.</value>
+  </data>
+  <data name="Scalar_Cannot_ParseLiteral" xml:space="preserve">
+    <value>{0} cannot parse the given literal of type `{1}`.</value>
+  </data>
+  <data name="Scalar_Cannot_ParseValue" xml:space="preserve">
+    <value>{0} cannot parse the given value of type `{1}`.</value>
+  </data>
+  <data name="Scalar_Cannot_Serialize" xml:space="preserve">
+    <value>{0} cannot serialize the given value.</value>
+  </data>
+  <data name="ShortType_Description" xml:space="preserve">
+    <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
+  </data>
+  <data name="StringType_Description" xml:space="preserve">
+    <value>The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.</value>
+  </data>
+  <data name="String_Argument_NullOrEmpty" xml:space="preserve">
+    <value>The `{0}` cannot be null or empty.</value>
   </data>
   <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
     <value>The type structure is invalid.</value>
@@ -152,5 +212,8 @@
   </data>
   <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
     <value>The given type is not a {0}.</value>
+  </data>
+  <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
+    <value>The typeName mustn't be null or empty.</value>
   </data>
 </root>

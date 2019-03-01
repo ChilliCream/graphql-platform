@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResourceHelper.NameType_Description();
+            TypeResources.NameType_Description;
 
         public override Type ClrType => typeof(NameString);
 

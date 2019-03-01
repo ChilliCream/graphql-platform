@@ -61,6 +61,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Boolean` scalar type represents `true` or `false`..
+        /// </summary>
+        internal static string BooleanType_Description {
+            get {
+                return ResourceManager.GetString("BooleanType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255..
+        /// </summary>
+        internal static string ByteType_Description {
+            get {
+                return ResourceManager.GetString("ByteType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DataLoader key cannot be null or empty..
         /// </summary>
         internal static string DataLoaderRegistry_KeyNullOrEmpty {
@@ -84,6 +102,33 @@ namespace HotChocolate.Properties {
         internal static string DataLoaderResolverContextExtensions_UnableToRegister {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_UnableToRegister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `DateTime` scalar represents an ISO-8601 compliant date time type..
+        /// </summary>
+        internal static string DateTimeType_Description {
+            get {
+                return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Date` scalar represents an ISO-8601 compliant date type..
+        /// </summary>
+        internal static string DateType_Description {
+            get {
+                return ResourceManager.GetString("DateType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The built-in `Decimal` scalar type..
+        /// </summary>
+        internal static string DecimalType_Description {
+            get {
+                return ResourceManager.GetString("DecimalType_Description", resourceCulture);
             }
         }
         
@@ -115,6 +160,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)..
+        /// </summary>
+        internal static string FloatType_Description {
+            get {
+                return ResourceManager.GetString("FloatType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\&quot;4\&quot;`) or integer (such as `4`) input value will be accepted as an ID..
+        /// </summary>
+        internal static string IdType_Description {
+            get {
+                return ResourceManager.GetString("IdType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input object type can only parse object value literals..
         /// </summary>
         internal static string InputObjectType_CannotParseLiteral {
@@ -129,6 +192,123 @@ namespace HotChocolate.Properties {
         internal static string InputObjectType_NoFields {
             get {
                 return ResourceManager.GetString("InputObjectType_NoFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1..
+        /// </summary>
+        internal static string IntType_Description {
+            get {
+                return ResourceManager.GetString("IntType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1..
+        /// </summary>
+        internal static string LongType_Description {
+            get {
+                return ResourceManager.GetString("LongType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The multiplier path scalar represents a valid GraphQL multiplier path string..
+        /// </summary>
+        internal static string MultiplierPathType_Description {
+            get {
+                return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The multiplier path scalar represents a valid GraphQL multiplier path string..
+        /// </summary>
+        internal static string Name_Cannot_BeEmpty {
+            get {
+                return ResourceManager.GetString("Name_Cannot_BeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types..
+        /// </summary>
+        internal static string NameType_Description {
+            get {
+                return ResourceManager.GetString("NameType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
+        /// </summary>
+        internal static string Reflection_MemberMust_BeMethodOrProperty {
+            get {
+                return ResourceManager.GetString("Reflection_MemberMust_BeMethodOrProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} cannot deserialize the given value..
+        /// </summary>
+        internal static string Scalar_Cannot_Deserialize {
+            get {
+                return ResourceManager.GetString("Scalar_Cannot_Deserialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} cannot parse the given literal of type `{1}`..
+        /// </summary>
+        internal static string Scalar_Cannot_ParseLiteral {
+            get {
+                return ResourceManager.GetString("Scalar_Cannot_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} cannot parse the given value of type `{1}`..
+        /// </summary>
+        internal static string Scalar_Cannot_ParseValue {
+            get {
+                return ResourceManager.GetString("Scalar_Cannot_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} cannot serialize the given value..
+        /// </summary>
+        internal static string Scalar_Cannot_Serialize {
+            get {
+                return ResourceManager.GetString("Scalar_Cannot_Serialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1..
+        /// </summary>
+        internal static string ShortType_Description {
+            get {
+                return ResourceManager.GetString("ShortType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `{0}` cannot be null or empty..
+        /// </summary>
+        internal static string String_Argument_NullOrEmpty {
+            get {
+                return ResourceManager.GetString("String_Argument_NullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text..
+        /// </summary>
+        internal static string StringType_Description {
+            get {
+                return ResourceManager.GetString("StringType_Description", resourceCulture);
             }
         }
         
@@ -165,6 +345,15 @@ namespace HotChocolate.Properties {
         internal static string TypeExtensions_TypeIsNotOfT {
             get {
                 return ResourceManager.GetString("TypeExtensions_TypeIsNotOfT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string TypeResourceHelper_TypeNameEmptyOrNull {
+            get {
+                return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
             }
         }
     }

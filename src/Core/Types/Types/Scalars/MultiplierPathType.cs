@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResourceHelper.MultiplierPathType_Description();
+            TypeResources.MultiplierPathType_Description;
 
         public override Type ClrType => typeof(MultiplierPathString);
 

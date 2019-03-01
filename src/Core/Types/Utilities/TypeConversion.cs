@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
@@ -132,8 +132,10 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            if (_converters.TryGetValue(from, out var toLookUp)
-                && toLookUp.TryGetValue(to, out var changeType))
+            if (_converters.TryGetValue(from,
+                out ConcurrentDictionary<Type, ChangeType> toLookUp)
+                && toLookUp.TryGetValue(to,
+                out ChangeType changeType))
             {
                 converter = changeType;
                 return true;
@@ -160,7 +162,8 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(converter));
             }
 
-            if (!_converters.TryGetValue(from, out var toLookUp))
+            if (!_converters.TryGetValue(from,
+                out ConcurrentDictionary<Type, ChangeType> toLookUp))
             {
                 toLookUp = new ConcurrentDictionary<Type, ChangeType>();
                 if (!_converters.TryAdd(from, toLookUp))

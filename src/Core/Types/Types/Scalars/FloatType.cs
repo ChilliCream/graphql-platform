@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -22,7 +23,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResourceHelper.FloatType_Description();
+            TypeResources.FloatType_Description;
 
         public override Type ClrType => typeof(double);
 
