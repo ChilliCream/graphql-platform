@@ -3,15 +3,9 @@ query fetch {
     name
     consultant {
       name
+      __typename
     }
-    contracts {
-      id
-      ... on LifeInsuranceContract {
-        premium
-      }
-      ... on SomeOtherContract {
-        expiryDate
-      }
-    }
+    id
+    __typename
   }
 }

@@ -2,6 +2,11 @@ query fetch {
   customer: customerOrConsultant(id: "Q3VzdG9tZXIteDE=") {
     ... customer
     ... consultant
+    ... on Customer {
+      id
+      __typename
+    }
+    __typename
   }
 }
 
@@ -9,18 +14,13 @@ fragment customer on Customer {
   name
   consultant {
     name
+    __typename
   }
-  contracts {
-    id
-    ... on LifeInsuranceContract {
-      premium
-    }
-    ... on SomeOtherContract {
-      expiryDate
-    }
-  }
+  id
+  __typename
 }
 
 fragment consultant on Consultant {
   name
+  __typename
 }
