@@ -146,7 +146,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
         }
 
 

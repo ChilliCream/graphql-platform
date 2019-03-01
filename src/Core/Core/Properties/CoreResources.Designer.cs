@@ -185,5 +185,14 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ValidateQueryMiddleware_NoDocument", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified variable was not declared..
+        /// </summary>
+        internal static string VariableCollection_VariableNotDeclared {
+            get {
+                return ResourceManager.GetString("VariableCollection_VariableNotDeclared", resourceCulture);
+            }
+        }
     }
 }

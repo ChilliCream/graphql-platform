@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -142,8 +144,8 @@ namespace HotChocolate.Types
                 return nt.Name;
             }
 
-            // TODO : Resources
-            throw new ArgumentException("The type structure is invalid.");
+            throw new ArgumentException(
+                TypeResources.TypeExtensions_InvalidStructure);
         }
 
         public static ListType ListType(this IType type)
@@ -158,8 +160,8 @@ namespace HotChocolate.Types
                 return nnlt;
             }
 
-            // TODO : Resources
-            throw new ArgumentException("The type structure is invalid.");
+            throw new ArgumentException(
+                TypeResources.TypeExtensions_InvalidStructure);
         }
 
         public static INamedType NamedType(this IType type)
@@ -184,8 +186,10 @@ namespace HotChocolate.Types
                 return nt;
             }
 
-            // TODO : Resources
-            throw new ArgumentException($"The type is not a {typeof(T).Name}.");
+            throw new ArgumentException(string.Format(
+                CultureInfo.InvariantCulture,
+                TypeResources.TypeExtensions_TypeIsNotOfT,
+                typeof(T).Name));
         }
 
         public static IType ElementType(this IType type)
@@ -201,15 +205,10 @@ namespace HotChocolate.Types
                 {
                     return nl.ElementType;
                 }
-
-                // TODO : Resources
-                throw new InvalidOperationException(
-                    "The specified type is not a valid list type.");
             }
 
-            // TODO : Resources
             throw new ArgumentException(
-                "The specified type is not a list type.",
+                TypeResources.TypeExtensions_NoListType,
                 nameof(type));
         }
 
@@ -295,9 +294,8 @@ namespace HotChocolate.Types
                 return new NamedTypeNode(null, new NameNode(nt.Name));
             }
 
-            // TODO : Resources
             throw new NotSupportedException(
-                "The specified type kind is not supported.");
+                TypeResources.TypeExtensions_KindIsNotSupported);
         }
     }
 }

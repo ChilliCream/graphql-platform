@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -29,10 +30,10 @@ namespace HotChocolate.Execution
 
             if (!TryGetVariable(variableName, out T variableValue))
             {
-                // TODO : Resources
-                throw new QueryException(QueryError.CreateVariableError(
-                    "The specified variable was not declared.",
-                    variableName));
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(CoreResources.VariableCollection_VariableNotDeclared)
+                    .SetExtension(nameof(variableName), variableName)
+                    .Build());
             }
 
             return variableValue;
@@ -59,7 +60,7 @@ namespace HotChocolate.Execution
                 return true;
             }
 
-            variableValue = default(T);
+            variableValue = default;
             return false;
         }
     }

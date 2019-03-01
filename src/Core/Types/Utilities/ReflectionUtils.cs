@@ -40,7 +40,7 @@ namespace HotChocolate.Utilities
             if (member == null)
             {
                 throw new ArgumentException(
-                    TypeResources.Reflection_MemberMust_BeMethodOrProperty(
+                    TypeResourceHelper.Reflection_MemberMust_BeMethodOrProperty(
                         typeof(T).FullName),
                     nameof(expression));
             }

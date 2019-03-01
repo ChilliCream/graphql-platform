@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResources.DecimalType_Description();
+            TypeResourceHelper.DecimalType_Description();
 
         public override Type ClrType => typeof(decimal);
 
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()));
         }
 
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseValue(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
                     Name, value.GetType()));
         }
 
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public override bool TryDeserialize(object serialized, out object value)

@@ -17,6 +17,6 @@
         }
 
         public override string Description =>
-            TypeResources.IntType_Description();
+            TypeResourceHelper.IntType_Description();
     }
 }

@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                 type = context.GetType<T>(typeReference);
                 INamedType namedType = field.DeclaringType as INamedType;
                 context.ReportError(new SchemaError(
-                    TypeResources.Field_Cannot_ResolveType(
+                    TypeResourceHelper.Field_Cannot_ResolveType(
                         field.DeclaringType.Name,
                         field.Name,
                         typeReference),

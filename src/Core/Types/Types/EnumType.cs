@@ -87,7 +87,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()),
                 nameof(literal));
         }
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseValue(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
                 nameof(value));
         }
@@ -142,7 +142,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public object Deserialize(object value)
@@ -153,7 +153,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
         }
 
         public bool TryDeserialize(object serialized, out object value)

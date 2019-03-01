@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal static class TypeResources
+    internal static class TypeResourceHelper
     {
         public static string Scalar_Cannot_Serialize(string typeName)
         {

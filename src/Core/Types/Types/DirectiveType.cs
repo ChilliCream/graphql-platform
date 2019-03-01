@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -153,9 +154,8 @@ namespace HotChocolate.Types
                 return o;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Unable to convert the argument value to the specified type.",
+                TypeResources.DirectiveType_UnableToConvert,
                 nameof(targetType));
         }
 

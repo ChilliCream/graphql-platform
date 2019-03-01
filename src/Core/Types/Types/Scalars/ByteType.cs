@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResources.ByteType_Description();
+            TypeResourceHelper.ByteType_Description();
 
         protected override bool TryParseValue(string s, out byte value) =>
             byte.TryParse(

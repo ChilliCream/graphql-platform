@@ -117,49 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CompleteCompositeType_UnknownSchemaType" xml:space="preserve">
-    <value>Could not resolve the schema type from `{0}`.</value>
+  <data name="MiddlewareActivator_NoInvokeMethod" xml:space="preserve">
+    <value>The provided middleware type must contain an invoke method.</value>
   </data>
-  <data name="CompleteLeadType_UndefinedError" xml:space="preserve">
-    <value>Undefined scalar field serialization error.</value>
-  </data>
-  <data name="CompleteLeafType_CannotConvertValue" xml:space="preserve">
-    <value>The internal resolver value could not be converted to a valid value of `{0}`.</value>
-  </data>
-  <data name="CompleteList_ListTypeInvalid" xml:space="preserve">
-    <value>A list values must implement `{0}` in order to be completed.</value>
-  </data>
-  <data name="GetOperation_InvalidOperationName" xml:space="preserve">
-    <value>The specified operation `{0}` does not exist.</value>
-  </data>
-  <data name="GetOperation_MultipleOperations" xml:space="preserve">
-    <value>Only queries that contain one operation can be executed without specifying the opartion name.</value>
-  </data>
-  <data name="HandleNonNullViolation_Message" xml:space="preserve">
-    <value>Cannot return null for non-nullable field.</value>
-  </data>
-  <data name="QueryExecutor_NoResult" xml:space="preserve">
-    <value>The execution pipeline yielded no query result.</value>
-  </data>
-  <data name="ResolveObjectType_TypeNotSupported" xml:space="preserve">
-    <value>The specified type is not supported.</value>
-  </data>
-  <data name="ResolverContext_ArgumentConversion" xml:space="preserve">
-    <value>Could not convert argument `{0}` from `{1}` to `{2}`.</value>
-  </data>
-  <data name="ResolverContext_CustomPropertyNotExists" xml:space="preserve">
-    <value>The specified property does not exist.</value>
-  </data>
-  <data name="ResolveRootType_DoesNotExist" xml:space="preserve">
-    <value>The specified root type `{0}` does not exist.</value>
-  </data>
-  <data name="ResolverTask_ErrorMessageIsNull" xml:space="preserve">
-    <value>The error message cannot be null or empty.</value>
-  </data>
-  <data name="ValidateQueryMiddleware_NoDocument" xml:space="preserve">
-    <value>The validation middleware expects the query document to be parsed.</value>
-  </data>
-  <data name="VariableCollection_VariableNotDeclared" xml:space="preserve">
-    <value>The specified variable was not declared.</value>
+  <data name="MiddlewareActivator_OneConstructor" xml:space="preserve">
+    <value>Middleware classes must have exactly one public constructor.</value>
   </data>
 </root>

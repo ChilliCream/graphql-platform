@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             if (!IsValidName(value))
             {
                 throw new ArgumentException(
-                    TypeResources.Type_Name_IsNotValid(value),
+                    TypeResourceHelper.Type_Name_IsNotValid(value),
                     nameof(value));
             }
             Value = value;
@@ -309,7 +309,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
+                    TypeResourceHelper.Name_Cannot_BeEmpty(),
                     argumentName);
             }
 

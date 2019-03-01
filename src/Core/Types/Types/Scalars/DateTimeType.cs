@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResources.DateTimeType_Description();
+            TypeResourceHelper.DateTimeType_Description();
 
         public override Type ClrType => typeof(DateTimeOffset);
 
