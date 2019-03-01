@@ -6,5 +6,7 @@ namespace HotChocolate.Stitching
         : IObservable<IRemoteQueryClient>
     {
         IRemoteQueryClient GetRemoteQueryClient(NameString schemaName);
+
+        ISchema GetRemoteSchema(NameString schemaName);
     }
 }

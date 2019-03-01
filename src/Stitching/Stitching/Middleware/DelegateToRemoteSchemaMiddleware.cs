@@ -12,6 +12,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
@@ -61,7 +62,8 @@ namespace HotChocolate.Stitching
             IImmutableStack<SelectionPathComponent> path)
         {
             var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
-                context.Schema);
+                context.Schema,
+                context.Service<IEnumerable<IQueryDelegationRewriter>>());
 
             OperationType operationType =
                 context.Schema.IsRootType(context.ObjectType)

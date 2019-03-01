@@ -30,6 +30,74 @@ namespace HotChocolate.Language
         public SelectionSetNode WithSelections(
             IReadOnlyList<ISelectionNode> selections)
         {
+            if (selections == null)
+            {
+                throw new ArgumentNullException(nameof(selections));
+            }
+
+            return new SelectionSetNode(
+                Location, selections);
+        }
+
+        public SelectionSetNode AddSelection(
+            ISelectionNode selection)
+        {
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            var selections = new List<ISelectionNode>(Selections);
+            selections.Add(selection);
+
+            return new SelectionSetNode(
+                Location, selections);
+        }
+
+        public SelectionSetNode AddSelections(
+            params ISelectionNode[] selection)
+        {
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            var selections = new List<ISelectionNode>(selection);
+            selections.AddRange(selection);
+
+            return new SelectionSetNode(
+                Location, selections);
+        }
+
+        public SelectionSetNode RemoveSelection(
+            ISelectionNode selection)
+        {
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            var selections = new List<ISelectionNode>(Selections);
+            selections.Remove(selection);
+
+            return new SelectionSetNode(
+                Location, selections);
+        }
+
+        public SelectionSetNode RemoveSelections(
+            params ISelectionNode[] selection)
+        {
+            if (selection == null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
+            var selections = new List<ISelectionNode>(Selections);
+            foreach (ISelectionNode node in selection)
+            {
+                selections.Remove(node);
+            }
+
             return new SelectionSetNode(
                 Location, selections);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -46,7 +47,8 @@ namespace HotChocolate.Stitching
                 .OfType<FieldNode>().First();
 
             // act
-            var rewriter = new ExtractFieldQuerySyntaxRewriter(schema);
+            var rewriter = new ExtractFieldQuerySyntaxRewriter(schema,
+                Array.Empty<IQueryDelegationRewriter>());
             ExtractedField extractedField = rewriter.ExtractField(
                 "customer", query, operation, selection,
                 schema.GetType<ObjectType>("Query"));
