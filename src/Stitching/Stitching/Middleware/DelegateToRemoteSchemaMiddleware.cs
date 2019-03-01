@@ -120,7 +120,7 @@ namespace HotChocolate.Stitching
             }
 
             throw new QueryException(
-                StitchingResources.DelegateToRemoteSchemaMiddleware_OnlyQueryResults);
+                StitchingResources.DelegationMiddleware_OnlyQueryResults);
         }
 
         private static object ExtractData(
@@ -215,7 +215,7 @@ namespace HotChocolate.Stitching
                         Message = string.Format(
                             CultureInfo.InvariantCulture,
                             StitchingResources
-                                .DelegateToRemoteSchemaMiddleware_PathElementInvalid,
+                                .DelegationMiddleware_PathElementInvalid,
                             component.Name.Value,
                             type.Name)
                     });
@@ -231,7 +231,7 @@ namespace HotChocolate.Stitching
                         throw new QueryException(new Error
                         {
                             Message = StitchingResources
-                                .DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected                                
+                                .DelegationMiddleware_PathElementTypeUnexpected                                
                         });
                     }
                     type = (IComplexOutputType)field.Type.NamedType();
@@ -257,7 +257,7 @@ namespace HotChocolate.Stitching
                         Message = string.Format(
                             CultureInfo.InvariantCulture,
                             StitchingResources
-                                .DelegateToRemoteSchemaMiddleware_ArgumentNotFound,
+                                .DelegationMiddleware_ArgumentNotFound,
                             argument.Name.Value)
                     });
                 }

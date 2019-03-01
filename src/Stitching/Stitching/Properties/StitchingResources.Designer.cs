@@ -135,36 +135,36 @@ namespace HotChocolate.Stitching.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The path element argument `{0}` was not found..
         /// </summary>
-        internal static string DelegateToRemoteSchemaMiddleware_ArgumentNotFound {
+        internal static string DelegationMiddleware_ArgumentNotFound {
             get {
-                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_ArgumentNotFound", resourceCulture);
+                return ResourceManager.GetString("DelegationMiddleware_ArgumentNotFound", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Only query results are supported in the delegation middleware..
         /// </summary>
-        internal static string DelegateToRemoteSchemaMiddleware_OnlyQueryResults {
+        internal static string DelegationMiddleware_OnlyQueryResults {
             get {
-                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_OnlyQueryResults", resourceCulture);
+                return ResourceManager.GetString("DelegationMiddleware_OnlyQueryResults", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The path element `{0}` has no corresponding field on type `{1}`..
         /// </summary>
-        internal static string DelegateToRemoteSchemaMiddleware_PathElementInvalid {
+        internal static string DelegationMiddleware_PathElementInvalid {
             get {
-                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_PathElementInvalid", resourceCulture);
+                return ResourceManager.GetString("DelegationMiddleware_PathElementInvalid", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The scalar path elements are only allowed at the end..
         /// </summary>
-        internal static string DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected {
+        internal static string DelegationMiddleware_PathElementTypeUnexpected {
             get {
-                return ResourceManager.GetString("DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected", resourceCulture);
+                return ResourceManager.GetString("DelegationMiddleware_PathElementTypeUnexpected", resourceCulture);
             }
         }
         

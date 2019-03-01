@@ -141,16 +141,16 @@
   <data name="DelegateDirectiveType_Description" xml:space="preserve">
     <value>The name of the schema to which this field shall be delegated to.</value>
   </data>
-  <data name="DelegateToRemoteSchemaMiddleware_ArgumentNotFound" xml:space="preserve">
+  <data name="DelegationMiddleware_ArgumentNotFound" xml:space="preserve">
     <value>The path element argument `{0}` was not found.</value>
   </data>
-  <data name="DelegateToRemoteSchemaMiddleware_OnlyQueryResults" xml:space="preserve">
+  <data name="DelegationMiddleware_OnlyQueryResults" xml:space="preserve">
     <value>Only query results are supported in the delegation middleware.</value>
   </data>
-  <data name="DelegateToRemoteSchemaMiddleware_PathElementInvalid" xml:space="preserve">
+  <data name="DelegationMiddleware_PathElementInvalid" xml:space="preserve">
     <value>The path element `{0}` has no corresponding field on type `{1}`.</value>
   </data>
-  <data name="DelegateToRemoteSchemaMiddleware_PathElementTypeUnexpected" xml:space="preserve">
+  <data name="DelegationMiddleware_PathElementTypeUnexpected" xml:space="preserve">
     <value>The scalar path elements are only allowed at the end.</value>
   </data>
   <data name="ExtensionsFilePath_EmptyOrNull" xml:space="preserve">
