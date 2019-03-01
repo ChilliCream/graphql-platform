@@ -50,7 +50,7 @@ namespace HotChocolate.Stitching.Merge
             return current;
         }
 
-        private DocumentNode RemoveDirectives(
+        private static DocumentNode RemoveDirectives(
             DocumentNode document,
             IEnumerable<string> directiveNames)
         {
@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching.Merge
                 directiveNames);
         }
 
-        private DocumentNode RemoveTypes(
+        private static DocumentNode RemoveTypes(
             DocumentNode document,
             IEnumerable<string> directiveNames)
         {
