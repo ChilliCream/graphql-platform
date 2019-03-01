@@ -4,6 +4,7 @@ using Xunit;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Snapshooter;
+using HotChocolate.Stitching.Introspection;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -305,7 +306,144 @@ namespace HotChocolate.Stitching.Merge
                 SnapshotNameExtension.Create("A"));
             SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
                 SnapshotNameExtension.Create("B"));
+        }
 
+        [Fact]
+        public void FieldDefinitionDoesNotHaveSameTypeShape()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: String b2: String } type B { c: String! }");
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type A { b1: String b3: String } type B { c: String }");
+
+            // act
+            DocumentNode merged = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void RenameObjectFieldThatImplementsInterface()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: B } " +
+                    "type B implements D { c: String } " +
+                    "type C implements D { c: String } " +
+                    "interface D { c: String }");
+
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type B { b1: String b3: String } type C { c: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void RenameObjectField()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: B } " +
+                    "type B { c: String } " +
+                    "type C implements D { c: String } " +
+                    "interface D { c: String }");
+
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type B { b1: String b3: String } type C { c: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void RenameInterfaceField()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: B } " +
+                    "type B implements D { c: String } " +
+                    "type C implements D { c: String } " +
+                    "interface D { c: String }");
+
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type B { b1: String b3: String } type C { c: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameField("A", new FieldReference("D", "c"), "c123")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void LastFieldRenameWins()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Parser.Default.Parse(
+                    "type A { b1: B } " +
+                    "type B implements D { c: String } " +
+                    "type C implements D { c: String } " +
+                    "interface D { c: String }");
+
+            DocumentNode schema_b =
+                Parser.Default.Parse(
+                    "type B { b1: String b3: String } type C { c: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .RenameField("A", new FieldReference("C", "c"), "c456")
+                .RenameField("A", new FieldReference("D", "c"), "c789")
+                .Merge();
+
+            DocumentNode b = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .RenameField("A", new FieldReference("D", "c"), "c789")
+                .RenameField("A", new FieldReference("C", "c"), "c456")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot(
+                SnapshotNameExtension.Create("A"));
+            SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
+                SnapshotNameExtension.Create("B"));
         }
     }
 }

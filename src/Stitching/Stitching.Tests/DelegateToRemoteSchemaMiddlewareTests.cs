@@ -21,6 +21,7 @@ using HotChocolate.Stitching.Delegation;
 using FileResource = ChilliCream.Testing.FileResource;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching
 {
@@ -252,7 +253,9 @@ namespace HotChocolate.Stitching
                     .RenameField("customer",
                         new FieldReference("Customer", "name"), "foo")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -303,7 +306,9 @@ namespace HotChocolate.Stitching
                     .RenameField("customer",
                         new FieldReference("Customer", "name"), "foo")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -316,17 +321,24 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 var request = new QueryRequest(@"
-                query a($id: ID!) {
-                    a: customer2(customerId: $id) {
-                        bar: foo
-                        contracts {
+                    query a($id: ID! $bar: String) {
+                        contracts(customerId: $id)
+                        {
                             id
+                            customerId
+                            ... foo
                         }
                     }
-                }");
+
+                    fragment foo on LifeInsuranceContract
+                    {
+                        foo(bar: $bar)
+                    }
+                ");
                 request.VariableValues = new Dictionary<string, object>
                 {
-                    {"id", "Q3VzdG9tZXIteDE="}
+                    {"id", "Q3VzdG9tZXIteDE="},
+                    {"bar", "this variable is passed to remote query!"}
                 };
                 request.Services = scope.ServiceProvider;
 
@@ -353,7 +365,9 @@ namespace HotChocolate.Stitching
                     .RenameType("SomeOtherContract", "Other")
                     .RenameType("LifeInsuranceContract", "Life")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -382,9 +396,8 @@ namespace HotChocolate.Stitching
                 fragment life on Life
                 {
                     premium
-                }
+                }");
 
-                ");
                 request.VariableValues = new Dictionary<string, object>
                 {
                     {"id", "Q3VzdG9tZXIteDE="}
@@ -419,7 +432,9 @@ namespace HotChocolate.Stitching
                     .RenameType("SomeOtherContract", "Other")
                     .RenameType("LifeInsuranceContract", "Life")
                     .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql")));
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -465,6 +480,53 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        [Fact]
+        public async Task ReplaceField()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .IgnoreField("customer",
+                        new FieldReference("Customer", "name"))
+                    .RenameField("customer",
+                        new FieldReference("Customer", "street"), "name")
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($id: ID!) {
+                    a: customer(id: $id) {
+                        name
+                    }
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"id", "Q3VzdG9tZXIteDE="}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         [Fact(Skip = "Fix this issue")]
         public async Task ExtendedScalarAsInAndOutputType()
         {
@@ -479,7 +541,9 @@ namespace HotChocolate.Stitching
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
-                    }));
+                    })
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -525,7 +589,9 @@ namespace HotChocolate.Stitching
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
-                    }));
+                    })
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
 
             IServiceProvider services =
                 serviceCollection.BuildServiceProvider();
@@ -554,6 +620,308 @@ namespace HotChocolate.Stitching
 
             // assert
             Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutation()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputType()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameType("CreateCustomerInput", "CreateCustomerInput2")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedFieldArgument()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameFieldArgument(
+                        "Mutation", "createCustomer", "input", "input2")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input2: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputField()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation {
+                    createCustomer(input: { foo: ""a"" })
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldList()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation {
+                    createCustomers(inputs: [{ foo: ""a"" } { foo: ""b"" }])
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldInVariables()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation a($input: CreateCustomerInput) {
+                    createCustomer(input: $input)
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+            requestBuilder.AddVariableValue("input",
+                new Dictionary<string, object>
+                {
+                    { "foo", "abc" }
+                });
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task StitchedMutationWithRenamedInputFieldInVariablesList()
+        {
+            // arrange
+            var requestBuilder = new QueryRequestBuilder();
+            requestBuilder.SetQuery(@"
+                mutation a($input: [CreateCustomerInput]) {
+                    createCustomers(inputs: $input)
+                    {
+                        customer {
+                            name
+                            contracts {
+                                id
+                            }
+                        }
+                    }
+                }");
+            requestBuilder.AddVariableValue("input",
+                new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "foo", "abc" }
+                    },
+                    new Dictionary<string, object>
+                    {
+                        { "foo", "def" }
+                    }
+                });
+
+            // act
+            IExecutionResult result =
+                await ExecutedMutationWithRenamedInputField(
+                    requestBuilder);
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        public async Task<IExecutionResult>
+            ExecutedMutationWithRenamedInputField(
+                IQueryRequestBuilder requestBuilder)
+        {
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameField(
+                        new FieldReference("CreateCustomerInput", "name"),
+                        "foo")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+
+            using (IServiceScope scope = services.CreateScope())
+            {
+
+                requestBuilder.SetServices(scope.ServiceProvider);
+                return await executor.ExecuteAsync(requestBuilder.Create());
+            }
         }
 
         private IHttpClientFactory CreateRemoteSchemas()

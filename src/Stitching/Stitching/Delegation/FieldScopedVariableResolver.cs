@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
@@ -13,7 +14,8 @@ namespace HotChocolate.Stitching.Delegation
     {
         public VariableValue Resolve(
             IResolverContext context,
-            ScopedVariableNode variable)
+            ScopedVariableNode variable,
+            ITypeNode targetType)
         {
             if (context == null)
             {

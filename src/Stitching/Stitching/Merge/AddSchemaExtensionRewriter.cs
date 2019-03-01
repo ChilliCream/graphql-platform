@@ -50,7 +50,7 @@ namespace HotChocolate.Stitching.Merge
             return current;
         }
 
-        private DocumentNode RemoveDirectives(
+        private static DocumentNode RemoveDirectives(
             DocumentNode document,
             IEnumerable<string> directiveNames)
         {
@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching.Merge
                 directiveNames);
         }
 
-        private DocumentNode RemoveTypes(
+        private static DocumentNode RemoveTypes(
             DocumentNode document,
             IEnumerable<string> directiveNames)
         {
@@ -72,7 +72,7 @@ namespace HotChocolate.Stitching.Merge
                 directiveNames);
         }
 
-        private DocumentNode RemoveDefinitions(
+        private static DocumentNode RemoveDefinitions(
             DocumentNode document,
             Func<DocumentNode, Dictionary<string, IDefinitionNode>> toDict,
             IEnumerable<string> names)
@@ -162,6 +162,8 @@ namespace HotChocolate.Stitching.Merge
             {
                 if (extension is ObjectTypeExtensionNode objectTypeExtension)
                 {
+
+                    current = AddInterfaces(current, objectTypeExtension);
                     current = AddFields(current, objectTypeExtension);
                     current = AddDirectives(current, objectTypeExtension,
                         d => current.WithDirectives(d), context);
@@ -194,6 +196,34 @@ namespace HotChocolate.Stitching.Merge
             return fields == typeDefinition.Fields
                 ? typeDefinition
                 : typeDefinition.WithFields(fields);
+        }
+
+        private static ObjectTypeDefinitionNode AddInterfaces(
+            ObjectTypeDefinitionNode typeDefinition,
+            ObjectTypeExtensionNode typeExtension)
+        {
+            if (typeExtension.Interfaces.Count == 0)
+            {
+                return typeDefinition;
+            }
+
+            var interfaces = new HashSet<string>(
+                typeDefinition.Interfaces.Select(t => t.Name.Value));
+
+            foreach (string interfaceName in
+                typeExtension.Interfaces.Select(t => t.Name.Value))
+            {
+                interfaces.Add(interfaceName);
+            }
+
+            if (interfaces.Count == typeDefinition.Interfaces.Count)
+            {
+                return typeDefinition;
+            }
+
+            return typeDefinition.WithInterfaces(
+                interfaces.Select(n => new NamedTypeNode(new NameNode(n)))
+                    .ToList());
         }
 
         protected override InterfaceTypeDefinitionNode

@@ -1,0 +1,4 @@
+[
+  "type Query {\n  contract(contractId: ID!): Contract\n  contracts(customerId: ID!): [Contract!]\n}\n\ninterface Contract {\n  id: ID!\n}\n\ntype LifeInsuranceContract implements Contract {\n  id: ID!\n  premium: Float\n}\n\ntype SomeOtherContract implements Contract {\n  id: ID!\n  expiryDate: DateTime\n}",
+  "type Query {\n  customer(id: ID!): Customer\n  consultant(id: ID!): Consultant\n  customerOrConsultant(id: ID!): CustomerOrConsultant\n}\n\ntype Customer {\n  id: ID!\n  name: String!\n  consultant: Consultant\n}\n\ntype Consultant {\n  id: ID!\n  name: String!\n}\n\nunion CustomerOrConsultant = Customer | Consultant"
+]

@@ -112,6 +112,11 @@ namespace HotChocolate
         private static void TryAddStitchingContext(
             this IServiceCollection services)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             services.TryAddScoped<IStitchingContext>(
                 s => new StitchingContext(
                     s,
@@ -195,10 +200,33 @@ namespace HotChocolate
             this IServiceCollection services,
             Action<IStitchingBuilder> build)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (build == null)
+            {
+                throw new ArgumentNullException(nameof(build));
+            }
+
             var stitchingBuilder = new StitchingBuilder();
             build(stitchingBuilder);
             stitchingBuilder.Populate(services);
             return services;
+        }
+
+        public static IServiceCollection AddQueryDelegationRewriter<T>(
+            this IServiceCollection services)
+            where T : class, IQueryDelegationRewriter
+
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            return services.AddScoped<IQueryDelegationRewriter, T>();
         }
     }
 }

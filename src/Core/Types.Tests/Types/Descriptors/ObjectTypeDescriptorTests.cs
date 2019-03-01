@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -156,7 +157,7 @@ namespace HotChocolate.Types
             IExecutionResult result = await executor.ExecuteAsync("{ a b c}");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class Foo

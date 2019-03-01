@@ -1,0 +1,12 @@
+{
+  "Data": {
+    "error3": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "query error 3"
+    }
+  ]
+}

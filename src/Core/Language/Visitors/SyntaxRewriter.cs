@@ -87,14 +87,24 @@ namespace HotChocolate.Language
             ListValueNode node,
             TContext context)
         {
-            return node;
+            ListValueNode current = node;
+
+            current = RewriteMany(current, current.Items, context,
+                RewriteValue, current.WithItems);
+
+            return current;
         }
 
         protected virtual ObjectValueNode RewriteObjectValue(
             ObjectValueNode node,
             TContext context)
         {
-            return node;
+            ObjectValueNode current = node;
+
+            current = RewriteMany(current, current.Fields, context,
+                RewriteObjectField, current.WithFields);
+
+            return current;
         }
 
         protected virtual ObjectFieldNode RewriteObjectField(
@@ -127,14 +137,25 @@ namespace HotChocolate.Language
             ListTypeNode node,
             TContext context)
         {
-            return node;
+            ListTypeNode current = node;
+
+            current = Rewrite(current, current.Type, context,
+                RewriteType, current.WithType);
+
+            return current;
         }
 
         protected virtual NonNullTypeNode RewriteNonNullType(
             NonNullTypeNode node,
             TContext context)
         {
-            return node;
+            NonNullTypeNode current = node;
+
+            current = Rewrite(current, current.Type, context,
+                (t, c) => (INullableTypeNode)RewriteType(t, c),
+                current.WithType);
+
+            return current;
         }
 
         protected virtual IValueNode RewriteValue(

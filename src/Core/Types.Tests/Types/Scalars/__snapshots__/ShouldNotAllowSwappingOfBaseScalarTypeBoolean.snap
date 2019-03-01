@@ -1,0 +1,11 @@
+{
+  "Data": {
+    "__type": {
+      "name": "Boolean",
+      "kind": "SCALAR",
+      "description": "The `Boolean` scalar type represents `true` or `false`."
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}

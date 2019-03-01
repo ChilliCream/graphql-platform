@@ -102,7 +102,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                     StringComparison.Ordinal);
             }
 
-            throw new NotSupportedException();
+            return false;
         }
     }
 }

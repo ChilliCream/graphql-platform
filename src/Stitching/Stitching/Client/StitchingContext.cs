@@ -49,6 +49,21 @@ namespace HotChocolate.Stitching.Client
                 schemaName));
         }
 
+        public ISchema GetRemoteSchema(NameString schemaName)
+        {
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            if (_clients.TryGetValue(schemaName, out RemoteQueryClient client))
+            {
+                return client.Executor.Schema;
+            }
+
+            throw new ArgumentException(string.Format(
+                CultureInfo.InvariantCulture,
+                StitchingResources.SchemaName_NotFound,
+                schemaName));
+        }
+
         public IDisposable Subscribe(IObserver<IRemoteQueryClient> observer)
         {
             lock (_sync)

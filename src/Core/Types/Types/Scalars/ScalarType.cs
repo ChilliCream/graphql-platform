@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -9,9 +10,7 @@ namespace HotChocolate.Types
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
     public abstract class ScalarType
-        : INamedOutputType
-        , INamedInputType
-        , ISerializableType
+        : ILeafType
     {
         /// <summary>
         /// Initializes a new instance of the
@@ -148,7 +147,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
         }
 
 

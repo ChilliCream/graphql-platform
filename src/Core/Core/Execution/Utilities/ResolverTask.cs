@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -12,24 +13,23 @@ namespace HotChocolate.Execution
     {
         private readonly IExecutionContext _executionContext;
         private readonly IDictionary<string, object> _result;
+        private readonly ResolverTask _parent;
+        private readonly Action _propagateNonNullViolation;
 
         public ResolverTask(
             IExecutionContext executionContext,
-            ObjectType objectType,
             FieldSelection fieldSelection,
-            Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result,
-            IImmutableDictionary<string, object> scopedContextData)
+            IDictionary<string, object> result)
         {
             _executionContext = executionContext;
             Source = source;
-            ObjectType = objectType;
+            ObjectType = fieldSelection.Field.DeclaringType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
-            Path = path;
+            Path = Path.New(fieldSelection.ResponseName);
             _result = result;
-            ScopedContextData = scopedContextData;
+            ScopedContextData = ImmutableDictionary<string, object>.Empty;
 
             ResolverContext = new ResolverContext(
                 executionContext, this,
@@ -37,6 +37,49 @@ namespace HotChocolate.Execution
 
             FieldDelegate = executionContext.FieldHelper
                 .CreateMiddleware(fieldSelection);
+        }
+
+        private ResolverTask(
+            ResolverTask parent,
+            FieldSelection fieldSelection,
+            Path path,
+            IImmutableStack<object> source,
+            IDictionary<string, object> result,
+            Action propagateNonNullViolation)
+        {
+            _parent = parent;
+            _executionContext = parent._executionContext;
+            Source = source;
+            ObjectType = fieldSelection.Field.DeclaringType;
+            FieldSelection = fieldSelection;
+            FieldType = fieldSelection.Field.Type;
+            Path = path;
+            _result = result;
+            ScopedContextData = parent.ScopedContextData;
+            _propagateNonNullViolation = propagateNonNullViolation;
+
+            ResolverContext = new ResolverContext(
+                parent._executionContext, this,
+                parent._executionContext.RequestAborted);
+
+            FieldDelegate = parent._executionContext.FieldHelper
+                .CreateMiddleware(fieldSelection);
+        }
+
+        public ResolverTask Branch(
+            FieldSelection fieldSelection,
+            Path path,
+            IImmutableStack<object> source,
+            IDictionary<string, object> result,
+            Action propagateNonNullViolation)
+        {
+            return new ResolverTask(
+                this,
+                fieldSelection,
+                path,
+                source,
+                result,
+                propagateNonNullViolation);
         }
 
         public IImmutableStack<object> Source { get; }
@@ -56,7 +99,7 @@ namespace HotChocolate.Execution
         public object ResolverResult { get; set; }
 
         public FieldDelegate FieldDelegate { get; }
-        
+
         public IImmutableDictionary<string, object> ScopedContextData
         {
             get;
@@ -71,22 +114,26 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void IntegrateResult(object value)
+        public void PropagateNonNullViolation()
         {
-            _result[FieldSelection.ResponseName] = value;
-        }
-
-        public void ReportError(string message)
-        {
-            if (string.IsNullOrEmpty(message))
+            if (FieldSelection.Field.Type.IsNonNullType())
             {
-                // TODO : Resources
-                throw new ArgumentException(
-                    "The error message cannot be null or empty.",
-                    nameof(message));
+                if (_propagateNonNullViolation != null)
+                {
+                    _propagateNonNullViolation.Invoke();
+                }
+                else if (_parent != null)
+                {
+                    _parent.PropagateNonNullViolation();
+                }
             }
 
-            ReportError(CreateError(message));
+            SetResult(null);
+        }
+
+        public void SetResult(object value)
+        {
+            _result[FieldSelection.ResponseName] = value;
         }
 
         public void ReportError(IError error)
@@ -104,7 +151,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message cannot be null or empty.",
+                    CoreResources.ResolverTask_ErrorMessageIsNull,
                     nameof(message));
             }
 

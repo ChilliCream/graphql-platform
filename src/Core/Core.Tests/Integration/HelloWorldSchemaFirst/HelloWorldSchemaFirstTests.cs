@@ -2,6 +2,7 @@
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.HelloWorldSchemaFirst
@@ -30,7 +31,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -85,7 +86,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -112,7 +113,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class QueryA

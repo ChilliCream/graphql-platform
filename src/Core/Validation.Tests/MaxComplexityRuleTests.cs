@@ -2,6 +2,8 @@
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -48,7 +50,8 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Equal(hasErrors, result.HasErrors);
-            result.Snapshot("MaxComplexityReached_" + maxAllowedComplexity);
+            result.MatchSnapshot(
+                SnapshotNameExtension.Create(maxAllowedComplexity));
         }
 
         [InlineData(19, false)]
@@ -91,7 +94,7 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Equal(hasErrors, result.HasErrors);
-            result.Snapshot(
+            result.MatchSnapshot(
                 "MaxComplexityReachedWithCustomCalculateDelegate_" +
                 maxAllowedComplexity);
         }
@@ -143,7 +146,7 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Equal(hasErrors, result.HasErrors);
-            result.Snapshot("MaxComplexityReachedWithUnions" + maxAllowedComplexity);
+            result.MatchSnapshot("MaxComplexityReachedWithUnions" + maxAllowedComplexity);
         }
 
         [InlineData(24, false)]
@@ -224,7 +227,7 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.Equal(hasErrors, result.HasErrors);
-            result.Snapshot(
+            result.MatchSnapshot(
                 "MaxComplexityReachedTwoOperations_" +
                 maxAllowedComplexity);
         }

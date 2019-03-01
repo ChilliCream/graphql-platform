@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization
@@ -58,7 +59,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -136,7 +137,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -179,7 +180,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -210,7 +211,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -245,7 +246,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -283,7 +284,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -321,7 +322,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -356,7 +357,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -407,7 +408,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -455,7 +456,7 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private TestServer CreateTestServer(
@@ -491,8 +492,8 @@ namespace HotChocolate.AspNetCore.Authorization
                         age: String @authorize(policy: ""HasAgeDefined"")
                         roles: String @authorize(roles: [""a""])
                         roles_ab: String @authorize(roles: [""a"" ""b""])
-                        piped: String 
-                            @authorize(policy: ""a"") 
+                        piped: String
+                            @authorize(policy: ""a"")
                             @authorize(policy: ""b"")
                     }
                 ",

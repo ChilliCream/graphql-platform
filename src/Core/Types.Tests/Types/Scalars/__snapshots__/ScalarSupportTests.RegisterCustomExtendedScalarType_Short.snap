@@ -1,0 +1,11 @@
+{
+  "Data": {
+    "__type": {
+      "name": "Short",
+      "kind": "SCALAR",
+      "description": "Overridden short"
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}

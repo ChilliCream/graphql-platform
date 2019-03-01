@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+using System.Globalization;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -11,7 +12,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResources.LongType_Description();
+            TypeResources.LongType_Description;
 
         protected override bool TryParseValue(string s, out long value) =>
             long.TryParse(

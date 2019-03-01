@@ -1,5 +1,6 @@
 ﻿using ChilliCream.Testing;
 using HotChocolate.Execution;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.Directives
@@ -17,7 +18,7 @@ namespace HotChocolate.Integration.Directives
                 "{ bar baz }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -31,7 +32,7 @@ namespace HotChocolate.Integration.Directives
                 "{ bar baz @constant(value: \"baz\") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private static ISchema CreateSchema()

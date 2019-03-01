@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -38,8 +39,8 @@ namespace HotChocolate.Language
                     return RewriteInlineFragment(inline, context);
 
                 default:
-                    // TODO: Exception
-                    throw new Exception();
+                    throw new NotSupportedException(
+                        LangResources.QuerySyntaxRewriter_NotSupported);
             }
         }
 

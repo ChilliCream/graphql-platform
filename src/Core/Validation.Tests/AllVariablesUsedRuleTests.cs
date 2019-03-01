@@ -187,5 +187,147 @@ namespace HotChocolate.Validation
                     "The following variables were not used: " +
                     "extra.", t.Message));
         }
+
+        [Fact]
+        public void VariableUsedAndDeclared()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableIsDefined($atOtherHomes: Boolean)
+                {
+                    dog {
+                        isHousetrained(atOtherHomes: $atOtherHomes)
+                    }
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+
+        [Fact]
+        public void VariableUsedAndNotDeclared()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableIsDefined
+                {
+                    dog {
+                        isHousetrained(atOtherHomes: $atOtherHomes)
+                    }
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not declared: " +
+                    "atOtherHomes.", t.Message));
+        }
+
+        [Fact]
+        public void VariableUsedAndNotDeclared2()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableIsNotDefinedUsedInNestedFragment {
+                    dog {
+                        ...outerHousetrainedFragment
+                    }
+                }
+
+                fragment outerHousetrainedFragment on Dog {
+                    ...isHousetrainedFragment
+                }
+
+                fragment isHousetrainedFragment on Dog {
+                    isHousetrained(atOtherHomes: $atOtherHomes)
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not declared: " +
+                    "atOtherHomes.", t.Message));
+        }
+
+        [Fact]
+        public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsed()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query housetrainedQueryOne($atOtherHomes: Boolean) {
+                    dog {
+                        ...isHousetrainedFragment
+                    }
+                }
+
+                query housetrainedQueryTwo($atOtherHomes: Boolean) {
+                    dog {
+                        ...isHousetrainedFragment
+                    }
+                }
+
+                query housetrainedQueryThree {
+                    dog {
+                        isHousetrained(atOtherHomes: true)
+                    }
+                }
+
+                fragment isHousetrainedFragment on Dog {
+                    isHousetrained(atOtherHomes: $atOtherHomes)
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
+        [Fact]
+        public void VarsMustBeDefinedInAllOperationsInWhichAFragmentIsUsedErr()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query variableIsNotDefinedUsedInNestedFragment {
+                    dog {
+                        ...outerHousetrainedFragment
+                    }
+                }
+
+                fragment outerHousetrainedFragment on Dog {
+                    ...isHousetrainedFragment
+                }
+
+                fragment isHousetrainedFragment on Dog {
+                    isHousetrained(atOtherHomes: $atOtherHomes)
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.True(result.HasErrors);
+            Assert.Collection(result.Errors,
+                t => Assert.Equal(
+                    "The following variables were not declared: " +
+                    "atOtherHomes.", t.Message));
+        }
     }
 }

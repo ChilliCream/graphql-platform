@@ -2,15 +2,14 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
-using HotChocolate.Stitching.Merge;
-using System.Reflection;
-using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Merge.Rewriters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching
 {
@@ -225,6 +224,14 @@ namespace HotChocolate.Stitching
         public static IStitchingBuilder IgnoreField(
             this IStitchingBuilder builder,
             NameString schemaName,
+            NameString typeName,
+            NameString fieldName) =>
+            IgnoreField(builder, schemaName,
+                new FieldReference(typeName, fieldName));
+
+        public static IStitchingBuilder IgnoreField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
             FieldReference field)
         {
             if (builder == null)
@@ -282,6 +289,15 @@ namespace HotChocolate.Stitching
 
         public static IStitchingBuilder RenameField(
             this IStitchingBuilder builder,
+            NameString typeName,
+            NameString fieldName,
+            NameString newFieldName) =>
+            RenameField(builder,
+                new FieldReference(typeName, fieldName),
+                newFieldName);
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
             FieldReference field,
             NameString newFieldName)
         {
@@ -305,6 +321,17 @@ namespace HotChocolate.Stitching
         public static IStitchingBuilder RenameField(
             this IStitchingBuilder builder,
             NameString schemaName,
+            NameString typeName,
+            NameString fieldName,
+            NameString newFieldName) =>
+            RenameField(builder,
+                schemaName,
+                new FieldReference(typeName, fieldName),
+                newFieldName);
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
             FieldReference field,
             NameString newFieldName)
         {
@@ -324,6 +351,85 @@ namespace HotChocolate.Stitching
             return builder.AddTypeRewriter(
                 new RenameFieldRewriter(
                     schemaName, field, newFieldName));
+        }
+
+        public static IStitchingBuilder RenameFieldArgument(
+            this IStitchingBuilder builder,
+            NameString typeName,
+            NameString fieldName,
+            NameString argumentName,
+            NameString newArgumentName) =>
+            RenameField(builder,
+                new FieldReference(typeName, fieldName),
+                argumentName,
+                newArgumentName);
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            FieldReference field,
+            NameString argumentName,
+            NameString newArgumentName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            argumentName.EnsureNotEmpty(nameof(argumentName));
+            newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
+
+            return builder.AddTypeRewriter(
+                new RenameFieldArgumentRewriter(
+                    field,
+                    argumentName,
+                    newArgumentName));
+        }
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            NameString typeName,
+            NameString fieldName,
+            NameString argumentName,
+            NameString newArgumentName) =>
+            RenameField(builder,
+                schemaName,
+                new FieldReference(typeName, fieldName),
+                argumentName,
+                newArgumentName);
+
+        public static IStitchingBuilder RenameField(
+            this IStitchingBuilder builder,
+            NameString schemaName,
+            FieldReference field,
+            NameString argumentName,
+            NameString newArgumentName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+            argumentName.EnsureNotEmpty(nameof(argumentName));
+            newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
+
+            return builder.AddTypeRewriter(
+                new RenameFieldArgumentRewriter(
+                    schemaName,
+                    field,
+                    argumentName,
+                    newArgumentName));
         }
 
         public static IStitchingBuilder AddTypeRewriter(

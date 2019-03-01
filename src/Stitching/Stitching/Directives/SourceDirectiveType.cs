@@ -20,6 +20,7 @@ namespace HotChocolate.Stitching
                 .Location(DirectiveLocation.InputObject)
                 .Location(DirectiveLocation.FieldDefinition)
                 .Location(DirectiveLocation.InputFieldDefinition)
+                .Location(DirectiveLocation.ArgumentDefinition)
                 .Location(DirectiveLocation.EnumValue);
 
             descriptor.Repeatable();
