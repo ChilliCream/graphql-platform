@@ -105,8 +105,8 @@ namespace HotChocolate.Execution
 
             if (eventRegistry == null)
             {
-                throw new QueryException(new QueryError(
-                    CoreResources.SubscriptionExecutionStrategy_NoEventRegistry));
+                throw new QueryException(new QueryError(CoreResources
+                    .SubscriptionExecutionStrategy_NoEventRegistry));
             }
 
             return eventRegistry.SubscribeAsync(@event);
