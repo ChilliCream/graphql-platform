@@ -48,7 +48,7 @@ namespace HotChocolate.Stitching
         /// <param name="selectionSet">
         /// The list of selections that shall be added to the delegation query.
         /// </param>
-        public SelectionSetNode OnRewriteSelectionSet(
+        public virtual SelectionSetNode OnRewriteSelectionSet(
             NameString targetSchemaName,
             IOutputType outputType,
             IOutputField outputField,

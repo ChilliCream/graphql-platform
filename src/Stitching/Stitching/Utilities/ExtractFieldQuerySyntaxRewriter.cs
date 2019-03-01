@@ -74,16 +74,16 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(node.Name.Value,
+                && type.Fields.TryGetField(current.Name.Value,
                     out IOutputField field))
             {
                 Context cloned = context.Clone();
                 cloned.OutputField = field;
 
                 current = RewriteFieldName(
-                    node, field, context);
+                    current, field, context);
 
-                current = Rewrite(current, node.Arguments, cloned,
+                current = Rewrite(current, current.Arguments, cloned,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
 
@@ -124,7 +124,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             FieldNode current = node;
 
-            if (node.SelectionSet != null
+            if (current.SelectionSet != null
                 && field.Type.NamedType() is INamedOutputType n)
             {
                 Context cloned = context.Clone();
@@ -133,7 +133,7 @@ namespace HotChocolate.Stitching.Utilities
                 current = Rewrite
                 (
                     current,
-                    node.SelectionSet,
+                    current.SelectionSet,
                     cloned,
                     RewriteSelectionSet,
                     current.WithSelectionSet
@@ -147,6 +147,11 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode node,
             Context context)
         {
+            if (_rewriters.Length == 0)
+            {
+                return node;
+            }
+
             FieldNode current = node;
 
             for (int i = 0; i < _rewriters.Length; i++)
@@ -173,19 +178,25 @@ namespace HotChocolate.Stitching.Utilities
                 _dependencyResolver.GetFieldDependencies(
                     context.Document, current, context.TypeContext);
 
-            RemoveDelegationFields(node, context, selections);
+            RemoveDelegationFields(current, context, selections);
             AddDependencies(context.TypeContext, selections, dependencies);
             selections.Add(CreateField(WellKnownFieldNames.TypeName));
             current = current.WithSelections(selections);
             current = base.RewriteSelectionSet(current, context);
+            current = OnRewriteSelectionSet(current, context);
 
-            return OnRewriteSelectionSet(node, context);
+            return current;
         }
 
         private SelectionSetNode OnRewriteSelectionSet(
             SelectionSetNode node,
             Context context)
         {
+            if (_rewriters.Length == 0)
+            {
+                return node;
+            }
+
             SelectionSetNode current = node;
 
             for (int i = 0; i < _rewriters.Length; i++)
@@ -201,12 +212,13 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         protected override ArgumentNode RewriteArgument(
-            ArgumentNode node, Context context)
+            ArgumentNode node,
+            Context context)
         {
             ArgumentNode current = node;
 
             if (context.OutputField != null
-                && context.OutputField.Arguments.TryGetField(node.Name.Value,
+                && context.OutputField.Arguments.TryGetField(current.Name.Value,
                 out IInputField inputField))
             {
                 Context cloned = context.Clone();
@@ -215,7 +227,7 @@ namespace HotChocolate.Stitching.Utilities
 
                 if (inputField.TryGetSourceDirective(context.Schema,
                     out SourceDirective sourceDirective)
-                    && !sourceDirective.Name.Equals(node.Name.Value))
+                    && !sourceDirective.Name.Equals(current.Name.Value))
                 {
                     current = current.WithName(
                         new NameNode(sourceDirective.Name));
@@ -228,14 +240,16 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         protected override ObjectFieldNode RewriteObjectField(
-            ObjectFieldNode node, Context context)
+            ObjectFieldNode node,
+            Context context)
         {
+            ObjectFieldNode current = node;
+
             if (context.InputType != null
                 && context.InputType.NamedType() is InputObjectType inputType
-                && inputType.Fields.TryGetField(node.Name.Value,
+                && inputType.Fields.TryGetField(current.Name.Value,
                 out InputField inputField))
             {
-                ObjectFieldNode current = node;
 
                 Context cloned = context.Clone();
                 cloned.InputField = inputField;
@@ -243,17 +257,16 @@ namespace HotChocolate.Stitching.Utilities
 
                 if (inputField.TryGetSourceDirective(context.Schema,
                     out SourceDirective sourceDirective)
-                    && !sourceDirective.Name.Equals(node.Name.Value))
+                    && !sourceDirective.Name.Equals(current.Name.Value))
                 {
                     current = current.WithName(
                         new NameNode(sourceDirective.Name));
                 }
 
-                current = base.RewriteObjectField(current, cloned);
-                return current;
+                return base.RewriteObjectField(current, cloned);
             }
 
-            return base.RewriteObjectField(node, context);
+            return base.RewriteObjectField(current, context);
         }
 
         private static void RemoveDelegationFields(

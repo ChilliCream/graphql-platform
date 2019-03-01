@@ -1,0 +1,17 @@
+query fetch {
+  customer(id: "Q3VzdG9tZXIteDE=") {
+    name
+    consultant {
+      name
+    }
+    contracts {
+      id
+      ... on LifeInsuranceContract {
+        premium
+      }
+      ... on SomeOtherContract {
+        expiryDate
+      }
+    }
+  }
+}
