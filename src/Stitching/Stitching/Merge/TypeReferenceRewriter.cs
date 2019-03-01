@@ -67,6 +67,9 @@ namespace HotChocolate.Stitching.Merge
 
             var queue = new Queue<NameString>(types.Keys);
 
+            var context = new RenameFieldsContext(
+                types, fieldsToRename, schemaName);
+
             while (queue.Count > 0)
             {
                 string name = queue.Dequeue();
@@ -74,12 +77,10 @@ namespace HotChocolate.Stitching.Merge
                 switch (types[name])
                 {
                     case ObjectTypeDefinitionNode objectType:
-                        RenameObjectField(objectType, types,
-                            fieldsToRename, schemaName);
+                        RenameObjectField(objectType, context);
                         break;
                     case InterfaceTypeDefinitionNode interfaceType:
-                        RenameInterfaceField(interfaceType, types,
-                            fieldsToRename, schemaName);
+                        RenameInterfaceField(interfaceType, context);
                         break;
                     default:
                         throw new NotSupportedException();
@@ -91,26 +92,24 @@ namespace HotChocolate.Stitching.Merge
 
         private static void RenameObjectField(
             ObjectTypeDefinitionNode objectType,
-            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
-            IDictionary<FieldDefinitionNode, NameString> renamedFields,
-            NameString schemaName)
+            RenameFieldsContext renameContext)
         {
             IReadOnlyCollection<InterfaceTypeDefinitionNode> interfaceTypes =
-                GetInterfaceTypes(objectType, types);
+                GetInterfaceTypes(objectType, renameContext.Types);
 
             foreach (FieldDefinitionNode fieldDefinition in
                 objectType.Fields)
             {
                 NameString originalName =
-                    fieldDefinition.GetOriginalName(schemaName);
+                    fieldDefinition.GetOriginalName(renameContext.SchemaName);
                 if (!originalName.Equals(fieldDefinition.Name.Value))
                 {
                     foreach (InterfaceTypeDefinitionNode interfaceType in
                         GetInterfacesThatProvideFieldDefinition(
                             originalName, interfaceTypes))
                     {
-                        RenameInterfaceField(interfaceType, types,
-                            renamedFields, schemaName, originalName,
+                        RenameInterfaceField(interfaceType,
+                            renameContext, originalName,
                             fieldDefinition.Name.Value);
                     }
                 }
@@ -159,61 +158,59 @@ namespace HotChocolate.Stitching.Merge
 
         private static void RenameInterfaceField(
             InterfaceTypeDefinitionNode interfaceType,
-            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
-            IDictionary<FieldDefinitionNode, NameString> renamedFields,
-            NameString schemaName)
+            RenameFieldsContext renameContext)
         {
             foreach (FieldDefinitionNode fieldDefinition in
                 interfaceType.Fields)
             {
                 NameString originalName =
-                    fieldDefinition.GetOriginalName(schemaName);
+                    fieldDefinition.GetOriginalName(renameContext.SchemaName);
                 if (!originalName.Equals(fieldDefinition.Name.Value))
                 {
-                    RenameInterfaceField(interfaceType, types, renamedFields,
-                        schemaName, originalName, fieldDefinition.Name.Value);
+                    RenameInterfaceField(
+                        interfaceType, renameContext,
+                        originalName, fieldDefinition.Name.Value);
                 }
             }
         }
 
         private static void RenameInterfaceField(
             InterfaceTypeDefinitionNode interfaceType,
-            IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
-            IDictionary<FieldDefinitionNode, NameString> renamedFields,
-            NameString schemaName,
+            RenameFieldsContext renameContext,
             NameString originalFieldName,
             NameString newFieldName)
         {
-            List<ObjectTypeDefinitionNode> objectTypes = types.Values
-                .OfType<ObjectTypeDefinitionNode>()
-                .Where(t => t.Interfaces.Select(i => i.Name.Value)
-                    .Any(n => string.Equals(n,
-                        interfaceType.Name.Value,
-                        StringComparison.Ordinal)))
-                .ToList();
+            List<ObjectTypeDefinitionNode> objectTypes =
+                renameContext.Types.Values
+                    .OfType<ObjectTypeDefinitionNode>()
+                    .Where(t => t.Interfaces.Select(i => i.Name.Value)
+                        .Any(n => string.Equals(n,
+                            interfaceType.Name.Value,
+                            StringComparison.Ordinal)))
+                    .ToList();
 
-            AddNewFieldName(interfaceType, renamedFields,
-                schemaName, originalFieldName, newFieldName);
+            AddNewFieldName(interfaceType, renameContext,
+                originalFieldName, newFieldName);
 
             foreach (ObjectTypeDefinitionNode objectType in objectTypes)
             {
-                AddNewFieldName(objectType, renamedFields,
-                    schemaName, originalFieldName, newFieldName);
+                AddNewFieldName(objectType, renameContext,
+                    originalFieldName, newFieldName);
             }
         }
 
         private static void AddNewFieldName(
             ComplexTypeDefinitionNodeBase type,
-            IDictionary<FieldDefinitionNode, NameString> renamedFields,
-            NameString schemaName,
+            RenameFieldsContext renameContext,
             NameString originalFieldName,
             NameString newFieldName)
         {
             FieldDefinitionNode fieldDefinition = type.Fields.FirstOrDefault(
-                t => originalFieldName.Equals(t.GetOriginalName(schemaName)));
+                t => originalFieldName.Equals(t.GetOriginalName(
+                    renameContext.SchemaName)));
             if (fieldDefinition != null)
             {
-                renamedFields[fieldDefinition] = newFieldName;
+                renameContext.RenamedFields[fieldDefinition] = newFieldName;
             }
         }
 
@@ -323,6 +320,28 @@ namespace HotChocolate.Stitching.Merge
 
             public IReadOnlyDictionary<FieldDefinitionNode, NameString>
             FieldNames
+            { get; }
+        }
+
+        private class RenameFieldsContext
+        {
+            public RenameFieldsContext(
+                IDictionary<NameString, ComplexTypeDefinitionNodeBase> types,
+                IDictionary<FieldDefinitionNode, NameString> renamedFields,
+                NameString schemaName)
+            {
+                Types = types;
+                RenamedFields = renamedFields;
+                SchemaName = schemaName;
+            }
+
+            public IDictionary<NameString, ComplexTypeDefinitionNodeBase> Types
+            { get; }
+
+            public IDictionary<FieldDefinitionNode, NameString> RenamedFields
+            { get; }
+
+            public NameString SchemaName
             { get; }
         }
     }
