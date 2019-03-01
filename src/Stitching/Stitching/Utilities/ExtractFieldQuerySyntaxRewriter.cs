@@ -96,7 +96,7 @@ namespace HotChocolate.Stitching.Utilities
             return current;
         }
 
-        private FieldNode RewriteFieldName(
+        private static FieldNode RewriteFieldName(
             FieldNode node,
             IOutputField field,
             Context context)
