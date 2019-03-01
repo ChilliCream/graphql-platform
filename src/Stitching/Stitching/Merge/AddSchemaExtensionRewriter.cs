@@ -72,7 +72,7 @@ namespace HotChocolate.Stitching.Merge
                 directiveNames);
         }
 
-        private DocumentNode RemoveDefinitions(
+        private static DocumentNode RemoveDefinitions(
             DocumentNode document,
             Func<DocumentNode, Dictionary<string, IDefinitionNode>> toDict,
             IEnumerable<string> names)

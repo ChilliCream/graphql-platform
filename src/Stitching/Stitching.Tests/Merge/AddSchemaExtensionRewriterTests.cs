@@ -261,5 +261,93 @@ namespace HotChocolate.Stitching.Merge
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
         }
+
+        [Fact]
+        public void InputObjectType_AddScalarField()
+        {
+            // arrange
+            const string schema = "input Foo { bar: String }";
+            const string extensions = "extend input Foo { baz: Int }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputObjectType_AddObjectField()
+        {
+            // arrange
+            const string schema = "input Foo { bar: String }";
+            const string extensions = "extend input Foo { baz: Bar } " +
+                "input Bar { baz: String }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputObjectType_AddDirectives()
+        {
+            // arrange
+            const string schema = "input Foo { bar: String } " +
+                "directive @foo on OBJECT";
+            const string extensions = "extend input Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputObjectType_AddDuplicateDirectives()
+        {
+            // arrange
+            const string schema = "input Foo @foo { bar: String } " +
+                "directive @foo on OBJECT";
+            const string extensions = "extend input Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Parser.Default.Parse(schema),
+                  Parser.Default.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void InputObjectType_AddUndeclaredDirectives()
+        {
+            // arrange
+            const string schema = "input Foo @foo { bar: String }";
+            const string extensions = "extend input Foo @foo";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            Action action = () => rewriter.AddExtensions(
+                  Parser.Default.Parse(schema),
+                  Parser.Default.Parse(extensions));
+
+            // assert
+            Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
+        }
     }
 }
