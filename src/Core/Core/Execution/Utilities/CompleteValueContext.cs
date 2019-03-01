@@ -114,9 +114,10 @@ namespace HotChocolate.Execution
             foreach (FieldSelection field in fields)
             {
                 _enqueueTask(_resolverTask.Branch(
-                    objectType, field,
+                    field,
                     Path.Append(field.ResponseName),
-                    source, objectResult,
+                    source,
+                    objectResult,
                     CreateListNonNullViolationPropagation(
                         _resolverTask, SetElementNull)));
             }

@@ -41,7 +41,6 @@ namespace HotChocolate.Execution
 
         private ResolverTask(
             ResolverTask parent,
-            ObjectType objectType,
             FieldSelection fieldSelection,
             Path path,
             IImmutableStack<object> source,
@@ -51,7 +50,7 @@ namespace HotChocolate.Execution
             _parent = parent;
             _executionContext = parent._executionContext;
             Source = source;
-            ObjectType = objectType;
+            ObjectType = fieldSelection.Field.DeclaringType;
             FieldSelection = fieldSelection;
             FieldType = fieldSelection.Field.Type;
             Path = path;
@@ -68,7 +67,6 @@ namespace HotChocolate.Execution
         }
 
         public ResolverTask Branch(
-            ObjectType objectType,
             FieldSelection fieldSelection,
             Path path,
             IImmutableStack<object> source,
@@ -77,7 +75,6 @@ namespace HotChocolate.Execution
         {
             return new ResolverTask(
                 this,
-                objectType,
                 fieldSelection,
                 path,
                 source,
@@ -137,7 +134,7 @@ namespace HotChocolate.Execution
         public void SetResult(object value)
         {
             _result[FieldSelection.ResponseName] = value;
-        }       
+        }
 
         public void ReportError(IError error)
         {
